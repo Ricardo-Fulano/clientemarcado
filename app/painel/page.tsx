@@ -34,7 +34,6 @@ export default function Painel() {
 
   return (
     <main className="min-h-screen bg-zinc-950 text-white">
-      {/* Navbar */}
       <nav className="flex items-center justify-between px-8 py-5 border-b border-zinc-800 bg-black">
         <h1 className="text-xl font-bold">ClienteMarcado</h1>
         <button
@@ -45,16 +44,10 @@ export default function Painel() {
         </button>
       </nav>
 
-      {/* Conteúdo */}
       <div className="max-w-5xl mx-auto px-6 py-10">
-        <h2 className="text-2xl font-bold mb-2">
-          Bem-vindo ao seu painel 👋
-        </h2>
-        <p className="text-zinc-400 mb-10">
-          {usuario?.email}
-        </p>
+        <h2 className="text-2xl font-bold mb-2">Bem-vindo ao seu painel 👋</h2>
+        <p className="text-zinc-400 mb-10">{usuario?.email}</p>
 
-        {/* Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6">
             <p className="text-zinc-400 text-sm mb-1">Agendamentos hoje</p>
@@ -70,24 +63,23 @@ export default function Painel() {
           </div>
         </div>
 
-        {/* Menu rápido */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-8">
-          <button className="bg-zinc-900 border border-zinc-800 hover:border-orange-500 rounded-2xl p-6 text-left transition">
+          <a href="/painel/servicos" className="bg-zinc-900 border border-zinc-800 hover:border-orange-500 rounded-2xl p-6 text-left transition">
             <p className="text-lg font-semibold mb-1">Meus serviços</p>
             <p className="text-zinc-400 text-sm">Cadastre e edite seus serviços e preços</p>
-          </button>
-          <button className="bg-zinc-900 border border-zinc-800 hover:border-orange-500 rounded-2xl p-6 text-left transition">
+          </a>
+          <a href="/painel/profissionais" className="bg-zinc-900 border border-zinc-800 hover:border-orange-500 rounded-2xl p-6 text-left transition">
             <p className="text-lg font-semibold mb-1">Minha equipe</p>
             <p className="text-zinc-400 text-sm">Gerencie seus profissionais e horários</p>
-          </button>
-          <button className="bg-zinc-900 border border-zinc-800 hover:border-orange-500 rounded-2xl p-6 text-left transition">
+          </a>
+          <a href="/painel/agenda" className="bg-zinc-900 border border-zinc-800 hover:border-orange-500 rounded-2xl p-6 text-left transition">
             <p className="text-lg font-semibold mb-1">Agenda</p>
             <p className="text-zinc-400 text-sm">Veja e gerencie seus agendamentos</p>
-          </button>
-          <button className="bg-zinc-900 border border-zinc-800 hover:border-orange-500 rounded-2xl p-6 text-left transition">
+          </a>
+          <a href="/painel/minha-pagina" className="bg-zinc-900 border border-zinc-800 hover:border-orange-500 rounded-2xl p-6 text-left transition">
             <p className="text-lg font-semibold mb-1">Minha página</p>
             <p className="text-zinc-400 text-sm">Veja como seus clientes te enxergam</p>
-          </button>
+          </a>
         </div>
       </div>
     </main>
