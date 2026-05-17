@@ -2,33 +2,25 @@
 import { useState } from "react";
 import { supabase } from "../lib/supabase";
 
-export default function Cadastro() {
-  const [nomeNegocio, setNomeNegocio] = useState("");
-  const [nomeUsuario, setNomeUsuario] = useState("");
+export default function Login() {
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
   const [loading, setLoading] = useState(false);
   const [mensagem, setMensagem] = useState("");
 
-  async function handleCadastro() {
+  async function handleLogin() {
     setLoading(true);
     setMensagem("");
 
-    const { error } = await supabase.auth.signUp({
+    const { error } = await supabase.auth.signInWithPassword({
       email,
       password: senha,
-      options: {
-        data: {
-          nome_negocio: nomeNegocio,
-          nome_usuario: nomeUsuario,
-        },
-      },
     });
 
     if (error) {
-      setMensagem("Erro: " + error.message);
+      setMensagem("E-mail ou senha incorretos.");
     } else {
-      setMensagem("Conta criada! Verifique seu e-mail para confirmar.");
+      window.location.href = "/painel";
     }
 
     setLoading(false);
@@ -37,37 +29,16 @@ export default function Cadastro() {
   return (
     <main className="min-h-screen bg-black text-white flex items-center justify-center px-4">
       <div className="w-full max-w-md">
+
         <div className="text-center mb-8">
           <a href="/" className="text-2xl font-bold text-white">
             ClienteMarcado
           </a>
-          <p className="text-zinc-400 mt-2">Crie sua conta gratuitamente</p>
+          <p className="text-zinc-400 mt-2">Entre na sua conta</p>
         </div>
 
         <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-8">
           <div className="flex flex-col gap-4">
-
-            <div>
-              <label className="text-sm text-zinc-400 mb-1 block">Nome do negócio</label>
-              <input
-                type="text"
-                placeholder="Ex: Barbearia do João"
-                value={nomeNegocio}
-                onChange={(e) => setNomeNegocio(e.target.value)}
-                className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-4 py-3 text-white placeholder-zinc-500 focus:outline-none focus:border-orange-500"
-              />
-            </div>
-
-            <div>
-              <label className="text-sm text-zinc-400 mb-1 block">Seu nome</label>
-              <input
-                type="text"
-                placeholder="Ex: João Silva"
-                value={nomeUsuario}
-                onChange={(e) => setNomeUsuario(e.target.value)}
-                className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-4 py-3 text-white placeholder-zinc-500 focus:outline-none focus:border-orange-500"
-              />
-            </div>
 
             <div>
               <label className="text-sm text-zinc-400 mb-1 block">E-mail</label>
@@ -84,7 +55,7 @@ export default function Cadastro() {
               <label className="text-sm text-zinc-400 mb-1 block">Senha</label>
               <input
                 type="password"
-                placeholder="Mínimo 6 caracteres"
+                placeholder="Sua senha"
                 value={senha}
                 onChange={(e) => setSenha(e.target.value)}
                 className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-4 py-3 text-white placeholder-zinc-500 focus:outline-none focus:border-orange-500"
@@ -92,26 +63,27 @@ export default function Cadastro() {
             </div>
 
             {mensagem && (
-              <p className="text-sm text-center text-orange-400">{mensagem}</p>
+              <p className="text-sm text-center text-red-400">{mensagem}</p>
             )}
 
             <button
-              onClick={handleCadastro}
+              onClick={handleLogin}
               disabled={loading}
               className="w-full bg-orange-500 hover:bg-orange-600 text-white py-3 rounded-lg font-semibold transition mt-2 disabled:opacity-50"
             >
-              {loading ? "Criando conta..." : "Criar minha conta"}
+              {loading ? "Entrando..." : "Entrar"}
             </button>
 
           </div>
 
           <p className="text-center text-zinc-500 text-sm mt-6">
-            Já tem conta?{" "}
-            <a href="/login" className="text-orange-500 hover:underline">
-              Entrar
+            Não tem conta?{" "}
+            <a href="/cadastro" className="text-orange-500 hover:underline">
+              Criar conta grátis
             </a>
           </p>
         </div>
+
       </div>
     </main>
   );
