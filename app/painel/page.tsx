@@ -5,18 +5,70 @@ import { supabase } from "../lib/supabase";
 export default function Painel() {
   const [usuario, setUsuario] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [agendamentosHoje, setAgendamentosHoje] = useState(0);
+  const [totalMes, setTotalMes] = useState(0);
+  const [clientesAtendidos, setClientesAtendidos] = useState(0);
 
   useEffect(() => {
-    async function getUsuario() {
+    async function carregar() {
       const { data } = await supabase.auth.getUser();
       if (!data.user) {
         window.location.href = "/login";
-      } else {
-        setUsuario(data.user);
+        return;
       }
+      setUsuario(data.user);
+
+      const hoje = new Date().toISOString().split('T')[0]
+      const mesAtual = new Date().toISOString().slice(0, 7)
+
+      // Agendamentos hoje
+      const { data: agsHoje } = await supabase
+        .from('agendamentos')
+        .select('id')
+        .eq('user_id', data.user.id)
+        .gte('data_hora', hoje + 'T00:00:00')
+        .lte('data_hora', hoje + 'T23:59:59')
+
+      setAgendamentosHoje(agsHoje?.length || 0)
+
+      // Total atendimentos este mês (agendamentos + presenciais)
+      const { data: agsMes } = await supabase
+        .from('agendamentos')
+        .select('id')
+        .eq('user_id', data.user.id)
+        .gte('data_hora', mesAtual + '-01')
+
+      const { data: atsMes } = await supabase
+        .from('atendimentos')
+        .select('id')
+        .eq('user_id', data.user.id)
+        .gte('created_at', mesAtual + '-01')
+
+      setTotalMes((agsMes?.length || 0) + (atsMes?.length || 0))
+
+      // Clientes únicos atendidos este mês
+      const { data: clientesAgs } = await supabase
+        .from('agendamentos')
+        .select('cliente_nome')
+        .eq('user_id', data.user.id)
+        .gte('data_hora', mesAtual + '-01')
+
+      const { data: clientesAts } = await supabase
+        .from('atendimentos')
+        .select('cliente_nome')
+        .eq('user_id', data.user.id)
+        .gte('created_at', mesAtual + '-01')
+
+      const todosClientes = [
+        ...(clientesAgs || []).map(c => c.cliente_nome),
+        ...(clientesAts || []).map(c => c.cliente_nome),
+      ]
+      const unicos = new Set(todosClientes)
+      setClientesAtendidos(unicos.size)
+
       setLoading(false);
     }
-    getUsuario();
+    carregar();
   }, []);
 
   async function handleLogout() {
@@ -51,15 +103,15 @@ export default function Painel() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6">
             <p className="text-zinc-400 text-sm mb-1">Agendamentos hoje</p>
-            <p className="text-3xl font-bold">0</p>
+            <p className="text-3xl font-bold">{agendamentosHoje}</p>
           </div>
           <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6">
-            <p className="text-zinc-400 text-sm mb-1">Total este mês</p>
-            <p className="text-3xl font-bold">0</p>
+            <p className="text-zinc-400 text-sm mb-1">Atendimentos este mês</p>
+            <p className="text-3xl font-bold">{totalMes}</p>
           </div>
           <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6">
-            <p className="text-zinc-400 text-sm mb-1">Clientes cadastrados</p>
-            <p className="text-3xl font-bold">0</p>
+            <p className="text-zinc-400 text-sm mb-1">Clientes este mês</p>
+            <p className="text-3xl font-bold">{clientesAtendidos}</p>
           </div>
         </div>
 
