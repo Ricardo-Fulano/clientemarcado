@@ -76,9 +76,17 @@ export default function Painel() {
             <p className="text-lg font-semibold mb-1">Agenda</p>
             <p className="text-zinc-400 text-sm">Veja e gerencie seus agendamentos</p>
           </a>
-          <a href="/painel/minha-pagina" className="bg-zinc-900 border border-zinc-800 hover:border-orange-500 rounded-2xl p-6 text-left transition">
-            <p className="text-lg font-semibold mb-1">Minha página</p>
-            <p className="text-zinc-400 text-sm">Veja como seus clientes te enxergam</p>
+          <a href="/painel/atendimento" className="bg-zinc-900 border border-zinc-800 hover:border-orange-500 rounded-2xl p-6 text-left transition">
+            <p className="text-lg font-semibold mb-1">Registrar atendimento</p>
+            <p className="text-zinc-400 text-sm">Registre atendimentos presenciais na hora</p>
+          </a>
+          <a href="/painel/financeiro" className="bg-zinc-900 border border-zinc-800 hover:border-orange-500 rounded-2xl p-6 text-left transition">
+            <p className="text-lg font-semibold mb-1">Financeiro</p>
+            <p className="text-zinc-400 text-sm">Controle suas despesas e receitas</p>
+          </a>
+          <a href="/painel/perfil" className="bg-zinc-900 border border-zinc-800 hover:border-orange-500 rounded-2xl p-6 text-left transition">
+            <p className="text-lg font-semibold mb-1">Meu perfil</p>
+            <p className="text-zinc-400 text-sm">Edite as informações do seu negócio</p>
           </a>
         </div>
       </div>
