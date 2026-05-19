@@ -84,6 +84,10 @@ export default function Painel() {
             <p className="text-lg font-semibold mb-1">Financeiro</p>
             <p className="text-zinc-400 text-sm">Controle suas despesas e receitas</p>
           </a>
+          <a href="/painel/relatorio" className="bg-zinc-900 border border-zinc-800 hover:border-orange-500 rounded-2xl p-6 text-left transition">
+            <p className="text-lg font-semibold mb-1">Relatório</p>
+            <p className="text-zinc-400 text-sm">Receita, despesas e lucro por profissional</p>
+          </a>
           <a href="/painel/perfil" className="bg-zinc-900 border border-zinc-800 hover:border-orange-500 rounded-2xl p-6 text-left transition">
             <p className="text-lg font-semibold mb-1">Meu perfil</p>
             <p className="text-zinc-400 text-sm">Edite as informações do seu negócio</p>
