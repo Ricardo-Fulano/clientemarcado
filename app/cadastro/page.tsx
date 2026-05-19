@@ -2,8 +2,19 @@
 import { useState } from "react";
 import { supabase } from "../lib/supabase";
 
+const TIPOS_NEGOCIO = [
+  "Barbearia",
+  "Salão de cabeleireiro",
+  "Clínica estética",
+  "Clínica odontológica",
+  "Clínica médica",
+  "Petshop",
+  "Outro",
+];
+
 export default function Cadastro() {
   const [nomeNegocio, setNomeNegocio] = useState("");
+  const [tipoNegocio, setTipoNegocio] = useState("");
   const [nomeUsuario, setNomeUsuario] = useState("");
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
@@ -20,6 +31,7 @@ export default function Cadastro() {
       options: {
         data: {
           nome_negocio: nomeNegocio,
+          tipo_negocio: tipoNegocio,
           nome_usuario: nomeUsuario,
         },
       },
@@ -46,6 +58,20 @@ export default function Cadastro() {
 
         <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-8">
           <div className="flex flex-col gap-4">
+
+            <div>
+              <label className="text-sm text-zinc-400 mb-1 block">Tipo de negócio</label>
+              <select
+                value={tipoNegocio}
+                onChange={(e) => setTipoNegocio(e.target.value)}
+                className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-orange-500"
+              >
+                <option value="">Selecione o tipo...</option>
+                {TIPOS_NEGOCIO.map((tipo) => (
+                  <option key={tipo} value={tipo}>{tipo}</option>
+                ))}
+              </select>
+            </div>
 
             <div>
               <label className="text-sm text-zinc-400 mb-1 block">Nome do negócio</label>
