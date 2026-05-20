@@ -1,90 +1,73 @@
-"use client";
-import { useState } from "react";
-import { supabase } from "../lib/supabase";
+'use client'
+import { useState } from 'react'
+import { supabase } from '../lib/supabase'
 
 export default function Login() {
-  const [email, setEmail] = useState("");
-  const [senha, setSenha] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [mensagem, setMensagem] = useState("");
+  const [email, setEmail] = useState('')
+  const [senha, setSenha] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [mensagem, setMensagem] = useState('')
 
   async function handleLogin() {
-    setLoading(true);
-    setMensagem("");
-
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password: senha,
-    });
-
+    setLoading(true)
+    setMensagem('')
+    const { error } = await supabase.auth.signInWithPassword({ email, password: senha })
     if (error) {
-      setMensagem("E-mail ou senha incorretos.");
+      setMensagem('E-mail ou senha incorretos.')
     } else {
-      window.location.href = "/painel";
+      window.location.href = '/painel'
     }
+    setLoading(false)
+  }
 
-    setLoading(false);
+  const inputStyle = {
+    background: 'var(--card)',
+    border: '1px solid var(--border)',
+    color: 'var(--text-primary)',
+    borderRadius: '10px',
+    padding: '12px 16px',
+    width: '100%',
+    outline: 'none',
+    fontSize: '14px',
   }
 
   return (
-    <main className="min-h-screen bg-black text-white flex items-center justify-center px-4">
+    <main className="min-h-screen flex items-center justify-center px-4" style={{ background: 'var(--background)' }}>
       <div className="w-full max-w-md">
-
         <div className="text-center mb-8">
-          <a href="/" className="text-2xl font-bold text-white">
-            ClienteMarcado
-          </a>
-          <p className="text-zinc-400 mt-2">Entre na sua conta</p>
+          <a href="/" className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>ClienteMarcado</a>
+          <p className="mt-2 text-sm" style={{ color: 'var(--text-secondary)' }}>Entre na sua conta</p>
         </div>
 
-        <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-8">
-          <div className="flex flex-col gap-4">
+        <div className="rounded-2xl p-8 flex flex-col gap-4"
+          style={{ background: 'var(--card)', border: '1px solid var(--border)' }}>
 
-            <div>
-              <label className="text-sm text-zinc-400 mb-1 block">E-mail</label>
-              <input
-                type="email"
-                placeholder="joao@email.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-4 py-3 text-white placeholder-zinc-500 focus:outline-none focus:border-orange-500"
-              />
-            </div>
-
-            <div>
-              <label className="text-sm text-zinc-400 mb-1 block">Senha</label>
-              <input
-                type="password"
-                placeholder="Sua senha"
-                value={senha}
-                onChange={(e) => setSenha(e.target.value)}
-                className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-4 py-3 text-white placeholder-zinc-500 focus:outline-none focus:border-orange-500"
-              />
-            </div>
-
-            {mensagem && (
-              <p className="text-sm text-center text-red-400">{mensagem}</p>
-            )}
-
-            <button
-              onClick={handleLogin}
-              disabled={loading}
-              className="w-full bg-orange-500 hover:bg-orange-600 text-white py-3 rounded-lg font-semibold transition mt-2 disabled:opacity-50"
-            >
-              {loading ? "Entrando..." : "Entrar"}
-            </button>
-
+          <div>
+            <label className="text-xs font-medium block mb-1.5" style={{ color: 'var(--text-secondary)' }}>E-mail</label>
+            <input type="email" placeholder="joao@email.com" value={email}
+              onChange={e => setEmail(e.target.value)} style={inputStyle} />
           </div>
 
-          <p className="text-center text-zinc-500 text-sm mt-6">
-            Não tem conta?{" "}
-            <a href="/cadastro" className="text-orange-500 hover:underline">
-              Criar conta grátis
-            </a>
+          <div>
+            <label className="text-xs font-medium block mb-1.5" style={{ color: 'var(--text-secondary)' }}>Senha</label>
+            <input type="password" placeholder="Sua senha" value={senha}
+              onChange={e => setSenha(e.target.value)} style={inputStyle} />
+          </div>
+
+          {mensagem && <p className="text-sm text-center" style={{ color: 'var(--danger)' }}>{mensagem}</p>}
+
+          <button onClick={handleLogin} disabled={loading}
+            className="w-full py-3 rounded-xl font-semibold text-sm transition mt-1 disabled:opacity-50"
+            style={{ background: 'var(--accent)', color: '#fff' }}>
+            {loading ? 'Entrando...' : 'Entrar'}
+          </button>
+
+          <p className="text-center text-xs mt-2" style={{ color: 'var(--text-muted)' }}>
+            Não tem conta?{' '}
+            <a href="/cadastro" className="font-semibold" style={{ color: 'var(--accent)' }}>Criar conta grátis</a>
           </p>
         </div>
-
       </div>
     </main>
-  );
+  )
 }
