@@ -2,17 +2,13 @@
 
 import { useEffect, useState } from 'react'
 import { supabase } from '../../lib/supabase'
+import Link from 'next/link'
 
 export default function RegistrarAtendimento() {
-  const [servicos, setServicos] = useState<any[]>([])
-  const [profissionais, setProfissionais] = useState<any[]>([])
-  const [categorias, setCategorias] = useState<string[]>([])
-  const [categoria, setCategoria] = useState('')
-  const [categoriaNova, setCategoriaNova] = useState('')
-  const [servicoId, setServicoId] = useState('')
-  const [profissionalId, setProfissionalId] = useState('')
+  const [profissionalNome, setProfissionalNome] = useState('')
   const [clienteNome, setClienteNome] = useState('')
   const [clienteTelefone, setClienteTelefone] = useState('')
+  const [servico, setServico] = useState('')
   const [valor, setValor] = useState('')
   const [observacao, setObservacao] = useState('')
   const [sucesso, setSucesso] = useState(false)
@@ -25,202 +21,109 @@ export default function RegistrarAtendimento() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) return
       setUserId(user.id)
-
-      const { data: s } = await supabase
-        .from('servicos')
-        .select('*')
-        .eq('user_id', user.id)
-      setServicos(s || [])
-
-      const { data: p } = await supabase
-        .from('profissionais')
-        .select('*')
-        .eq('user_id', user.id)
-      setProfissionais(p || [])
-
-      const { data: c } = await supabase
-        .from('categorias_atendimento')
-        .select('nome')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: true })
-      setCategorias(c?.map(x => x.nome) || [])
     }
     carregar()
   }, [])
 
   async function handleRegistrar() {
     setErro('')
-    const categoriaFinal = categoria === 'nova' ? categoriaNova.trim() : categoria
 
-    if (!clienteNome || !profissionalId || !servicoId) {
-      setErro('Preencha nome do cliente, serviço e profissional.')
+    if (!profissionalNome.trim()) {
+      setErro('Informe o nome do profissional.')
       return
     }
 
     setLoading(true)
 
-    // Salva categoria nova se não existir
-    if (categoria === 'nova' && categoriaFinal && !categorias.includes(categoriaFinal)) {
-      await supabase.from('categorias_atendimento').insert({
-        user_id: userId,
-        nome: categoriaFinal,
-      })
-      setCategorias(prev => [...prev, categoriaFinal])
-    }
-
     const { error } = await supabase.from('atendimentos').insert({
       user_id: userId,
-      servico_id: servicoId,
-      profissional_id: profissionalId,
-      cliente_nome: clienteNome,
-      cliente_telefone: clienteTelefone,
+      profissional_nome_livre: profissionalNome.trim(),
+      cliente_nome: clienteNome || null,
+      cliente_telefone: clienteTelefone || null,
+      servico_livre: servico || null,
       valor: valor ? parseFloat(valor) : null,
-      observacao: observacao,
-      categoria: categoriaFinal || null,
+      observacao: observacao || null,
     })
 
     setLoading(false)
 
     if (error) {
       setErro('Erro ao registrar. Tente novamente.')
+      console.error(error)
     } else {
       setSucesso(true)
-      setClienteNome('')
-      setClienteTelefone('')
-      setServicoId('')
-      setProfissionalId('')
-      setValor('')
-      setObservacao('')
-      setCategoria('')
-      setCategoriaNova('')
+      setProfissionalNome(''); setClienteNome(''); setClienteTelefone('')
+      setServico(''); setValor(''); setObservacao('')
       setTimeout(() => setSucesso(false), 3000)
     }
   }
 
+  const inputClass = "w-full bg-zinc-800 border border-zinc-700 text-white rounded-xl p-3 focus:outline-none focus:border-orange-500 placeholder-zinc-500"
+  const labelClass = "block text-sm font-medium text-zinc-300 mb-1"
+
   return (
-    <main className="max-w-lg mx-auto p-6">
-      <div className="flex items-center gap-3 mb-6">
-        <a href="/painel" className="text-gray-400 hover:text-black">← Painel</a>
-        <h1 className="text-2xl font-bold">Registrar atendimento</h1>
-      </div>
-
-      {sucesso && (
-        <div className="bg-green-100 text-green-700 border border-green-300 rounded p-3 mb-4 text-center font-semibold">
-          ✅ Atendimento registrado com sucesso!
+    <main className="min-h-screen bg-zinc-950 text-white">
+      <nav className="flex items-center justify-between px-8 py-5 border-b border-zinc-800 bg-black">
+        <h1 className="text-xl font-bold">ClienteMarcado</h1>
+        <div className="flex gap-6 text-sm text-zinc-400">
+          <Link href="/painel" className="hover:text-white transition">Painel</Link>
+          <Link href="/painel/agendamentos" className="hover:text-white transition">Agenda</Link>
+          <Link href="/painel/atendimento" className="text-white font-semibold">Atendimento</Link>
+          <Link href="/painel/relatorio" className="hover:text-white transition">Relatório</Link>
         </div>
-      )}
+      </nav>
 
-      <div className="space-y-4">
+      <div className="max-w-lg mx-auto px-6 py-10">
+        <h2 className="text-2xl font-bold mb-8">Registrar atendimento presencial</h2>
 
-        <div>
-          <label className="block text-sm font-medium mb-1">Categoria do atendimento</label>
-          <select
-            className="w-full border rounded p-2"
-            value={categoria}
-            onChange={(e) => setCategoria(e.target.value)}
-          >
-            <option value="">Selecione ou adicione...</option>
-            {categorias.map((c) => (
-              <option key={c} value={c}>{c}</option>
-            ))}
-            <option value="nova">+ Nova categoria</option>
-          </select>
-        </div>
-
-        {categoria === 'nova' && (
-          <div>
-            <label className="block text-sm font-medium mb-1">Nome da nova categoria</label>
-            <input
-              type="text"
-              className="w-full border rounded p-2"
-              placeholder="Ex: Consulta, Banho e tosa, Limpeza..."
-              value={categoriaNova}
-              onChange={(e) => setCategoriaNova(e.target.value)}
-            />
+        {sucesso && (
+          <div className="bg-green-900 text-green-300 border border-green-700 rounded-xl p-4 mb-6 text-center font-semibold">
+            ✅ Atendimento registrado com sucesso!
           </div>
         )}
 
-        <div>
-          <label className="block text-sm font-medium mb-1">Nome do cliente *</label>
-          <input
-            type="text"
-            className="w-full border rounded p-2"
-            placeholder="Ex: Carlos Silva"
-            value={clienteNome}
-            onChange={(e) => setClienteNome(e.target.value)}
-          />
-        </div>
+        <div className="space-y-5">
 
-        <div>
-          <label className="block text-sm font-medium mb-1">Telefone</label>
-          <input
-            type="text"
-            className="w-full border rounded p-2"
-            placeholder="Ex: (11) 99999-9999"
-            value={clienteTelefone}
-            onChange={(e) => setClienteTelefone(e.target.value)}
-          />
-        </div>
+          <div>
+            <label className={labelClass}>Nome do profissional *</label>
+            <input type="text" className={inputClass} placeholder="Ex: Antonio, João..." value={profissionalNome} onChange={(e) => setProfissionalNome(e.target.value)} />
+          </div>
 
-        <div>
-          <label className="block text-sm font-medium mb-1">Serviço *</label>
-          <select
-            className="w-full border rounded p-2"
-            value={servicoId}
-            onChange={(e) => setServicoId(e.target.value)}
+          <div>
+            <label className={labelClass}>Serviço realizado (opcional)</label>
+            <input type="text" className={inputClass} placeholder="Ex: Corte, Barba, Escova..." value={servico} onChange={(e) => setServico(e.target.value)} />
+          </div>
+
+          <div>
+            <label className={labelClass}>Nome do cliente (opcional)</label>
+            <input type="text" className={inputClass} placeholder="Ex: Carlos Silva" value={clienteNome} onChange={(e) => setClienteNome(e.target.value)} />
+          </div>
+
+          <div>
+            <label className={labelClass}>Telefone (opcional)</label>
+            <input type="text" className={inputClass} placeholder="Ex: (11) 99999-9999" value={clienteTelefone} onChange={(e) => setClienteTelefone(e.target.value)} />
+          </div>
+
+          <div>
+            <label className={labelClass}>Valor cobrado (R$)</label>
+            <input type="text" className={inputClass} placeholder="Ex: 35" value={valor} onChange={(e) => setValor(e.target.value)} />
+          </div>
+
+          <div>
+            <label className={labelClass}>Observação (opcional)</label>
+            <textarea className={inputClass} rows={2} placeholder="Ex: cliente preferiu franja mais curta" value={observacao} onChange={(e) => setObservacao(e.target.value)} />
+          </div>
+
+          {erro && <p className="text-red-400 text-sm">{erro}</p>}
+
+          <button
+            onClick={handleRegistrar}
+            disabled={loading}
+            className="w-full bg-orange-500 text-white font-bold py-3 rounded-xl hover:bg-orange-600 disabled:opacity-50 transition"
           >
-            <option value="">Selecione...</option>
-            {servicos.map((s) => (
-              <option key={s.id} value={s.id}>{s.nome} — R$ {s.preco}</option>
-            ))}
-          </select>
+            {loading ? 'Registrando...' : 'Registrar atendimento'}
+          </button>
         </div>
-
-        <div>
-          <label className="block text-sm font-medium mb-1">Profissional *</label>
-          <select
-            className="w-full border rounded p-2"
-            value={profissionalId}
-            onChange={(e) => setProfissionalId(e.target.value)}
-          >
-            <option value="">Selecione...</option>
-            {profissionais.map((p) => (
-              <option key={p.id} value={p.id}>{p.nome}</option>
-            ))}
-          </select>
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium mb-1">Valor cobrado (R$)</label>
-          <input
-            type="number"
-            className="w-full border rounded p-2"
-            placeholder="Ex: 35"
-            value={valor}
-            onChange={(e) => setValor(e.target.value)}
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium mb-1">Observação</label>
-          <textarea
-            className="w-full border rounded p-2"
-            rows={2}
-            placeholder="Ex: cliente preferiu franja mais curta"
-            value={observacao}
-            onChange={(e) => setObservacao(e.target.value)}
-          />
-        </div>
-
-        {erro && <p className="text-red-500 text-sm">{erro}</p>}
-
-        <button
-          onClick={handleRegistrar}
-          disabled={loading}
-          className="w-full bg-orange-500 text-white font-bold py-3 rounded hover:bg-orange-600 disabled:opacity-50"
-        >
-          {loading ? 'Registrando...' : 'Registrar atendimento'}
-        </button>
       </div>
     </main>
   )
