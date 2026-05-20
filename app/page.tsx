@@ -8,7 +8,7 @@ export default function Home() {
     {
       icon: '✅',
       titulo: 'Controle presencial',
-      desc: 'Registre atendimentos feitos no balcão com 2 toques. Simples e rápido.',
+      desc: 'Registre atendimentos presenciais com 2 toques. Simples e rápido.',
     },
     {
       icon: '📊',
