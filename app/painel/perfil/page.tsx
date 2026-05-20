@@ -10,6 +10,10 @@ export default function Perfil() {
   const [whatsapp, setWhatsapp] = useState('')
   const [endereco, setEndereco] = useState('')
   const [bannerUrl, setBannerUrl] = useState('')
+  const [intervaloAgenda, setIntervaloAgenda] = useState(30)
+  const [horaAbertura, setHoraAbertura] = useState('08:00')
+  const [horaFechamento, setHoraFechamento] = useState('18:00')
+  const [diasFuncionamento, setDiasFuncionamento] = useState<number[]>([1,2,3,4,5,6])
   const [loading, setLoading] = useState(false)
   const [uploadando, setUploadando] = useState(false)
   const [mensagem, setMensagem] = useState('')
@@ -33,6 +37,10 @@ export default function Perfil() {
       setWhatsapp(data.whatsapp || '')
       setEndereco(data.endereco || '')
       setBannerUrl(data.banner_url || '')
+      setIntervaloAgenda(data.intervalo_agenda || 30)
+      setHoraAbertura(data.hora_abertura || '08:00')
+      setHoraFechamento(data.hora_fechamento || '18:00')
+      setDiasFuncionamento(data.dias_funcionamento || [1,2,3,4,5,6])
       setPerfilExiste(true)
     }
   }
@@ -43,57 +51,34 @@ export default function Perfil() {
 
   async function handleUpload(file: File) {
     setErroUpload('')
-
     const tiposAceitos = ['image/jpeg', 'image/png', 'image/webp']
-    if (!tiposAceitos.includes(file.type)) {
-      setErroUpload('Envie uma imagem em JPG, PNG ou WEBP com até 5 MB.')
-      return
-    }
-    if (file.size > 5 * 1024 * 1024) {
-      setErroUpload('Envie uma imagem em JPG, PNG ou WEBP com até 5 MB.')
-      return
-    }
-
+    if (!tiposAceitos.includes(file.type)) { setErroUpload('Envie uma imagem em JPG, PNG ou WEBP com até 5 MB.'); return }
+    if (file.size > 5 * 1024 * 1024) { setErroUpload('Envie uma imagem em JPG, PNG ou WEBP com até 5 MB.'); return }
     setUploadando(true)
-
     const ext = file.name.split('.').pop()
     const path = `${userId}/banner-${Date.now()}.${ext}`
-
-    const { error } = await supabase.storage
-      .from('business-banners')
-      .upload(path, file, { upsert: true })
-
-    if (error) {
-      setErroUpload('Erro ao enviar imagem. Tente novamente.')
-      setUploadando(false)
-      return
-    }
-
-    const { data: urlData } = supabase.storage
-      .from('business-banners')
-      .getPublicUrl(path)
-
+    const { error } = await supabase.storage.from('business-banners').upload(path, file, { upsert: true })
+    if (error) { setErroUpload('Erro ao enviar imagem.'); setUploadando(false); return }
+    const { data: urlData } = supabase.storage.from('business-banners').getPublicUrl(path)
     setBannerUrl(urlData.publicUrl)
     setUploadando(false)
-  }
-
-  async function handleRemoverBanner() {
-    setBannerUrl('')
   }
 
   async function handleSalvar() {
     if (!nomeNegocio || !slug) { setMensagem('Nome e link são obrigatórios.'); return }
     setLoading(true)
     const { data: { user } } = await supabase.auth.getUser()
+    const payload = {
+      nome_negocio: nomeNegocio, descricao, slug, whatsapp, endereco,
+      banner_url: bannerUrl, intervalo_agenda: intervaloAgenda,
+      hora_abertura: horaAbertura, hora_fechamento: horaFechamento,
+      dias_funcionamento: diasFuncionamento,
+    }
     if (perfilExiste) {
-      const { error } = await supabase.from('perfis').update({
-        nome_negocio: nomeNegocio, descricao, slug, whatsapp, endereco, banner_url: bannerUrl
-      }).eq('user_id', user?.id)
+      const { error } = await supabase.from('perfis').update(payload).eq('user_id', user?.id)
       setMensagem(error ? 'Erro ao salvar.' : 'Perfil atualizado!')
     } else {
-      const { error } = await supabase.from('perfis').insert({
-        user_id: user?.id, nome_negocio: nomeNegocio, descricao, slug, whatsapp, endereco, banner_url: bannerUrl
-      })
+      const { error } = await supabase.from('perfis').insert({ user_id: user?.id, ...payload })
       if (error) { setMensagem(error.message.includes('slug') ? 'Esse link já está em uso.' : 'Erro ao salvar.') }
       else { setMensagem('Perfil criado!'); setPerfilExiste(true) }
     }
@@ -102,8 +87,7 @@ export default function Perfil() {
 
   function copiarLink() {
     navigator.clipboard.writeText('https://clientemarcado.vercel.app/' + slug)
-    setCopiado(true)
-    setTimeout(() => setCopiado(false), 2000)
+    setCopiado(true); setTimeout(() => setCopiado(false), 2000)
   }
 
   function compartilharWhatsapp() {
@@ -111,24 +95,22 @@ export default function Perfil() {
     window.open('https://wa.me/?text=' + encodeURIComponent('Agende seu horário comigo pelo link: ' + link), '_blank')
   }
 
-  const inputStyle = {
-    width: '100%',
-    background: 'var(--surface)',
-    border: '1px solid var(--border)',
-    borderRadius: '10px',
-    padding: '12px 16px',
-    color: 'var(--text-primary)',
-    fontSize: '14px',
-    outline: 'none',
-    boxSizing: 'border-box' as const,
+  function toggleDia(dia: number) {
+    setDiasFuncionamento(prev =>
+      prev.includes(dia) ? prev.filter(d => d !== dia) : [...prev, dia].sort()
+    )
   }
 
+  const diasSemana = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb']
+
+  const inputStyle = {
+    width: '100%', background: 'var(--surface)', border: '1px solid var(--border)',
+    borderRadius: '10px', padding: '12px 16px', color: 'var(--text-primary)',
+    fontSize: '14px', outline: 'none', boxSizing: 'border-box' as const,
+  }
   const labelStyle = {
-    fontSize: '12px',
-    fontWeight: '500' as const,
-    color: 'var(--text-secondary)',
-    display: 'block',
-    marginBottom: '6px',
+    fontSize: '12px', fontWeight: '500' as const, color: 'var(--text-secondary)',
+    display: 'block', marginBottom: '6px',
   }
 
   return (
@@ -142,29 +124,27 @@ export default function Perfil() {
         <h2 style={{ fontSize: '22px', fontWeight: 'bold', marginBottom: '4px' }}>Perfil do negócio</h2>
         <p style={{ color: 'var(--text-muted)', fontSize: '14px', marginBottom: '32px' }}>Configure como seu negócio aparece para os clientes</p>
 
-        {/* Link de agendamento */}
         {perfilExiste && (
           <div style={{ background: 'var(--accent-soft)', border: '1px solid var(--accent-border)', borderRadius: '16px', padding: '20px 24px', marginBottom: '24px' }}>
-            <p style={{ fontSize: '12px', fontWeight: '700', textTransform: 'uppercase' as const, letterSpacing: '0.08em', color: 'var(--accent)', marginBottom: '8px' }}>Seu link de agendamento</p>
-            <p style={{ fontSize: '13px', color: 'var(--text-secondary)', marginBottom: '16px', wordBreak: 'break-all' as const }}>
+            <p style={{ fontSize: '12px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--accent)', marginBottom: '8px' }}>Seu link de agendamento</p>
+            <p style={{ fontSize: '13px', color: 'var(--text-secondary)', marginBottom: '16px', wordBreak: 'break-all' }}>
               https://clientemarcado.vercel.app/{slug}
             </p>
-            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' as const }}>
+            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
               <button onClick={copiarLink} style={{ flex: 1, minWidth: '100px', background: 'var(--accent)', color: '#fff', border: 'none', borderRadius: '8px', padding: '10px', fontSize: '13px', fontWeight: '600', cursor: 'pointer' }}>
                 {copiado ? '✓ Copiado!' : 'Copiar link'}
               </button>
               <button onClick={compartilharWhatsapp} style={{ flex: 1, minWidth: '100px', background: '#16a34a', color: '#fff', border: 'none', borderRadius: '8px', padding: '10px', fontSize: '13px', fontWeight: '600', cursor: 'pointer' }}>
                 WhatsApp
               </button>
-              <a href={'/' + slug} target="_blank" style={{ flex: 1, minWidth: '100px', textAlign: 'center' as const, background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '8px', padding: '10px', fontSize: '13px', fontWeight: '600', color: 'var(--text-secondary)', textDecoration: 'none' }}>
+              <a href={'/' + slug} target="_blank" style={{ flex: 1, minWidth: '100px', textAlign: 'center', background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '8px', padding: '10px', fontSize: '13px', fontWeight: '600', color: 'var(--text-secondary)', textDecoration: 'none' }}>
                 Ver página
               </a>
             </div>
           </div>
         )}
 
-        {/* Formulário */}
-        <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '16px', padding: '28px', display: 'flex', flexDirection: 'column' as const, gap: '20px' }}>
+        <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '16px', padding: '28px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
 
           <div>
             <label style={labelStyle}>Nome do negócio *</label>
@@ -176,7 +156,7 @@ export default function Perfil() {
           <div>
             <label style={labelStyle}>Link personalizado *</label>
             <div style={{ display: 'flex', alignItems: 'center', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '10px', padding: '12px 16px' }}>
-              <span style={{ fontSize: '12px', color: 'var(--text-muted)', marginRight: '4px', whiteSpace: 'nowrap' as const }}>clientemarcado.vercel.app/</span>
+              <span style={{ fontSize: '12px', color: 'var(--text-muted)', marginRight: '4px', whiteSpace: 'nowrap' }}>clientemarcado.vercel.app/</span>
               <input type="text" placeholder="barbearia-do-joao" value={slug}
                 onChange={(e) => setSlug(gerarSlug(e.target.value))}
                 style={{ background: 'transparent', border: 'none', outline: 'none', color: 'var(--text-primary)', fontSize: '13px', flex: 1 }} />
@@ -197,63 +177,84 @@ export default function Perfil() {
 
           <div>
             <label style={labelStyle}>Descrição (opcional)</label>
-            <textarea placeholder="Ex: Especialistas em cortes modernos e atendimento premium." value={descricao}
+            <textarea placeholder="Ex: Especialistas em cortes modernos." value={descricao}
               onChange={(e) => setDescricao(e.target.value)} rows={3}
-              style={{ ...inputStyle, resize: 'none' as const }} />
+              style={{ ...inputStyle, resize: 'none' }} />
           </div>
 
-          {/* UPLOAD DE BANNER */}
-          <div>
-            <label style={labelStyle}>Imagem de capa do negócio (opcional)</label>
+          {/* AGENDA */}
+          <div style={{ borderTop: '1px solid var(--border)', paddingTop: '20px' }}>
+            <p style={{ fontSize: '13px', fontWeight: '700', color: 'var(--text-primary)', marginBottom: '16px' }}>⚙️ Configurações da agenda</p>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <div>
+                <label style={labelStyle}>Intervalo entre horários</label>
+                <select value={intervaloAgenda} onChange={(e) => setIntervaloAgenda(Number(e.target.value))} style={inputStyle}>
+                  <option value={10}>10 minutos</option>
+                  <option value={15}>15 minutos</option>
+                  <option value={20}>20 minutos</option>
+                  <option value={30}>30 minutos</option>
+                  <option value={45}>45 minutos</option>
+                  <option value={60}>60 minutos</option>
+                </select>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                <div>
+                  <label style={labelStyle}>Horário de abertura</label>
+                  <input type="time" value={horaAbertura} onChange={(e) => setHoraAbertura(e.target.value)} style={inputStyle} />
+                </div>
+                <div>
+                  <label style={labelStyle}>Horário de fechamento</label>
+                  <input type="time" value={horaFechamento} onChange={(e) => setHoraFechamento(e.target.value)} style={inputStyle} />
+                </div>
+              </div>
+
+              <div>
+                <label style={labelStyle}>Dias de funcionamento</label>
+                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                  {diasSemana.map((dia, i) => (
+                    <button key={i} onClick={() => toggleDia(i)}
+                      style={{ padding: '8px 12px', borderRadius: '8px', fontSize: '12px', fontWeight: '600', cursor: 'pointer', border: '1px solid', transition: 'all 0.15s', background: diasFuncionamento.includes(i) ? 'var(--accent)' : 'var(--surface)', color: diasFuncionamento.includes(i) ? '#fff' : 'var(--text-muted)', borderColor: diasFuncionamento.includes(i) ? 'var(--accent)' : 'var(--border)' }}>
+                      {dia}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* BANNER */}
+          <div style={{ borderTop: '1px solid var(--border)', paddingTop: '20px' }}>
+            <label style={labelStyle}>Imagem de capa (opcional)</label>
             <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '12px', lineHeight: 1.5 }}>
-              Envie uma imagem horizontal da fachada, ambiente ou atendimento. Ela aparecerá no topo da sua página de agendamento.
+              Envie uma imagem horizontal da fachada ou ambiente. Aparece no topo da sua página.
             </p>
-
-            <input
-              ref={inputRef}
-              type="file"
-              accept="image/jpeg,image/png,image/webp"
-              style={{ display: 'none' }}
-              onChange={(e) => { if (e.target.files?.[0]) handleUpload(e.target.files[0]) }}
-            />
-
+            <input ref={inputRef} type="file" accept="image/jpeg,image/png,image/webp" style={{ display: 'none' }}
+              onChange={(e) => { if (e.target.files?.[0]) handleUpload(e.target.files[0]) }} />
             {!bannerUrl ? (
-              <div
-                onClick={() => inputRef.current?.click()}
-                style={{ border: '2px dashed var(--border)', borderRadius: '14px', padding: '40px 24px', textAlign: 'center' as const, cursor: 'pointer', background: 'var(--surface)', transition: 'border-color 0.2s' }}
-                onMouseEnter={e => (e.currentTarget.style.borderColor = 'var(--accent-border)')}
-                onMouseLeave={e => (e.currentTarget.style.borderColor = 'var(--border)')}
-              >
-                <div style={{ fontSize: '32px', marginBottom: '12px' }}>🖼️</div>
-                <p style={{ fontWeight: '600', fontSize: '14px', color: 'var(--text-primary)', marginBottom: '6px' }}>
+              <div onClick={() => inputRef.current?.click()}
+                style={{ border: '2px dashed var(--border)', borderRadius: '14px', padding: '32px 24px', textAlign: 'center', cursor: 'pointer', background: 'var(--surface)' }}>
+                <div style={{ fontSize: '28px', marginBottom: '10px' }}>🖼️</div>
+                <p style={{ fontWeight: '600', fontSize: '13px', color: 'var(--text-primary)', marginBottom: '4px' }}>
                   {uploadando ? 'Enviando...' : 'Clique para enviar uma imagem'}
                 </p>
-                <p style={{ fontSize: '12px', color: 'var(--text-muted)', lineHeight: 1.6 }}>
-                  Proporção recomendada: 16:9 · 1920×1080px<br />
-                  Formatos: JPG, PNG ou WEBP · Máx. 5 MB
-                </p>
+                <p style={{ fontSize: '11px', color: 'var(--text-muted)' }}>16:9 · JPG, PNG ou WEBP · Máx. 5 MB</p>
               </div>
             ) : (
               <div style={{ borderRadius: '14px', overflow: 'hidden', border: '1px solid var(--border)', position: 'relative' }}>
-                <img src={bannerUrl} alt="Preview do banner" style={{ width: '100%', aspectRatio: '16/9', objectFit: 'cover', display: 'block' }} />
+                <img src={bannerUrl} alt="Banner" style={{ width: '100%', aspectRatio: '16/9', objectFit: 'cover', display: 'block' }} />
                 <div style={{ position: 'absolute', top: '10px', right: '10px', display: 'flex', gap: '8px' }}>
-                  <button onClick={() => inputRef.current?.click()} style={{ background: 'rgba(0,0,0,0.7)', color: '#fff', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '8px', padding: '6px 12px', fontSize: '12px', fontWeight: '600', cursor: 'pointer' }}>
-                    Trocar
-                  </button>
-                  <button onClick={handleRemoverBanner} style={{ background: 'rgba(239,68,68,0.8)', color: '#fff', border: 'none', borderRadius: '8px', padding: '6px 12px', fontSize: '12px', fontWeight: '600', cursor: 'pointer' }}>
-                    Remover
-                  </button>
+                  <button onClick={() => inputRef.current?.click()} style={{ background: 'rgba(0,0,0,0.7)', color: '#fff', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '8px', padding: '6px 12px', fontSize: '12px', fontWeight: '600', cursor: 'pointer' }}>Trocar</button>
+                  <button onClick={() => setBannerUrl('')} style={{ background: 'rgba(239,68,68,0.8)', color: '#fff', border: 'none', borderRadius: '8px', padding: '6px 12px', fontSize: '12px', fontWeight: '600', cursor: 'pointer' }}>Remover</button>
                 </div>
               </div>
             )}
-
-            {erroUpload && (
-              <p style={{ fontSize: '12px', color: 'var(--danger)', marginTop: '8px' }}>{erroUpload}</p>
-            )}
+            {erroUpload && <p style={{ fontSize: '12px', color: 'var(--danger)', marginTop: '8px' }}>{erroUpload}</p>}
           </div>
 
           {mensagem && (
-            <p style={{ fontSize: '13px', color: mensagem.includes('Erro') ? 'var(--danger)' : 'var(--success)', textAlign: 'center' as const }}>
+            <p style={{ fontSize: '13px', color: mensagem.includes('Erro') ? 'var(--danger)' : 'var(--success)', textAlign: 'center' }}>
               {mensagem}
             </p>
           )}
