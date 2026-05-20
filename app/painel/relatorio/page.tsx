@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { supabase } from '../../lib/supabase'
+import Link from 'next/link'
 
 export default function Relatorio() {
   const [relatorio, setRelatorio] = useState<any[]>([])
@@ -37,7 +38,7 @@ export default function Relatorio() {
 
     const { data: atendimentos } = await supabase
       .from('atendimentos')
-      .select('*, servicos(nome, preco), profissionais(nome)')
+      .select('*, profissionais(nome)')
       .eq('user_id', user.id)
       .gte('created_at', dataInicio)
       .lte('created_at', dataFim)
@@ -52,15 +53,18 @@ export default function Relatorio() {
     const totalDesp = despesas?.reduce((acc, d) => acc + Number(d.valor), 0) || 0
     setTotalDespesas(totalDesp)
 
+    // Agrupa por profissional cadastrado
     const relPorProfissional = (profs || []).map((prof) => {
       const agsProf = (agendamentos || []).filter(a => a.profissional_id === prof.id)
-      const atsProf = (atendimentos || []).filter(a => a.profissional_id === prof.id)
+      const atsProf = (atendimentos || []).filter(a =>
+        a.profissional_id === prof.id ||
+        a.profissional_nome_livre?.toLowerCase() === prof.nome.toLowerCase()
+      )
 
       const receitaAgs = agsProf.reduce((acc, a) => acc + Number(a.servicos?.preco || 0), 0)
-      const receitaAts = atsProf.reduce((acc, a) => acc + Number(a.valor || a.servicos?.preco || 0), 0)
+      const receitaAts = atsProf.reduce((acc, a) => acc + Number(a.valor || 0), 0)
       const totalProf = receitaAgs + receitaAts
 
-      // Agrupar serviços por nome
       const servicosMap: Record<string, { quantidade: number, receita: number }> = {}
 
       agsProf.forEach(a => {
@@ -72,8 +76,8 @@ export default function Relatorio() {
       })
 
       atsProf.forEach(a => {
-        const nome = a.categoria || a.servicos?.nome || 'Atendimento'
-        const preco = Number(a.valor || a.servicos?.preco || 0)
+        const nome = a.servico_livre || a.categoria || 'Atendimento presencial'
+        const preco = Number(a.valor || 0)
         if (!servicosMap[nome]) servicosMap[nome] = { quantidade: 0, receita: 0 }
         servicosMap[nome].quantidade++
         servicosMap[nome].receita += preco
@@ -93,9 +97,45 @@ export default function Relatorio() {
       }
     })
 
-    const totalRec = relPorProfissional.reduce((acc, p) => acc + p.total, 0)
+    // Atendimentos com profissional livre que não bate com nenhum cadastrado
+    const nomesProfs = (profs || []).map(p => p.nome.toLowerCase())
+    const atsLivres = (atendimentos || []).filter(a =>
+      !a.profissional_id &&
+      a.profissional_nome_livre &&
+      !nomesProfs.includes(a.profissional_nome_livre.toLowerCase())
+    )
+
+    // Agrupa os livres por nome
+    const livresMap: Record<string, any[]> = {}
+    atsLivres.forEach(a => {
+      const nome = a.profissional_nome_livre
+      if (!livresMap[nome]) livresMap[nome] = []
+      livresMap[nome].push(a)
+    })
+
+    const relLivres = Object.entries(livresMap).map(([nome, ats]) => {
+      const servicosMap: Record<string, { quantidade: number, receita: number }> = {}
+      ats.forEach(a => {
+        const sNome = a.servico_livre || a.categoria || 'Atendimento presencial'
+        const preco = Number(a.valor || 0)
+        if (!servicosMap[sNome]) servicosMap[sNome] = { quantidade: 0, receita: 0 }
+        servicosMap[sNome].quantidade++
+        servicosMap[sNome].receita += preco
+      })
+      return {
+        id: nome,
+        nome,
+        agendamentos: 0,
+        atendimentos: ats.length,
+        total: ats.reduce((acc, a) => acc + Number(a.valor || 0), 0),
+        servicos: Object.entries(servicosMap).map(([n, d]) => ({ nome: n, quantidade: d.quantidade, receita: d.receita }))
+      }
+    })
+
+    const todosProfs = [...relPorProfissional, ...relLivres]
+    const totalRec = todosProfs.reduce((acc, p) => acc + p.total, 0)
     setTotalReceita(totalRec)
-    setRelatorio(relPorProfissional)
+    setRelatorio(todosProfs)
     setLoading(false)
   }
 
@@ -104,8 +144,13 @@ export default function Relatorio() {
   return (
     <main className="min-h-screen bg-zinc-950 text-white">
       <nav className="flex items-center justify-between px-8 py-5 border-b border-zinc-800 bg-black">
-        <a href="/painel" className="text-xl font-bold">ClienteMarcado</a>
-        <a href="/painel" className="text-zinc-400 hover:text-white text-sm transition">← Voltar ao painel</a>
+        <h1 className="text-xl font-bold">ClienteMarcado</h1>
+        <div className="flex gap-6 text-sm text-zinc-400">
+          <Link href="/painel" className="hover:text-white transition">Painel</Link>
+          <Link href="/painel/agendamentos" className="hover:text-white transition">Agenda</Link>
+          <Link href="/painel/atendimento" className="hover:text-white transition">Atendimento</Link>
+          <Link href="/painel/relatorio" className="text-white font-semibold">Relatório</Link>
+        </div>
       </nav>
 
       <div className="max-w-4xl mx-auto px-6 py-10">
@@ -175,7 +220,7 @@ export default function Relatorio() {
                     <table className="w-full text-sm">
                       <thead>
                         <tr className="text-zinc-400 border-b border-zinc-800">
-                          <th className="text-left pb-2">Serviço / Categoria</th>
+                          <th className="text-left pb-2">Serviço</th>
                           <th className="text-center pb-2">Qtd</th>
                           <th className="text-right pb-2">Receita</th>
                         </tr>
