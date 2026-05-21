@@ -126,7 +126,8 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
                     </div>
                     <span style={{ fontWeight: '600', fontSize: '14px', color: 'var(--text-primary)' }}>{s.nome}</span>
                   </div>
-                  <span style={{ fontWeight: '700', fontSize: '14px', color: 'var(--accent)', whiteSpace: 'nowrap' }}>R$ {s.preco}</span>
+                  {/* ✅ VERDE — preço do serviço */}
+                  <span style={{ fontWeight: '700', fontSize: '14px', color: 'var(--success)', whiteSpace: 'nowrap' }}>R$ {s.preco}</span>
                 </Link>
               ))}
             </div>
