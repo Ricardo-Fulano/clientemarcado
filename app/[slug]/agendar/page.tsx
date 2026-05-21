@@ -98,9 +98,22 @@ export default function Agendar() {
     setCarregandoHorarios(false)
   }
 
+  function aplicarMascaraTelefone(valor: string) {
+    const nums = valor.replace(/\D/g, '').slice(0, 11)
+    if (nums.length > 10) return `(${nums.slice(0,2)}) ${nums.slice(2,7)}-${nums.slice(7)}`
+    if (nums.length > 6) return `(${nums.slice(0,2)}) ${nums.slice(2,6)}-${nums.slice(6)}`
+    if (nums.length > 2) return `(${nums.slice(0,2)}) ${nums.slice(2)}`
+    if (nums.length > 0) return `(${nums}`
+    return ''
+  }
+
   async function handleAgendar() {
     setErro('')
     if (!clienteNome) { setErro('Informe seu nome.'); return }
+    if (!clienteTelefone || clienteTelefone.replace(/\D/g, '').length < 10) {
+      setErro('Informe seu WhatsApp com DDD.')
+      return
+    }
     setLoading(true)
     const { error } = await supabase.from('agendamentos').insert({
       user_id: perfil.user_id,
@@ -226,7 +239,6 @@ export default function Agendar() {
                     <p style={{ fontWeight: '600', fontSize: '14px', color: 'var(--text-primary)', marginBottom: '2px' }}>{s.nome}</p>
                     <p style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{s.duracao_minutos || 30} min</p>
                   </div>
-                  {/* ✅ VERDE — preço */}
                   <span style={{ fontWeight: '700', fontSize: '14px', color: 'var(--success)', whiteSpace: 'nowrap' }}>R$ {s.preco}</span>
                 </button>
               ))}
@@ -264,7 +276,6 @@ export default function Agendar() {
             <h2 style={{ fontSize: '19px', fontWeight: '800', marginBottom: '4px' }}>Data e horário</h2>
             <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '14px' }}>Escolha quando quer ser atendido</p>
 
-            {/* Resumo compacto */}
             <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '12px', padding: '12px 16px', marginBottom: '14px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
               <div>
                 <p style={{ fontSize: '10px', color: 'var(--text-muted)', marginBottom: '2px', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Serviço</p>
@@ -280,7 +291,6 @@ export default function Agendar() {
               </div>
               <div>
                 <p style={{ fontSize: '10px', color: 'var(--text-muted)', marginBottom: '2px', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Valor</p>
-                {/* ✅ VERDE — valor */}
                 <p style={{ fontSize: '13px', fontWeight: '700', color: 'var(--success)' }}>R$ {servicoSelecionado?.preco}</p>
               </div>
             </div>
@@ -412,11 +422,26 @@ export default function Agendar() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '16px' }}>
               <div>
                 <label style={labelStyle}>Seu nome *</label>
-                <input type="text" placeholder="Ex: Maria Silva" value={clienteNome} onChange={(e) => setClienteNome(e.target.value)} style={inputStyle} />
+                <input
+                  type="text"
+                  placeholder="Ex: Maria Silva"
+                  value={clienteNome}
+                  onChange={(e) => setClienteNome(e.target.value)}
+                  style={inputStyle}
+                />
               </div>
               <div>
-                <label style={labelStyle}>Telefone (opcional)</label>
-                <input type="text" placeholder="Ex: (11) 99999-9999" value={clienteTelefone} onChange={(e) => setClienteTelefone(e.target.value)} style={inputStyle} />
+                <label style={labelStyle}>WhatsApp *</label>
+                <input
+                  type="text"
+                  placeholder="(11) 99999-9999"
+                  value={clienteTelefone}
+                  onChange={(e) => setClienteTelefone(aplicarMascaraTelefone(e.target.value))}
+                  style={inputStyle}
+                />
+                <p style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '6px' }}>
+                  Usado apenas para contato sobre seu agendamento.
+                </p>
               </div>
             </div>
 
