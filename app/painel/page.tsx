@@ -9,6 +9,7 @@ const menuItems = [
   { href: '/painel/financeiro', icon: '💰', titulo: 'Financeiro', desc: 'Controle suas despesas e receitas', badge: false },
   { href: '/painel/servicos', icon: '🛎️', titulo: 'Meus serviços', desc: 'Cadastre e edite seus serviços e preços', badge: false },
   { href: '/painel/profissionais', icon: '👥', titulo: 'Minha equipe', desc: 'Gerencie seus profissionais', badge: false },
+  { href: '/painel/bloqueios', icon: '🚫', titulo: 'Bloqueio de horários', desc: 'Bloqueie horários para folga, almoço ou ausência', badge: false },
   { href: '/painel/perfil', icon: '⚙️', titulo: 'Meu perfil', desc: 'Edite as informações do seu negócio', badge: false },
 ]
 
@@ -58,7 +59,6 @@ export default function Painel() {
       ])
       setClientesAtendidos(unicos.size)
 
-      // Notificações — agendamentos pendentes das últimas 24h
       const ontemISO = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
       const { data: pendentes } = await supabase
         .from('agendamentos')
@@ -71,7 +71,6 @@ export default function Painel() {
       setNovosPendentes(pendentes?.length || 0)
       setNovasNotificacoes(pendentes || [])
 
-      // Checklist
       const { data: perfil } = await supabase.from('perfis').select('*').eq('user_id', data.user.id).single()
       const { data: servicos } = await supabase.from('servicos').select('id').eq('user_id', data.user.id)
       const { data: profissionais } = await supabase.from('profissionais').select('id').eq('user_id', data.user.id)
@@ -89,7 +88,6 @@ export default function Painel() {
     }
     carregar()
 
-    // Polling a cada 60 segundos
     const interval = setInterval(async () => {
       const { data } = await supabase.auth.getUser()
       if (!data.user) return
@@ -145,7 +143,7 @@ export default function Painel() {
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
           {novosPendentes > 0 && (
             <a href="/painel/agendamentos" style={{ display: 'flex', alignItems: 'center', gap: '8px', textDecoration: 'none', background: 'var(--accent-soft)', border: '1px solid var(--accent-border)', borderRadius: '999px', padding: '6px 14px' }}>
-              <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--accent)', display: 'inline-block', animation: 'pulse 2s infinite' }} />
+              <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--accent)', display: 'inline-block' }} />
               <span style={{ fontSize: '13px', fontWeight: '700', color: 'var(--accent)' }}>
                 {novosPendentes} novo{novosPendentes > 1 ? 's' : ''} agendamento{novosPendentes > 1 ? 's' : ''}
               </span>
@@ -165,7 +163,6 @@ export default function Painel() {
           <p style={{ color: 'var(--text-muted)', fontSize: '14px' }}>Aqui está um resumo do seu negócio hoje</p>
         </div>
 
-        {/* NOTIFICAÇÕES DE NOVOS AGENDAMENTOS */}
         {novasNotificacoes.length > 0 && (
           <div style={{ background: 'var(--card)', border: '1px solid var(--accent-border)', borderRadius: '16px', padding: '20px 24px', marginBottom: '24px', position: 'relative', overflow: 'hidden' }}>
             <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '2px', background: 'linear-gradient(90deg, var(--accent), transparent)' }} />
@@ -194,7 +191,6 @@ export default function Painel() {
           </div>
         )}
 
-        {/* CHECKLIST */}
         {!checklistCompleto && (
           <div style={{ background: 'var(--card)', border: '1px solid var(--accent-border)', borderRadius: '16px', padding: '24px', marginBottom: '32px', position: 'relative', overflow: 'hidden' }}>
             <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '2px', background: 'linear-gradient(90deg, var(--accent), transparent)' }} />
@@ -227,7 +223,6 @@ export default function Painel() {
           </div>
         )}
 
-        {/* Checklist completo */}
         {checklistCompleto && checklist.slug && (
           <div style={{ background: 'var(--success-soft)', border: '1px solid var(--success-border)', borderRadius: '16px', padding: '20px 24px', marginBottom: '32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
             <div>
@@ -241,7 +236,6 @@ export default function Painel() {
           </div>
         )}
 
-        {/* Métricas */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px', marginBottom: '40px' }}>
           {[
             { label: 'Agendamentos hoje', valor: agendamentosHoje, cor: 'var(--accent)' },
@@ -256,7 +250,6 @@ export default function Painel() {
           ))}
         </div>
 
-        {/* Menu */}
         <h3 style={{ fontSize: '13px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '16px' }}>Menu</h3>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '12px' }}>
           {menuItems.map((item) => (

@@ -54,6 +54,17 @@ export default function Agendar() {
     const horaAbertura = perfil?.hora_abertura || '08:00'
     const horaFechamento = perfil?.hora_fechamento || '18:00'
 
+    // Busca bloqueios do dia
+    const { data: bloqueios } = await supabase
+      .from('bloqueios')
+      .select('*')
+      .eq('user_id', perfil.user_id)
+      .eq('data', dataSelecionada)
+
+    const bloqueiosAtivos = (bloqueios || []).filter(b =>
+      !b.profissional_id || b.profissional_id === profissionalId
+    )
+
     const { data: ags } = await supabase
       .from('agendamentos')
       .select('data_hora, servico_id')
@@ -91,7 +102,18 @@ export default function Agendar() {
     const finais = horarios.filter(h => {
       const dataHorario = new Date(dataSelecionada + 'T' + h + ':00')
       const diffMinutos = (dataHorario.getTime() - agora.getTime()) / 60000
-      return diffMinutos >= antecedencia
+      if (diffMinutos < antecedencia) return false
+
+      const [hh, mm] = h.split(':').map(Number)
+      const minHorario = hh * 60 + mm
+      const conflitoBloqueio = bloqueiosAtivos.some(b => {
+        const [bhi, bmi] = b.hora_inicio.split(':').map(Number)
+        const [bhf, bmf] = b.hora_fim.split(':').map(Number)
+        const inicioBloqueo = bhi * 60 + bmi
+        const fimBloqueo = bhf * 60 + bmf
+        return minHorario < fimBloqueo && minHorario + duracaoServico > inicioBloqueo
+      })
+      return !conflitoBloqueio
     })
 
     setHorariosDisponiveis(finais)
