@@ -2,12 +2,13 @@
 
 import { useEffect, useState } from 'react'
 import { supabase } from '../../lib/supabase'
-import { useParams } from 'next/navigation'
+import { useParams, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { Sun, Clock, Moon } from 'lucide-react'
 
 export default function Agendar() {
   const params = useParams()
+  const searchParams = useSearchParams()
   const slug = params.slug as string
 
   const [perfil, setPerfil] = useState<any>(null)
@@ -37,6 +38,13 @@ export default function Agendar() {
       setServicos(s || [])
       const { data: pr } = await supabase.from('profissionais').select('*').eq('user_id', p.user_id)
       setProfissionais(pr || [])
+
+      // Pré-selecionar serviço via query param
+      const servicoParam = searchParams.get('servico')
+      if (servicoParam && s && s.find((sv: any) => sv.id === servicoParam)) {
+        setServicoId(servicoParam)
+        setEtapa(2)
+      }
     }
     carregar()
   }, [slug])
@@ -54,7 +62,6 @@ export default function Agendar() {
     const horaAbertura = perfil?.hora_abertura || '08:00'
     const horaFechamento = perfil?.hora_fechamento || '18:00'
 
-    // Busca bloqueios do dia
     const { data: bloqueios } = await supabase
       .from('bloqueios')
       .select('*')
