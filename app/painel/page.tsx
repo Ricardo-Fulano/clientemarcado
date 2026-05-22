@@ -3,13 +3,13 @@ import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
 
 const menuItems = [
-  { href: '/painel/agendamentos', icon: '📅', titulo: 'Agenda', desc: 'Veja e gerencie seus agendamentos' },
-  { href: '/painel/atendimento', icon: '✅', titulo: 'Registrar atendimento', desc: 'Registre atendimentos presenciais na hora' },
-  { href: '/painel/relatorio', icon: '📊', titulo: 'Relatório', desc: 'Receita, despesas e lucro por profissional' },
-  { href: '/painel/financeiro', icon: '💰', titulo: 'Financeiro', desc: 'Controle suas despesas e receitas' },
-  { href: '/painel/servicos', icon: '🛎️', titulo: 'Meus serviços', desc: 'Cadastre e edite seus serviços e preços' },
-  { href: '/painel/profissionais', icon: '👥', titulo: 'Minha equipe', desc: 'Gerencie seus profissionais' },
-  { href: '/painel/perfil', icon: '⚙️', titulo: 'Meu perfil', desc: 'Edite as informações do seu negócio' },
+  { href: '/painel/agendamentos', icon: '📅', titulo: 'Agenda', desc: 'Veja e gerencie seus agendamentos', badge: true },
+  { href: '/painel/atendimento', icon: '✅', titulo: 'Registrar atendimento', desc: 'Registre atendimentos presenciais na hora', badge: false },
+  { href: '/painel/relatorio', icon: '📊', titulo: 'Relatório', desc: 'Receita, despesas e lucro por profissional', badge: false },
+  { href: '/painel/financeiro', icon: '💰', titulo: 'Financeiro', desc: 'Controle suas despesas e receitas', badge: false },
+  { href: '/painel/servicos', icon: '🛎️', titulo: 'Meus serviços', desc: 'Cadastre e edite seus serviços e preços', badge: false },
+  { href: '/painel/profissionais', icon: '👥', titulo: 'Minha equipe', desc: 'Gerencie seus profissionais', badge: false },
+  { href: '/painel/perfil', icon: '⚙️', titulo: 'Meu perfil', desc: 'Edite as informações do seu negócio', badge: false },
 ]
 
 export default function Painel() {
@@ -18,6 +18,8 @@ export default function Painel() {
   const [agendamentosHoje, setAgendamentosHoje] = useState(0)
   const [totalMes, setTotalMes] = useState(0)
   const [clientesAtendidos, setClientesAtendidos] = useState(0)
+  const [novosPendentes, setNovosPendentes] = useState(0)
+  const [novasNotificacoes, setNovasNotificacoes] = useState<any[]>([])
   const [checklist, setChecklist] = useState({
     temPerfil: false,
     temBanner: false,
@@ -56,6 +58,19 @@ export default function Painel() {
       ])
       setClientesAtendidos(unicos.size)
 
+      // Notificações — agendamentos pendentes das últimas 24h
+      const ontemISO = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
+      const { data: pendentes } = await supabase
+        .from('agendamentos')
+        .select('*, servicos(nome), profissionais(nome)')
+        .eq('user_id', data.user.id)
+        .eq('status', 'pendente')
+        .gte('created_at', ontemISO)
+        .order('created_at', { ascending: false })
+
+      setNovosPendentes(pendentes?.length || 0)
+      setNovasNotificacoes(pendentes || [])
+
       // Checklist
       const { data: perfil } = await supabase.from('perfis').select('*').eq('user_id', data.user.id).single()
       const { data: servicos } = await supabase.from('servicos').select('id').eq('user_id', data.user.id)
@@ -73,11 +88,34 @@ export default function Painel() {
       setLoading(false)
     }
     carregar()
+
+    // Polling a cada 60 segundos
+    const interval = setInterval(async () => {
+      const { data } = await supabase.auth.getUser()
+      if (!data.user) return
+      const ontemISO = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
+      const { data: pendentes } = await supabase
+        .from('agendamentos')
+        .select('*, servicos(nome), profissionais(nome)')
+        .eq('user_id', data.user.id)
+        .eq('status', 'pendente')
+        .gte('created_at', ontemISO)
+        .order('created_at', { ascending: false })
+      setNovosPendentes(pendentes?.length || 0)
+      setNovasNotificacoes(pendentes || [])
+    }, 60000)
+
+    return () => clearInterval(interval)
   }, [])
 
   async function handleLogout() {
     await supabase.auth.signOut()
     window.location.href = '/login'
+  }
+
+  function formatarHora(dataHora: string) {
+    const d = new Date(dataHora)
+    return d.toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })
   }
 
   const itensChecklist = [
@@ -105,6 +143,14 @@ export default function Painel() {
       <nav style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 32px', borderBottom: '1px solid var(--border)', background: 'var(--surface)', position: 'sticky', top: 0, zIndex: 10 }}>
         <span style={{ fontSize: '18px', fontWeight: 'bold' }}>ClienteMarcado</span>
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+          {novosPendentes > 0 && (
+            <a href="/painel/agendamentos" style={{ display: 'flex', alignItems: 'center', gap: '8px', textDecoration: 'none', background: 'var(--accent-soft)', border: '1px solid var(--accent-border)', borderRadius: '999px', padding: '6px 14px' }}>
+              <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--accent)', display: 'inline-block', animation: 'pulse 2s infinite' }} />
+              <span style={{ fontSize: '13px', fontWeight: '700', color: 'var(--accent)' }}>
+                {novosPendentes} novo{novosPendentes > 1 ? 's' : ''} agendamento{novosPendentes > 1 ? 's' : ''}
+              </span>
+            </a>
+          )}
           <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>{usuario?.email}</span>
           <button onClick={handleLogout} style={{ fontSize: '13px', color: 'var(--text-secondary)', background: 'none', border: '1px solid var(--border)', borderRadius: '8px', padding: '6px 14px', cursor: 'pointer' }}>
             Sair
@@ -119,7 +165,36 @@ export default function Painel() {
           <p style={{ color: 'var(--text-muted)', fontSize: '14px' }}>Aqui está um resumo do seu negócio hoje</p>
         </div>
 
-        {/* CHECKLIST — só aparece se não completou tudo */}
+        {/* NOTIFICAÇÕES DE NOVOS AGENDAMENTOS */}
+        {novasNotificacoes.length > 0 && (
+          <div style={{ background: 'var(--card)', border: '1px solid var(--accent-border)', borderRadius: '16px', padding: '20px 24px', marginBottom: '24px', position: 'relative', overflow: 'hidden' }}>
+            <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '2px', background: 'linear-gradient(90deg, var(--accent), transparent)' }} />
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '14px' }}>
+              <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: 'var(--accent)', flexShrink: 0 }} />
+              <p style={{ fontSize: '14px', fontWeight: '700', color: 'var(--text-primary)' }}>
+                {novosPendentes} novo{novosPendentes > 1 ? 's' : ''} agendamento{novosPendentes > 1 ? 's' : ''} pendente{novosPendentes > 1 ? 's' : ''}
+              </p>
+              <a href="/painel/agendamentos" style={{ marginLeft: 'auto', fontSize: '12px', color: 'var(--accent)', textDecoration: 'none', fontWeight: '600' }}>Ver todos →</a>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              {novasNotificacoes.slice(0, 3).map((ag) => (
+                <a key={ag.id} href="/painel/agendamentos"
+                  style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--surface)', borderRadius: '10px', padding: '10px 14px', textDecoration: 'none', flexWrap: 'wrap', gap: '8px' }}>
+                  <div>
+                    <p style={{ fontSize: '13px', fontWeight: '600', color: 'var(--text-primary)', marginBottom: '2px' }}>{ag.cliente_nome}</p>
+                    <p style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{ag.servicos?.nome} · {ag.profissionais?.nome}</p>
+                  </div>
+                  <div style={{ textAlign: 'right' }}>
+                    <p style={{ fontSize: '12px', fontWeight: '600', color: 'var(--accent)' }}>{formatarHora(ag.data_hora)}</p>
+                    <span style={{ fontSize: '10px', fontWeight: '700', padding: '2px 8px', borderRadius: '999px', background: 'rgba(59,130,246,0.12)', color: 'var(--accent)' }}>Pendente</span>
+                  </div>
+                </a>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* CHECKLIST */}
         {!checklistCompleto && (
           <div style={{ background: 'var(--card)', border: '1px solid var(--accent-border)', borderRadius: '16px', padding: '24px', marginBottom: '32px', position: 'relative', overflow: 'hidden' }}>
             <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '2px', background: 'linear-gradient(90deg, var(--accent), transparent)' }} />
@@ -130,12 +205,9 @@ export default function Painel() {
               </div>
               <span style={{ fontSize: '13px', fontWeight: '700', color: 'var(--accent)' }}>{progresso}%</span>
             </div>
-
-            {/* Barra de progresso */}
             <div style={{ height: '6px', background: 'var(--surface)', borderRadius: '999px', marginBottom: '20px', overflow: 'hidden' }}>
               <div style={{ height: '100%', width: progresso + '%', background: 'var(--accent)', borderRadius: '999px', transition: 'width 0.4s ease' }} />
             </div>
-
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
               {itensChecklist.map((item) => (
                 <a key={item.texto} href={item.feito ? '#' : item.href}
@@ -188,11 +260,16 @@ export default function Painel() {
         <h3 style={{ fontSize: '13px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '16px' }}>Menu</h3>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '12px' }}>
           {menuItems.map((item) => (
-            <a key={item.href} href={item.href} style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '14px', padding: '20px', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '16px' }}
+            <a key={item.href} href={item.href} style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '14px', padding: '20px', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '16px', position: 'relative' }}
               onMouseEnter={e => (e.currentTarget.style.borderColor = 'var(--accent-border)')}
               onMouseLeave={e => (e.currentTarget.style.borderColor = 'var(--border)')}>
-              <div style={{ width: '40px', height: '40px', borderRadius: '10px', background: 'var(--accent-soft)', border: '1px solid var(--accent-border)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px', flexShrink: 0 }}>
+              <div style={{ width: '40px', height: '40px', borderRadius: '10px', background: 'var(--accent-soft)', border: '1px solid var(--accent-border)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px', flexShrink: 0, position: 'relative' }}>
                 {item.icon}
+                {item.badge && novosPendentes > 0 && (
+                  <div style={{ position: 'absolute', top: '-6px', right: '-6px', background: 'var(--accent)', color: '#fff', fontSize: '10px', fontWeight: '800', width: '18px', height: '18px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px solid var(--card)' }}>
+                    {novosPendentes > 9 ? '9+' : novosPendentes}
+                  </div>
+                )}
               </div>
               <div>
                 <p style={{ fontWeight: '600', fontSize: '14px', color: 'var(--text-primary)', marginBottom: '2px' }}>{item.titulo}</p>

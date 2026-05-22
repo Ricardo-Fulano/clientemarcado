@@ -27,14 +27,8 @@ export default function RegistrarAtendimento() {
 
   async function handleRegistrar() {
     setErro('')
-
-    if (!profissionalNome.trim()) {
-      setErro('Informe o nome do profissional.')
-      return
-    }
-
+    if (!profissionalNome.trim()) { setErro('Informe o nome do profissional.'); return }
     setLoading(true)
-
     const { error } = await supabase.from('atendimentos').insert({
       user_id: userId,
       profissional_nome_livre: profissionalNome.trim(),
@@ -44,12 +38,9 @@ export default function RegistrarAtendimento() {
       valor: valor ? parseFloat(valor) : null,
       observacao: observacao || null,
     })
-
     setLoading(false)
-
     if (error) {
       setErro('Erro ao registrar. Tente novamente.')
-      console.error(error)
     } else {
       setSucesso(true)
       setProfissionalNome(''); setClienteNome(''); setClienteTelefone('')
@@ -58,69 +49,76 @@ export default function RegistrarAtendimento() {
     }
   }
 
-  const inputClass = "w-full bg-zinc-800 border border-zinc-700 text-white rounded-xl p-3 focus:outline-none focus:border-orange-500 placeholder-zinc-500"
-  const labelClass = "block text-sm font-medium text-zinc-300 mb-1"
+  const inputStyle = {
+    width: '100%', background: 'var(--surface)', border: '1px solid var(--border)',
+    borderRadius: '10px', padding: '12px 16px', color: 'var(--text-primary)',
+    fontSize: '14px', outline: 'none', boxSizing: 'border-box' as const,
+  }
+  const labelStyle = {
+    fontSize: '12px', fontWeight: '500' as const, color: 'var(--text-secondary)',
+    display: 'block', marginBottom: '6px',
+  }
 
   return (
-    <main className="min-h-screen bg-zinc-950 text-white">
-      <nav className="flex items-center justify-between px-8 py-5 border-b border-zinc-800 bg-black">
-        <h1 className="text-xl font-bold">ClienteMarcado</h1>
-        <div className="flex gap-6 text-sm text-zinc-400">
-          <Link href="/painel" className="hover:text-white transition">Painel</Link>
-          <Link href="/painel/agendamentos" className="hover:text-white transition">Agenda</Link>
-          <Link href="/painel/atendimento" className="text-white font-semibold">Atendimento</Link>
-          <Link href="/painel/relatorio" className="hover:text-white transition">Relatório</Link>
-        </div>
+    <main style={{ minHeight: '100vh', background: 'var(--background)', color: 'var(--text-primary)' }}>
+      <nav style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 32px', borderBottom: '1px solid var(--border)', background: 'var(--surface)', position: 'sticky', top: 0, zIndex: 10 }}>
+        <span style={{ fontSize: '18px', fontWeight: 'bold' }}>ClienteMarcado</span>
+        <Link href="/painel" style={{ fontSize: '13px', color: 'var(--text-secondary)', textDecoration: 'none' }}>← Voltar ao painel</Link>
       </nav>
 
-      <div className="max-w-lg mx-auto px-6 py-10">
-        <h2 className="text-2xl font-bold mb-8">Registrar atendimento presencial</h2>
+      <div style={{ maxWidth: '560px', margin: '0 auto', padding: '40px 24px' }}>
+        <h2 style={{ fontSize: '22px', fontWeight: 'bold', marginBottom: '4px' }}>Registrar atendimento</h2>
+        <p style={{ color: 'var(--text-muted)', fontSize: '14px', marginBottom: '32px' }}>Registre atendimentos presenciais na hora</p>
 
         {sucesso && (
-          <div className="bg-green-900 text-green-300 border border-green-700 rounded-xl p-4 mb-6 text-center font-semibold">
+          <div style={{ background: 'var(--success-soft)', border: '1px solid var(--success-border)', borderRadius: '12px', padding: '14px 18px', marginBottom: '24px', textAlign: 'center', fontSize: '14px', fontWeight: '600', color: 'var(--success)' }}>
             ✅ Atendimento registrado com sucesso!
           </div>
         )}
 
-        <div className="space-y-5">
+        <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '16px', padding: '28px', display: 'flex', flexDirection: 'column', gap: '18px' }}>
 
           <div>
-            <label className={labelClass}>Nome do profissional *</label>
-            <input type="text" className={inputClass} placeholder="Ex: Antonio, João..." value={profissionalNome} onChange={(e) => setProfissionalNome(e.target.value)} />
+            <label style={labelStyle}>Nome do profissional *</label>
+            <input type="text" placeholder="Ex: Antonio, João..." value={profissionalNome}
+              onChange={(e) => setProfissionalNome(e.target.value)} style={inputStyle} />
           </div>
 
           <div>
-            <label className={labelClass}>Serviço realizado (opcional)</label>
-            <input type="text" className={inputClass} placeholder="Ex: Corte, Barba, Escova..." value={servico} onChange={(e) => setServico(e.target.value)} />
+            <label style={labelStyle}>Serviço realizado (opcional)</label>
+            <input type="text" placeholder="Ex: Corte, Barba, Escova..." value={servico}
+              onChange={(e) => setServico(e.target.value)} style={inputStyle} />
           </div>
 
           <div>
-            <label className={labelClass}>Nome do cliente (opcional)</label>
-            <input type="text" className={inputClass} placeholder="Ex: Carlos Silva" value={clienteNome} onChange={(e) => setClienteNome(e.target.value)} />
+            <label style={labelStyle}>Nome do cliente (opcional)</label>
+            <input type="text" placeholder="Ex: Carlos Silva" value={clienteNome}
+              onChange={(e) => setClienteNome(e.target.value)} style={inputStyle} />
           </div>
 
           <div>
-            <label className={labelClass}>Telefone (opcional)</label>
-            <input type="text" className={inputClass} placeholder="Ex: (11) 99999-9999" value={clienteTelefone} onChange={(e) => setClienteTelefone(e.target.value)} />
+            <label style={labelStyle}>Telefone (opcional)</label>
+            <input type="text" placeholder="Ex: (11) 99999-9999" value={clienteTelefone}
+              onChange={(e) => setClienteTelefone(e.target.value)} style={inputStyle} />
           </div>
 
           <div>
-            <label className={labelClass}>Valor cobrado (R$)</label>
-            <input type="text" className={inputClass} placeholder="Ex: 35" value={valor} onChange={(e) => setValor(e.target.value)} />
+            <label style={labelStyle}>Valor cobrado (R$)</label>
+            <input type="number" placeholder="Ex: 35" value={valor}
+              onChange={(e) => setValor(e.target.value)} style={inputStyle} />
           </div>
 
           <div>
-            <label className={labelClass}>Observação (opcional)</label>
-            <textarea className={inputClass} rows={2} placeholder="Ex: cliente preferiu franja mais curta" value={observacao} onChange={(e) => setObservacao(e.target.value)} />
+            <label style={labelStyle}>Observação (opcional)</label>
+            <textarea placeholder="Ex: cliente preferiu franja mais curta" value={observacao}
+              onChange={(e) => setObservacao(e.target.value)} rows={3}
+              style={{ ...inputStyle, resize: 'none' as const }} />
           </div>
 
-          {erro && <p className="text-red-400 text-sm">{erro}</p>}
+          {erro && <p style={{ fontSize: '13px', color: 'var(--danger)' }}>{erro}</p>}
 
-          <button
-            onClick={handleRegistrar}
-            disabled={loading}
-            className="w-full bg-orange-500 text-white font-bold py-3 rounded-xl hover:bg-orange-600 disabled:opacity-50 transition"
-          >
+          <button onClick={handleRegistrar} disabled={loading}
+            style={{ width: '100%', background: 'var(--accent)', color: '#fff', border: 'none', borderRadius: '10px', padding: '13px', fontSize: '14px', fontWeight: '700', cursor: 'pointer', opacity: loading ? 0.6 : 1 }}>
             {loading ? 'Registrando...' : 'Registrar atendimento'}
           </button>
         </div>

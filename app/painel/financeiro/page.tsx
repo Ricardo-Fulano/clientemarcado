@@ -2,17 +2,11 @@
 
 import { useEffect, useState } from 'react'
 import { supabase } from '../../lib/supabase'
+import Link from 'next/link'
 
 const CATEGORIAS_DESPESA = [
-  'Aluguel',
-  'Luz',
-  'Água',
-  'Internet',
-  'Produtos',
-  'Salários',
-  'Equipamentos',
-  'Marketing',
-  'Outros',
+  'Aluguel', 'Luz', 'Água', 'Internet', 'Produtos',
+  'Salários', 'Equipamentos', 'Marketing', 'Outros',
 ]
 
 export default function Financeiro() {
@@ -25,52 +19,31 @@ export default function Financeiro() {
   const [mensagem, setMensagem] = useState('')
   const [totalMes, setTotalMes] = useState(0)
 
-  useEffect(() => {
-    carregarDespesas()
-  }, [])
+  useEffect(() => { carregarDespesas() }, [])
 
   async function carregarDespesas() {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
-
     const mesAtual = new Date().toISOString().slice(0, 7)
-
     const { data } = await supabase
-      .from('despesas')
-      .select('*')
-      .eq('user_id', user.id)
-      .gte('data', mesAtual + '-01')
-      .order('data', { ascending: false })
-
+      .from('despesas').select('*').eq('user_id', user.id)
+      .gte('data', mesAtual + '-01').order('data', { ascending: false })
     setDespesas(data || [])
     setTotalMes(data?.reduce((acc, d) => acc + Number(d.valor), 0) || 0)
   }
 
   async function handleAdicionarDespesa() {
-    if (!descricao || !valor) {
-      setMensagem('Preencha a descrição e o valor.')
-      return
-    }
-
+    if (!descricao || !valor) { setMensagem('Preencha a descrição e o valor.'); return }
     setLoading(true)
     const { data: { user } } = await supabase.auth.getUser()
-
     const { error } = await supabase.from('despesas').insert({
-      user_id: user!.id,
-      descricao,
-      valor: parseFloat(valor),
-      categoria,
-      data,
+      user_id: user!.id, descricao, valor: parseFloat(valor), categoria, data,
     })
-
     setLoading(false)
-
     if (error) {
       setMensagem('Erro ao salvar despesa.')
     } else {
-      setDescricao('')
-      setValor('')
-      setCategoria('')
+      setDescricao(''); setValor(''); setCategoria('')
       setData(new Date().toISOString().split('T')[0])
       setMensagem('Despesa registrada!')
       carregarDespesas()
@@ -83,106 +56,95 @@ export default function Financeiro() {
     carregarDespesas()
   }
 
+  const inputStyle = {
+    width: '100%', background: 'var(--surface)', border: '1px solid var(--border)',
+    borderRadius: '10px', padding: '12px 16px', color: 'var(--text-primary)',
+    fontSize: '14px', outline: 'none', boxSizing: 'border-box' as const,
+  }
+  const labelStyle = {
+    fontSize: '12px', fontWeight: '500' as const, color: 'var(--text-secondary)',
+    display: 'block', marginBottom: '6px',
+  }
+
   return (
-    <main className="min-h-screen bg-zinc-950 text-white">
-      <nav className="flex items-center justify-between px-8 py-5 border-b border-zinc-800 bg-black">
-        <a href="/painel" className="text-xl font-bold">ClienteMarcado</a>
-        <a href="/painel" className="text-zinc-400 hover:text-white text-sm transition">← Voltar ao painel</a>
+    <main style={{ minHeight: '100vh', background: 'var(--background)', color: 'var(--text-primary)' }}>
+      <nav style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 32px', borderBottom: '1px solid var(--border)', background: 'var(--surface)', position: 'sticky', top: 0, zIndex: 10 }}>
+        <span style={{ fontSize: '18px', fontWeight: 'bold' }}>ClienteMarcado</span>
+        <Link href="/painel" style={{ fontSize: '13px', color: 'var(--text-secondary)', textDecoration: 'none' }}>← Voltar ao painel</Link>
       </nav>
 
-      <div className="max-w-3xl mx-auto px-6 py-10">
-        <h2 className="text-2xl font-bold mb-2">Financeiro</h2>
-        <p className="text-zinc-400 mb-6">Controle suas despesas mensais</p>
+      <div style={{ maxWidth: '700px', margin: '0 auto', padding: '40px 24px' }}>
+        <h2 style={{ fontSize: '22px', fontWeight: 'bold', marginBottom: '4px' }}>Financeiro</h2>
+        <p style={{ color: 'var(--text-muted)', fontSize: '14px', marginBottom: '24px' }}>Controle suas despesas mensais</p>
 
-        <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 mb-6">
-          <p className="text-zinc-400 text-sm mb-1">Total de despesas este mês</p>
-          <p className="text-3xl font-bold text-red-400">
-            R$ {totalMes.toFixed(2)}
-          </p>
+        {/* Total */}
+        <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '16px', padding: '22px 24px', marginBottom: '20px', position: 'relative', overflow: 'hidden' }}>
+          <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '2px', background: 'linear-gradient(90deg, var(--danger), transparent)' }} />
+          <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '8px' }}>Total de despesas este mês</p>
+          <p style={{ fontSize: '28px', fontWeight: 'bold', color: 'var(--danger)' }}>R$ {totalMes.toFixed(2)}</p>
         </div>
 
-        <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 mb-8">
-          <h3 className="font-semibold mb-4">Adicionar despesa</h3>
-          <div className="flex flex-col gap-4">
+        {/* Formulário */}
+        <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '16px', padding: '28px', marginBottom: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <h3 style={{ fontSize: '15px', fontWeight: '600', margin: 0 }}>Adicionar despesa</h3>
 
-            <div>
-              <label className="text-sm text-zinc-400 mb-1 block">Descrição *</label>
-              <input
-                type="text"
-                placeholder="Ex: Aluguel do salão"
-                value={descricao}
-                onChange={(e) => setDescricao(e.target.value)}
-                className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-4 py-3 text-white placeholder-zinc-500 focus:outline-none focus:border-orange-500"
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="text-sm text-zinc-400 mb-1 block">Valor (R$) *</label>
-                <input
-                  type="number"
-                  placeholder="Ex: 1500"
-                  value={valor}
-                  onChange={(e) => setValor(e.target.value)}
-                  className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-4 py-3 text-white placeholder-zinc-500 focus:outline-none focus:border-orange-500"
-                />
-              </div>
-              <div>
-                <label className="text-sm text-zinc-400 mb-1 block">Data</label>
-                <input
-                  type="date"
-                  value={data}
-                  onChange={(e) => setData(e.target.value)}
-                  className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-orange-500"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="text-sm text-zinc-400 mb-1 block">Categoria</label>
-              <select
-                value={categoria}
-                onChange={(e) => setCategoria(e.target.value)}
-                className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-orange-500"
-              >
-                <option value="">Selecione...</option>
-                {CATEGORIAS_DESPESA.map((c) => (
-                  <option key={c} value={c}>{c}</option>
-                ))}
-              </select>
-            </div>
-
-            {mensagem && (
-              <p className="text-sm text-orange-400">{mensagem}</p>
-            )}
-
-            <button
-              onClick={handleAdicionarDespesa}
-              disabled={loading}
-              className="w-full bg-orange-500 hover:bg-orange-600 text-white py-3 rounded-lg font-semibold transition disabled:opacity-50"
-            >
-              {loading ? 'Salvando...' : 'Registrar despesa'}
-            </button>
+          <div>
+            <label style={labelStyle}>Descrição *</label>
+            <input type="text" placeholder="Ex: Aluguel do salão" value={descricao}
+              onChange={(e) => setDescricao(e.target.value)} style={inputStyle} />
           </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+            <div>
+              <label style={labelStyle}>Valor (R$) *</label>
+              <input type="number" placeholder="Ex: 1500" value={valor}
+                onChange={(e) => setValor(e.target.value)} style={inputStyle} />
+            </div>
+            <div>
+              <label style={labelStyle}>Data</label>
+              <input type="date" value={data}
+                onChange={(e) => setData(e.target.value)} style={inputStyle} />
+            </div>
+          </div>
+
+          <div>
+            <label style={labelStyle}>Categoria</label>
+            <select value={categoria} onChange={(e) => setCategoria(e.target.value)} style={inputStyle}>
+              <option value="">Selecione...</option>
+              {CATEGORIAS_DESPESA.map((c) => (
+                <option key={c} value={c}>{c}</option>
+              ))}
+            </select>
+          </div>
+
+          {mensagem && (
+            <p style={{ fontSize: '13px', color: mensagem.includes('Erro') ? 'var(--danger)' : 'var(--success)' }}>
+              {mensagem}
+            </p>
+          )}
+
+          <button onClick={handleAdicionarDespesa} disabled={loading}
+            style={{ width: '100%', background: 'var(--accent)', color: '#fff', border: 'none', borderRadius: '10px', padding: '13px', fontSize: '14px', fontWeight: '700', cursor: 'pointer', opacity: loading ? 0.6 : 1 }}>
+            {loading ? 'Salvando...' : 'Registrar despesa'}
+          </button>
         </div>
 
-        <h3 className="font-semibold mb-4 text-zinc-300">Despesas deste mês</h3>
-        <div className="flex flex-col gap-3">
+        {/* Lista */}
+        <h3 style={{ fontSize: '13px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '14px' }}>Despesas deste mês</h3>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
           {despesas.length === 0 && (
-            <p className="text-zinc-500 text-center py-8">Nenhuma despesa registrada este mês.</p>
+            <p style={{ color: 'var(--text-muted)', textAlign: 'center', padding: '32px 0', fontSize: '14px' }}>Nenhuma despesa registrada este mês.</p>
           )}
           {despesas.map((d) => (
-            <div key={d.id} className="bg-zinc-900 border border-zinc-800 rounded-xl px-6 py-4 flex items-center justify-between">
+            <div key={d.id} style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '14px', padding: '16px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
               <div>
-                <p className="font-semibold">{d.descricao}</p>
-                <p className="text-zinc-400 text-sm">{d.categoria} · {new Date(d.data + 'T12:00:00').toLocaleDateString('pt-BR')}</p>
+                <p style={{ fontWeight: '600', fontSize: '14px', color: 'var(--text-primary)', marginBottom: '3px' }}>{d.descricao}</p>
+                <p style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{d.categoria} · {new Date(d.data + 'T12:00:00').toLocaleDateString('pt-BR')}</p>
               </div>
-              <div className="flex items-center gap-4">
-                <p className="text-red-400 font-bold">R$ {Number(d.valor).toFixed(2)}</p>
-                <button
-                  onClick={() => handleExcluir(d.id)}
-                  className="text-zinc-500 hover:text-red-400 text-sm transition"
-                >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexShrink: 0 }}>
+                <p style={{ fontWeight: '700', color: 'var(--danger)', fontSize: '14px' }}>R$ {Number(d.valor).toFixed(2)}</p>
+                <button onClick={() => handleExcluir(d.id)}
+                  style={{ fontSize: '12px', color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer' }}>
                   Excluir
                 </button>
               </div>
