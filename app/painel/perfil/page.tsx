@@ -14,6 +14,7 @@ export default function Perfil() {
   const [horaAbertura, setHoraAbertura] = useState('08:00')
   const [horaFechamento, setHoraFechamento] = useState('18:00')
   const [diasFuncionamento, setDiasFuncionamento] = useState<number[]>([1,2,3,4,5,6])
+  const [antecedenciaMinima, setAntecedenciaMinima] = useState(0)
   const [loading, setLoading] = useState(false)
   const [uploadando, setUploadando] = useState(false)
   const [mensagem, setMensagem] = useState('')
@@ -41,6 +42,7 @@ export default function Perfil() {
       setHoraAbertura(data.hora_abertura || '08:00')
       setHoraFechamento(data.hora_fechamento || '18:00')
       setDiasFuncionamento(data.dias_funcionamento || [1,2,3,4,5,6])
+      setAntecedenciaMinima(data.antecedencia_minima || 0)
       setPerfilExiste(true)
     }
   }
@@ -56,7 +58,7 @@ export default function Perfil() {
     if (file.size > 5 * 1024 * 1024) { setErroUpload('Envie uma imagem em JPG, PNG ou WEBP com até 5 MB.'); return }
     setUploadando(true)
     const ext = file.name.split('.').pop()
-    const path = `${userId}/banner-${Date.now()}.${ext}`
+    const path = userId + '/banner-' + Date.now() + '.' + ext
     const { error } = await supabase.storage.from('business-banners').upload(path, file, { upsert: true })
     if (error) { setErroUpload('Erro ao enviar imagem.'); setUploadando(false); return }
     const { data: urlData } = supabase.storage.from('business-banners').getPublicUrl(path)
@@ -73,6 +75,7 @@ export default function Perfil() {
       banner_url: bannerUrl, intervalo_agenda: intervaloAgenda,
       hora_abertura: horaAbertura, hora_fechamento: horaFechamento,
       dias_funcionamento: diasFuncionamento,
+      antecedencia_minima: antecedenciaMinima,
     }
     if (perfilExiste) {
       const { error } = await supabase.from('perfis').update(payload).eq('user_id', user?.id)
@@ -220,6 +223,22 @@ export default function Perfil() {
                     </button>
                   ))}
                 </div>
+              </div>
+
+              <div>
+                <label style={labelStyle}>Antecedência mínima para agendamento</label>
+                <select value={antecedenciaMinima} onChange={(e) => setAntecedenciaMinima(Number(e.target.value))} style={inputStyle}>
+                  <option value={0}>Sem restrição</option>
+                  <option value={30}>30 minutos antes</option>
+                  <option value={60}>1 hora antes</option>
+                  <option value={120}>2 horas antes</option>
+                  <option value={240}>4 horas antes</option>
+                  <option value={720}>12 horas antes</option>
+                  <option value={1440}>24 horas antes</option>
+                </select>
+                <p style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '6px' }}>
+                  Clientes não poderão agendar horários dentro desse prazo.
+                </p>
               </div>
             </div>
           </div>

@@ -85,14 +85,14 @@ export default function Agendar() {
       }
     }
 
-    const todayStr = new Date().toISOString().split('T')[0]
     const agora = new Date()
-    const finais = dataSelecionada === todayStr
-      ? horarios.filter(h => {
-          const [hh, mm] = h.split(':').map(Number)
-          return hh * 60 + mm > agora.getHours() * 60 + agora.getMinutes()
-        })
-      : horarios
+    const antecedencia = perfil?.antecedencia_minima || 0
+
+    const finais = horarios.filter(h => {
+      const dataHorario = new Date(dataSelecionada + 'T' + h + ':00')
+      const diffMinutos = (dataHorario.getTime() - agora.getTime()) / 60000
+      return diffMinutos >= antecedencia
+    })
 
     setHorariosDisponiveis(finais)
     setCarregandoHorarios(false)
@@ -203,7 +203,6 @@ export default function Agendar() {
         <p style={{ fontSize: '14px', color: 'var(--text-secondary)', marginBottom: '24px', lineHeight: 1.6 }}>
           Obrigado, <strong>{clienteNome}</strong>! Seu agendamento foi recebido com sucesso.
         </p>
-
         <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '16px', padding: '20px', marginBottom: '20px', textAlign: 'left' }}>
           <p style={{ fontSize: '10px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--text-muted)', marginBottom: '14px' }}>Resumo do agendamento</p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
@@ -221,7 +220,6 @@ export default function Agendar() {
             ))}
           </div>
         </div>
-
         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
           {linkWppEstabelecimento && (
             <a href={linkWppEstabelecimento} target="_blank" rel="noopener noreferrer"
