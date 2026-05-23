@@ -52,6 +52,7 @@ export default function Orcamentos() {
   const [clienteEmail, setClienteEmail] = useState('')
   const [clienteObs, setClienteObs] = useState('')
   const [tipo, setTipo] = useState('Orçamento')
+  const [tipoOutro, setTipoOutro] = useState('')
   const [profId, setProfId] = useState('')
   const [profNome, setProfNome] = useState('')
   const [salvarFreelancer, setSalvarFreelancer] = useState(false)
@@ -122,7 +123,7 @@ export default function Orcamentos() {
 
   function resetForm() {
     setClienteNome(''); setClienteWpp(''); setClienteEmail(''); setClienteObs('')
-    setTipo('Orçamento'); setProfId(''); setProfNome(''); setSalvarFreelancer(false); setDataDoc(new Date().toISOString().split('T')[0])
+    setTipo('Orçamento'); setTipoOutro(''); setProfId(''); setProfNome(''); setSalvarFreelancer(false); setDataDoc(new Date().toISOString().split('T')[0])
     setStatus('Aberto'); setItens([{ nome:'', qtd:1, unitario:'', total:0, obs:'' }])
     setDesconto(''); setExigirSinal(false); setSinalTipo('fixo'); setSinalValor('')
     setLinkPag(''); setObservacoes(''); setDentesSelec([]); setProcOdonto([])
@@ -133,7 +134,10 @@ export default function Orcamentos() {
     setEditandoId(orc.id)
     setClienteNome(orc.cliente_nome || ''); setClienteWpp(aplicarMascaraTel(orc.cliente_whatsapp || ''))
     setClienteEmail(orc.cliente_email || ''); setClienteObs(orc.cliente_obs || '')
-    setTipo(orc.tipo || 'Orçamento'); setProfId(orc.profissional_id || ''); setProfNome(orc.profissional_nome || ''); setSalvarFreelancer(false)
+    const tipoSalvo = orc.tipo || 'Orçamento'
+    const tiposPadrao = ['Orçamento','Atendimento','Tratamento','Ordem de serviço','Retorno']
+    if (tiposPadrao.includes(tipoSalvo)) { setTipo(tipoSalvo); setTipoOutro('') } else { setTipo('__outro__'); setTipoOutro(tipoSalvo) }
+    setProfId(orc.profissional_id || ''); setProfNome(orc.profissional_nome || ''); setSalvarFreelancer(false)
     setDataDoc(orc.data || new Date().toISOString().split('T')[0]); setStatus(orc.status || 'Aberto')
     setItens(orc.servicos?.length ? orc.servicos : [{ nome:'', qtd:1, unitario:'', total:0, obs:'' }])
     setDesconto(orc.desconto ? String(orc.desconto) : ''); setExigirSinal(orc.exigir_sinal || false)
@@ -145,6 +149,7 @@ export default function Orcamentos() {
 
   async function handleSalvar() {
     if (!clienteNome.trim()) { setMensagem('Informe o nome do cliente.'); return }
+    if (tipo === '__outro__' && !tipoOutro.trim()) { setMensagem('Especifique o tipo do documento.'); return }
     if (!clienteWpp) { setMensagem('Informe o WhatsApp do cliente.'); return }
     const payload = {
       user_id: userId,
@@ -152,7 +157,7 @@ export default function Orcamentos() {
       cliente_whatsapp: clienteWpp.replace(/\D/g,''),
       cliente_email: clienteEmail || null,
       cliente_obs: clienteObs || null,
-      tipo, profissional_id: (profId && profId !== '__outro__') ? profId : null,
+      tipo: tipo === '__outro__' ? (tipoOutro.trim() || 'Outro') : tipo, profissional_id: (profId && profId !== '__outro__') ? profId : null,
       profissional_nome: profId === '__outro__' ? (profNome.trim() || null) : profId ? (profissionais.find(p => p.id === profId)?.nome || null) : null,
       data: dataDoc, status,
       servicos: itens.filter(i => i.nome),
@@ -599,10 +604,23 @@ ${orc.observacoes?`<div class="sec"><div class="sec-title">Observações</div><p
               <p className="form-sec-sub">Tipo, profissional, data e status.</p>
               <div className="fields">
                 <div className="row-2">
-                  <div><label className="label">Tipo *</label>
-                    <select value={tipo} onChange={e => setTipo(e.target.value)} className="select">
-                      {['Orçamento','Atendimento','Tratamento','Ordem de serviço','Retorno'].map(t => <option key={t}>{t}</option>)}
-                    </select></div>
+                  <div>
+                    <label className="label">Tipo *</label>
+                    <select value={tipo} onChange={e => { setTipo(e.target.value); if (e.target.value !== '__outro__') setTipoOutro('') }} className="select">
+                      {['Orçamento','Atendimento','Tratamento','Ordem de serviço','Retorno'].map(t => <option key={t} value={t}>{t}</option>)}
+                      <option value="__outro__">Outro</option>
+                    </select>
+                    {tipo === '__outro__' && (
+                      <div style={{ marginTop:'10px' }}>
+                        <label className="label">Especifique o tipo do documento *</label>
+                        <input type="text"
+                          placeholder="Ex: Avaliação, Laudo, Ficha técnica, Revisão"
+                          value={tipoOutro}
+                          onChange={e => setTipoOutro(e.target.value)}
+                          className="input" />
+                      </div>
+                    )}
+                  </div>
                   <div><label className="label">Status</label>
                     <select value={status} onChange={e => setStatus(e.target.value)} className="select">
                       {['Aberto','Aguardando aprovação','Em andamento','Parcialmente pago','Pago','Finalizado','Cancelado'].map(s => <option key={s}>{s}</option>)}
@@ -643,36 +661,97 @@ ${orc.observacoes?`<div class="sec"><div class="sec-title">Observações</div><p
             {/* 3. Serviços */}
             <div className="form-section">
               <p className="form-sec-title">🛎 Serviços / Procedimentos</p>
-              <p className="form-sec-sub">Adicione os serviços ou procedimentos realizados.</p>
+              <p className="form-sec-sub">Adicione os serviços, procedimentos, produtos ou itens deste orçamento.</p>
               {itens.map((item, idx) => (
                 <div key={idx} className="item-row">
-                  <div style={{ display:'flex', justifyContent:'space-between', marginBottom:'8px' }}>
-                    <span style={{ fontSize:'12px', color:'#4B5563' }}>Item {idx+1}</span>
-                    {itens.length > 1 && <button className="btn-rm" onClick={() => setItens(prev => prev.filter((_,i) => i !== idx))}>×</button>}
+                  <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'12px' }}>
+                    <span style={{ fontSize:'11px', fontWeight:'700', color:'#4B5563', textTransform:'uppercase', letterSpacing:'.06em' }}>Item {idx+1}</span>
+                    {itens.length > 1 && (
+                      <button className="btn-rm" title="Remover item" onClick={() => setItens(prev => prev.filter((_,i) => i !== idx))}>×</button>
+                    )}
                   </div>
-                  <div className="item-grid">
-                    <div><label className="label">Serviço *</label>
-                      <input type="text" placeholder="Nome do serviço" value={item.nome} onChange={e => atualizarItem(idx,'nome',e.target.value)} className="input" /></div>
-                    <div><label className="label">Qtd</label>
-                      <input type="number" min="1" value={item.qtd} onChange={e => atualizarItem(idx,'qtd',e.target.value)} className="input" /></div>
-                    <div><label className="label">Unitário</label>
-                      <input type="number" placeholder="0,00" value={item.unitario} onChange={e => atualizarItem(idx,'unitario',e.target.value)} className="input" /></div>
-                    <div><label className="label">Total</label>
-                      <p className="item-total">R$ {fmtBRL(item.total||0)}</p></div>
+
+                  {/* Nome do serviço — linha inteira */}
+                  <div style={{ marginBottom:'10px' }}>
+                    <label className="label">Serviço / Procedimento *</label>
+                    <input type="text"
+                      placeholder="Ex: Corte de cabelo, limpeza de pele, troca de óleo, restauração..."
+                      value={item.nome}
+                      onChange={e => atualizarItem(idx,'nome',e.target.value)}
+                      className="input" />
                   </div>
-                  <div style={{ marginTop:'8px' }}>
-                    <input type="text" placeholder="Observação opcional" value={item.obs} onChange={e => atualizarItem(idx,'obs',e.target.value)} className="input" style={{ fontSize:'13px' }} />
+
+                  {/* Qtd + Unitário + Total */}
+                  <div style={{ display:'grid', gridTemplateColumns:'1fr 1.5fr 1.5fr', gap:'10px', marginBottom:'10px' }}>
+                    <div>
+                      <label className="label">Qtd</label>
+                      <input type="number" min="1"
+                        value={item.qtd}
+                        onChange={e => atualizarItem(idx,'qtd',e.target.value)}
+                        className="input" style={{ textAlign:'center' }} />
+                    </div>
+                    <div>
+                      <label className="label">Valor unitário</label>
+                      <div style={{ position:'relative' }}>
+                        <span style={{ position:'absolute', left:'12px', top:'50%', transform:'translateY(-50%)', fontSize:'13px', color:'#6B7280', fontWeight:'600', pointerEvents:'none' }}>R$</span>
+                        <input type="number" min="0" step="0.01"
+                          placeholder="0,00"
+                          value={item.unitario}
+                          onChange={e => atualizarItem(idx,'unitario',e.target.value)}
+                          className="input" style={{ paddingLeft:'36px' }} />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="label">Total</label>
+                      <div style={{ background:'rgba(34,197,94,.08)', border:'1px solid rgba(34,197,94,.2)', borderRadius:'10px', padding:'12px 14px', display:'flex', alignItems:'center' }}>
+                        <span style={{ fontSize:'15px', fontWeight:'800', color:'#22C55E' }}>
+                          R$ {fmtBRL(item.total||0)}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Observação */}
+                  <div>
+                    <input type="text"
+                      placeholder="Observação opcional (Ex: inclui material, sem juros...)"
+                      value={item.obs}
+                      onChange={e => atualizarItem(idx,'obs',e.target.value)}
+                      className="input"
+                      style={{ fontSize:'13px', color:'#9CA3AF' }} />
                   </div>
                 </div>
               ))}
-              <button className="btn-add-item" onClick={() => setItens(prev => [...prev, { nome:'', qtd:1, unitario:'', total:0, obs:'' }])}>+ Adicionar item</button>
-              <div className="subtotal-box" style={{ marginTop:'12px' }}>
-                <div className="subtotal-row"><span style={{ color:'#9CA3AF' }}>Subtotal</span><span style={{ color:'#F1F5F9' }}>R$ {fmtBRL(subtotal)}</span></div>
+
+              <button className="btn-add-item" onClick={() => setItens(prev => [...prev, { nome:'', qtd:1, unitario:'', total:0, obs:'' }])}>
+                + Adicionar serviço / procedimento
+              </button>
+
+              {/* Resumo financeiro */}
+              <div className="subtotal-box" style={{ marginTop:'14px' }}>
                 <div className="subtotal-row">
-                  <span style={{ color:'#9CA3AF' }}>Desconto</span>
-                  <input type="number" placeholder="0" value={desconto} onChange={e => setDesconto(e.target.value)} style={{ background:'transparent', border:'none', outline:'none', color:'#EF4444', fontSize:'13px', fontWeight:'600', textAlign:'right', width:'80px', fontFamily:'inherit' }} />
+                  <span style={{ color:'#9CA3AF', fontWeight:'600' }}>Subtotal</span>
+                  <span style={{ color:'#F1F5F9', fontWeight:'700' }}>R$ {fmtBRL(subtotal)}</span>
                 </div>
-                <div className="subtotal-row total"><span>Total</span><span style={{ color:'#22C55E' }}>R$ {fmtBRL(total)}</span></div>
+                <div className="subtotal-row" style={{ borderTop:'1px solid rgba(255,255,255,.06)', marginTop:'8px', paddingTop:'10px' }}>
+                  <span style={{ color:'#9CA3AF', fontWeight:'600' }}>Desconto</span>
+                  <div style={{ display:'flex', alignItems:'center', gap:'6px' }}>
+                    <span style={{ fontSize:'13px', color:'#6B7280' }}>R$</span>
+                    <input type="number" min="0" step="0.01" placeholder="0,00"
+                      value={desconto}
+                      onChange={e => setDesconto(e.target.value)}
+                      style={{ background:'transparent', border:'none', outline:'none', color:'#EF4444', fontSize:'14px', fontWeight:'700', textAlign:'right', width:'90px', fontFamily:'inherit' }} />
+                  </div>
+                </div>
+                <div className="subtotal-row total" style={{ marginTop:'8px' }}>
+                  <span>Total final</span>
+                  <span style={{ color:'#22C55E', fontSize:'20px' }}>R$ {fmtBRL(total)}</span>
+                </div>
+                {descontoNum > subtotal && subtotal > 0 && (
+                  <p style={{ fontSize:'11px', color:'#F59E0B', marginTop:'6px', textAlign:'right' }}>
+                    ⚠ Desconto maior que o subtotal. Total ajustado para R$ 0,00.
+                  </p>
+                )}
               </div>
             </div>
 
