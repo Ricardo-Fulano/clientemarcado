@@ -101,7 +101,6 @@ export default function Profissionais() {
         <h2 style={{ fontSize: '22px', fontWeight: 'bold', marginBottom: '4px' }}>Minha equipe</h2>
         <p style={{ color: 'var(--text-muted)', fontSize: '14px', marginBottom: '32px' }}>Cadastre os profissionais do seu negócio</p>
 
-        {/* Formulário */}
         <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '16px', padding: '28px', marginBottom: '24px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
           <h3 style={{ fontSize: '15px', fontWeight: '600', margin: 0 }}>Adicionar profissional</h3>
 
@@ -112,12 +111,11 @@ export default function Profissionais() {
           </div>
 
           <div>
-            <label style={labelStyle}>Especialidade (opcional)</label>
-            <input type="text" placeholder="Ex: Corte masculino, barba" value={especialidade}
+            <label style={labelStyle}>Cargo/Função (opcional)</label>
+            <input type="text" placeholder="Ex: Barbeiro, terapeuta, consultor, especialista" value={especialidade}
               onChange={(e) => setEspecialidade(e.target.value)} style={inputStyle} />
           </div>
 
-          {/* Upload de foto */}
           <div>
             <label style={labelStyle}>Foto do profissional (opcional)</label>
             <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '10px', lineHeight: 1.5 }}>
@@ -172,7 +170,6 @@ export default function Profissionais() {
           </button>
         </div>
 
-        {/* Lista */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
           {profissionais.length === 0 && (
             <p style={{ color: 'var(--text-muted)', textAlign: 'center', padding: '32px 0', fontSize: '14px' }}>Nenhum profissional cadastrado ainda.</p>

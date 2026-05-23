@@ -2,7 +2,50 @@
 import { useState } from 'react'
 import { supabase } from '../lib/supabase'
 
-const TIPOS_NEGOCIO = ['Barbearia', 'Salão de cabeleireiro', 'Clínica estética', 'Clínica odontológica', 'Clínica médica', 'Petshop', 'Outro']
+const TIPOS_NEGOCIO = [
+  'Barbearia', 'Salão de cabeleireiro', 'Clínica estética',
+  'Clínica odontológica', 'Clínica médica', 'Petshop', 'Outro'
+]
+
+const BENEFICIOS = [
+  {
+    icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>,
+    titulo: 'Página de agendamento pronta',
+    desc: 'Seu negócio online em minutos, com sua cara e seu horário.',
+  },
+  {
+    icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>,
+    titulo: 'Agenda organizada',
+    desc: 'Receba agendamentos, evite conflitos e nunca mais perca horários.',
+  },
+  {
+    icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>,
+    titulo: 'Painel simples para acompanhar',
+    desc: 'Veja agendamentos, clientes e resultados de forma clara e prática.',
+  },
+]
+
+const CalIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="3" y="4" width="18" height="18" rx="2"/>
+    <line x1="16" y1="2" x2="16" y2="6"/>
+    <line x1="8" y1="2" x2="8" y2="6"/>
+    <line x1="3" y1="10" x2="21" y2="10"/>
+  </svg>
+)
+
+const EyeIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+  </svg>
+)
+
+const EyeOffIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/>
+    <line x1="1" y1="1" x2="23" y2="23"/>
+  </svg>
+)
 
 export default function Cadastro() {
   const [nomeNegocio, setNomeNegocio] = useState('')
@@ -10,6 +53,7 @@ export default function Cadastro() {
   const [nomeUsuario, setNomeUsuario] = useState('')
   const [email, setEmail] = useState('')
   const [senha, setSenha] = useState('')
+  const [mostrarSenha, setMostrarSenha] = useState(false)
   const [loading, setLoading] = useState(false)
   const [mensagem, setMensagem] = useState('')
 
@@ -17,88 +61,423 @@ export default function Cadastro() {
     setLoading(true)
     setMensagem('')
     const { error } = await supabase.auth.signUp({
-      email, password: senha,
+      email,
+      password: senha,
       options: { data: { nome_negocio: nomeNegocio, tipo_negocio: tipoNegocio, nome_usuario: nomeUsuario } }
     })
-    if (error) { setMensagem('Erro: ' + error.message) }
-    else { setMensagem('Conta criada! Verifique seu e-mail para confirmar.') }
+    if (error) setMensagem('Erro: ' + error.message)
+    else setMensagem('Conta criada! Verifique seu e-mail para confirmar.')
     setLoading(false)
   }
 
-  const inputStyle = {
-    background: 'var(--card)',
-    border: '1px solid var(--border)',
-    color: 'var(--text-primary)',
-    borderRadius: '10px',
-    padding: '12px 16px',
-    width: '100%',
-    outline: 'none',
-    fontSize: '14px',
-  }
+  const css = `
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-  const labelStyle = { color: 'var(--text-secondary)', fontSize: '12px', fontWeight: '500', display: 'block', marginBottom: '6px' }
+    body { background: #08080A; }
+
+    .pg {
+      min-height: 100vh;
+      background: #08080A;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ══════════════════════════════
+       BASE = MOBILE  (coluna única)
+    ══════════════════════════════ */
+
+    /* Esconde lado esquerdo (desktop only) */
+    .col-esquerda { display: none; }
+
+    .pg-body {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 32px 16px 40px;
+      gap: 0;
+    }
+
+    /* ── Logo mobile ── */
+    .logo-bloco {
+      width: 100%;
+      max-width: 480px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 24px;
+    }
+    .logo-icone {
+      width: 34px; height: 34px; border-radius: 10px;
+      background: #3B82F6;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .logo-texto {
+      font-size: 18px; font-weight: 800;
+      color: #F1F5F9; letter-spacing: -0.02em;
+    }
+
+    /* ── Headline mobile ── */
+    .headline-bloco {
+      width: 100%;
+      max-width: 480px;
+      text-align: center;
+      margin-bottom: 24px;
+    }
+    .headline-titulo {
+      font-size: 24px; font-weight: 800;
+      color: #F1F5F9; letter-spacing: -0.02em;
+      margin-bottom: 8px; line-height: 1.2;
+    }
+    .headline-sub {
+      font-size: 14px; color: #6B7280; line-height: 1.55;
+    }
+
+    /* ── Formulário mobile ── */
+    .form-bloco {
+      width: 100%;
+      max-width: 480px;
+      margin-bottom: 20px;
+    }
+
+    /* ── Benefícios mobile (abaixo do form) ── */
+    .beneficios-mobile {
+      width: 100%;
+      max-width: 480px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .beneficio-mobile-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 13px 15px;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 11px;
+    }
+    .beneficio-mobile-icone {
+      width: 32px; height: 32px; border-radius: 8px; flex-shrink: 0;
+      background: rgba(59,130,246,0.1);
+      border: 1px solid rgba(59,130,246,0.15);
+      display: flex; align-items: center; justify-content: center;
+      color: #3B82F6;
+    }
+    .beneficio-mobile-titulo {
+      font-size: 13px; font-weight: 600; color: #D1D5DB;
+    }
+
+    /* ══════════════════════════════
+       DESKTOP (≥ 900px) — 2 colunas
+    ══════════════════════════════ */
+    @media (min-width: 900px) {
+
+      /* Ativa coluna esquerda */
+      .col-esquerda {
+        display: flex;
+        flex-direction: column;
+        gap: 36px;
+        flex: 1;
+      }
+
+      /* Esconde os blocos mobile avulsos */
+      .logo-bloco      { display: none; }
+      .headline-bloco  { display: none; }
+      .beneficios-mobile { display: none; }
+
+      /* Layout em linha */
+      .pg-body {
+        flex-direction: row;
+        align-items: center;
+        justify-content: center;
+        padding: 48px 48px;
+        gap: 64px;
+      }
+
+      /* Coluna direita (formulário) */
+      .form-bloco {
+        flex: 1;
+        max-width: 480px;
+        margin-bottom: 0;
+      }
+
+      /* Limita largura total do par */
+      .pg-body > .col-esquerda,
+      .pg-body > .form-bloco {
+        max-width: 480px;
+      }
+    }
+
+    /* ── Desktop: logo esquerda ── */
+    .desk-logo-row {
+      display: flex; align-items: center; gap: 10px;
+    }
+    .desk-logo-icone {
+      width: 36px; height: 36px; border-radius: 10px;
+      background: #3B82F6;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .desk-logo-texto {
+      font-size: 18px; font-weight: 800;
+      color: #F1F5F9; letter-spacing: -0.02em;
+    }
+    .desk-hero-titulo {
+      font-size: 38px; font-weight: 800;
+      color: #F1F5F9; letter-spacing: -0.03em;
+      line-height: 1.15; margin-bottom: 14px;
+    }
+    .desk-hero-titulo span { color: #3B82F6; }
+    .desk-hero-sub { font-size: 16px; color: #6B7280; line-height: 1.6; }
+
+    .desk-beneficios { display: flex; flex-direction: column; gap: 14px; }
+    .desk-beneficio {
+      display: flex; align-items: flex-start; gap: 14px;
+      background: linear-gradient(180deg, rgba(18,22,30,0.92) 0%, rgba(10,12,16,0.92) 100%);
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 12px; padding: 16px 18px;
+    }
+    .desk-beneficio-icone {
+      width: 36px; height: 36px; border-radius: 9px; flex-shrink: 0;
+      background: rgba(59,130,246,0.12);
+      border: 1px solid rgba(59,130,246,0.2);
+      display: flex; align-items: center; justify-content: center;
+      color: #3B82F6;
+    }
+    .desk-beneficio-titulo { font-size: 14px; font-weight: 700; color: #F1F5F9; margin-bottom: 3px; }
+    .desk-beneficio-desc   { font-size: 13px; color: #6B7280; line-height: 1.45; }
+
+    /* ── Card formulário ── */
+    .card {
+      background: linear-gradient(180deg, rgba(16,20,30,0.98) 0%, rgba(10,12,18,0.98) 100%);
+      border: 1px solid rgba(255,255,255,0.09);
+      border-radius: 20px;
+      padding: 24px 20px;
+      box-shadow: 0 8px 40px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.03);
+    }
+    @media (min-width: 900px) {
+      .card { padding: 36px 32px; }
+    }
+
+    .card-titulo { font-size: 19px; font-weight: 800; color: #F1F5F9; letter-spacing: -0.02em; margin-bottom: 3px; }
+    .card-sub    { font-size: 13px; color: #6B7280; margin-bottom: 22px; }
+
+    /* ── Campos ── */
+    .campos { display: flex; flex-direction: column; gap: 14px; margin-bottom: 20px; }
+    .label {
+      display: block; font-size: 11px; font-weight: 600;
+      color: #9CA3AF; text-transform: uppercase; letter-spacing: 0.07em;
+      margin-bottom: 7px;
+    }
+    .hint { font-size: 11px; color: #374151; margin-top: 5px; }
+
+    .input {
+      width: 100%;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 10px;
+      padding: 14px 16px;
+      color: #F1F5F9;
+      font-size: 16px;
+      outline: none;
+      transition: border-color 0.15s, box-shadow 0.15s;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      -webkit-appearance: none;
+    }
+    .input:focus {
+      border-color: rgba(59,130,246,0.5);
+      box-shadow: 0 0 0 3px rgba(59,130,246,0.1);
+    }
+    .input::placeholder { color: #374151; }
+    .input option { background: #0F1117; color: #F1F5F9; }
+
+    .senha-wrap { position: relative; }
+    .senha-wrap .input { padding-right: 48px; }
+    .olho {
+      position: absolute; right: 14px; top: 50%; transform: translateY(-50%);
+      background: none; border: none; cursor: pointer; color: #4B5563;
+      display: flex; align-items: center; padding: 4px;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .olho:hover { color: #9CA3AF; }
+
+    /* ── Botão ── */
+    .btn-criar {
+      width: 100%;
+      background: #3B82F6; color: #fff;
+      font-size: 15px; font-weight: 700;
+      padding: 15px;
+      border: none; border-radius: 12px; cursor: pointer;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      box-shadow: 0 4px 20px rgba(59,130,246,0.35);
+      transition: background 0.15s, box-shadow 0.15s, opacity 0.15s;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      -webkit-tap-highlight-color: transparent;
+      margin-bottom: 14px;
+    }
+    .btn-criar:hover   { background: #2563EB; box-shadow: 0 4px 28px rgba(59,130,246,0.5); }
+    .btn-criar:disabled { opacity: 0.6; cursor: not-allowed; }
+
+    /* ── Link login ── */
+    .link-login { text-align: center; font-size: 13px; color: #4B5563; }
+    .link-login a { color: #3B82F6; font-weight: 600; text-decoration: none; }
+    .link-login a:hover { text-decoration: underline; }
+
+    /* ── Mensagens ── */
+    .msg-ok  { background: rgba(34,197,94,0.08); border: 1px solid rgba(34,197,94,0.2); border-radius: 10px; padding: 11px 14px; font-size: 13px; color: #22C55E; margin-bottom: 14px; text-align: center; }
+    .msg-err { background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.2); border-radius: 10px; padding: 11px 14px; font-size: 13px; color: #EF4444; margin-bottom: 14px; text-align: center; }
+
+    /* ── Footer ── */
+    .footer {
+      text-align: center; padding: 16px;
+      font-size: 12px; color: #374151;
+      display: flex; align-items: center; justify-content: center; gap: 6px;
+    }
+  `
 
   return (
-    <main className="min-h-screen flex items-center justify-center px-4 py-12" style={{ background: 'var(--background)' }}>
-      <div className="w-full max-w-md">
-        <div className="text-center mb-8">
-          <a href="/" className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>ClienteMarcado</a>
-          <p className="mt-2 text-sm" style={{ color: 'var(--text-secondary)' }}>Crie sua conta gratuitamente</p>
-        </div>
+    <div className="pg">
+      <style>{css}</style>
 
-        <div className="rounded-2xl p-8 flex flex-col gap-4"
-          style={{ background: 'var(--card)', border: '1px solid var(--border)' }}>
+      <div className="pg-body">
 
-          <div>
-            <label style={labelStyle}>Tipo de negócio</label>
-            <select value={tipoNegocio} onChange={e => setTipoNegocio(e.target.value)} style={inputStyle}>
-              <option value="">Selecione o tipo...</option>
-              {TIPOS_NEGOCIO.map(t => <option key={t} value={t}>{t}</option>)}
-            </select>
+        {/* ══ COLUNA ESQUERDA — só desktop ══ */}
+        <div className="col-esquerda">
+          <div className="desk-logo-row">
+            <div className="desk-logo-icone"><CalIcon /></div>
+            <span className="desk-logo-texto">ClienteMarcado</span>
           </div>
 
           <div>
-            <label style={labelStyle}>Nome do negócio</label>
-            <input type="text" placeholder="Ex: Barbearia do João" value={nomeNegocio}
-              onChange={e => setNomeNegocio(e.target.value)} style={inputStyle} />
-          </div>
-
-          <div>
-            <label style={labelStyle}>Seu nome</label>
-            <input type="text" placeholder="Ex: João Silva" value={nomeUsuario}
-              onChange={e => setNomeUsuario(e.target.value)} style={inputStyle} />
-          </div>
-
-          <div>
-            <label style={labelStyle}>E-mail</label>
-            <input type="email" placeholder="joao@email.com" value={email}
-              onChange={e => setEmail(e.target.value)} style={inputStyle} />
-          </div>
-
-          <div>
-            <label style={labelStyle}>Senha</label>
-            <input type="password" placeholder="Mínimo 6 caracteres" value={senha}
-              onChange={e => setSenha(e.target.value)} style={inputStyle} />
-          </div>
-
-          {mensagem && (
-            <p className="text-sm text-center" style={{ color: mensagem.startsWith('Erro') ? 'var(--danger)' : 'var(--success)' }}>
-              {mensagem}
+            <h1 className="desk-hero-titulo">
+              Crie sua conta no<br /><span>ClienteMarcado</span>
+            </h1>
+            <p className="desk-hero-sub">
+              Seu cliente agenda sozinho.<br />
+              Você controla tudo pelo painel.
             </p>
-          )}
+          </div>
 
-          <button onClick={handleCadastro} disabled={loading}
-            className="w-full py-3 rounded-xl font-semibold text-sm transition mt-1 disabled:opacity-50"
-            style={{ background: 'var(--accent)', color: '#fff' }}>
-            {loading ? 'Criando conta...' : 'Criar minha conta'}
-          </button>
-
-          <p className="text-center text-xs mt-2" style={{ color: 'var(--text-muted)' }}>
-            Já tem conta?{' '}
-            <a href="/login" className="font-semibold" style={{ color: 'var(--accent)' }}>Entrar</a>
-          </p>
+          <div className="desk-beneficios">
+            {BENEFICIOS.map(b => (
+              <div key={b.titulo} className="desk-beneficio">
+                <div className="desk-beneficio-icone">{b.icon}</div>
+                <div>
+                  <p className="desk-beneficio-titulo">{b.titulo}</p>
+                  <p className="desk-beneficio-desc">{b.desc}</p>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
+
+        {/* ══ BLOCOS MOBILE (somem no desktop) ══ */}
+
+        {/* 1. Logo */}
+        <div className="logo-bloco">
+          <div className="logo-icone"><CalIcon /></div>
+          <span className="logo-texto">ClienteMarcado</span>
+        </div>
+
+        {/* 2. Headline */}
+        <div className="headline-bloco">
+          <h1 className="headline-titulo">Crie sua conta grátis</h1>
+          <p className="headline-sub">Configure sua página de agendamento em poucos minutos.</p>
+        </div>
+
+        {/* 3. Formulário */}
+        <div className="form-bloco">
+          <div className="card">
+            <p className="card-titulo">Criar conta grátis</p>
+            <p className="card-sub">É rápido, fácil e sem compromisso.</p>
+
+            <div className="campos">
+              <div>
+                <label className="label">Tipo de negócio</label>
+                <select value={tipoNegocio} onChange={e => setTipoNegocio(e.target.value)} className="input">
+                  <option value="">Selecione o tipo...</option>
+                  {TIPOS_NEGOCIO.map(t => <option key={t} value={t}>{t}</option>)}
+                </select>
+                <p className="hint">Isso ajuda a preparar sua página de agendamento.</p>
+              </div>
+
+              <div>
+                <label className="label">Nome do negócio</label>
+                <input type="text" placeholder="Ex: Barbearia do João"
+                  value={nomeNegocio} onChange={e => setNomeNegocio(e.target.value)} className="input" />
+              </div>
+
+              <div>
+                <label className="label">Seu nome</label>
+                <input type="text" placeholder="Ex: João Silva"
+                  value={nomeUsuario} onChange={e => setNomeUsuario(e.target.value)} className="input" />
+              </div>
+
+              <div>
+                <label className="label">E-mail</label>
+                <input type="email" placeholder="joao@email.com"
+                  value={email} onChange={e => setEmail(e.target.value)} className="input" />
+              </div>
+
+              <div>
+                <label className="label">Senha</label>
+                <div className="senha-wrap">
+                  <input
+                    type={mostrarSenha ? 'text' : 'password'}
+                    placeholder="Mínimo 6 caracteres"
+                    value={senha} onChange={e => setSenha(e.target.value)}
+                    className="input" />
+                  <button className="olho" type="button" onClick={() => setMostrarSenha(!mostrarSenha)}>
+                    {mostrarSenha ? <EyeOffIcon /> : <EyeIcon />}
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {mensagem && (
+              <div className={mensagem.startsWith('Erro') ? 'msg-err' : 'msg-ok'}>
+                {mensagem}
+              </div>
+            )}
+
+            <button onClick={handleCadastro} disabled={loading} className="btn-criar">
+              {loading ? 'Criando conta...' : (
+                <>
+                  Criar minha conta
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
+                  </svg>
+                </>
+              )}
+            </button>
+
+            <p className="link-login">
+              Já tem conta? <a href="/login">Entrar</a>
+            </p>
+          </div>
+        </div>
+
+        {/* 4. Benefícios mobile (abaixo do form) */}
+        <div className="beneficios-mobile">
+          {BENEFICIOS.map(b => (
+            <div key={b.titulo} className="beneficio-mobile-item">
+              <div className="beneficio-mobile-icone">{b.icon}</div>
+              <span className="beneficio-mobile-titulo">{b.titulo}</span>
+            </div>
+          ))}
+        </div>
+
       </div>
-    </main>
+
+      <div className="footer">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#374151" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+        </svg>
+        Seus dados estão protegidos com segurança de nível empresarial.
+      </div>
+    </div>
   )
 }

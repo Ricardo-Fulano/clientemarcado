@@ -39,7 +39,6 @@ export default function Agendar() {
       const { data: pr } = await supabase.from('profissionais').select('*').eq('user_id', p.user_id)
       setProfissionais(pr || [])
 
-      // Pré-selecionar serviço via query param
       const servicoParam = searchParams.get('servico')
       if (servicoParam && s && s.find((sv: any) => sv.id === servicoParam)) {
         setServicoId(servicoParam)
@@ -63,18 +62,16 @@ export default function Agendar() {
     const horaFechamento = perfil?.hora_fechamento || '18:00'
 
     const { data: bloqueios } = await supabase
-      .from('bloqueios')
-      .select('*')
+      .from('bloqueios').select('*')
       .eq('user_id', perfil.user_id)
       .eq('data', dataSelecionada)
 
-    const bloqueiosAtivos = (bloqueios || []).filter(b =>
+    const bloqueiosAtivos = (bloqueios || []).filter((b: any) =>
       !b.profissional_id || b.profissional_id === profissionalId
     )
 
     const { data: ags } = await supabase
-      .from('agendamentos')
-      .select('data_hora, servico_id')
+      .from('agendamentos').select('data_hora, servico_id')
       .eq('profissional_id', profissionalId)
       .gte('data_hora', dataSelecionada + 'T00:00:00')
       .lte('data_hora', dataSelecionada + 'T23:59:59')
@@ -85,7 +82,7 @@ export default function Agendar() {
     const inicioMin = hAb * 60 + mAb
     const fimMin = hFech * 60 + mFech
 
-    const ocupados: { inicio: number, fim: number }[] = []
+    const ocupados: { inicio: number; fim: number }[] = []
     for (const ag of ags || []) {
       const d = new Date(ag.data_hora)
       const min = d.getHours() * 60 + d.getMinutes()
@@ -110,15 +107,12 @@ export default function Agendar() {
       const dataHorario = new Date(dataSelecionada + 'T' + h + ':00')
       const diffMinutos = (dataHorario.getTime() - agora.getTime()) / 60000
       if (diffMinutos < antecedencia) return false
-
       const [hh, mm] = h.split(':').map(Number)
       const minHorario = hh * 60 + mm
-      const conflitoBloqueio = bloqueiosAtivos.some(b => {
+      const conflitoBloqueio = bloqueiosAtivos.some((b: any) => {
         const [bhi, bmi] = b.hora_inicio.split(':').map(Number)
         const [bhf, bmf] = b.hora_fim.split(':').map(Number)
-        const inicioBloqueo = bhi * 60 + bmi
-        const fimBloqueo = bhf * 60 + bmf
-        return minHorario < fimBloqueo && minHorario + duracaoServico > inicioBloqueo
+        return minHorario < bhf * 60 + bmf && minHorario + duracaoServico > bhi * 60 + bmi
       })
       return !conflitoBloqueio
     })
@@ -129,9 +123,9 @@ export default function Agendar() {
 
   function aplicarMascaraTelefone(valor: string) {
     const nums = valor.replace(/\D/g, '').slice(0, 11)
-    if (nums.length > 10) return '(' + nums.slice(0,2) + ') ' + nums.slice(2,7) + '-' + nums.slice(7)
-    if (nums.length > 6) return '(' + nums.slice(0,2) + ') ' + nums.slice(2,6) + '-' + nums.slice(6)
-    if (nums.length > 2) return '(' + nums.slice(0,2) + ') ' + nums.slice(2)
+    if (nums.length > 10) return '(' + nums.slice(0, 2) + ') ' + nums.slice(2, 7) + '-' + nums.slice(7)
+    if (nums.length > 6) return '(' + nums.slice(0, 2) + ') ' + nums.slice(2, 6) + '-' + nums.slice(6)
+    if (nums.length > 2) return '(' + nums.slice(0, 2) + ') ' + nums.slice(2)
     if (nums.length > 0) return '(' + nums
     return ''
   }
@@ -140,8 +134,7 @@ export default function Agendar() {
     setErro('')
     if (!clienteNome) { setErro('Informe seu nome.'); return }
     if (!clienteTelefone || clienteTelefone.replace(/\D/g, '').length < 10) {
-      setErro('Informe seu WhatsApp com DDD.')
-      return
+      setErro('Informe seu WhatsApp com DDD.'); return
     }
     setLoading(true)
     const { error } = await supabase.from('agendamentos').insert({
@@ -161,28 +154,21 @@ export default function Agendar() {
     const inicio = new Date(dataSelecionada + 'T' + horarioSelecionado + ':00')
     const fim = new Date(inicio.getTime() + (servicoSelecionado?.duracao_minutos || 30) * 60000)
     const fmt = (d: Date) => d.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z'
-    const ics = [
-      'BEGIN:VCALENDAR', 'VERSION:2.0',
-      'BEGIN:VEVENT',
-      'DTSTART:' + fmt(inicio),
-      'DTEND:' + fmt(fim),
+    const ics = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'BEGIN:VEVENT',
+      'DTSTART:' + fmt(inicio), 'DTEND:' + fmt(fim),
       'SUMMARY:' + (servicoSelecionado?.nome || '') + ' - ' + (perfil?.nome_negocio || ''),
       'DESCRIPTION:Profissional: ' + (profissionalSelecionado?.nome || ''),
-      'END:VEVENT', 'END:VCALENDAR'
-    ].join('\r\n')
+      'END:VEVENT', 'END:VCALENDAR'].join('\r\n')
     const blob = new Blob([ics], { type: 'text/calendar' })
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
-    a.href = url
-    a.download = 'agendamento.ics'
-    a.click()
+    a.href = url; a.download = 'agendamento.ics'; a.click()
     URL.revokeObjectURL(url)
   }
 
   const servicoSelecionado = servicos.find(s => s.id === servicoId)
   const profissionalSelecionado = profissionais.find(p => p.id === profissionalId)
   const todayStr = new Date().toISOString().split('T')[0]
-
   const linkWppEstabelecimento = perfil?.whatsapp
     ? 'https://wa.me/55' + perfil.whatsapp.replace(/\D/g, '') + '?text=' + encodeURIComponent('Olá! Acabei de agendar um horário pelo link e gostaria de confirmar.')
     : null
@@ -213,162 +199,742 @@ export default function Agendar() {
   const horariosTarde = horariosDisponiveis.filter(h => parseInt(h) >= 12 && parseInt(h) < 18)
   const horariosNoite = horariosDisponiveis.filter(h => parseInt(h) >= 18)
 
-  const inputStyle = {
-    width: '100%', background: 'var(--surface)', border: '1px solid var(--border)',
-    borderRadius: '10px', padding: '13px 16px', color: 'var(--text-primary)',
-    fontSize: '15px', outline: 'none', boxSizing: 'border-box' as const,
-  }
-  const labelStyle = {
-    fontSize: '11px', fontWeight: '700' as const, color: 'var(--text-muted)',
-    textTransform: 'uppercase' as const, letterSpacing: '0.08em',
-    display: 'block', marginBottom: '8px',
-  }
+  const nomeEtapas = ['Serviço', 'Profissional', 'Data e hora', 'Seus dados']
 
+  const css = `
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    .page {
+      min-height: 100vh;
+      background: #08080A;
+      color: #F5F5F7;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    /* ── Header ── */
+    .header {
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      padding: 13px 16px;
+      display: flex;
+      align-items: center;
+      background: rgba(9,9,11,0.96);
+      backdrop-filter: blur(10px);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    .header-back {
+      color: #6B7280;
+      text-decoration: none;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      min-width: 48px;
+    }
+    .header-title {
+      flex: 1;
+      text-align: center;
+      font-size: 14px;
+      font-weight: 700;
+      color: #F1F5F9;
+    }
+    .header-spacer { min-width: 48px; }
+
+    /* ── Container ── */
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 20px 16px 48px;
+    }
+    @media (min-width: 720px) {
+      .container { max-width: 820px; padding: 28px 24px 64px; }
+    }
+    .container-wide {
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 20px 16px 48px;
+    }
+    @media (min-width: 720px) {
+      .container-wide { max-width: 1000px; padding: 28px 24px 64px; }
+    }
+
+    /* ── Steps ── */
+    .steps-wrap { margin-bottom: 24px; }
+    @media (min-width: 720px) { .steps-wrap { margin-bottom: 32px; } }
+    .steps-track {
+      display: flex;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    .step-dot {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 700;
+      flex-shrink: 0;
+      transition: all 0.2s ease;
+    }
+    .step-dot.done   { background: #3B82F6; color: #fff; border: none; }
+    .step-dot.active { background: #3B82F6; color: #fff; border: none; }
+    .step-dot.idle   { background: rgba(255,255,255,0.05); color: #4B5563; border: 1px solid rgba(255,255,255,0.08); }
+    .step-line {
+      flex: 1;
+      height: 1px;
+      margin: 0 5px;
+      transition: background 0.2s ease;
+    }
+    .step-labels {
+      display: flex;
+      justify-content: space-between;
+    }
+    .step-label {
+      font-size: 9px;
+      letter-spacing: 0.02em;
+    }
+    @media (min-width: 720px) {
+      .step-dot { width: 30px; height: 30px; font-size: 12px; }
+      .step-label { font-size: 10px; }
+    }
+
+    /* ── Section heading ── */
+    .section-title {
+      font-size: 20px;
+      font-weight: 800;
+      color: #F1F5F9;
+      letter-spacing: -0.02em;
+      margin-bottom: 4px;
+    }
+    .section-sub {
+      font-size: 14px;
+      color: #6B7280;
+      margin-bottom: 20px;
+    }
+    @media (min-width: 720px) {
+      .section-title { font-size: 22px; }
+      .section-sub { margin-bottom: 24px; }
+    }
+
+    /* ── Card base ── */
+    .card {
+      background: linear-gradient(180deg, rgba(18,22,30,0.97) 0%, rgba(10,12,16,0.97) 100%);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 14px;
+    }
+
+    /* ── Serviço cards ── */
+    .servico-list { display: flex; flex-direction: column; gap: 10px; }
+    .servico-card {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      background: linear-gradient(180deg, rgba(18,22,30,0.97) 0%, rgba(10,12,16,0.97) 100%);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 14px;
+      padding: 16px;
+      cursor: pointer;
+      text-align: left;
+      width: 100%;
+      position: relative;
+      overflow: hidden;
+      transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .servico-card:hover, .servico-card:active {
+      border-color: rgba(59,130,246,0.45);
+      box-shadow: 0 4px 20px rgba(0,0,0,0.35);
+    }
+    .servico-card.sel {
+      border-color: #3B82F6;
+      box-shadow: 0 0 0 1px rgba(59,130,246,0.25), 0 4px 20px rgba(59,130,246,0.12);
+      background: linear-gradient(180deg, rgba(59,130,246,0.08) 0%, rgba(10,12,16,0.97) 100%);
+    }
+    .servico-accent {
+      position: absolute; top: 0; left: 0; bottom: 0;
+      width: 3px;
+      background: linear-gradient(180deg, rgba(59,130,246,0.8), transparent);
+    }
+    .servico-icon {
+      width: 44px; height: 44px; border-radius: 12px;
+      background: rgba(59,130,246,0.1);
+      border: 1px solid rgba(59,130,246,0.2);
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0; font-size: 18px;
+    }
+    .servico-nome { font-weight: 700; font-size: 15px; color: #F1F5F9; margin-bottom: 3px; }
+    .servico-desc { font-size: 12px; color: #9CA3AF; margin-bottom: 4px; line-height: 1.4; }
+    .servico-meta { font-size: 13px; color: #6B7280; }
+    .servico-preco { color: #22C55E; font-weight: 700; }
+    .servico-arrow { font-size: 20px; color: #3B82F6; flex-shrink: 0; }
+
+    /* ── Profissional cards ── */
+    .prof-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    @media (min-width: 480px) {
+      .prof-grid { grid-template-columns: repeat(3, 1fr); }
+    }
+    @media (min-width: 720px) {
+      .prof-grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; }
+    }
+    .prof-card {
+      display: flex; flex-direction: column; align-items: center; gap: 10px;
+      background: linear-gradient(180deg, rgba(18,22,30,0.97) 0%, rgba(10,12,16,0.97) 100%);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 14px;
+      padding: 20px 12px;
+      cursor: pointer;
+      text-align: center;
+      transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .prof-card:hover, .prof-card:active {
+      border-color: rgba(59,130,246,0.45);
+    }
+    .prof-card.sel {
+      border-color: #3B82F6;
+      box-shadow: 0 0 0 1px rgba(59,130,246,0.25), 0 4px 20px rgba(59,130,246,0.12);
+      background: linear-gradient(180deg, rgba(59,130,246,0.08) 0%, rgba(10,12,16,0.97) 100%);
+    }
+    .prof-avatar-img {
+      width: 64px; height: 64px; border-radius: 999px; object-fit: cover;
+    }
+    .prof-avatar-letra {
+      width: 64px; height: 64px; border-radius: 999px;
+      background: rgba(59,130,246,0.1);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 22px; font-weight: 800; color: #3B82F6;
+    }
+    .prof-nome { font-size: 13px; font-weight: 700; color: #F1F5F9; margin-bottom: 2px; }
+    .prof-cargo { font-size: 12px; color: #6B7280; }
+
+    /* ── Resumo strip (etapa 3) ── */
+    .resumo-strip {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 0;
+      background: linear-gradient(180deg, rgba(18,22,30,0.97) 0%, rgba(10,12,16,0.97) 100%);
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 14px;
+      padding: 14px 16px;
+      margin-bottom: 14px;
+    }
+    @media (min-width: 720px) {
+      .resumo-strip {
+        grid-template-columns: repeat(4, 1fr);
+        padding: 16px 20px;
+        margin-bottom: 18px;
+      }
+    }
+    .resumo-item {
+      padding: 6px 0;
+    }
+    .resumo-item:not(:last-child) {
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+    @media (min-width: 720px) {
+      .resumo-item { padding: 0; }
+      .resumo-item:not(:last-child) {
+        border-bottom: none;
+        border-right: 1px solid rgba(255,255,255,0.06);
+        padding-right: 16px;
+        margin-right: 0;
+      }
+      .resumo-item:not(:first-child) { padding-left: 16px; }
+    }
+    .resumo-label {
+      font-size: 9px; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.07em;
+      color: #4B5563; margin-bottom: 3px;
+    }
+    .resumo-valor {
+      font-size: 13px; font-weight: 700;
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+
+    /* ── Etapa3 grid ── */
+    .etapa3-cols {
+      display: flex; flex-direction: column; gap: 12px;
+      margin-bottom: 14px;
+    }
+    @media (min-width: 720px) {
+      .etapa3-cols {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+        align-items: start;
+      }
+    }
+
+    /* ── Calendário ── */
+    .cal-wrap {
+      background: linear-gradient(180deg, rgba(18,22,30,0.97) 0%, rgba(10,12,16,0.97) 100%);
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 16px;
+      padding: 16px;
+    }
+    .cal-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 14px;
+    }
+    .cal-nav {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 8px;
+      padding: 7px 14px;
+      color: #9CA3AF;
+      cursor: pointer;
+      font-size: 15px;
+      line-height: 1;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .cal-mes {
+      font-weight: 700; font-size: 13px;
+      text-transform: capitalize; color: #F1F5F9;
+    }
+    .cal-dow {
+      display: grid; grid-template-columns: repeat(7, 1fr);
+      gap: 2px; margin-bottom: 6px;
+    }
+    .cal-dow-label {
+      text-align: center; font-size: 10px;
+      font-weight: 700; color: #374151; padding: 3px 0;
+    }
+    .cal-days {
+      display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px;
+    }
+    .dia {
+      padding: 9px 2px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: default;
+      border: 1px solid transparent;
+      text-align: center;
+      background: transparent;
+      color: #2D3748;
+      transition: all 0.15s ease;
+      -webkit-tap-highlight-color: transparent;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    .dia.disp {
+      color: #CBD5E0; background: rgba(255,255,255,0.04);
+      cursor: pointer; font-weight: 600;
+    }
+    .dia.disp:hover, .dia.disp:active {
+      background: rgba(59,130,246,0.14);
+      color: #F1F5F9;
+      border-color: rgba(59,130,246,0.2);
+    }
+    .dia.hoje { border-color: rgba(59,130,246,0.5); color: #3B82F6; font-weight: 700; }
+    .dia.sel  {
+      background: #3B82F6 !important; color: #fff !important;
+      border-color: #3B82F6 !important; font-weight: 700;
+      box-shadow: 0 2px 8px rgba(59,130,246,0.35);
+    }
+
+    /* ── Horários ── */
+    .horarios-wrap {
+      background: linear-gradient(180deg, rgba(18,22,30,0.97) 0%, rgba(10,12,16,0.97) 100%);
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 16px;
+      padding: 16px;
+      min-height: 180px;
+    }
+    .horarios-data-label {
+      font-size: 12px; font-weight: 600; color: #9CA3AF;
+      margin-bottom: 12px;
+      text-transform: capitalize;
+      padding-bottom: 12px;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+    .periodo-label-row {
+      display: flex; align-items: center; gap: 5px; margin-bottom: 8px;
+    }
+    .periodo-label {
+      font-size: 10px; font-weight: 700; color: #6B7280;
+      text-transform: uppercase; letter-spacing: 0.09em;
+    }
+    .horarios-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 7px;
+      margin-bottom: 14px;
+    }
+    @media (min-width: 400px) {
+      .horarios-grid { grid-template-columns: repeat(4, 1fr); }
+    }
+    @media (min-width: 720px) {
+      .horarios-grid { grid-template-columns: repeat(auto-fill, minmax(72px, 1fr)); }
+    }
+    .h-btn {
+      padding: 11px 4px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      border: 1px solid rgba(255,255,255,0.08);
+      text-align: center;
+      background: linear-gradient(180deg, rgba(22,28,40,0.98) 0%, rgba(12,15,22,0.98) 100%);
+      color: #D1D5DB;
+      transition: all 0.15s ease;
+      width: 100%;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .h-btn:hover, .h-btn:active {
+      border-color: rgba(59,130,246,0.5);
+      color: #F1F5F9;
+      background: rgba(59,130,246,0.07);
+    }
+    .h-btn.sel {
+      background: #3B82F6; border-color: #3B82F6;
+      color: #fff; box-shadow: 0 0 0 2px rgba(59,130,246,0.25);
+    }
+    .horarios-empty {
+      display: flex; flex-direction: column; align-items: center;
+      justify-content: center; min-height: 140px; gap: 8px;
+    }
+    .horarios-placeholder {
+      display: flex; flex-direction: column; align-items: center;
+      justify-content: center; min-height: 160px; gap: 10px;
+    }
+
+    /* ── Nav buttons ── */
+    .nav-row { display: flex; gap: 10px; }
+    .btn-voltar {
+      flex: 1;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 12px;
+      padding: 14px;
+      font-size: 14px; font-weight: 600;
+      color: #6B7280; cursor: pointer;
+      transition: background 0.15s, color 0.15s;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .btn-voltar:hover { background: rgba(255,255,255,0.07); color: #9CA3AF; }
+    .btn-continuar {
+      flex: 2;
+      border: none; border-radius: 12px;
+      padding: 14px;
+      font-size: 15px; font-weight: 700;
+      cursor: pointer;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      transition: all 0.2s ease;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .btn-continuar.on  { background: #3B82F6; color: #fff; box-shadow: 0 4px 16px rgba(59,130,246,0.3); }
+    .btn-continuar.off { background: rgba(59,130,246,0.12); color: #374151; cursor: not-allowed; }
+    .btn-confirmar {
+      flex: 2; background: #3B82F6; border: none;
+      border-radius: 12px; padding: 14px;
+      font-size: 15px; font-weight: 700; color: #fff;
+      cursor: pointer;
+      box-shadow: 0 4px 16px rgba(59,130,246,0.3);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      transition: opacity 0.15s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .btn-link-voltar {
+      font-size: 13px; color: #6B7280; background: none; border: none;
+      cursor: pointer; padding: 4px 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    /* ── Inputs ── */
+    .input-field {
+      width: 100%;
+      background: rgba(18,22,30,0.97);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 12px;
+      padding: 14px 16px;
+      color: #F1F5F9;
+      font-size: 16px; /* 16px prevents iOS zoom */
+      outline: none;
+      box-sizing: border-box;
+      transition: border-color 0.15s, box-shadow 0.15s;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    .input-field:focus {
+      border-color: rgba(59,130,246,0.5);
+      box-shadow: 0 0 0 3px rgba(59,130,246,0.1);
+    }
+    .input-field::placeholder { color: #4B5563; }
+    .input-label {
+      font-size: 11px; font-weight: 600; color: #9CA3AF;
+      text-transform: uppercase; letter-spacing: 0.08em;
+      display: block; margin-bottom: 8px;
+    }
+
+    /* ── Resumo card (etapa 4) ── */
+    .resumo-card {
+      background: linear-gradient(180deg, rgba(18,22,30,0.97) 0%, rgba(10,12,16,0.97) 100%);
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 14px; padding: 18px 20px; margin-bottom: 22px;
+    }
+    .resumo-card-title {
+      font-size: 10px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.1em; color: #4B5563; margin-bottom: 14px;
+    }
+    .resumo-row {
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .resumo-row-label { font-size: 13px; color: #6B7280; }
+    .resumo-row-valor { font-size: 13px; font-weight: 700; }
+    .resumo-divider { border: none; border-top: 1px solid rgba(255,255,255,0.05); margin: 10px 0; }
+
+    /* ── Sucesso ── */
+    .sucesso-wrap {
+      min-height: 100vh; background: #08080A;
+      display: flex; align-items: center; justify-content: center;
+      padding: 24px;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    .sucesso-inner { max-width: 440px; width: 100%; text-align: center; }
+    .sucesso-icon {
+      width: 68px; height: 68px; border-radius: 50%;
+      background: rgba(34,197,94,0.12); border: 1px solid rgba(34,197,94,0.3);
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 22px; font-size: 30px;
+    }
+    .sucesso-title { font-size: 22px; font-weight: 800; color: #F1F5F9; letter-spacing: -0.02em; margin-bottom: 8px; }
+    .sucesso-sub { font-size: 14px; color: #6B7280; margin-bottom: 26px; line-height: 1.6; }
+    .sucesso-actions { display: flex; flex-direction: column; gap: 8px; }
+    .btn-wpp {
+      display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+      background: #25D366; color: #fff; font-weight: 700;
+      padding: 14px 28px; border-radius: 12px; text-decoration: none; font-size: 14px;
+    }
+    .btn-ics {
+      display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+      background: rgba(255,255,255,0.05); color: #F1F5F9; font-weight: 600;
+      padding: 14px 28px; border-radius: 12px; font-size: 14px;
+      border: 1px solid rgba(255,255,255,0.1); cursor: pointer;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    .btn-inicio {
+      display: inline-block; text-align: center;
+      background: #3B82F6; color: #fff; font-weight: 700;
+      padding: 14px 28px; border-radius: 12px; text-decoration: none; font-size: 14px;
+    }
+
+    .erro-msg { font-size: 13px; color: #EF4444; margin-top: 10px; }
+  `
+
+  // ── SUCESSO ──
   if (sucesso) return (
-    <main style={{ minHeight: '100vh', background: 'var(--background)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px' }}>
-      <div style={{ maxWidth: '440px', width: '100%', textAlign: 'center' }}>
-        <div style={{ width: '64px', height: '64px', borderRadius: '50%', background: 'var(--success-soft)', border: '2px solid var(--success-border)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px', fontSize: '28px' }}>✅</div>
-        <h1 style={{ fontSize: '24px', fontWeight: '800', marginBottom: '8px' }}>Agendamento confirmado!</h1>
-        <p style={{ fontSize: '14px', color: 'var(--text-secondary)', marginBottom: '24px', lineHeight: 1.6 }}>
-          Obrigado, <strong>{clienteNome}</strong>! Seu agendamento foi recebido com sucesso.
+    <div className="sucesso-wrap">
+      <style>{css}</style>
+      <div className="sucesso-inner">
+        <div className="sucesso-icon">✅</div>
+        <h1 className="sucesso-title">Agendamento confirmado!</h1>
+        <p className="sucesso-sub">
+          Obrigado, <strong style={{ color: '#F1F5F9' }}>{clienteNome}</strong>! Seu agendamento foi recebido.
         </p>
-        <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '16px', padding: '20px', marginBottom: '20px', textAlign: 'left' }}>
-          <p style={{ fontSize: '10px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--text-muted)', marginBottom: '14px' }}>Resumo do agendamento</p>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-            {[
-              { label: 'Serviço', valor: servicoSelecionado?.nome, cor: 'var(--text-primary)' },
-              { label: 'Profissional', valor: profissionalSelecionado?.nome, cor: 'var(--text-primary)' },
-              { label: 'Data', valor: formatarData(dataSelecionada), cor: 'var(--text-primary)' },
-              { label: 'Horário', valor: horarioSelecionado, cor: 'var(--accent)' },
-              { label: 'Valor', valor: 'R$ ' + servicoSelecionado?.preco, cor: 'var(--success)' },
-            ].map((item, idx, arr) => (
-              <div key={item.label} style={{ display: 'flex', justifyContent: 'space-between', paddingBottom: idx < arr.length - 1 ? '8px' : '0', borderBottom: idx < arr.length - 1 ? '1px solid var(--border-soft)' : 'none' }}>
-                <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>{item.label}</span>
-                <span style={{ fontSize: '13px', fontWeight: '700', color: item.cor }}>{item.valor}</span>
+
+        <div className="resumo-card">
+          <p className="resumo-card-title">Resumo</p>
+          {[
+            { label: 'Serviço', valor: servicoSelecionado?.nome, cor: '#F1F5F9' },
+            { label: 'Profissional', valor: profissionalSelecionado?.nome, cor: '#F1F5F9' },
+            { label: 'Data', valor: formatarData(dataSelecionada), cor: '#F1F5F9' },
+            { label: 'Horário', valor: horarioSelecionado, cor: '#3B82F6' },
+            { label: 'Valor', valor: 'R$ ' + servicoSelecionado?.preco, cor: '#22C55E' },
+          ].map((item, idx, arr) => (
+            <div key={item.label}>
+              <div className="resumo-row">
+                <span className="resumo-row-label">{item.label}</span>
+                <span className="resumo-row-valor" style={{ color: item.cor }}>{item.valor}</span>
               </div>
-            ))}
-          </div>
-        </div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-          {linkWppEstabelecimento && (
-            <a href={linkWppEstabelecimento} target="_blank" rel="noopener noreferrer"
-              style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '8px', background: '#25D366', color: '#fff', fontWeight: '700', padding: '13px 28px', borderRadius: '999px', textDecoration: 'none', fontSize: '14px' }}>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
-              Falar com o estabelecimento
-            </a>
-          )}
-          <button onClick={baixarAgendaICS}
-            style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '8px', background: 'var(--card)', color: 'var(--text-primary)', fontWeight: '700', padding: '13px 28px', borderRadius: '999px', fontSize: '14px', border: '1px solid var(--border)', cursor: 'pointer' }}>
-            📅 Adicionar à agenda do celular
-          </button>
-          <Link href={'/' + slug} style={{ display: 'inline-block', textAlign: 'center', background: 'var(--accent)', color: '#fff', fontWeight: '700', padding: '13px 28px', borderRadius: '999px', textDecoration: 'none', fontSize: '14px' }}>
-            Voltar ao início
-          </Link>
-        </div>
-      </div>
-    </main>
-  )
-
-  return (
-    <main style={{ minHeight: '100vh', background: 'var(--background)', color: 'var(--text-primary)', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif' }}>
-
-      <div style={{ borderBottom: '1px solid var(--border)', padding: '14px 24px', display: 'flex', alignItems: 'center', background: 'var(--surface)' }}>
-        <Link href={'/' + slug} style={{ color: 'var(--text-muted)', textDecoration: 'none', fontSize: '13px' }}>← Voltar</Link>
-        <div style={{ flex: 1, textAlign: 'center' }}>
-          <p style={{ fontSize: '14px', fontWeight: '700' }}>{perfil?.nome_negocio}</p>
-        </div>
-        <div style={{ width: '40px' }} />
-      </div>
-
-      <div style={{ padding: '18px 20px 0', maxWidth: '520px', margin: '0 auto' }}>
-
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '22px' }}>
-          {[1, 2, 3, 4].map((n) => (
-            <div key={n} style={{ display: 'flex', alignItems: 'center', flex: n < 4 ? 1 : 'none' }}>
-              <div style={{ width: '26px', height: '26px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: '700', flexShrink: 0, background: etapa >= n ? 'var(--accent)' : 'var(--surface)', color: etapa >= n ? '#fff' : 'var(--text-muted)', border: etapa >= n ? 'none' : '1px solid var(--border)' }}>
-                {etapa > n ? '✓' : n}
-              </div>
-              {n < 4 && <div style={{ flex: 1, height: '2px', background: etapa > n ? 'var(--accent)' : 'var(--border)', marginLeft: '6px' }} />}
+              {idx < arr.length - 1 && <hr className="resumo-divider" />}
             </div>
           ))}
         </div>
 
-        {etapa === 1 && (
-          <div>
-            <h2 style={{ fontSize: '19px', fontWeight: '800', marginBottom: '4px' }}>Escolha o serviço</h2>
-            <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '16px' }}>Selecione o serviço desejado</p>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              {servicos.map((s) => (
-                <button key={s.id} onClick={() => { setServicoId(s.id); setEtapa(2) }}
-                  style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: servicoId === s.id ? 'var(--accent-soft)' : 'var(--card)', border: '1px solid ' + (servicoId === s.id ? 'var(--accent)' : 'var(--border)'), borderRadius: '12px', padding: '14px 18px', cursor: 'pointer', textAlign: 'left' }}>
-                  <div>
-                    <p style={{ fontWeight: '600', fontSize: '14px', color: 'var(--text-primary)', marginBottom: '2px' }}>{s.nome}</p>
-                    <p style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{s.duracao_minutos || 30} min</p>
-                  </div>
-                  <span style={{ fontWeight: '700', fontSize: '14px', color: 'var(--success)', whiteSpace: 'nowrap' }}>R$ {s.preco}</span>
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
+        <div className="sucesso-actions">
+          {linkWppEstabelecimento && (
+            <a href={linkWppEstabelecimento} target="_blank" rel="noopener noreferrer" className="btn-wpp">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+              Falar com o estabelecimento
+            </a>
+          )}
+          <button onClick={baixarAgendaICS} className="btn-ics">📅 Adicionar à agenda do celular</button>
+          <Link href={'/' + slug} className="btn-inicio">Voltar ao início</Link>
+        </div>
+      </div>
+    </div>
+  )
 
-        {etapa === 2 && (
-          <div>
-            <h2 style={{ fontSize: '19px', fontWeight: '800', marginBottom: '4px' }}>Escolha o profissional</h2>
-            <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '16px' }}>Com quem deseja ser atendido?</p>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))', gap: '8px', marginBottom: '16px' }}>
-              {profissionais.map((p) => (
-                <button key={p.id} onClick={() => { setProfissionalId(p.id); setEtapa(3) }}
-                  style={{ background: profissionalId === p.id ? 'var(--accent-soft)' : 'var(--card)', border: '1px solid ' + (profissionalId === p.id ? 'var(--accent)' : 'var(--border)'), borderRadius: '12px', padding: '16px 10px', cursor: 'pointer', textAlign: 'center' }}>
-                  {p.foto_url ? (
-                    <img src={p.foto_url} alt={p.nome} style={{ width: '52px', height: '52px', borderRadius: '50%', objectFit: 'cover', border: '2px solid var(--accent-border)', margin: '0 auto 8px', display: 'block' }} />
-                  ) : (
-                    <div style={{ width: '52px', height: '52px', borderRadius: '50%', background: 'var(--accent-soft)', border: '2px solid var(--accent-border)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 8px', fontSize: '18px', fontWeight: '800', color: 'var(--accent)' }}>
+  // ── Steps helper ──
+  const Steps = () => (
+    <div className="steps-wrap">
+      <div className="steps-track">
+        {[1, 2, 3, 4].map((n) => (
+          <div key={n} style={{ display: 'flex', alignItems: 'center', flex: n < 4 ? 1 : 'none' }}>
+            <div className={`step-dot ${etapa > n ? 'done' : etapa === n ? 'active' : 'idle'}`}>
+              {etapa > n ? '✓' : n}
+            </div>
+            {n < 4 && (
+              <div className="step-line" style={{ background: etapa > n ? '#3B82F6' : 'rgba(255,255,255,0.07)' }} />
+            )}
+          </div>
+        ))}
+      </div>
+      <div className="step-labels">
+        {nomeEtapas.map((nome, i) => (
+          <span key={nome} className="step-label"
+            style={{
+              fontWeight: etapa === i + 1 ? 700 : 500,
+              color: etapa === i + 1 ? '#3B82F6' : '#4B5563',
+              flex: i < 3 ? 1 : 'none',
+              textAlign: i === 0 ? 'left' : i === 3 ? 'right' : 'center'
+            }}>
+            {nome}
+          </span>
+        ))}
+      </div>
+    </div>
+  )
+
+  return (
+    <main className="page">
+      <style>{css}</style>
+
+      {/* HEADER */}
+      <div className="header">
+        <Link href={'/' + slug} className="header-back">← Voltar</Link>
+        <p className="header-title">{perfil?.nome_negocio}</p>
+        <div className="header-spacer" />
+      </div>
+
+      {/* ── ETAPA 1 — SERVIÇO ── */}
+      {etapa === 1 && (
+        <div className="container">
+          <Steps />
+          <h2 className="section-title">Escolha o serviço</h2>
+          <p className="section-sub">Selecione o serviço desejado</p>
+          <div className="servico-list">
+            {servicos.map((s) => (
+              <button key={s.id}
+                onClick={() => { setServicoId(s.id); setEtapa(2) }}
+                className={'servico-card' + (servicoId === s.id ? ' sel' : '')}>
+                <div className="servico-accent" />
+                <div className="servico-icon">✂️</div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <p className="servico-nome">{s.nome}</p>
+                  {s.descricao
+                    ? <p className="servico-desc">{s.descricao}</p>
+                    : <p className="servico-desc" style={{ color: '#4B5563' }}>Atendimento com horário marcado</p>
+                  }
+                  <p className="servico-meta">
+                    {s.duracao_minutos ? s.duracao_minutos + ' min' : ''}
+                    {s.duracao_minutos && s.preco ? ' · ' : ''}
+                    {s.preco ? <span className="servico-preco">R$ {s.preco}</span> : null}
+                  </p>
+                </div>
+                <span className="servico-arrow">›</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ── ETAPA 2 — PROFISSIONAL ── */}
+      {etapa === 2 && (
+        <div className="container">
+          <Steps />
+          <h2 className="section-title">Escolha o profissional</h2>
+          <p className="section-sub">Com quem deseja ser atendido?</p>
+          <div className="prof-grid">
+            {profissionais.map((p) => (
+              <button key={p.id}
+                onClick={() => { setProfissionalId(p.id); setEtapa(3) }}
+                className={'prof-card' + (profissionalId === p.id ? ' sel' : '')}>
+                {p.foto_url
+                  ? <img src={p.foto_url} alt={p.nome} className="prof-avatar-img"
+                      style={{ border: profissionalId === p.id ? '2px solid #3B82F6' : '2px solid rgba(255,255,255,0.1)' }} />
+                  : <div className="prof-avatar-letra"
+                      style={{ border: profissionalId === p.id ? '2px solid #3B82F6' : '2px solid rgba(59,130,246,0.2)' }}>
                       {p.nome.charAt(0).toUpperCase()}
                     </div>
-                  )}
-                  <p style={{ fontSize: '13px', fontWeight: '600', color: 'var(--text-primary)' }}>{p.nome}</p>
-                </button>
-              ))}
-            </div>
-            <button onClick={() => setEtapa(1)} style={{ fontSize: '13px', color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>← Voltar</button>
+                }
+                <div>
+                  <p className="prof-nome">{p.nome}</p>
+                  <p className="prof-cargo">{p.cargo || 'Profissional'}</p>
+                </div>
+              </button>
+            ))}
           </div>
-        )}
+          <button onClick={() => setEtapa(1)} className="btn-link-voltar">← Voltar</button>
+        </div>
+      )}
 
-        {etapa === 3 && (
-          <div>
-            <h2 style={{ fontSize: '19px', fontWeight: '800', marginBottom: '4px' }}>Data e horário</h2>
-            <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '14px' }}>Escolha quando quer ser atendido</p>
+      {/* ── ETAPA 3 — DATA E HORÁRIO ── */}
+      {etapa === 3 && (
+        <div className="container-wide">
+          <Steps />
+          <h2 className="section-title">Data e horário</h2>
+          <p className="section-sub">Escolha quando quer ser atendido</p>
 
-            <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '12px', padding: '12px 16px', marginBottom: '14px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-              <div><p style={{ fontSize: '10px', color: 'var(--text-muted)', marginBottom: '2px', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Serviço</p><p style={{ fontSize: '13px', fontWeight: '600' }}>{servicoSelecionado?.nome}</p></div>
-              <div><p style={{ fontSize: '10px', color: 'var(--text-muted)', marginBottom: '2px', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Profissional</p><p style={{ fontSize: '13px', fontWeight: '600' }}>{profissionalSelecionado?.nome}</p></div>
-              <div><p style={{ fontSize: '10px', color: 'var(--text-muted)', marginBottom: '2px', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Duração</p><p style={{ fontSize: '13px', fontWeight: '600' }}>{servicoSelecionado?.duracao_minutos || 30} min</p></div>
-              <div><p style={{ fontSize: '10px', color: 'var(--text-muted)', marginBottom: '2px', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Valor</p><p style={{ fontSize: '13px', fontWeight: '700', color: 'var(--success)' }}>R$ {servicoSelecionado?.preco}</p></div>
-            </div>
-
-            <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '14px', padding: '14px', marginBottom: '12px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
-                <button onClick={() => setMesAtual(new Date(mesAtual.getFullYear(), mesAtual.getMonth() - 1, 1))} style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '7px', padding: '5px 10px', color: 'var(--text-secondary)', cursor: 'pointer', fontSize: '13px' }}>‹</button>
-                <p style={{ fontWeight: '700', fontSize: '13px', textTransform: 'capitalize' }}>{mesAtual.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })}</p>
-                <button onClick={() => setMesAtual(new Date(mesAtual.getFullYear(), mesAtual.getMonth() + 1, 1))} style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '7px', padding: '5px 10px', color: 'var(--text-secondary)', cursor: 'pointer', fontSize: '13px' }}>›</button>
+          {/* Resumo strip */}
+          <div className="resumo-strip">
+            {[
+              { label: 'Serviço', valor: servicoSelecionado?.nome, cor: '#F1F5F9' },
+              { label: 'Profissional', valor: profissionalSelecionado?.nome, cor: '#F1F5F9' },
+              { label: 'Duração', valor: (servicoSelecionado?.duracao_minutos || 30) + ' min', cor: '#F1F5F9' },
+              { label: 'Valor', valor: 'R$ ' + servicoSelecionado?.preco, cor: '#22C55E' },
+            ].map(item => (
+              <div key={item.label} className="resumo-item">
+                <p className="resumo-label">{item.label}</p>
+                <p className="resumo-valor" style={{ color: item.cor }}>{item.valor}</p>
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '2px', marginBottom: '4px' }}>
-                {['D', 'S', 'T', 'Q', 'Q', 'S', 'S'].map((d, i) => (
-                  <div key={i} style={{ textAlign: 'center', fontSize: '10px', fontWeight: '700', color: 'var(--text-muted)', padding: '3px 0' }}>{d}</div>
+            ))}
+          </div>
+
+          {/* Duas colunas no desktop */}
+          <div className="etapa3-cols">
+
+            {/* Calendário */}
+            <div className="cal-wrap">
+              <div className="cal-header">
+                <button className="cal-nav"
+                  onClick={() => setMesAtual(new Date(mesAtual.getFullYear(), mesAtual.getMonth() - 1, 1))}>‹</button>
+                <p className="cal-mes">{mesAtual.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })}</p>
+                <button className="cal-nav"
+                  onClick={() => setMesAtual(new Date(mesAtual.getFullYear(), mesAtual.getMonth() + 1, 1))}>›</button>
+              </div>
+              <div className="cal-dow">
+                {['D','S','T','Q','Q','S','S'].map((d, i) => (
+                  <div key={i} className="cal-dow-label">{d}</div>
                 ))}
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '2px' }}>
-                {Array.from({ length: primeiroDiaMes }).map((_, i) => <div key={'e' + i} />)}
+              <div className="cal-days">
+                {Array.from({ length: primeiroDiaMes }).map((_, i) => <div key={'e'+i} />)}
                 {Array.from({ length: diasNoMes }).map((_, i) => {
                   const dia = i + 1
-                  const dataStr = mesAtual.getFullYear() + '-' + String(mesAtual.getMonth() + 1).padStart(2, '0') + '-' + String(dia).padStart(2, '0')
+                  const dataStr = mesAtual.getFullYear() + '-'
+                    + String(mesAtual.getMonth() + 1).padStart(2, '0') + '-'
+                    + String(dia).padStart(2, '0')
                   const disponivel = isDiaDisponivel(dia)
                   const selecionado = dataSelecionada === dataStr
                   const ehHoje = dataStr === todayStr
+                  let cls = 'dia'
+                  if (selecionado) cls += ' sel'
+                  else if (disponivel && ehHoje) cls += ' disp hoje'
+                  else if (disponivel) cls += ' disp'
                   return (
-                    <button key={dia} onClick={() => disponivel && setDataSelecionada(dataStr)} disabled={!disponivel}
-                      style={{ padding: '7px 2px', borderRadius: '7px', fontSize: '12px', fontWeight: selecionado ? '700' : '400', cursor: disponivel ? 'pointer' : 'default', border: ehHoje && !selecionado ? '1px solid var(--accent-border)' : '1px solid transparent', textAlign: 'center', background: selecionado ? 'var(--accent)' : disponivel ? 'var(--surface)' : 'transparent', color: selecionado ? '#fff' : disponivel ? 'var(--text-primary)' : '#2a2a2a' }}>
+                    <button key={dia} disabled={!disponivel}
+                      onClick={() => disponivel && setDataSelecionada(dataStr)}
+                      className={cls}>
                       {dia}
                     </button>
                   )
@@ -376,99 +942,136 @@ export default function Agendar() {
               </div>
             </div>
 
-            {dataSelecionada && (
-              <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '14px', padding: '14px', marginBottom: '14px' }}>
-                <p style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-secondary)', marginBottom: '12px', textTransform: 'capitalize' }}>{formatarDataExtenso(dataSelecionada)}</p>
-                {carregandoHorarios && <p style={{ fontSize: '13px', color: 'var(--text-muted)', textAlign: 'center', padding: '10px 0' }}>Buscando horários...</p>}
-                {!carregandoHorarios && horariosDisponiveis.length === 0 && <p style={{ fontSize: '13px', color: 'var(--text-muted)', textAlign: 'center', padding: '10px 0' }}>Não há horários disponíveis nesta data.</p>}
-                {!carregandoHorarios && horariosDisponiveis.length > 0 && (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-                    {[
-                      { label: 'Manhã', icon: <Sun size={12} color="var(--accent)" />, horarios: horariosManha },
-                      { label: 'Tarde', icon: <Clock size={12} color="var(--accent)" />, horarios: horariosTarde },
-                      { label: 'Noite', icon: <Moon size={12} color="var(--accent)" />, horarios: horariosNoite },
-                    ].filter(p => p.horarios.length > 0).map((periodo) => (
-                      <div key={periodo.label}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '5px', marginBottom: '8px' }}>
-                          {periodo.icon}
-                          <p style={{ fontSize: '10px', fontWeight: '700', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>{periodo.label}</p>
+            {/* Horários */}
+            <div className="horarios-wrap">
+              {!dataSelecionada && (
+                <div className="horarios-placeholder">
+                  <span style={{ fontSize: '30px', opacity: 0.25 }}>📅</span>
+                  <p style={{ fontSize: '13px', color: '#4B5563', textAlign: 'center', lineHeight: 1.5 }}>
+                    Selecione uma data<br />para ver os horários
+                  </p>
+                </div>
+              )}
+              {dataSelecionada && (
+                <>
+                  <p className="horarios-data-label">{formatarDataExtenso(dataSelecionada)}</p>
+                  {carregandoHorarios && (
+                    <div className="horarios-empty">
+                      <p style={{ fontSize: '13px', color: '#6B7280' }}>Buscando horários...</p>
+                    </div>
+                  )}
+                  {!carregandoHorarios && horariosDisponiveis.length === 0 && (
+                    <div className="horarios-empty">
+                      <span style={{ fontSize: '26px', opacity: 0.3 }}>😔</span>
+                      <p style={{ fontSize: '13px', color: '#6B7280', textAlign: 'center' }}>
+                        Nenhum horário disponível<br />nesta data.
+                      </p>
+                    </div>
+                  )}
+                  {!carregandoHorarios && horariosDisponiveis.length > 0 && (
+                    <div>
+                      {[
+                        { label: 'Manhã', icon: <Sun size={11} color="#9CA3AF" />, lista: horariosManha },
+                        { label: 'Tarde', icon: <Clock size={11} color="#9CA3AF" />, lista: horariosTarde },
+                        { label: 'Noite', icon: <Moon size={11} color="#9CA3AF" />, lista: horariosNoite },
+                      ].filter(p => p.lista.length > 0).map((periodo) => (
+                        <div key={periodo.label} style={{ marginBottom: '14px' }}>
+                          <div className="periodo-label-row">
+                            {periodo.icon}
+                            <span className="periodo-label">{periodo.label}</span>
+                          </div>
+                          <div className="horarios-grid">
+                            {periodo.lista.map(h => (
+                              <button key={h}
+                                onClick={() => setHorarioSelecionado(h)}
+                                className={'h-btn' + (horarioSelecionado === h ? ' sel' : '')}>
+                                {h}
+                              </button>
+                            ))}
+                          </div>
                         </div>
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(68px, 1fr))', gap: '6px' }}>
-                          {periodo.horarios.map(h => (
-                            <button key={h} onClick={() => setHorarioSelecionado(h)}
-                              style={{ padding: '9px 6px', borderRadius: '8px', fontSize: '13px', fontWeight: '600', cursor: 'pointer', border: '1px solid', textAlign: 'center', background: horarioSelecionado === h ? 'var(--accent)' : 'var(--surface)', color: horarioSelecionado === h ? '#fff' : 'var(--text-primary)', borderColor: horarioSelecionado === h ? 'var(--accent)' : 'var(--border)' }}>
-                              {h}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
-
-            <div style={{ display: 'flex', gap: '8px' }}>
-              <button onClick={() => setEtapa(2)} style={{ flex: 1, background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '12px', padding: '13px', fontSize: '14px', fontWeight: '600', color: 'var(--text-secondary)', cursor: 'pointer' }}>← Voltar</button>
-              <button onClick={() => { if (!dataSelecionada || !horarioSelecionado) { setErro('Selecione data e horário.'); return }; setErro(''); setEtapa(4) }}
-                disabled={!dataSelecionada || !horarioSelecionado}
-                style={{ flex: 2, background: 'var(--accent)', border: 'none', borderRadius: '12px', padding: '13px', fontSize: '14px', fontWeight: '700', color: '#fff', cursor: dataSelecionada && horarioSelecionado ? 'pointer' : 'not-allowed', opacity: dataSelecionada && horarioSelecionado ? 1 : 0.5 }}>
-                Continuar →
-              </button>
-            </div>
-            {erro && <p style={{ fontSize: '13px', color: 'var(--danger)', marginTop: '8px' }}>{erro}</p>}
-          </div>
-        )}
-
-        {etapa === 4 && (
-          <div>
-            <h2 style={{ fontSize: '19px', fontWeight: '800', marginBottom: '4px' }}>Seus dados</h2>
-            <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '16px' }}>Para finalizar o agendamento</p>
-
-            <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '14px', padding: '16px', marginBottom: '16px' }}>
-              <p style={{ fontSize: '10px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--text-muted)', marginBottom: '12px' }}>Resumo</p>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '9px' }}>
-                {[
-                  { label: 'Serviço', valor: servicoSelecionado?.nome, cor: 'var(--text-primary)' },
-                  { label: 'Profissional', valor: profissionalSelecionado?.nome, cor: 'var(--text-primary)' },
-                  { label: 'Data', valor: formatarData(dataSelecionada), cor: 'var(--text-primary)' },
-                  { label: 'Horário', valor: horarioSelecionado, cor: 'var(--accent)' },
-                  { label: 'Valor', valor: 'R$ ' + servicoSelecionado?.preco, cor: 'var(--success)' },
-                ].map((item, idx, arr) => (
-                  <div key={item.label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: idx < arr.length - 1 ? '9px' : '0', borderBottom: idx < arr.length - 1 ? '1px solid var(--border-soft)' : 'none' }}>
-                    <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>{item.label}</span>
-                    <span style={{ fontSize: '13px', fontWeight: '700', color: item.cor }}>{item.valor}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '16px' }}>
-              <div>
-                <label style={labelStyle}>Seu nome *</label>
-                <input type="text" placeholder="Ex: Maria Silva" value={clienteNome} onChange={(e) => setClienteNome(e.target.value)} style={inputStyle} />
-              </div>
-              <div>
-                <label style={labelStyle}>WhatsApp *</label>
-                <input type="text" placeholder="(11) 99999-9999" value={clienteTelefone} onChange={(e) => setClienteTelefone(aplicarMascaraTelefone(e.target.value))} style={inputStyle} />
-                <p style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '6px' }}>Usado apenas para contato sobre seu agendamento.</p>
-              </div>
-            </div>
-
-            {erro && <p style={{ fontSize: '13px', color: 'var(--danger)', marginBottom: '10px' }}>{erro}</p>}
-
-            <div style={{ display: 'flex', gap: '8px' }}>
-              <button onClick={() => setEtapa(3)} style={{ flex: 1, background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '12px', padding: '13px', fontSize: '14px', fontWeight: '600', color: 'var(--text-secondary)', cursor: 'pointer' }}>← Voltar</button>
-              <button onClick={handleAgendar} disabled={loading}
-                style={{ flex: 2, background: 'linear-gradient(135deg, #3B82F6, #2563EB)', border: 'none', borderRadius: '12px', padding: '13px', fontSize: '14px', fontWeight: '700', color: '#fff', cursor: 'pointer', opacity: loading ? 0.7 : 1, boxShadow: '0 8px 20px rgba(59,130,246,0.3)' }}>
-                {loading ? 'Confirmando...' : 'Confirmar agendamento'}
-              </button>
+                      ))}
+                    </div>
+                  )}
+                </>
+              )}
             </div>
           </div>
-        )}
 
-        <div style={{ height: '40px' }} />
-      </div>
+          {/* Rodapé */}
+          <div className="nav-row">
+            <button onClick={() => setEtapa(2)} className="btn-voltar">← Voltar</button>
+            <button
+              onClick={() => {
+                if (!dataSelecionada || !horarioSelecionado) { setErro('Selecione data e horário.'); return }
+                setErro(''); setEtapa(4)
+              }}
+              disabled={!dataSelecionada || !horarioSelecionado}
+              className={'btn-continuar ' + (dataSelecionada && horarioSelecionado ? 'on' : 'off')}>
+              Continuar →
+            </button>
+          </div>
+          {erro && <p className="erro-msg">{erro}</p>}
+        </div>
+      )}
+
+      {/* ── ETAPA 4 — DADOS ── */}
+      {etapa === 4 && (
+        <div className="container">
+          <Steps />
+          <h2 className="section-title">Seus dados</h2>
+          <p className="section-sub">Para finalizar o agendamento</p>
+
+          {/* Resumo */}
+          <div className="resumo-card">
+            <p className="resumo-card-title">Resumo</p>
+            {[
+              { label: 'Serviço', valor: servicoSelecionado?.nome, cor: '#F1F5F9' },
+              { label: 'Profissional', valor: profissionalSelecionado?.nome, cor: '#F1F5F9' },
+              { label: 'Data', valor: formatarData(dataSelecionada), cor: '#F1F5F9' },
+              { label: 'Horário', valor: horarioSelecionado, cor: '#3B82F6' },
+              { label: 'Valor', valor: 'R$ ' + servicoSelecionado?.preco, cor: '#22C55E' },
+            ].map((item, idx, arr) => (
+              <div key={item.label}>
+                <div className="resumo-row">
+                  <span className="resumo-row-label">{item.label}</span>
+                  <span className="resumo-row-valor" style={{ color: item.cor }}>{item.valor}</span>
+                </div>
+                {idx < arr.length - 1 && <hr className="resumo-divider" />}
+              </div>
+            ))}
+          </div>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginBottom: '22px' }}>
+            <div>
+              <label className="input-label">Seu nome *</label>
+              <input type="text" placeholder="Ex: Maria Silva"
+                value={clienteNome} onChange={e => setClienteNome(e.target.value)}
+                className="input-field" />
+            </div>
+            <div>
+              <label className="input-label">WhatsApp *</label>
+              <input type="tel" placeholder="(11) 99999-9999"
+                value={clienteTelefone}
+                onChange={e => setClienteTelefone(aplicarMascaraTelefone(e.target.value))}
+                className="input-field" />
+              <p style={{ fontSize: '12px', color: '#374151', marginTop: '6px' }}>
+                Usado apenas para contato sobre seu agendamento.
+              </p>
+            </div>
+          </div>
+
+          {erro && <p className="erro-msg" style={{ marginBottom: '12px' }}>{erro}</p>}
+
+          <div className="nav-row">
+            <button onClick={() => setEtapa(3)} className="btn-voltar">← Voltar</button>
+            <button onClick={handleAgendar} disabled={loading} className="btn-confirmar"
+              style={{ opacity: loading ? 0.7 : 1 }}>
+              {loading ? 'Confirmando...' : 'Confirmar agendamento'}
+            </button>
+          </div>
+        </div>
+      )}
     </main>
   )
 }
