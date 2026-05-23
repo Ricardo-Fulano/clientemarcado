@@ -11,6 +11,7 @@ const menuItems = [
   { href: '/painel/profissionais', icon: '👥', titulo: 'Minha equipe', desc: 'Gerencie profissionais e horários.', badge: false },
   { href: '/painel/bloqueios', icon: '🚫', titulo: 'Bloqueio de horários', desc: 'Bloqueie folgas, almoço ou ausência.', badge: false },
   { href: '/painel/perfil', icon: '⚙️', titulo: 'Meu perfil', desc: 'Edite página, banner, WhatsApp e link.', badge: false },
+  { href: '/painel/orcamentos', icon: '📄', titulo: 'Orçamentos e Cobranças', desc: 'Crie orçamentos, controle pagamentos e envie pelo WhatsApp.', badge: false },
 ]
 
 export default function Painel() {
