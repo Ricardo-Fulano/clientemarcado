@@ -614,12 +614,12 @@ ${orc.observacoes?`<div class="sec"><div class="sec-title">Observações</div><p
                     <select value={profId} onChange={e => { setProfId(e.target.value); if (e.target.value !== '__outro__') { setProfNome(''); setSalvarFreelancer(false) } }} className="select">
                       <option value="">Selecione...</option>
                       {profissionais.map(p => <option key={p.id} value={p.id}>{p.nome}</option>)}
-                      <option value="__outro__">✏️ Outro / Freelancer / não cadastrado</option>
+                      <option value="__outro__">✏️ Outro / Não cadastrado</option>
                     </select>
                     {profId === '__outro__' && (
                       <div style={{ marginTop:'10px', padding:'14px', background:'rgba(59,130,246,0.05)', border:'1px solid rgba(59,130,246,0.15)', borderRadius:'10px' }}>
                         <label className="label">Nome do profissional responsável *</label>
-                        <input type="text" placeholder="Ex: Marcos freelancer"
+                        <input type="text" placeholder="Ex: Marcos"
                           value={profNome} onChange={e => setProfNome(e.target.value)}
                           className="input" />
                         <div style={{ display:'flex', alignItems:'center', gap:'10px', marginTop:'12px' }}>
