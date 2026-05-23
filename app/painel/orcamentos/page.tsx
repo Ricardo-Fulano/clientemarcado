@@ -53,6 +53,7 @@ export default function Orcamentos() {
   const [clienteObs, setClienteObs] = useState('')
   const [tipo, setTipo] = useState('Orçamento')
   const [tipoOutro, setTipoOutro] = useState('')
+  const [tipoDescricao, setTipoDescricao] = useState('')
   const [profId, setProfId] = useState('')
   const [profNome, setProfNome] = useState('')
   const [salvarFreelancer, setSalvarFreelancer] = useState(false)
@@ -123,7 +124,7 @@ export default function Orcamentos() {
 
   function resetForm() {
     setClienteNome(''); setClienteWpp(''); setClienteEmail(''); setClienteObs('')
-    setTipo('Orçamento'); setTipoOutro(''); setProfId(''); setProfNome(''); setSalvarFreelancer(false); setDataDoc(new Date().toISOString().split('T')[0])
+    setTipo('Orçamento'); setTipoOutro(''); setTipoDescricao(''); setProfId(''); setProfNome(''); setSalvarFreelancer(false); setDataDoc(new Date().toISOString().split('T')[0])
     setStatus('Aberto'); setItens([{ nome:'', qtd:1, unitario:'', total:0, obs:'' }])
     setDesconto(''); setExigirSinal(false); setSinalTipo('fixo'); setSinalValor('')
     setLinkPag(''); setObservacoes(''); setDentesSelec([]); setProcOdonto([])
@@ -136,7 +137,7 @@ export default function Orcamentos() {
     setClienteEmail(orc.cliente_email || ''); setClienteObs(orc.cliente_obs || '')
     const tipoSalvo = orc.tipo || 'Orçamento'
     const tiposPadrao = ['Orçamento','Atendimento','Tratamento','Ordem de serviço','Retorno']
-    if (tiposPadrao.includes(tipoSalvo)) { setTipo(tipoSalvo); setTipoOutro('') } else { setTipo('__outro__'); setTipoOutro(tipoSalvo) }
+    if (tiposPadrao.includes(tipoSalvo)) { setTipo(tipoSalvo); setTipoOutro(''); setTipoDescricao('') } else { setTipo('__outro__'); setTipoOutro(tipoSalvo); setTipoDescricao(orc.tipo_descricao || '') }
     setProfId(orc.profissional_id || ''); setProfNome(orc.profissional_nome || ''); setSalvarFreelancer(false)
     setDataDoc(orc.data || new Date().toISOString().split('T')[0]); setStatus(orc.status || 'Aberto')
     setItens(orc.servicos?.length ? orc.servicos : [{ nome:'', qtd:1, unitario:'', total:0, obs:'' }])
@@ -157,7 +158,8 @@ export default function Orcamentos() {
       cliente_whatsapp: clienteWpp.replace(/\D/g,''),
       cliente_email: clienteEmail || null,
       cliente_obs: clienteObs || null,
-      tipo: tipo === '__outro__' ? (tipoOutro.trim() || 'Outro') : tipo, profissional_id: (profId && profId !== '__outro__') ? profId : null,
+      tipo: tipo === '__outro__' ? (tipoOutro.trim() || 'Outro') : tipo,
+      tipo_descricao: tipo === '__outro__' ? (tipoDescricao.trim() || null) : null, profissional_id: (profId && profId !== '__outro__') ? profId : null,
       profissional_nome: profId === '__outro__' ? (profNome.trim() || null) : profId ? (profissionais.find(p => p.id === profId)?.nome || null) : null,
       data: dataDoc, status,
       servicos: itens.filter(i => i.nome),
@@ -611,13 +613,23 @@ ${orc.observacoes?`<div class="sec"><div class="sec-title">Observações</div><p
                       <option value="__outro__">Outro</option>
                     </select>
                     {tipo === '__outro__' && (
-                      <div style={{ marginTop:'10px' }}>
-                        <label className="label">Especifique o tipo do documento *</label>
-                        <input type="text"
-                          placeholder="Ex: Avaliação, Laudo, Ficha técnica, Revisão"
-                          value={tipoOutro}
-                          onChange={e => setTipoOutro(e.target.value)}
-                          className="input" />
+                      <div style={{ marginTop:'10px', display:'flex', flexDirection:'column', gap:'10px', padding:'14px', background:'rgba(59,130,246,0.04)', border:'1px solid rgba(59,130,246,0.15)', borderRadius:'10px' }}>
+                        <div>
+                          <label className="label">Nome do tipo do documento *</label>
+                          <input type="text"
+                            placeholder="Ex: Avaliação, Laudo, Revisão"
+                            value={tipoOutro}
+                            onChange={e => setTipoOutro(e.target.value)}
+                            className="input" />
+                        </div>
+                        <div>
+                          <label className="label">Descrição do documento (opcional)</label>
+                          <input type="text"
+                            placeholder="Ex: Avaliação inicial com análise completa do serviço..."
+                            value={tipoDescricao}
+                            onChange={e => setTipoDescricao(e.target.value)}
+                            className="input" />
+                        </div>
                       </div>
                     )}
                   </div>
@@ -966,6 +978,12 @@ ${orc.observacoes?`<div class="sec"><div class="sec-title">Observações</div><p
                 {orc.cliente_obs && <p style={{ fontSize:'13px', color:'#6B7280' }}>📝 {orc.cliente_obs}</p>}
               </div>
 
+              {orc.tipo_descricao && (
+                <div className="form-section">
+                  <p className="form-sec-title">📄 Descrição do documento</p>
+                  <p style={{ fontSize:'13px', color:'#9CA3AF', lineHeight:'1.6' }}>{orc.tipo_descricao}</p>
+                </div>
+              )}
               {orc.observacoes && (
                 <div className="form-section">
                   <p className="form-sec-title">📝 Observações</p>
