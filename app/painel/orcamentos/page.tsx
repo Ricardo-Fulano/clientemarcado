@@ -448,10 +448,10 @@ ${orc.observacoes?`<div class="sec"><div class="sec-title">Observações</div><p
             {/* Métricas */}
             <div className="metricas">
               {[
-                { label:'Em aberto', valor: totalAberto, cor:'#3B82F6', fmt:'n' },
+                { label:'Orçamentos em aberto', valor: totalAberto, cor:'#3B82F6', fmt:'n' },
                 { label:'Total a receber', valor: totalAReceber, cor:'#F59E0B', fmt:'brl' },
                 { label:'Recebido no mês', valor: recebidoMes, cor:'#22C55E', fmt:'brl' },
-                { label:'Parc. pagos', valor: parciais, cor:'#F97316', fmt:'n' },
+                { label:'Pagamentos parciais', valor: parciais, cor:'#F97316', fmt:'n' },
               ].map(m => (
                 <div key={m.label} className="metrica">
                   <div className="m-accent" style={{ background:`linear-gradient(90deg,${m.cor},transparent)` }} />
@@ -466,7 +466,7 @@ ${orc.observacoes?`<div class="sec"><div class="sec-title">Observações</div><p
               {STATUS_LIST.map(s => (
                 <button key={s} className={`chip${filtroStatus===s?' on':''}`} onClick={() => setFiltroStatus(s)}>{s}</button>
               ))}
-              <input type="text" placeholder="Buscar cliente..." className="search-input"
+              <input type="text" placeholder="Buscar por cliente, WhatsApp ou serviço..." className="search-input"
                 value={filtroCliente} onChange={e => setFiltroCliente(e.target.value)} />
             </div>
 
@@ -474,8 +474,9 @@ ${orc.observacoes?`<div class="sec"><div class="sec-title">Observações</div><p
 
             {orcsFiltrados.length === 0 ? (
               <div className="vazio">
-                <p>Nenhum orçamento encontrado.</p>
-                <p>Crie o primeiro usando o botão "+ Novo orçamento".</p>
+                <p>Nenhum orçamento ou cobrança criado ainda.</p>
+                <p>Crie seu primeiro orçamento, registre pagamentos e envie pelo WhatsApp.</p>
+                <button className="btn-novo" style={{ marginTop:'16px' }} onClick={() => { resetForm(); setView('form') }}>Criar primeiro orçamento</button>
               </div>
             ) : (
               <div className="orc-lista">
