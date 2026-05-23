@@ -54,6 +54,7 @@ export default function Orcamentos() {
   const [tipo, setTipo] = useState('Orçamento')
   const [profId, setProfId] = useState('')
   const [profNome, setProfNome] = useState('')
+  const [salvarFreelancer, setSalvarFreelancer] = useState(false)
   const [dataDoc, setDataDoc] = useState(new Date().toISOString().split('T')[0])
   const [status, setStatus] = useState('Aberto')
   const [itens, setItens] = useState<any[]>([{ nome:'', qtd:1, unitario:'', total:0, obs:'' }])
@@ -121,7 +122,7 @@ export default function Orcamentos() {
 
   function resetForm() {
     setClienteNome(''); setClienteWpp(''); setClienteEmail(''); setClienteObs('')
-    setTipo('Orçamento'); setProfId(''); setProfNome(''); setDataDoc(new Date().toISOString().split('T')[0])
+    setTipo('Orçamento'); setProfId(''); setProfNome(''); setSalvarFreelancer(false); setDataDoc(new Date().toISOString().split('T')[0])
     setStatus('Aberto'); setItens([{ nome:'', qtd:1, unitario:'', total:0, obs:'' }])
     setDesconto(''); setExigirSinal(false); setSinalTipo('fixo'); setSinalValor('')
     setLinkPag(''); setObservacoes(''); setDentesSelec([]); setProcOdonto([])
@@ -132,7 +133,7 @@ export default function Orcamentos() {
     setEditandoId(orc.id)
     setClienteNome(orc.cliente_nome || ''); setClienteWpp(aplicarMascaraTel(orc.cliente_whatsapp || ''))
     setClienteEmail(orc.cliente_email || ''); setClienteObs(orc.cliente_obs || '')
-    setTipo(orc.tipo || 'Orçamento'); setProfId(orc.profissional_id || ''); setProfNome(orc.profissional_nome || '')
+    setTipo(orc.tipo || 'Orçamento'); setProfId(orc.profissional_id || ''); setProfNome(orc.profissional_nome || ''); setSalvarFreelancer(false)
     setDataDoc(orc.data || new Date().toISOString().split('T')[0]); setStatus(orc.status || 'Aberto')
     setItens(orc.servicos?.length ? orc.servicos : [{ nome:'', qtd:1, unitario:'', total:0, obs:'' }])
     setDesconto(orc.desconto ? String(orc.desconto) : ''); setExigirSinal(orc.exigir_sinal || false)
@@ -151,8 +152,8 @@ export default function Orcamentos() {
       cliente_whatsapp: clienteWpp.replace(/\D/g,''),
       cliente_email: clienteEmail || null,
       cliente_obs: clienteObs || null,
-      tipo, profissional_id: profId || null,
-      profissional_nome: profId ? (profissionais.find(p => p.id === profId)?.nome || profNome) : profNome || null,
+      tipo, profissional_id: (profId && profId !== '__outro__') ? profId : null,
+      profissional_nome: profId === '__outro__' ? (profNome.trim() || null) : profId ? (profissionais.find(p => p.id === profId)?.nome || null) : null,
       data: dataDoc, status,
       servicos: itens.filter(i => i.nome),
       subtotal, desconto: descontoNum, total,
@@ -173,6 +174,14 @@ export default function Orcamentos() {
     } else {
       const { error } = await supabase.from('orcamentos').insert({ ...payload, valor_pago: 0, saldo_restante: total })
       if (error) { setMensagem('Erro ao salvar.'); return }
+    }
+    // Save freelancer to team if requested
+    if (profId === '__outro__' && profNome.trim() && salvarFreelancer) {
+      await supabase.from('profissionais').insert({
+        user_id: userId, nome: profNome.trim(), especialidade: 'Freelancer'
+      })
+      const { data: profs } = await supabase.from('profissionais').select('id,nome').eq('user_id', userId)
+      setProfissionais(profs || [])
     }
     resetForm(); setView('lista'); await carregarOrcamentos(); setMensagem('Salvo!')
     setTimeout(() => setMensagem(''), 3000)
@@ -522,7 +531,7 @@ ${orc.observacoes?`<div class="sec"><div class="sec-title">Observações</div><p
                       <div className="orc-top">
                         <div>
                           <p className="orc-cliente">{orc.cliente_nome}</p>
-                          <p className="orc-meta">{orc.tipo} · {fmtData(orc.data)}{orc.profissional_nome ? ' · ' + orc.profissional_nome : ''}</p>
+                          <p className="orc-meta">{orc.tipo} · {fmtData(orc.data)}{orc.profissional_nome ? ' · ' + orc.profissional_nome : ''}{orc.profissional_nome && !orc.profissional_id ? <span style={{fontSize:'10px',background:'rgba(245,158,11,.1)',color:'#F59E0B',border:'1px solid rgba(245,158,11,.2)',borderRadius:'999px',padding:'1px 6px',marginLeft:'4px',fontWeight:700}}>Freelancer</span> : null}</p>
                         </div>
                         <span className="status-badge" style={{ background:cfg.bg, color:cfg.color, borderColor:cfg.border }}>{orc.status}</span>
                       </div>
@@ -600,11 +609,31 @@ ${orc.observacoes?`<div class="sec"><div class="sec-title">Observações</div><p
                     </select></div>
                 </div>
                 <div className="row-2">
-                  <div><label className="label">Profissional</label>
-                    <select value={profId} onChange={e => setProfId(e.target.value)} className="select">
+                  <div>
+                    <label className="label">Profissional</label>
+                    <select value={profId} onChange={e => { setProfId(e.target.value); if (e.target.value !== '__outro__') { setProfNome(''); setSalvarFreelancer(false) } }} className="select">
                       <option value="">Selecione...</option>
                       {profissionais.map(p => <option key={p.id} value={p.id}>{p.nome}</option>)}
-                    </select></div>
+                      <option value="__outro__">✏️ Outro / Freelancer / não cadastrado</option>
+                    </select>
+                    {profId === '__outro__' && (
+                      <div style={{ marginTop:'10px', padding:'14px', background:'rgba(59,130,246,0.05)', border:'1px solid rgba(59,130,246,0.15)', borderRadius:'10px' }}>
+                        <label className="label">Nome do profissional responsável *</label>
+                        <input type="text" placeholder="Ex: Marcos freelancer"
+                          value={profNome} onChange={e => setProfNome(e.target.value)}
+                          className="input" />
+                        <div style={{ display:'flex', alignItems:'center', gap:'10px', marginTop:'12px' }}>
+                          <button type="button"
+                            style={{ width:'36px', height:'20px', borderRadius:'999px', border:'none', cursor:'pointer', position:'relative', transition:'background .2s', background: salvarFreelancer ? '#3B82F6' : 'rgba(255,255,255,.15)', flexShrink:0, fontFamily:'inherit' }}
+                            onClick={() => setSalvarFreelancer(!salvarFreelancer)}>
+                            <span style={{ position:'absolute', top:'2px', left: salvarFreelancer ? '18px' : '2px', width:'16px', height:'16px', borderRadius:'50%', background:'#fff', transition:'left .2s' }} />
+                          </button>
+                          <span style={{ fontSize:'12px', color:'#9CA3AF' }}>Salvar este profissional na equipe?</span>
+                          {salvarFreelancer && <span style={{ fontSize:'10px', color:'#3B82F6', fontWeight:'700', padding:'2px 8px', background:'rgba(59,130,246,.1)', borderRadius:'999px', border:'1px solid rgba(59,130,246,.2)' }}>será adicionado</span>}
+                        </div>
+                      </div>
+                    )}
+                  </div>
                   <div><label className="label">Data</label>
                     <input type="date" value={dataDoc} onChange={e => setDataDoc(e.target.value)} className="input" /></div>
                 </div>
