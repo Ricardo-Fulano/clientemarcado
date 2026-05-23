@@ -81,6 +81,15 @@ export default function Orcamentos() {
   const [pagObs, setPagObs] = useState('')
   const [showPagForm, setShowPagForm] = useState(false)
 
+  // Histórico de pagamentos (novo orçamento — salvo no JSON do orçamento)
+  const [histPags, setHistPags] = useState<any[]>([])
+  const [editandoPagIdx, setEditandoPagIdx] = useState<number|null>(null)
+  const [hpValor, setHpValor] = useState('')
+  const [hpForma, setHpForma] = useState('Pix')
+  const [hpFormaOutro, setHpFormaOutro] = useState('')
+  const [hpData, setHpData] = useState(new Date().toISOString().split('T')[0])
+  const [hpObs, setHpObs] = useState('')
+
   useEffect(() => { init() }, [])
 
   async function init() {
@@ -128,7 +137,7 @@ export default function Orcamentos() {
     setTipo('Orçamento'); setTipoOutro(''); setTipoDescricao(''); setProfId(''); setProfNome(''); setSalvarFreelancer(false); setDataDoc(new Date().toISOString().split('T')[0])
     setStatus('Aberto'); setItens([{ nome:'', qtd:1, unitario:'', total:0, obs:'' }])
     setDesconto(''); setExigirSinal(false); setSinalTipo('fixo'); setSinalValor('')
-    setLinkPag(''); setObsPagamento(''); setObservacoes(''); setDentesSelec([]); setProcOdonto([])
+    setLinkPag(''); setObsPagamento(''); setObservacoes(''); setHistPags([]); setEditandoPagIdx(null); setHpValor(''); setHpForma('Pix'); setHpFormaOutro(''); setHpObs(''); setDentesSelec([]); setProcOdonto([])
     setEditandoId(null)
   }
 
@@ -144,7 +153,7 @@ export default function Orcamentos() {
     setItens(orc.servicos?.length ? orc.servicos : [{ nome:'', qtd:1, unitario:'', total:0, obs:'' }])
     setDesconto(orc.desconto ? String(orc.desconto) : ''); setExigirSinal(orc.exigir_sinal || false)
     setSinalTipo(orc.sinal_tipo || 'fixo'); setSinalValor(orc.sinal_valor ? String(orc.sinal_valor) : '')
-    setLinkPag(orc.link_pagamento || ''); setObsPagamento(orc.obs_pagamento || ''); setObservacoes(orc.observacoes || '')
+    setLinkPag(orc.link_pagamento || ''); setObsPagamento(orc.obs_pagamento || ''); setObservacoes(orc.observacoes || ''); setHistPags(orc.hist_pagamentos || [])
     setDentesSelec(orc.dentes_selecionados || []); setProcOdonto(orc.procedimentos_odonto || [])
     setView('form')
   }
@@ -172,6 +181,7 @@ export default function Orcamentos() {
       sinal_valor: exigirSinal ? parseFloat(sinalValor || '0') : null,
       link_pagamento: linkPag || null,
       obs_pagamento: obsPagamento.trim() || null,
+      hist_pagamentos: histPags,
       dentes_selecionados: dentesSelec,
       procedimentos_odonto: procOdonto,
       observacoes: observacoes || null,
@@ -330,6 +340,51 @@ ${orc.observacoes?`<div class="sec"><div class="sec-title">Observações</div><p
     const tel = clienteWpp.replace(/\D/g,'')
     if (!tel) return
     window.open('https://wa.me/55' + tel + '?text=' + encodeURIComponent(gerarMensagemCobranca()), '_blank')
+  }
+
+  const valorPagoLocal = histPags.reduce((a, p) => a + parseFloat(p.valor||'0'), 0)
+  const saldoLocal = Math.max(0, total - valorPagoLocal)
+
+  function fmtHpValor(raw: string) {
+    const nums = raw.replace(/\D/g,'')
+    if (!nums) return ''
+    return (parseInt(nums,10)/100).toLocaleString('pt-BR',{minimumFractionDigits:2})
+  }
+  function parseHpValor(v: string) {
+    return parseFloat(v.replace(/\./g,'').replace(',','.')) || 0
+  }
+
+  function salvarHpPag() {
+    const valor = parseHpValor(hpValor)
+    if (!valor || valor <= 0) { setMensagem('Informe um valor maior que R$ 0,00.'); return }
+    if (hpForma === 'Outro' && !hpFormaOutro.trim()) { setMensagem('Especifique a forma de pagamento.'); return }
+    const forma = hpForma === 'Outro' ? hpFormaOutro.trim() : hpForma
+    const novoPag = { valor, forma, data: hpData, obs: hpObs.trim() || '' }
+    if (editandoPagIdx !== null) {
+      setHistPags(prev => prev.map((p,i) => i === editandoPagIdx ? novoPag : p))
+      setEditandoPagIdx(null)
+    } else {
+      setHistPags(prev => [...prev, novoPag])
+    }
+    setHpValor(''); setHpForma('Pix'); setHpFormaOutro(''); setHpData(new Date().toISOString().split('T')[0]); setHpObs('')
+    setShowPagForm(false)
+  }
+
+  function editarHpPag(idx: number) {
+    const p = histPags[idx]
+    const formasPadrao = ['Dinheiro','Pix','Cartão de débito','Cartão de crédito','Transferência','Link de pagamento']
+    setEditandoPagIdx(idx)
+    setHpValor(fmtHpValor(String(Math.round(p.valor*100))))
+    setHpForma(formasPadrao.includes(p.forma) ? p.forma : 'Outro')
+    setHpFormaOutro(formasPadrao.includes(p.forma) ? '' : p.forma)
+    setHpData(p.data)
+    setHpObs(p.obs || '')
+    setShowPagForm(true)
+  }
+
+  function excluirHpPag(idx: number) {
+    setHistPags(prev => prev.filter((_,i) => i !== idx))
+    if (editandoPagIdx === idx) { setEditandoPagIdx(null); setShowPagForm(false) }
   }
 
   const orcDetalhe = orcamentos.find(o => o.id === detalheId)
@@ -857,11 +912,11 @@ ${orc.observacoes?`<div class="sec"><div class="sec-title">Observações</div><p
                 </div>
                 <div className="pag-item">
                   <p className="pag-label">Valor pago</p>
-                  <p className="pag-valor" style={{ color:'#22C55E' }}>R$ 0,00</p>
+                  <p className="pag-valor" style={{ color:'#22C55E' }}>R$ {fmtBRL(valorPagoLocal)}</p>
                 </div>
                 <div className="pag-item">
                   <p className="pag-label">Saldo restante</p>
-                  <p className="pag-valor" style={{ color: total > 0 ? '#F97316' : '#22C55E' }}>R$ {fmtBRL(total)}</p>
+                  <p className="pag-valor" style={{ color: saldoLocal > 0 ? '#F97316' : '#22C55E' }}>R$ {fmtBRL(saldoLocal)}</p>
                 </div>
               </div>
 
@@ -959,6 +1014,96 @@ ${orc.observacoes?`<div class="sec"><div class="sec-title">Observações</div><p
                     className="textarea" />
                 </div>
               </div>
+            </div>
+
+            {/* 5. Histórico de pagamentos */}
+            <div className="form-section">
+              <p className="form-sec-title">📜 Histórico de pagamentos</p>
+              <p className="form-sec-sub">Registre cada pagamento recebido e acompanhe o saldo restante.</p>
+
+              {!showPagForm && (
+                <button className="btn-add-item" onClick={() => { setShowPagForm(true); setEditandoPagIdx(null); setHpValor(''); setHpForma('Pix'); setHpFormaOutro(''); setHpData(new Date().toISOString().split('T')[0]); setHpObs('') }}>
+                  + Registrar pagamento
+                </button>
+              )}
+
+              {showPagForm && (
+                <div style={{ background:'rgba(59,130,246,0.05)', border:'1px solid rgba(59,130,246,0.15)', borderRadius:'12px', padding:'16px', marginBottom:'12px' }}>
+                  <p style={{ fontSize:'13px', fontWeight:'700', color:'#F1F5F9', marginBottom:'14px' }}>
+                    {editandoPagIdx !== null ? 'Editar pagamento' : 'Registrar pagamento'}
+                  </p>
+                  <div className="fields">
+                    <div className="row-2">
+                      <div>
+                        <label className="label">Valor pago *</label>
+                        <div style={{ position:'relative' }}>
+                          <span style={{ position:'absolute', left:'12px', top:'50%', transform:'translateY(-50%)', fontSize:'13px', color:'#6B7280', fontWeight:'600', pointerEvents:'none' }}>R$</span>
+                          <input type="text" inputMode="numeric" placeholder="0,00"
+                            value={hpValor}
+                            onChange={e => setHpValor(fmtHpValor(e.target.value.replace(/\D/g,'') || '0'))}
+                            className="input" style={{ paddingLeft:'36px' }} />
+                        </div>
+                      </div>
+                      <div>
+                        <label className="label">Data *</label>
+                        <input type="date" value={hpData} onChange={e => setHpData(e.target.value)} className="input" />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="label">Forma de pagamento *</label>
+                      <select value={hpForma} onChange={e => { setHpForma(e.target.value); if (e.target.value !== 'Outro') setHpFormaOutro('') }} className="select">
+                        {['Dinheiro','Pix','Cartão de débito','Cartão de crédito','Transferência','Link de pagamento','Outro'].map(f => <option key={f}>{f}</option>)}
+                      </select>
+                      {hpForma === 'Outro' && (
+                        <div style={{ marginTop:'8px' }}>
+                          <input type="text" placeholder="Ex: cheque, boleto, permuta..."
+                            value={hpFormaOutro} onChange={e => setHpFormaOutro(e.target.value)}
+                            className="input" />
+                        </div>
+                      )}
+                    </div>
+                    <div>
+                      <label className="label">Observação (opcional)</label>
+                      <input type="text"
+                        placeholder="Ex: entrada paga em dinheiro, parcela dois de cinco..."
+                        value={hpObs} onChange={e => setHpObs(e.target.value)}
+                        className="input" />
+                    </div>
+                    <div className="form-btns">
+                      <button className="btn-secundario" style={{ marginBottom:0 }} onClick={() => { setShowPagForm(false); setEditandoPagIdx(null) }}>Cancelar</button>
+                      <button className="btn-salvar" onClick={salvarHpPag}>{editandoPagIdx !== null ? 'Atualizar' : 'Salvar pagamento'}</button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {histPags.length === 0 && !showPagForm && (
+                <p style={{ fontSize:'13px', color:'#374151', padding:'12px 0', textAlign:'center' }}>Nenhum pagamento registrado ainda.</p>
+              )}
+
+              {histPags.map((p, i) => (
+                <div key={i} style={{ background:'rgba(255,255,255,.04)', border:'1px solid rgba(255,255,255,.08)', borderRadius:'10px', padding:'12px 14px', marginBottom:'8px', display:'flex', justifyContent:'space-between', alignItems:'flex-start', gap:'10px' }}>
+                  <div style={{ flex:1 }}>
+                    <div style={{ display:'flex', alignItems:'center', gap:'8px', marginBottom:'3px' }}>
+                      <span style={{ fontSize:'15px', fontWeight:'800', color:'#22C55E' }}>R$ {fmtBRL(p.valor)}</span>
+                      <span style={{ fontSize:'11px', color:'#6B7280' }}>{p.forma}</span>
+                      <span style={{ fontSize:'11px', color:'#4B5563' }}>• {fmtData(p.data)}</span>
+                    </div>
+                    {p.obs && <p style={{ fontSize:'12px', color:'#6B7280' }}>{p.obs}</p>}
+                  </div>
+                  <div style={{ display:'flex', gap:'6px', flexShrink:0 }}>
+                    <button className="btn-acao" onClick={() => editarHpPag(i)} style={{ fontSize:'11px' }}>Editar</button>
+                    <button className="btn-acao danger" onClick={() => excluirHpPag(i)} style={{ fontSize:'11px' }}>Excluir</button>
+                  </div>
+                </div>
+              ))}
+
+              {histPags.length > 0 && (
+                <div style={{ background:'rgba(34,197,94,.08)', border:'1px solid rgba(34,197,94,.2)', borderRadius:'10px', padding:'12px 16px', marginTop:'4px', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+                  <span style={{ fontSize:'13px', color:'#9CA3AF' }}>Total pago</span>
+                  <span style={{ fontSize:'16px', fontWeight:'800', color:'#22C55E' }}>R$ {fmtBRL(valorPagoLocal)}</span>
+                </div>
+              )}
             </div>
 
             <div className="form-btns">
