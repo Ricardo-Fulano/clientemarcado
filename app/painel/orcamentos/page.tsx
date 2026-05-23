@@ -65,6 +65,7 @@ export default function Orcamentos() {
   const [sinalTipo, setSinalTipo] = useState('fixo')
   const [sinalValor, setSinalValor] = useState('')
   const [linkPag, setLinkPag] = useState('')
+  const [obsPagamento, setObsPagamento] = useState('')
   const [observacoes, setObservacoes] = useState('')
   const [dentesSelec, setDentesSelec] = useState<number[]>([])
   const [procOdonto, setProcOdonto] = useState<any[]>([])
@@ -127,7 +128,7 @@ export default function Orcamentos() {
     setTipo('Orçamento'); setTipoOutro(''); setTipoDescricao(''); setProfId(''); setProfNome(''); setSalvarFreelancer(false); setDataDoc(new Date().toISOString().split('T')[0])
     setStatus('Aberto'); setItens([{ nome:'', qtd:1, unitario:'', total:0, obs:'' }])
     setDesconto(''); setExigirSinal(false); setSinalTipo('fixo'); setSinalValor('')
-    setLinkPag(''); setObservacoes(''); setDentesSelec([]); setProcOdonto([])
+    setLinkPag(''); setObsPagamento(''); setObservacoes(''); setDentesSelec([]); setProcOdonto([])
     setEditandoId(null)
   }
 
@@ -143,7 +144,7 @@ export default function Orcamentos() {
     setItens(orc.servicos?.length ? orc.servicos : [{ nome:'', qtd:1, unitario:'', total:0, obs:'' }])
     setDesconto(orc.desconto ? String(orc.desconto) : ''); setExigirSinal(orc.exigir_sinal || false)
     setSinalTipo(orc.sinal_tipo || 'fixo'); setSinalValor(orc.sinal_valor ? String(orc.sinal_valor) : '')
-    setLinkPag(orc.link_pagamento || ''); setObservacoes(orc.observacoes || '')
+    setLinkPag(orc.link_pagamento || ''); setObsPagamento(orc.obs_pagamento || ''); setObservacoes(orc.observacoes || '')
     setDentesSelec(orc.dentes_selecionados || []); setProcOdonto(orc.procedimentos_odonto || [])
     setView('form')
   }
@@ -170,6 +171,7 @@ export default function Orcamentos() {
       sinal_tipo: exigirSinal ? sinalTipo : null,
       sinal_valor: exigirSinal ? parseFloat(sinalValor || '0') : null,
       link_pagamento: linkPag || null,
+      obs_pagamento: obsPagamento.trim() || null,
       dentes_selecionados: dentesSelec,
       procedimentos_odonto: procOdonto,
       observacoes: observacoes || null,
@@ -306,6 +308,29 @@ ${orc.observacoes?`<div class="sec"><div class="sec-title">Observações</div><p
   const mesAtual       = new Date().toISOString().slice(0,7)
   const recebidoMes    = orcamentos.filter(o => o.updated_at?.slice(0,7) === mesAtual && o.valor_pago > 0).reduce((a,o) => a + (o.valor_pago||0), 0)
   const parciais        = orcamentos.filter(o => o.status === 'Parcialmente pago').length
+
+  function gerarMensagemCobranca() {
+    const nomeCliente = clienteNome || 'cliente'
+    const tipoDoc = tipo === '__outro__' ? tipoOutro : tipo
+    const nomeNegocio = perfil?.nome_negocio || 'nosso negócio'
+    const entradaValor = exigirSinal
+      ? sinalTipo === 'fixo'
+        ? parseFloat(sinalValor || '0')
+        : (total * parseFloat(sinalValor || '0')) / 100
+      : 0
+    let msg = `Olá, ${nomeCliente}! Aqui é d${nomeNegocio.match(/^[aeiouAEIOU]/) ? 'a ' : 'o '}${nomeNegocio}.\n\nSeu ${tipoDoc} ficou no valor de R$ ${fmtBRL(total)}.`
+    if (entradaValor > 0) msg += `\nEntrada necessária: R$ ${fmtBRL(entradaValor)}.`
+    msg += `\nValor pago até agora: R$ 0,00.\nSaldo restante: R$ ${fmtBRL(total)}.`
+    if (linkPag) msg += `\n\nVocê pode realizar o pagamento pelo link abaixo:\n${linkPag}`
+    msg += `\n\nApós o pagamento, envie o comprovante por aqui. Obrigado!`
+    return msg
+  }
+
+  function enviarCobrancaWpp() {
+    const tel = clienteWpp.replace(/\D/g,'')
+    if (!tel) return
+    window.open('https://wa.me/55' + tel + '?text=' + encodeURIComponent(gerarMensagemCobranca()), '_blank')
+  }
 
   const orcDetalhe = orcamentos.find(o => o.id === detalheId)
 
@@ -822,35 +847,117 @@ ${orc.observacoes?`<div class="sec"><div class="sec-title">Observações</div><p
             {/* 4. Pagamento */}
             <div className="form-section">
               <p className="form-sec-title">💳 Controle de pagamento</p>
-              <p className="form-sec-sub">Configure sinal e link de pagamento.</p>
-              <div className="pag-saldo" style={{ marginBottom:'16px' }}>
-                <div className="pag-item"><p className="pag-label">Total</p><p className="pag-valor" style={{ color:'#F1F5F9' }}>R$ {fmtBRL(total)}</p></div>
-                <div className="pag-item"><p className="pag-label">Pago</p><p className="pag-valor" style={{ color:'#22C55E' }}>R$ 0,00</p></div>
-                <div className="pag-item"><p className="pag-label">Saldo</p><p className="pag-valor" style={{ color:'#F97316' }}>R$ {fmtBRL(total)}</p></div>
+              <p className="form-sec-sub">Acompanhe valores pagos, saldo restante e link de cobrança.</p>
+
+              {/* Cards resumo */}
+              <div className="pag-saldo" style={{ marginBottom:'18px' }}>
+                <div className="pag-item">
+                  <p className="pag-label">Valor total</p>
+                  <p className="pag-valor" style={{ color:'#F1F5F9' }}>R$ {fmtBRL(total)}</p>
+                </div>
+                <div className="pag-item">
+                  <p className="pag-label">Valor pago</p>
+                  <p className="pag-valor" style={{ color:'#22C55E' }}>R$ 0,00</p>
+                </div>
+                <div className="pag-item">
+                  <p className="pag-label">Saldo restante</p>
+                  <p className="pag-valor" style={{ color: total > 0 ? '#F97316' : '#22C55E' }}>R$ {fmtBRL(total)}</p>
+                </div>
               </div>
+
               <div className="fields">
-                <div className="toggle-row">
-                  <button className={`toggle${exigirSinal?' on':' off'}`} onClick={() => setExigirSinal(!exigirSinal)} />
-                  <label className="label" style={{ margin:0, textTransform:'none', fontSize:'13px', color:'#D1D5DB' }}>Exigir entrada/sinal?</label>
-                </div>
-                {exigirSinal && (
-                  <div className="row-2">
-                    <div><label className="label">Tipo de sinal</label>
-                      <select value={sinalTipo} onChange={e => setSinalTipo(e.target.value)} className="select">
-                        <option value="fixo">Valor fixo</option>
-                        <option value="percentual">Porcentagem</option>
-                      </select></div>
-                    <div><label className="label">{sinalTipo === 'fixo' ? 'Valor (R$)' : 'Percentual (%)'}</label>
-                      <input type="number" placeholder={sinalTipo==='fixo'?'0,00':'0'} value={sinalValor} onChange={e => setSinalValor(e.target.value)} className="input" /></div>
-                  </div>
-                )}
+                {/* Sinal */}
                 <div>
-                  <label className="label">Link de pagamento</label>
-                  <input type="url" placeholder="Cole aqui o link do Mercado Pago, Asaas, PagSeguro, InfinitePay ou outro" value={linkPag} onChange={e => setLinkPag(e.target.value)} className="input" />
-                  <p className="field-hint">O ClienteMarcado apenas ajuda a enviar a cobrança pelo WhatsApp.</p>
+                  <div className="toggle-row" style={{ marginBottom: exigirSinal ? '12px' : '0' }}>
+                    <button className={`toggle${exigirSinal?' on':' off'}`} onClick={() => setExigirSinal(!exigirSinal)} />
+                    <label className="label" style={{ margin:0, textTransform:'none', fontSize:'13px', color:'#D1D5DB', cursor:'pointer' }}
+                      onClick={() => setExigirSinal(!exigirSinal)}>
+                      Exigir entrada / sinal?
+                    </label>
+                  </div>
+                  {exigirSinal && (
+                    <div style={{ padding:'14px', background:'rgba(59,130,246,0.05)', border:'1px solid rgba(59,130,246,0.15)', borderRadius:'10px', display:'flex', flexDirection:'column', gap:'12px' }}>
+                      <div className="row-2">
+                        <div>
+                          <label className="label">Tipo de entrada</label>
+                          <select value={sinalTipo} onChange={e => setSinalTipo(e.target.value)} className="select">
+                            <option value="fixo">Valor fixo (R$)</option>
+                            <option value="percentual">Porcentagem (%)</option>
+                          </select>
+                        </div>
+                        <div>
+                          <label className="label">{sinalTipo === 'fixo' ? 'Valor da entrada (R$)' : 'Percentual (%)'}</label>
+                          <input type="number" min="0" step={sinalTipo==='fixo'?'0.01':'1'}
+                            placeholder={sinalTipo==='fixo'?'0,00':'50'}
+                            value={sinalValor}
+                            onChange={e => setSinalValor(e.target.value)}
+                            className="input" />
+                        </div>
+                      </div>
+                      {sinalValor && (
+                        <div style={{ background:'rgba(34,197,94,0.08)', border:'1px solid rgba(34,197,94,0.2)', borderRadius:'8px', padding:'10px 14px' }}>
+                          <span style={{ fontSize:'13px', color:'#22C55E', fontWeight:'700' }}>
+                            Entrada necessária: R$ {fmtBRL(
+                              sinalTipo === 'fixo'
+                                ? parseFloat(sinalValor||'0')
+                                : (total * parseFloat(sinalValor||'0')) / 100
+                            )}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
-                <div><label className="label">Observações gerais</label>
-                  <textarea rows={3} placeholder="Informações adicionais sobre o orçamento ou tratamento..." value={observacoes} onChange={e => setObservacoes(e.target.value)} className="textarea" /></div>
+
+                {/* Link de pagamento */}
+                <div>
+                  <label className="label">Link de pagamento (opcional)</label>
+                  <input type="url"
+                    placeholder="Cole aqui o link do Mercado Pago, Asaas, PagSeguro, InfinitePay ou outro"
+                    value={linkPag} onChange={e => setLinkPag(e.target.value)}
+                    className="input" />
+                  <p className="field-hint">O ClienteMarcado apenas organiza a cobrança. O pagamento será feito pelo link informado pelo seu negócio.</p>
+                </div>
+
+                {/* Botões cobrança */}
+                <div style={{ display:'flex', gap:'8px', flexWrap:'wrap' }}>
+                  <button type="button" className="btn-acao"
+                    onClick={() => { navigator.clipboard.writeText(gerarMensagemCobranca()) }}
+                    style={{ fontSize:'12px', padding:'9px 14px' }}>
+                    📋 Copiar mensagem de cobrança
+                  </button>
+                  <button type="button"
+                    className={`btn-acao wpp${!clienteWpp ? ' off' : ''}`}
+                    disabled={!clienteWpp}
+                    onClick={enviarCobrancaWpp}
+                    style={{ fontSize:'12px', padding:'9px 14px', opacity: clienteWpp ? 1 : 0.5, cursor: clienteWpp ? 'pointer' : 'not-allowed' }}>
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" style={{ marginRight:'4px' }}><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+                    Enviar pelo WhatsApp
+                  </button>
+                </div>
+                {!clienteWpp && (
+                  <p style={{ fontSize:'11px', color:'#4B5563', marginTop:'-6px' }}>
+                    Informe o WhatsApp do cliente para enviar a cobrança.
+                  </p>
+                )}
+
+                {/* Obs pagamento */}
+                <div>
+                  <label className="label">Observações de pagamento (opcional)</label>
+                  <input type="text"
+                    placeholder="Ex: cliente pagou R$ 100,00 de entrada em dinheiro"
+                    value={obsPagamento} onChange={e => setObsPagamento(e.target.value)}
+                    className="input" />
+                </div>
+
+                {/* Obs gerais */}
+                <div>
+                  <label className="label">Observações gerais (opcional)</label>
+                  <textarea rows={3}
+                    placeholder="Informações adicionais sobre o orçamento ou tratamento..."
+                    value={observacoes} onChange={e => setObservacoes(e.target.value)}
+                    className="textarea" />
+                </div>
               </div>
             </div>
 
