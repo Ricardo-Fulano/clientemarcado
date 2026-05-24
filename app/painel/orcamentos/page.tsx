@@ -159,9 +159,24 @@ export default function Orcamentos() {
   }
 
   async function handleSalvar() {
-    if (!clienteNome.trim()) { setMensagem('Informe o nome do cliente.'); return }
-    if (tipo === '__outro__' && !tipoOutro.trim()) { setMensagem('Especifique o tipo do documento.'); return }
-    if (!clienteWpp) { setMensagem('Informe o WhatsApp do cliente.'); return }
+    setMensagem('')
+    const erros: string[] = []
+
+    if (!clienteNome.trim()) erros.push('Informe o nome do cliente.')
+    if (!clienteWpp || clienteWpp.replace(/\D/g,'').length < 10) erros.push('Informe o WhatsApp do cliente com DDD.')
+    if (tipo === '__outro__' && !tipoOutro.trim()) erros.push('Especifique o nome do tipo do documento.')
+    if (profId === '__outro__' && !profNome.trim()) erros.push('Informe o nome do profissional responsável.')
+
+    const itensValidos = itens.filter(i => i.nome?.trim() && parseFloat(i.unitario||'0') > 0 && parseInt(i.qtd||'1') > 0)
+    if (itensValidos.length === 0) erros.push('Adicione pelo menos um serviço com nome, quantidade e valor.')
+
+    if (erros.length > 0) {
+      console.log('Erros de validação:', erros)
+      setMensagem(erros.join(' | '))
+      window.scrollTo({ top: 300, behavior: 'smooth' })
+      return
+    }
+
     const payload = {
       user_id: userId,
       cliente_nome: clienteNome.trim(),
@@ -169,13 +184,14 @@ export default function Orcamentos() {
       cliente_email: clienteEmail || null,
       cliente_obs: clienteObs || null,
       tipo: tipo === '__outro__' ? (tipoOutro.trim() || 'Outro') : tipo,
-      tipo_descricao: tipo === '__outro__' ? (tipoDescricao.trim() || null) : null, profissional_id: (profId && profId !== '__outro__') ? profId : null,
+      tipo_descricao: tipo === '__outro__' ? (tipoDescricao.trim() || null) : null,
+      profissional_id: (profId && profId !== '__outro__') ? profId : null,
       profissional_nome: profId === '__outro__' ? (profNome.trim() || null) : profId ? (profissionais.find(p => p.id === profId)?.nome || null) : null,
       data: dataDoc, status,
-      servicos: itens.filter(i => i.nome),
+      servicos: itensValidos,
       subtotal, desconto: descontoNum, total,
-      valor_pago: editandoId ? undefined : 0,
-      saldo_restante: editandoId ? undefined : total,
+      valor_pago: valorPagoLocal,
+      saldo_restante: saldoLocal,
       exigir_sinal: exigirSinal,
       sinal_tipo: exigirSinal ? sinalTipo : null,
       sinal_valor: exigirSinal ? parseFloat(sinalValor || '0') : null,
@@ -187,23 +203,37 @@ export default function Orcamentos() {
       observacoes: observacoes || null,
       updated_at: new Date().toISOString(),
     }
+
+    console.log('Tentando criar orçamento', payload)
+
     if (editandoId) {
       const { error } = await supabase.from('orcamentos').update(payload).eq('id', editandoId)
-      if (error) { setMensagem('Erro ao salvar.'); return }
+      if (error) {
+        console.error('Erro ao atualizar:', error)
+        setMensagem('Erro ao salvar. Tente novamente.')
+        return
+      }
     } else {
-      const { error } = await supabase.from('orcamentos').insert({ ...payload, valor_pago: 0, saldo_restante: total })
-      if (error) { setMensagem('Erro ao salvar.'); return }
+      const { error } = await supabase.from('orcamentos').insert(payload)
+      if (error) {
+        console.error('Erro ao criar:', error)
+        setMensagem('Erro ao criar orçamento. Verifique os dados e tente novamente.')
+        return
+      }
     }
-    // Save freelancer to team if requested
+
     if (profId === '__outro__' && profNome.trim() && salvarFreelancer) {
-      await supabase.from('profissionais').insert({
-        user_id: userId, nome: profNome.trim(), especialidade: 'Freelancer'
-      })
+      await supabase.from('profissionais').insert({ user_id: userId, nome: profNome.trim(), especialidade: 'Freelancer' })
       const { data: profs } = await supabase.from('profissionais').select('id,nome').eq('user_id', userId)
       setProfissionais(profs || [])
     }
-    resetForm(); setView('lista'); await carregarOrcamentos(); setMensagem('Salvo!')
-    setTimeout(() => setMensagem(''), 3000)
+
+    console.log('Orçamento criado com sucesso')
+    resetForm()
+    setView('lista')
+    await carregarOrcamentos()
+    setMensagem(editandoId ? 'Orçamento atualizado com sucesso.' : 'Orçamento criado com sucesso.')
+    setTimeout(() => setMensagem(''), 4000)
   }
 
   async function handleExcluir(id: string) {
