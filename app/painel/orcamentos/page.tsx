@@ -1064,17 +1064,6 @@ ${orc.observacoes?`<div class="sec"><div class="sec-title">Observações</div><p
                     </div>
                   )}
                 </div>
-
-                {/* Link de pagamento */}
-                {showLinkPag && (
-                <div>
-                  <label className="label">Link de pagamento</label>
-                  <input type="url"
-                    placeholder="Cole aqui o link do Mercado Pago, Asaas, PagSeguro, InfinitePay ou outro"
-                    value={linkPag} onChange={e => setLinkPag(e.target.value)}
-                    className="input" />
-                  <p className="field-hint">O ClienteMarcado apenas organiza a cobrança. O pagamento será feito pelo link informado.</p>
-                </div>
                 )}
 
                 {/* Ações de cobrança */}
@@ -1088,7 +1077,7 @@ ${orc.observacoes?`<div class="sec"><div class="sec-title">Observações</div><p
                   <button type="button" className="btn-action" onClick={() => { navigator.clipboard.writeText(gerarMensagemCobranca()) }}>
                     📋 Copiar cobrança
                   </button>
-                  <button type="button" className={`btn-action wpp`} disabled={!clienteWpp}
+                  <button type="button" className="btn-action wpp" disabled={!clienteWpp}
                     onClick={enviarCobrancaWpp}
                     style={{ opacity: clienteWpp ? 1 : 0.4, cursor: clienteWpp ? 'pointer' : 'not-allowed' }}>
                     💬 WhatsApp
@@ -1096,6 +1085,16 @@ ${orc.observacoes?`<div class="sec"><div class="sec-title">Observações</div><p
                 </div>
                 {!clienteWpp && <p style={{ fontSize:'11px', color:'#4B5563', marginTop:'-6px', marginBottom:'8px' }}>Informe o WhatsApp do cliente para enviar.</p>}
 
+                {/* Link de pagamento */}
+                {showLinkPag && (
+                  <div>
+                    <label className="label">Link de pagamento</label>
+                    <input type="url"
+                      placeholder="Cole aqui o link do Mercado Pago, Asaas, PagSeguro, InfinitePay ou outro"
+                      value={linkPag} onChange={e => setLinkPag(e.target.value)}
+                      className="input" />
+                    <p className="field-hint">O ClienteMarcado apenas organiza a cobrança. O pagamento será feito pelo link informado.</p>
+                  </div>
                 )}
 
                 {/* Obs pagamento */}
