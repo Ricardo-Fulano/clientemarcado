@@ -38,40 +38,52 @@ const SIDEBAR_ITEMS = [
 ]
 
 const MOBILE_CSS = `
-  @media(max-width:1023px){
-    .cm-main{padding-top:60px}
-    .cm-sidebar{display:none!important}
-    .cm-main{margin-left:0!important}
-    .cm-form-grid{grid-template-columns:1fr!important}
-    .cm-form-right{display:none!important}
-    .cm-mobile-footer{display:flex!important}
-    .cm-content-pad{padding-bottom:130px!important}
-    .cm-metrics{grid-template-columns:1fr 1fr!important}
-    .cm-orc-filters{overflow-x:auto;flex-wrap:nowrap!important;padding-bottom:4px}
-    .cm-orc-search{width:100%!important;margin-top:8px}
-    .cm-2col{grid-template-columns:1fr!important}
-    .cm-item-grid{grid-template-columns:1fr!important}
-    .cm-header-mobile{display:flex!important}
-    .cm-header-desktop{display:none!important}
-    .cm-lista-pad{padding:16px 16px 60px!important}
-    .cm-form-pad{padding:16px 16px 130px!important}
-    .cm-detalhe-pad{padding:16px 16px 60px!important}
-    .cm-resumo-mobile{display:block!important}
-  }
+  html, body { overflow-x: hidden; width: 100%; }
+  *, *::before, *::after { box-sizing: border-box; }
+
+  .cm-drawer { position:fixed; top:0; left:0; bottom:0; width:300px; max-width:85vw; background:#0B172A; z-index:50; transform:translateX(-100%); transition:transform .3s ease; display:flex; flex-direction:column; }
+  .cm-drawer.open { transform:translateX(0); }
+  .cm-overlay { position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:49; opacity:0; pointer-events:none; transition:opacity .3s; }
+  .cm-overlay.open { opacity:1; pointer-events:auto; }
+
+  .cm-header-mobile { display:none; align-items:center; justify-content:space-between; padding:0 16px; height:60px; background:#0B172A; z-index:10; box-shadow:0 2px 8px rgba(0,0,0,.3); width:100%; max-width:100%; flex-shrink:0; overflow:hidden; }
+
+  .cm-mobile-footer { display:none; position:fixed; bottom:0; left:0; right:0; width:100%; max-width:100%; background:#fff; border-top:1px solid #DCE3EA; padding:12px 16px calc(12px + env(safe-area-inset-bottom,0px)); z-index:25; flex-direction:column; gap:8px; box-shadow:0 -4px 16px rgba(0,0,0,.08); box-sizing:border-box; }
+
   @media(min-width:1024px){
-    .cm-header-mobile{display:none!important}
-    .cm-mobile-footer{display:none!important}
-    .cm-sidebar{display:flex!important}
-    .cm-main{margin-left:220px!important}
-    .cm-resumo-mobile{display:none!important}
+    .cm-header-mobile { display:none !important; }
+    .cm-mobile-footer { display:none !important; }
+    .cm-sidebar { display:flex !important; }
+    .cm-main { margin-left:220px !important; }
+    .cm-resumo-mobile { display:none !important; }
+    .cm-form-right { display:block !important; }
+    .cm-form-grid { grid-template-columns:1fr 300px !important; }
   }
-  .cm-header-mobile{display:none;align-items:center;justify-content:space-between;padding:0 16px;height:60px;background:#0B172A;position:sticky;top:0;z-index:30;box-shadow:0 2px 8px rgba(0,0,0,.3);width:100%}
-  .cm-mobile-footer{display:none;position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid #DCE3EA;padding:12px 16px calc(12px + env(safe-area-inset-bottom,0px));z-index:25;flex-direction:column;gap:8px;box-shadow:0 -4px 16px rgba(0,0,0,.08)}
-  .cm-drawer{position:fixed;top:0;left:0;bottom:0;width:300px;background:#0B172A;z-index:50;transform:translateX(-100%);transition:transform .3s ease;display:flex;flex-direction:column}
-  .cm-drawer.open{transform:translateX(0)}
-  .cm-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:49;opacity:0;pointer-events:none;transition:opacity .3s}
-  .cm-overlay.open{opacity:1;pointer-events:auto}
-  *{box-sizing:border-box}
+
+  @media(max-width:1023px){
+    .cm-sidebar { display:none !important; }
+    .cm-main { margin-left:0 !important; width:100% !important; max-width:100% !important; overflow-x:hidden; }
+    .cm-header-mobile { display:flex !important; }
+    .cm-form-grid { grid-template-columns:1fr !important; }
+    .cm-form-right { display:none !important; }
+    .cm-mobile-footer { display:flex !important; }
+    .cm-resumo-mobile { display:block !important; }
+    .cm-lista-pad { padding:16px 16px 80px !important; }
+    .cm-form-pad { padding:0 !important; }
+    .cm-form-inner { padding:16px !important; padding-bottom:180px !important; }
+    .cm-detalhe-pad { padding:16px 16px 80px !important; }
+    .cm-metrics { grid-template-columns:1fr 1fr !important; gap:10px !important; }
+    .cm-orc-filters { overflow-x:auto !important; flex-wrap:nowrap !important; padding-bottom:4px; -webkit-overflow-scrolling:touch; max-width:100%; }
+    .cm-orc-search { width:100% !important; max-width:100% !important; margin-top:8px; }
+    .cm-2col { grid-template-columns:1fr !important; }
+    .cm-inprow { grid-template-columns:1fr !important; }
+    .cm-card { width:100% !important; max-width:100% !important; box-sizing:border-box !important; padding:18px !important; border-radius:16px !important; margin-bottom:16px !important; }
+  }
+
+  @media(max-width:380px){
+    .cm-metrics { grid-template-columns:1fr !important; }
+    .cm-serv-qtd-val { grid-template-columns:1fr !important; }
+  }
 `
 
 export default function Orcamentos() {
@@ -416,7 +428,7 @@ export default function Orcamentos() {
   )
 
   return (
-    <div style={{display:'flex',minHeight:'100vh',background:BG,fontFamily:'-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif'}}>
+    <div style={{display:'flex',minHeight:'100vh',background:BG,fontFamily:'-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif',overflowX:'hidden',width:'100%',maxWidth:'100%'}}>
       <style dangerouslySetInnerHTML={{__html:MOBILE_CSS}} />
 
       {/* Mobile Overlay */}
@@ -465,7 +477,7 @@ export default function Orcamentos() {
 
         {/* ══ LISTA ══ */}
         {view==='lista'&&(
-          <div className="cm-lista-pad" style={{padding:'28px 32px 60px',maxWidth:'1140px'}}>
+          <div className="cm-lista-pad cm-content-pad" style={{padding:'28px 32px 60px',maxWidth:'1140px'}}>
             <div style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',marginBottom:'24px',gap:'12px',flexWrap:'wrap'}}>
               <div>
                 <h1 style={{fontSize:'22px',fontWeight:800,color:'#0F172A',letterSpacing:'-0.02em',marginBottom:'4px'}}>Orçamentos e Cobranças</h1>
@@ -478,7 +490,7 @@ export default function Orcamentos() {
             </div>
 
             {/* Métricas */}
-            <div className="cm-metrics" style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:'12px',marginBottom:'24px'}}>
+            <div className="cm-metrics" style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:'12px',marginBottom:'24px',width:'100%'}}>
               {[
                 {label:'Orçamentos em aberto',valor:totalAberto,cor:'#2563EB',fmt:'n'},
                 {label:'Total a receber',valor:totalAReceber,cor:'#D97706',fmt:'brl'},
@@ -524,7 +536,7 @@ export default function Orcamentos() {
                 {orcsFiltrados.map(orc=>{
                   const cfg=STATUS_COR[orc.status]||STATUS_COR['Aberto']
                   return (
-                    <div key={orc.id} style={{background:'#fff',borderRadius:'12px',border:'1px solid #DCE3EA',boxShadow:'0 1px 3px rgba(0,0,0,.05)',overflow:'hidden'}}>
+                    <div key={orc.id} style={{background:'#fff',borderRadius:'12px',border:'1px solid #DCE3EA',boxShadow:'0 1px 3px rgba(0,0,0,.05)',overflow:'hidden',width:'100%',maxWidth:'100%',boxSizing:'border-box'}}>
                       <div style={{height:'3px',background:cfg.color}} />
                       <div style={{padding:'16px 20px'}}>
                         <div style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',gap:'12px',flexWrap:'wrap',marginBottom:'10px'}}>
@@ -571,7 +583,8 @@ export default function Orcamentos() {
 
         {/* ══ FORMULÁRIO ══ */}
         {view==='form'&&(
-          <div className="cm-form-pad" style={{padding:'24px 32px 60px'}}>
+          <div className="cm-form-pad cm-content-pad" style={{padding:'24px 32px 60px'}}>
+            <div className="cm-form-inner" style={{padding:'24px',width:'100%',maxWidth:'100%',boxSizing:'border-box' as const,overflowX:'hidden'}}>
             {/* Topo */}
             <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:'20px',flexWrap:'wrap',gap:'12px'}}>
               <div>
@@ -604,7 +617,7 @@ export default function Orcamentos() {
               <div style={{minWidth:0}}>
 
                 {/* CARD: Cliente */}
-                <div style={card}>
+                <div className="cm-card" style={card}>
                   <div style={{display:'flex',alignItems:'center',gap:'8px',marginBottom:'16px'}}>
                     <span style={{fontSize:'16px'}}>👤</span>
                     <p style={{fontSize:'15px',fontWeight:700,color:'#0F172A'}}>Cliente</p>
@@ -666,7 +679,7 @@ export default function Orcamentos() {
                           </select>
                         </div>
                       </div>
-                      <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'12px'}}>
+                      <div className="cm-inprow" style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'12px'}}>
                         <div>
                           <label style={lbl}>Profissional</label>
                           <select style={sel} value={profId} onChange={e=>{setProfId(e.target.value);if(e.target.value!=='__outro__'){setProfNome('');setSalvarFreelancer(false)}}}>
@@ -697,45 +710,61 @@ export default function Orcamentos() {
                 </div>
 
                 {/* CARD: Serviços */}
-                <div style={card}>
+                <div className="cm-card" style={card}>
                   <div style={{display:'flex',alignItems:'center',gap:'8px',marginBottom:'4px'}}>
                     <span style={{fontSize:'16px'}}>✂️</span>
                     <p style={{fontSize:'15px',fontWeight:700,color:'#0F172A'}}>Serviços / Procedimentos</p>
                   </div>
                   <p style={{fontSize:'12px',color:'#667085',marginBottom:'16px'}}>Adicione os serviços, procedimentos, produtos ou itens deste orçamento.</p>
 
-                  {/* Header tabela */}
-                  <div style={{display:'grid',gridTemplateColumns:'3fr 80px 120px 110px 32px',gap:'8px',marginBottom:'8px'}}>
+                  {/* Header tabela — oculto no mobile */}
+                  <div style={{display:'grid',gridTemplateColumns:'3fr 80px 120px 110px 32px',gap:'8px',marginBottom:'8px'}} className="cm-hide-mobile">
                     {['Nome do serviço','Qtd.','Valor unitário','Total',''].map(h=>(
                       <p key={h} style={{fontSize:'11px',fontWeight:600,color:'#667085',textTransform:'uppercase',letterSpacing:'.05em'}}>{h}</p>
                     ))}
                   </div>
 
                   {itens.map((item,idx)=>(
-                    <div key={idx} style={{display:'grid',gridTemplateColumns:'3fr 80px 120px 110px 32px',gap:'8px',marginBottom:'8px',alignItems:'start'}}>
-                      <input style={inp} type="text" placeholder="Ex: Corte de cabelo, limpeza..."
-                        value={item.nome} onChange={e=>atualizarItem(idx,'nome',e.target.value)} />
-                      <input style={{...inp,textAlign:'center'}} type="number" min="1"
-                        value={item.qtd} onChange={e=>atualizarItem(idx,'qtd',e.target.value)} />
-                      <div style={{position:'relative'}}>
-                        <span style={{position:'absolute',left:'10px',top:'50%',transform:'translateY(-50%)',fontSize:'12px',color:'#9CA3AF',fontWeight:600}}>R$</span>
-                        <input style={{...inp,paddingLeft:'32px'}} type="number" min="0" step="0.01" placeholder="0,00"
-                          value={item.unitario} onChange={e=>atualizarItem(idx,'unitario',e.target.value)} />
+                    <div key={idx} style={{marginBottom:'12px',padding:'14px',background:'#F8FAFC',borderRadius:'12px',border:'1px solid #DCE3EA',width:'100%',maxWidth:'100%',boxSizing:'border-box'}}>
+                      <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'10px'}}>
+                        <span style={{fontSize:'11px',fontWeight:600,color:'#667085',textTransform:'uppercase',letterSpacing:'.05em'}}>Item {idx+1}</span>
+                        {itens.length>1&&(
+                          <button onClick={()=>setItens(prev=>prev.filter((_,i)=>i!==idx))}
+                            style={{background:'#FEF2F2',border:'1px solid #FECACA',borderRadius:'6px',color:'#EF4444',cursor:'pointer',fontSize:'13px',padding:'3px 8px'}}>
+                            Remover
+                          </button>
+                        )}
                       </div>
-                      <div style={{background:item.total>0?'#ECFDF5':'#F8FAFC',border:`1.5px solid ${item.total>0?'#A7F3D0':'#DCE3EA'}`,borderRadius:'8px',padding:'10px 12px',textAlign:'right'}}>
-                        <span style={{fontSize:'14px',fontWeight:700,color:item.total>0?'#059669':'#9CA3AF'}}>R$ {fmtBRL(item.total||0)}</span>
+                      {/* Nome */}
+                      <div style={{marginBottom:'8px'}}>
+                        <label style={{...lbl,textTransform:'none',fontSize:'12px',marginBottom:'4px'}}>Nome do serviço *</label>
+                        <input style={{...inp,width:'100%'}} type="text" placeholder="Ex: Corte de cabelo, limpeza de pele..."
+                          value={item.nome} onChange={e=>atualizarItem(idx,'nome',e.target.value)} />
                       </div>
-                      {itens.length>1?(
-                        <button onClick={()=>setItens(prev=>prev.filter((_,i)=>i!==idx))}
-                          style={{background:'none',border:'1.5px solid #FECACA',borderRadius:'6px',color:'#EF4444',cursor:'pointer',fontSize:'16px',width:'32px',height:'42px',display:'flex',alignItems:'center',justifyContent:'center'}}>
-                          🗑
-                        </button>
-                      ):<div />}
+                      {/* Qtd + Valor */}
+                      <div className="cm-serv-qtd-val" style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'8px',marginBottom:'8px',width:'100%',maxWidth:'100%'}}>
+                        <div>
+                          <label style={{...lbl,textTransform:'none',fontSize:'12px',marginBottom:'4px'}}>Qtd.</label>
+                          <input style={{...inp,textAlign:'center',width:'100%'}} type="number" min="1"
+                            value={item.qtd} onChange={e=>atualizarItem(idx,'qtd',e.target.value)} />
+                        </div>
+                        <div>
+                          <label style={{...lbl,textTransform:'none',fontSize:'12px',marginBottom:'4px'}}>Valor unitário</label>
+                          <div style={{position:'relative'}}>
+                            <span style={{position:'absolute',left:'10px',top:'50%',transform:'translateY(-50%)',fontSize:'12px',color:'#9CA3AF',fontWeight:600}}>R$</span>
+                            <input style={{...inp,paddingLeft:'32px',width:'100%',maxWidth:'100%',boxSizing:'border-box'}} type="number" min="0" step="0.01" placeholder="0,00"
+                              value={item.unitario} onChange={e=>atualizarItem(idx,'unitario',e.target.value)} />
+                          </div>
+                        </div>
+                      </div>
+                      {/* Total */}
+                      <div style={{background:item.total>0?'#ECFDF5':'#F8FAFC',border:`1.5px solid ${item.total>0?'#A7F3D0':'#DCE3EA'}`,borderRadius:'8px',padding:'10px 14px',display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'8px'}}>
+                        <span style={{fontSize:'12px',color:'#667085',fontWeight:600}}>Total</span>
+                        <span style={{fontSize:'16px',fontWeight:800,color:item.total>0?'#059669':'#9CA3AF'}}>R$ {fmtBRL(item.total||0)}</span>
+                      </div>
                       {/* Obs */}
-                      <div style={{gridColumn:'1/-1',marginBottom:'4px'}}>
-                        <input style={{...inp,fontSize:'13px',color:'#667085',background:'#fff'}} type="text"
-                          placeholder="Observação opcional" value={item.obs} onChange={e=>atualizarItem(idx,'obs',e.target.value)} />
-                      </div>
+                      <input style={{...inp,fontSize:'13px',color:'#667085',background:'#fff',width:'100%'}} type="text"
+                        placeholder="Observação opcional" value={item.obs} onChange={e=>atualizarItem(idx,'obs',e.target.value)} />
                     </div>
                   ))}
 
@@ -745,7 +774,7 @@ export default function Orcamentos() {
                   </button>
 
                   {/* Subtotal */}
-                  <div style={{marginTop:'16px',background:BG,borderRadius:'10px',padding:'14px 16px'}}>
+                  <div style={{marginTop:'16px',background:BG,borderRadius:'10px',padding:'14px 16px',width:'100%',maxWidth:'100%',boxSizing:'border-box'}}>
                     <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',fontSize:'13px',color:'#667085',marginBottom:'8px'}}>
                       <span>Subtotal</span>
                       <span style={{fontWeight:600,color:'#0F172A'}}>R$ {fmtBRL(subtotal)}</span>
@@ -802,7 +831,7 @@ export default function Orcamentos() {
 
                 {/* Odontograma */}
                 {isOdonto&&(
-                  <div style={card}>
+                  <div className="cm-card" style={card}>
                     <p style={{fontSize:'15px',fontWeight:700,color:'#0F172A',marginBottom:'12px'}}>🦷 Odontograma</p>
                     {[DENTES_SUPERIOR,DENTES_INFERIOR].map((arco,ai)=>(
                       <div key={ai} style={{display:'flex',gap:'4px',flexWrap:'wrap',marginBottom:'8px'}}>
@@ -1013,7 +1042,7 @@ export default function Orcamentos() {
                     <span style={{color:'#667085',fontSize:'18px',transform:showObs?'rotate(180deg)':'none',transition:'transform .2s'}}>⌄</span>
                   </div>
                   {showObs&&(
-                    <div style={{padding:'0 24px 20px',borderTop:'1px solid #F1F4F8',display:'flex',flexDirection:'column',gap:'12px',marginTop:'16px'}}>
+                    <div style={{padding:'0 18px 18px',borderTop:'1px solid #F1F4F8',display:'flex',flexDirection:'column',gap:'12px',marginTop:'16px',width:'100%',boxSizing:'border-box'}}>
                       <div><label style={lbl}>Observação do cliente</label>
                         <textarea rows={2} style={{...inp,resize:'none'}} placeholder="Alergias, preferências, histórico..."
                           value={clienteObs} onChange={e=>setClienteObs(e.target.value)} /></div>
@@ -1031,24 +1060,25 @@ export default function Orcamentos() {
                 </div>
               </div>
 
+            </div>{/* end cm-form-inner */}
               {/* Mobile Footer fixo */}
               <div className="cm-mobile-footer">
-                <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'2px'}}>
-                  <span style={{fontSize:'12px',color:'#667085',fontWeight:600}}>Total final</span>
-                  <span style={{fontSize:'18px',fontWeight:800,color:'#2563EB'}}>R$ {fmtBRL(total)}</span>
+                <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',paddingBottom:'8px',borderBottom:'1px solid #F1F4F8',width:'100%'}}>
+                  <span style={{fontSize:'13px',color:'#667085',fontWeight:600}}>Total final</span>
+                  <span style={{fontSize:'20px',fontWeight:800,color:'#2563EB'}}>R$ {fmtBRL(total)}</span>
                 </div>
-                <div style={{display:'flex',gap:'8px'}}>
+                <div style={{display:'grid',gridTemplateColumns:'2fr 3fr',gap:'8px',width:'100%',maxWidth:'100%'}}>
                   <button onClick={()=>{resetForm();setView('lista')}}
-                    style={{flex:1,background:'#F8FAFC',color:'#667085',border:'1.5px solid #DCE3EA',borderRadius:'10px',padding:'12px',fontSize:'13px',fontWeight:600,cursor:'pointer',fontFamily:'inherit'}}>
+                    style={{background:'#F8FAFC',color:'#667085',border:'1.5px solid #DCE3EA',borderRadius:'10px',padding:'13px 0',fontSize:'13px',fontWeight:600,cursor:'pointer',fontFamily:'inherit',width:'100%',maxWidth:'100%',overflow:'hidden'}}>
                     Rascunho
                   </button>
                   <button onClick={handleSalvar}
-                    style={{flex:2,background:'#2563EB',color:'#fff',border:'none',borderRadius:'10px',padding:'12px',fontSize:'15px',fontWeight:800,cursor:'pointer',fontFamily:'inherit',boxShadow:'0 4px 12px rgba(37,99,235,.3)'}}>
+                    style={{background:'#2563EB',color:'#fff',border:'none',borderRadius:'10px',padding:'13px 0',fontSize:'14px',fontWeight:800,cursor:'pointer',fontFamily:'inherit',width:'100%',maxWidth:'100%',overflow:'hidden',boxShadow:'0 4px 12px rgba(37,99,235,.3)'}}>
                     {editandoId?'Salvar':'Criar orçamento'}
                   </button>
                 </div>
                 <button onClick={enviarCobrancaWpp} disabled={!clienteWpp}
-                  style={{width:'100%',background:'#F0FFF4',color:'#16A34A',border:'1.5px solid #86EFAC',borderRadius:'10px',padding:'11px',fontSize:'13px',fontWeight:600,cursor:clienteWpp?'pointer':'not-allowed',fontFamily:'inherit',opacity:clienteWpp?1:0.6}}>
+                  style={{width:'100%',maxWidth:'100%',background:'#F0FFF4',color:'#16A34A',border:'1.5px solid #86EFAC',borderRadius:'10px',padding:'12px 0',fontSize:'13px',fontWeight:600,cursor:clienteWpp?'pointer':'not-allowed',fontFamily:'inherit',opacity:clienteWpp?1:0.6,boxSizing:'border-box'}}>
                   💬 Enviar no WhatsApp
                 </button>
               </div>
@@ -1172,7 +1202,7 @@ export default function Orcamentos() {
               </div>
 
               {(orc.servicos?.length>0)&&(
-                <div style={card}>
+                <div className="cm-card" style={card}>
                   <p style={{fontSize:'14px',fontWeight:700,color:'#0F172A',marginBottom:'12px'}}>🛎 Serviços</p>
                   {(orc.servicos||[]).map((s:any,i:number)=>(
                     <div key={i} style={{display:'flex',justifyContent:'space-between',padding:'8px 0',borderBottom:'1px solid #F1F4F8'}}>
