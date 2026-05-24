@@ -80,6 +80,9 @@ export default function Orcamentos() {
   const [pagForma, setPagForma] = useState('Pix')
   const [pagObs, setPagObs] = useState('')
   const [showPagForm, setShowPagForm] = useState(false)
+  const [step, setStep] = useState(1) // 1=Cliente, 2=Serviços, 3=Pagamento
+  const [showLinkPag, setShowLinkPag] = useState(false)
+  const [showSinal, setShowSinal] = useState(false)
 
   // Histórico de pagamentos (novo orçamento — salvo no JSON do orçamento)
   const [histPags, setHistPags] = useState<any[]>([])
@@ -137,7 +140,7 @@ export default function Orcamentos() {
     setTipo('Orçamento'); setTipoOutro(''); setTipoDescricao(''); setProfId(''); setProfNome(''); setSalvarFreelancer(false); setDataDoc(new Date().toISOString().split('T')[0])
     setStatus('Aberto'); setItens([{ nome:'', qtd:1, unitario:'', total:0, obs:'' }])
     setDesconto(''); setExigirSinal(false); setSinalTipo('fixo'); setSinalValor('')
-    setLinkPag(''); setObsPagamento(''); setObservacoes(''); setHistPags([]); setEditandoPagIdx(null); setHpValor(''); setHpForma('Pix'); setHpFormaOutro(''); setHpObs(''); setDentesSelec([]); setProcOdonto([])
+    setLinkPag(''); setObsPagamento(''); setObservacoes(''); setHistPags([]); setEditandoPagIdx(null); setHpValor(''); setHpForma('Pix'); setHpFormaOutro(''); setHpObs(''); setStep(1); setShowLinkPag(false); setShowSinal(false); setDentesSelec([]); setProcOdonto([])
     setEditandoId(null)
   }
 
@@ -576,6 +579,31 @@ ${orc.observacoes?`<div class="sec"><div class="sec-title">Observações</div><p
     .btn-secundario { background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.08); border-radius:10px; padding:12px; font-size:14px; font-weight:600; color:#9CA3AF; cursor:pointer; font-family:inherit; width:100%; margin-bottom:10px; transition:all .15s; }
     .btn-secundario:hover { background:rgba(255,255,255,.09); color:#D1D5DB; }
     .form-btns { display:flex; gap:10px; }
+
+    /* Steps */
+    .steps { display:flex; align-items:center; gap:0; margin-bottom:28px; }
+    .step-item { display:flex; align-items:center; gap:0; flex:1; }
+    .step-circle { width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:800; flex-shrink:0; transition:all .2s; }
+    .step-circle.done { background:#22C55E; color:#fff; }
+    .step-circle.active { background:#3B82F6; color:#fff; box-shadow:0 0 0 3px rgba(59,130,246,.25); }
+    .step-circle.idle { background:rgba(255,255,255,.08); color:#4B5563; }
+    .step-label { font-size:11px; font-weight:600; margin-left:8px; white-space:nowrap; }
+    .step-label.done { color:#22C55E; }
+    .step-label.active { color:#F1F5F9; }
+    .step-label.idle { color:#4B5563; }
+    .step-line { flex:1; height:1px; background:rgba(255,255,255,.08); margin:0 6px; }
+    .step-line.done { background:#22C55E; }
+
+    /* Action buttons */
+    .btn-action { display:flex; align-items:center; gap:8px; background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.1); border-radius:10px; padding:10px 16px; font-size:13px; font-weight:600; color:#9CA3AF; cursor:pointer; font-family:inherit; transition:all .15s; -webkit-tap-highlight-color:transparent; }
+    .btn-action:hover { background:rgba(255,255,255,.09); color:#D1D5DB; border-color:rgba(255,255,255,.16); }
+    .btn-action.active { background:rgba(59,130,246,.1); border-color:rgba(59,130,246,.25); color:#3B82F6; }
+    .actions-row { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px; }
+
+    /* Resumo final */
+    .resumo-final { background:linear-gradient(160deg,rgba(22,28,42,1) 0%,rgba(12,15,22,1) 100%); border:1px solid rgba(255,255,255,.12); border-radius:14px; padding:18px 20px; margin-bottom:16px; }
+    .resumo-row { display:flex; justify-content:space-between; align-items:center; padding:5px 0; font-size:14px; }
+    .resumo-row.total { border-top:1px solid rgba(255,255,255,.08); margin-top:8px; padding-top:12px; font-size:17px; font-weight:800; }
   `
 
   if (loading) return (
@@ -685,17 +713,34 @@ ${orc.observacoes?`<div class="sec"><div class="sec-title">Observações</div><p
         {/* ══ FORMULÁRIO ══ */}
         {view === 'form' && (
           <div className="form-wrap">
-            <div style={{ display:'flex', alignItems:'center', gap:'12px', marginBottom:'22px', flexWrap:'wrap' }}>
-              <button className="btn-secundario" style={{ width:'auto', padding:'8px 16px', marginBottom:0 }} onClick={() => { resetForm(); setView('lista') }}>← Voltar</button>
-              <h2 style={{ fontSize:'20px', fontWeight:'800', color:'#F1F5F9' }}>{editandoId ? 'Editar orçamento' : 'Novo orçamento'}</h2>
+            {/* Header */}
+            <div style={{ display:'flex', alignItems:'center', gap:'12px', marginBottom:'20px', flexWrap:'wrap' }}>
+              <button className="btn-secundario" style={{ width:'auto', padding:'8px 14px', marginBottom:0, fontSize:'13px' }} onClick={() => { resetForm(); setView('lista') }}>← Voltar</button>
+              <h2 style={{ fontSize:'19px', fontWeight:'800', color:'#F1F5F9' }}>{editandoId ? 'Editar orçamento' : 'Novo orçamento'}</h2>
             </div>
 
-            {mensagem && <div className={mensagem.includes('rro') ? 'msg-err':'msg-ok'}>{mensagem}</div>}
+            {/* Steps indicator */}
+            <div className="steps">
+              {[{n:1,label:'Cliente'},{n:2,label:'Serviços'},{n:3,label:'Pagamento'}].map((s,i) => (
+                <div key={s.n} className="step-item">
+                  {i > 0 && <div className={`step-line${step > s.n-1 ? ' done':''}`} />}
+                  <div className={`step-circle${step > s.n ? ' done' : step === s.n ? ' active' : ' idle'}`}
+                    style={{ cursor: step > s.n ? 'pointer' : 'default' }}
+                    onClick={() => step > s.n && setStep(s.n)}>
+                    {step > s.n ? '✓' : s.n}
+                  </div>
+                  <span className={`step-label${step > s.n ? ' done' : step === s.n ? ' active' : ' idle'}`}>{s.label}</span>
+                </div>
+              ))}
+            </div>
 
-            {/* 1. Cliente */}
+            {mensagem && <div className={mensagem.includes('rro') ? 'msg-err':'msg-ok'} style={{ marginBottom:'16px' }}>{mensagem}</div>}
+
+            {/* STEP 1: Cliente + Documento */}
+            {step === 1 && (<>
             <div className="form-section">
-              <p className="form-sec-title">👤 Dados do cliente</p>
-              <p className="form-sec-sub">Informações de contato do cliente.</p>
+              <p className="form-sec-title">👤 Cliente</p>
+              <p className="form-sec-sub">Informações básicas do cliente.</p>
               <div className="fields">
                 <div><label className="label">Nome *</label>
                   <input type="text" placeholder="Nome completo" value={clienteNome} onChange={e => setClienteNome(e.target.value)} className="input" /></div>
@@ -780,7 +825,16 @@ ${orc.observacoes?`<div class="sec"><div class="sec-title">Observações</div><p
               </div>
             </div>
 
-            {/* 3. Serviços */}
+            {/* Next step button for step 1 */}
+            <button className="btn-salvar" onClick={() => {
+              if (!clienteNome.trim()) { setMensagem('Informe o nome do cliente.'); return }
+              if (!clienteWpp || clienteWpp.replace(/\D/g,'').length < 10) { setMensagem('Informe o WhatsApp com DDD.'); return }
+              setMensagem(''); setStep(2)
+            }}>Próximo: Serviços →</button>
+            </>)}
+
+            {/* STEP 2: Serviços */}
+            {step === 2 && (<>
             <div className="form-section">
               <p className="form-sec-title">🛎 Serviços / Procedimentos</p>
               <p className="form-sec-sub">Adicione os serviços, procedimentos, produtos ou itens deste orçamento.</p>
@@ -877,8 +931,23 @@ ${orc.observacoes?`<div class="sec"><div class="sec-title">Observações</div><p
               </div>
             </div>
 
+            {/* Next button step 2 */}
+            {step === 2 && (() => {
+              const itensValidos = itens.filter(i => i.nome?.trim() && parseFloat(i.unitario||'0') > 0)
+              return (
+                <div className="form-btns" style={{ marginTop:'4px' }}>
+                  <button className="btn-secundario" style={{ marginBottom:0 }} onClick={() => { setMensagem(''); setStep(1) }}>← Voltar</button>
+                  <button className="btn-salvar" onClick={() => {
+                    if (itensValidos.length === 0) { setMensagem('Adicione pelo menos um serviço com nome e valor.'); return }
+                    setMensagem(''); setStep(3)
+                  }}>Próximo: Pagamento →</button>
+                </div>
+              )
+            })()}
+            </>)}
+
             {/* Odontograma */}
-            {isOdonto && (
+            {isOdonto && step === 2 && (
               <div className="form-section">
                 <p className="form-sec-title">🦷 Odontograma</p>
                 <p className="form-sec-sub">Selecione os dentes envolvidos no orçamento ou tratamento.</p>
@@ -929,10 +998,11 @@ ${orc.observacoes?`<div class="sec"><div class="sec-title">Observações</div><p
               </div>
             )}
 
-            {/* 4. Pagamento */}
+            {/* STEP 3: Pagamento */}
+            {step === 3 && (<>
             <div className="form-section">
-              <p className="form-sec-title">💳 Controle de pagamento</p>
-              <p className="form-sec-sub">Acompanhe valores pagos, saldo restante e link de cobrança.</p>
+              <p className="form-sec-title">💳 Pagamento</p>
+              <p className="form-sec-sub">Registre valores pagos, saldo restante e link de cobrança.</p>
 
               {/* Cards resumo */}
               <div className="pag-saldo" style={{ marginBottom:'18px' }}>
@@ -952,6 +1022,7 @@ ${orc.observacoes?`<div class="sec"><div class="sec-title">Observações</div><p
 
               <div className="fields">
                 {/* Sinal */}
+                {showSinal && (
                 <div>
                   <div className="toggle-row" style={{ marginBottom: exigirSinal ? '12px' : '0' }}>
                     <button className={`toggle${exigirSinal?' on':' off'}`} onClick={() => setExigirSinal(!exigirSinal)} />
@@ -995,35 +1066,36 @@ ${orc.observacoes?`<div class="sec"><div class="sec-title">Observações</div><p
                 </div>
 
                 {/* Link de pagamento */}
+                {showLinkPag && (
                 <div>
-                  <label className="label">Link de pagamento (opcional)</label>
+                  <label className="label">Link de pagamento</label>
                   <input type="url"
                     placeholder="Cole aqui o link do Mercado Pago, Asaas, PagSeguro, InfinitePay ou outro"
                     value={linkPag} onChange={e => setLinkPag(e.target.value)}
                     className="input" />
-                  <p className="field-hint">O ClienteMarcado apenas organiza a cobrança. O pagamento será feito pelo link informado pelo seu negócio.</p>
+                  <p className="field-hint">O ClienteMarcado apenas organiza a cobrança. O pagamento será feito pelo link informado.</p>
                 </div>
+                )}
 
-                {/* Botões cobrança */}
-                <div style={{ display:'flex', gap:'8px', flexWrap:'wrap' }}>
-                  <button type="button" className="btn-acao"
-                    onClick={() => { navigator.clipboard.writeText(gerarMensagemCobranca()) }}
-                    style={{ fontSize:'12px', padding:'9px 14px' }}>
-                    📋 Copiar mensagem de cobrança
+                {/* Ações de cobrança */}
+                <div className="actions-row">
+                  <button type="button" className={`btn-action${showLinkPag?' active':''}`} onClick={() => setShowLinkPag(!showLinkPag)}>
+                    🔗 {showLinkPag ? 'Ocultar link' : 'Adicionar link de pagamento'}
                   </button>
-                  <button type="button"
-                    className={`btn-acao wpp${!clienteWpp ? ' off' : ''}`}
-                    disabled={!clienteWpp}
+                  <button type="button" className={`btn-action${showSinal?' active':''}`} onClick={() => setShowSinal(!showSinal)}>
+                    💰 {showSinal ? 'Ocultar sinal' : 'Configurar entrada/sinal'}
+                  </button>
+                  <button type="button" className="btn-action" onClick={() => { navigator.clipboard.writeText(gerarMensagemCobranca()) }}>
+                    📋 Copiar cobrança
+                  </button>
+                  <button type="button" className={`btn-action wpp`} disabled={!clienteWpp}
                     onClick={enviarCobrancaWpp}
-                    style={{ fontSize:'12px', padding:'9px 14px', opacity: clienteWpp ? 1 : 0.5, cursor: clienteWpp ? 'pointer' : 'not-allowed' }}>
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" style={{ marginRight:'4px' }}><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
-                    Enviar pelo WhatsApp
+                    style={{ opacity: clienteWpp ? 1 : 0.4, cursor: clienteWpp ? 'pointer' : 'not-allowed' }}>
+                    💬 WhatsApp
                   </button>
                 </div>
-                {!clienteWpp && (
-                  <p style={{ fontSize:'11px', color:'#4B5563', marginTop:'-6px' }}>
-                    Informe o WhatsApp do cliente para enviar a cobrança.
-                  </p>
+                {!clienteWpp && <p style={{ fontSize:'11px', color:'#4B5563', marginTop:'-6px', marginBottom:'8px' }}>Informe o WhatsApp do cliente para enviar.</p>}
+
                 )}
 
                 {/* Obs pagamento */}
@@ -1037,7 +1109,7 @@ ${orc.observacoes?`<div class="sec"><div class="sec-title">Observações</div><p
 
                 {/* Obs gerais */}
                 <div>
-                  <label className="label">Observações gerais (opcional)</label>
+                  <label className="label">Observações do orçamento (opcional)</label>
                   <textarea rows={3}
                     placeholder="Informações adicionais sobre o orçamento ou tratamento..."
                     value={observacoes} onChange={e => setObservacoes(e.target.value)}
@@ -1048,8 +1120,8 @@ ${orc.observacoes?`<div class="sec"><div class="sec-title">Observações</div><p
 
             {/* 5. Histórico de pagamentos */}
             <div className="form-section">
-              <p className="form-sec-title">📜 Histórico de pagamentos</p>
-              <p className="form-sec-sub">Registre cada pagamento recebido e acompanhe o saldo restante.</p>
+              <p className="form-sec-title">📜 Pagamentos registrados</p>
+              <p className="form-sec-sub">Registre cada entrada, parcela ou pagamento recebido.</p>
 
               {!showPagForm && (
                 <button className="btn-add-item" onClick={() => { setShowPagForm(true); setEditandoPagIdx(null); setHpValor(''); setHpForma('Pix'); setHpFormaOutro(''); setHpData(new Date().toISOString().split('T')[0]); setHpObs('') }}>
@@ -1136,10 +1208,21 @@ ${orc.observacoes?`<div class="sec"><div class="sec-title">Observações</div><p
               )}
             </div>
 
+            {/* Resumo final */}
+            <div className="resumo-final">
+              <p style={{ fontSize:'12px', fontWeight:'700', color:'#6B7280', textTransform:'uppercase', letterSpacing:'.07em', marginBottom:'8px' }}>Resumo do orçamento</p>
+              <div className="resumo-row"><span style={{ color:'#9CA3AF' }}>Total dos serviços</span><span style={{ color:'#F1F5F9', fontWeight:'700' }}>R$ {fmtBRL(total)}</span></div>
+              <div className="resumo-row"><span style={{ color:'#9CA3AF' }}>Valor pago</span><span style={{ color:'#22C55E', fontWeight:'700' }}>R$ {fmtBRL(valorPagoLocal)}</span></div>
+              <div className="resumo-row total"><span style={{ color:'#F1F5F9' }}>Saldo restante</span><span style={{ color: saldoLocal > 0 ? '#F97316' : '#22C55E' }}>R$ {fmtBRL(saldoLocal)}</span></div>
+            </div>
+
             <div className="form-btns">
-              <button className="btn-secundario" style={{ marginBottom:0 }} onClick={() => { resetForm(); setView('lista') }}>Cancelar</button>
+              <button className="btn-secundario" style={{ marginBottom:0 }} onClick={() => step > 1 ? setStep(step-1) : (resetForm(), setView('lista'))}>
+                {step > 1 ? '← Voltar' : 'Cancelar'}
+              </button>
               <button className="btn-salvar" onClick={handleSalvar}>{editandoId ? 'Salvar alterações' : 'Criar orçamento'}</button>
             </div>
+            </>)}
           </div>
         )}
 
