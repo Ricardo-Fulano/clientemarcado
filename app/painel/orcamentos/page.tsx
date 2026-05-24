@@ -37,8 +37,45 @@ const SIDEBAR_ITEMS = [
   {icon:'⚙️',label:'Configurações',href:'/painel/perfil'},
 ]
 
+const MOBILE_CSS = `
+  @media(max-width:1023px){
+    .cm-sidebar{display:none!important}
+    .cm-main{margin-left:0!important}
+    .cm-form-grid{grid-template-columns:1fr!important}
+    .cm-form-right{display:none!important}
+    .cm-mobile-footer{display:flex!important}
+    .cm-content-pad{padding-bottom:130px!important}
+    .cm-metrics{grid-template-columns:1fr 1fr!important}
+    .cm-orc-filters{overflow-x:auto;flex-wrap:nowrap!important;padding-bottom:4px}
+    .cm-orc-search{width:100%!important;margin-top:8px}
+    .cm-2col{grid-template-columns:1fr!important}
+    .cm-item-grid{grid-template-columns:1fr!important}
+    .cm-header-mobile{display:flex!important}
+    .cm-header-desktop{display:none!important}
+    .cm-lista-pad{padding:16px 16px 60px!important}
+    .cm-form-pad{padding:16px 16px 130px!important}
+    .cm-detalhe-pad{padding:16px 16px 60px!important}
+    .cm-resumo-mobile{display:block!important}
+  }
+  @media(min-width:1024px){
+    .cm-header-mobile{display:none!important}
+    .cm-mobile-footer{display:none!important}
+    .cm-sidebar{display:flex!important}
+    .cm-main{margin-left:220px!important}
+    .cm-resumo-mobile{display:none!important}
+  }
+  .cm-header-mobile{display:none;align-items:center;justify-content:space-between;padding:0 16px;height:60px;background:#0B172A;position:sticky;top:0;z-index:30;box-shadow:0 2px 8px rgba(0,0,0,.3);width:100%}
+  .cm-mobile-footer{display:none;position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid #DCE3EA;padding:12px 16px calc(12px + env(safe-area-inset-bottom,0px));z-index:25;flex-direction:column;gap:8px;box-shadow:0 -4px 16px rgba(0,0,0,.08)}
+  .cm-drawer{position:fixed;top:0;left:0;bottom:0;width:300px;background:#0B172A;z-index:50;transform:translateX(-100%);transition:transform .3s ease;display:flex;flex-direction:column}
+  .cm-drawer.open{transform:translateX(0)}
+  .cm-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:49;opacity:0;pointer-events:none;transition:opacity .3s}
+  .cm-overlay.open{opacity:1;pointer-events:auto}
+  *{box-sizing:border-box}
+`
+
 export default function Orcamentos() {
   const [userId,setUserId]=useState('')
+  const [mobileMenuOpen,setMobileMenuOpen]=useState(false)
   const [perfil,setPerfil]=useState<any>(null)
   const [profissionais,setProfissionais]=useState<any[]>([])
   const [orcamentos,setOrcamentos]=useState<any[]>([])
@@ -343,7 +380,7 @@ export default function Orcamentos() {
 
   // Sidebar component
   const Sidebar = () => (
-    <div style={{width:'220px',minHeight:'100vh',background:SIDEBAR,display:'flex',flexDirection:'column',position:'fixed',top:0,left:0,zIndex:30,flexShrink:0}}>
+    <div className="cm-sidebar" style={{width:'220px',minHeight:'100vh',background:SIDEBAR,display:'flex',flexDirection:'column',position:'fixed',top:0,left:0,zIndex:30,flexShrink:0}}>
       <div style={{padding:'20px 16px 16px',borderBottom:'1px solid rgba(255,255,255,.08)'}}>
         <span style={{fontSize:'15px',fontWeight:800,color:'#fff',letterSpacing:'-0.02em'}}>ClienteMarcado</span>
       </div>
@@ -379,12 +416,55 @@ export default function Orcamentos() {
 
   return (
     <div style={{display:'flex',minHeight:'100vh',background:BG,fontFamily:'-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif'}}>
+      <style dangerouslySetInnerHTML={{__html:MOBILE_CSS}} />
+
+      {/* Mobile Overlay */}
+      <div className={`cm-overlay${mobileMenuOpen?' open':''}`} onClick={()=>setMobileMenuOpen(false)} />
+
+      {/* Mobile Drawer */}
+      <div className={`cm-drawer${mobileMenuOpen?' open':''}`}>
+        <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'16px 20px',borderBottom:'1px solid rgba(255,255,255,.08)'}}>
+          <span style={{fontSize:'15px',fontWeight:800,color:'#fff'}}>ClienteMarcado</span>
+          <button onClick={()=>setMobileMenuOpen(false)} style={{background:'none',border:'none',color:'rgba(255,255,255,.6)',cursor:'pointer',fontSize:'24px',lineHeight:1}}>×</button>
+        </div>
+        <nav style={{flex:1,padding:'12px 8px',overflowY:'auto'}}>
+          {SIDEBAR_ITEMS.map(item=>(
+            <Link key={item.label} href={item.href} onClick={()=>setMobileMenuOpen(false)}
+              style={{display:'flex',alignItems:'center',gap:'10px',padding:'11px 14px',borderRadius:'8px',marginBottom:'2px',textDecoration:'none',background:item.active?'#2563EB':'transparent',color:item.active?'#fff':'rgba(255,255,255,.7)',fontSize:'14px',fontWeight:item.active?600:400}}>
+              <span style={{fontSize:'18px'}}>{item.icon}</span>{item.label}
+            </Link>
+          ))}
+        </nav>
+        <div style={{padding:'14px 20px',borderTop:'1px solid rgba(255,255,255,.08)',display:'flex',alignItems:'center',gap:'10px'}}>
+          <div style={{width:'34px',height:'34px',borderRadius:'50%',background:'#2563EB',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'14px',fontWeight:700,color:'#fff',flexShrink:0}}>
+            {(perfil?.nome_negocio||'N').charAt(0).toUpperCase()}
+          </div>
+          <div>
+            <p style={{fontSize:'13px',fontWeight:600,color:'#fff'}}>{perfil?.nome_negocio||'Meu negócio'}</p>
+            <p style={{fontSize:'11px',color:'rgba(255,255,255,.5)'}}>Ver perfil</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Mobile Header */}
+      <div className="cm-header-mobile">
+        <button onClick={()=>setMobileMenuOpen(true)} style={{background:'none',border:'none',cursor:'pointer',padding:'8px',display:'flex',flexDirection:'column',gap:'5px'}}>
+          <span style={{display:'block',width:'22px',height:'2px',background:'#fff',borderRadius:'2px'}} />
+          <span style={{display:'block',width:'22px',height:'2px',background:'#fff',borderRadius:'2px'}} />
+          <span style={{display:'block',width:'22px',height:'2px',background:'#fff',borderRadius:'2px'}} />
+        </button>
+        <span style={{fontSize:'15px',fontWeight:800,color:'#fff',letterSpacing:'-0.01em'}}>ClienteMarcado</span>
+        <div style={{width:'38px',height:'38px',borderRadius:'50%',background:'#2563EB',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'14px',fontWeight:700,color:'#fff'}}>
+          {(perfil?.nome_negocio||'N').charAt(0).toUpperCase()}
+        </div>
+      </div>
+
       <Sidebar />
-      <div style={{marginLeft:'220px',flex:1,minWidth:0}}>
+      <div className="cm-main" style={{flex:1,minWidth:0}}>
 
         {/* ══ LISTA ══ */}
         {view==='lista'&&(
-          <div style={{padding:'28px 32px 60px',maxWidth:'1140px'}}>
+          <div className="cm-lista-pad" style={{padding:'28px 32px 60px',maxWidth:'1140px'}}>
             <div style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',marginBottom:'24px',gap:'12px',flexWrap:'wrap'}}>
               <div>
                 <h1 style={{fontSize:'22px',fontWeight:800,color:'#0F172A',letterSpacing:'-0.02em',marginBottom:'4px'}}>Orçamentos e Cobranças</h1>
@@ -397,7 +477,7 @@ export default function Orcamentos() {
             </div>
 
             {/* Métricas */}
-            <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:'12px',marginBottom:'24px'}}>
+            <div className="cm-metrics" style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:'12px',marginBottom:'24px'}}>
               {[
                 {label:'Orçamentos em aberto',valor:totalAberto,cor:'#2563EB',fmt:'n'},
                 {label:'Total a receber',valor:totalAReceber,cor:'#D97706',fmt:'brl'},
@@ -490,7 +570,7 @@ export default function Orcamentos() {
 
         {/* ══ FORMULÁRIO ══ */}
         {view==='form'&&(
-          <div style={{padding:'24px 32px 60px'}}>
+          <div className="cm-form-pad" style={{padding:'24px 32px 60px'}}>
             {/* Topo */}
             <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:'20px',flexWrap:'wrap',gap:'12px'}}>
               <div>
@@ -517,7 +597,7 @@ export default function Orcamentos() {
             )}
 
             {/* Layout 2 colunas */}
-            <div style={{display:'grid',gridTemplateColumns:'1fr 300px',gap:'20px',alignItems:'start'}}>
+            <div className="cm-form-grid" style={{display:'grid',gridTemplateColumns:'1fr 300px',gap:'20px',alignItems:'start'}}>
 
               {/* Coluna esquerda */}
               <div style={{minWidth:0}}>
@@ -534,7 +614,7 @@ export default function Orcamentos() {
                       <input style={inp} type="text" placeholder="Nome do cliente"
                         value={clienteNome} onChange={e=>setClienteNome(e.target.value)} />
                     </div>
-                    <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'12px'}}>
+                    <div className="cm-2col" style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'12px'}}>
                       <div>
                         <label style={lbl}>WhatsApp *</label>
                         <input style={inp} type="tel" placeholder="(11) 99999-9999"
@@ -680,6 +760,42 @@ export default function Orcamentos() {
                       <span style={{fontSize:'18px',fontWeight:800,color:'#2563EB'}}>R$ {fmtBRL(total)}</span>
                     </div>
                     {descontoNum>subtotal&&subtotal>0&&<p style={{fontSize:'11px',color:'#F59E0B',marginTop:'4px',textAlign:'right'}}>⚠ Desconto maior que o subtotal.</p>}
+                  </div>
+                </div>
+
+                {/* Resumo mobile — só aparece no mobile */}
+                <div className="cm-resumo-mobile" style={{display:'none',background:'#fff',borderRadius:'16px',padding:'16px 18px',marginBottom:'12px',border:'1px solid #DCE3EA',boxShadow:'0 1px 3px rgba(0,0,0,.06)'}}>
+                  <p style={{fontSize:'13px',fontWeight:700,color:'#0F172A',marginBottom:'12px'}}>Resumo</p>
+                  <div style={{display:'flex',flexDirection:'column',gap:'8px'}}>
+                    <div style={{display:'flex',justifyContent:'space-between',fontSize:'13px'}}>
+                      <span style={{color:'#667085'}}>Cliente</span>
+                      <span style={{fontWeight:600,color:clienteNome?'#0F172A':'#94A3B8'}}>{clienteNome||'Não informado'}</span>
+                    </div>
+                    <div style={{display:'flex',justifyContent:'space-between',fontSize:'13px'}}>
+                      <span style={{color:'#667085'}}>Tipo</span>
+                      <span style={{color:'#0F172A'}}>{tipo==='__outro__'?(tipoOutro||'Outro'):tipo}</span>
+                    </div>
+                    <div style={{display:'flex',justifyContent:'space-between',fontSize:'13px'}}>
+                      <span style={{color:'#667085'}}>Status</span>
+                      <span style={{fontSize:'11px',fontWeight:700,padding:'2px 8px',borderRadius:'999px',background:STATUS_COR[status]?.bg||'#EFF6FF',color:STATUS_COR[status]?.color||'#2563EB',border:`1px solid ${STATUS_COR[status]?.border||'#BFDBFE'}`}}>{status}</span>
+                    </div>
+                    <div style={{height:'1px',background:'#F1F4F8',margin:'4px 0'}} />
+                    <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+                      <span style={{fontSize:'13px',color:'#667085'}}>Total final</span>
+                      <span style={{fontSize:'20px',fontWeight:800,color:'#2563EB'}}>R$ {fmtBRL(total)}</span>
+                    </div>
+                    {valorPagoLocal>0&&(
+                      <div style={{display:'flex',justifyContent:'space-between',fontSize:'13px'}}>
+                        <span style={{color:'#667085'}}>Pago</span>
+                        <span style={{fontWeight:700,color:'#16A34A'}}>R$ {fmtBRL(valorPagoLocal)}</span>
+                      </div>
+                    )}
+                    {saldoLocal>0&&(
+                      <div style={{display:'flex',justifyContent:'space-between',fontSize:'13px'}}>
+                        <span style={{color:'#667085'}}>Saldo</span>
+                        <span style={{fontWeight:700,color:'#EA580C'}}>R$ {fmtBRL(saldoLocal)}</span>
+                      </div>
+                    )}
                   </div>
                 </div>
 
@@ -914,8 +1030,30 @@ export default function Orcamentos() {
                 </div>
               </div>
 
+              {/* Mobile Footer fixo */}
+              <div className="cm-mobile-footer">
+                <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'2px'}}>
+                  <span style={{fontSize:'12px',color:'#667085',fontWeight:600}}>Total final</span>
+                  <span style={{fontSize:'18px',fontWeight:800,color:'#2563EB'}}>R$ {fmtBRL(total)}</span>
+                </div>
+                <div style={{display:'flex',gap:'8px'}}>
+                  <button onClick={()=>{resetForm();setView('lista')}}
+                    style={{flex:1,background:'#F8FAFC',color:'#667085',border:'1.5px solid #DCE3EA',borderRadius:'10px',padding:'12px',fontSize:'13px',fontWeight:600,cursor:'pointer',fontFamily:'inherit'}}>
+                    Rascunho
+                  </button>
+                  <button onClick={handleSalvar}
+                    style={{flex:2,background:'#2563EB',color:'#fff',border:'none',borderRadius:'10px',padding:'12px',fontSize:'15px',fontWeight:800,cursor:'pointer',fontFamily:'inherit',boxShadow:'0 4px 12px rgba(37,99,235,.3)'}}>
+                    {editandoId?'Salvar':'Criar orçamento'}
+                  </button>
+                </div>
+                <button onClick={enviarCobrancaWpp} disabled={!clienteWpp}
+                  style={{width:'100%',background:'#F0FFF4',color:'#16A34A',border:'1.5px solid #86EFAC',borderRadius:'10px',padding:'11px',fontSize:'13px',fontWeight:600,cursor:clienteWpp?'pointer':'not-allowed',fontFamily:'inherit',opacity:clienteWpp?1:0.6}}>
+                  💬 Enviar no WhatsApp
+                </button>
+              </div>
+
               {/* Coluna direita — Resumo sticky */}
-              <div style={{position:'sticky',top:'24px'}}>
+              <div className="cm-form-right" style={{position:'sticky',top:'24px'}}>
                 <div style={{background:'#fff',borderRadius:'12px',padding:'20px',border:'1px solid #DCE3EA',boxShadow:'0 1px 3px rgba(0,0,0,.06)'}}>
                   <p style={{fontSize:'13px',fontWeight:700,color:'#0F172A',textTransform:'uppercase',letterSpacing:'.06em',marginBottom:'16px'}}>Resumo</p>
 
@@ -983,7 +1121,7 @@ export default function Orcamentos() {
           const orc=orcDetalhe
           const cfg=STATUS_COR[orc.status]||STATUS_COR['Aberto']
           return (
-            <div style={{padding:'28px 32px 60px',maxWidth:'900px'}}>
+            <div className="cm-detalhe-pad" style={{padding:'28px 32px 60px',maxWidth:'900px'}}>
               <div style={{display:'flex',alignItems:'center',gap:'12px',marginBottom:'20px',flexWrap:'wrap'}}>
                 <button onClick={()=>{setView('lista');setShowPagForm(false)}}
                   style={{background:'none',border:'none',cursor:'pointer',fontSize:'13px',color:'#667085',fontFamily:'inherit'}}>← Voltar</button>
