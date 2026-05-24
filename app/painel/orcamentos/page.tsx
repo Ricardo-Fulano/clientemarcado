@@ -609,6 +609,14 @@ ${orc.observacoes?`<div class="sec"><div class="sec-title">Observações</div><p
     .resumo-row.total { border-top:1px solid rgba(255,255,255,.08); margin-top:8px; padding-top:12px; font-size:17px; font-weight:800; }
   `
 
+  const inp: React.CSSProperties = { width:'100%', border:'1.5px solid #E5E7EB', borderRadius:'10px', padding:'11px 14px', fontSize:'15px', color:'#111827', outline:'none', fontFamily:'inherit', background:'#FAFAFA', boxSizing:'border-box' }
+  const sel: React.CSSProperties = { width:'100%', border:'1.5px solid #E5E7EB', borderRadius:'10px', padding:'11px 14px', fontSize:'15px', color:'#111827', outline:'none', fontFamily:'inherit', background:'#FAFAFA', boxSizing:'border-box', cursor:'pointer', appearance:'none' as any }
+  const lbl: React.CSSProperties = { fontSize:'11px', fontWeight:600, color:'#6B7280', textTransform:'uppercase', letterSpacing:'.06em', display:'block', marginBottom:'6px' }
+  const card: React.CSSProperties = { background:'#fff', borderRadius:'16px', padding:'20px', marginBottom:'12px', boxShadow:'0 1px 4px rgba(0,0,0,.06)', border:'1px solid #F3F4F6' }
+  const cardTitle: React.CSSProperties = { fontSize:'14px', fontWeight:800, color:'#111827', marginBottom:'16px' }
+  const toggleBtn: React.CSSProperties = { width:'100%', background:'#fff', border:'1.5px dashed #E5E7EB', borderRadius:'12px', padding:'12px 16px', fontSize:'13px', fontWeight:600, color:'#6B7280', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:'12px', fontFamily:'inherit' }
+
+
   if (loading) return (
     <div className="pg"><style>{css}</style>
       <nav className="nav"><span className="nav-logo">ClienteMarcado</span></nav>
@@ -715,290 +723,270 @@ ${orc.observacoes?`<div class="sec"><div class="sec-title">Observações</div><p
 
         {/* ══ FORMULÁRIO ══ */}
         {view === 'form' && (
-          <div style={{ maxWidth:'680px', margin:'0 auto', padding:'0 0 60px' }}>
-            {/* Header light */}
-            <div style={{ display:'flex', alignItems:'center', gap:'12px', marginBottom:'24px', paddingTop:'4px' }}>
+          <div style={{ maxWidth:'640px', margin:'0 auto', padding:'0 0 60px' }}>
+
+            {/* Header */}
+            <div style={{ display:'flex', alignItems:'center', gap:'10px', marginBottom:'20px' }}>
               <button onClick={() => { resetForm(); setView('lista') }}
-                style={{ background:'none', border:'none', cursor:'pointer', fontSize:'22px', color:'#6B7280', padding:'0 4px', lineHeight:1 }}>←</button>
+                style={{ background:'none', border:'none', cursor:'pointer', fontSize:'20px', color:'#6B7280', padding:'4px 8px', lineHeight:1, borderRadius:'8px' }}>←</button>
               <div>
-                <h2 style={{ fontSize:'20px', fontWeight:'800', color:'#111827', letterSpacing:'-0.02em' }}>{editandoId ? 'Editar orçamento' : 'Novo orçamento'}</h2>
-                <p style={{ fontSize:'13px', color:'#9CA3AF', marginTop:'2px' }}>Preencha o essencial e crie em segundos</p>
+                <h2 style={{ fontSize:'19px', fontWeight:'800', color:'#111827', letterSpacing:'-0.02em' }}>
+                  {editandoId ? 'Editar orçamento' : 'Novo orçamento'}
+                </h2>
+                <p style={{ fontSize:'13px', color:'#9CA3AF' }}>Preencha o essencial e crie em segundos</p>
               </div>
             </div>
 
             {mensagem && (
-              <div style={{ fontSize:'13px', color: mensagem.includes('rro') ? '#DC2626' : '#16A34A',
-                padding:'10px 14px', background: mensagem.includes('rro') ? '#FEF2F2' : '#F0FDF4',
-                border: `1px solid ${mensagem.includes('rro') ? '#FECACA' : '#BBF7D0'}`,
-                borderRadius:'10px', marginBottom:'16px' }}>{mensagem}</div>
+              <div style={{ fontSize:'13px', padding:'10px 14px', borderRadius:'10px', marginBottom:'14px',
+                color: mensagem.includes('rro') ? '#DC2626' : '#16A34A',
+                background: mensagem.includes('rro') ? '#FEF2F2' : '#F0FDF4',
+                border: `1px solid ${mensagem.includes('rro') ? '#FECACA' : '#BBF7D0'}` }}>
+                {mensagem}
+              </div>
             )}
 
-            {/* ── SEÇÃO: Cliente ── */}
-            <div style={{ background:'#fff', borderRadius:'16px', padding:'20px', marginBottom:'12px', boxShadow:'0 1px 4px rgba(0,0,0,.07)', border:'1px solid #F3F4F6' }}>
-              <p style={{ fontSize:'13px', fontWeight:'700', color:'#111827', marginBottom:'14px' }}>👤 Cliente</p>
+            {/* ── CARD: Cliente ── */}
+            <div style={card}>
+              <p style={cardTitle}>👤 Cliente</p>
               <div style={{ display:'flex', flexDirection:'column', gap:'12px' }}>
                 <div>
-                  <label style={{ fontSize:'11px', fontWeight:'600', color:'#6B7280', textTransform:'uppercase', letterSpacing:'.06em', display:'block', marginBottom:'6px' }}>Nome *</label>
-                  <input type="text" placeholder="Nome do cliente" value={clienteNome} onChange={e => setClienteNome(e.target.value)}
-                    style={{ width:'100%', border:'1.5px solid #E5E7EB', borderRadius:'10px', padding:'11px 14px', fontSize:'15px', color:'#111827', outline:'none', fontFamily:'inherit', background:'#FAFAFA', boxSizing:'border-box' as const }} />
+                  <label style={lbl}>Nome *</label>
+                  <input style={inp} type="text" placeholder="Nome do cliente"
+                    value={clienteNome} onChange={e => setClienteNome(e.target.value)} />
                 </div>
                 <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'10px' }}>
                   <div>
-                    <label style={{ fontSize:'11px', fontWeight:'600', color:'#6B7280', textTransform:'uppercase', letterSpacing:'.06em', display:'block', marginBottom:'6px' }}>WhatsApp *</label>
-                    <input type="tel" placeholder="(11) 99999-9999" value={clienteWpp} onChange={e => setClienteWpp(aplicarMascaraTel(e.target.value))}
-                      style={{ width:'100%', border:'1.5px solid #E5E7EB', borderRadius:'10px', padding:'11px 14px', fontSize:'15px', color:'#111827', outline:'none', fontFamily:'inherit', background:'#FAFAFA', boxSizing:'border-box' as const }} />
+                    <label style={lbl}>WhatsApp *</label>
+                    <input style={inp} type="tel" placeholder="(11) 99999-9999"
+                      value={clienteWpp} onChange={e => setClienteWpp(aplicarMascaraTel(e.target.value))} />
                   </div>
                   <div>
-                    <label style={{ fontSize:'11px', fontWeight:'600', color:'#6B7280', textTransform:'uppercase', letterSpacing:'.06em', display:'block', marginBottom:'6px' }}>E-mail</label>
-                    <input type="email" placeholder="opcional" value={clienteEmail} onChange={e => setClienteEmail(e.target.value)}
-                      style={{ width:'100%', border:'1.5px solid #E5E7EB', borderRadius:'10px', padding:'11px 14px', fontSize:'15px', color:'#111827', outline:'none', fontFamily:'inherit', background:'#FAFAFA', boxSizing:'border-box' as const }} />
+                    <label style={lbl}>E-mail</label>
+                    <input style={inp} type="email" placeholder="opcional"
+                      value={clienteEmail} onChange={e => setClienteEmail(e.target.value)} />
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* ── DETALHES DO DOCUMENTO (recolhível) ── */}
-            <button onClick={() => setShowDetalhes(!showDetalhes)}
-              style={{ width:'100%', background:'#fff', border:'1.5px dashed #E5E7EB', borderRadius:'12px', padding:'12px 16px', fontSize:'13px', fontWeight:'600', color:'#6B7280', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:'12px', fontFamily:'inherit' }}>
-              <span>+ Detalhes do documento</span>
+            {/* ── TOGGLE: Detalhes do documento ── */}
+            <button onClick={() => setShowDetalhes(!showDetalhes)} style={toggleBtn}>
+              <span>{showDetalhes ? '▾' : '▸'} {showDetalhes ? 'Ocultar detalhes do documento' : '+ Detalhes do documento'}</span>
               <span style={{ fontSize:'11px', color:'#D1D5DB' }}>tipo, status, profissional, data</span>
             </button>
+
             {showDetalhes && (
-            <div style={{ background:'#fff', borderRadius:'16px', padding:'20px', marginBottom:'12px', boxShadow:'0 1px 4px rgba(0,0,0,.07)', border:'1px solid #F3F4F6' }}>
-              <p style={{ fontSize:'13px', fontWeight:'700', color:'#111827', marginBottom:'14px' }}>📋 Detalhes do documento</p>
-              <div className="fields">
-                <div className="row-2">
-                  <div>
-                    <label className="label">Tipo *</label>
-                    <select value={tipo} onChange={e => { setTipo(e.target.value); if (e.target.value !== '__outro__') setTipoOutro('') }} className="select">
-                      {['Orçamento','Atendimento','Tratamento','Ordem de serviço','Retorno'].map(t => <option key={t} value={t}>{t}</option>)}
-                      <option value="__outro__">Outro</option>
-                    </select>
-                    {tipo === '__outro__' && (
-                      <div style={{ marginTop:'10px', display:'flex', flexDirection:'column', gap:'10px', padding:'14px', background:'rgba(59,130,246,0.04)', border:'1px solid rgba(59,130,246,0.15)', borderRadius:'10px' }}>
-                        <div>
-                          <label className="label">Nome do tipo do documento *</label>
-                          <input type="text"
-                            placeholder="Ex: Avaliação, Laudo, Revisão"
-                            value={tipoOutro}
-                            onChange={e => setTipoOutro(e.target.value)}
-                            className="input" />
+              <div style={card}>
+                <p style={cardTitle}>📋 Documento</p>
+                <div style={{ display:'flex', flexDirection:'column', gap:'12px' }}>
+                  <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'10px' }}>
+                    <div>
+                      <label style={lbl}>Tipo *</label>
+                      <select style={sel} value={tipo} onChange={e => { setTipo(e.target.value); if (e.target.value !== '__outro__') setTipoOutro('') }}>
+                        {['Orçamento','Atendimento','Tratamento','Ordem de serviço','Retorno'].map(t => <option key={t} value={t}>{t}</option>)}
+                        <option value="__outro__">Outro</option>
+                      </select>
+                      {tipo === '__outro__' && (
+                        <div style={{ marginTop:'8px' }}>
+                          <label style={lbl}>Nome do tipo *</label>
+                          <input style={inp} type="text" placeholder="Ex: Avaliação, Laudo..."
+                            value={tipoOutro} onChange={e => setTipoOutro(e.target.value)} />
+                          <div style={{ marginTop:'8px' }}>
+                            <label style={lbl}>Descrição (opcional)</label>
+                            <input style={inp} type="text" placeholder="Ex: Avaliação inicial..."
+                              value={tipoDescricao} onChange={e => setTipoDescricao(e.target.value)} />
+                          </div>
                         </div>
-                        <div>
-                          <label className="label">Descrição do documento (opcional)</label>
-                          <input type="text"
-                            placeholder="Ex: Avaliação inicial com análise completa do serviço..."
-                            value={tipoDescricao}
-                            onChange={e => setTipoDescricao(e.target.value)}
-                            className="input" />
-                        </div>
-                      </div>
-                    )}
+                      )}
+                    </div>
+                    <div>
+                      <label style={lbl}>Status</label>
+                      <select style={sel} value={status} onChange={e => setStatus(e.target.value)}>
+                        {['Aberto','Aguardando aprovação','Em andamento','Parcialmente pago','Pago','Finalizado','Cancelado'].map(s => <option key={s}>{s}</option>)}
+                      </select>
+                    </div>
                   </div>
-                  <div><label className="label">Status</label>
-                    <select value={status} onChange={e => setStatus(e.target.value)} className="select">
-                      {['Aberto','Aguardando aprovação','Em andamento','Parcialmente pago','Pago','Finalizado','Cancelado'].map(s => <option key={s}>{s}</option>)}
-                    </select></div>
-                </div>
-                <div className="row-2">
-                  <div>
-                    <label className="label">Profissional</label>
-                    <select value={profId} onChange={e => { setProfId(e.target.value); if (e.target.value !== '__outro__') { setProfNome(''); setSalvarFreelancer(false) } }} className="select">
-                      <option value="">Selecione...</option>
-                      {profissionais.map(p => <option key={p.id} value={p.id}>{p.nome}</option>)}
-                      <option value="__outro__">✏️ Outro / Não cadastrado</option>
-                    </select>
-                    {profId === '__outro__' && (
-                      <div style={{ marginTop:'10px', padding:'14px', background:'rgba(59,130,246,0.05)', border:'1px solid rgba(59,130,246,0.15)', borderRadius:'10px' }}>
-                        <label className="label">Nome do profissional responsável *</label>
-                        <input type="text" placeholder="Ex: Marcos"
-                          value={profNome} onChange={e => setProfNome(e.target.value)}
-                          className="input" />
-                        <div style={{ display:'flex', alignItems:'center', gap:'10px', marginTop:'12px' }}>
-                          <button type="button"
-                            style={{ width:'36px', height:'20px', borderRadius:'999px', border:'none', cursor:'pointer', position:'relative', transition:'background .2s', background: salvarFreelancer ? '#3B82F6' : 'rgba(255,255,255,.15)', flexShrink:0, fontFamily:'inherit' }}
-                            onClick={() => setSalvarFreelancer(!salvarFreelancer)}>
-                            <span style={{ position:'absolute', top:'2px', left: salvarFreelancer ? '18px' : '2px', width:'16px', height:'16px', borderRadius:'50%', background:'#fff', transition:'left .2s' }} />
-                          </button>
-                          <span style={{ fontSize:'12px', color:'#9CA3AF' }}>Salvar este profissional na equipe?</span>
-                          {salvarFreelancer && <span style={{ fontSize:'10px', color:'#3B82F6', fontWeight:'700', padding:'2px 8px', background:'rgba(59,130,246,.1)', borderRadius:'999px', border:'1px solid rgba(59,130,246,.2)' }}>será adicionado</span>}
+                  <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'10px' }}>
+                    <div>
+                      <label style={lbl}>Profissional</label>
+                      <select style={sel} value={profId} onChange={e => { setProfId(e.target.value); if (e.target.value !== '__outro__') { setProfNome(''); setSalvarFreelancer(false) } }}>
+                        <option value="">Selecione...</option>
+                        {profissionais.map(p => <option key={p.id} value={p.id}>{p.nome}</option>)}
+                        <option value="__outro__">✏️ Outro / Não cadastrado</option>
+                      </select>
+                      {profId === '__outro__' && (
+                        <div style={{ marginTop:'8px', padding:'12px', background:'#EFF6FF', border:'1px solid #BFDBFE', borderRadius:'10px' }}>
+                          <label style={lbl}>Nome do profissional *</label>
+                          <input style={inp} type="text" placeholder="Ex: Marcos"
+                            value={profNome} onChange={e => setProfNome(e.target.value)} />
+                          <div style={{ display:'flex', alignItems:'center', gap:'8px', marginTop:'10px' }}>
+                            <button type="button"
+                              onClick={() => setSalvarFreelancer(!salvarFreelancer)}
+                              style={{ width:'32px', height:'18px', borderRadius:'999px', border:'none', cursor:'pointer', position:'relative', background: salvarFreelancer ? '#3B82F6' : '#D1D5DB', flexShrink:0 }}>
+                              <span style={{ position:'absolute', top:'2px', left: salvarFreelancer ? '14px' : '2px', width:'14px', height:'14px', borderRadius:'50%', background:'#fff', transition:'left .2s' }} />
+                            </button>
+                            <span style={{ fontSize:'12px', color:'#4B5563' }}>Salvar na equipe?</span>
+                          </div>
                         </div>
-                      </div>
-                    )}
+                      )}
+                    </div>
+                    <div>
+                      <label style={lbl}>Data</label>
+                      <input style={inp} type="date" value={dataDoc} onChange={e => setDataDoc(e.target.value)} />
+                    </div>
                   </div>
-                  <div><label className="label">Data</label>
-                    <input type="date" value={dataDoc} onChange={e => setDataDoc(e.target.value)} className="input" /></div>
                 </div>
               </div>
-            </div>
-
-            </div>
-            </div>
             )}
 
-            {/* ── SEÇÃO: Serviços ── */}
-            <div style={{ background:'#fff', borderRadius:'16px', padding:'20px', marginBottom:'12px', boxShadow:'0 1px 4px rgba(0,0,0,.07)', border:'1px solid #F3F4F6' }}>
-              <p style={{ fontSize:'13px', fontWeight:'700', color:'#111827', marginBottom:'14px' }}>🛎 Serviço</p>
+            {/* ── CARD: Serviços ── */}
+            <div style={card}>
+              <p style={cardTitle}>🛎 Serviço</p>
               {itens.map((item, idx) => (
-                <div key={idx} className="item-row">
-                  <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'12px' }}>
-                    <span style={{ fontSize:'11px', fontWeight:'700', color:'#4B5563', textTransform:'uppercase', letterSpacing:'.06em' }}>Item {idx+1}</span>
+                <div key={idx} style={{ background:'#F9FAFB', border:'1.5px solid #E5E7EB', borderRadius:'12px', padding:'14px', marginBottom:'10px' }}>
+                  <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'10px' }}>
+                    <span style={{ fontSize:'11px', fontWeight:'700', color:'#9CA3AF', textTransform:'uppercase', letterSpacing:'.06em' }}>Item {idx+1}</span>
                     {itens.length > 1 && (
-                      <button className="btn-rm" title="Remover item" onClick={() => setItens(prev => prev.filter((_,i) => i !== idx))}>×</button>
+                      <button onClick={() => setItens(prev => prev.filter((_,i) => i !== idx))}
+                        style={{ background:'none', border:'none', color:'#EF4444', cursor:'pointer', fontSize:'18px', padding:'0 2px' }}>×</button>
                     )}
                   </div>
-
-                  {/* Nome do serviço — linha inteira */}
                   <div style={{ marginBottom:'10px' }}>
-                    <label className="label">Serviço / Procedimento *</label>
-                    <input type="text"
-                      placeholder="Ex: Corte de cabelo, limpeza de pele, troca de óleo, restauração..."
-                      value={item.nome}
-                      onChange={e => atualizarItem(idx,'nome',e.target.value)}
-                      className="input" />
+                    <label style={lbl}>Serviço / Procedimento *</label>
+                    <input style={inp} type="text"
+                      placeholder="Ex: Corte de cabelo, limpeza de pele, troca de óleo..."
+                      value={item.nome} onChange={e => atualizarItem(idx,'nome',e.target.value)} />
                   </div>
-
-                  {/* Qtd + Unitário + Total */}
-                  <div style={{ display:'grid', gridTemplateColumns:'1fr 1.5fr 1.5fr', gap:'10px', marginBottom:'10px' }}>
+                  <div style={{ display:'grid', gridTemplateColumns:'1fr 1.5fr 1.5fr', gap:'8px' }}>
                     <div>
-                      <label className="label">Qtd</label>
-                      <input type="number" min="1"
-                        value={item.qtd}
-                        onChange={e => atualizarItem(idx,'qtd',e.target.value)}
-                        className="input" style={{ textAlign:'center' }} />
+                      <label style={lbl}>Qtd</label>
+                      <input style={{ ...inp, textAlign:'center' }} type="number" min="1"
+                        value={item.qtd} onChange={e => atualizarItem(idx,'qtd',e.target.value)} />
                     </div>
                     <div>
-                      <label className="label">Valor unitário</label>
+                      <label style={lbl}>Valor unitário</label>
                       <div style={{ position:'relative' }}>
-                        <span style={{ position:'absolute', left:'12px', top:'50%', transform:'translateY(-50%)', fontSize:'13px', color:'#6B7280', fontWeight:'600', pointerEvents:'none' }}>R$</span>
-                        <input type="number" min="0" step="0.01"
-                          placeholder="0,00"
-                          value={item.unitario}
-                          onChange={e => atualizarItem(idx,'unitario',e.target.value)}
-                          className="input" style={{ paddingLeft:'36px' }} />
+                        <span style={{ position:'absolute', left:'12px', top:'50%', transform:'translateY(-50%)', fontSize:'13px', color:'#9CA3AF', fontWeight:'600' }}>R$</span>
+                        <input style={{ ...inp, paddingLeft:'36px' }} type="number" min="0" step="0.01" placeholder="0,00"
+                          value={item.unitario} onChange={e => atualizarItem(idx,'unitario',e.target.value)} />
                       </div>
                     </div>
                     <div>
-                      <label className="label">Total</label>
-                      <div style={{ background:'rgba(34,197,94,.08)', border:'1px solid rgba(34,197,94,.2)', borderRadius:'10px', padding:'12px 14px', display:'flex', alignItems:'center' }}>
-                        <span style={{ fontSize:'15px', fontWeight:'800', color:'#22C55E' }}>
-                          R$ {fmtBRL(item.total||0)}
-                        </span>
+                      <label style={lbl}>Total</label>
+                      <div style={{ background:'#ECFDF5', border:'1.5px solid #A7F3D0', borderRadius:'10px', padding:'11px 14px' }}>
+                        <span style={{ fontSize:'15px', fontWeight:'800', color:'#059669' }}>R$ {fmtBRL(item.total||0)}</span>
                       </div>
                     </div>
                   </div>
-
-                  {/* Observação */}
-                  <div>
-                    <input type="text"
-                      placeholder="Observação opcional (Ex: inclui material, sem juros...)"
-                      value={item.obs}
-                      onChange={e => atualizarItem(idx,'obs',e.target.value)}
-                      className="input"
-                      style={{ fontSize:'13px', color:'#9CA3AF' }} />
+                  <div style={{ marginTop:'8px' }}>
+                    <input style={{ ...inp, fontSize:'13px', color:'#6B7280' }} type="text"
+                      placeholder="Observação opcional"
+                      value={item.obs} onChange={e => atualizarItem(idx,'obs',e.target.value)} />
                   </div>
                 </div>
               ))}
-
               <button onClick={() => setItens(prev => [...prev, { nome:'', qtd:1, unitario:'', total:0, obs:'' }])}
                 style={{ width:'100%', border:'1.5px dashed #D1D5DB', borderRadius:'10px', padding:'10px', background:'transparent', color:'#6B7280', fontSize:'13px', fontWeight:'600', cursor:'pointer', fontFamily:'inherit' }}>
                 + Adicionar item
               </button>
 
-              {/* Resumo financeiro */}
+              {/* Desconto toggle */}
               {!showDesconto && (
                 <button onClick={() => setShowDesconto(true)}
-                  style={{ background:'none', border:'none', color:'#6B7280', fontSize:'12px', fontWeight:'600', cursor:'pointer', padding:'6px 0', fontFamily:'inherit', textDecoration:'underline' }}>
+                  style={{ background:'none', border:'none', color:'#9CA3AF', fontSize:'12px', cursor:'pointer', padding:'8px 0 0', fontFamily:'inherit', textDecoration:'underline' }}>
                   + Adicionar desconto
                 </button>
               )}
-              <div style={{ background:'#F9FAFB', borderRadius:'12px', padding:'14px', marginTop:'10px', border:'1px solid #F3F4F6' }}>
-                <div className="subtotal-row">
-                  <span style={{ color:'#9CA3AF', fontWeight:'600' }}>Subtotal</span>
-                  <span style={{ color:'#F1F5F9', fontWeight:'700' }}>R$ {fmtBRL(subtotal)}</span>
+
+              {/* Resumo serviços */}
+              <div style={{ background:'#F9FAFB', borderRadius:'12px', padding:'14px', marginTop:'12px', border:'1px solid #F3F4F6' }}>
+                <div style={{ display:'flex', justifyContent:'space-between', fontSize:'13px', padding:'3px 0' }}>
+                  <span style={{ color:'#6B7280' }}>Subtotal</span>
+                  <span style={{ fontWeight:'700', color:'#111827' }}>R$ {fmtBRL(subtotal)}</span>
                 </div>
-                <div className="subtotal-row" style={{ borderTop:'1px solid rgba(255,255,255,.06)', marginTop:'8px', paddingTop:'10px' }}>
-                  <span style={{ color:'#9CA3AF', fontWeight:'600' }}>Desconto</span>
-                  <div style={{ display:'flex', alignItems:'center', gap:'6px' }}>
-                    <span style={{ fontSize:'13px', color:'#6B7280' }}>R$</span>
-                    <input type="number" min="0" step="0.01" placeholder="0,00"
-                      value={desconto}
+                {showDesconto && (
+                  <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', fontSize:'13px', padding:'6px 0', borderTop:'1px solid #E5E7EB', marginTop:'4px' }}>
+                    <span style={{ color:'#6B7280' }}>Desconto (R$)</span>
+                    <input type="number" min="0" step="0.01" placeholder="0,00" value={desconto}
                       onChange={e => setDesconto(e.target.value)}
-                      style={{ background:'transparent', border:'none', outline:'none', color:'#EF4444', fontSize:'14px', fontWeight:'700', textAlign:'right', width:'90px', fontFamily:'inherit' }} />
+                      style={{ background:'transparent', border:'none', outline:'none', color:'#EF4444', fontSize:'13px', fontWeight:'700', textAlign:'right', width:'90px', fontFamily:'inherit' }} />
                   </div>
-                </div>
-                <div className="subtotal-row total" style={{ marginTop:'8px' }}>
-                  <span>Total final</span>
-                  <span style={{ color:'#22C55E', fontSize:'20px' }}>R$ {fmtBRL(total)}</span>
+                )}
+                <div style={{ display:'flex', justifyContent:'space-between', fontSize:'16px', fontWeight:'800', padding:'8px 0 0', borderTop:'1px solid #E5E7EB', marginTop:'4px' }}>
+                  <span style={{ color:'#111827' }}>Total</span>
+                  <span style={{ color:'#059669' }}>R$ {fmtBRL(total)}</span>
                 </div>
                 {descontoNum > subtotal && subtotal > 0 && (
-                  <p style={{ fontSize:'11px', color:'#F59E0B', marginTop:'6px', textAlign:'right' }}>
-                    ⚠ Desconto maior que o subtotal. Total ajustado para R$ 0,00.
-                  </p>
+                  <p style={{ fontSize:'11px', color:'#F59E0B', marginTop:'4px', textAlign:'right' }}>⚠ Desconto maior que o subtotal.</p>
                 )}
               </div>
             </div>
 
-            </div>
-
             {/* Odontograma */}
             {isOdonto && (
-              <div style={{ background:'#fff', borderRadius:'16px', padding:'20px', marginBottom:'12px', boxShadow:'0 1px 4px rgba(0,0,0,.07)', border:'1px solid #F3F4F6' }}>
-                <p className="form-sec-title">🦷 Odontograma</p>
-                <p className="form-sec-sub">Selecione os dentes envolvidos no orçamento ou tratamento.</p>
+              <div style={card}>
+                <p style={cardTitle}>🦷 Odontograma</p>
+                <p style={{ fontSize:'12px', color:'#6B7280', marginBottom:'12px' }}>Selecione os dentes envolvidos no orçamento ou tratamento.</p>
                 {[DENTES_SUPERIOR, DENTES_INFERIOR].map((arco, ai) => (
-                  <div key={ai} style={{ marginBottom:'10px' }}>
-                    <div className="dentes-row">
-                      {arco.slice(0, arco.length/2).map(n => (
-                        <button key={n} className={`dente-btn${dentesSelec.includes(n)?' sel':''}`} onClick={() => toggleDente(n)}>{n}</button>
-                      ))}
-                      <div className="dente-sep" />
-                      {arco.slice(arco.length/2).map(n => (
-                        <button key={n} className={`dente-btn${dentesSelec.includes(n)?' sel':''}`} onClick={() => toggleDente(n)}>{n}</button>
-                      ))}
-                    </div>
+                  <div key={ai} style={{ display:'flex', gap:'4px', flexWrap:'wrap', marginBottom:'8px' }}>
+                    {arco.slice(0, arco.length/2).map(n => (
+                      <button key={n} onClick={() => toggleDente(n)}
+                        style={{ width:'34px', height:'34px', borderRadius:'8px', border:`1.5px solid ${dentesSelec.includes(n)?'#2563EB':'#E5E7EB'}`, background: dentesSelec.includes(n)?'#2563EB':'#F9FAFB', color: dentesSelec.includes(n)?'#fff':'#6B7280', fontSize:'11px', fontWeight:'700', cursor:'pointer', fontFamily:'inherit' }}>
+                        {n}
+                      </button>
+                    ))}
+                    <div style={{ width:'1px', background:'#E5E7EB', margin:'0 4px' }} />
+                    {arco.slice(arco.length/2).map(n => (
+                      <button key={n} onClick={() => toggleDente(n)}
+                        style={{ width:'34px', height:'34px', borderRadius:'8px', border:`1.5px solid ${dentesSelec.includes(n)?'#2563EB':'#E5E7EB'}`, background: dentesSelec.includes(n)?'#2563EB':'#F9FAFB', color: dentesSelec.includes(n)?'#fff':'#6B7280', fontSize:'11px', fontWeight:'700', cursor:'pointer', fontFamily:'inherit' }}>
+                        {n}
+                      </button>
+                    ))}
                   </div>
                 ))}
-                {dentesSelec.length > 0 && <p style={{ fontSize:'12px', color:'#3B82F6', marginBottom:'12px' }}>Dentes selecionados: {dentesSelec.sort((a,b)=>a-b).join(', ')}</p>}
-                <div className="fields">
-                  <div className="row-2">
-                    <div><label className="label">Procedimento</label>
-                      <input type="text" placeholder="Ex: Restauração, Canal" value={procNome} onChange={e => setProcNome(e.target.value)} className="input" /></div>
-                    <div><label className="label">Valor</label>
-                      <input type="number" placeholder="0,00" value={procValor} onChange={e => setProcValor(e.target.value)} className="input" /></div>
+                {dentesSelec.length > 0 && <p style={{ fontSize:'12px', color:'#2563EB', marginBottom:'12px' }}>Dentes: {dentesSelec.sort((a,b)=>a-b).join(', ')}</p>}
+                <div style={{ display:'flex', flexDirection:'column', gap:'10px' }}>
+                  <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'10px' }}>
+                    <div><label style={lbl}>Procedimento</label>
+                      <input style={inp} type="text" placeholder="Ex: Restauração, Canal"
+                        value={procNome} onChange={e => setProcNome(e.target.value)} /></div>
+                    <div><label style={lbl}>Valor</label>
+                      <input style={inp} type="number" placeholder="0,00"
+                        value={procValor} onChange={e => setProcValor(e.target.value)} /></div>
                   </div>
-                  <div className="row-2">
-                    <div><label className="label">Status</label>
-                      <select value={procStatus} onChange={e => setProcStatus(e.target.value)} className="select">
+                  <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'10px' }}>
+                    <div><label style={lbl}>Status</label>
+                      <select style={sel} value={procStatus} onChange={e => setProcStatus(e.target.value)}>
                         {['A realizar','Em andamento','Concluído','Cancelado'].map(s => <option key={s}>{s}</option>)}
                       </select></div>
-                    <div><label className="label">Observação</label>
-                      <input type="text" placeholder="Opcional" value={procObs} onChange={e => setProcObs(e.target.value)} className="input" /></div>
+                    <div><label style={lbl}>Observação</label>
+                      <input style={inp} type="text" placeholder="Opcional"
+                        value={procObs} onChange={e => setProcObs(e.target.value)} /></div>
                   </div>
-                  <button className="btn-add-item" onClick={adicionarProcOdonto} disabled={!procNome || dentesSelec.length===0}>
-                    + Adicionar procedimento aos dentes selecionados
+                  <button onClick={adicionarProcOdonto} disabled={!procNome || dentesSelec.length===0}
+                    style={{ border:'1.5px dashed #D1D5DB', borderRadius:'10px', padding:'10px', background:'transparent', color:'#6B7280', fontSize:'13px', fontWeight:'600', cursor:'pointer', fontFamily:'inherit' }}>
+                    + Adicionar procedimento
                   </button>
                 </div>
                 {procOdonto.map((p, i) => (
-                  <div key={i} className="proc-item">
-                    <div>
-                      <span className="proc-nome">{p.dente ? `Dente ${p.dente} — ` : ''}{p.nome} · {p.status}</span>
-                    </div>
-                    <div style={{ display:'flex', alignItems:'center', gap:'10px' }}>
-                      <span className="proc-val">R$ {fmtBRL(parseFloat(p.valor||'0'))}</span>
-                      <button style={{ background:'none', border:'none', color:'#EF4444', cursor:'pointer', fontSize:'16px' }} onClick={() => setProcOdonto(prev => prev.filter((_,j) => j!==i))}>×</button>
+                  <div key={i} style={{ background:'#F9FAFB', border:'1.5px solid #E5E7EB', borderRadius:'10px', padding:'10px 12px', display:'flex', justifyContent:'space-between', marginTop:'8px' }}>
+                    <span style={{ fontSize:'13px', color:'#374151' }}>{p.dente?`Dente ${p.dente} — `:''}  {p.nome} · {p.status}</span>
+                    <div style={{ display:'flex', gap:'8px' }}>
+                      <span style={{ fontSize:'13px', color:'#059669', fontWeight:'700' }}>R$ {fmtBRL(parseFloat(p.valor||'0'))}</span>
+                      <button onClick={() => setProcOdonto(prev => prev.filter((_,j) => j!==i))} style={{ background:'none', border:'none', color:'#EF4444', cursor:'pointer', fontSize:'16px' }}>×</button>
                     </div>
                   </div>
                 ))}
               </div>
             )}
 
-            {/* ── SEÇÃO: Resumo Financeiro ── */}
-            <div style={{ background:'#fff', borderRadius:'16px', padding:'20px', marginBottom:'12px', boxShadow:'0 1px 4px rgba(0,0,0,.07)', border:'1px solid #F3F4F6' }}>
-              <p style={{ fontSize:'13px', fontWeight:'700', color:'#111827', marginBottom:'14px' }}>💳 Pagamento</p>
+            {/* ── CARD: Pagamento ── */}
+            <div style={card}>
+              <p style={cardTitle}>💳 Pagamento</p>
 
-              {/* Cards resumo */}
-              <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:'8px', marginBottom:'16px' }}>
+              {/* Resumo financeiro */}
+              <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:'8px', marginBottom:'14px' }}>
                 <div style={{ background:'#F9FAFB', borderRadius:'10px', padding:'12px', border:'1px solid #F3F4F6' }}>
                   <p style={{ fontSize:'10px', fontWeight:'600', color:'#9CA3AF', textTransform:'uppercase', letterSpacing:'.05em', marginBottom:'4px' }}>Total</p>
                   <p style={{ fontSize:'16px', fontWeight:'800', color:'#111827' }}>R$ {fmtBRL(total)}</p>
@@ -1007,219 +995,192 @@ ${orc.observacoes?`<div class="sec"><div class="sec-title">Observações</div><p
                   <p style={{ fontSize:'10px', fontWeight:'600', color:'#16A34A', textTransform:'uppercase', letterSpacing:'.05em', marginBottom:'4px' }}>Pago</p>
                   <p style={{ fontSize:'16px', fontWeight:'800', color:'#16A34A' }}>R$ {fmtBRL(valorPagoLocal)}</p>
                 </div>
-                <div style={{ background: saldoLocal > 0 ? '#FFF7ED' : '#F0FDF4', borderRadius:'10px', padding:'12px', border:`1px solid ${saldoLocal > 0 ? '#FED7AA' : '#DCFCE7'}` }}>
-                  <p style={{ fontSize:'10px', fontWeight:'600', color: saldoLocal > 0 ? '#EA580C' : '#16A34A', textTransform:'uppercase', letterSpacing:'.05em', marginBottom:'4px' }}>Saldo</p>
-                  <p style={{ fontSize:'16px', fontWeight:'800', color: saldoLocal > 0 ? '#EA580C' : '#16A34A' }}>R$ {fmtBRL(saldoLocal)}</p>
+                <div style={{ background: saldoLocal>0?'#FFF7ED':'#F0FDF4', borderRadius:'10px', padding:'12px', border:`1px solid ${saldoLocal>0?'#FED7AA':'#DCFCE7'}` }}>
+                  <p style={{ fontSize:'10px', fontWeight:'600', color: saldoLocal>0?'#EA580C':'#16A34A', textTransform:'uppercase', letterSpacing:'.05em', marginBottom:'4px' }}>Saldo</p>
+                  <p style={{ fontSize:'16px', fontWeight:'800', color: saldoLocal>0?'#EA580C':'#16A34A' }}>R$ {fmtBRL(saldoLocal)}</p>
                 </div>
               </div>
 
-              <div className="fields">
-                {/* Sinal */}
-                {showSinal && (
-                <div style={{ background:'#F9FAFB', border:'1.5px solid #E5E7EB', borderRadius:'12px', padding:'14px', marginBottom:'10px' }}>
-                  <div style={{ display:'flex', alignItems:'center', gap:'10px' }} style={{ marginBottom: exigirSinal ? '12px' : '0' }}>
-                    <button className={`toggle${exigirSinal?' on':' off'}`} onClick={() => setExigirSinal(!exigirSinal)} />
-                    <label className="label" style={{ margin:0, textTransform:'none', fontSize:'13px', color:'#D1D5DB', cursor:'pointer' }}
-                      onClick={() => setExigirSinal(!exigirSinal)}>
-                      Exigir entrada / sinal?
-                    </label>
+              {/* Botões ações */}
+              <div style={{ display:'flex', gap:'8px', flexWrap:'wrap', marginBottom:'12px' }}>
+                <button onClick={() => setShowPagForm(!showPagForm)}
+                  style={{ background: showPagForm?'#EFF6FF':'#F9FAFB', border:`1.5px solid ${showPagForm?'#BFDBFE':'#E5E7EB'}`, borderRadius:'8px', padding:'8px 12px', fontSize:'12px', fontWeight:'600', color: showPagForm?'#2563EB':'#6B7280', cursor:'pointer', fontFamily:'inherit' }}>
+                  + Adicionar pagamento
+                </button>
+                <button onClick={() => setShowLinkPag(!showLinkPag)}
+                  style={{ background: showLinkPag?'#EFF6FF':'#F9FAFB', border:`1.5px solid ${showLinkPag?'#BFDBFE':'#E5E7EB'}`, borderRadius:'8px', padding:'8px 12px', fontSize:'12px', fontWeight:'600', color: showLinkPag?'#2563EB':'#6B7280', cursor:'pointer', fontFamily:'inherit' }}>
+                  🔗 Link de pagamento
+                </button>
+                <button onClick={() => setShowSinal(!showSinal)}
+                  style={{ background: showSinal?'#EFF6FF':'#F9FAFB', border:`1.5px solid ${showSinal?'#BFDBFE':'#E5E7EB'}`, borderRadius:'8px', padding:'8px 12px', fontSize:'12px', fontWeight:'600', color: showSinal?'#2563EB':'#6B7280', cursor:'pointer', fontFamily:'inherit' }}>
+                  💰 Entrada/sinal
+                </button>
+                <button onClick={() => { navigator.clipboard.writeText(gerarMensagemCobranca()) }}
+                  style={{ background:'#F9FAFB', border:'1.5px solid #E5E7EB', borderRadius:'8px', padding:'8px 12px', fontSize:'12px', fontWeight:'600', color:'#6B7280', cursor:'pointer', fontFamily:'inherit' }}>
+                  📋 Copiar cobrança
+                </button>
+                <button disabled={!clienteWpp} onClick={enviarCobrancaWpp}
+                  style={{ background:'#F0FFF4', border:'1.5px solid #86EFAC', borderRadius:'8px', padding:'8px 12px', fontSize:'12px', fontWeight:'600', color:'#16A34A', cursor: clienteWpp?'pointer':'not-allowed', fontFamily:'inherit', opacity: clienteWpp?1:0.5 }}>
+                  💬 WhatsApp
+                </button>
+              </div>
+              {!clienteWpp && <p style={{ fontSize:'11px', color:'#D1D5DB', marginBottom:'10px' }}>Informe o WhatsApp do cliente para enviar.</p>}
+
+              {/* Formulário de pagamento */}
+              {showPagForm && (
+                <div style={{ background:'#F0F9FF', border:'1.5px solid #BAE6FD', borderRadius:'12px', padding:'14px', marginBottom:'12px' }}>
+                  <p style={{ fontSize:'13px', fontWeight:'700', color:'#0369A1', marginBottom:'12px' }}>
+                    {editandoPagIdx !== null ? 'Editar pagamento' : 'Registrar pagamento'}
+                  </p>
+                  <div style={{ display:'flex', flexDirection:'column', gap:'10px' }}>
+                    <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'10px' }}>
+                      <div>
+                        <label style={lbl}>Valor pago *</label>
+                        <div style={{ position:'relative' }}>
+                          <span style={{ position:'absolute', left:'12px', top:'50%', transform:'translateY(-50%)', fontSize:'13px', color:'#9CA3AF', fontWeight:'600' }}>R$</span>
+                          <input style={{ ...inp, paddingLeft:'36px' }} type="text" inputMode="numeric" placeholder="0,00"
+                            value={hpValor}
+                            onChange={e => { const v = e.target.value.replace(/[^0-9]/g,''); setHpValor(fmtHpValor(v || '0')) }} />
+                        </div>
+                      </div>
+                      <div>
+                        <label style={lbl}>Data *</label>
+                        <input style={inp} type="date" value={hpData} onChange={e => setHpData(e.target.value)} />
+                      </div>
+                    </div>
+                    <div>
+                      <label style={lbl}>Forma de pagamento *</label>
+                      <select style={sel} value={hpForma} onChange={e => { setHpForma(e.target.value); if (e.target.value !== 'Outro') setHpFormaOutro('') }}>
+                        {['Dinheiro','Pix','Cartão de débito','Cartão de crédito','Transferência','Link de pagamento','Outro'].map(f => <option key={f}>{f}</option>)}
+                      </select>
+                      {hpForma === 'Outro' && (
+                        <input style={{ ...inp, marginTop:'8px' }} type="text" placeholder="Ex: cheque, boleto, permuta..."
+                          value={hpFormaOutro} onChange={e => setHpFormaOutro(e.target.value)} />
+                      )}
+                    </div>
+                    <div>
+                      <label style={lbl}>Observação</label>
+                      <input style={inp} type="text" placeholder="Ex: entrada, parcela 2 de 5..."
+                        value={hpObs} onChange={e => setHpObs(e.target.value)} />
+                    </div>
+                    <div style={{ display:'flex', gap:'8px' }}>
+                      <button onClick={() => { setShowPagForm(false); setEditandoPagIdx(null) }}
+                        style={{ flex:1, background:'#F3F4F6', border:'1.5px solid #E5E7EB', borderRadius:'10px', padding:'11px', fontSize:'13px', fontWeight:'600', color:'#6B7280', cursor:'pointer', fontFamily:'inherit' }}>
+                        Cancelar
+                      </button>
+                      <button onClick={salvarHpPag}
+                        style={{ flex:2, background:'#2563EB', border:'none', borderRadius:'10px', padding:'11px', fontSize:'13px', fontWeight:'700', color:'#fff', cursor:'pointer', fontFamily:'inherit' }}>
+                        {editandoPagIdx !== null ? 'Atualizar' : 'Salvar pagamento'}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Lista de pagamentos */}
+              {histPags.length === 0 && !showPagForm && (
+                <p style={{ fontSize:'12px', color:'#D1D5DB', padding:'4px 0' }}>Nenhum pagamento registrado.</p>
+              )}
+              {histPags.map((p, i) => (
+                <div key={i} style={{ background:'#F9FAFB', border:'1.5px solid #E5E7EB', borderRadius:'10px', padding:'12px 14px', marginBottom:'8px', display:'flex', justifyContent:'space-between', alignItems:'flex-start', gap:'8px' }}>
+                  <div style={{ flex:1 }}>
+                    <div style={{ display:'flex', alignItems:'center', gap:'8px', marginBottom:'2px' }}>
+                      <span style={{ fontSize:'15px', fontWeight:'800', color:'#16A34A' }}>R$ {fmtBRL(p.valor)}</span>
+                      <span style={{ fontSize:'11px', color:'#6B7280' }}>{p.forma}</span>
+                      <span style={{ fontSize:'11px', color:'#9CA3AF' }}>• {fmtData(p.data)}</span>
+                    </div>
+                    {p.obs && <p style={{ fontSize:'12px', color:'#9CA3AF' }}>{p.obs}</p>}
+                  </div>
+                  <div style={{ display:'flex', gap:'6px' }}>
+                    <button onClick={() => editarHpPag(i)} style={{ background:'#F3F4F6', border:'1.5px solid #E5E7EB', borderRadius:'6px', padding:'4px 10px', fontSize:'11px', fontWeight:'600', color:'#6B7280', cursor:'pointer', fontFamily:'inherit' }}>Editar</button>
+                    <button onClick={() => excluirHpPag(i)} style={{ background:'#FEF2F2', border:'1.5px solid #FECACA', borderRadius:'6px', padding:'4px 10px', fontSize:'11px', fontWeight:'600', color:'#EF4444', cursor:'pointer', fontFamily:'inherit' }}>Excluir</button>
+                  </div>
+                </div>
+              ))}
+              {histPags.length > 0 && (
+                <div style={{ background:'#F0FDF4', border:'1px solid #DCFCE7', borderRadius:'10px', padding:'10px 14px', display:'flex', justifyContent:'space-between' }}>
+                  <span style={{ fontSize:'13px', color:'#6B7280', fontWeight:'600' }}>Total pago</span>
+                  <span style={{ fontSize:'15px', fontWeight:'800', color:'#16A34A' }}>R$ {fmtBRL(valorPagoLocal)}</span>
+                </div>
+              )}
+
+              {/* Link de pagamento */}
+              {showLinkPag && (
+                <div style={{ marginTop:'12px', padding:'14px', background:'#F9FAFB', border:'1.5px solid #E5E7EB', borderRadius:'12px' }}>
+                  <label style={lbl}>Link de pagamento</label>
+                  <input style={inp} type="url"
+                    placeholder="Cole aqui o link do Mercado Pago, Asaas, PagSeguro..."
+                    value={linkPag} onChange={e => setLinkPag(e.target.value)} />
+                  <p style={{ fontSize:'11px', color:'#D1D5DB', marginTop:'6px' }}>O ClienteMarcado apenas organiza a cobrança. O pagamento será feito pelo link informado.</p>
+                </div>
+              )}
+
+              {/* Sinal */}
+              {showSinal && (
+                <div style={{ marginTop:'12px', padding:'14px', background:'#F9FAFB', border:'1.5px solid #E5E7EB', borderRadius:'12px' }}>
+                  <div style={{ display:'flex', alignItems:'center', gap:'8px', marginBottom:'12px' }}>
+                    <button onClick={() => setExigirSinal(!exigirSinal)}
+                      style={{ width:'36px', height:'20px', borderRadius:'999px', border:'none', cursor:'pointer', position:'relative', background: exigirSinal?'#3B82F6':'#D1D5DB' }}>
+                      <span style={{ position:'absolute', top:'2px', left: exigirSinal?'18px':'2px', width:'16px', height:'16px', borderRadius:'50%', background:'#fff', transition:'left .2s' }} />
+                    </button>
+                    <span style={{ fontSize:'13px', color:'#374151', fontWeight:'600', cursor:'pointer' }} onClick={() => setExigirSinal(!exigirSinal)}>Exigir entrada/sinal?</span>
                   </div>
                   {exigirSinal && (
-                    <div style={{ padding:'14px', background:'rgba(59,130,246,0.05)', border:'1px solid rgba(59,130,246,0.15)', borderRadius:'10px', display:'flex', flexDirection:'column', gap:'12px' }}>
-                      <div className="row-2">
+                    <div style={{ display:'flex', flexDirection:'column', gap:'10px' }}>
+                      <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'10px' }}>
                         <div>
-                          <label className="label">Tipo de entrada</label>
-                          <select value={sinalTipo} onChange={e => setSinalTipo(e.target.value)} className="select">
+                          <label style={lbl}>Tipo</label>
+                          <select style={sel} value={sinalTipo} onChange={e => setSinalTipo(e.target.value)}>
                             <option value="fixo">Valor fixo (R$)</option>
                             <option value="percentual">Porcentagem (%)</option>
                           </select>
                         </div>
                         <div>
-                          <label className="label">{sinalTipo === 'fixo' ? 'Valor da entrada (R$)' : 'Percentual (%)'}</label>
-                          <input type="number" min="0" step={sinalTipo==='fixo'?'0.01':'1'}
-                            placeholder={sinalTipo==='fixo'?'0,00':'50'}
-                            value={sinalValor}
-                            onChange={e => setSinalValor(e.target.value)}
-                            className="input" />
+                          <label style={lbl}>{sinalTipo==='fixo'?'Valor (R$)':'Percentual (%)'}</label>
+                          <input style={inp} type="number" min="0" step={sinalTipo==='fixo'?'0.01':'1'} placeholder={sinalTipo==='fixo'?'0,00':'50'}
+                            value={sinalValor} onChange={e => setSinalValor(e.target.value)} />
                         </div>
                       </div>
                       {sinalValor && (
-                        <div style={{ background:'rgba(34,197,94,0.08)', border:'1px solid rgba(34,197,94,0.2)', borderRadius:'8px', padding:'10px 14px' }}>
-                          <span style={{ fontSize:'13px', color:'#22C55E', fontWeight:'700' }}>
-                            Entrada necessária: R$ {fmtBRL(
-                              sinalTipo === 'fixo'
-                                ? parseFloat(sinalValor||'0')
-                                : (total * parseFloat(sinalValor||'0')) / 100
-                            )}
+                        <div style={{ background:'#ECFDF5', border:'1px solid #A7F3D0', borderRadius:'8px', padding:'10px 14px' }}>
+                          <span style={{ fontSize:'13px', color:'#059669', fontWeight:'700' }}>
+                            Entrada necessária: R$ {fmtBRL(sinalTipo==='fixo' ? parseFloat(sinalValor||'0') : (total * parseFloat(sinalValor||'0')) / 100)}
                           </span>
                         </div>
                       )}
                     </div>
                   )}
                 </div>
-                )}
-
-                {/* Ações */}
-                <div style={{ display:'flex', gap:'8px', flexWrap:'wrap', marginBottom:'14px' }}>
-                  <button type="button" onClick={() => setShowLinkPag(!showLinkPag)} style={{ background: showLinkPag?'#EFF6FF':'#F9FAFB', border:`1.5px solid ${showLinkPag?'#BFDBFE':'#E5E7EB'}`, borderRadius:'8px', padding:'8px 12px', fontSize:'12px', fontWeight:'600', color: showLinkPag?'#2563EB':'#6B7280', cursor:'pointer', fontFamily:'inherit' }}>
-                    🔗 {showLinkPag ? 'Ocultar link' : 'Adicionar link de pagamento'}
-                  </button>
-                  <button type="button" onClick={() => setShowSinal(!showSinal)} style={{ background: showSinal?'#EFF6FF':'#F9FAFB', border:`1.5px solid ${showSinal?'#BFDBFE':'#E5E7EB'}`, borderRadius:'8px', padding:'8px 12px', fontSize:'12px', fontWeight:'600', color: showSinal?'#2563EB':'#6B7280', cursor:'pointer', fontFamily:'inherit' }}>
-                    💰 {showSinal ? 'Ocultar sinal' : 'Configurar entrada/sinal'}
-                  </button>
-                  <button type="button" onClick={() => { navigator.clipboard.writeText(gerarMensagemCobranca()) }} style={{ background:'#F9FAFB', border:'1.5px solid #E5E7EB', borderRadius:'8px', padding:'8px 12px', fontSize:'12px', fontWeight:'600', color:'#6B7280', cursor:'pointer', fontFamily:'inherit' }}>
-                    📋 Copiar cobrança
-                  </button>
-                  <button type="button" disabled={!clienteWpp}
-                    onClick={enviarCobrancaWpp}
-                    style={{ background:'#F0FFF4', border:'1.5px solid #86EFAC', borderRadius:'8px', padding:'8px 12px', fontSize:'12px', fontWeight:'600', color:'#16A34A', cursor: clienteWpp?'pointer':'not-allowed', fontFamily:'inherit', opacity: clienteWpp?1:0.5 }}>
-                    💬 WhatsApp
-                  </button>
-                </div>
-                {!clienteWpp && <p style={{ fontSize:'11px', color:'#4B5563', marginTop:'-6px', marginBottom:'8px' }}>Informe o WhatsApp do cliente para enviar.</p>}
-
-                {/* Link de pagamento */}
-                {showLinkPag && (
-                  <div style={{ background:'#F9FAFB', border:'1.5px solid #E5E7EB', borderRadius:'12px', padding:'14px', marginBottom:'10px' }}>
-                    <label style={{ fontSize:'11px', fontWeight:'600', color:'#6B7280', textTransform:'uppercase', letterSpacing:'.06em', display:'block', marginBottom:'6px' }}>Link de pagamento</label>
-                    <input type="url"
-                      placeholder="Cole aqui o link do Mercado Pago, Asaas, PagSeguro, InfinitePay ou outro"
-                      value={linkPag} onChange={e => setLinkPag(e.target.value)}
-                      className="input" />
-                    <p className="field-hint">O ClienteMarcado apenas organiza a cobrança. O pagamento será feito pelo link informado.</p>
-                  </div>
-                )}
-
-                {/* Obs */}
-                <button onClick={() => setShowObs(!showObs)}
-                  style={{ background:'none', border:'none', color:'#6B7280', fontSize:'12px', fontWeight:'600', cursor:'pointer', padding:'4px 0', fontFamily:'inherit', textDecoration:'underline' }}>
-                  {showObs ? '− Ocultar observações' : '+ Observações'}
-                </button>
-                {showObs && (
-                  <div style={{ display:'flex', flexDirection:'column', gap:'10px', background:'#F9FAFB', borderRadius:'12px', padding:'14px', border:'1.5px solid #E5E7EB' }}>
-                    <div>
-                      <label style={{ fontSize:'11px', fontWeight:'600', color:'#6B7280', textTransform:'uppercase', letterSpacing:'.06em', display:'block', marginBottom:'6px' }}>Observação do cliente</label>
-                      <textarea rows={2} placeholder="Alergias, preferências, histórico..."
-                        value={clienteObs} onChange={e => setClienteObs(e.target.value)}
-                        style={{ width:'100%', border:'1.5px solid #E5E7EB', borderRadius:'10px', padding:'10px 14px', fontSize:'14px', color:'#111827', outline:'none', fontFamily:'inherit', background:'#fff', resize:'none', boxSizing:'border-box' as const }} />
-                    </div>
-                    <div>
-                      <label style={{ fontSize:'11px', fontWeight:'600', color:'#6B7280', textTransform:'uppercase', letterSpacing:'.06em', display:'block', marginBottom:'6px' }}>Obs. de pagamento</label>
-                      <input type="text" placeholder="Ex: cliente pagou entrada em dinheiro"
-                        value={obsPagamento} onChange={e => setObsPagamento(e.target.value)}
-                        style={{ width:'100%', border:'1.5px solid #E5E7EB', borderRadius:'10px', padding:'10px 14px', fontSize:'14px', color:'#111827', outline:'none', fontFamily:'inherit', background:'#fff', boxSizing:'border-box' as const }} />
-                    </div>
-                    <div>
-                      <label style={{ fontSize:'11px', fontWeight:'600', color:'#6B7280', textTransform:'uppercase', letterSpacing:'.06em', display:'block', marginBottom:'6px' }}>Observações do orçamento</label>
-                      <textarea rows={3} placeholder="Informações adicionais..."
-                        value={observacoes} onChange={e => setObservacoes(e.target.value)}
-                        style={{ width:'100%', border:'1.5px solid #E5E7EB', borderRadius:'10px', padding:'10px 14px', fontSize:'14px', color:'#111827', outline:'none', fontFamily:'inherit', background:'#fff', resize:'none', boxSizing:'border-box' as const }} />
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* 5. Histórico de pagamentos */}
-            <div className="form-section">
-              <p style={{ fontSize:'13px', fontWeight:'700', color:'#111827', marginBottom:'14px' }}>📜 Pagamentos registrados</p>
-
-              {!showPagForm && (
-                <button onClick={() => { setShowPagForm(true); setEditandoPagIdx(null); setHpValor(''); setHpForma('Pix'); setHpFormaOutro(''); setHpData(new Date().toISOString().split('T')[0]); setHpObs('') }}
-                  style={{ width:'100%', border:'1.5px dashed #D1D5DB', borderRadius:'10px', padding:'10px', background:'#F9FAFB', color:'#6B7280', fontSize:'13px', fontWeight:'600', cursor:'pointer', fontFamily:'inherit' }}>
-                  + Registrar pagamento
-                </button>
               )}
 
-              {showPagForm && (
-                <div style={{ background:'rgba(59,130,246,0.05)', border:'1px solid rgba(59,130,246,0.15)', borderRadius:'12px', padding:'16px', marginBottom:'12px' }}>
-                  <p style={{ fontSize:'13px', fontWeight:'700', color:'#F1F5F9', marginBottom:'14px' }}>
-                    {editandoPagIdx !== null ? 'Editar pagamento' : 'Registrar pagamento'}
-                  </p>
-                  <div className="fields">
-                    <div className="row-2">
-                      <div>
-                        <label className="label">Valor pago *</label>
-                        <div style={{ position:'relative' }}>
-                          <span style={{ position:'absolute', left:'12px', top:'50%', transform:'translateY(-50%)', fontSize:'13px', color:'#6B7280', fontWeight:'600', pointerEvents:'none' }}>R$</span>
-                          <input type="text" inputMode="numeric" placeholder="0,00"
-                            value={hpValor}
-                            onChange={e => setHpValor(fmtHpValor(e.target.value.replace(/\D/g,'') || '0'))}
-                            className="input" style={{ paddingLeft:'36px' }} />
-                        </div>
-                      </div>
-                      <div>
-                        <label className="label">Data *</label>
-                        <input type="date" value={hpData} onChange={e => setHpData(e.target.value)} className="input" />
-                      </div>
-                    </div>
-                    <div>
-                      <label className="label">Forma de pagamento *</label>
-                      <select value={hpForma} onChange={e => { setHpForma(e.target.value); if (e.target.value !== 'Outro') setHpFormaOutro('') }} className="select">
-                        {['Dinheiro','Pix','Cartão de débito','Cartão de crédito','Transferência','Link de pagamento','Outro'].map(f => <option key={f}>{f}</option>)}
-                      </select>
-                      {hpForma === 'Outro' && (
-                        <div style={{ marginTop:'8px' }}>
-                          <input type="text" placeholder="Ex: cheque, boleto, permuta..."
-                            value={hpFormaOutro} onChange={e => setHpFormaOutro(e.target.value)}
-                            className="input" />
-                        </div>
-                      )}
-                    </div>
-                    <div>
-                      <label className="label">Observação (opcional)</label>
-                      <input type="text"
-                        placeholder="Ex: entrada paga em dinheiro, parcela dois de cinco..."
-                        value={hpObs} onChange={e => setHpObs(e.target.value)}
-                        className="input" />
-                    </div>
-                    <div className="form-btns">
-                      <button className="btn-secundario" style={{ marginBottom:0 }} onClick={() => { setShowPagForm(false); setEditandoPagIdx(null) }}>Cancelar</button>
-                      <button className="btn-salvar" onClick={salvarHpPag}>{editandoPagIdx !== null ? 'Atualizar' : 'Salvar pagamento'}</button>
-                    </div>
+              {/* Observações */}
+              <button onClick={() => setShowObs(!showObs)}
+                style={{ background:'none', border:'none', color:'#9CA3AF', fontSize:'12px', cursor:'pointer', padding:'10px 0 0', fontFamily:'inherit', textDecoration:'underline' }}>
+                {showObs ? '− Ocultar observações' : '+ Observações'}
+              </button>
+              {showObs && (
+                <div style={{ marginTop:'8px', padding:'14px', background:'#F9FAFB', border:'1.5px solid #E5E7EB', borderRadius:'12px', display:'flex', flexDirection:'column', gap:'10px' }}>
+                  <div>
+                    <label style={lbl}>Obs. de pagamento</label>
+                    <input style={inp} type="text" placeholder="Ex: cliente pagou entrada em dinheiro"
+                      value={obsPagamento} onChange={e => setObsPagamento(e.target.value)} />
                   </div>
-                </div>
-              )}
-
-              {histPags.length === 0 && !showPagForm && (
-                <p style={{ fontSize:'12px', color:'#D1D5DB', padding:'8px 0', textAlign:'center' }}>Nenhum pagamento registrado.</p>
-              )}
-
-              {histPags.map((p, i) => (
-                <div key={i} style={{ background:'#F9FAFB', border:'1.5px solid #E5E7EB', borderRadius:'10px', padding:'12px 14px', marginBottom:'8px', display:'flex', justifyContent:'space-between', alignItems:'flex-start', gap:'10px' }}>
-                  <div style={{ flex:1 }}>
-                    <div style={{ display:'flex', alignItems:'center', gap:'8px', marginBottom:'3px' }}>
-                      <span style={{ fontSize:'15px', fontWeight:'800', color:'#16A34A' }}>R$ {fmtBRL(p.valor)}</span>
-                      <span style={{ fontSize:'11px', color:'#6B7280' }}>{p.forma}</span>
-                      <span style={{ fontSize:'11px', color:'#9CA3AF' }}>• {fmtData(p.data)}</span>
-                    </div>
-                    {p.obs && <p style={{ fontSize:'12px', color:'#6B7280' }}>{p.obs}</p>}
+                  <div>
+                    <label style={lbl}>Observações do orçamento</label>
+                    <textarea rows={3} style={{ ...inp, resize:'none' }} placeholder="Informações adicionais..."
+                      value={observacoes} onChange={e => setObservacoes(e.target.value)} />
                   </div>
-                  <div style={{ display:'flex', gap:'6px', flexShrink:0 }}>
-                    <button className="btn-acao" onClick={() => editarHpPag(i)} style={{ fontSize:'11px' }}>Editar</button>
-                    <button className="btn-acao danger" onClick={() => excluirHpPag(i)} style={{ fontSize:'11px' }}>Excluir</button>
-                  </div>
-                </div>
-              ))}
-
-              {histPags.length > 0 && (
-                <div style={{ background:'#F0FDF4', border:'1px solid #DCFCE7', borderRadius:'10px', padding:'12px 16px', marginTop:'4px', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
-                  <span style={{ fontSize:'13px', color:'#6B7280', fontWeight:'600' }}>Total pago</span>
-                  <span style={{ fontSize:'16px', fontWeight:'800', color:'#16A34A' }}>R$ {fmtBRL(valorPagoLocal)}</span>
                 </div>
               )}
             </div>
 
-            </div>
-            </div>
-
-            {/* ── Botão principal ── */}
+            {/* ── Botão criar ── */}
             <button onClick={handleSalvar}
-              style={{ width:'100%', background:'#2563EB', color:'#fff', border:'none', borderRadius:'14px', padding:'16px', fontSize:'16px', fontWeight:'800', cursor:'pointer', boxShadow:'0 4px 20px rgba(37,99,235,.35)', letterSpacing:'-0.01em', fontFamily:'inherit', marginTop:'8px' }}>
+              style={{ width:'100%', background:'#2563EB', color:'#fff', border:'none', borderRadius:'14px', padding:'16px', fontSize:'16px', fontWeight:'800', cursor:'pointer', boxShadow:'0 4px 20px rgba(37,99,235,.3)', fontFamily:'inherit', letterSpacing:'-0.01em' }}>
               {editandoId ? 'Salvar alterações' : 'Criar orçamento'}
             </button>
             <button onClick={() => { resetForm(); setView('lista') }}
-              style={{ width:'100%', background:'none', border:'none', color:'#9CA3AF', fontSize:'13px', fontWeight:'600', cursor:'pointer', padding:'12px', fontFamily:'inherit', marginTop:'4px' }}>
+              style={{ width:'100%', background:'none', border:'none', color:'#9CA3AF', fontSize:'13px', fontWeight:'600', cursor:'pointer', padding:'12px', fontFamily:'inherit' }}>
               Cancelar
             </button>
           </div>
