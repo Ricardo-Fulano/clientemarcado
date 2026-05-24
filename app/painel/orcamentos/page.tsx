@@ -39,6 +39,7 @@ const SIDEBAR_ITEMS = [
 
 const MOBILE_CSS = `
   @media(max-width:1023px){
+    .cm-main{padding-top:60px}
     .cm-sidebar{display:none!important}
     .cm-main{margin-left:0!important}
     .cm-form-grid{grid-template-columns:1fr!important}
@@ -460,7 +461,7 @@ export default function Orcamentos() {
       </div>
 
       <Sidebar />
-      <div className="cm-main" style={{flex:1,minWidth:0}}>
+      <div className="cm-main" style={{flex:1,minWidth:0,minHeight:'100vh'}}>
 
         {/* ══ LISTA ══ */}
         {view==='lista'&&(
