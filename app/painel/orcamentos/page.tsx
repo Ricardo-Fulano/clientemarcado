@@ -46,9 +46,9 @@ const MOBILE_CSS = `
   .cm-overlay { position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:49; opacity:0; pointer-events:none; transition:opacity .3s; }
   .cm-overlay.open { opacity:1; pointer-events:auto; }
 
-  .cm-header-mobile { display:none; align-items:center; justify-content:space-between; padding:0 16px; height:60px; background:#0B172A; z-index:10; box-shadow:0 2px 8px rgba(0,0,0,.3); width:100%; max-width:100%; flex-shrink:0; overflow:hidden; }
+  .cm-header-mobile { display:none; align-items:center; justify-content:space-between; padding:0 16px; height:56px; background:#0B172A; z-index:10; box-shadow:0 1px 4px rgba(0,0,0,.2); width:100%; max-width:100%; flex-shrink:0; overflow:hidden; }
 
-  .cm-mobile-footer { display:none; position:fixed; bottom:0; left:0; right:0; width:100%; max-width:100%; background:#fff; border-top:1px solid #DCE3EA; padding:12px 16px calc(12px + env(safe-area-inset-bottom,0px)); z-index:25; flex-direction:column; gap:8px; box-shadow:0 -4px 16px rgba(0,0,0,.08); box-sizing:border-box; }
+  .cm-mobile-footer { display:none; position:fixed; bottom:0; left:0; right:0; width:100%; max-width:100%; background:#fff; border-top:1px solid #DCE3EA; padding:10px 16px calc(10px + env(safe-area-inset-bottom,0px)); z-index:25; flex-direction:column; gap:6px; box-shadow:0 -2px 12px rgba(0,0,0,.07); box-sizing:border-box; }
 
   @media(min-width:1024px){
     .cm-header-mobile { display:none !important; }
@@ -68,18 +68,23 @@ const MOBILE_CSS = `
     .cm-form-right { display:none !important; }
     .cm-mobile-footer { display:flex !important; }
     .cm-resumo-mobile { display:block !important; }
-    .cm-lista-pad { padding:16px 16px 80px !important; }
+    .cm-lista-pad { padding:16px 16px 100px !important; }
     .cm-form-pad { padding:0 !important; }
-    .cm-form-inner { padding:16px !important; padding-bottom:180px !important; }
+    .cm-form-inner { padding:16px !important; padding-bottom:150px !important; }
     .cm-detalhe-pad { padding:16px 16px 80px !important; }
     .cm-metrics { grid-template-columns:1fr 1fr !important; gap:10px !important; }
     .cm-orc-filters { overflow-x:auto !important; flex-wrap:nowrap !important; padding-bottom:4px; -webkit-overflow-scrolling:touch; max-width:100%; }
     .cm-orc-search { width:100% !important; max-width:100% !important; margin-top:8px; }
     .cm-2col { grid-template-columns:1fr !important; }
     .cm-inprow { grid-template-columns:1fr !important; }
-    .cm-card { width:100% !important; max-width:100% !important; box-sizing:border-box !important; padding:18px !important; border-radius:16px !important; margin-bottom:16px !important; }
+    .cm-btn-novo { width:100% !important; margin-top:8px; }
+    .cm-title-row { flex-direction:column !important; }
+    .cm-card { width:100% !important; max-width:100% !important; box-sizing:border-box !important; padding:16px !important; border-radius:16px !important; margin-bottom:14px !important; }
   }
 
+  @media(max-width:767px){
+    .cm-novo-btn { width:100% !important; margin-top:8px; }
+  }
   @media(max-width:380px){
     .cm-metrics { grid-template-columns:1fr !important; }
     .cm-serv-qtd-val { grid-template-columns:1fr !important; }
@@ -478,12 +483,13 @@ export default function Orcamentos() {
         {/* ══ LISTA ══ */}
         {view==='lista'&&(
           <div className="cm-lista-pad cm-content-pad" style={{padding:'28px 32px 60px',maxWidth:'1140px'}}>
-            <div style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',marginBottom:'24px',gap:'12px',flexWrap:'wrap'}}>
+            <div className="cm-title-row" style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',marginBottom:'24px',gap:'12px',flexWrap:'wrap'}}>
               <div>
                 <h1 style={{fontSize:'22px',fontWeight:800,color:'#0F172A',letterSpacing:'-0.02em',marginBottom:'4px'}}>Orçamentos e Cobranças</h1>
                 <p style={{fontSize:'14px',color:'#667085'}}>Crie orçamentos, acompanhe pagamentos e envie pelo WhatsApp.</p>
               </div>
               <button onClick={()=>{resetForm();setView('form')}}
+                className="cm-btn-novo"
                 style={{background:'#2563EB',color:'#fff',border:'none',borderRadius:'8px',padding:'10px 20px',fontSize:'14px',fontWeight:700,cursor:'pointer',fontFamily:'inherit',boxShadow:'0 4px 12px rgba(37,99,235,.3)'}}>
                 + Novo orçamento
               </button>
@@ -737,19 +743,19 @@ export default function Orcamentos() {
                       </div>
                       {/* Nome */}
                       <div style={{marginBottom:'8px'}}>
-                        <label style={{...lbl,textTransform:'none',fontSize:'12px',marginBottom:'4px'}}>Nome do serviço *</label>
+                        <label style={{fontSize:'12px',fontWeight:600,color:'#667085',display:'block',marginBottom:'6px',whiteSpace:'normal',lineHeight:'1.3'}}>Nome do serviço *</label>
                         <input style={{...inp,width:'100%'}} type="text" placeholder="Ex: Corte de cabelo, limpeza de pele..."
                           value={item.nome} onChange={e=>atualizarItem(idx,'nome',e.target.value)} />
                       </div>
                       {/* Qtd + Valor */}
                       <div className="cm-serv-qtd-val" style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'8px',marginBottom:'8px',width:'100%',maxWidth:'100%'}}>
                         <div>
-                          <label style={{...lbl,textTransform:'none',fontSize:'12px',marginBottom:'4px'}}>Qtd.</label>
+                          <label style={{fontSize:'12px',fontWeight:600,color:'#667085',display:'block',marginBottom:'6px'}}>Qtd.</label>
                           <input style={{...inp,textAlign:'center',width:'100%'}} type="number" min="1"
                             value={item.qtd} onChange={e=>atualizarItem(idx,'qtd',e.target.value)} />
                         </div>
                         <div>
-                          <label style={{...lbl,textTransform:'none',fontSize:'12px',marginBottom:'4px'}}>Valor unitário</label>
+                          <label style={{fontSize:'12px',fontWeight:600,color:'#667085',display:'block',marginBottom:'6px'}}>Valor</label>
                           <div style={{position:'relative'}}>
                             <span style={{position:'absolute',left:'10px',top:'50%',transform:'translateY(-50%)',fontSize:'12px',color:'#9CA3AF',fontWeight:600}}>R$</span>
                             <input style={{...inp,paddingLeft:'32px',width:'100%',maxWidth:'100%',boxSizing:'border-box'}} type="number" min="0" step="0.01" placeholder="0,00"
@@ -794,12 +800,12 @@ export default function Orcamentos() {
                 </div>
 
                 {/* Resumo mobile — só aparece no mobile */}
-                <div className="cm-resumo-mobile" style={{display:'none',background:'#fff',borderRadius:'16px',padding:'16px 18px',marginBottom:'12px',border:'1px solid #DCE3EA',boxShadow:'0 1px 3px rgba(0,0,0,.06)'}}>
-                  <p style={{fontSize:'13px',fontWeight:700,color:'#0F172A',marginBottom:'12px'}}>Resumo</p>
-                  <div style={{display:'flex',flexDirection:'column',gap:'8px'}}>
+                <div className="cm-resumo-mobile" style={{display:'none',background:'#fff',borderRadius:'14px',padding:'14px 16px',marginBottom:'12px',border:'1px solid #DCE3EA',boxShadow:'0 1px 3px rgba(0,0,0,.05)'}}>
+                  <p style={{fontSize:'12px',fontWeight:700,color:'#667085',textTransform:'uppercase',letterSpacing:'.06em',marginBottom:'10px'}}>Resumo</p>
+                  <div style={{display:'flex',flexDirection:'column',gap:'6px'}}>
                     <div style={{display:'flex',justifyContent:'space-between',fontSize:'13px'}}>
                       <span style={{color:'#667085'}}>Cliente</span>
-                      <span style={{fontWeight:600,color:clienteNome?'#0F172A':'#94A3B8'}}>{clienteNome||'Não informado'}</span>
+                      <span style={{fontWeight:600,color:clienteNome?'#0F172A':'#94A3B8',maxWidth:'60%',textAlign:'right',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{clienteNome||'Não informado'}</span>
                     </div>
                     <div style={{display:'flex',justifyContent:'space-between',fontSize:'13px'}}>
                       <span style={{color:'#667085'}}>Tipo</span>
@@ -809,23 +815,21 @@ export default function Orcamentos() {
                       <span style={{color:'#667085'}}>Status</span>
                       <span style={{fontSize:'11px',fontWeight:700,padding:'2px 8px',borderRadius:'999px',background:STATUS_COR[status]?.bg||'#EFF6FF',color:STATUS_COR[status]?.color||'#2563EB',border:`1px solid ${STATUS_COR[status]?.border||'#BFDBFE'}`}}>{status}</span>
                     </div>
-                    <div style={{height:'1px',background:'#F1F4F8',margin:'4px 0'}} />
+                    <div style={{height:'1px',background:'#F1F4F8',margin:'2px 0'}} />
                     <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
-                      <span style={{fontSize:'13px',color:'#667085'}}>Total final</span>
-                      <span style={{fontSize:'20px',fontWeight:800,color:'#2563EB'}}>R$ {fmtBRL(total)}</span>
+                      <span style={{fontSize:'13px',color:'#667085'}}>Total</span>
+                      <span style={{fontSize:'18px',fontWeight:800,color:'#2563EB'}}>R$ {fmtBRL(total)}</span>
                     </div>
-                    {valorPagoLocal>0&&(
+                    {valorPagoLocal>0&&(<>
                       <div style={{display:'flex',justifyContent:'space-between',fontSize:'13px'}}>
                         <span style={{color:'#667085'}}>Pago</span>
                         <span style={{fontWeight:700,color:'#16A34A'}}>R$ {fmtBRL(valorPagoLocal)}</span>
                       </div>
-                    )}
-                    {saldoLocal>0&&(
                       <div style={{display:'flex',justifyContent:'space-between',fontSize:'13px'}}>
                         <span style={{color:'#667085'}}>Saldo</span>
                         <span style={{fontWeight:700,color:'#EA580C'}}>R$ {fmtBRL(saldoLocal)}</span>
                       </div>
-                    )}
+                    </>)}
                   </div>
                 </div>
 
@@ -1063,24 +1067,20 @@ export default function Orcamentos() {
             </div>{/* end cm-form-inner */}
               {/* Mobile Footer fixo */}
               <div className="cm-mobile-footer">
-                <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',paddingBottom:'8px',borderBottom:'1px solid #F1F4F8',width:'100%'}}>
-                  <span style={{fontSize:'13px',color:'#667085',fontWeight:600}}>Total final</span>
-                  <span style={{fontSize:'20px',fontWeight:800,color:'#2563EB'}}>R$ {fmtBRL(total)}</span>
+                <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'8px'}}>
+                  <span style={{fontSize:'12px',color:'#667085',fontWeight:600}}>Total final</span>
+                  <span style={{fontSize:'18px',fontWeight:800,color:'#2563EB'}}>R$ {fmtBRL(total)}</span>
                 </div>
                 <div style={{display:'grid',gridTemplateColumns:'2fr 3fr',gap:'8px',width:'100%',maxWidth:'100%'}}>
                   <button onClick={()=>{resetForm();setView('lista')}}
-                    style={{background:'#F8FAFC',color:'#667085',border:'1.5px solid #DCE3EA',borderRadius:'10px',padding:'13px 0',fontSize:'13px',fontWeight:600,cursor:'pointer',fontFamily:'inherit',width:'100%',maxWidth:'100%',overflow:'hidden'}}>
+                    style={{background:'#F8FAFC',color:'#667085',border:'1.5px solid #DCE3EA',borderRadius:'10px',padding:'12px 0',fontSize:'13px',fontWeight:600,cursor:'pointer',fontFamily:'inherit',width:'100%'}}>
                     Rascunho
                   </button>
                   <button onClick={handleSalvar}
-                    style={{background:'#2563EB',color:'#fff',border:'none',borderRadius:'10px',padding:'13px 0',fontSize:'14px',fontWeight:800,cursor:'pointer',fontFamily:'inherit',width:'100%',maxWidth:'100%',overflow:'hidden',boxShadow:'0 4px 12px rgba(37,99,235,.3)'}}>
+                    style={{background:'#2563EB',color:'#fff',border:'none',borderRadius:'10px',padding:'12px 0',fontSize:'14px',fontWeight:800,cursor:'pointer',fontFamily:'inherit',width:'100%',boxShadow:'0 4px 12px rgba(37,99,235,.3)'}}>
                     {editandoId?'Salvar':'Criar orçamento'}
                   </button>
                 </div>
-                <button onClick={enviarCobrancaWpp} disabled={!clienteWpp}
-                  style={{width:'100%',maxWidth:'100%',background:'#F0FFF4',color:'#16A34A',border:'1.5px solid #86EFAC',borderRadius:'10px',padding:'12px 0',fontSize:'13px',fontWeight:600,cursor:clienteWpp?'pointer':'not-allowed',fontFamily:'inherit',opacity:clienteWpp?1:0.6,boxSizing:'border-box'}}>
-                  💬 Enviar no WhatsApp
-                </button>
               </div>
 
               {/* Coluna direita — Resumo sticky */}
