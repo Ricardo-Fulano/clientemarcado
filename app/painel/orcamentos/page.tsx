@@ -109,6 +109,10 @@ const MOBILE_CSS = `
     .cm-atalhos-grid { grid-template-columns:1fr !important; }
     .cm-kpi-grid { grid-template-columns:1fr !important; }
   }
+  .cm-acoes-scroll::-webkit-scrollbar { display:none; }
+  .cm-acoes-scroll { scrollbar-width:none; -ms-overflow-style:none; }
+  .cm-lista-body { overflow-x:hidden; }
+  .cm-lista-topo { overflow-x:hidden; }
   @media(max-width:380px){
     .cm-metrics { grid-template-columns:1fr !important; }
     .cm-serv-qtd-val { grid-template-columns:1fr !important; }
@@ -457,7 +461,7 @@ export default function Orcamentos() {
   )
 
   return (
-    <div style={{display:'flex',minHeight:'100vh',background:BG,fontFamily:'-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif',overflowX:'hidden',width:'100%',maxWidth:'100%'}}>
+    <div style={{display:'flex',minHeight:'100vh',background:BG,fontFamily:'-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif',overflowX:'hidden',width:'100%',maxWidth:'100%',position:'relative'}}>
       <style dangerouslySetInnerHTML={{__html:MOBILE_CSS}} />
 
       {/* Mobile Overlay */}
@@ -696,28 +700,33 @@ export default function Orcamentos() {
                 </>
               )}
 
-              {/* AÇÕES RÁPIDAS — carrossel mobile, grid desktop */}
-              <div style={{marginTop:'20px'}}>
-                <div style={{display:'flex',alignItems:'center',gap:'8px',marginBottom:'14px',padding:'0 2px'}}>
+              {/* AÇÕES RÁPIDAS */}
+              <div style={{marginTop:'20px',marginBottom:'40px',width:'100%',maxWidth:'100%',overflow:'hidden',boxSizing:'border-box' as const}}>
+                <div style={{display:'flex',alignItems:'center',gap:'8px',marginBottom:'14px'}}>
                   <span style={{fontSize:'16px'}}>⚡</span>
                   <p style={{fontSize:'14px',fontWeight:700,color:'#fff'}}>Ações rápidas</p>
                 </div>
-                <div className="cm-acoes-rapidas-wrap" style={{display:'flex',gap:'12px',paddingBottom:'4px'}}>
-                  {[
-                    {icon:'📋',label:'Criar orçamento',sub:'Novo personalizado',cor:'#3B82F6',bg:'rgba(59,130,246,.15)',border:'rgba(59,130,246,.3)',fn:()=>{resetForm();setView('form')}},
-                    {icon:'💳',label:'Registrar pagamento',sub:'Marcar recebido',cor:'#22C55E',bg:'rgba(34,197,94,.15)',border:'rgba(34,197,94,.3)',fn:()=>{}},
-                    {icon:'🔗',label:'Enviar link',sub:'Compartilhar cliente',cor:'#7C3AED',bg:'rgba(124,58,237,.15)',border:'rgba(124,58,237,.3)',fn:()=>{}},
-                    {icon:'📊',label:'Relatórios',sub:'Ver indicadores',cor:'#0891B2',bg:'rgba(8,145,178,.15)',border:'rgba(8,145,178,.3)',fn:()=>{}},
-                    {icon:'👤',label:'Novo cliente',sub:'Cadastrar contato',cor:'#F59E0B',bg:'rgba(245,158,11,.15)',border:'rgba(245,158,11,.3)',fn:()=>{}},
-                  ].map(a=>(
-                    <button key={a.label} onClick={a.fn}
-                      className="cm-acao-card"
-                      style={{background:a.bg,border:`1px solid ${a.border}`,borderRadius:'14px',padding:'16px',textAlign:'left',cursor:'pointer',fontFamily:'inherit',flexShrink:0,width:'180px',boxSizing:'border-box' as const}}>
-                      <span style={{fontSize:'22px',display:'block',marginBottom:'10px'}}>{a.icon}</span>
-                      <p style={{fontSize:'13px',fontWeight:700,color:'#fff',marginBottom:'4px',lineHeight:'1.2'}}>{a.label}</p>
-                      <p style={{fontSize:'11px',color:'#94A3B8',lineHeight:'1.3'}}>{a.sub}</p>
-                    </button>
-                  ))}
+                {/* Desktop: flex normal; Mobile: carrossel contido */}
+                <div style={{width:'100%',maxWidth:'100%',overflowX:'auto',overflowY:'visible',WebkitOverflowScrolling:'touch' as any,scrollSnapType:'x mandatory',paddingBottom:'8px',boxSizing:'border-box' as const}}
+                  className="cm-acoes-scroll">
+                  <div style={{display:'flex',gap:'12px',width:'max-content'}}>
+                    {[
+                      {icon:'📋',label:'Criar orçamento',sub:'Novo personalizado',bg:'rgba(59,130,246,.15)',border:'rgba(59,130,246,.3)',fn:()=>{resetForm();setView('form')}},
+                      {icon:'💳',label:'Registrar pgto.',sub:'Marcar recebido',bg:'rgba(34,197,94,.15)',border:'rgba(34,197,94,.3)',fn:()=>{}},
+                      {icon:'🔗',label:'Enviar link',sub:'Compartilhar',bg:'rgba(124,58,237,.15)',border:'rgba(124,58,237,.3)',fn:()=>{}},
+                      {icon:'📊',label:'Relatórios',sub:'Ver indicadores',bg:'rgba(8,145,178,.15)',border:'rgba(8,145,178,.3)',fn:()=>{}},
+                      {icon:'👤',label:'Novo cliente',sub:'Cadastrar contato',bg:'rgba(245,158,11,.15)',border:'rgba(245,158,11,.3)',fn:()=>{}},
+                    ].map(a=>(
+                      <button key={a.label} onClick={a.fn}
+                        style={{background:a.bg,border:`1px solid ${a.border}`,borderRadius:'14px',padding:'16px',textAlign:'left',cursor:'pointer',fontFamily:'inherit',
+                          width:'160px',minWidth:'160px',maxWidth:'160px',
+                          flexShrink:0,scrollSnapAlign:'start',boxSizing:'border-box' as const}}>
+                        <span style={{fontSize:'22px',display:'block',marginBottom:'10px'}}>{a.icon}</span>
+                        <p style={{fontSize:'13px',fontWeight:700,color:'#fff',marginBottom:'4px',lineHeight:'1.2',whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{a.label}</p>
+                        <p style={{fontSize:'11px',color:'#94A3B8',lineHeight:'1.3'}}>{a.sub}</p>
+                      </button>
+                    ))}
+                  </div>
                 </div>
               </div>
             </div>
