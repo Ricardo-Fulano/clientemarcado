@@ -105,9 +105,13 @@ const MOBILE_CSS = `
     .cm-cards-mobile { display:none !important; }
     .cm-novo-btn-lista { height:auto !important; width:auto !important; }
   }
+  @media(max-width:1023px){
+    .cm-acoes-grid { grid-template-columns:1fr 1fr !important; }
+  }
   @media(max-width:380px){
     .cm-atalhos-grid { grid-template-columns:1fr !important; }
     .cm-kpi-grid { grid-template-columns:1fr !important; }
+    .cm-acoes-grid { grid-template-columns:1fr !important; }
   }
   .cm-acoes-scroll::-webkit-scrollbar { display:none; }
   .cm-acoes-scroll { scrollbar-width:none; -ms-overflow-style:none; }
@@ -419,10 +423,10 @@ export default function Orcamentos() {
   // Style constants
   const BG='#F1F4F8'
   const SIDEBAR='#0B172A'
-  const inp:React.CSSProperties={width:'100%',border:'1.5px solid #DCE3EA',borderRadius:'8px',padding:'10px 14px',fontSize:'15px',color:'#0F172A',outline:'none',fontFamily:'inherit',background:'#F8FAFC',boxSizing:'border-box' as const}
-  const sel:React.CSSProperties={...inp,cursor:'pointer',appearance:'none' as any}
-  const lbl:React.CSSProperties={fontSize:'12px',fontWeight:600,color:'#667085',textTransform:'uppercase' as const,letterSpacing:'.05em',display:'block',marginBottom:'6px'}
-  const card:React.CSSProperties={background:'#fff',borderRadius:'12px',padding:'20px 24px',marginBottom:'12px',border:'1px solid #DCE3EA',boxShadow:'0 1px 3px rgba(0,0,0,.06)'}
+  const inp:React.CSSProperties={width:'100%',border:'1.5px solid rgba(255,255,255,.12)',borderRadius:'8px',padding:'10px 14px',fontSize:'15px',color:'#fff',outline:'none',fontFamily:'inherit',background:'rgba(255,255,255,.06)',boxSizing:'border-box' as const}
+  const sel:React.CSSProperties={...inp,cursor:'pointer',appearance:'none' as any,color:'#fff'}
+  const lbl:React.CSSProperties={fontSize:'12px',fontWeight:600,color:'#94A3B8',textTransform:'uppercase' as const,letterSpacing:'.05em',display:'block',marginBottom:'6px'}
+  const card:React.CSSProperties={background:'rgba(255,255,255,.06)',borderRadius:'16px',padding:'20px 24px',marginBottom:'12px',border:'1px solid rgba(255,255,255,.1)',boxShadow:'0 4px 20px rgba(0,0,0,.2)'}
 
   // Sidebar component
   const Sidebar = () => (
@@ -701,32 +705,25 @@ export default function Orcamentos() {
               )}
 
               {/* AÇÕES RÁPIDAS */}
-              <div style={{marginTop:'20px',marginBottom:'40px',width:'100%',maxWidth:'100%',overflow:'hidden',boxSizing:'border-box' as const}}>
+              <div style={{marginTop:'20px',marginBottom:'40px',width:'100%',maxWidth:'100%',boxSizing:'border-box' as const}}>
                 <div style={{display:'flex',alignItems:'center',gap:'8px',marginBottom:'14px'}}>
                   <span style={{fontSize:'16px'}}>⚡</span>
                   <p style={{fontSize:'14px',fontWeight:700,color:'#fff'}}>Ações rápidas</p>
                 </div>
-                {/* Desktop: flex normal; Mobile: carrossel contido */}
-                <div style={{width:'100%',maxWidth:'100%',overflowX:'auto',overflowY:'visible',WebkitOverflowScrolling:'touch' as any,scrollSnapType:'x mandatory',paddingBottom:'8px',boxSizing:'border-box' as const}}
-                  className="cm-acoes-scroll">
-                  <div style={{display:'flex',gap:'12px',width:'max-content'}}>
-                    {[
-                      {icon:'📋',label:'Criar orçamento',sub:'Novo personalizado',bg:'rgba(59,130,246,.15)',border:'rgba(59,130,246,.3)',fn:()=>{resetForm();setView('form')}},
-                      {icon:'💳',label:'Registrar pgto.',sub:'Marcar recebido',bg:'rgba(34,197,94,.15)',border:'rgba(34,197,94,.3)',fn:()=>{}},
-                      {icon:'🔗',label:'Enviar link',sub:'Compartilhar',bg:'rgba(124,58,237,.15)',border:'rgba(124,58,237,.3)',fn:()=>{}},
-                      {icon:'📊',label:'Relatórios',sub:'Ver indicadores',bg:'rgba(8,145,178,.15)',border:'rgba(8,145,178,.3)',fn:()=>{}},
-                      {icon:'👤',label:'Novo cliente',sub:'Cadastrar contato',bg:'rgba(245,158,11,.15)',border:'rgba(245,158,11,.3)',fn:()=>{}},
-                    ].map(a=>(
-                      <button key={a.label} onClick={a.fn}
-                        style={{background:a.bg,border:`1px solid ${a.border}`,borderRadius:'14px',padding:'16px',textAlign:'left',cursor:'pointer',fontFamily:'inherit',
-                          width:'160px',minWidth:'160px',maxWidth:'160px',
-                          flexShrink:0,scrollSnapAlign:'start',boxSizing:'border-box' as const}}>
-                        <span style={{fontSize:'22px',display:'block',marginBottom:'10px'}}>{a.icon}</span>
-                        <p style={{fontSize:'13px',fontWeight:700,color:'#fff',marginBottom:'4px',lineHeight:'1.2',whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{a.label}</p>
-                        <p style={{fontSize:'11px',color:'#94A3B8',lineHeight:'1.3'}}>{a.sub}</p>
-                      </button>
-                    ))}
-                  </div>
+                <div className="cm-acoes-grid" style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:'12px',width:'100%',maxWidth:'100%',boxSizing:'border-box' as const}}>
+                  {[
+                    {icon:'📋',label:'Criar orçamento',sub:'Novo personalizado',bg:'rgba(59,130,246,.15)',border:'rgba(59,130,246,.3)',fn:()=>{resetForm();setView('form')}},
+                    {icon:'💳',label:'Registrar pgto.',sub:'Marcar recebido',bg:'rgba(34,197,94,.15)',border:'rgba(34,197,94,.3)',fn:()=>{}},
+                    {icon:'🔗',label:'Enviar link',sub:'Compartilhar',bg:'rgba(124,58,237,.15)',border:'rgba(124,58,237,.3)',fn:()=>{}},
+                    {icon:'📊',label:'Relatórios',sub:'Ver indicadores',bg:'rgba(8,145,178,.15)',border:'rgba(8,145,178,.3)',fn:()=>{}},
+                  ].map(a=>(
+                    <button key={a.label} onClick={a.fn}
+                      style={{background:a.bg,border:`1px solid ${a.border}`,borderRadius:'14px',padding:'16px',textAlign:'left',cursor:'pointer',fontFamily:'inherit',width:'100%',boxSizing:'border-box' as const}}>
+                      <span style={{fontSize:'22px',display:'block',marginBottom:'10px'}}>{a.icon}</span>
+                      <p style={{fontSize:'13px',fontWeight:700,color:'#fff',marginBottom:'4px',lineHeight:'1.2'}}>{a.label}</p>
+                      <p style={{fontSize:'11px',color:'#94A3B8',lineHeight:'1.3'}}>{a.sub}</p>
+                    </button>
+                  ))}
                 </div>
               </div>
             </div>
@@ -735,19 +732,20 @@ export default function Orcamentos() {
 
         {/* ══ FORMULÁRIO ══ */}
         {view==='form'&&(
-          <div className="cm-form-pad cm-content-pad" style={{padding:'24px 32px 60px'}}>
+          <div style={{minHeight:'100vh',background:'#07111F'}}>
+          <div className="cm-form-pad cm-content-pad" style={{padding:'24px 32px 60px',maxWidth:'1100px',margin:'0 auto'}}>
             <div className="cm-form-inner" style={{padding:'24px',width:'100%',maxWidth:'100%',boxSizing:'border-box' as const,overflowX:'hidden'}}>
             {/* Topo */}
             <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:'20px',flexWrap:'wrap',gap:'12px'}}>
               <div>
                 <button onClick={()=>{resetForm();setView('lista')}}
-                  style={{background:'none',border:'none',cursor:'pointer',fontSize:'13px',color:'#667085',fontFamily:'inherit',padding:'0',display:'flex',alignItems:'center',gap:'4px',marginBottom:'8px'}}>
+                  style={{background:'none',border:'none',cursor:'pointer',fontSize:'13px',color:'#64748B',fontFamily:'inherit',padding:'0',display:'flex',alignItems:'center',gap:'4px',marginBottom:'8px'}}>
                   ← Voltar à lista
                 </button>
-                <h1 style={{fontSize:'22px',fontWeight:800,color:'#0F172A',letterSpacing:'-0.02em',marginBottom:'2px'}}>{editandoId?'Editar orçamento':'Novo orçamento'}</h1>
-                <p style={{fontSize:'13px',color:'#667085'}}>Preencha os dados e envie para o cliente.</p>
+                <h1 style={{fontSize:'22px',fontWeight:800,color:'#fff',letterSpacing:'-0.02em',marginBottom:'2px'}}>{editandoId?'Editar orçamento':'Novo orçamento'}</h1>
+                <p style={{fontSize:'13px',color:'#94A3B8'}}>Preencha os dados e envie para o cliente.</p>
               </div>
-              <div style={{display:'flex',alignItems:'center',gap:'6px',background:'#F0FDF4',border:'1px solid #BBF7D0',borderRadius:'8px',padding:'6px 12px'}}>
+              <div style={{display:'flex',alignItems:'center',gap:'6px',background:'rgba(34,197,94,.15)',border:'1px solid rgba(34,197,94,.25)',borderRadius:'8px',padding:'6px 12px'}}>
                 <span style={{fontSize:'13px',color:'#16A34A'}}>✓</span>
                 <span style={{fontSize:'12px',fontWeight:600,color:'#16A34A'}}>Salvo automaticamente</span>
               </div>
@@ -802,11 +800,11 @@ export default function Orcamentos() {
                     <div style={{display:'flex',alignItems:'center',gap:'10px'}}>
                       <span style={{fontSize:'16px'}}>📋</span>
                       <div>
-                        <p style={{fontSize:'14px',fontWeight:700,color:'#0F172A'}}>Detalhes do documento</p>
-                        <p style={{fontSize:'12px',color:'#667085',marginTop:'1px'}}>Tipo, status, profissional e data.</p>
+                        <p style={{fontSize:'14px',fontWeight:700,color:'#fff'}}>Detalhes do documento</p>
+                        <p style={{fontSize:'12px',color:'#64748B',marginTop:'1px'}}>Tipo, status, profissional e data.</p>
                       </div>
                     </div>
-                    <span style={{color:'#667085',fontSize:'18px',transform:showDetalhes?'rotate(180deg)':'none',transition:'transform .2s'}}>⌄</span>
+                    <span style={{color:'#64748B',fontSize:'18px',transform:showDetalhes?'rotate(180deg)':'none',transition:'transform .2s'}}>⌄</span>
                   </div>
                   {showDetalhes&&(
                     <div style={{padding:'0 24px 20px',borderTop:'1px solid #F1F4F8',display:'flex',flexDirection:'column',gap:'12px'}}>
@@ -879,7 +877,7 @@ export default function Orcamentos() {
                   {itens.map((item,idx)=>(
                     <div key={idx} style={{marginBottom:'12px',padding:'14px',background:'#F8FAFC',borderRadius:'12px',border:'1px solid #DCE3EA',width:'100%',maxWidth:'100%',boxSizing:'border-box'}}>
                       <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'10px'}}>
-                        <span style={{fontSize:'11px',fontWeight:600,color:'#667085',textTransform:'uppercase',letterSpacing:'.05em'}}>Item {idx+1}</span>
+                        <span style={{fontSize:'11px',fontWeight:600,color:'#64748B',textTransform:'uppercase',letterSpacing:'.05em'}}>Item {idx+1}</span>
                         {itens.length>1&&(
                           <button onClick={()=>setItens(prev=>prev.filter((_,i)=>i!==idx))}
                             style={{background:'#FEF2F2',border:'1px solid #FECACA',borderRadius:'6px',color:'#EF4444',cursor:'pointer',fontSize:'13px',padding:'3px 8px'}}>
@@ -927,9 +925,9 @@ export default function Orcamentos() {
 
                   {/* Subtotal */}
                   <div style={{marginTop:'16px',background:BG,borderRadius:'10px',padding:'14px 16px',width:'100%',maxWidth:'100%',boxSizing:'border-box'}}>
-                    <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',fontSize:'13px',color:'#667085',marginBottom:'8px'}}>
+                    <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',fontSize:'13px',color:'#94A3B8',marginBottom:'8px'}}>
                       <span>Subtotal</span>
-                      <span style={{fontWeight:600,color:'#0F172A'}}>R$ {fmtBRL(subtotal)}</span>
+                      <span style={{fontWeight:600,color:'#fff'}}>R$ {fmtBRL(subtotal)}</span>
                     </div>
                     <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',fontSize:'13px',color:'#667085',marginBottom:'8px',paddingBottom:'8px',borderBottom:'1px solid #DCE3EA'}}>
                       <span>Desconto</span>
@@ -938,7 +936,7 @@ export default function Orcamentos() {
                         style={{background:'#fff',border:'1.5px solid #DCE3EA',outline:'none',color:'#EF4444',fontSize:'13px',fontWeight:600,textAlign:'right',width:'100px',fontFamily:'inherit',borderRadius:'6px',padding:'4px 8px'}} />
                     </div>
                     <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
-                      <span style={{fontSize:'14px',fontWeight:700,color:'#0F172A'}}>Total final</span>
+                      <span style={{fontSize:'14px',fontWeight:700,color:'#fff'}}>Total final</span>
                       <span style={{fontSize:'18px',fontWeight:800,color:'#2563EB'}}>R$ {fmtBRL(total)}</span>
                     </div>
                     {descontoNum>subtotal&&subtotal>0&&<p style={{fontSize:'11px',color:'#F59E0B',marginTop:'4px',textAlign:'right'}}>⚠ Desconto maior que o subtotal.</p>}
@@ -951,7 +949,7 @@ export default function Orcamentos() {
                   <div style={{display:'flex',flexDirection:'column',gap:'6px'}}>
                     <div style={{display:'flex',justifyContent:'space-between',fontSize:'13px'}}>
                       <span style={{color:'#667085'}}>Cliente</span>
-                      <span style={{fontWeight:600,color:clienteNome?'#0F172A':'#94A3B8',maxWidth:'60%',textAlign:'right',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{clienteNome||'Não informado'}</span>
+                      <span style={{fontWeight:600,color:clienteNome?'#fff':'#475569',maxWidth:'60%',textAlign:'right',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{clienteNome||'Não informado'}</span>
                     </div>
                     <div style={{display:'flex',justifyContent:'space-between',fontSize:'13px'}}>
                       <span style={{color:'#667085'}}>Tipo</span>
@@ -961,7 +959,7 @@ export default function Orcamentos() {
                       <span style={{color:'#667085'}}>Status</span>
                       <span style={{fontSize:'11px',fontWeight:700,padding:'2px 8px',borderRadius:'999px',background:STATUS_COR[status]?.bg||'#EFF6FF',color:STATUS_COR[status]?.color||'#2563EB',border:`1px solid ${STATUS_COR[status]?.border||'#BFDBFE'}`}}>{status}</span>
                     </div>
-                    <div style={{height:'1px',background:'#F1F4F8',margin:'2px 0'}} />
+                    <div style={{height:'1px',background:'rgba(255,255,255,.08)',margin:'2px 0'}} />
                     <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
                       <span style={{fontSize:'13px',color:'#667085'}}>Total</span>
                       <span style={{fontSize:'18px',fontWeight:800,color:'#2563EB'}}>R$ {fmtBRL(total)}</span>
@@ -1028,13 +1026,13 @@ export default function Orcamentos() {
                     <div style={{display:'flex',alignItems:'center',gap:'10px'}}>
                       <span style={{fontSize:'16px'}}>💳</span>
                       <div>
-                        <p style={{fontSize:'14px',fontWeight:700,color:'#0F172A'}}>Pagamento</p>
-                        <p style={{fontSize:'12px',color:'#667085',marginTop:'1px'}}>
+                        <p style={{fontSize:'14px',fontWeight:700,color:'#fff'}}>Pagamento</p>
+                        <p style={{fontSize:'12px',color:'#64748B',marginTop:'1px'}}>
                           {valorPagoLocal>0?`Pago: R$ ${fmtBRL(valorPagoLocal)} · Saldo: R$ ${fmtBRL(saldoLocal)}`:'Entrada, pagamentos parciais e link de cobrança.'}
                         </p>
                       </div>
                     </div>
-                    <span style={{color:'#667085',fontSize:'18px',transform:showPagSection?'rotate(180deg)':'none',transition:'transform .2s'}}>⌄</span>
+                    <span style={{color:'#64748B',fontSize:'18px',transform:showPagSection?'rotate(180deg)':'none',transition:'transform .2s'}}>⌄</span>
                   </div>
                   {showPagSection&&(
                     <div style={{padding:'0 24px 20px',borderTop:'1px solid #F1F4F8'}}>
@@ -1185,11 +1183,11 @@ export default function Orcamentos() {
                     <div style={{display:'flex',alignItems:'center',gap:'10px'}}>
                       <span style={{fontSize:'16px'}}>📝</span>
                       <div>
-                        <p style={{fontSize:'14px',fontWeight:700,color:'#0F172A'}}>Observações</p>
-                        <p style={{fontSize:'12px',color:'#667085',marginTop:'1px'}}>Informações extras para o cliente ou para sua equipe.</p>
+                        <p style={{fontSize:'14px',fontWeight:700,color:'#fff'}}>Observações</p>
+                        <p style={{fontSize:'12px',color:'#64748B',marginTop:'1px'}}>Informações extras para o cliente ou para sua equipe.</p>
                       </div>
                     </div>
-                    <span style={{color:'#667085',fontSize:'18px',transform:showObs?'rotate(180deg)':'none',transition:'transform .2s'}}>⌄</span>
+                    <span style={{color:'#64748B',fontSize:'18px',transform:showObs?'rotate(180deg)':'none',transition:'transform .2s'}}>⌄</span>
                   </div>
                   {showObs&&(
                     <div style={{padding:'0 18px 18px',borderTop:'1px solid #F1F4F8',display:'flex',flexDirection:'column',gap:'12px',marginTop:'16px',width:'100%',boxSizing:'border-box'}}>
@@ -1204,9 +1202,9 @@ export default function Orcamentos() {
                 </div>
 
                 {/* Dica */}
-                <div style={{display:'flex',alignItems:'center',gap:'8px',padding:'12px 16px',background:'#EFF6FF',borderRadius:'10px',border:'1px solid #BFDBFE'}}>
+                <div style={{display:'flex',alignItems:'center',gap:'8px',padding:'12px 16px',background:'rgba(59,130,246,.1)',borderRadius:'10px',border:'1px solid rgba(59,130,246,.2)'}}>
                   <span style={{fontSize:'16px'}}>💡</span>
-                  <p style={{fontSize:'12px',color:'#2563EB'}}>Dica: você pode adicionar serviços, descontos e pagamentos parciais.</p>
+                  <p style={{fontSize:'12px',color:'#93C5FD'}}>Dica: você pode adicionar serviços, descontos e pagamentos parciais.</p>
                 </div>
               </div>
 
@@ -1219,7 +1217,7 @@ export default function Orcamentos() {
                 </div>
                 <div style={{display:'grid',gridTemplateColumns:'2fr 3fr',gap:'8px',width:'100%',maxWidth:'100%'}}>
                   <button onClick={()=>{resetForm();setView('lista')}}
-                    style={{background:'#F8FAFC',color:'#667085',border:'1.5px solid #DCE3EA',borderRadius:'10px',padding:'12px 0',fontSize:'13px',fontWeight:600,cursor:'pointer',fontFamily:'inherit',width:'100%'}}>
+                    style={{background:'rgba(255,255,255,.08)',color:'#94A3B8',border:'1px solid rgba(255,255,255,.12)',borderRadius:'10px',padding:'12px 0',fontSize:'13px',fontWeight:600,cursor:'pointer',fontFamily:'inherit',width:'100%'}}>
                     Rascunho
                   </button>
                   <button onClick={handleSalvar}
@@ -1231,19 +1229,19 @@ export default function Orcamentos() {
 
               {/* Coluna direita — Resumo sticky */}
               <div className="cm-form-right" style={{position:'sticky',top:'24px'}}>
-                <div style={{background:'#fff',borderRadius:'12px',padding:'20px',border:'1px solid #DCE3EA',boxShadow:'0 1px 3px rgba(0,0,0,.06)'}}>
-                  <p style={{fontSize:'13px',fontWeight:700,color:'#0F172A',textTransform:'uppercase',letterSpacing:'.06em',marginBottom:'16px'}}>Resumo</p>
+                <div style={{background:'rgba(255,255,255,.06)',borderRadius:'16px',padding:'20px',border:'1px solid rgba(255,255,255,.1)',boxShadow:'0 4px 20px rgba(0,0,0,.3)'}}>
+                  <p style={{fontSize:'13px',fontWeight:700,color:'#fff',textTransform:'uppercase',letterSpacing:'.06em',marginBottom:'16px'}}>Resumo</p>
 
                   <div style={{display:'flex',flexDirection:'column',gap:'10px',marginBottom:'16px'}}>
                     <div>
-                      <p style={{fontSize:'11px',fontWeight:600,color:'#667085',textTransform:'uppercase',letterSpacing:'.05em',marginBottom:'2px'}}>Cliente</p>
-                      <p style={{fontSize:'14px',fontWeight:600,color:clienteNome?'#0F172A':'#9CA3AF'}}>{clienteNome||'Não informado'}</p>
+                      <p style={{fontSize:'11px',fontWeight:600,color:'#64748B',textTransform:'uppercase',letterSpacing:'.05em',marginBottom:'2px'}}>Cliente</p>
+                      <p style={{fontSize:'14px',fontWeight:600,color:clienteNome?'#fff':'#475569'}}>{clienteNome||'Não informado'}</p>
                     </div>
                     <div>
-                      <p style={{fontSize:'11px',fontWeight:600,color:'#667085',textTransform:'uppercase',letterSpacing:'.05em',marginBottom:'2px'}}>Tipo</p>
-                      <p style={{fontSize:'14px',color:'#0F172A'}}>{tipo==='__outro__'?(tipoOutro||'Outro'):tipo}</p>
+                      <p style={{fontSize:'11px',fontWeight:600,color:'#64748B',textTransform:'uppercase',letterSpacing:'.05em',marginBottom:'2px'}}>Tipo</p>
+                      <p style={{fontSize:'14px',color:'#CBD5E1'}}>{tipo==='__outro__'?(tipoOutro||'Outro'):tipo}</p>
                     </div>
-                    <div style={{height:'1px',background:'#F1F4F8'}} />
+                    <div style={{height:'1px',background:'rgba(255,255,255,.08)'}} />
                     <div>
                       <p style={{fontSize:'11px',fontWeight:600,color:'#667085',textTransform:'uppercase',letterSpacing:'.05em',marginBottom:'4px'}}>Total final</p>
                       <p style={{fontSize:'24px',fontWeight:800,color:'#2563EB',letterSpacing:'-0.02em'}}>R$ {fmtBRL(total)}</p>
@@ -1261,7 +1259,7 @@ export default function Orcamentos() {
                       </div>
                     )}
                     <div>
-                      <p style={{fontSize:'11px',fontWeight:600,color:'#667085',textTransform:'uppercase',letterSpacing:'.05em',marginBottom:'4px'}}>Status</p>
+                      <p style={{fontSize:'11px',fontWeight:600,color:'#64748B',textTransform:'uppercase',letterSpacing:'.05em',marginBottom:'4px'}}>Status</p>
                       <span style={{fontSize:'12px',fontWeight:600,padding:'3px 10px',borderRadius:'999px',background:STATUS_COR[status]?.bg||'#EFF6FF',color:STATUS_COR[status]?.color||'#2563EB',border:`1px solid ${STATUS_COR[status]?.border||'#BFDBFE'}`}}>{status}</span>
                     </div>
                   </div>
@@ -1279,17 +1277,18 @@ export default function Orcamentos() {
                     📄 Salvar como rascunho
                   </button>
 
-                  <div style={{marginTop:'16px',display:'flex',alignItems:'center',gap:'8px',padding:'10px',background:'#F8FAFC',borderRadius:'8px',border:'1px solid #DCE3EA'}}>
+                  <div style={{marginTop:'16px',display:'flex',alignItems:'center',gap:'8px',padding:'10px',background:'rgba(255,255,255,.04)',borderRadius:'8px',border:'1px solid rgba(255,255,255,.08)'}}>
                     <span style={{fontSize:'18px'}}>🔒</span>
                     <div>
-                      <p style={{fontSize:'12px',fontWeight:600,color:'#0F172A'}}>Seus dados estão seguros</p>
-                      <p style={{fontSize:'11px',color:'#9CA3AF'}}>e protegidos com criptografia.</p>
+                      <p style={{fontSize:'12px',fontWeight:600,color:'#fff'}}>Seus dados estão seguros</p>
+                      <p style={{fontSize:'11px',color:'#64748B'}}>e protegidos com criptografia.</p>
                     </div>
                   </div>
                 </div>
               </div>
 
             </div>
+          </div>
           </div>
         )}
 
