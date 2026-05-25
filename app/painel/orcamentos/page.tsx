@@ -69,6 +69,7 @@ const MOBILE_CSS = `
     .cm-mobile-footer { display:flex !important; }
     .cm-resumo-mobile { display:block !important; }
     .cm-lista-pad { padding:16px 16px 100px !important; }
+    .cm-orc-filters { overflow-x:auto !important; flex-wrap:nowrap !important; padding-bottom:4px; -webkit-overflow-scrolling:touch; }
     .cm-form-pad { padding:0 !important; }
     .cm-form-inner { padding:16px !important; padding-bottom:150px !important; }
     .cm-detalhe-pad { padding:16px 16px 80px !important; }
@@ -84,6 +85,16 @@ const MOBILE_CSS = `
 
   @media(max-width:767px){
     .cm-novo-btn { width:100% !important; margin-top:8px; }
+    .cm-tabela-row { grid-template-columns:1fr !important; gap:6px !important; }
+    .cm-tabela-header { display:none !important; }
+    .cm-acoes-rapidas { grid-template-columns:1fr 1fr !important; }
+    .cm-cards-acao { grid-template-columns:1fr 1fr !important; }
+    .cm-kpi-grid { grid-template-columns:1fr 1fr !important; }
+  }
+  @media(max-width:380px){
+    .cm-kpi-grid { grid-template-columns:1fr !important; }
+    .cm-acoes-rapidas { grid-template-columns:1fr !important; }
+    .cm-cards-acao { grid-template-columns:1fr !important; }
   }
   @media(max-width:380px){
     .cm-metrics { grid-template-columns:1fr !important; }
@@ -426,8 +437,8 @@ export default function Orcamentos() {
   if(loading) return (
     <div style={{display:'flex',minHeight:'100vh',background:BG}}>
       <Sidebar />
-      <div style={{marginLeft:'220px',flex:1,display:'flex',alignItems:'center',justifyContent:'center'}}>
-        <p style={{color:'#667085',fontSize:'14px'}}>Carregando...</p>
+      <div style={{marginLeft:'220px',flex:1,display:'flex',alignItems:'center',justifyContent:'center',background:'#07111F'}}>
+        <p style={{color:'#94A3B8',fontSize:'14px'}}>Carregando...</p>
       </div>
     </div>
   )
@@ -482,108 +493,176 @@ export default function Orcamentos() {
 
         {/* ══ LISTA ══ */}
         {view==='lista'&&(
-          <div className="cm-lista-pad cm-content-pad" style={{padding:'28px 32px 60px',maxWidth:'1140px'}}>
-            <div className="cm-title-row" style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',marginBottom:'24px',gap:'12px',flexWrap:'wrap'}}>
-              <div>
-                <h1 style={{fontSize:'22px',fontWeight:800,color:'#0F172A',letterSpacing:'-0.02em',marginBottom:'4px'}}>Orçamentos e Cobranças</h1>
-                <p style={{fontSize:'14px',color:'#667085'}}>Crie orçamentos, acompanhe pagamentos e envie pelo WhatsApp.</p>
-              </div>
-              <button onClick={()=>{resetForm();setView('form')}}
-                className="cm-btn-novo"
-                style={{background:'#2563EB',color:'#fff',border:'none',borderRadius:'8px',padding:'10px 20px',fontSize:'14px',fontWeight:700,cursor:'pointer',fontFamily:'inherit',boxShadow:'0 4px 12px rgba(37,99,235,.3)'}}>
-                + Novo orçamento
-              </button>
-            </div>
+          <div style={{minHeight:'100vh',background:'#07111F'}}>
 
-            {/* Métricas */}
-            <div className="cm-metrics" style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:'12px',marginBottom:'24px',width:'100%'}}>
-              {[
-                {label:'Orçamentos em aberto',valor:totalAberto,cor:'#2563EB',fmt:'n'},
-                {label:'Total a receber',valor:totalAReceber,cor:'#D97706',fmt:'brl'},
-                {label:'Recebido no mês',valor:recebidoMes,cor:'#16A34A',fmt:'brl'},
-                {label:'Pagamentos parciais',valor:parciais,cor:'#EA580C',fmt:'n'},
-              ].map(m=>(
-                <div key={m.label} style={{background:'#fff',borderRadius:'12px',padding:'16px 18px',border:'1px solid #DCE3EA',boxShadow:'0 1px 3px rgba(0,0,0,.05)',position:'relative',overflow:'hidden'}}>
-                  <div style={{position:'absolute',top:0,left:0,right:0,height:'3px',background:m.cor}} />
-                  <p style={{fontSize:'11px',fontWeight:600,color:'#667085',textTransform:'uppercase',letterSpacing:'.05em',marginBottom:'8px'}}>{m.label}</p>
-                  <p style={{fontSize:'22px',fontWeight:800,color:m.cor}}>{m.fmt==='brl'?'R$ '+fmtBRL(m.valor as number):m.valor}</p>
+            {/* TOPO */}
+            <div className="cm-lista-pad" style={{padding:'28px 32px 0',maxWidth:'1280px',margin:'0 auto'}}>
+              <div style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',gap:'12px',flexWrap:'wrap',marginBottom:'28px'}}>
+                <div>
+                  <h1 style={{fontSize:'24px',fontWeight:800,color:'#fff',letterSpacing:'-0.02em',marginBottom:'4px'}}>Orçamentos e Cobranças</h1>
+                  <p style={{fontSize:'14px',color:'#94A3B8'}}>Crie orçamentos, acompanhe pagamentos e envie tudo pelo WhatsApp.</p>
                 </div>
-              ))}
-            </div>
-
-            {/* Filtros + busca */}
-            <div style={{display:'flex',gap:'6px',flexWrap:'wrap',marginBottom:'14px',alignItems:'center'}}>
-              {STATUS_LIST.map(s=>(
-                <button key={s} onClick={()=>setFiltroStatus(s)}
-                  style={{padding:'6px 14px',borderRadius:'999px',fontSize:'12px',fontWeight:600,cursor:'pointer',border:'1.5px solid',fontFamily:'inherit',transition:'all .15s',
-                    background:filtroStatus===s?'#2563EB':'#fff',color:filtroStatus===s?'#fff':'#667085',borderColor:filtroStatus===s?'#2563EB':'#DCE3EA'}}>
-                  {s}
-                </button>
-              ))}
-              <input type="text" placeholder="Buscar cliente, contato ou serviço..." value={filtroCliente} onChange={e=>setFiltroCliente(e.target.value)}
-                style={{border:'1.5px solid #DCE3EA',borderRadius:'8px',padding:'7px 14px',fontSize:'13px',color:'#0F172A',outline:'none',fontFamily:'inherit',background:'#fff',width:'280px'}} />
-            </div>
-
-            {mensagem&&<div style={{padding:'10px 14px',borderRadius:'8px',marginBottom:'14px',background:'#F0FDF4',border:'1px solid #BBF7D0',color:'#16A34A',fontSize:'13px'}}>{mensagem}</div>}
-
-            {/* Estado vazio */}
-            {orcsFiltrados.length===0?(
-              <div style={{background:'#fff',borderRadius:'16px',padding:'56px 24px',textAlign:'center',border:'1px solid #DCE3EA',boxShadow:'0 1px 3px rgba(0,0,0,.05)'}}>
-                <div style={{fontSize:'44px',marginBottom:'12px'}}>📋</div>
-                <p style={{fontSize:'17px',fontWeight:700,color:'#0F172A',marginBottom:'8px'}}>Nenhum orçamento criado ainda</p>
-                <p style={{fontSize:'14px',color:'#667085',marginBottom:'24px'}}>Crie seu primeiro orçamento e acompanhe pagamentos em poucos cliques.</p>
-                <button onClick={()=>{resetForm();setView('form')}}
-                  style={{background:'#2563EB',color:'#fff',border:'none',borderRadius:'8px',padding:'11px 28px',fontSize:'14px',fontWeight:700,cursor:'pointer',fontFamily:'inherit'}}>
-                  Criar orçamento
+                <button
+                  onClick={()=>{ resetForm(); setView('form') }}
+                  className="cm-novo-btn"
+                  style={{background:'#2563EB',color:'#fff',border:'none',borderRadius:'10px',padding:'11px 22px',fontSize:'14px',fontWeight:700,cursor:'pointer',fontFamily:'inherit',boxShadow:'0 4px 20px rgba(37,99,235,.4)',display:'flex',alignItems:'center',gap:'8px',whiteSpace:'nowrap'}}>
+                  <span style={{fontSize:'18px',lineHeight:1}}>+</span> Novo orçamento
                 </button>
               </div>
-            ):(
-              <div style={{display:'flex',flexDirection:'column',gap:'10px'}}>
-                {orcsFiltrados.map(orc=>{
-                  const cfg=STATUS_COR[orc.status]||STATUS_COR['Aberto']
-                  return (
-                    <div key={orc.id} style={{background:'#fff',borderRadius:'12px',border:'1px solid #DCE3EA',boxShadow:'0 1px 3px rgba(0,0,0,.05)',overflow:'hidden',width:'100%',maxWidth:'100%',boxSizing:'border-box'}}>
-                      <div style={{height:'3px',background:cfg.color}} />
-                      <div style={{padding:'16px 20px'}}>
-                        <div style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',gap:'12px',flexWrap:'wrap',marginBottom:'10px'}}>
-                          <div>
-                            <p style={{fontSize:'15px',fontWeight:700,color:'#0F172A',marginBottom:'3px'}}>{orc.cliente_nome}</p>
-                            <p style={{fontSize:'12px',color:'#667085'}}>{orc.tipo} · {fmtData(orc.data)}{orc.profissional_nome?' · '+orc.profissional_nome:''}</p>
-                          </div>
-                          <span style={{fontSize:'11px',fontWeight:700,padding:'3px 10px',borderRadius:'999px',background:cfg.bg,color:cfg.color,border:`1px solid ${cfg.border}`,whiteSpace:'nowrap'}}>{orc.status}</span>
+
+              {mensagem&&<div style={{padding:'10px 14px',borderRadius:'8px',marginBottom:'16px',background:'rgba(22,163,74,.15)',border:'1px solid rgba(22,163,74,.3)',color:'#4ADE80',fontSize:'13px'}}>{mensagem}</div>}
+
+              {/* CARDS AÇÕES RÁPIDAS */}
+              <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:'12px',marginBottom:'24px'}}>
+                {[
+                  {icon:'📋',label:'Novo orçamento',sub:'Crie em segundos',cor:'#2563EB',bg:'rgba(37,99,235,.15)',border:'rgba(37,99,235,.3)',fn:()=>{resetForm();setView('form')}},
+                  {icon:'💳',label:'Cobranças',sub:'Envie links de pagamento',cor:'#7C3AED',bg:'rgba(124,58,237,.15)',border:'rgba(124,58,237,.3)',fn:()=>{}},
+                  {icon:'💰',label:'Pagamentos',sub:'Registre o que recebeu',cor:'#16A34A',bg:'rgba(22,163,74,.15)',border:'rgba(22,163,74,.3)',fn:()=>{}},
+                  {icon:'👥',label:'Clientes',sub:'Gerencie seus contatos',cor:'#0891B2',bg:'rgba(8,145,178,.15)',border:'rgba(8,145,178,.3)',fn:()=>{}},
+                ].map(a=>(
+                  <button key={a.label} onClick={a.fn}
+                    style={{background:a.bg,border:`1px solid ${a.border}`,borderRadius:'16px',padding:'18px',textAlign:'left',cursor:'pointer',fontFamily:'inherit',transition:'all .2s',position:'relative',overflow:'hidden'}}>
+                    <div style={{width:'40px',height:'40px',borderRadius:'50%',background:a.bg,border:`1px solid ${a.border}`,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'20px',marginBottom:'12px'}}>
+                      {a.icon}
+                    </div>
+                    <p style={{fontSize:'14px',fontWeight:700,color:'#fff',marginBottom:'4px'}}>{a.label}</p>
+                    <p style={{fontSize:'12px',color:'#94A3B8'}}>{a.sub}</p>
+                    <span style={{position:'absolute',top:'16px',right:'16px',color:a.cor,fontSize:'18px'}}>→</span>
+                  </button>
+                ))}
+              </div>
+
+              {/* CARDS KPI */}
+              <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'12px',marginBottom:'24px'}}>
+                {[
+                  {icon:'📂',label:'Orçamentos em aberto',valor:totalAberto,fmt:'n',cor:'#3B82F6',bg:'rgba(59,130,246,.12)',border:'rgba(59,130,246,.25)'},
+                  {icon:'⏳',label:'Total a receber',valor:totalAReceber,fmt:'brl',cor:'#F59E0B',bg:'rgba(245,158,11,.12)',border:'rgba(245,158,11,.25)'},
+                  {icon:'✅',label:'Recebido no mês',valor:recebidoMes,fmt:'brl',cor:'#22C55E',bg:'rgba(34,197,94,.12)',border:'rgba(34,197,94,.25)'},
+                ].map(m=>(
+                  <div key={m.label} style={{background:m.bg,border:`1px solid ${m.border}`,borderRadius:'16px',padding:'20px',position:'relative',overflow:'hidden'}}>
+                    <div style={{width:'44px',height:'44px',borderRadius:'12px',background:m.bg,border:`1px solid ${m.border}`,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'22px',marginBottom:'14px'}}>
+                      {m.icon}
+                    </div>
+                    <p style={{fontSize:'11px',fontWeight:600,color:'#94A3B8',textTransform:'uppercase',letterSpacing:'.06em',marginBottom:'6px'}}>{m.label}</p>
+                    <p style={{fontSize:'26px',fontWeight:800,color:m.cor,letterSpacing:'-0.02em'}}>
+                      {m.fmt==='brl'?'R$ '+fmtBRL(m.valor as number):m.valor}
+                    </p>
+                  </div>
+                ))}
+              </div>
+
+              {/* FILTROS + BUSCA */}
+              <div style={{display:'flex',gap:'8px',flexWrap:'wrap',marginBottom:'16px',alignItems:'center'}}>
+                <div className="cm-orc-filters" style={{display:'flex',gap:'6px',flex:1}}>
+                  {STATUS_LIST.map(s=>(
+                    <button key={s} onClick={()=>setFiltroStatus(s)}
+                      style={{padding:'7px 14px',borderRadius:'999px',fontSize:'12px',fontWeight:600,cursor:'pointer',border:'1px solid',fontFamily:'inherit',whiteSpace:'nowrap',transition:'all .15s',
+                        background:filtroStatus===s?'#2563EB':'rgba(255,255,255,.06)',
+                        color:filtroStatus===s?'#fff':'#94A3B8',
+                        borderColor:filtroStatus===s?'#2563EB':'rgba(255,255,255,.12)'}}>
+                      {s}
+                    </button>
+                  ))}
+                </div>
+                <div style={{position:'relative'}}>
+                  <span style={{position:'absolute',left:'12px',top:'50%',transform:'translateY(-50%)',color:'#64748B',fontSize:'14px'}}>🔍</span>
+                  <input type="text" placeholder="Buscar cliente, contato ou serviço..." value={filtroCliente} onChange={e=>setFiltroCliente(e.target.value)}
+                    style={{border:'1px solid rgba(255,255,255,.12)',borderRadius:'10px',padding:'9px 14px 9px 36px',fontSize:'13px',color:'#fff',outline:'none',fontFamily:'inherit',background:'rgba(255,255,255,.06)',width:'300px'}} />
+                </div>
+              </div>
+            </div>
+
+            {/* CONTEUDO */}
+            <div className="cm-lista-pad" style={{padding:'0 32px 60px',maxWidth:'1280px',margin:'0 auto'}}>
+
+              {/* Estado vazio */}
+              {orcsFiltrados.length===0?(
+                <div style={{background:'rgba(255,255,255,.04)',border:'1px solid rgba(255,255,255,.08)',borderRadius:'20px',padding:'64px 24px',textAlign:'center'}}>
+                  <div style={{width:'72px',height:'72px',borderRadius:'50%',background:'rgba(37,99,235,.2)',border:'1px solid rgba(37,99,235,.3)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'32px',margin:'0 auto 20px'}}>
+                    📋
+                  </div>
+                  <p style={{fontSize:'20px',fontWeight:700,color:'#fff',marginBottom:'8px'}}>Nenhum orçamento criado ainda</p>
+                  <p style={{fontSize:'14px',color:'#94A3B8',marginBottom:'28px'}}>Crie seu primeiro orçamento, registre pagamentos e envie pelo WhatsApp.</p>
+                  <button onClick={()=>{resetForm();setView('form')}}
+                    style={{background:'#2563EB',color:'#fff',border:'none',borderRadius:'10px',padding:'13px 32px',fontSize:'15px',fontWeight:700,cursor:'pointer',fontFamily:'inherit',boxShadow:'0 4px 20px rgba(37,99,235,.4)'}}>
+                    Criar primeiro orçamento
+                  </button>
+                </div>
+              ):(
+                /* TABELA PREMIUM */
+                <div style={{background:'rgba(255,255,255,.04)',border:'1px solid rgba(255,255,255,.08)',borderRadius:'20px',overflow:'hidden'}}>
+                  <div style={{padding:'18px 24px',borderBottom:'1px solid rgba(255,255,255,.08)',display:'flex',alignItems:'center',justifyContent:'space-between'}}>
+                    <p style={{fontSize:'14px',fontWeight:700,color:'#fff'}}>Orçamentos recentes</p>
+                    <span style={{fontSize:'12px',color:'#64748B'}}>{orcsFiltrados.length} registro{orcsFiltrados.length!==1?'s':''}</span>
+                  </div>
+
+                  {/* Header tabela — desktop */}
+                  <div style={{display:'grid',gridTemplateColumns:'2fr 1.2fr 1fr 1fr 1fr 120px 100px',gap:'0',padding:'10px 24px',borderBottom:'1px solid rgba(255,255,255,.06)'}}>
+                    {['Cliente','Tipo / Data','Total','Pago','Saldo','Status','Ações'].map(h=>(
+                      <p key={h} style={{fontSize:'11px',fontWeight:600,color:'#64748B',textTransform:'uppercase',letterSpacing:'.06em'}}>{h}</p>
+                    ))}
+                  </div>
+
+                  {orcsFiltrados.map((orc,i)=>{
+                    const cfg=STATUS_COR[orc.status]||STATUS_COR['Aberto']
+                    return (
+                      <div key={orc.id}
+                        style={{display:'grid',gridTemplateColumns:'2fr 1.2fr 1fr 1fr 1fr 120px 100px',gap:'0',padding:'14px 24px',borderBottom:i<orcsFiltrados.length-1?'1px solid rgba(255,255,255,.05)':'none',alignItems:'center',transition:'background .15s',cursor:'pointer'}}
+                        onMouseEnter={e=>(e.currentTarget.style.background='rgba(255,255,255,.04)')}
+                        onMouseLeave={e=>(e.currentTarget.style.background='transparent')}>
+                        <div>
+                          <p style={{fontSize:'14px',fontWeight:600,color:'#fff',marginBottom:'2px'}}>{orc.cliente_nome}</p>
+                          <p style={{fontSize:'11px',color:'#64748B'}}>{orc.cliente_whatsapp?aplicarMascaraTel(orc.cliente_whatsapp):''}</p>
                         </div>
-                        <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'8px',marginBottom:'12px'}}>
-                          {[{l:'Total',v:orc.total,c:'#0F172A'},{l:'Pago',v:orc.valor_pago,c:'#16A34A'},{l:'Saldo',v:orc.saldo_restante,c:orc.saldo_restante>0?'#EA580C':'#16A34A'}].map(f=>(
-                            <div key={f.l} style={{background:BG,borderRadius:'8px',padding:'8px 10px'}}>
-                              <p style={{fontSize:'10px',color:'#667085',fontWeight:600,textTransform:'uppercase',letterSpacing:'.05em',marginBottom:'3px'}}>{f.l}</p>
-                              <p style={{fontSize:'13px',fontWeight:700,color:f.c}}>R$ {fmtBRL(f.v)}</p>
-                            </div>
-                          ))}
+                        <div>
+                          <p style={{fontSize:'13px',color:'#CBD5E1'}}>{orc.tipo}</p>
+                          <p style={{fontSize:'11px',color:'#64748B'}}>{fmtData(orc.data)}</p>
                         </div>
-                        <div style={{display:'flex',gap:'6px',flexWrap:'wrap'}}>
-                          {[
-                            {l:'Ver detalhes',fn:()=>{setDetalheId(orc.id);carregarPagamentos(orc.id);setView('detalhe')},primary:true},
-                            {l:'Registrar pgto',fn:()=>{setDetalheId(orc.id);carregarPagamentos(orc.id);setView('detalhe');setShowPagForm(true)},green:true},
-                            {l:'PDF',fn:()=>gerarPDF(orc)},
-                            {l:'WhatsApp',fn:()=>enviarWpp(orc),wpp:true},
-                            {l:'Editar',fn:()=>abrirEditar(orc)},
-                            {l:'Excluir',fn:()=>handleExcluir(orc.id),danger:true},
-                          ].map(b=>(
-                            <button key={b.l} onClick={b.fn}
-                              style={{padding:'6px 12px',borderRadius:'6px',fontSize:'11px',fontWeight:600,cursor:'pointer',fontFamily:'inherit',border:'1.5px solid',
-                                background:b.primary?'#2563EB':b.green?'#F0FDF4':b.wpp?'#F0FFF4':b.danger?'#FEF2F2':'#F8FAFC',
-                                color:b.primary?'#fff':b.green?'#16A34A':b.wpp?'#16A34A':b.danger?'#DC2626':'#667085',
-                                borderColor:b.primary?'#2563EB':b.green?'#BBF7D0':b.wpp?'#86EFAC':b.danger?'#FECACA':'#DCE3EA'}}>
-                              {b.l}
-                            </button>
-                          ))}
+                        <p style={{fontSize:'14px',fontWeight:700,color:'#fff'}}>R$ {fmtBRL(orc.total)}</p>
+                        <p style={{fontSize:'14px',fontWeight:600,color:'#22C55E'}}>R$ {fmtBRL(orc.valor_pago)}</p>
+                        <p style={{fontSize:'14px',fontWeight:600,color:orc.saldo_restante>0?'#F59E0B':'#22C55E'}}>R$ {fmtBRL(orc.saldo_restante)}</p>
+                        <span style={{fontSize:'11px',fontWeight:700,padding:'4px 10px',borderRadius:'999px',background:cfg.bg,color:cfg.color,border:`1px solid ${cfg.border}`,display:'inline-block',textAlign:'center'}}>
+                          {orc.status}
+                        </span>
+                        <div style={{display:'flex',gap:'6px'}}>
+                          <button onClick={()=>{setDetalheId(orc.id);carregarPagamentos(orc.id);setView('detalhe')}}
+                            style={{background:'rgba(37,99,235,.2)',border:'1px solid rgba(37,99,235,.3)',borderRadius:'6px',padding:'5px 10px',fontSize:'11px',fontWeight:600,color:'#93C5FD',cursor:'pointer',fontFamily:'inherit'}}>Ver</button>
+                          <button onClick={()=>enviarWpp(orc)}
+                            style={{background:'rgba(22,163,74,.2)',border:'1px solid rgba(22,163,74,.3)',borderRadius:'6px',padding:'5px 8px',fontSize:'13px',cursor:'pointer',fontFamily:'inherit'}}>💬</button>
+                          <button onClick={()=>abrirEditar(orc)}
+                            style={{background:'rgba(255,255,255,.08)',border:'1px solid rgba(255,255,255,.12)',borderRadius:'6px',padding:'5px 8px',fontSize:'13px',cursor:'pointer',fontFamily:'inherit'}}>✏️</button>
+                          <button onClick={()=>handleExcluir(orc.id)}
+                            style={{background:'rgba(220,38,38,.15)',border:'1px solid rgba(220,38,38,.25)',borderRadius:'6px',padding:'5px 8px',fontSize:'13px',cursor:'pointer',fontFamily:'inherit'}}>🗑</button>
                         </div>
                       </div>
-                    </div>
-                  )
-                })}
+                    )
+                  })}
+                </div>
+              )}
+
+              {/* AÇÕES RÁPIDAS */}
+              <div style={{marginTop:'20px',background:'rgba(255,255,255,.04)',border:'1px solid rgba(255,255,255,.08)',borderRadius:'16px',padding:'20px 24px'}}>
+                <div style={{display:'flex',alignItems:'center',gap:'8px',marginBottom:'16px'}}>
+                  <span style={{fontSize:'16px'}}>⚡</span>
+                  <p style={{fontSize:'14px',fontWeight:700,color:'#fff'}}>Ações rápidas</p>
+                </div>
+                <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:'10px'}}>
+                  {[
+                    {icon:'📋',label:'Criar orçamento',sub:'Novo orçamento personalizado',cor:'#2563EB',fn:()=>{resetForm();setView('form')}},
+                    {icon:'💳',label:'Registrar pagamento',sub:'Marcar pagamento recebido',cor:'#16A34A',fn:()=>{}},
+                    {icon:'🔗',label:'Enviar link',sub:'Compartilhar com cliente',cor:'#7C3AED',fn:()=>{}},
+                    {icon:'📊',label:'Relatórios',sub:'Visualizar indicadores',cor:'#0891B2',fn:()=>{}},
+                  ].map(a=>(
+                    <button key={a.label} onClick={a.fn}
+                      style={{background:'rgba(255,255,255,.04)',border:'1px solid rgba(255,255,255,.08)',borderRadius:'12px',padding:'14px',textAlign:'left',cursor:'pointer',fontFamily:'inherit',transition:'all .2s'}}>
+                      <span style={{fontSize:'22px',display:'block',marginBottom:'8px'}}>{a.icon}</span>
+                      <p style={{fontSize:'13px',fontWeight:600,color:'#fff',marginBottom:'3px'}}>{a.label}</p>
+                      <p style={{fontSize:'11px',color:'#64748B'}}>{a.sub}</p>
+                    </button>
+                  ))}
+                </div>
               </div>
-            )}
+            </div>
           </div>
         )}
 
