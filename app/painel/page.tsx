@@ -124,18 +124,19 @@ select option{background:#070F1D;color:#F8FAFC}
 /* ── Sidebar ── */
 .sb{
   width:220px;min-height:100vh;
-  background:linear-gradient(180deg,#070F1D 0%,#050B16 100%);
+  background:
+    radial-gradient(circle at top left,rgba(124,58,237,.14),transparent 32%),
+    linear-gradient(180deg,#070F1D 0%,#050B16 100%);
   border-right:1px solid rgba(148,163,184,.14);
   display:flex;flex-direction:column;
   position:fixed;top:0;left:0;z-index:30;
-  box-shadow:inset 0 30px 60px rgba(124,58,237,.06);
 }
 .sb-logo{padding:20px 16px 16px;border-bottom:1px solid rgba(148,163,184,.08);display:flex;align-items:center;gap:8px}
 .sb-icon{
   width:28px;height:28px;border-radius:8px;
   background:linear-gradient(135deg,#3B82F6,#7C3AED);
   display:flex;align-items:center;justify-content:center;flex-shrink:0;
-  box-shadow:0 0 20px rgba(124,58,237,.52);
+  box-shadow:0 0 22px rgba(124,58,237,.48);
 }
 .sb nav{flex:1;padding:10px 8px}
 .nl{
@@ -154,7 +155,9 @@ select option{background:#070F1D;color:#F8FAFC}
 }
 .nl.on svg{opacity:1}
 .sb-foot{padding:10px;border-top:1px solid rgba(148,163,184,.08)}
-.sb-foot-in{display:flex;align-items:center;gap:10px;background:rgba(15,23,42,.78);border:1px solid rgba(148,163,184,.12);border-radius:10px;padding:10px 12px}
+.sb-foot-in{display:flex;align-items:center;gap:10px;background:rgba(15,23,42,.78);border:1px solid rgba(148,163,184,.12);border-radius:10px;padding:10px 12px;margin-bottom:6px}
+.sb-sair{display:flex;align-items:center;gap:6px;width:100%;background:rgba(15,23,42,.72);border:1px solid rgba(148,163,184,.14);border-radius:8px;padding:8px 12px;font-size:12px;font-weight:500;color:#64748B;cursor:pointer;transition:all .18s;font-family:inherit}
+.sb-sair:hover{background:rgba(239,68,68,.08);border-color:rgba(239,68,68,.32);color:#F87171}
 
 /* ── Mobile Header ── */
 .mob-hdr{
@@ -203,16 +206,18 @@ select option{background:#070F1D;color:#F8FAFC}
 
 /* ── Card base ── */
 .crd{
-  background:linear-gradient(145deg,rgba(15,23,42,.96),rgba(8,20,33,.98));
+  background:
+    radial-gradient(circle at top left,rgba(124,58,237,.10),transparent 38%),
+    linear-gradient(145deg,rgba(15,23,42,.97),rgba(8,20,33,.99));
   border:1.5px solid rgba(148,163,184,.18);
   border-radius:18px;
-  box-shadow:0 20px 48px rgba(0,0,0,.34),inset 0 1px 0 rgba(255,255,255,.03);
+  box-shadow:0 20px 48px rgba(0,0,0,.34),inset 0 1px 0 rgba(255,255,255,.04);
 }
 .crd-hov{transition:transform .2s,border-color .2s,box-shadow .2s}
 .crd-hov:hover{
   transform:translateY(-2px);
   border-color:rgba(124,58,237,.42)!important;
-  box-shadow:0 24px 56px rgba(0,0,0,.40),0 0 24px rgba(124,58,237,.16)!important;
+  box-shadow:0 24px 60px rgba(0,0,0,.44),0 0 28px rgba(124,58,237,.18),inset 0 1px 0 rgba(255,255,255,.05)!important;
 }
 
 /* ── Icon badge ── */
@@ -363,6 +368,12 @@ export default function Painel() {
             <p style={{fontSize:'10px',color:'#64748B',marginTop:'1px'}}>Administrador</p>
           </div>
         </div>
+        <button onClick={logout} className="sb-sair">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>
+          </svg>
+          Sair da conta
+        </button>
       </div>
     </aside>
   )
@@ -390,10 +401,16 @@ export default function Painel() {
           ))}
         </nav>
         <div style={{padding:'10px',borderTop:'1px solid rgba(148,163,184,.1)'}}>
-          <div style={{display:'flex',alignItems:'center',gap:'10px',background:'rgba(15,23,42,.78)',border:'1px solid rgba(148,163,184,.12)',borderRadius:'10px',padding:'10px 12px'}}>
+          <div style={{display:'flex',alignItems:'center',gap:'10px',background:'rgba(15,23,42,.78)',border:'1px solid rgba(148,163,184,.12)',borderRadius:'10px',padding:'10px 12px',marginBottom:'6px'}}>
             <div style={{width:'32px',height:'32px',borderRadius:'50%',background:grad,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'13px',fontWeight:700,color:'#fff',flexShrink:0}}>{ini}</div>
             <div><p style={{fontSize:'13px',fontWeight:600,color:'#F8FAFC'}}>{nome||'Meu negócio'}</p><p style={{fontSize:'11px',color:'#64748B'}}>Administrador</p></div>
           </div>
+          <button onClick={logout} style={{display:'flex',alignItems:'center',gap:'6px',width:'100%',background:'rgba(15,23,42,.72)',border:'1px solid rgba(148,163,184,.14)',borderRadius:'8px',padding:'9px 12px',fontSize:'12px',fontWeight:500,color:'#64748B',cursor:'pointer',fontFamily:'inherit',transition:'all .18s'}}>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>
+            </svg>
+            Sair da conta
+          </button>
         </div>
       </div>
       <SB/>
@@ -432,10 +449,10 @@ export default function Painel() {
           {/* PÁGINA PÚBLICA ATIVA */}
           {chkOk&&checklist.slug&&(
             <div className="pagina-ativa" style={{
-              background:'radial-gradient(circle at top left,rgba(34,197,94,.22),transparent 35%),linear-gradient(145deg,rgba(6,78,59,.30),rgba(15,23,42,.96))',
-              border:'1.5px solid rgba(34,197,94,.36)',borderRadius:'16px',
+              background:'radial-gradient(circle at top left,rgba(34,197,94,.24),transparent 36%),linear-gradient(145deg,rgba(6,78,59,.32),rgba(15,23,42,.97))',
+              border:'1.5px solid rgba(34,197,94,.38)',borderRadius:'16px',
               padding:'16px 20px',marginBottom:'20px',
-              boxShadow:'0 16px 42px rgba(34,197,94,.08)',
+              boxShadow:'0 16px 42px rgba(34,197,94,.08),inset 0 1px 0 rgba(255,255,255,.04)',
               display:'flex',alignItems:'center',justifyContent:'space-between',gap:'16px',flexWrap:'wrap',width:'100%',boxSizing:'border-box' as const,
             }}>
               <div style={{display:'flex',alignItems:'flex-start',gap:'12px',flex:1,minWidth:0}}>
@@ -474,17 +491,17 @@ export default function Painel() {
           <div className="atl-grid">
             {[
               {label:'Agenda',     sub:'Veja e gerencie seus horários.',   Icon:Icon.Calendar,    href:'/painel/agendamentos',
-                bg:'radial-gradient(circle at top left,rgba(59,130,246,.28),transparent 36%),linear-gradient(145deg,rgba(15,23,42,.96),rgba(8,20,33,.98))',
-                bd:'rgba(59,130,246,.42)',ico_bg:'rgba(59,130,246,.20)',ico_c:'#60A5FA',glow:'rgba(59,130,246,.35)'},
+                bg:'radial-gradient(circle at top left,rgba(59,130,246,.32),transparent 38%),linear-gradient(145deg,rgba(15,23,42,.97),rgba(8,20,33,.99))',
+                bd:'rgba(59,130,246,.46)',ico_bg:'rgba(59,130,246,.20)',ico_c:'#60A5FA',glow:'rgba(59,130,246,.24)'},
               {label:'Clientes',   sub:'Seus clientes em um só lugar.',    Icon:Icon.Users,       href:'/painel/clientes',
-                bg:'radial-gradient(circle at top left,rgba(34,211,238,.24),transparent 36%),linear-gradient(145deg,rgba(15,23,42,.96),rgba(8,20,33,.98))',
-                bd:'rgba(34,211,238,.38)',ico_bg:'rgba(34,211,238,.18)',ico_c:'#22D3EE',glow:'rgba(34,211,238,.32)'},
+                bg:'radial-gradient(circle at top left,rgba(34,211,238,.28),transparent 38%),linear-gradient(145deg,rgba(15,23,42,.97),rgba(8,20,33,.99))',
+                bd:'rgba(34,211,238,.42)',ico_bg:'rgba(34,211,238,.18)',ico_c:'#22D3EE',glow:'rgba(34,211,238,.22)'},
               {label:'Orçamentos', sub:'Crie e acompanhe orçamentos.',     Icon:Icon.ClipboardList,href:'/painel/orcamentos',
-                bg:'radial-gradient(circle at top left,rgba(124,58,237,.28),transparent 36%),linear-gradient(145deg,rgba(15,23,42,.96),rgba(8,20,33,.98))',
-                bd:'rgba(124,58,237,.44)',ico_bg:'rgba(124,58,237,.22)',ico_c:'#A78BFA',glow:'rgba(124,58,237,.38)'},
+                bg:'radial-gradient(circle at top left,rgba(124,58,237,.34),transparent 38%),linear-gradient(145deg,rgba(15,23,42,.97),rgba(8,20,33,.99))',
+                bd:'rgba(124,58,237,.50)',ico_bg:'rgba(124,58,237,.22)',ico_c:'#A78BFA',glow:'rgba(124,58,237,.26)'},
               {label:'Cobranças',  sub:'Gerencie cobranças e pagamentos.', Icon:Icon.Wallet,      href:'/painel/financeiro',
-                bg:'radial-gradient(circle at top left,rgba(139,92,246,.24),transparent 36%),linear-gradient(145deg,rgba(15,23,42,.96),rgba(8,20,33,.98))',
-                bd:'rgba(139,92,246,.40)',ico_bg:'rgba(139,92,246,.20)',ico_c:'#C4B5FD',glow:'rgba(139,92,246,.34)'},
+                bg:'radial-gradient(circle at top left,rgba(139,92,246,.30),transparent 38%),linear-gradient(145deg,rgba(15,23,42,.97),rgba(8,20,33,.99))',
+                bd:'rgba(139,92,246,.46)',ico_bg:'rgba(139,92,246,.20)',ico_c:'#C4B5FD',glow:'rgba(139,92,246,.24)'},
             ].map(a=>(
               <Link key={a.label} href={a.href} className="crd-hov"
                 style={{background:a.bg,border:`1px solid ${a.bd}`,borderRadius:'18px',padding:'20px',textDecoration:'none',display:'block',position:'relative',width:'100%',boxSizing:'border-box' as const,boxShadow:`0 18px 45px rgba(0,0,0,.34),inset 0 1px 0 rgba(255,255,255,.035)`}}>
@@ -501,19 +518,19 @@ export default function Painel() {
           {/* KPIs */}
           <div className="kpi-grid">
             {[
-              {label:'Atendimentos hoje',     valor:agHoje,       fmt:'n',  Icon:Icon.Calendar,    cor:'#60A5FA',bd:'rgba(59,130,246,.30)', ico_bg:'rgba(59,130,246,.14)', glow:'rgba(59,130,246,.32)'},
-              {label:'Próximos agendamentos', valor:proxCount,     fmt:'n',  Icon:Icon.Clock,       cor:'#22D3EE',bd:'rgba(34,211,238,.30)',  ico_bg:'rgba(34,211,238,.14)', glow:'rgba(34,211,238,.30)'},
-              {label:'Orçamentos em aberto',  valor:orcAbertos,   fmt:'n',  Icon:Icon.ClipboardList,cor:'#A78BFA',bd:'rgba(124,58,237,.34)',ico_bg:'rgba(124,58,237,.16)',glow:'rgba(124,58,237,.34)'},
-              {label:'Total a receber',       valor:totalReceber, fmt:'brl',Icon:Icon.Wallet,       cor:'#F59E0B',bd:'rgba(245,158,11,.34)', ico_bg:'rgba(245,158,11,.14)', glow:'rgba(245,158,11,.30)'},
-              {label:'Recebido no mês',       valor:recMes,       fmt:'brl',Icon:Icon.CreditCard,  cor:'#22C55E',bd:'rgba(34,197,94,.34)',  ico_bg:'rgba(34,197,94,.14)',  glow:'rgba(34,197,94,.32)'},
-              {label:'Retornos pendentes',    valor:retornos,     fmt:'n',  Icon:Icon.Clock,       cor:'#FBBF24',bd:'rgba(245,158,11,.30)', ico_bg:'rgba(245,158,11,.12)', glow:'rgba(245,158,11,.26)'},
+              {label:'Atendimentos hoje',     valor:agHoje,       fmt:'n',  Icon:Icon.Calendar,    cor:'#60A5FA',bd:'rgba(59,130,246,.34)', ico_bg:'rgba(59,130,246,.15)', glow:'rgba(59,130,246,.24)'},
+              {label:'Próximos agendamentos', valor:proxCount,     fmt:'n',  Icon:Icon.Clock,       cor:'#22D3EE',bd:'rgba(34,211,238,.34)',  ico_bg:'rgba(34,211,238,.15)', glow:'rgba(34,211,238,.22)'},
+              {label:'Orçamentos em aberto',  valor:orcAbertos,   fmt:'n',  Icon:Icon.ClipboardList,cor:'#A78BFA',bd:'rgba(124,58,237,.38)',ico_bg:'rgba(124,58,237,.17)',glow:'rgba(124,58,237,.26)'},
+              {label:'Total a receber',       valor:totalReceber, fmt:'brl',Icon:Icon.Wallet,       cor:'#F59E0B',bd:'rgba(245,158,11,.38)', ico_bg:'rgba(245,158,11,.15)', glow:'rgba(245,158,11,.22)'},
+              {label:'Recebido no mês',       valor:recMes,       fmt:'brl',Icon:Icon.CreditCard,  cor:'#22C55E',bd:'rgba(34,197,94,.38)',  ico_bg:'rgba(34,197,94,.15)',  glow:'rgba(34,197,94,.22)'},
+              {label:'Retornos pendentes',    valor:retornos,     fmt:'n',  Icon:Icon.Clock,       cor:'#FBBF24',bd:'rgba(245,158,11,.34)', ico_bg:'rgba(245,158,11,.13)', glow:'rgba(245,158,11,.20)'},
             ].map(m=>(
-              <div key={m.label} style={{background:'linear-gradient(145deg,rgba(15,23,42,.96),rgba(8,20,33,.98))',border:`1.5px solid ${m.bd}`,borderRadius:'16px',padding:'18px',boxSizing:'border-box' as const,boxShadow:'0 20px 48px rgba(0,0,0,.28),inset 0 1px 0 rgba(255,255,255,.03)'}}>
-                <div style={{width:'40px',height:'40px',borderRadius:'12px',background:m.ico_bg,border:`1px solid ${m.bd}`,display:'flex',alignItems:'center',justifyContent:'center',marginBottom:'12px',boxShadow:`0 0 18px ${m.glow}`}}>
+              <div key={m.label} style={{background:'radial-gradient(circle at top left,rgba(124,58,237,.08),transparent 40%),linear-gradient(145deg,rgba(15,23,42,.97),rgba(8,20,33,.99))',border:`1.5px solid ${m.bd}`,borderRadius:'16px',padding:'18px',boxSizing:'border-box' as const,boxShadow:'0 20px 48px rgba(0,0,0,.28),inset 0 1px 0 rgba(255,255,255,.04)'}}>
+                <div style={{width:'40px',height:'40px',borderRadius:'12px',background:m.ico_bg,border:`1px solid rgba(255,255,255,.10)`,display:'flex',alignItems:'center',justifyContent:'center',marginBottom:'12px',boxShadow:`0 0 20px ${m.glow},inset 0 1px 0 rgba(255,255,255,.05)`}}>
                   <span style={{color:m.cor}}><m.Icon/></span>
                 </div>
-                <p style={{fontSize:'10px',fontWeight:700,color:'#94A3B8',textTransform:'uppercase' as const,letterSpacing:'.06em',marginBottom:'5px',lineHeight:1.3}}>{m.label}</p>
-                <p style={{fontSize:'24px',fontWeight:800,color:m.cor,letterSpacing:'-0.02em',lineHeight:1.1}}>
+                <p style={{fontSize:'11px',fontWeight:700,color:'#94A3B8',textTransform:'uppercase' as const,letterSpacing:'.05em',marginBottom:'5px',lineHeight:1.3}}>{m.label}</p>
+                <p style={{fontSize:'26px',fontWeight:800,color:m.cor,letterSpacing:'-0.02em',lineHeight:1.1}}>
                   {m.fmt==='brl'?'R$ '+fmtBRL(m.valor as number):m.valor}
                 </p>
               </div>
@@ -558,13 +575,15 @@ export default function Painel() {
               </Link>
             </div>
             {proxHoje.length===0?(
-              <div style={{padding:'36px 16px',textAlign:'center'}}>
-                <div style={{width:'48px',height:'48px',borderRadius:'14px',background:'rgba(37,99,235,.16)',border:'1px solid rgba(37,99,235,.28)',display:'flex',alignItems:'center',justifyContent:'center',margin:'0 auto 14px',boxShadow:'0 0 22px rgba(37,99,235,.25)',color:'#60A5FA'}}>
+              <div style={{padding:'28px 24px',textAlign:'center',display:'flex',flexDirection:'column',alignItems:'center',gap:'12px'}}>
+                <div style={{width:'48px',height:'48px',borderRadius:'16px',background:'rgba(59,130,246,.16)',border:'1px solid rgba(59,130,246,.30)',display:'flex',alignItems:'center',justifyContent:'center',boxShadow:'0 0 24px rgba(59,130,246,.24)',color:'#60A5FA'}}>
                   <Icon.Calendar/>
                 </div>
-                <p style={{fontSize:'14px',fontWeight:700,color:'#F8FAFC',marginBottom:'6px'}}>Nenhum atendimento hoje</p>
-                <p style={{fontSize:'12px',color:'#64748B',lineHeight:1.5,marginBottom:'18px',maxWidth:'240px',margin:'0 auto 18px'}}>Quando houver horários marcados, eles aparecerão aqui.</p>
-                <Link href="/painel/agendamentos" className="btn-pri" style={{display:'inline-flex',fontSize:'13px',padding:'9px 20px',borderRadius:'8px'}}>
+                <div>
+                  <p style={{fontSize:'16px',fontWeight:700,color:'#F8FAFC',marginBottom:'6px'}}>Nenhum atendimento hoje</p>
+                  <p style={{fontSize:'13px',color:'#94A3B8',lineHeight:1.5,maxWidth:'280px',margin:'0 auto'}}>Quando houver horários marcados, eles aparecerão aqui.</p>
+                </div>
+                <Link href="/painel/agendamentos" className="btn-pri" style={{display:'inline-flex',fontSize:'13px',padding:'9px 20px',borderRadius:'8px',marginTop:'4px'}}>
                   + Novo agendamento
                 </Link>
               </div>
@@ -627,13 +646,7 @@ export default function Painel() {
             </div>
           </div>
 
-          {/* Rodapé */}
-          <div style={{paddingTop:'16px',borderTop:'1px solid rgba(148,163,184,.08)',display:'flex',justifyContent:'flex-end'}}>
-            <button onClick={logout}
-              style={{background:'rgba(15,23,42,.86)',border:'1px solid rgba(148,163,184,.18)',borderRadius:'8px',padding:'8px 16px',fontSize:'13px',fontWeight:600,color:'#64748B',cursor:'pointer',fontFamily:'inherit',transition:'color .2s'}}>
-              Sair da conta
-            </button>
-          </div>
+          {/* Sem rodapé de logout — o botão Sair está na sidebar */}
 
         </div>
         </div>
