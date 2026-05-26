@@ -125,16 +125,17 @@ select option{background:#070F1D;color:#F8FAFC}
 .sb{
   width:220px;min-height:100vh;
   background:linear-gradient(180deg,#070F1D 0%,#050B16 100%);
-  border-right:1px solid rgba(148,163,184,.12);
+  border-right:1px solid rgba(148,163,184,.14);
   display:flex;flex-direction:column;
   position:fixed;top:0;left:0;z-index:30;
+  box-shadow:inset 0 30px 60px rgba(124,58,237,.06);
 }
 .sb-logo{padding:20px 16px 16px;border-bottom:1px solid rgba(148,163,184,.08);display:flex;align-items:center;gap:8px}
 .sb-icon{
   width:28px;height:28px;border-radius:8px;
-  background:linear-gradient(135deg,#2563EB,#7C3AED);
+  background:linear-gradient(135deg,#3B82F6,#7C3AED);
   display:flex;align-items:center;justify-content:center;flex-shrink:0;
-  box-shadow:0 0 18px rgba(124,58,237,.45);
+  box-shadow:0 0 20px rgba(124,58,237,.52);
 }
 .sb nav{flex:1;padding:10px 8px}
 .nl{
@@ -143,13 +144,13 @@ select option{background:#070F1D;color:#F8FAFC}
   transition:all .18s;border:1px solid transparent;white-space:nowrap;
 }
 .nl svg{flex-shrink:0;opacity:.7;transition:opacity .18s}
-.nl:hover{background:rgba(124,58,237,.12);color:#F8FAFC;border-color:rgba(124,58,237,.28)}
+.nl:hover{background:rgba(124,58,237,.10);color:#FFFFFF;border-color:rgba(124,58,237,.20)}
 .nl:hover svg{opacity:1}
 .nl.on{
-  background:linear-gradient(135deg,#2563EB,#7C3AED);
+  background:linear-gradient(135deg,#3B82F6,#7C3AED);
   color:#fff;font-weight:600;
-  box-shadow:0 0 24px rgba(124,58,237,.36),inset 0 1px 0 rgba(255,255,255,.12);
-  border-color:rgba(255,255,255,.1);
+  box-shadow:0 0 26px rgba(124,58,237,.34),inset 0 1px 0 rgba(255,255,255,.10);
+  border-color:rgba(255,255,255,.10);
 }
 .nl.on svg{opacity:1}
 .sb-foot{padding:10px;border-top:1px solid rgba(148,163,184,.08)}
@@ -173,9 +174,10 @@ select option{background:#070F1D;color:#F8FAFC}
 .main{margin-left:220px;flex:1;min-height:100vh;display:flex;flex-direction:column;width:calc(100% - 220px);max-width:calc(100% - 220px)}
 .pg{
   background:
-    radial-gradient(circle at top left,rgba(124,58,237,.18),transparent 32%),
-    radial-gradient(circle at top right,rgba(37,99,235,.16),transparent 30%),
-    radial-gradient(circle at bottom right,rgba(6,182,212,.08),transparent 28%),
+    radial-gradient(circle at top left,rgba(124,58,237,.24),transparent 30%),
+    radial-gradient(circle at left center,rgba(37,99,235,.16),transparent 24%),
+    radial-gradient(circle at top right,rgba(37,99,235,.14),transparent 28%),
+    radial-gradient(circle at bottom right,rgba(6,182,212,.08),transparent 24%),
     linear-gradient(135deg,#050B16 0%,#07111F 45%,#050B16 100%);
   min-height:100vh;width:100%;overflow-x:hidden;
 }
@@ -183,34 +185,34 @@ select option{background:#070F1D;color:#F8FAFC}
 
 /* ── Botão principal ── */
 .btn-pri{
-  background:linear-gradient(135deg,#2563EB,#7C3AED);
-  color:#fff;border:1px solid rgba(255,255,255,.1);border-radius:10px;
+  background:linear-gradient(135deg,#3B82F6,#7C3AED);
+  color:#fff;border:1px solid rgba(255,255,255,.10);border-radius:10px;
   padding:11px 20px;font-size:13px;font-weight:700;
-  box-shadow:0 12px 30px rgba(37,99,235,.30),0 0 26px rgba(124,58,237,.28);
+  box-shadow:0 12px 30px rgba(59,130,246,.30),0 0 26px rgba(124,58,237,.26);
   text-decoration:none;display:flex;align-items:center;justify-content:center;gap:6px;
   white-space:nowrap;transition:box-shadow .2s,transform .2s;font-family:inherit;cursor:pointer;
 }
-.btn-pri:hover{box-shadow:0 16px 38px rgba(37,99,235,.38),0 0 34px rgba(124,58,237,.40);transform:translateY(-1px)}
+.btn-pri:hover{box-shadow:0 16px 38px rgba(59,130,246,.36),0 0 34px rgba(124,58,237,.34);transform:translateY(-1px)}
 .btn-sec{
-  background:rgba(15,23,42,.86);color:#CBD5E1;border:1px solid rgba(148,163,184,.18);
+  background:rgba(15,23,42,.86);color:#CBD5E1;border:1px solid rgba(148,163,184,.20);
   border-radius:10px;padding:11px 18px;font-size:13px;font-weight:600;
   text-decoration:none;display:flex;align-items:center;justify-content:center;gap:6px;
   white-space:nowrap;transition:all .2s;font-family:inherit;cursor:pointer;
 }
-.btn-sec:hover{background:rgba(124,58,237,.12);border-color:rgba(124,58,237,.35);color:#fff}
+.btn-sec:hover{background:rgba(124,58,237,.12);border-color:rgba(124,58,237,.36);color:#fff}
 
 /* ── Card base ── */
 .crd{
   background:linear-gradient(145deg,rgba(15,23,42,.96),rgba(8,20,33,.98));
-  border:1px solid rgba(148,163,184,.16);
+  border:1.5px solid rgba(148,163,184,.18);
   border-radius:18px;
-  box-shadow:0 18px 45px rgba(0,0,0,.34),inset 0 1px 0 rgba(255,255,255,.035);
+  box-shadow:0 20px 48px rgba(0,0,0,.34),inset 0 1px 0 rgba(255,255,255,.03);
 }
 .crd-hov{transition:transform .2s,border-color .2s,box-shadow .2s}
 .crd-hov:hover{
   transform:translateY(-2px);
-  border-color:rgba(124,58,237,.46)!important;
-  box-shadow:0 22px 55px rgba(0,0,0,.42),0 0 30px rgba(124,58,237,.20)!important;
+  border-color:rgba(124,58,237,.42)!important;
+  box-shadow:0 24px 56px rgba(0,0,0,.40),0 0 24px rgba(124,58,237,.16)!important;
 }
 
 /* ── Icon badge ── */
@@ -228,8 +230,8 @@ select option{background:#070F1D;color:#F8FAFC}
 /* ── Agenda ── */
 .agenda-wrap{
   background:linear-gradient(145deg,rgba(15,23,42,.96),rgba(8,20,33,.98));
-  border:1px solid rgba(148,163,184,.16);border-radius:18px;overflow:hidden;margin-bottom:20px;
-  box-shadow:0 18px 45px rgba(0,0,0,.28);
+  border:1.5px solid rgba(148,163,184,.18);border-radius:18px;overflow:hidden;margin-bottom:20px;
+  box-shadow:0 20px 48px rgba(0,0,0,.28);
 }
 .agenda-hdr{padding:16px 24px;border-bottom:1px solid rgba(148,163,184,.08);display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
 .ag-row{display:flex;align-items:center;gap:10px;padding:12px 24px;border-bottom:1px solid rgba(148,163,184,.06);transition:background .15s}
@@ -240,8 +242,8 @@ select option{background:#070F1D;color:#F8FAFC}
 /* ── Checklist ── */
 .chk-wrap{
   background:linear-gradient(145deg,rgba(15,23,42,.96),rgba(8,20,33,.98));
-  border:1px solid rgba(148,163,184,.16);border-radius:18px;padding:20px;margin-bottom:20px;
-  box-shadow:0 18px 45px rgba(0,0,0,.28);
+  border:1.5px solid rgba(148,163,184,.18);border-radius:18px;padding:20px;margin-bottom:20px;
+  box-shadow:0 20px 48px rgba(0,0,0,.28);
 }
 
 /* ── Responsivo ── */
@@ -431,9 +433,9 @@ export default function Painel() {
           {chkOk&&checklist.slug&&(
             <div className="pagina-ativa" style={{
               background:'radial-gradient(circle at top left,rgba(34,197,94,.22),transparent 35%),linear-gradient(145deg,rgba(6,78,59,.30),rgba(15,23,42,.96))',
-              border:'1px solid rgba(34,197,94,.38)',borderRadius:'16px',
+              border:'1.5px solid rgba(34,197,94,.36)',borderRadius:'16px',
               padding:'16px 20px',marginBottom:'20px',
-              boxShadow:'0 16px 40px rgba(34,197,94,.08)',
+              boxShadow:'0 16px 42px rgba(34,197,94,.08)',
               display:'flex',alignItems:'center',justifyContent:'space-between',gap:'16px',flexWrap:'wrap',width:'100%',boxSizing:'border-box' as const,
             }}>
               <div style={{display:'flex',alignItems:'flex-start',gap:'12px',flex:1,minWidth:0}}>
@@ -472,17 +474,17 @@ export default function Painel() {
           <div className="atl-grid">
             {[
               {label:'Agenda',     sub:'Veja e gerencie seus horários.',   Icon:Icon.Calendar,    href:'/painel/agendamentos',
-                bg:'radial-gradient(circle at top left,rgba(37,99,235,.28),transparent 36%),linear-gradient(145deg,rgba(15,23,42,.96),rgba(8,20,33,.98))',
-                bd:'rgba(37,99,235,.42)',ico_bg:'rgba(37,99,235,.2)',ico_c:'#60A5FA',glow:'rgba(37,99,235,.35)'},
+                bg:'radial-gradient(circle at top left,rgba(59,130,246,.28),transparent 36%),linear-gradient(145deg,rgba(15,23,42,.96),rgba(8,20,33,.98))',
+                bd:'rgba(59,130,246,.42)',ico_bg:'rgba(59,130,246,.20)',ico_c:'#60A5FA',glow:'rgba(59,130,246,.35)'},
               {label:'Clientes',   sub:'Seus clientes em um só lugar.',    Icon:Icon.Users,       href:'/painel/clientes',
-                bg:'radial-gradient(circle at top left,rgba(6,182,212,.25),transparent 36%),linear-gradient(145deg,rgba(15,23,42,.96),rgba(8,20,33,.98))',
-                bd:'rgba(6,182,212,.38)',ico_bg:'rgba(6,182,212,.18)',ico_c:'#22D3EE',glow:'rgba(6,182,212,.32)'},
+                bg:'radial-gradient(circle at top left,rgba(34,211,238,.24),transparent 36%),linear-gradient(145deg,rgba(15,23,42,.96),rgba(8,20,33,.98))',
+                bd:'rgba(34,211,238,.38)',ico_bg:'rgba(34,211,238,.18)',ico_c:'#22D3EE',glow:'rgba(34,211,238,.32)'},
               {label:'Orçamentos', sub:'Crie e acompanhe orçamentos.',     Icon:Icon.ClipboardList,href:'/painel/orcamentos',
-                bg:'radial-gradient(circle at top left,rgba(124,58,237,.30),transparent 36%),linear-gradient(145deg,rgba(15,23,42,.96),rgba(8,20,33,.98))',
-                bd:'rgba(124,58,237,.46)',ico_bg:'rgba(124,58,237,.22)',ico_c:'#A78BFA',glow:'rgba(124,58,237,.38)'},
+                bg:'radial-gradient(circle at top left,rgba(124,58,237,.28),transparent 36%),linear-gradient(145deg,rgba(15,23,42,.96),rgba(8,20,33,.98))',
+                bd:'rgba(124,58,237,.44)',ico_bg:'rgba(124,58,237,.22)',ico_c:'#A78BFA',glow:'rgba(124,58,237,.38)'},
               {label:'Cobranças',  sub:'Gerencie cobranças e pagamentos.', Icon:Icon.Wallet,      href:'/painel/financeiro',
-                bg:'radial-gradient(circle at top left,rgba(139,92,246,.28),transparent 36%),linear-gradient(145deg,rgba(15,23,42,.96),rgba(8,20,33,.98))',
-                bd:'rgba(139,92,246,.42)',ico_bg:'rgba(139,92,246,.20)',ico_c:'#C4B5FD',glow:'rgba(139,92,246,.34)'},
+                bg:'radial-gradient(circle at top left,rgba(139,92,246,.24),transparent 36%),linear-gradient(145deg,rgba(15,23,42,.96),rgba(8,20,33,.98))',
+                bd:'rgba(139,92,246,.40)',ico_bg:'rgba(139,92,246,.20)',ico_c:'#C4B5FD',glow:'rgba(139,92,246,.34)'},
             ].map(a=>(
               <Link key={a.label} href={a.href} className="crd-hov"
                 style={{background:a.bg,border:`1px solid ${a.bd}`,borderRadius:'18px',padding:'20px',textDecoration:'none',display:'block',position:'relative',width:'100%',boxSizing:'border-box' as const,boxShadow:`0 18px 45px rgba(0,0,0,.34),inset 0 1px 0 rgba(255,255,255,.035)`}}>
@@ -499,14 +501,14 @@ export default function Painel() {
           {/* KPIs */}
           <div className="kpi-grid">
             {[
-              {label:'Atendimentos hoje',     valor:agHoje,       fmt:'n',  Icon:Icon.Calendar,    cor:'#60A5FA',bd:'rgba(37,99,235,.28)', ico_bg:'rgba(37,99,235,.12)', glow:'rgba(37,99,235,.3)'},
-              {label:'Próximos agendamentos', valor:proxCount,     fmt:'n',  Icon:Icon.Clock,       cor:'#22D3EE',bd:'rgba(6,182,212,.28)',  ico_bg:'rgba(6,182,212,.12)', glow:'rgba(6,182,212,.3)'},
-              {label:'Orçamentos em aberto',  valor:orcAbertos,   fmt:'n',  Icon:Icon.ClipboardList,cor:'#A78BFA',bd:'rgba(124,58,237,.32)',ico_bg:'rgba(124,58,237,.14)',glow:'rgba(124,58,237,.32)'},
-              {label:'Total a receber',       valor:totalReceber, fmt:'brl',Icon:Icon.Wallet,       cor:'#FBBF24',bd:'rgba(245,158,11,.32)',ico_bg:'rgba(245,158,11,.12)',glow:'rgba(245,158,11,.28)'},
-              {label:'Recebido no mês',       valor:recMes,       fmt:'brl',Icon:Icon.CreditCard,  cor:'#4ADE80',bd:'rgba(34,197,94,.32)', ico_bg:'rgba(34,197,94,.12)', glow:'rgba(34,197,94,.3)'},
-              {label:'Retornos pendentes',    valor:retornos,     fmt:'n',  Icon:Icon.Clock,       cor:'#FBBF24',bd:'rgba(245,158,11,.28)',ico_bg:'rgba(245,158,11,.1)', glow:'rgba(245,158,11,.24)'},
+              {label:'Atendimentos hoje',     valor:agHoje,       fmt:'n',  Icon:Icon.Calendar,    cor:'#60A5FA',bd:'rgba(59,130,246,.30)', ico_bg:'rgba(59,130,246,.14)', glow:'rgba(59,130,246,.32)'},
+              {label:'Próximos agendamentos', valor:proxCount,     fmt:'n',  Icon:Icon.Clock,       cor:'#22D3EE',bd:'rgba(34,211,238,.30)',  ico_bg:'rgba(34,211,238,.14)', glow:'rgba(34,211,238,.30)'},
+              {label:'Orçamentos em aberto',  valor:orcAbertos,   fmt:'n',  Icon:Icon.ClipboardList,cor:'#A78BFA',bd:'rgba(124,58,237,.34)',ico_bg:'rgba(124,58,237,.16)',glow:'rgba(124,58,237,.34)'},
+              {label:'Total a receber',       valor:totalReceber, fmt:'brl',Icon:Icon.Wallet,       cor:'#F59E0B',bd:'rgba(245,158,11,.34)', ico_bg:'rgba(245,158,11,.14)', glow:'rgba(245,158,11,.30)'},
+              {label:'Recebido no mês',       valor:recMes,       fmt:'brl',Icon:Icon.CreditCard,  cor:'#22C55E',bd:'rgba(34,197,94,.34)',  ico_bg:'rgba(34,197,94,.14)',  glow:'rgba(34,197,94,.32)'},
+              {label:'Retornos pendentes',    valor:retornos,     fmt:'n',  Icon:Icon.Clock,       cor:'#FBBF24',bd:'rgba(245,158,11,.30)', ico_bg:'rgba(245,158,11,.12)', glow:'rgba(245,158,11,.26)'},
             ].map(m=>(
-              <div key={m.label} style={{background:'linear-gradient(145deg,rgba(15,23,42,.96),rgba(8,20,33,.98))',border:`1px solid ${m.bd}`,borderRadius:'16px',padding:'18px',boxSizing:'border-box' as const,boxShadow:'0 18px 45px rgba(0,0,0,.28),inset 0 1px 0 rgba(255,255,255,.03)'}}>
+              <div key={m.label} style={{background:'linear-gradient(145deg,rgba(15,23,42,.96),rgba(8,20,33,.98))',border:`1.5px solid ${m.bd}`,borderRadius:'16px',padding:'18px',boxSizing:'border-box' as const,boxShadow:'0 20px 48px rgba(0,0,0,.28),inset 0 1px 0 rgba(255,255,255,.03)'}}>
                 <div style={{width:'40px',height:'40px',borderRadius:'12px',background:m.ico_bg,border:`1px solid ${m.bd}`,display:'flex',alignItems:'center',justifyContent:'center',marginBottom:'12px',boxShadow:`0 0 18px ${m.glow}`}}>
                   <span style={{color:m.cor}}><m.Icon/></span>
                 </div>
@@ -603,18 +605,18 @@ export default function Painel() {
             <p style={{fontSize:'11px',fontWeight:700,color:'#475569',textTransform:'uppercase' as const,letterSpacing:'.09em',marginBottom:'14px'}}>Ações rápidas</p>
             <div className="ac-grid">
               {[
-                {label:'Novo agendamento',   sub:'Agende um atendimento',  I:Icon.Calendar,    href:'/painel/agendamentos',  bg:'rgba(37,99,235,.1)', bd:'rgba(37,99,235,.3)',  ic_bg:'rgba(37,99,235,.18)', cor:'#60A5FA', glow:'rgba(37,99,235,.3)'},
-                {label:'Novo cliente',       sub:'Cadastre um contato',    I:Icon.Users,       href:'/painel/clientes',      bg:'rgba(6,182,212,.1)',  bd:'rgba(6,182,212,.3)', ic_bg:'rgba(6,182,212,.16)',cor:'#22D3EE', glow:'rgba(6,182,212,.28)'},
-                {label:'Novo orçamento',     sub:'Crie em segundos',       I:Icon.ClipboardList,href:'/painel/orcamentos',   bg:'rgba(124,58,237,.1)',bd:'rgba(124,58,237,.34)',ic_bg:'rgba(124,58,237,.18)',cor:'#A78BFA',glow:'rgba(124,58,237,.32)'},
-                {label:'Registrar pagamento',sub:'Marque como recebido',   I:Icon.CreditCard,  href:'/painel/financeiro',    bg:'rgba(34,197,94,.1)', bd:'rgba(34,197,94,.32)', ic_bg:'rgba(34,197,94,.16)', cor:'#4ADE80', glow:'rgba(34,197,94,.28)'},
-                {label:'Novo serviço',       sub:'Cadastre um serviço',    I:Icon.Sparkles,    href:'/painel/servicos',      bg:'rgba(236,72,153,.1)',bd:'rgba(236,72,153,.28)',ic_bg:'rgba(236,72,153,.15)',cor:'#F472B6',glow:'rgba(236,72,153,.24)'},
-                {label:'Novo profissional',  sub:'Adicione à equipe',      I:Icon.UserRound,   href:'/painel/profissionais', bg:'rgba(139,92,246,.1)',bd:'rgba(139,92,246,.30)',ic_bg:'rgba(139,92,246,.16)',cor:'#C4B5FD',glow:'rgba(139,92,246,.28)'},
-                {label:'Configurar horários',sub:'Ajuste funcionamento',   I:Icon.Settings,    href:'/painel/perfil',        bg:'rgba(148,163,184,.06)',bd:'rgba(148,163,184,.22)',ic_bg:'rgba(148,163,184,.12)',cor:'#CBD5E1',glow:'rgba(148,163,184,.16)'},
-                {label:'Bloqueios de agenda',sub:'Feche dias ou horários', I:Icon.Ban,         href:'/painel/bloqueios',     bg:'rgba(239,68,68,.1)', bd:'rgba(239,68,68,.28)', ic_bg:'rgba(239,68,68,.14)', cor:'#F87171', glow:'rgba(239,68,68,.24)'},
-                {label:'Relatórios',         sub:'Veja indicadores',       I:Icon.BarChart3,   href:'/painel/relatorio',     bg:'rgba(56,189,248,.1)',bd:'rgba(56,189,248,.30)',ic_bg:'rgba(56,189,248,.15)',cor:'#38BDF8',glow:'rgba(56,189,248,.26)'},
+                {label:'Novo agendamento',   sub:'Agende um atendimento',  I:Icon.Calendar,    href:'/painel/agendamentos',  bg:'rgba(59,130,246,.1)',  bd:'rgba(59,130,246,.32)',  ic_bg:'rgba(59,130,246,.18)', cor:'#60A5FA', glow:'rgba(59,130,246,.30)'},
+                {label:'Novo cliente',       sub:'Cadastre um contato',    I:Icon.Users,       href:'/painel/clientes',      bg:'rgba(34,211,238,.1)', bd:'rgba(34,211,238,.30)', ic_bg:'rgba(34,211,238,.16)',cor:'#22D3EE', glow:'rgba(34,211,238,.28)'},
+                {label:'Novo orçamento',     sub:'Crie em segundos',       I:Icon.ClipboardList,href:'/painel/orcamentos',   bg:'rgba(124,58,237,.1)', bd:'rgba(124,58,237,.36)', ic_bg:'rgba(124,58,237,.18)',cor:'#A78BFA',glow:'rgba(124,58,237,.32)'},
+                {label:'Registrar pagamento',sub:'Marque como recebido',   I:Icon.CreditCard,  href:'/painel/financeiro',    bg:'rgba(34,197,94,.1)',  bd:'rgba(34,197,94,.34)',  ic_bg:'rgba(34,197,94,.16)', cor:'#4ADE80', glow:'rgba(34,197,94,.28)'},
+                {label:'Novo serviço',       sub:'Cadastre um serviço',    I:Icon.Sparkles,    href:'/painel/servicos',      bg:'rgba(236,72,153,.1)', bd:'rgba(236,72,153,.30)', ic_bg:'rgba(236,72,153,.15)',cor:'#F472B6',glow:'rgba(236,72,153,.24)'},
+                {label:'Novo profissional',  sub:'Adicione à equipe',      I:Icon.UserRound,   href:'/painel/profissionais', bg:'rgba(139,92,246,.1)', bd:'rgba(139,92,246,.32)', ic_bg:'rgba(139,92,246,.16)',cor:'#C4B5FD',glow:'rgba(139,92,246,.28)'},
+                {label:'Configurar horários',sub:'Ajuste funcionamento',   I:Icon.Settings,    href:'/painel/perfil',        bg:'rgba(148,163,184,.06)',bd:'rgba(148,163,184,.24)',ic_bg:'rgba(148,163,184,.12)',cor:'#CBD5E1',glow:'rgba(148,163,184,.16)'},
+                {label:'Bloqueios de agenda',sub:'Feche dias ou horários', I:Icon.Ban,         href:'/painel/bloqueios',     bg:'rgba(239,68,68,.1)',  bd:'rgba(239,68,68,.30)',  ic_bg:'rgba(239,68,68,.14)', cor:'#F87171', glow:'rgba(239,68,68,.24)'},
+                {label:'Relatórios',         sub:'Veja indicadores',       I:Icon.BarChart3,   href:'/painel/relatorio',     bg:'rgba(56,189,248,.1)', bd:'rgba(56,189,248,.32)', ic_bg:'rgba(56,189,248,.15)',cor:'#38BDF8',glow:'rgba(56,189,248,.26)'},
               ].map(a=>(
                 <Link key={a.label} href={a.href}
-                  style={{background:`linear-gradient(145deg,rgba(15,23,42,.92),rgba(8,20,33,.96))`,border:`1px solid ${a.bd}`,borderRadius:'14px',padding:'16px',textDecoration:'none',display:'block',width:'100%',boxSizing:'border-box' as const,transition:'border-color .2s,box-shadow .2s',boxShadow:'0 10px 30px rgba(0,0,0,.24)'}}>
+                  style={{background:`linear-gradient(145deg,rgba(15,23,42,.92),rgba(8,20,33,.96))`,border:`1.5px solid ${a.bd}`,borderRadius:'14px',padding:'16px',textDecoration:'none',display:'block',width:'100%',boxSizing:'border-box' as const,transition:'border-color .2s,box-shadow .2s',boxShadow:'0 12px 32px rgba(0,0,0,.26)'}}>
                   <div style={{width:'40px',height:'40px',borderRadius:'12px',background:a.ic_bg,border:`1px solid ${a.bd}`,display:'flex',alignItems:'center',justifyContent:'center',marginBottom:'10px',boxShadow:`0 0 18px ${a.glow}`}}>
                     <span style={{color:a.cor}}><a.I/></span>
                   </div>
