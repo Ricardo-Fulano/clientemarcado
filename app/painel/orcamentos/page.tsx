@@ -26,22 +26,23 @@ function aplicarMascaraTel(v:string){
 }
 
 const SIDEBAR_ITEMS = [
-  {icon:'⊞',label:'Início',href:'/painel'},
-  {icon:'👥',label:'Clientes',href:'/painel'},
+  {icon:'▦',label:'Início',href:'/painel'},
+  {icon:'▣',label:'Agenda',href:'/painel/agendamentos'},
+  {icon:'👥',label:'Clientes',href:'/painel/clientes'},
   {icon:'📋',label:'Orçamentos',href:'/painel/orcamentos',active:true},
   {icon:'💰',label:'Cobranças',href:'/painel/financeiro'},
   {icon:'💳',label:'Pagamentos',href:'/painel/financeiro'},
   {icon:'✂️',label:'Serviços',href:'/painel/servicos'},
-  {icon:'📅',label:'Agenda',href:'/painel/agendamentos'},
+  {icon:'👤',label:'Profissionais',href:'/painel/profissionais'},
   {icon:'📊',label:'Relatórios',href:'/painel/relatorio'},
   {icon:'⚙️',label:'Configurações',href:'/painel/perfil'},
 ]
 
 // Dark Design System tokens
-const BG        = '#07111F'
-const CARD      = 'rgba(255,255,255,.055)'
-const CARD_B    = 'rgba(255,255,255,.09)'
-const SIDEBAR_C = '#0B172A'
+const BG        = '#061220'
+const CARD      = 'rgba(15,30,53,.72)'
+const CARD_B    = 'rgba(255,255,255,.10)'
+const SIDEBAR_C = '#07111F'
 
 const MOBILE_CSS = `
   html,body{overflow-x:hidden;width:100%}
@@ -89,7 +90,9 @@ const MOBILE_CSS = `
     .cm-cards-mobile{display:flex !important}
     .cm-2col{grid-template-columns:1fr !important}
     .cm-inprow{grid-template-columns:1fr !important}
-    .cm-acoes-grid{grid-template-columns:1fr 1fr !important}
+    .cm-acoes-grid{display:flex !important;overflow-x:auto !important;overflow-y:hidden !important;gap:12px !important;scroll-snap-type:x mandatory !important;-webkit-overflow-scrolling:touch !important;padding:0 2px 10px 2px !important;scrollbar-width:none !important;width:100% !important;max-width:100% !important}
+    .cm-acoes-grid::-webkit-scrollbar{display:none !important}
+    .cm-acoes-grid > button{min-width:158px !important;max-width:168px !important;flex:0 0 158px !important;scroll-snap-align:start !important}
     .cm-serv-qtd-val{grid-template-columns:1fr !important}
   }
   @media(min-width:1024px){
@@ -100,10 +103,13 @@ const MOBILE_CSS = `
   @media(max-width:380px){
     .cm-atalhos-grid{grid-template-columns:1fr !important}
     .cm-kpi-grid{grid-template-columns:1fr !important}
-    .cm-acoes-grid{grid-template-columns:1fr !important}
+    .cm-acoes-grid > button{min-width:150px !important;flex-basis:150px !important}
   }
   .cm-lista-body{overflow-x:hidden}
   .cm-lista-topo{overflow-x:hidden}
+
+  .cm-premium-card{transition:transform .2s ease,border-color .2s ease,box-shadow .2s ease}
+  .cm-premium-card:hover{transform:translateY(-2px);box-shadow:0 18px 45px rgba(0,0,0,.28)}
 `
 
 export default function Orcamentos() {
@@ -393,7 +399,7 @@ export default function Orcamentos() {
       <nav style={{flex:1,padding:'10px 8px'}}>
         {SIDEBAR_ITEMS.map(item=>(
           <Link key={item.label} href={item.href}
-            style={{display:'flex',alignItems:'center',gap:'10px',padding:'9px 12px',borderRadius:'8px',marginBottom:'2px',textDecoration:'none',background:item.active?'rgba(37,99,235,.25)':'transparent',color:item.active?'#93C5FD':'rgba(255,255,255,.55)',fontSize:'13px',fontWeight:item.active?600:400,transition:'all .15s',borderLeft:item.active?'2px solid #2563EB':'2px solid transparent'}}>
+            style={{display:'flex',alignItems:'center',gap:'10px',padding:'9px 12px',borderRadius:'8px',marginBottom:'2px',textDecoration:'none',background:item.active?'linear-gradient(135deg,#2563EB,#7C3AED)':'transparent',color:item.active?'#FFFFFF':'rgba(203,213,225,.68)',fontSize:'13px',fontWeight:item.active?600:400,transition:'all .15s',borderLeft:item.active?'2px solid rgba(255,255,255,.35)':'2px solid transparent'}}>
             <span style={{fontSize:'15px'}}>{item.icon}</span>
             {item.label}
           </Link>
@@ -433,7 +439,7 @@ export default function Orcamentos() {
         <nav style={{flex:1,padding:'10px 8px',overflowY:'auto'}}>
           {SIDEBAR_ITEMS.map(item=>(
             <Link key={item.label} href={item.href} onClick={()=>setMobileMenuOpen(false)}
-              style={{display:'flex',alignItems:'center',gap:'10px',padding:'11px 14px',borderRadius:'8px',marginBottom:'2px',textDecoration:'none',background:item.active?'rgba(37,99,235,.25)':'transparent',color:item.active?'#93C5FD':'rgba(255,255,255,.65)',fontSize:'14px',fontWeight:item.active?600:400}}>
+              style={{display:'flex',alignItems:'center',gap:'10px',padding:'11px 14px',borderRadius:'8px',marginBottom:'2px',textDecoration:'none',background:item.active?'linear-gradient(135deg,#2563EB,#7C3AED)':'transparent',color:item.active?'#FFFFFF':'rgba(203,213,225,.72)',fontSize:'14px',fontWeight:item.active?600:400}}>
               <span style={{fontSize:'18px'}}>{item.icon}</span>{item.label}
             </Link>
           ))}
@@ -492,7 +498,7 @@ export default function Orcamentos() {
                   {icon:'💳',label:'Pagamentos',sub:'Visualize pagamentos confirmados e pendentes.',cor:'#0891B2',bg:'rgba(8,145,178,.12)',border:'rgba(8,145,178,.22)',fn:()=>{}},
                   {icon:'👥',label:'Clientes',sub:'Gerencie seus clientes e informações de contato.',cor:'#16A34A',bg:'rgba(22,163,74,.12)',border:'rgba(22,163,74,.22)',fn:()=>{}},
                 ].map(a=>(
-                  <button key={a.label} onClick={a.fn}
+                  <button key={a.label} onClick={a.fn} className="cm-premium-card"
                     style={{background:a.bg,border:`1px solid ${a.border}`,borderRadius:'16px',padding:'20px',textAlign:'left',cursor:'pointer',fontFamily:'inherit',width:'100%',boxSizing:'border-box' as const,position:'relative',transition:'border-color .2s'}}>
                     <div style={{width:'48px',height:'48px',borderRadius:'50%',background:`${a.cor}22`,border:`1px solid ${a.border}`,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'22px',marginBottom:'14px'}}>
                       {a.icon}
@@ -512,7 +518,7 @@ export default function Orcamentos() {
                   {icon:'✅',label:'Recebido no mês',valor:recebidoMes,fmt:'brl',cor:'#22C55E',bg:'rgba(34,197,94,.1)',border:'rgba(34,197,94,.2)'},
                   {icon:'🔄',label:'Parciais',valor:parciais,fmt:'n',cor:'#A78BFA',bg:'rgba(167,139,250,.1)',border:'rgba(167,139,250,.2)'},
                 ].map(m=>(
-                  <div key={m.label} style={{background:m.bg,border:`1px solid ${m.border}`,borderRadius:'16px',padding:'18px',boxSizing:'border-box' as const}}>
+                  <div key={m.label} className="cm-premium-card" style={{background:m.bg,border:`1px solid ${m.border}`,borderRadius:'16px',padding:'18px',boxSizing:'border-box' as const}}>
                     <div style={{width:'40px',height:'40px',borderRadius:'50%',background:`${m.bg}`,border:`1px solid ${m.border}`,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'18px',marginBottom:'12px'}}>
                       {m.icon}
                     </div>
