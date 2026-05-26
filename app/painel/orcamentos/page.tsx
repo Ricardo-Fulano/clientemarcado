@@ -748,19 +748,19 @@ export default function Orcamentos() {
 
         {/* ══ FORMULÁRIO ══ */}
         {view==='form'&&(
-          <div style={{maxWidth:'900px',margin:'0 auto',width:'100%'}}>
+          <div style={{maxWidth:'1060px',margin:'0 auto',width:'100%'}}>
 
             {/* Topo form */}
-            <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:'20px',flexWrap:'wrap',gap:'12px'}}>
+            <div style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',marginBottom:'22px',flexWrap:'wrap',gap:'12px'}}>
               <div>
                 <button onClick={()=>{resetForm();setView('lista')}}
                   style={{background:'none',border:'none',cursor:'pointer',fontSize:'13px',color:'#64748B',fontFamily:'inherit',padding:'0',display:'flex',alignItems:'center',gap:'4px',marginBottom:'8px'}}>
                   ← Voltar à lista
                 </button>
-                <h1 style={{fontSize:'20px',fontWeight:800,color:'#F8FAFC',letterSpacing:'-0.02em',marginBottom:'2px'}}>{editandoId?'Editar orçamento':'Novo orçamento'}</h1>
-                <p style={{fontSize:'13px',color:'#64748B'}}>Preencha os dados e envie para o cliente.</p>
+                <h1 style={{fontSize:'20px',fontWeight:800,color:'#F8FAFC',letterSpacing:'-0.02em',marginBottom:'4px'}}>{editandoId?'Editar orçamento':'Novo orçamento'}</h1>
+                <p style={{fontSize:'13px',color:'#64748B'}}>Preencha os dados essenciais e envie para o cliente.</p>
               </div>
-              <div style={{display:'flex',alignItems:'center',gap:'6px',background:'rgba(34,197,94,.12)',border:'1px solid rgba(34,197,94,.25)',borderRadius:'8px',padding:'6px 12px'}}>
+              <div style={{display:'flex',alignItems:'center',gap:'6px',background:'rgba(34,197,94,.12)',border:'1px solid rgba(34,197,94,.25)',borderRadius:'8px',padding:'6px 12px',flexShrink:0}}>
                 <span style={{fontSize:'12px',color:'#4ADE80'}}>✓</span>
                 <span style={{fontSize:'12px',fontWeight:600,color:'#4ADE80'}}>Salvo automaticamente</span>
               </div>
@@ -772,27 +772,43 @@ export default function Orcamentos() {
               </div>
             )}
 
-            {/* Grid form 2 cols desktop */}
-            <div style={{display:'grid',gridTemplateColumns:'1fr 280px',gap:'20px',alignItems:'start'}} className="form-grid-inner">
-              <style>{`.form-grid-inner{grid-template-columns:1fr 280px!important} @media(max-width:1023px){.form-grid-inner{grid-template-columns:1fr!important}}`}</style>
 
-              {/* Coluna principal */}
-              <div>
+            {/* Grid 2 colunas desktop / 1 coluna mobile */}
+            <div className="form-2col" style={{display:'grid',gridTemplateColumns:'1fr 290px',gap:'20px',alignItems:'start'}}>
+              <style>{`
+                .form-2col{grid-template-columns:1fr 290px}
+                .form-2col-r{display:block}
+                .f-2c{grid-template-columns:1fr 1fr}
+                .f-3c{grid-template-columns:1fr 80px 1fr}
+                @media(max-width:1023px){
+                  .form-2col{grid-template-columns:1fr!important}
+                  .form-2col-r{display:none!important}
+                  .f-2c{grid-template-columns:1fr!important}
+                  .f-3c{grid-template-columns:1fr!important}
+                  .fpb{padding-bottom:120px!important}
+                }
+              `}</style>
 
-                {/* CARD: Cliente */}
+              {/* ── COLUNA PRINCIPAL ── */}
+              <div className="fpb" style={{display:'flex',flexDirection:'column',gap:'12px'}}>
+
+                {/* 1. CARD CLIENTE */}
                 <div style={crd}>
-                  <div style={{display:'flex',alignItems:'center',gap:'8px',marginBottom:'16px'}}>
-                    <div style={{width:'32px',height:'32px',borderRadius:'10px',background:'rgba(34,211,238,.18)',border:'1px solid rgba(255,255,255,.10)',display:'flex',alignItems:'center',justifyContent:'center',color:'#22D3EE'}}>
+                  <div style={{display:'flex',alignItems:'center',gap:'10px',marginBottom:'18px'}}>
+                    <div style={{width:'36px',height:'36px',borderRadius:'12px',background:'rgba(34,211,238,.18)',border:'1px solid rgba(255,255,255,.10)',display:'flex',alignItems:'center',justifyContent:'center',color:'#22D3EE',flexShrink:0,boxShadow:'0 0 18px rgba(34,211,238,.20)'}}>
                       <Icon.Users/>
                     </div>
-                    <p style={{fontSize:'15px',fontWeight:700,color:'#F8FAFC'}}>Cliente</p>
+                    <div>
+                      <p style={{fontSize:'15px',fontWeight:700,color:'#F8FAFC'}}>Cliente</p>
+                      <p style={{fontSize:'12px',color:'#64748B'}}>Nome e contato para envio da cobrança.</p>
+                    </div>
                   </div>
                   <div style={{display:'flex',flexDirection:'column',gap:'12px'}}>
                     <div>
-                      <label style={lbl}>Nome *</label>
-                      <input style={inp} type="text" placeholder="Nome do cliente" value={cNome} onChange={e=>setCNome(e.target.value)}/>
+                      <label style={lbl}>Nome do cliente *</label>
+                      <input style={inp} type="text" placeholder="Ex: Maria Silva" value={cNome} onChange={e=>setCNome(e.target.value)}/>
                     </div>
-                    <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'12px'}}>
+                    <div className="f-2c" style={{display:'grid',gap:'12px'}}>
                       <div>
                         <label style={lbl}>WhatsApp *</label>
                         <input style={inp} type="tel" placeholder="(11) 99999-9999" value={cWpp} onChange={e=>setCWpp(mascaraTel(e.target.value))}/>
@@ -805,32 +821,112 @@ export default function Orcamentos() {
                   </div>
                 </div>
 
-                {/* ACCORDION: Detalhes */}
+                {/* 2. CARD SERVIÇO */}
+                <div style={crd}>
+                  <div style={{display:'flex',alignItems:'center',gap:'10px',marginBottom:'18px'}}>
+                    <div style={{width:'36px',height:'36px',borderRadius:'12px',background:'rgba(236,72,153,.16)',border:'1px solid rgba(255,255,255,.10)',display:'flex',alignItems:'center',justifyContent:'center',color:'#F472B6',flexShrink:0,boxShadow:'0 0 18px rgba(236,72,153,.18)'}}>
+                      <Icon.ClipboardList/>
+                    </div>
+                    <div>
+                      <p style={{fontSize:'15px',fontWeight:700,color:'#F8FAFC'}}>{itens.length>1?'Serviços / Procedimentos':'Serviço / Procedimento'}</p>
+                      <p style={{fontSize:'12px',color:'#64748B'}}>Adicione o serviço, procedimento ou item cobrado.</p>
+                    </div>
+                  </div>
+
+                  {itens.map((item,idx)=>(
+                    <div key={idx} style={{marginBottom:'14px',padding:'16px',background:'rgba(255,255,255,.04)',borderRadius:'14px',border:'1px solid rgba(255,255,255,.08)'}}>
+                      <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'12px'}}>
+                        <span style={{fontSize:'11px',fontWeight:700,color:'#475569',textTransform:'uppercase' as const,letterSpacing:'.06em'}}>{itens.length>1?`Item ${idx+1}`:'Serviço'}</span>
+                        {itens.length>1&&(
+                          <button onClick={()=>setItens(prev=>prev.filter((_,i)=>i!==idx))}
+                            style={{background:'rgba(239,68,68,.12)',border:'1px solid rgba(239,68,68,.26)',borderRadius:'6px',color:'#F87171',cursor:'pointer',fontSize:'12px',padding:'3px 10px',fontFamily:'inherit'}}>
+                            Remover
+                          </button>
+                        )}
+                      </div>
+                      <div style={{marginBottom:'10px'}}>
+                        <label style={lbl}>Nome do serviço / procedimento *</label>
+                        <input style={inp} type="text" placeholder="Ex: Corte de cabelo, Limpeza de pele, Consulta..."
+                          value={item.nome} onChange={e=>atualizarItem(idx,'nome',e.target.value)}/>
+                      </div>
+                      <div className="f-3c" style={{display:'grid',gap:'10px',marginBottom:'10px'}}>
+                        <div>
+                          <label style={lbl}>Quantidade</label>
+                          <input style={{...inp,textAlign:'center'}} type="number" min="1" value={item.qtd} onChange={e=>atualizarItem(idx,'qtd',e.target.value)}/>
+                        </div>
+                        <div>
+                          <label style={lbl}>Valor unitário</label>
+                          <div style={{position:'relative'}}>
+                            <span style={{position:'absolute',left:'10px',top:'50%',transform:'translateY(-50%)',fontSize:'12px',color:'#4B5563',fontWeight:600,pointerEvents:'none'}}>R$</span>
+                            <input style={{...inp,paddingLeft:'30px'}} type="number" min="0" step="0.01" placeholder="0,00"
+                              value={item.unitario} onChange={e=>atualizarItem(idx,'unitario',e.target.value)}/>
+                          </div>
+                        </div>
+                        <div>
+                          <label style={lbl}>Total do item</label>
+                          <div style={{background:item.total>0?'rgba(34,197,94,.12)':'rgba(255,255,255,.04)',border:`1.5px solid ${item.total>0?'rgba(34,197,94,.30)':'rgba(255,255,255,.08)'}`,borderRadius:'10px',padding:'10px 14px',display:'flex',alignItems:'center',justifyContent:'center',minHeight:'44px'}}>
+                            <span style={{fontSize:'16px',fontWeight:800,color:item.total>0?'#4ADE80':'#475569'}}>R$ {fmtBRL(item.total||0)}</span>
+                          </div>
+                        </div>
+                      </div>
+                      <div>
+                        <label style={lbl}>Observação (opcional)</label>
+                        <input style={{...inp,fontSize:'13px'}} type="text" placeholder="Ex: inclui hidratação, sessão 1 de 3..."
+                          value={item.obs} onChange={e=>atualizarItem(idx,'obs',e.target.value)}/>
+                      </div>
+                    </div>
+                  ))}
+
+                  <button onClick={()=>setItens(prev=>[...prev,{nome:'',qtd:1,unitario:'',total:0,obs:''}])}
+                    style={{background:'rgba(59,130,246,.1)',border:'1.5px dashed rgba(59,130,246,.3)',borderRadius:'10px',color:'#60A5FA',fontSize:'13px',fontWeight:600,cursor:'pointer',fontFamily:'inherit',padding:'10px 16px',display:'flex',alignItems:'center',gap:'6px',width:'100%',justifyContent:'center',transition:'background .2s'}}>
+                    <Icon.Plus/> Adicionar outro serviço
+                  </button>
+
+                  {/* Subtotal / Desconto / Total */}
+                  <div style={{marginTop:'16px',background:'rgba(255,255,255,.03)',borderRadius:'12px',padding:'14px 16px',border:'1px solid rgba(255,255,255,.07)'}}>
+                    <div style={{display:'flex',justifyContent:'space-between',fontSize:'13px',marginBottom:'8px'}}>
+                      <span style={{color:'#94A3B8'}}>Subtotal</span>
+                      <span style={{fontWeight:600,color:'#F8FAFC'}}>R$ {fmtBRL(subtotal)}</span>
+                    </div>
+                    <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',fontSize:'13px',marginBottom:'12px',paddingBottom:'12px',borderBottom:'1px solid rgba(255,255,255,.07)'}}>
+                      <span style={{color:'#94A3B8'}}>Desconto (R$)</span>
+                      <input type="number" min="0" step="0.01" placeholder="0,00" value={desconto} onChange={e=>setDesconto(e.target.value)}
+                        style={{background:'rgba(255,255,255,.06)',border:'1px solid rgba(255,255,255,.12)',outline:'none',color:'#F87171',fontSize:'13px',fontWeight:600,textAlign:'right' as const,width:'100px',fontFamily:'inherit',borderRadius:'8px',padding:'5px 10px'}}/>
+                    </div>
+                    <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+                      <span style={{fontSize:'14px',fontWeight:700,color:'#F8FAFC'}}>Total final</span>
+                      <span style={{fontSize:'22px',fontWeight:800,color:'#3B82F6',letterSpacing:'-0.02em'}}>R$ {fmtBRL(total)}</span>
+                    </div>
+                    {descontoN>subtotal&&subtotal>0&&<p style={{fontSize:'11px',color:'#FBBF24',marginTop:'6px',textAlign:'right'}}>⚠ Desconto maior que o subtotal.</p>}
+                  </div>
+                </div>
+
+                {/* 3. ACCORDION: Mais opções */}
                 <div style={{...crd,padding:0,overflow:'hidden'}}>
                   <div onClick={()=>setShowDet(!showDet)} style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'16px 20px',cursor:'pointer',userSelect:'none'}}>
                     <div style={{display:'flex',alignItems:'center',gap:'10px'}}>
-                      <div style={{width:'32px',height:'32px',borderRadius:'10px',background:'rgba(59,130,246,.18)',border:'1px solid rgba(255,255,255,.10)',display:'flex',alignItems:'center',justifyContent:'center',color:'#60A5FA'}}>
+                      <div style={{width:'32px',height:'32px',borderRadius:'10px',background:'rgba(59,130,246,.16)',border:'1px solid rgba(255,255,255,.10)',display:'flex',alignItems:'center',justifyContent:'center',color:'#60A5FA',flexShrink:0}}>
                         <Icon.ClipboardList/>
                       </div>
                       <div>
-                        <p style={{fontSize:'14px',fontWeight:700,color:'#F8FAFC'}}>Detalhes do documento</p>
-                        <p style={{fontSize:'12px',color:'#64748B',marginTop:'1px'}}>Tipo, status, profissional e data.</p>
+                        <p style={{fontSize:'14px',fontWeight:700,color:'#F8FAFC'}}>Mais opções</p>
+                        <p style={{fontSize:'12px',color:'#64748B',marginTop:'1px'}}>Tipo, profissional, data e status.</p>
                       </div>
                     </div>
                     <span style={{color:'#64748B',fontSize:'18px',transform:showDet?'rotate(180deg)':'none',transition:'transform .2s'}}><Icon.ChevronDown/></span>
                   </div>
                   {showDet&&(
-                    <div style={{padding:'0 20px 18px',borderTop:'1px solid rgba(148,163,184,.08)',display:'flex',flexDirection:'column',gap:'12px',marginTop:'16px'}}>
-                      <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'12px'}}>
+                    <div style={{padding:'0 20px 20px',borderTop:'1px solid rgba(148,163,184,.08)',display:'flex',flexDirection:'column',gap:'14px',marginTop:'16px'}}>
+                      <div className="f-2c" style={{display:'grid',gap:'12px'}}>
                         <div>
-                          <label style={lbl}>Tipo</label>
+                          <label style={lbl}>Tipo do documento</label>
                           <select style={sel} value={tipo} onChange={e=>{setTipo(e.target.value);if(e.target.value!=='__outro__')setTipoOutro('')}}>
                             {TIPOS_PADRAO.map(t=><option key={t}>{t}</option>)}
                             <option value="__outro__">Outro</option>
                           </select>
                           {tipo==='__outro__'&&(
                             <div style={{marginTop:'8px',display:'flex',flexDirection:'column',gap:'6px'}}>
-                              <input style={inp} type="text" placeholder="Ex: Avaliação, Laudo..." value={tipoOutro} onChange={e=>setTipoOutro(e.target.value)}/>
+                              <input style={inp} type="text" placeholder="Nome do tipo (Ex: Avaliação, Laudo...)" value={tipoOutro} onChange={e=>setTipoOutro(e.target.value)}/>
                               <input style={inp} type="text" placeholder="Descrição (opcional)" value={tipoDesc} onChange={e=>setTipoDesc(e.target.value)}/>
                             </div>
                           )}
@@ -842,7 +938,7 @@ export default function Orcamentos() {
                           </select>
                         </div>
                       </div>
-                      <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'12px'}}>
+                      <div className="f-2c" style={{display:'grid',gap:'12px'}}>
                         <div>
                           <label style={lbl}>Profissional</label>
                           <select style={sel} value={profId} onChange={e=>{setProfId(e.target.value);if(e.target.value!=='__outro__'){setProfNome('');setSalvProf(false)}}}>
@@ -851,7 +947,7 @@ export default function Orcamentos() {
                             <option value="__outro__">✏️ Outro / Não cadastrado</option>
                           </select>
                           {profId==='__outro__'&&(
-                            <div style={{marginTop:'8px',padding:'12px',background:'rgba(59,130,246,.1)',border:'1px solid rgba(59,130,246,.25)',borderRadius:'10px',display:'flex',flexDirection:'column',gap:'8px'}}>
+                            <div style={{marginTop:'8px',padding:'12px',background:'rgba(59,130,246,.08)',border:'1px solid rgba(59,130,246,.22)',borderRadius:'10px',display:'flex',flexDirection:'column',gap:'8px'}}>
                               <input style={inp} type="text" placeholder="Nome do profissional" value={profNome} onChange={e=>setProfNome(e.target.value)}/>
                               <div style={{display:'flex',alignItems:'center',gap:'8px'}}>
                                 <button onClick={()=>setSalvProf(!salvProf)}
@@ -872,129 +968,66 @@ export default function Orcamentos() {
                   )}
                 </div>
 
-                {/* CARD: Serviços */}
-                <div style={crd}>
-                  <div style={{display:'flex',alignItems:'center',gap:'8px',marginBottom:'16px'}}>
-                    <div style={{width:'32px',height:'32px',borderRadius:'10px',background:'rgba(236,72,153,.16)',border:'1px solid rgba(255,255,255,.10)',display:'flex',alignItems:'center',justifyContent:'center',color:'#F472B6'}}>
-                      <Icon.ClipboardList/>
-                    </div>
-                    <p style={{fontSize:'15px',fontWeight:700,color:'#F8FAFC'}}>Serviços / Procedimentos</p>
-                  </div>
-                  {itens.map((item,idx)=>(
-                    <div key={idx} style={{marginBottom:'12px',padding:'14px',background:'rgba(255,255,255,.04)',borderRadius:'12px',border:'1px solid rgba(255,255,255,.08)'}}>
-                      <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'10px'}}>
-                        <span style={{fontSize:'11px',fontWeight:700,color:'#4B5563',textTransform:'uppercase' as const,letterSpacing:'.06em'}}>Item {idx+1}</span>
-                        {itens.length>1&&(
-                          <button onClick={()=>setItens(prev=>prev.filter((_,i)=>i!==idx))}
-                            style={{background:'rgba(239,68,68,.14)',border:'1px solid rgba(239,68,68,.28)',borderRadius:'6px',color:'#F87171',cursor:'pointer',fontSize:'12px',padding:'3px 8px',fontFamily:'inherit'}}>
-                            Remover
-                          </button>
-                        )}
-                      </div>
-                      <div style={{marginBottom:'8px'}}>
-                        <label style={lbl}>Nome do serviço *</label>
-                        <input style={inp} type="text" placeholder="Ex: Corte, Limpeza de pele..." value={item.nome} onChange={e=>atualizarItem(idx,'nome',e.target.value)}/>
-                      </div>
-                      <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'8px',marginBottom:'8px'}}>
-                        <div>
-                          <label style={lbl}>Qtd.</label>
-                          <input style={{...inp,textAlign:'center'}} type="number" min="1" value={item.qtd} onChange={e=>atualizarItem(idx,'qtd',e.target.value)}/>
-                        </div>
-                        <div>
-                          <label style={lbl}>Valor unitário</label>
-                          <div style={{position:'relative'}}>
-                            <span style={{position:'absolute',left:'10px',top:'50%',transform:'translateY(-50%)',fontSize:'12px',color:'#4B5563',fontWeight:600}}>R$</span>
-                            <input style={{...inp,paddingLeft:'30px'}} type="number" min="0" step="0.01" placeholder="0,00" value={item.unitario} onChange={e=>atualizarItem(idx,'unitario',e.target.value)}/>
-                          </div>
-                        </div>
-                      </div>
-                      <div style={{background:item.total>0?'rgba(34,197,94,.1)':'rgba(255,255,255,.03)',border:`1px solid ${item.total>0?'rgba(34,197,94,.25)':'rgba(255,255,255,.07)'}`,borderRadius:'8px',padding:'9px 14px',display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'8px'}}>
-                        <span style={{fontSize:'12px',color:'#64748B',fontWeight:600}}>Total</span>
-                        <span style={{fontSize:'15px',fontWeight:800,color:item.total>0?'#4ADE80':'#374151'}}>R$ {fmtBRL(item.total||0)}</span>
-                      </div>
-                      <input style={{...inp,fontSize:'13px'}} type="text" placeholder="Observação opcional" value={item.obs} onChange={e=>atualizarItem(idx,'obs',e.target.value)}/>
-                    </div>
-                  ))}
-                  <button onClick={()=>setItens(prev=>[...prev,{nome:'',qtd:1,unitario:'',total:0,obs:''}])}
-                    style={{background:'none',border:'none',color:'#3B82F6',fontSize:'13px',fontWeight:600,cursor:'pointer',fontFamily:'inherit',padding:'4px 0',display:'flex',alignItems:'center',gap:'4px'}}>
-                    + Adicionar serviço
-                  </button>
-                  {/* Subtotal */}
-                  <div style={{marginTop:'14px',background:'rgba(255,255,255,.03)',borderRadius:'10px',padding:'14px 16px',border:'1px solid rgba(255,255,255,.07)'}}>
-                    <div style={{display:'flex',justifyContent:'space-between',fontSize:'13px',marginBottom:'8px'}}>
-                      <span style={{color:'#94A3B8'}}>Subtotal</span>
-                      <span style={{fontWeight:600,color:'#F8FAFC'}}>R$ {fmtBRL(subtotal)}</span>
-                    </div>
-                    <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',fontSize:'13px',marginBottom:'10px',paddingBottom:'10px',borderBottom:'1px solid rgba(255,255,255,.07)'}}>
-                      <span style={{color:'#94A3B8'}}>Desconto</span>
-                      <input type="number" min="0" step="0.01" placeholder="0,00" value={desconto} onChange={e=>setDesconto(e.target.value)}
-                        style={{background:'rgba(255,255,255,.06)',border:'1px solid rgba(255,255,255,.12)',outline:'none',color:'#F87171',fontSize:'13px',fontWeight:600,textAlign:'right' as const,width:'90px',fontFamily:'inherit',borderRadius:'6px',padding:'4px 8px'}}/>
-                    </div>
-                    <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
-                      <span style={{fontSize:'14px',fontWeight:700,color:'#F8FAFC'}}>Total final</span>
-                      <span style={{fontSize:'20px',fontWeight:800,color:'#3B82F6'}}>R$ {fmtBRL(total)}</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* ACCORDION: Pagamento */}
+                {/* 4. ACCORDION: Pagamento */}
                 <div style={{...crd,padding:0,overflow:'hidden'}}>
                   <div onClick={()=>setShowPag(!showPag)} style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'16px 20px',cursor:'pointer',userSelect:'none'}}>
                     <div style={{display:'flex',alignItems:'center',gap:'10px'}}>
-                      <div style={{width:'32px',height:'32px',borderRadius:'10px',background:'rgba(34,197,94,.18)',border:'1px solid rgba(255,255,255,.10)',display:'flex',alignItems:'center',justifyContent:'center',color:'#4ADE80'}}>
+                      <div style={{width:'32px',height:'32px',borderRadius:'10px',background:'rgba(34,197,94,.18)',border:'1px solid rgba(255,255,255,.10)',display:'flex',alignItems:'center',justifyContent:'center',color:'#4ADE80',flexShrink:0}}>
                         <Icon.CreditCard/>
                       </div>
                       <div>
                         <p style={{fontSize:'14px',fontWeight:700,color:'#F8FAFC'}}>Pagamento</p>
-                        <p style={{fontSize:'12px',color:'#64748B',marginTop:'1px'}}>{valorPago>0?`Pago: R$ ${fmtBRL(valorPago)} · Saldo: R$ ${fmtBRL(saldo)}`:'Entrada, parciais e link de cobrança.'}</p>
+                        <p style={{fontSize:'12px',color:valorPago>0?'#4ADE80':'#64748B',marginTop:'1px'}}>
+                          {valorPago>0?`Pago: R$ ${fmtBRL(valorPago)} · Saldo: R$ ${fmtBRL(saldo)}`:'Entrada, parciais e link de cobrança.'}
+                        </p>
                       </div>
                     </div>
                     <span style={{color:'#64748B',fontSize:'18px',transform:showPag?'rotate(180deg)':'none',transition:'transform .2s'}}><Icon.ChevronDown/></span>
                   </div>
                   {showPag&&(
-                    <div style={{padding:'0 20px 18px',borderTop:'1px solid rgba(148,163,184,.08)'}}>
+                    <div style={{padding:'0 20px 20px',borderTop:'1px solid rgba(148,163,184,.08)'}}>
                       <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'8px',margin:'16px 0'}}>
                         {[{l:'Total',v:total,c:'#F8FAFC'},{l:'Pago',v:valorPago,c:'#4ADE80'},{l:'Saldo',v:saldo,c:saldo>0?'#FBBF24':'#4ADE80'}].map(f=>(
-                          <div key={f.l} style={{background:'rgba(255,255,255,.04)',borderRadius:'10px',padding:'10px 12px',border:'1px solid rgba(255,255,255,.07)'}}>
-                            <p style={{fontSize:'10px',fontWeight:700,color:'#64748B',textTransform:'uppercase' as const,letterSpacing:'.05em',marginBottom:'3px'}}>{f.l}</p>
+                          <div key={f.l} style={{background:'rgba(255,255,255,.04)',borderRadius:'10px',padding:'10px 12px',border:'1px solid rgba(255,255,255,.07)',textAlign:'center'}}>
+                            <p style={{fontSize:'10px',fontWeight:700,color:'#64748B',textTransform:'uppercase' as const,letterSpacing:'.05em',marginBottom:'4px'}}>{f.l}</p>
                             <p style={{fontSize:'15px',fontWeight:800,color:f.c}}>R$ {fmtBRL(f.v)}</p>
                           </div>
                         ))}
                       </div>
-
-                      {/* Toggle sinal */}
-                      <div style={{marginBottom:'14px'}}>
-                        <div style={{display:'flex',alignItems:'center',gap:'10px',marginBottom:exigeSinal?'12px':'0'}}>
+                      <div style={{marginBottom:'14px',padding:'14px',background:'rgba(255,255,255,.03)',borderRadius:'12px',border:'1px solid rgba(255,255,255,.07)'}}>
+                        <div style={{display:'flex',alignItems:'center',gap:'10px',marginBottom:exigeSinal?'14px':'0'}}>
                           <button onClick={()=>setExigeSinal(!exigeSinal)}
-                            style={{width:'36px',height:'20px',borderRadius:'999px',border:'none',cursor:'pointer',position:'relative',background:exigeSinal?'#3B82F6':'rgba(255,255,255,.15)'}}>
+                            style={{width:'36px',height:'20px',borderRadius:'999px',border:'none',cursor:'pointer',position:'relative',background:exigeSinal?'#3B82F6':'rgba(255,255,255,.15)',flexShrink:0}}>
                             <span style={{position:'absolute',top:'2px',left:exigeSinal?'18px':'2px',width:'16px',height:'16px',borderRadius:'50%',background:'#fff',transition:'left .2s'}}/>
                           </button>
-                          <span style={{fontSize:'13px',color:'#CBD5E1',cursor:'pointer'}} onClick={()=>setExigeSinal(!exigeSinal)}>Exigir entrada / sinal?</span>
+                          <span style={{fontSize:'13px',color:'#CBD5E1',cursor:'pointer',fontWeight:500}} onClick={()=>setExigeSinal(!exigeSinal)}>Exigir entrada / sinal?</span>
                         </div>
                         {exigeSinal&&(
-                          <div style={{background:'rgba(255,255,255,.03)',borderRadius:'10px',padding:'14px',border:'1px solid rgba(255,255,255,.07)',display:'flex',flexDirection:'column',gap:'10px'}}>
-                            <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'10px'}}>
-                              <div><label style={lbl}>Tipo</label>
-                                <select style={sel} value={sinalTipo} onChange={e=>setSinalTipo(e.target.value)}>
-                                  <option value="fixo">Valor fixo (R$)</option>
-                                  <option value="percentual">Porcentagem (%)</option>
-                                </select></div>
-                              <div><label style={lbl}>{sinalTipo==='fixo'?'Valor (R$)':'Percentual (%)'}</label>
-                                <input style={inp} type="number" min="0" placeholder={sinalTipo==='fixo'?'0,00':'50'} value={sinalValor} onChange={e=>setSinalValor(e.target.value)}/></div>
-                            </div>
+                          <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'10px'}}>
+                            <div><label style={lbl}>Tipo</label>
+                              <select style={sel} value={sinalTipo} onChange={e=>setSinalTipo(e.target.value)}>
+                                <option value="fixo">Valor fixo (R$)</option>
+                                <option value="percentual">Porcentagem (%)</option>
+                              </select></div>
+                            <div><label style={lbl}>{sinalTipo==='fixo'?'Valor (R$)':'Percentual (%)'}</label>
+                              <input style={inp} type="number" min="0" placeholder={sinalTipo==='fixo'?'0,00':'50'} value={sinalValor} onChange={e=>setSinalValor(e.target.value)}/></div>
                           </div>
                         )}
                       </div>
-
-                      {/* Link */}
                       <div style={{marginBottom:'14px'}}>
-                        <label style={lbl}>Link de pagamento</label>
+                        <label style={lbl}>Link de pagamento (opcional)</label>
                         <input style={inp} type="url" placeholder="Cole o link do Mercado Pago, Asaas, PagSeguro..." value={linkPag} onChange={e=>setLinkPag(e.target.value)}/>
+                        <p style={{fontSize:'11px',color:'#374151',marginTop:'4px'}}>O ClienteMarcado organiza a cobrança. O pagamento é feito pelo link do seu negócio.</p>
                       </div>
-
-                      {/* Hist pagamentos */}
+                      <div style={{display:'flex',gap:'8px',flexWrap:'wrap',marginBottom:'16px'}}>
+                        <button onClick={()=>cWpp&&window.open('https://wa.me/55'+cWpp.replace(/\D/g,'')+'?text='+encodeURIComponent(`Olá, ${cNome||'cliente'}!\n\nSeu ${tipo==='__outro__'?tipoOutro:tipo}: R$ ${fmtBRL(total)}${linkPag?'\n\nLink:\n'+linkPag:''}\n\nApós pagar, envie o comprovante. Obrigado!`),'_blank')}
+                          disabled={!cWpp}
+                          style={{background:'rgba(34,197,94,.14)',border:'1px solid rgba(34,197,94,.28)',borderRadius:'8px',padding:'8px 14px',fontSize:'12px',fontWeight:600,color:cWpp?'#4ADE80':'#374151',cursor:cWpp?'pointer':'not-allowed',fontFamily:'inherit',display:'flex',alignItems:'center',gap:'5px',opacity:cWpp?1:0.5}}>
+                          <Icon.MessageCircle/> Enviar cobrança WhatsApp
+                        </button>
+                      </div>
                       <div style={{borderTop:'1px solid rgba(255,255,255,.07)',paddingTop:'14px'}}>
-                        <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:'10px'}}>
+                        <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:'12px'}}>
                           <p style={{fontSize:'13px',fontWeight:600,color:'#F8FAFC'}}>Pagamentos registrados</p>
                           <button onClick={()=>setShowHpForm(!showHpForm)}
                             style={{background:'rgba(59,130,246,.2)',border:'1px solid rgba(59,130,246,.3)',borderRadius:'6px',padding:'5px 12px',fontSize:'12px',fontWeight:600,color:'#93C5FD',cursor:'pointer',fontFamily:'inherit'}}>
@@ -1003,11 +1036,16 @@ export default function Orcamentos() {
                         </div>
                         {showHpForm&&(
                           <div style={{background:'rgba(59,130,246,.08)',border:'1px solid rgba(59,130,246,.22)',borderRadius:'12px',padding:'16px',marginBottom:'12px'}}>
+                            <p style={{fontSize:'13px',fontWeight:700,color:'#93C5FD',marginBottom:'12px'}}>{editHpIdx!==null?'Editar pagamento':'Registrar pagamento'}</p>
                             <div style={{display:'flex',flexDirection:'column',gap:'10px'}}>
                               <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'10px'}}>
                                 <div><label style={lbl}>Valor *</label>
-                                  <input style={inp} type="text" inputMode="numeric" placeholder="0,00" value={hpValor}
-                                    onChange={e=>{const v=e.target.value.replace(/[^0-9]/g,'');setHpValor(fmtHpValor(v||'0'))}}/></div>
+                                  <div style={{position:'relative'}}>
+                                    <span style={{position:'absolute',left:'10px',top:'50%',transform:'translateY(-50%)',fontSize:'12px',color:'#4B5563',fontWeight:600}}>R$</span>
+                                    <input style={{...inp,paddingLeft:'30px'}} type="text" inputMode="numeric" placeholder="0,00" value={hpValor}
+                                      onChange={e=>{const v=e.target.value.replace(/[^0-9]/g,'');setHpValor(fmtHpValor(v||'0'))}}/>
+                                  </div>
+                                </div>
                                 <div><label style={lbl}>Data *</label>
                                   <input style={inp} type="date" value={hpData} onChange={e=>setHpData(e.target.value)}/></div>
                               </div>
@@ -1023,36 +1061,36 @@ export default function Orcamentos() {
                                 <button onClick={()=>{setShowHpForm(false);setEditHpIdx(null)}}
                                   style={{flex:1,background:'rgba(255,255,255,.06)',border:'1px solid rgba(255,255,255,.1)',borderRadius:'8px',padding:'10px',fontSize:'13px',fontWeight:600,color:'#64748B',cursor:'pointer',fontFamily:'inherit'}}>Cancelar</button>
                                 <button onClick={salvarHp}
-                                  style={{flex:2,background:'#3B82F6',border:'none',borderRadius:'8px',padding:'10px',fontSize:'13px',fontWeight:700,color:'#fff',cursor:'pointer',fontFamily:'inherit'}}>
+                                  style={{flex:2,background:'linear-gradient(135deg,#3B82F6,#7C3AED)',border:'none',borderRadius:'8px',padding:'10px',fontSize:'13px',fontWeight:700,color:'#fff',cursor:'pointer',fontFamily:'inherit'}}>
                                   {editHpIdx!==null?'Atualizar':'Salvar pagamento'}
                                 </button>
                               </div>
                             </div>
                           </div>
                         )}
-                        {histPags.length===0&&!showHpForm&&<p style={{fontSize:'12px',color:'#4B5563'}}>Nenhum pagamento registrado ainda.</p>}
+                        {histPags.length===0&&!showHpForm&&<p style={{fontSize:'12px',color:'#374151'}}>Nenhum pagamento registrado ainda.</p>}
                         {histPags.map((p,i)=>(
-                          <div key={i} style={{background:'rgba(255,255,255,.04)',border:'1px solid rgba(255,255,255,.07)',borderRadius:'8px',padding:'10px 14px',display:'flex',justifyContent:'space-between',alignItems:'flex-start',gap:'8px',marginBottom:'6px'}}>
+                          <div key={i} style={{background:'rgba(255,255,255,.04)',border:'1px solid rgba(255,255,255,.07)',borderRadius:'10px',padding:'10px 14px',display:'flex',justifyContent:'space-between',alignItems:'flex-start',gap:'8px',marginBottom:'6px'}}>
                             <div>
                               <div style={{display:'flex',alignItems:'center',gap:'8px',marginBottom:'2px'}}>
-                                <span style={{fontSize:'14px',fontWeight:700,color:'#4ADE80'}}>R$ {fmtBRL(p.valor)}</span>
-                                <span style={{fontSize:'11px',color:'#64748B'}}>{p.forma}</span>
+                                <span style={{fontSize:'15px',fontWeight:800,color:'#4ADE80'}}>R$ {fmtBRL(p.valor)}</span>
+                                <span style={{fontSize:'11px',color:'#64748B',background:'rgba(255,255,255,.06)',padding:'2px 7px',borderRadius:'999px'}}>{p.forma}</span>
                                 <span style={{fontSize:'11px',color:'#4B5563'}}>· {fmtData(p.data)}</span>
                               </div>
                               {p.obs&&<p style={{fontSize:'12px',color:'#64748B'}}>{p.obs}</p>}
                             </div>
-                            <div style={{display:'flex',gap:'5px'}}>
+                            <div style={{display:'flex',gap:'5px',flexShrink:0}}>
                               <button onClick={()=>{setEditHpIdx(i);setHpValor(fmtHpValor(String(Math.round(p.valor*100))));setHpForma(FORMAS_PAG.includes(p.forma)?p.forma:'Outro');setHpFormaOut(FORMAS_PAG.includes(p.forma)?'':p.forma);setHpData(p.data);setHpObs(p.obs||'');setShowHpForm(true)}}
-                                style={{background:'rgba(255,255,255,.06)',border:'1px solid rgba(255,255,255,.1)',borderRadius:'6px',padding:'3px 8px',fontSize:'11px',color:'#94A3B8',cursor:'pointer',fontFamily:'inherit'}}>✏️</button>
+                                style={{background:'rgba(255,255,255,.06)',border:'1px solid rgba(255,255,255,.1)',borderRadius:'6px',padding:'4px 9px',fontSize:'11px',color:'#94A3B8',cursor:'pointer',fontFamily:'inherit'}}>✏️</button>
                               <button onClick={()=>setHistPags(prev=>prev.filter((_,j)=>j!==i))}
-                                style={{background:'rgba(239,68,68,.12)',border:'1px solid rgba(239,68,68,.25)',borderRadius:'6px',padding:'3px 8px',fontSize:'11px',color:'#F87171',cursor:'pointer',fontFamily:'inherit'}}>🗑</button>
+                                style={{background:'rgba(239,68,68,.12)',border:'1px solid rgba(239,68,68,.25)',borderRadius:'6px',padding:'4px 9px',fontSize:'11px',color:'#F87171',cursor:'pointer',fontFamily:'inherit'}}>🗑</button>
                             </div>
                           </div>
                         ))}
                         {histPags.length>0&&(
-                          <div style={{background:'rgba(34,197,94,.10)',border:'1px solid rgba(34,197,94,.22)',borderRadius:'8px',padding:'8px 14px',display:'flex',justifyContent:'space-between',marginTop:'4px'}}>
+                          <div style={{background:'rgba(34,197,94,.10)',border:'1px solid rgba(34,197,94,.22)',borderRadius:'10px',padding:'10px 14px',display:'flex',justifyContent:'space-between',marginTop:'6px'}}>
                             <span style={{fontSize:'13px',color:'#64748B',fontWeight:600}}>Total pago</span>
-                            <span style={{fontSize:'14px',fontWeight:800,color:'#4ADE80'}}>R$ {fmtBRL(valorPago)}</span>
+                            <span style={{fontSize:'15px',fontWeight:800,color:'#4ADE80'}}>R$ {fmtBRL(valorPago)}</span>
                           </div>
                         )}
                       </div>
@@ -1060,82 +1098,122 @@ export default function Orcamentos() {
                   )}
                 </div>
 
-                {/* ACCORDION: Observações */}
+                {/* 5. ACCORDION: Observações */}
                 <div style={{...crd,padding:0,overflow:'hidden'}}>
                   <div onClick={()=>setShowObs2(!showObs2)} style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'16px 20px',cursor:'pointer',userSelect:'none'}}>
                     <div style={{display:'flex',alignItems:'center',gap:'10px'}}>
-                      <div style={{width:'32px',height:'32px',borderRadius:'10px',background:'rgba(148,163,184,.12)',border:'1px solid rgba(255,255,255,.10)',display:'flex',alignItems:'center',justifyContent:'center',color:'#CBD5E1'}}>
+                      <div style={{width:'32px',height:'32px',borderRadius:'10px',background:'rgba(148,163,184,.12)',border:'1px solid rgba(255,255,255,.10)',display:'flex',alignItems:'center',justifyContent:'center',color:'#CBD5E1',flexShrink:0}}>
                         <Icon.Edit/>
                       </div>
-                      <p style={{fontSize:'14px',fontWeight:700,color:'#F8FAFC'}}>Observações</p>
+                      <div>
+                        <p style={{fontSize:'14px',fontWeight:700,color:'#F8FAFC'}}>Observações</p>
+                        <p style={{fontSize:'12px',color:'#64748B',marginTop:'1px'}}>Informações extras para o cliente ou sua equipe.</p>
+                      </div>
                     </div>
                     <span style={{color:'#64748B',fontSize:'18px',transform:showObs2?'rotate(180deg)':'none',transition:'transform .2s'}}><Icon.ChevronDown/></span>
                   </div>
                   {showObs2&&(
-                    <div style={{padding:'0 20px 18px',borderTop:'1px solid rgba(148,163,184,.08)',display:'flex',flexDirection:'column',gap:'10px',marginTop:'16px'}}>
+                    <div style={{padding:'0 20px 20px',borderTop:'1px solid rgba(148,163,184,.08)',display:'flex',flexDirection:'column',gap:'12px',marginTop:'16px'}}>
                       <div><label style={lbl}>Observação do cliente</label>
-                        <textarea rows={2} style={{...inp,resize:'none' as const}} placeholder="Alergias, preferências, histórico..." value={cObs} onChange={e=>setCObs(e.target.value)}/></div>
+                        <textarea rows={2} style={{...inp,resize:'none' as const}} placeholder="Alergias, preferências, histórico..."
+                          value={cObs} onChange={e=>setCObs(e.target.value)}/></div>
                       <div><label style={lbl}>Observações do orçamento</label>
-                        <textarea rows={3} style={{...inp,resize:'none' as const}} placeholder="Informações adicionais..." value={observacoes} onChange={e=>setObs(e.target.value)}/></div>
+                        <textarea rows={3} style={{...inp,resize:'none' as const}} placeholder="Informações adicionais para a equipe..."
+                          value={observacoes} onChange={e=>setObs(e.target.value)}/></div>
+                      <div><label style={lbl}>Observações de pagamento</label>
+                        <input style={inp} type="text" placeholder="Ex: cliente pagou entrada em dinheiro..."
+                          value={obsPag} onChange={e=>setObsPag(e.target.value)}/></div>
                     </div>
                   )}
                 </div>
 
-              </div>
+                <div style={{display:'flex',alignItems:'center',gap:'10px',padding:'12px 16px',background:'rgba(59,130,246,.08)',borderRadius:'10px',border:'1px solid rgba(59,130,246,.18)'}}>
+                  <span style={{fontSize:'18px',flexShrink:0}}>💡</span>
+                  <p style={{fontSize:'12px',color:'#93C5FD',lineHeight:1.5}}>Simples para criar rápido — preencha apenas cliente, serviço e valor para começar.</p>
+                </div>
 
-              {/* Coluna direita: Resumo sticky */}
-              <div style={{position:'sticky',top:'24px'}}>
-                <div style={{background:'radial-gradient(circle at top left,rgba(59,130,246,.12),transparent 40%),linear-gradient(145deg,rgba(15,23,42,.97),rgba(8,20,33,.99))',borderRadius:'18px',padding:'20px',border:'1.5px solid rgba(148,163,184,.18)',boxShadow:'0 20px 48px rgba(0,0,0,.28),inset 0 1px 0 rgba(255,255,255,.04)'}}>
+              </div>{/* fim coluna principal */}
+
+              {/* ── COLUNA LATERAL STICKY ── */}
+              <div className="form-2col-r" style={{position:'sticky',top:'24px'}}>
+                <div style={{background:'radial-gradient(circle at top left,rgba(59,130,246,.14),transparent 40%),linear-gradient(145deg,rgba(15,23,42,.97),rgba(8,20,33,.99))',borderRadius:'18px',padding:'20px',border:'1.5px solid rgba(148,163,184,.18)',boxShadow:'0 20px 48px rgba(0,0,0,.28),inset 0 1px 0 rgba(255,255,255,.04)'}}>
                   <p style={{fontSize:'11px',fontWeight:700,color:'#64748B',textTransform:'uppercase' as const,letterSpacing:'.07em',marginBottom:'16px'}}>Resumo</p>
-                  <div style={{display:'flex',flexDirection:'column',gap:'10px',marginBottom:'16px'}}>
-                    <div><p style={{fontSize:'10px',fontWeight:700,color:'#374151',textTransform:'uppercase' as const,letterSpacing:'.06em',marginBottom:'2px'}}>Cliente</p>
-                      <p style={{fontSize:'14px',fontWeight:600,color:cNome?'#F8FAFC':'#374151'}}>{cNome||'Não informado'}</p></div>
-                    <div><p style={{fontSize:'10px',fontWeight:700,color:'#374151',textTransform:'uppercase' as const,letterSpacing:'.06em',marginBottom:'2px'}}>Tipo</p>
-                      <p style={{fontSize:'13px',color:'#94A3B8'}}>{tipo==='__outro__'?(tipoOutro||'Outro'):tipo}</p></div>
+                  <div style={{display:'flex',flexDirection:'column',gap:'10px',marginBottom:'18px'}}>
+                    <div>
+                      <p style={{fontSize:'10px',fontWeight:700,color:'#374151',textTransform:'uppercase' as const,letterSpacing:'.06em',marginBottom:'3px'}}>Cliente</p>
+                      <p style={{fontSize:'14px',fontWeight:600,color:cNome?'#F8FAFC':'#374151'}}>{cNome||'—'}</p>
+                    </div>
+                    <div>
+                      <p style={{fontSize:'10px',fontWeight:700,color:'#374151',textTransform:'uppercase' as const,letterSpacing:'.06em',marginBottom:'3px'}}>Tipo</p>
+                      <p style={{fontSize:'13px',color:'#94A3B8'}}>{tipo==='__outro__'?(tipoOutro||'Outro'):tipo}</p>
+                    </div>
                     <div style={{height:'1px',background:'rgba(255,255,255,.07)'}}/>
-                    <div><p style={{fontSize:'10px',fontWeight:700,color:'#374151',textTransform:'uppercase' as const,letterSpacing:'.06em',marginBottom:'4px'}}>Total final</p>
-                      <p style={{fontSize:'26px',fontWeight:800,color:'#3B82F6',letterSpacing:'-0.03em'}}>R$ {fmtBRL(total)}</p></div>
-                    {valorPago>0&&<div><p style={{fontSize:'10px',fontWeight:700,color:'#374151',textTransform:'uppercase' as const,letterSpacing:'.06em',marginBottom:'2px'}}>Valor pago</p>
-                      <p style={{fontSize:'16px',fontWeight:700,color:'#4ADE80'}}>R$ {fmtBRL(valorPago)}</p></div>}
-                    {saldo>0&&<div><p style={{fontSize:'10px',fontWeight:700,color:'#374151',textTransform:'uppercase' as const,letterSpacing:'.06em',marginBottom:'2px'}}>Saldo restante</p>
-                      <p style={{fontSize:'16px',fontWeight:700,color:'#FBBF24'}}>R$ {fmtBRL(saldo)}</p></div>}
+                    <div>
+                      <p style={{fontSize:'10px',fontWeight:700,color:'#374151',textTransform:'uppercase' as const,letterSpacing:'.06em',marginBottom:'5px'}}>Total final</p>
+                      <p style={{fontSize:'28px',fontWeight:800,color:'#3B82F6',letterSpacing:'-0.03em',lineHeight:1}}>R$ {fmtBRL(total)}</p>
+                    </div>
+                    {valorPago>0&&(
+                      <div>
+                        <p style={{fontSize:'10px',fontWeight:700,color:'#374151',textTransform:'uppercase' as const,letterSpacing:'.06em',marginBottom:'3px'}}>Valor pago</p>
+                        <p style={{fontSize:'16px',fontWeight:700,color:'#4ADE80'}}>R$ {fmtBRL(valorPago)}</p>
+                      </div>
+                    )}
+                    {saldo>0&&(
+                      <div>
+                        <p style={{fontSize:'10px',fontWeight:700,color:'#374151',textTransform:'uppercase' as const,letterSpacing:'.06em',marginBottom:'3px'}}>Saldo restante</p>
+                        <p style={{fontSize:'16px',fontWeight:700,color:'#FBBF24'}}>R$ {fmtBRL(saldo)}</p>
+                      </div>
+                    )}
                     <div>
                       {(()=>{const cfg=STATUS_CFG[status]||STATUS_CFG['Aberto'];return<span style={{fontSize:'11px',fontWeight:700,padding:'3px 10px',borderRadius:'999px',background:cfg.bg,color:cfg.cor,border:`1px solid ${cfg.bd}`}}>{status}</span>})()}
                     </div>
                   </div>
                   <button onClick={salvar}
-                    style={{width:'100%',background:'linear-gradient(135deg,#3B82F6,#7C3AED)',color:'#fff',border:'1px solid rgba(255,255,255,.10)',borderRadius:'8px',padding:'13px',fontSize:'14px',fontWeight:700,cursor:'pointer',fontFamily:'inherit',boxShadow:'0 12px 32px rgba(59,130,246,.30)',marginBottom:'8px',display:'flex',alignItems:'center',justifyContent:'center',gap:'8px'}}>
+                    style={{width:'100%',background:'linear-gradient(135deg,#3B82F6,#7C3AED)',color:'#fff',border:'1px solid rgba(255,255,255,.10)',borderRadius:'10px',padding:'14px',fontSize:'14px',fontWeight:700,cursor:'pointer',fontFamily:'inherit',boxShadow:'0 12px 32px rgba(59,130,246,.30),0 0 28px rgba(124,58,237,.22)',marginBottom:'8px',display:'flex',alignItems:'center',justifyContent:'center',gap:'8px'}}>
                     📄 {editandoId?'Salvar alterações':'Criar orçamento'}
                   </button>
+                  <button onClick={()=>cWpp&&window.open('https://wa.me/55'+cWpp.replace(/\D/g,'')+'?text='+encodeURIComponent(`Olá, ${cNome||'cliente'}!\n\nSeu ${tipo==='__outro__'?tipoOutro:tipo}: R$ ${fmtBRL(total)}${linkPag?'\n\nLink:\n'+linkPag:''}\n\nApós pagar, envie o comprovante. Obrigado!`),'_blank')}
+                    disabled={!cWpp}
+                    style={{width:'100%',background:'rgba(34,197,94,.14)',color:cWpp?'#4ADE80':'#374151',border:'1px solid rgba(34,197,94,.28)',borderRadius:'10px',padding:'11px',fontSize:'13px',fontWeight:600,cursor:cWpp?'pointer':'not-allowed',fontFamily:'inherit',marginBottom:'8px',display:'flex',alignItems:'center',justifyContent:'center',gap:'6px',opacity:cWpp?1:0.55}}>
+                    💬 Enviar no WhatsApp
+                  </button>
                   <button onClick={()=>{resetForm();setView('lista')}}
-                    style={{width:'100%',background:'rgba(255,255,255,.05)',color:'#64748B',border:'1px solid rgba(255,255,255,.08)',borderRadius:'8px',padding:'10px',fontSize:'13px',fontWeight:600,cursor:'pointer',fontFamily:'inherit'}}>
+                    style={{width:'100%',background:'rgba(255,255,255,.05)',color:'#64748B',border:'1px solid rgba(255,255,255,.08)',borderRadius:'10px',padding:'10px',fontSize:'13px',fontWeight:600,cursor:'pointer',fontFamily:'inherit'}}>
                     Salvar como rascunho
                   </button>
+                  <div style={{marginTop:'14px',padding:'10px',background:'rgba(255,255,255,.03)',borderRadius:'8px',border:'1px solid rgba(255,255,255,.07)',display:'flex',alignItems:'center',gap:'8px'}}>
+                    <span style={{fontSize:'16px'}}>🔒</span>
+                    <div>
+                      <p style={{fontSize:'11px',fontWeight:600,color:'#F8FAFC'}}>Dados protegidos</p>
+                      <p style={{fontSize:'10px',color:'#374151'}}>Criptografia de ponta a ponta.</p>
+                    </div>
+                  </div>
                 </div>
               </div>
 
-            </div>
+            </div>{/* fim grid */}
 
-            {/* Mobile footer */}
-            <div style={{position:'fixed',bottom:0,left:0,right:0,background:'#07111F',borderTop:'1px solid rgba(148,163,184,.1)',padding:'10px 16px calc(10px + env(safe-area-inset-bottom,0px))',zIndex:25,display:'flex',flexDirection:'column',gap:'8px'}} className="mob-form-foot">
+            {/* Barra fixa mobile */}
+            <div className="mob-form-foot" style={{position:'fixed',bottom:0,left:0,right:0,background:'rgba(5,11,22,.97)',backdropFilter:'blur(20px)',borderTop:'1px solid rgba(148,163,184,.1)',padding:'10px 16px calc(10px + env(safe-area-inset-bottom,0px))',zIndex:25,display:'flex',flexDirection:'column',gap:'8px'}}>
               <style>{`@media(min-width:1024px){.mob-form-foot{display:none!important}}`}</style>
               <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
                 <span style={{fontSize:'12px',color:'#64748B',fontWeight:600}}>Total final</span>
-                <span style={{fontSize:'18px',fontWeight:800,color:'#3B82F6'}}>R$ {fmtBRL(total)}</span>
+                <span style={{fontSize:'20px',fontWeight:800,color:'#3B82F6',letterSpacing:'-0.02em'}}>R$ {fmtBRL(total)}</span>
               </div>
-              <div style={{display:'grid',gridTemplateColumns:'2fr 3fr',gap:'8px'}}>
+              <div style={{display:'grid',gridTemplateColumns:'1fr 2fr',gap:'8px'}}>
                 <button onClick={()=>{resetForm();setView('lista')}}
-                  style={{background:'rgba(255,255,255,.07)',color:'#64748B',border:'1px solid rgba(255,255,255,.1)',borderRadius:'10px',padding:'12px 0',fontSize:'13px',fontWeight:600,cursor:'pointer',fontFamily:'inherit'}}>
-                  Rascunho
+                  style={{background:'rgba(255,255,255,.07)',color:'#64748B',border:'1px solid rgba(255,255,255,.1)',borderRadius:'10px',padding:'13px 0',fontSize:'13px',fontWeight:600,cursor:'pointer',fontFamily:'inherit'}}>
+                  ← Voltar
                 </button>
                 <button onClick={salvar}
-                  style={{background:'linear-gradient(135deg,#3B82F6,#7C3AED)',color:'#fff',border:'none',borderRadius:'10px',padding:'12px 0',fontSize:'14px',fontWeight:800,cursor:'pointer',fontFamily:'inherit',boxShadow:'0 4px 12px rgba(59,130,246,.35)'}}>
+                  style={{background:'linear-gradient(135deg,#3B82F6,#7C3AED)',color:'#fff',border:'none',borderRadius:'10px',padding:'13px 0',fontSize:'14px',fontWeight:800,cursor:'pointer',fontFamily:'inherit',boxShadow:'0 4px 16px rgba(59,130,246,.35)'}}>
                   {editandoId?'Salvar':'Criar orçamento'}
                 </button>
               </div>
             </div>
 
           </div>
+        )}
         )}
 
         {/* ══ DETALHE ══ */}
