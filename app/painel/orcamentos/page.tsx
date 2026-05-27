@@ -27,6 +27,68 @@ function AutoResizeTextarea({value,onChange,placeholder,minHeight=48,style={}}:{
   )
 }
 
+// ── MoneyInput — máscara monetária brasileira ──
+function MoneyInput({value,onChange,placeholder='0,00'}:{value:string;onChange:(v:string)=>void;placeholder?:string}){
+  const fmt=(raw:string)=>{
+    const n=raw.replace(/\D/g,'')
+    if(!n||n==='0') return ''
+    const v=parseInt(n,10)/100
+    return v.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})
+  }
+  const handle=(e:React.ChangeEvent<HTMLInputElement>)=>{
+    const raw=e.target.value.replace(/\D/g,'')
+    onChange(raw?(parseInt(raw,10)/100).toFixed(2):'')
+  }
+  const display=value?parseFloat(value).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}):''
+  return(
+    <div style={{position:'relative',display:'flex',alignItems:'center'}}>
+      <span style={{position:'absolute',left:'12px',top:'50%',transform:'translateY(-50%)',fontSize:'12px',color:'#94A3B8',fontWeight:600,pointerEvents:'none',userSelect:'none'}}>R$</span>
+      <input type="text" inputMode="numeric" value={display} placeholder={placeholder} onChange={handle}
+        style={{width:'100%',background:'rgba(15,23,42,.88)',border:'1.5px solid rgba(148,163,184,.18)',borderRadius:'10px',padding:'12px 14px 12px 36px',fontSize:'16px',fontWeight:700,color:'#F8FAFC',outline:'none',fontFamily:'inherit',boxSizing:'border-box' as const,transition:'border-color .2s,box-shadow .2s',minHeight:'52px'}}
+        onFocus={e=>{e.target.style.borderColor='rgba(6,182,212,.55)';e.target.style.boxShadow='0 0 0 3px rgba(6,182,212,.14)'}}
+        onBlur={e=>{e.target.style.borderColor='rgba(148,163,184,.18)';e.target.style.boxShadow='none'}}
+      />
+    </div>
+  )
+}
+
+// ── ProcedureAutocomplete ──
+const PROC_LIST = ['Avaliação','Limpeza','Restauração','Extração','Canal','Clareamento','Implante','Prótese','Aparelho','Manutenção de aparelho','Retorno','Profilaxia','Raspagem','Radiografia','Consulta','Tratamento periodontal','Cirurgia','Faceta','Lente de contato dental']
+
+function ProcedureAutocomplete({value,onChange}:{value:string;onChange:(v:string)=>void}){
+  const [open,setOpen]=useState(false)
+  const [q,setQ]=useState(value)
+  const ref=useRef<HTMLDivElement>(null)
+  const sugs=PROC_LIST.filter(p=>p.toLowerCase().includes(q.toLowerCase())&&q.trim().length>0).slice(0,5)
+  useEffect(()=>{setQ(value)},[value])
+  useEffect(()=>{
+    function click(e:MouseEvent){if(ref.current&&!ref.current.contains(e.target as Node))setOpen(false)}
+    document.addEventListener('mousedown',click)
+    return()=>document.removeEventListener('mousedown',click)
+  },[])
+  return(
+    <div ref={ref} style={{position:'relative'}}>
+      <input type="text" value={q} placeholder="Ex: restauração, canal, extração, limpeza..."
+        onChange={e=>{setQ(e.target.value);onChange(e.target.value);setOpen(true)}}
+        onFocus={()=>setOpen(true)}
+        style={{width:'100%',background:'rgba(15,23,42,.88)',border:'1.5px solid rgba(148,163,184,.18)',borderRadius:'10px',padding:'10px 14px',fontSize:'14px',color:'#F8FAFC',outline:'none',fontFamily:'inherit',boxSizing:'border-box' as const,transition:'border-color .2s,box-shadow .2s'}}
+      />
+      {open&&sugs.length>0&&(
+        <div style={{position:'absolute',top:'calc(100% + 4px)',left:0,right:0,background:'rgba(7,17,31,.98)',border:'1.5px solid rgba(59,130,246,.28)',borderRadius:'10px',zIndex:100,overflow:'hidden',boxShadow:'0 16px 40px rgba(0,0,0,.5)'}}>
+          {sugs.map(s=>(
+            <div key={s} onMouseDown={e=>{e.preventDefault();onChange(s);setQ(s);setOpen(false)}}
+              style={{padding:'10px 14px',fontSize:'13px',color:'#CBD5E1',cursor:'pointer',transition:'background .15s',borderBottom:'1px solid rgba(255,255,255,.06)'}}
+              onMouseEnter={e=>(e.currentTarget.style.background='rgba(59,130,246,.14)')}
+              onMouseLeave={e=>(e.currentTarget.style.background='transparent')}>
+              {s}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
 // ── Ícones SVG (mesmo padrão da home) ──
 const Icon = {
   ClipboardList: () => (
@@ -348,7 +410,9 @@ export default function Orcamentos() {
   const doneTeeth    = markedTeeth.filter(([_,i])=>i.status==='done')
   const pendingTeeth = markedTeeth.filter(([_,i])=>i.status==='pending')
 
-  function handleSelectTooth(tooth:string){setSelectedTooth(tooth)}
+  function handleSelectTooth(tooth:string){
+    setSelectedTooth(prev=>prev===tooth?null:tooth)
+  }
   function setToothStatus(tooth:string,status:ToothStatus){
     setToothStatuses(prev=>({...prev,[tooth]:{...(prev[tooth]||{}),status}}))
   }
@@ -427,8 +491,7 @@ export default function Orcamentos() {
 
   const subtotal = budgetMode==='dental'
     ? dentalProcs.reduce((a,p)=>(parseFloat(p.qtd)||1)*(parseFloat(p.valor)||0)+a,0)
-    : itens.reduce((a,i)=>a+(parseFloat(i.unitario||'0')*(parseInt(i.qtd)||1)),0)
-  const descontoN = parseFloat(desconto||'0')
+    : itens.reduce((a,i)=>a+(parseFloat(i.unitario||'0')*(parseInt(i.qtd)||1)),0)  const descontoN = parseFloat(desconto||'0')
   const total = Math.max(0,subtotal-descontoN)
   const valorPago = histPags.reduce((a,p)=>a+parseFloat(p.valor||'0'),0)
   const saldo = Math.max(0,total-valorPago)
@@ -1147,7 +1210,11 @@ export default function Orcamentos() {
                         <span style={{fontSize:'11px',color:'#64748B'}}>{lg.l}</span>
                       </div>
                     ))}
-                    <button onClick={clearAllTeeth} style={{marginLeft:'auto',background:'rgba(239,68,68,.1)',border:'1px solid rgba(239,68,68,.22)',borderRadius:'6px',padding:'3px 10px',fontSize:'11px',fontWeight:600,color:'#F87171',cursor:'pointer',fontFamily:'inherit'}}>Limpar tudo</button>
+                    <button onClick={clearAllTeeth} style={{marginLeft:'auto',background:'rgba(239,68,68,.12)',border:'1px solid rgba(239,68,68,.40)',borderRadius:'6px',padding:'4px 12px',fontSize:'11px',fontWeight:700,color:'#FCA5A5',cursor:'pointer',fontFamily:'inherit',transition:'all .15s'}}
+                      onMouseEnter={e=>(e.currentTarget.style.background='rgba(239,68,68,.22)')}
+                      onMouseLeave={e=>(e.currentTarget.style.background='rgba(239,68,68,.12)')}>
+                      Limpar tudo
+                    </button>
                   </div>
 
                   {/* Odontograma */}
@@ -1185,7 +1252,12 @@ export default function Orcamentos() {
                         <div style={{display:'flex',gap:'8px',flexWrap:'wrap'}}>
                           <button onClick={()=>setToothStatus(selectedTooth,'done')} style={{flex:1,minWidth:'80px',background:toothStatuses[selectedTooth]?.status==='done'?'rgba(34,197,94,.3)':'rgba(34,197,94,.12)',border:`1px solid ${toothStatuses[selectedTooth]?.status==='done'?'rgba(34,197,94,.6)':'rgba(34,197,94,.28)'}`,borderRadius:'8px',padding:'8px',fontSize:'12px',fontWeight:700,color:'#4ADE80',cursor:'pointer',fontFamily:'inherit'}}>✓ Realizado</button>
                           <button onClick={()=>setToothStatus(selectedTooth,'pending')} style={{flex:1,minWidth:'80px',background:toothStatuses[selectedTooth]?.status==='pending'?'rgba(239,68,68,.3)':'rgba(239,68,68,.12)',border:`1px solid ${toothStatuses[selectedTooth]?.status==='pending'?'rgba(239,68,68,.6)':'rgba(239,68,68,.28)'}`,borderRadius:'8px',padding:'8px',fontSize:'12px',fontWeight:700,color:'#F87171',cursor:'pointer',fontFamily:'inherit'}}>! Pendente</button>
-                          <button onClick={()=>clearToothStatus(selectedTooth)} style={{background:'rgba(255,255,255,.06)',border:'1px solid rgba(255,255,255,.1)',borderRadius:'8px',padding:'8px 12px',fontSize:'12px',fontWeight:600,color:'#64748B',cursor:'pointer',fontFamily:'inherit'}}>Limpar</button>
+                          <button onClick={()=>clearToothStatus(selectedTooth)}
+                            style={{background:'rgba(239,68,68,.12)',border:'1px solid rgba(239,68,68,.40)',borderRadius:'8px',padding:'8px 12px',fontSize:'12px',fontWeight:700,color:'#FCA5A5',cursor:'pointer',fontFamily:'inherit',transition:'all .15s'}}
+                            onMouseEnter={e=>(e.currentTarget.style.background='rgba(239,68,68,.22)')}
+                            onMouseLeave={e=>(e.currentTarget.style.background='rgba(239,68,68,.12)')}>
+                            Limpar dente
+                          </button>
                         </div>
                       </>
                     ):<p style={{fontSize:'13px',color:'#4B5563',textAlign:'center',padding:'4px 0'}}>Clique em um dente para definir o status.</p>}
@@ -1224,12 +1296,11 @@ export default function Orcamentos() {
                             )}
                           </div>
 
-                          {/* Nome */}
+                          {/* Nome com autocomplete */}
                           <div style={{marginBottom:'10px'}}>
                             <label style={lbl}>Nome do procedimento *</label>
-                            <AutoResizeTextarea value={proc.nome} minHeight={40}
-                              placeholder="Ex: restauração, canal, extração, limpeza, avaliação, clareamento..."
-                              onChange={v=>updateProc('nome',v)}/>
+                            <ProcedureAutocomplete value={proc.nome} onChange={v=>updateProc('nome',v)}/>
+                          </div>
                           </div>
 
                           {/* Dentes vinculados */}
@@ -1264,16 +1335,13 @@ export default function Orcamentos() {
                             </div>
                             <div>
                               <label style={lbl}>Valor unitário</label>
-                              <div style={{position:'relative'}}>
-                                <span style={{position:'absolute',left:'10px',top:'50%',transform:'translateY(-50%)',fontSize:'12px',color:'#4B5563',fontWeight:600,pointerEvents:'none'}}>R$</span>
-                                <input style={{...inp,paddingLeft:'30px'}} type="number" min="0" step="0.01" placeholder="0,00"
-                                  value={proc.valor} onChange={e=>updateProc('valor',e.target.value)}/>
-                              </div>
+                              <MoneyInput value={proc.valor} onChange={v=>updateProc('valor',v)}/>
                             </div>
                             <div>
                               <label style={lbl}>Total</label>
-                              <div style={{background:procTotal>0?'rgba(34,197,94,.12)':'rgba(255,255,255,.04)',border:`1.5px solid ${procTotal>0?'rgba(34,197,94,.30)':'rgba(255,255,255,.08)'}`,borderRadius:'10px',padding:'10px 12px',display:'flex',alignItems:'center',justifyContent:'center',minHeight:'44px'}}>
-                                <span style={{fontSize:'15px',fontWeight:800,color:procTotal>0?'#4ADE80':'#475569'}}>R$ {fmtBRL(procTotal)}</span>
+                              <div style={{background:procTotal>0?'rgba(34,197,94,.14)':'rgba(255,255,255,.04)',border:`1.5px solid ${procTotal>0?'rgba(34,197,94,.35)':'rgba(255,255,255,.08)'}`,borderRadius:'10px',padding:'12px 14px',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',minHeight:'52px',boxShadow:procTotal>0?'0 0 16px rgba(34,197,94,.12)':'none'}}>
+                                <span style={{fontSize:'10px',fontWeight:700,color:procTotal>0?'rgba(74,222,128,.7)':'#374151',textTransform:'uppercase',letterSpacing:'.06em',marginBottom:'2px'}}>Total</span>
+                                <span style={{fontSize:'17px',fontWeight:800,color:procTotal>0?'#4ADE80':'#475569',letterSpacing:'-0.02em'}}>R$ {fmtBRL(procTotal)}</span>
                               </div>
                             </div>
                           </div>
