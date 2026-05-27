@@ -1,6 +1,6 @@
 'use client'
 import { useEffect, useState } from 'react'
-import { supabase } from '../lib/supabase'
+import { supabase } from '../../lib/supabase'
 import Link from 'next/link'
 
 const AVATAR_COLORS=['linear-gradient(135deg,#2563EB,#7C3AED)','linear-gradient(135deg,#7C3AED,#EC4899)','linear-gradient(135deg,#06B6D4,#2563EB)','linear-gradient(135deg,#16A34A,#06B6D4)','linear-gradient(135deg,#DC2626,#7C3AED)','linear-gradient(135deg,#D97706,#EC4899)']
@@ -476,7 +476,7 @@ export default function Agendamentos(){
                       const sc=STATUS_CFG[ag.status]||STATUS_CFG.pendente
                       const agGrad=avatarGrad(ag.cliente_nome||'A')
                       return(
-                        <div key={ag.id} style={{display:'flex',alignItems:'center',gap:'10px',padding:'10px',borderRadius:'10px',background:'rgba(255,255,255,.03)',border:'1px solid rgba(255,255,255,.06)',marginBottom:'6px',flexWrap:'wrap',gap:'8px'}}>
+                        <div key={ag.id} style={{display:'flex',alignItems:'center',gap:'8px',padding:'10px',borderRadius:'10px',background:'rgba(255,255,255,.03)',border:'1px solid rgba(255,255,255,.06)',marginBottom:'6px',flexWrap:'wrap'}}>
                           <div style={{background:'linear-gradient(135deg,rgba(37,99,235,.85),rgba(124,58,237,.85))',borderRadius:'6px',padding:'3px 8px',fontSize:'11px',fontWeight:700,color:'#fff',flexShrink:0}}>{fmtH(ag.data_hora)}</div>
                           <div style={{width:'28px',height:'28px',borderRadius:'50%',background:agGrad,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'12px',fontWeight:700,color:'#fff',flexShrink:0}}>{(ag.cliente_nome||'?').charAt(0).toUpperCase()}</div>
                           <div style={{flex:1,minWidth:0}}>
