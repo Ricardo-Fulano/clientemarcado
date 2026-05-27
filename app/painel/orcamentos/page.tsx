@@ -1242,7 +1242,8 @@ export default function Orcamentos() {
                     <p style={{fontSize:'12px',color:'#A5F3FC',lineHeight:1.5}}>Use o odontograma apenas quando precisar vincular dentes ou regiões ao orçamento / tratamento.</p>
                   </div>
                 </div>
-                ):(
+                ):(<>
+                <div style={{...crd,padding:0,overflow:'hidden'}}>
                   <div onClick={()=>setShowOdonto(!showOdonto)} style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'16px 20px',cursor:'pointer',userSelect:'none'}}>
                     <div style={{display:'flex',alignItems:'center',gap:'10px'}}>
                       <div style={{width:'32px',height:'32px',borderRadius:'10px',background:'rgba(6,182,212,.14)',border:'1px solid rgba(255,255,255,.10)',display:'flex',alignItems:'center',justifyContent:'center',color:'#22D3EE',flexShrink:0,boxShadow:'0 0 14px rgba(6,182,212,.18)'}}>
@@ -1444,7 +1445,7 @@ export default function Orcamentos() {
                     </div>
                   )}
                 </div>
-                ){/* fim ternário dental/common */}
+                </>){/* fim ternário dental/common */}
 
                 {/* 4. ACCORDION: Mais opções */}
                 <div style={{...crd,padding:0,overflow:'hidden'}}>
