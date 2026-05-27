@@ -1,7 +1,31 @@
 'use client'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef, useCallback } from 'react'
 import { supabase } from '../../lib/supabase'
 import Link from 'next/link'
+
+// ── AutoResizeTextarea ──
+function AutoResizeTextarea({value,onChange,placeholder,minHeight=48,style={}}:{value:string;onChange:(v:string)=>void;placeholder?:string;minHeight?:number;style?:React.CSSProperties}){
+  const ref=useRef<HTMLTextAreaElement>(null)
+  const adjust=useCallback(()=>{
+    const el=ref.current;if(!el)return
+    el.style.height='auto'
+    el.style.height=Math.max(minHeight,el.scrollHeight)+'px'
+  },[minHeight])
+  useEffect(()=>{adjust()},[value,adjust])
+  const base:React.CSSProperties={
+    width:'100%',background:'rgba(15,23,42,.88)',border:'1.5px solid rgba(148,163,184,.18)',
+    borderRadius:'10px',padding:'10px 14px',fontSize:'14px',color:'#F8FAFC',outline:'none',
+    fontFamily:'inherit',boxSizing:'border-box',transition:'border-color .2s,box-shadow .2s',
+    resize:'none',lineHeight:1.6,minHeight:`${minHeight}px`,overflow:'hidden',
+  }
+  return(
+    <textarea ref={ref} value={value} placeholder={placeholder}
+      onChange={e=>{onChange(e.target.value);adjust()}}
+      onInput={adjust}
+      style={{...base,...style}}
+    />
+  )
+}
 
 // ── Ícones SVG (mesmo padrão da home) ──
 const Icon = {
@@ -293,6 +317,7 @@ export default function Orcamentos() {
   const [hpData,setHpData]     = useState(new Date().toISOString().split('T')[0])
   const [hpObs,setHpObs]       = useState('')
   const [editHpIdx,setEditHpIdx]= useState<number|null>(null)
+  const [orcCriadoId,setOrcCriadoId] = useState<string|null>(null)
 
   // Odontologia — sistema completo
   type ToothStatus = 'neutral'|'pending'|'done'
@@ -367,7 +392,7 @@ export default function Orcamentos() {
     setHistPags([]);setShowHpForm(false);setHpValor('');setHpForma('Pix');setHpFormaOut('');setHpObs('')
     setEditHpIdx(null);setShowDet(false);setShowPag(false);setShowObs2(false)
     setShowOdonto(false);setUseOdontogram(false);setSelectedTooth(null);setToothStatuses({});setOdontologyNote('')
-    setEditandoId(null)
+    setOrcCriadoId(null);setEditandoId(null)
   }
 
   function abrirEditar(orc:any){
@@ -424,9 +449,11 @@ export default function Orcamentos() {
     if(editandoId){
       const {error}=await supabase.from('orcamentos').update(payload).eq('id',editandoId)
       if(error){setMensagem('Erro ao salvar.');return}
+      setOrcCriadoId(editandoId)
     } else {
-      const {error}=await supabase.from('orcamentos').insert(payload)
+      const {data:novo,error}=await supabase.from('orcamentos').insert(payload).select('id').single()
       if(error){setMensagem('Erro ao criar orçamento.');return}
+      setOrcCriadoId(novo?.id||null)
     }
     if(profId==='__outro__'&&profNome.trim()&&salvProf){
       await supabase.from('profissionais').insert({user_id:userId,nome:profNome.trim(),especialidade:'Freelancer'})
@@ -445,11 +472,81 @@ export default function Orcamentos() {
   }
 
   function enviarWpp(orc:any){
-    const tel=(orc.cliente_whatsapp||'').replace(/\D/g,'');if(!tel) return
-    let msg=`Olá, ${orc.cliente_nome}!\n\nSeu ${orc.tipo} — Total: R$ ${fmtBRL(orc.total)}\nPago: R$ ${fmtBRL(orc.valor_pago)}\nSaldo: R$ ${fmtBRL(orc.saldo_restante)}`
-    if(orc.link_pagamento) msg+=`\n\nLink:\n${orc.link_pagamento}`
-    msg+=`\n\nApós pagar, envie o comprovante. Obrigado!`
+    const tel=((orc.cliente_whatsapp||cWpp||'')).replace(/\D/g,'');if(!tel) return
+    const dP=pendingTeeth.map(([d])=>d).join(', ')
+    const dR=doneTeeth.map(([d])=>d).join(', ')
+    const nomeC=orc.cliente_nome||cNome||'cliente'
+    const tipoDoc=orc.tipo||tipo||'orçamento'
+    let msg=`Olá, ${nomeC}! Segue a atualização do seu ${tipoDoc}.`
+    msg+=`\n\nTotal: R$ ${fmtBRL(orc.total??total)}`
+    if((orc.valor_pago??valorPago)>0) msg+=`\nPago: R$ ${fmtBRL(orc.valor_pago??valorPago)}`
+    if((orc.saldo_restante??saldo)>0) msg+=`\nSaldo restante: R$ ${fmtBRL(orc.saldo_restante??saldo)}`
+    msg+=`\nStatus: ${orc.status||status}`
+    if(useOdontogram&&(dP||dR)){
+      if(dP) msg+=`\n\nDentes pendentes: ${dP}`
+      if(dR) msg+=`\nDentes realizados: ${dR}`
+    }
+    const link=orc.link_pagamento||linkPag
+    if(link) msg+=`\n\nLink de pagamento:\n${link}`
+    msg+=`\n\nQualquer dúvida, estamos à disposição.`
     window.open('https://wa.me/55'+tel+'?text='+encodeURIComponent(msg),'_blank')
+  }
+
+  function gerarPDF(){
+    const nomeNeg=perfil?.nome_negocio||'ClienteMarcado'
+    const tipoDoc=tipo==='__outro__'?(tipoOutro||'Outro'):tipo
+    const profNomeF=profId&&profId!=='__outro__'?(profissionais.find((p:any)=>p.id===profId)?.nome||''):profNome
+    const itensV=itens.filter(i=>i.nome?.trim())
+    const linhas:string[]=[]
+    linhas.push(nomeNeg.toUpperCase())
+    linhas.push('─'.repeat(56))
+    linhas.push(`${tipoDoc.toUpperCase()}   Data: ${fmtData(dataDoc)}`)
+    linhas.push(`Status: ${status}`)
+    linhas.push('')
+    linhas.push('CLIENTE / PACIENTE')
+    linhas.push(`Nome: ${cNome}`)
+    if(cWpp) linhas.push(`WhatsApp: ${cWpp}`)
+    if(cEmail) linhas.push(`E-mail: ${cEmail}`)
+    if(profNomeF) linhas.push(`Profissional responsável: ${profNomeF}`)
+    linhas.push('')
+    linhas.push('SERVIÇOS / PROCEDIMENTOS')
+    linhas.push('─'.repeat(56))
+    itensV.forEach((it,i)=>{
+      linhas.push(`${i+1}. ${it.nome}`)
+      linhas.push(`   ${it.qtd||1} × R$ ${fmtBRL(parseFloat(it.unitario||'0'))} = R$ ${fmtBRL(it.total||0)}`)
+      if(it.obs) linhas.push(`   Obs: ${it.obs}`)
+    })
+    linhas.push('─'.repeat(56))
+    linhas.push(`Subtotal:      R$ ${fmtBRL(subtotal)}`)
+    if(descontoN>0) linhas.push(`Desconto:      R$ ${fmtBRL(descontoN)}`)
+    linhas.push(`TOTAL FINAL:   R$ ${fmtBRL(total)}`)
+    linhas.push('')
+    linhas.push('PAGAMENTO')
+    linhas.push(`Valor pago:    R$ ${fmtBRL(valorPago)}`)
+    linhas.push(`Saldo rest.:   R$ ${fmtBRL(saldo)}`)
+    if(histPags.length>0){
+      linhas.push('Histórico:')
+      histPags.forEach((p,i)=>linhas.push(`  ${i+1}. R$ ${fmtBRL(p.valor)} — ${p.forma} — ${fmtData(p.data)}${p.obs?' ('+p.obs+')':''}`))
+    }
+    if(linkPag) linhas.push(`Link pag.: ${linkPag}`)
+    if(useOdontogram&&markedTeeth.length>0){
+      linhas.push('')
+      linhas.push('ODONTOLOGIA')
+      linhas.push('─'.repeat(56))
+      if(doneTeeth.length>0) linhas.push(`Realizados: ${doneTeeth.map(([d])=>d).join(', ')}`)
+      if(pendingTeeth.length>0) linhas.push(`Pendentes:  ${pendingTeeth.map(([d])=>d).join(', ')}`)
+      if(odontologyNote) linhas.push(`Observação: ${odontologyNote}`)
+    }
+    if(observacoes){linhas.push('');linhas.push('OBSERVAÇÕES');linhas.push(observacoes)}
+    if(obsPag){linhas.push('Obs. pagamento: '+obsPag)}
+    linhas.push('');linhas.push('─'.repeat(56))
+    linhas.push(`Emitido em ${new Date().toLocaleDateString('pt-BR')} • ClienteMarcado`)
+    const conteudo=linhas.join('\n')
+    const nomeArq=`orcamento-${(cNome||'cliente').replace(/\s+/g,'-').toLowerCase()}-${dataDoc}.txt`
+    const blob=new Blob([conteudo],{type:'text/plain;charset=utf-8'})
+    const url=URL.createObjectURL(blob)
+    const a=document.createElement('a');a.href=url;a.download=nomeArq;a.click()
+    URL.revokeObjectURL(url)
   }
 
   function fmtHpValor(raw:string){
@@ -875,8 +972,9 @@ export default function Orcamentos() {
                       </div>
                       <div style={{marginBottom:'10px'}}>
                         <label style={lbl}>Serviço / procedimento *</label>
-                        <input style={inp} type="text" placeholder="Ex: corte de cabelo, limpeza de pele, avaliação, procedimento, tratamento..."
-                          value={item.nome} onChange={e=>atualizarItem(idx,'nome',e.target.value)}/>
+                        <AutoResizeTextarea value={item.nome} minHeight={44}
+                          placeholder="Ex: corte de cabelo, limpeza de pele, restauração, canal, avaliação, procedimento..."
+                          onChange={v=>atualizarItem(idx,'nome',v)}/>
                       </div>
                       <div className="f-3c" style={{display:'grid',gap:'10px',marginBottom:'10px'}}>
                         <div>
@@ -900,8 +998,9 @@ export default function Orcamentos() {
                       </div>
                       <div>
                         <label style={lbl}>Obs. do item (opcional)</label>
-                        <input style={{...inp,fontSize:'13px'}} type="text" placeholder="Ex: sessão 1 de 3, inclui material, retorno em 30 dias..."
-                          value={item.obs} onChange={e=>atualizarItem(idx,'obs',e.target.value)}/>
+                        <AutoResizeTextarea value={item.obs} minHeight={40}
+                          placeholder="Ex: sessão 1 de 3, inclui material, retorno em 30 dias..."
+                          onChange={v=>atualizarItem(idx,'obs',v)}/>
                       </div>
                     </div>
                   ))}
@@ -1118,13 +1217,17 @@ export default function Orcamentos() {
                           {/* Obs odontológica */}
                           <div>
                             <label style={lbl}>Observação odontológica</label>
-                            <input style={inp} type="text" placeholder="Ex: restauração no 11, canal no 26, avaliação geral, clareamento..."
-                              value={odontologyNote} onChange={e=>setOdontologyNote(e.target.value)}/>
+                            <AutoResizeTextarea value={odontologyNote} minHeight={72}
+                              placeholder="Ex: restauração no 11, canal no 26, avaliação geral, testes clínicos realizados, retorno recomendado..."
+                              onChange={setOdontologyNote}/>
                           </div>
 
-                          <p style={{fontSize:'11px',color:'#374151',marginTop:'10px',lineHeight:1.5}}>
-                            💡 Para clínicas odontológicas, use este bloco apenas quando precisar selecionar dentes.
-                          </p>
+                          <div style={{marginTop:'12px',display:'flex',alignItems:'flex-start',gap:'10px',padding:'10px 14px',background:'rgba(6,182,212,.1)',border:'1px solid rgba(6,182,212,.25)',borderRadius:'10px'}}>
+                            <span style={{fontSize:'16px',flexShrink:0}}>💡</span>
+                            <p style={{fontSize:'12px',color:'#A5F3FC',lineHeight:1.5}}>
+                              Use o odontograma apenas quando precisar vincular dentes ou regiões ao orçamento / tratamento.
+                            </p>
+                          </div>
                         </div>
                       )}
                     </div>
@@ -1345,11 +1448,13 @@ export default function Orcamentos() {
                   {showObs2&&(
                     <div style={{padding:'0 20px 20px',borderTop:'1px solid rgba(148,163,184,.08)',display:'flex',flexDirection:'column',gap:'12px',marginTop:'16px'}}>
                       <div><label style={lbl}>Observação do cliente / paciente</label>
-                        <textarea rows={2} style={{...inp,resize:'none' as const}} placeholder="Ex: alergias, preferências, histórico clínico, observações do atendimento..."
-                          value={cObs} onChange={e=>setCObs(e.target.value)}/></div>
+                        <AutoResizeTextarea value={cObs} minHeight={56}
+                          placeholder="Ex: alergias, preferências, histórico clínico, observações do atendimento..."
+                          onChange={setCObs}/></div>
                       <div><label style={lbl}>Observações gerais</label>
-                        <textarea rows={3} style={{...inp,resize:'none' as const}} placeholder="Informações adicionais sobre o atendimento, tratamento ou orçamento..."
-                          value={observacoes} onChange={e=>setObs(e.target.value)}/></div>
+                        <AutoResizeTextarea value={observacoes} minHeight={90}
+                          placeholder="Informações adicionais sobre o atendimento, tratamento ou orçamento..."
+                          onChange={setObs}/></div>
                       <div><label style={lbl}>Observações de pagamento</label>
                         <input style={inp} type="text" placeholder="Ex: entrada paga, parcela 1 de 3, aguardando confirmação..."
                           value={obsPag} onChange={e=>setObsPag(e.target.value)}/></div>
@@ -1415,6 +1520,11 @@ export default function Orcamentos() {
                     disabled={!cWpp}
                     style={{width:'100%',background:'rgba(34,197,94,.14)',color:cWpp?'#4ADE80':'#374151',border:'1px solid rgba(34,197,94,.28)',borderRadius:'10px',padding:'11px',fontSize:'13px',fontWeight:600,cursor:cWpp?'pointer':'not-allowed',fontFamily:'inherit',marginBottom:'8px',display:'flex',alignItems:'center',justifyContent:'center',gap:'6px',opacity:cWpp?1:0.55}}>
                     💬 Enviar no WhatsApp
+                  </button>
+
+                  <button onClick={()=>orcCriadoId?gerarPDF():setMensagem('Crie o orçamento primeiro para gerar o PDF.')}
+                    style={{width:'100%',background:orcCriadoId?'rgba(59,130,246,.14)':'rgba(255,255,255,.04)',color:orcCriadoId?'#93C5FD':'#374151',border:`1px solid ${orcCriadoId?'rgba(59,130,246,.30)':'rgba(255,255,255,.08)'}`,borderRadius:'10px',padding:'11px',fontSize:'13px',fontWeight:600,cursor:orcCriadoId?'pointer':'not-allowed',fontFamily:'inherit',marginBottom:'8px',display:'flex',alignItems:'center',justifyContent:'center',gap:'6px',opacity:orcCriadoId?1:0.55}}>
+                    📄 {orcCriadoId?'Baixar PDF do orçamento':'PDF (salve primeiro)'}
                   </button>
                   <button onClick={()=>{resetForm();setView('lista')}}
                     style={{width:'100%',background:'rgba(255,255,255,.05)',color:'#64748B',border:'1px solid rgba(255,255,255,.08)',borderRadius:'10px',padding:'10px',fontSize:'13px',fontWeight:600,cursor:'pointer',fontFamily:'inherit'}}>
