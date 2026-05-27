@@ -1340,7 +1340,6 @@ export default function Orcamentos() {
                   </div>
                 </div>
                 ):null}
-                ):null}
                 {budgetMode!=='dental'&&(
                 <div style={{...crd,padding:0,overflow:'hidden'}}>
                   <div onClick={()=>setShowOdonto(!showOdonto)} style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'16px 20px',cursor:'pointer',userSelect:'none'}}>
