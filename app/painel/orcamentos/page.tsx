@@ -491,7 +491,8 @@ export default function Orcamentos() {
 
   const subtotal = budgetMode==='dental'
     ? dentalProcs.reduce((a,p)=>(parseFloat(p.qtd)||1)*(parseFloat(p.valor)||0)+a,0)
-    : itens.reduce((a,i)=>a+(parseFloat(i.unitario||'0')*(parseInt(i.qtd)||1)),0)  const descontoN = parseFloat(desconto||'0')
+    : itens.reduce((a,i)=>a+(parseFloat(i.unitario||'0')*(parseInt(i.qtd)||1)),0)
+  const descontoN = parseFloat(desconto||'0')
   const total = Math.max(0,subtotal-descontoN)
   const valorPago = histPags.reduce((a,p)=>a+parseFloat(p.valor||'0'),0)
   const saldo = Math.max(0,total-valorPago)
@@ -1301,7 +1302,6 @@ export default function Orcamentos() {
                             <label style={lbl}>Nome do procedimento *</label>
                             <ProcedureAutocomplete value={proc.nome} onChange={v=>updateProc('nome',v)}/>
                           </div>
-                          </div>
 
                           {/* Dentes vinculados */}
                           <div style={{marginBottom:'10px'}}>
@@ -1350,9 +1350,13 @@ export default function Orcamentos() {
                           <div style={{marginBottom:'10px'}}>
                             <label style={lbl}>Status do procedimento</label>
                             <div style={{display:'flex',gap:'6px',flexWrap:'wrap'}}>
-                              {([['pendente','! Pendente','rgba(239,68,68,.12)','rgba(239,68,68,.35)','#F87171'],['em_andamento','↗ Em andamento','rgba(245,158,11,.12)','rgba(245,158,11,.35)','#FBBF24'],['realizado','✓ Realizado','rgba(34,197,94,.12)','rgba(34,197,94,.35)','#4ADE80']] as const).map(([v,l,bg,bd,c])=>(
-                                <button key={v} onClick={()=>updateProc('status',v)}
-                                  style={{flex:1,minWidth:'80px',background:proc.status===v?bg.replace('.12)','.28)')!==bg?bg:bg:'rgba(255,255,255,.04)',border:`1px solid ${proc.status===v?bd:'rgba(148,163,184,.14)'}`,borderRadius:'8px',padding:'7px 8px',fontSize:'11px',fontWeight:700,color:proc.status===v?c:'#64748B',cursor:'pointer',fontFamily:'inherit',transition:'all .15s'}}>
+                              {[
+                                {v:'pendente',      l:'! Pendente',      bg:'rgba(239,68,68,.12)',  bd:'rgba(239,68,68,.35)',  c:'#F87171'},
+                                {v:'em_andamento',  l:'↗ Em andamento',  bg:'rgba(245,158,11,.12)', bd:'rgba(245,158,11,.35)', c:'#FBBF24'},
+                                {v:'realizado',     l:'✓ Realizado',     bg:'rgba(34,197,94,.12)',  bd:'rgba(34,197,94,.35)',  c:'#4ADE80'},
+                              ].map(({v,l,bg,bd,c})=>(
+                                <button key={v} onClick={()=>updateProc('status',v as any)}
+                                  style={{flex:1,minWidth:'80px',background:proc.status===v?bg:'rgba(255,255,255,.04)',border:`1px solid ${proc.status===v?bd:'rgba(148,163,184,.14)'}`,borderRadius:'8px',padding:'7px 8px',fontSize:'11px',fontWeight:700,color:proc.status===v?c:'#64748B',cursor:'pointer',fontFamily:'inherit',transition:'all .15s'}}>
                                   {l}
                                 </button>
                               ))}
