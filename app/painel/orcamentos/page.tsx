@@ -384,12 +384,60 @@ export default function Orcamentos() {
   // Modo de orçamento
   const [budgetMode,setBudgetMode] = useState<'common'|'dental'>('common')
 
-  // Procedimentos odontológicos (lista)
-  type DentalProc = {nome:string;dentes:string[];qtd:string;valor:string;status:'pendente'|'em_andamento'|'realizado';obs:string}
-  const initProc = ():DentalProc=>({nome:'',dentes:[],qtd:'1',valor:'',status:'pendente',obs:''})
+  // Tipos odontológicos
+  type ToothStatus2 = 'pending'|'done'
+  type ToothMap = Record<string,ToothStatus2>
+
+  // Procedimentos odontológicos — cada um com odontograma próprio
+  type DentalProc = {
+    nome:string
+    semDente:boolean
+    selectedTeeth:string[]
+    toothMap:ToothMap
+    qtd:string
+    valor:string
+    status:'pendente'|'em_andamento'|'realizado'
+    obs:string
+  }
+  const initProc = ():DentalProc=>({nome:'',semDente:false,selectedTeeth:[],toothMap:{},qtd:'1',valor:'',status:'pendente',obs:''})
   const [dentalProcs,setDentalProcs] = useState<DentalProc[]>([initProc()])
 
-  // Procedimento odontológico (legado — mantido para compatibilidade)
+  const updateProc2=(idx:number,campo:keyof DentalProc,val:any)=>
+    setDentalProcs(prev=>prev.map((p,i)=>i===idx?{...p,[campo]:val}:p))
+
+  function toggleProcTooth(pidx:number,tooth:string){
+    setDentalProcs(prev=>prev.map((p,i)=>{
+      if(i!==pidx) return p
+      const sel=p.selectedTeeth.includes(tooth)
+        ?p.selectedTeeth.filter(t=>t!==tooth)
+        :[...p.selectedTeeth,tooth]
+      return {...p,selectedTeeth:sel}
+    }))
+  }
+  function applyProcStatus(pidx:number,status:ToothStatus2){
+    setDentalProcs(prev=>prev.map((p,i)=>{
+      if(i!==pidx) return p
+      const n={...p.toothMap}
+      p.selectedTeeth.forEach(t=>{n[t]=status})
+      return {...p,toothMap:n}
+    }))
+  }
+  function clearProcStatus(pidx:number){
+    setDentalProcs(prev=>prev.map((p,i)=>{
+      if(i!==pidx) return p
+      const n={...p.toothMap}
+      p.selectedTeeth.forEach(t=>{delete n[t]})
+      return {...p,toothMap:n}
+    }))
+  }
+  function clearProcSelection(pidx:number){
+    setDentalProcs(prev=>prev.map((p,i)=>i===pidx?{...p,selectedTeeth:[]}:p))
+  }
+  function clearProcAll(pidx:number){
+    setDentalProcs(prev=>prev.map((p,i)=>i===pidx?{...p,selectedTeeth:[],toothMap:{}}:p))
+  }
+
+  // Legado (mantido para compatibilidade com código existente)
   const [dentalProc,setDentalProc]   = useState('')
   const [dentalQtd,setDentalQtd]     = useState('1')
   const [dentalValor,setDentalValor] = useState('')
@@ -539,12 +587,14 @@ export default function Orcamentos() {
     const itensV=budgetMode==='dental'
       ?dentalProcs.filter(p=>p.nome.trim()).map(p=>({
           nome:p.nome.trim(),
-          dentes:p.dentes,
+          dentes:p.semDente?[]:p.selectedTeeth,
+          semDente:p.semDente,
           qtd:parseInt(p.qtd)||1,
           unitario:p.valor,
           total:(parseFloat(p.qtd)||1)*(parseFloat(p.valor)||0),
           status:p.status,
-          obs:p.obs
+          obs:p.obs,
+          toothMap:p.toothMap,
         }))
       :itens.filter(i=>i.nome?.trim()&&parseFloat(i.unitario||'0')>0&&parseInt(i.qtd||'1')>0)
 
@@ -602,10 +652,12 @@ export default function Orcamentos() {
     msg+=`\nStatus: ${orc.status||status}`
     if(budgetMode==='dental'&&dentalProcs.some(p=>p.nome.trim())){
       msg+=`\n\nProcedimentos:`
-      dentalProcs.filter(p=>p.nome.trim()).forEach(p=>{
-        msg+=`\n• ${p.nome}`
-        if(p.dentes.length>0) msg+=` | Dentes: ${p.dentes.join(', ')}`
-        msg+=` | Total: R$ ${fmtBRL((parseFloat(p.qtd)||1)*(parseFloat(p.valor)||0))}`
+      dentalProcs.filter(p=>p.nome.trim()).forEach((p,i)=>{
+        const dts=p.semDente?'Sem dente específico':(p.selectedTeeth.length>0?p.selectedTeeth.sort((a,b)=>parseInt(a)-parseInt(b)).join(', '):'Nenhum')
+        msg+=`\n${i+1}. ${p.nome}`
+        msg+=`\n   Dentes: ${dts}`
+        msg+=`\n   Total: R$ ${fmtBRL((parseFloat(p.qtd)||1)*(parseFloat(p.valor)||0))}`
+        msg+=`\n   Status: ${p.status==='realizado'?'Realizado':p.status==='em_andamento'?'Em andamento':'Pendente'}`
       })
     }
     const link=orc.link_pagamento||linkPag
@@ -657,15 +709,12 @@ export default function Orcamentos() {
       linhas.push('─'.repeat(56))
       dentalProcs.filter(p=>p.nome.trim()).forEach((p,i)=>{
         linhas.push(`${i+1}. ${p.nome}`)
-        linhas.push(`   Dentes: ${p.dentes.length>0?p.dentes.join(', '):'Sem dente específico'}`)
+        const dts=p.semDente?'Sem dente específico':(p.selectedTeeth.length>0?p.selectedTeeth.sort((a,b)=>parseInt(a)-parseInt(b)).join(', '):'Nenhum')
+        linhas.push(`   Dentes: ${dts}`)
         linhas.push(`   Qtd/Sessões: ${p.qtd||1}  ×  R$ ${fmtBRL(parseFloat(p.valor||'0'))} = R$ ${fmtBRL((parseFloat(p.qtd)||1)*(parseFloat(p.valor)||0))}`)
         linhas.push(`   Status: ${p.status==='realizado'?'Realizado':p.status==='em_andamento'?'Em andamento':'Pendente'}`)
         if(p.obs) linhas.push(`   Obs: ${p.obs}`)
       })
-      if(markedTeeth.length>0){
-        if(doneTeeth.length>0) linhas.push(`Realizados: ${doneTeeth.map(([d])=>d).join(', ')}`)
-        if(pendingTeeth.length>0) linhas.push(`Pendentes:  ${pendingTeeth.map(([d])=>d).join(', ')}`)
-      }
       if(odontologyNote) linhas.push(`Obs. geral: ${odontologyNote}`)
     } else if(useOdontogram&&markedTeeth.length>0){
       linhas.push('')
@@ -1310,116 +1359,190 @@ export default function Orcamentos() {
                     </div>
                   )}
 
-                  {/* PROCEDIMENTOS */}
+
+                  {/* PROCEDIMENTOS — cada um com odontograma próprio */}
                   <div style={{marginBottom:'14px'}}>
                     <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:'12px'}}>
-                      <p style={{fontSize:'13px',fontWeight:700,color:'#F8FAFC'}}>Procedimentos</p>
-                      <span style={{fontSize:'11px',color:'#64748B'}}>{dentalProcs.filter(p=>p.nome.trim()).length} adicionado{dentalProcs.filter(p=>p.nome.trim()).length!==1?'s':''}</span>
+                      <p style={{fontSize:'13px',fontWeight:700,color:'#F8FAFC'}}>Procedimentos do tratamento</p>
+                      <span style={{fontSize:'11px',color:'#64748B'}}>{dentalProcs.filter(p=>p.nome.trim()).length}/{dentalProcs.length}</span>
                     </div>
 
-                    {dentalProcs.map((proc,idx)=>{
+                    {dentalProcs.map((proc,pidx)=>{
                       const procTotal=(parseFloat(proc.qtd)||1)*(parseFloat(proc.valor)||0)
-                      const updateProc=(campo:string,val:any)=>setDentalProcs(prev=>prev.map((p,i)=>i===idx?{...p,[campo]:val}:p))
+                      const allTeeth=[...upperTeeth,...lowerTeeth]
+                      const markedT=Object.entries(proc.toothMap)
                       return(
-                        <div key={idx} style={{background:'rgba(255,255,255,.04)',border:'1.5px solid rgba(148,163,184,.14)',borderRadius:'16px',padding:'16px',marginBottom:'10px',boxShadow:'0 8px 24px rgba(0,0,0,.18)'}}>
-                          <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:'12px'}}>
-                            <span style={{fontSize:'11px',fontWeight:700,color:'#22D3EE',textTransform:'uppercase' as const,letterSpacing:'.06em'}}>Procedimento {idx+1}</span>
+                        <div key={pidx} style={{background:'rgba(6,182,212,.04)',border:'1.5px solid rgba(6,182,212,.18)',borderRadius:'18px',padding:'16px',marginBottom:'12px',boxShadow:'0 8px 24px rgba(0,0,0,.18)'}}>
+                          {/* Header procedimento */}
+                          <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:'14px'}}>
+                            <span style={{fontSize:'12px',fontWeight:700,color:'#22D3EE',textTransform:'uppercase' as const,letterSpacing:'.07em',background:'rgba(6,182,212,.14)',border:'1px solid rgba(6,182,212,.28)',borderRadius:'6px',padding:'3px 10px'}}>
+                              Procedimento {pidx+1}
+                            </span>
                             {dentalProcs.length>1&&(
-                              <button onClick={()=>setDentalProcs(prev=>prev.filter((_,i)=>i!==idx))}
-                                style={{background:'rgba(239,68,68,.1)',border:'1px solid rgba(239,68,68,.24)',borderRadius:'6px',padding:'3px 10px',fontSize:'11px',fontWeight:600,color:'#F87171',cursor:'pointer',fontFamily:'inherit'}}>
+                              <button onClick={()=>setDentalProcs(prev=>prev.filter((_,i)=>i!==pidx))}
+                                style={{background:'rgba(239,68,68,.1)',border:'1px solid rgba(239,68,68,.24)',borderRadius:'6px',padding:'4px 10px',fontSize:'11px',fontWeight:600,color:'#F87171',cursor:'pointer',fontFamily:'inherit'}}>
                                 Remover
                               </button>
                             )}
                           </div>
 
                           {/* Nome com autocomplete */}
-                          <div style={{marginBottom:'10px'}}>
+                          <div style={{marginBottom:'12px'}}>
                             <label style={lbl}>Nome do procedimento *</label>
-                            <ProcedureAutocomplete value={proc.nome} onChange={v=>updateProc('nome',v)}/>
+                            <ProcedureAutocomplete value={proc.nome} onChange={v=>updateProc2(pidx,'nome',v)}/>
                           </div>
 
-                          {/* Dentes vinculados */}
-                          <div style={{marginBottom:'10px'}}>
-                            <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:'6px'}}>
-                              <label style={lbl}>Dentes vinculados</label>
-                              <button onClick={()=>updateProc('dentes',[...new Set([...proc.dentes,...selectedTeeth].filter(Boolean))])}
-                                style={{background:'rgba(6,182,212,.14)',border:'1px solid rgba(6,182,212,.28)',borderRadius:'6px',padding:'3px 10px',fontSize:'11px',fontWeight:600,color:'#22D3EE',cursor:'pointer',fontFamily:'inherit'}}>
-                                + Usar selecionados
-                              </button>
-                            </div>
-                            {proc.dentes.length>0?(
-                              <div style={{display:'flex',flexWrap:'wrap' as const,gap:'4px',padding:'8px 10px',background:'rgba(6,182,212,.08)',borderRadius:'8px',border:'1px solid rgba(6,182,212,.18)'}}>
-                                {proc.dentes.map(d=>(
-                                  <span key={d} style={{background:'rgba(6,182,212,.2)',border:'1px solid rgba(6,182,212,.35)',borderRadius:'6px',padding:'2px 8px',fontSize:'11px',fontWeight:700,color:'#22D3EE',display:'flex',alignItems:'center',gap:'4px'}}>
-                                    {d}
-                                    <button onClick={()=>updateProc('dentes',proc.dentes.filter(x=>x!==d))} style={{background:'none',border:'none',color:'rgba(34,211,238,.6)',cursor:'pointer',fontSize:'13px',lineHeight:1,padding:'0',fontFamily:'inherit'}}>×</button>
-                                  </span>
+                          {/* Opção sem dente */}
+                          <div style={{display:'flex',alignItems:'center',gap:'8px',marginBottom:'12px'}}>
+                            <button onClick={()=>updateProc2(pidx,'semDente',!proc.semDente)}
+                              style={{width:'32px',height:'18px',borderRadius:'999px',border:'none',cursor:'pointer',position:'relative',background:proc.semDente?'#22D3EE':'rgba(255,255,255,.15)',flexShrink:0,transition:'background .2s'}}>
+                              <span style={{position:'absolute',top:'2px',left:proc.semDente?'16px':'2px',width:'14px',height:'14px',borderRadius:'50%',background:'#fff',transition:'left .2s'}}/>
+                            </button>
+                            <span style={{fontSize:'12px',color:'#94A3B8',cursor:'pointer'}} onClick={()=>updateProc2(pidx,'semDente',!proc.semDente)}>
+                              Procedimento sem dente específico (limpeza, avaliação, clareamento...)
+                            </span>
+                          </div>
+
+                          {/* ODONTOGRAMA próprio */}
+                          {!proc.semDente&&(
+                            <div style={{marginBottom:'14px'}}>
+                              {/* Legenda */}
+                              <div style={{display:'flex',gap:'10px',marginBottom:'10px',flexWrap:'wrap',alignItems:'center'}}>
+                                {[{c:'linear-gradient(180deg,#F8FAFC,#CBD5E1)',l:'Neutro'},{c:'rgba(239,68,68,.8)',l:'Pendente'},{c:'rgba(34,197,94,.8)',l:'Realizado'}].map(lg=>(
+                                  <div key={lg.l} style={{display:'flex',alignItems:'center',gap:'4px'}}>
+                                    <div style={{width:'12px',height:'12px',borderRadius:'3px',background:lg.c,border:'1px solid rgba(148,163,184,.3)',flexShrink:0}}/>
+                                    <span style={{fontSize:'10px',color:'#64748B'}}>{lg.l}</span>
+                                  </div>
                                 ))}
+                                <button onClick={()=>clearProcAll(pidx)} style={{marginLeft:'auto',background:'rgba(239,68,68,.1)',border:'1px solid rgba(239,68,68,.30)',borderRadius:'5px',padding:'2px 8px',fontSize:'10px',fontWeight:700,color:'#FCA5A5',cursor:'pointer',fontFamily:'inherit'}}>Limpar</button>
                               </div>
-                            ):(
-                              <p style={{fontSize:'12px',color:'#374151',padding:'6px 0'}}>Sem dente específico (limpeza, avaliação geral...)</p>
-                            )}
-                          </div>
 
-                          {/* Qtd + Valor + Total */}
-                          <div className="f-3c" style={{display:'grid',gap:'8px',marginBottom:'10px'}}>
+                              {/* Grid dentes */}
+                              <div style={{background:'rgba(6,182,212,.04)',border:'1px solid rgba(6,182,212,.14)',borderRadius:'12px',padding:'10px 8px',overflowX:'auto' as const}}>
+                                <p style={{fontSize:'9px',fontWeight:700,color:'#22D3EE',textTransform:'uppercase' as const,letterSpacing:'.07em',marginBottom:'8px',textAlign:'center'}}>Superior</p>
+                                <div style={{display:'flex',flexWrap:'wrap' as const,justifyContent:'center',gap:'3px',marginBottom:'8px'}}>
+                                  {upperTeeth.map(d=>{
+                                    const st=proc.toothMap[d];const sel=proc.selectedTeeth.includes(d)
+                                    const bg=st==='done'?'rgba(34,197,94,.85)':st==='pending'?'rgba(239,68,68,.85)':'linear-gradient(180deg,#F8FAFC,#CBD5E1)'
+                                    return(<button key={d} onClick={()=>toggleProcTooth(pidx,d)}
+                                      style={{width:'28px',height:'34px',borderRadius:'40% 40% 28% 28% / 48% 48% 28% 28%',border:`${sel?'2.5px':'1px'} solid ${sel?'#22D3EE':st==='done'?'rgba(34,197,94,.5)':st==='pending'?'rgba(239,68,68,.5)':'rgba(148,163,184,.22)'}`,background:bg,color:st?'#fff':'#1e293b',fontSize:'9px',fontWeight:700,cursor:'pointer',fontFamily:'inherit',boxShadow:sel?'0 0 0 2px rgba(34,211,238,.4)':'0 1px 3px rgba(0,0,0,.2)',transform:sel?'scale(1.1)':'scale(1)',transition:'all .12s',flexShrink:0,display:'flex',alignItems:'center',justifyContent:'center'}}>{d}</button>)
+                                  })}
+                                </div>
+                                <div style={{height:'1px',background:'rgba(6,182,212,.14)',margin:'4px 0 8px'}}/>
+                                <p style={{fontSize:'9px',fontWeight:700,color:'#22D3EE',textTransform:'uppercase' as const,letterSpacing:'.07em',marginBottom:'8px',textAlign:'center'}}>Inferior</p>
+                                <div style={{display:'flex',flexWrap:'wrap' as const,justifyContent:'center',gap:'3px'}}>
+                                  {lowerTeeth.map(d=>{
+                                    const st=proc.toothMap[d];const sel=proc.selectedTeeth.includes(d)
+                                    const bg=st==='done'?'rgba(34,197,94,.85)':st==='pending'?'rgba(239,68,68,.85)':'linear-gradient(180deg,#CBD5E1,#F8FAFC)'
+                                    return(<button key={d} onClick={()=>toggleProcTooth(pidx,d)}
+                                      style={{width:'28px',height:'34px',borderRadius:'28% 28% 40% 40% / 28% 28% 48% 48%',border:`${sel?'2.5px':'1px'} solid ${sel?'#22D3EE':st==='done'?'rgba(34,197,94,.5)':st==='pending'?'rgba(239,68,68,.5)':'rgba(148,163,184,.22)'}`,background:bg,color:st?'#fff':'#1e293b',fontSize:'9px',fontWeight:700,cursor:'pointer',fontFamily:'inherit',boxShadow:sel?'0 0 0 2px rgba(34,211,238,.4)':'0 1px 3px rgba(0,0,0,.2)',transform:sel?'scale(1.1)':'scale(1)',transition:'all .12s',flexShrink:0,display:'flex',alignItems:'center',justifyContent:'center'}}>{d}</button>)
+                                  })}
+                                </div>
+                              </div>
+
+                              {/* Chips selecionados + botões status */}
+                              {proc.selectedTeeth.length>0?(
+                                <div style={{marginTop:'10px'}}>
+                                  <div style={{display:'flex',alignItems:'center',gap:'6px',marginBottom:'8px',flexWrap:'wrap'}}>
+                                    <span style={{fontSize:'10px',fontWeight:700,color:'#64748B',textTransform:'uppercase' as const,letterSpacing:'.05em'}}>{proc.selectedTeeth.length} selecionado{proc.selectedTeeth.length>1?'s':''}</span>
+                                    <div style={{display:'flex',flexWrap:'wrap' as const,gap:'3px',flex:1}}>
+                                      {[...proc.selectedTeeth].sort((a,b)=>parseInt(a)-parseInt(b)).map(d=>(
+                                        <span key={d} style={{background:'rgba(6,182,212,.2)',border:'1px solid rgba(6,182,212,.4)',borderRadius:'5px',padding:'2px 7px',fontSize:'11px',fontWeight:700,color:'#22D3EE',display:'flex',alignItems:'center',gap:'3px'}}>
+                                          {d}<button onClick={()=>toggleProcTooth(pidx,d)} style={{background:'none',border:'none',color:'rgba(34,211,238,.7)',cursor:'pointer',fontSize:'13px',lineHeight:1,padding:'0',fontFamily:'inherit'}}>×</button>
+                                        </span>
+                                      ))}
+                                    </div>
+                                    <button onClick={()=>clearProcSelection(pidx)} style={{background:'none',border:'none',fontSize:'10px',color:'#64748B',cursor:'pointer',fontFamily:'inherit',flexShrink:0}}>Limpar seleção</button>
+                                  </div>
+                                  <div style={{display:'flex',gap:'5px',flexWrap:'wrap'}}>
+                                    <button onClick={()=>applyProcStatus(pidx,'done')} style={{flex:1,minWidth:'70px',background:'rgba(34,197,94,.12)',border:'1px solid rgba(34,197,94,.30)',borderRadius:'7px',padding:'6px',fontSize:'11px',fontWeight:700,color:'#4ADE80',cursor:'pointer',fontFamily:'inherit'}}>✓ Realizado</button>
+                                    <button onClick={()=>applyProcStatus(pidx,'pending')} style={{flex:1,minWidth:'70px',background:'rgba(239,68,68,.10)',border:'1px solid rgba(239,68,68,.28)',borderRadius:'7px',padding:'6px',fontSize:'11px',fontWeight:700,color:'#F87171',cursor:'pointer',fontFamily:'inherit'}}>! Pendente</button>
+                                    <button onClick={()=>clearProcStatus(pidx)} style={{background:'rgba(239,68,68,.08)',border:'1px solid rgba(239,68,68,.22)',borderRadius:'7px',padding:'6px 9px',fontSize:'10px',fontWeight:700,color:'#FCA5A5',cursor:'pointer',fontFamily:'inherit'}}>Limpar status</button>
+                                  </div>
+                                </div>
+                              ):(
+                                <p style={{fontSize:'11px',color:'#374151',marginTop:'8px'}}>Clique nos dentes para selecionar (seleção múltipla acumulativa).</p>
+                              )}
+
+                              {/* Dentes marcados resumo */}
+                              {markedT.length>0&&(
+                                <div style={{marginTop:'8px',display:'flex',flexWrap:'wrap' as const,gap:'3px'}}>
+                                  {[...markedT].sort((a,b)=>parseInt(a[0])-parseInt(b[0])).map(([d,st])=>(
+                                    <span key={d} style={{background:st==='done'?'rgba(34,197,94,.14)':'rgba(239,68,68,.14)',border:`1px solid ${st==='done'?'rgba(34,197,94,.30)':'rgba(239,68,68,.28)'}`,borderRadius:'5px',padding:'2px 8px',fontSize:'11px',fontWeight:700,color:st==='done'?'#4ADE80':'#F87171'}}>
+                                      {d} {st==='done'?'✓':'!'}
+                                    </span>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          )}
+
+                          {proc.semDente&&(
+                            <div style={{padding:'8px 12px',background:'rgba(6,182,212,.08)',border:'1px solid rgba(6,182,212,.20)',borderRadius:'8px',marginBottom:'12px',fontSize:'12px',color:'#22D3EE'}}>
+                              🦷 Procedimento sem dente específico
+                            </div>
+                          )}
+
+                          {/* Grid financeiro */}
+                          <div style={{display:'grid',gridTemplateColumns:'110px 1fr 1fr',gap:'8px',marginBottom:'10px'}} className="proc-grid">
+                            <style>{`@media(max-width:600px){.proc-grid{grid-template-columns:1fr!important}}`}</style>
                             <div>
                               <label style={lbl}>Qtd. / Sessões</label>
                               <input style={{...inp,textAlign:'center'}} type="number" min="1" placeholder="1"
-                                value={proc.qtd} onChange={e=>updateProc('qtd',e.target.value)}/>
+                                value={proc.qtd} onChange={e=>updateProc2(pidx,'qtd',e.target.value)}/>
                             </div>
                             <div>
                               <label style={lbl}>Valor unitário</label>
-                              <MoneyInput value={proc.valor} onChange={v=>updateProc('valor',v)}/>
+                              <MoneyInput value={proc.valor} onChange={v=>updateProc2(pidx,'valor',v)}/>
                             </div>
                             <div>
                               <label style={lbl}>Total</label>
-                              <div style={{background:procTotal>0?'rgba(34,197,94,.14)':'rgba(255,255,255,.04)',border:`1.5px solid ${procTotal>0?'rgba(34,197,94,.35)':'rgba(255,255,255,.08)'}`,borderRadius:'10px',padding:'12px 14px',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',minHeight:'52px',boxShadow:procTotal>0?'0 0 16px rgba(34,197,94,.12)':'none'}}>
-                                <span style={{fontSize:'10px',fontWeight:700,color:procTotal>0?'rgba(74,222,128,.7)':'#374151',textTransform:'uppercase',letterSpacing:'.06em',marginBottom:'2px'}}>Total</span>
-                                <span style={{fontSize:'17px',fontWeight:800,color:procTotal>0?'#4ADE80':'#475569',letterSpacing:'-0.02em'}}>R$ {fmtBRL(procTotal)}</span>
+                              <div style={{background:procTotal>0?'rgba(34,197,94,.14)':'rgba(255,255,255,.04)',border:`1.5px solid ${procTotal>0?'rgba(34,197,94,.32)':'rgba(255,255,255,.08)'}`,borderRadius:'10px',padding:'12px 14px',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',minHeight:'52px',boxShadow:procTotal>0?'0 0 14px rgba(34,197,94,.12)':'none'}}>
+                                <span style={{fontSize:'9px',fontWeight:700,color:procTotal>0?'rgba(74,222,128,.6)':'#374151',textTransform:'uppercase',letterSpacing:'.06em',marginBottom:'2px'}}>TOTAL</span>
+                                <span style={{fontSize:'16px',fontWeight:800,color:procTotal>0?'#4ADE80':'#475569',letterSpacing:'-0.02em'}}>R$ {fmtBRL(procTotal)}</span>
                               </div>
                             </div>
                           </div>
 
-                          {/* Status */}
+                          {/* Status procedimento */}
                           <div style={{marginBottom:'10px'}}>
                             <label style={lbl}>Status do procedimento</label>
-                            <div style={{display:'flex',gap:'6px',flexWrap:'wrap'}}>
+                            <div style={{display:'flex',gap:'5px',flexWrap:'wrap'}}>
                               {[
-                                {v:'pendente',      l:'! Pendente',      bg:'rgba(239,68,68,.12)',  bd:'rgba(239,68,68,.35)',  c:'#F87171'},
-                                {v:'em_andamento',  l:'↗ Em andamento',  bg:'rgba(245,158,11,.12)', bd:'rgba(245,158,11,.35)', c:'#FBBF24'},
-                                {v:'realizado',     l:'✓ Realizado',     bg:'rgba(34,197,94,.12)',  bd:'rgba(34,197,94,.35)',  c:'#4ADE80'},
+                                {v:'pendente',    l:'! Pendente',     bg:'rgba(239,68,68,.12)',  bd:'rgba(239,68,68,.32)',  c:'#F87171'},
+                                {v:'em_andamento',l:'↗ Em andamento', bg:'rgba(6,182,212,.12)',  bd:'rgba(6,182,212,.32)',  c:'#22D3EE'},
+                                {v:'realizado',   l:'✓ Realizado',    bg:'rgba(34,197,94,.12)',  bd:'rgba(34,197,94,.32)',  c:'#4ADE80'},
                               ].map(({v,l,bg,bd,c})=>(
-                                <button key={v} onClick={()=>updateProc('status',v as any)}
-                                  style={{flex:1,minWidth:'80px',background:proc.status===v?bg:'rgba(255,255,255,.04)',border:`1px solid ${proc.status===v?bd:'rgba(148,163,184,.14)'}`,borderRadius:'8px',padding:'7px 8px',fontSize:'11px',fontWeight:700,color:proc.status===v?c:'#64748B',cursor:'pointer',fontFamily:'inherit',transition:'all .15s'}}>
+                                <button key={v} onClick={()=>updateProc2(pidx,'status',v as any)}
+                                  style={{flex:1,minWidth:'80px',background:proc.status===v?bg:'rgba(255,255,255,.04)',border:`1px solid ${proc.status===v?bd:'rgba(148,163,184,.12)'}`,borderRadius:'8px',padding:'7px 6px',fontSize:'11px',fontWeight:700,color:proc.status===v?c:'#64748B',cursor:'pointer',fontFamily:'inherit',transition:'all .15s'}}>
                                   {l}
                                 </button>
                               ))}
                             </div>
                           </div>
 
-                          {/* Obs do procedimento */}
+                          {/* Obs procedimento */}
                           <div>
-                            <label style={lbl}>Obs. do procedimento</label>
+                            <label style={lbl}>Observação do procedimento</label>
                             <AutoResizeTextarea value={proc.obs} minHeight={36}
                               placeholder="Ex: sessão 1 de 3, inclui material, retorno em 30 dias..."
-                              onChange={v=>updateProc('obs',v)}/>
+                              onChange={v=>updateProc2(pidx,'obs',v)}/>
                           </div>
                         </div>
                       )
                     })}
 
                     <button onClick={()=>setDentalProcs(prev=>[...prev,initProc()])}
-                      style={{background:'rgba(6,182,212,.1)',border:'1.5px dashed rgba(6,182,212,.30)',borderRadius:'10px',color:'#22D3EE',fontSize:'13px',fontWeight:600,cursor:'pointer',fontFamily:'inherit',padding:'10px 16px',display:'flex',alignItems:'center',gap:'6px',width:'100%',justifyContent:'center',transition:'background .2s'}}>
+                      style={{background:'rgba(6,182,212,.08)',border:'1.5px dashed rgba(6,182,212,.28)',borderRadius:'12px',color:'#22D3EE',fontSize:'13px',fontWeight:600,cursor:'pointer',fontFamily:'inherit',padding:'10px 16px',display:'flex',alignItems:'center',gap:'6px',width:'100%',justifyContent:'center',transition:'background .2s'}}>
                       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-                      Adicionar procedimento
+                      Adicionar outro procedimento
                     </button>
                   </div>
 
-                  {/* Total dental */}
+                  {/* Total geral */}
                   <div style={{background:'rgba(255,255,255,.03)',borderRadius:'12px',padding:'14px 16px',border:'1px solid rgba(255,255,255,.07)',marginBottom:'14px'}}>
                     <div style={{display:'flex',justifyContent:'space-between',fontSize:'13px',marginBottom:'8px'}}>
-                      <span style={{color:'#94A3B8'}}>Subtotal procedimentos</span>
+                      <span style={{color:'#94A3B8'}}>Subtotal ({dentalProcs.filter(p=>p.nome.trim()).length} procedimento{dentalProcs.filter(p=>p.nome.trim()).length!==1?'s':''})</span>
                       <span style={{fontWeight:600,color:'#F8FAFC'}}>R$ {fmtBRL(subtotal)}</span>
                     </div>
                     <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',fontSize:'13px',marginBottom:'10px',paddingBottom:'10px',borderBottom:'1px solid rgba(255,255,255,.07)'}}>
@@ -1436,14 +1559,14 @@ export default function Orcamentos() {
                   {/* Obs geral */}
                   <div style={{marginBottom:'12px'}}>
                     <label style={lbl}>Observação odontológica geral</label>
-                    <AutoResizeTextarea value={odontologyNote} minHeight={72}
-                      placeholder="Ex: plano de tratamento, recomendações, observações clínicas, retorno e acompanhamento..."
+                    <AutoResizeTextarea value={odontologyNote} minHeight={60}
+                      placeholder="Ex: plano de tratamento, recomendações, retorno e acompanhamento..."
                       onChange={setOdontologyNote}/>
                   </div>
 
-                  <div style={{display:'flex',alignItems:'flex-start',gap:'10px',padding:'10px 14px',background:'rgba(6,182,212,.1)',border:'1px solid rgba(6,182,212,.25)',borderRadius:'10px'}}>
-                    <span style={{fontSize:'16px',flexShrink:0}}>💡</span>
-                    <p style={{fontSize:'12px',color:'#A5F3FC',lineHeight:1.5}}>Use o odontograma para selecionar dentes e vincule-os aos procedimentos.</p>
+                  <div style={{display:'flex',alignItems:'flex-start',gap:'10px',padding:'10px 14px',background:'rgba(6,182,212,.08)',border:'1px solid rgba(6,182,212,.22)',borderRadius:'10px'}}>
+                    <span style={{fontSize:'14px',flexShrink:0}}>💡</span>
+                    <p style={{fontSize:'12px',color:'#A5F3FC',lineHeight:1.5}}>Cada procedimento tem seu próprio odontograma. Selecione dentes e marque status independentemente.</p>
                   </div>
                 </div>
                 ):null}
