@@ -380,6 +380,7 @@ export default function Orcamentos() {
   const [hpObs,setHpObs]       = useState('')
   const [editHpIdx,setEditHpIdx]= useState<number|null>(null)
   const [orcCriadoId,setOrcCriadoId] = useState<string|null>(null)
+  const [showWppMenu,setShowWppMenu] = useState(false)
 
   // Modo de orçamento
   const [budgetMode,setBudgetMode] = useState<'common'|'dental'>('common')
@@ -564,6 +565,14 @@ export default function Orcamentos() {
   const valorPago = histPags.reduce((a,p)=>a+parseFloat(p.valor||'0'),0)
   const saldo = Math.max(0,total-valorPago)
 
+  // PDF e WPP ficam ativos com dados mínimos — não precisa salvar primeiro
+  const wppReady = !!(cNome.trim()&&cWpp&&cWpp.replace(/\D/g,'').length>=10)
+  const pdfReady = wppReady&&(
+    budgetMode==='dental'
+      ?dentalProcs.some(p=>p.nome.trim()&&parseFloat(p.valor)>0)
+      :itens.some(i=>i.nome?.trim()&&parseFloat(i.unitario||'0')>0)
+  )
+
   async function salvar(){
     setMensagem('')
     const erros:string[]=[]
@@ -639,31 +648,52 @@ export default function Orcamentos() {
     await recarregar()
   }
 
-  function enviarWpp(orc:any){
-    const tel=((orc.cliente_whatsapp||cWpp||'')).replace(/\D/g,'');if(!tel) return
-    const dP=pendingTeeth.map(([d])=>d).join(', ')
-    const dR=doneTeeth.map(([d])=>d).join(', ')
-    const nomeC=orc.cliente_nome||cNome||'cliente'
-    const tipoDoc=orc.tipo||tipo||'orçamento'
-    let msg=`Olá, ${nomeC}! Segue a atualização do seu ${tipoDoc}.`
-    msg+=`\n\nTotal: R$ ${fmtBRL(orc.total??total)}`
-    if((orc.valor_pago??valorPago)>0) msg+=`\nPago: R$ ${fmtBRL(orc.valor_pago??valorPago)}`
-    if((orc.saldo_restante??saldo)>0) msg+=`\nSaldo restante: R$ ${fmtBRL(orc.saldo_restante??saldo)}`
-    msg+=`\nStatus: ${orc.status||status}`
+  function buildWppMsg(orc?:any){
+    const nomeC=(orc?.cliente_nome||cNome||'cliente')
+    const totalF=orc?.total??total
+    const pagoF=orc?.valor_pago??valorPago
+    const saldoF=orc?.saldo_restante??saldo
+    const stF=orc?.status||status
+    let msg=''
     if(budgetMode==='dental'&&dentalProcs.some(p=>p.nome.trim())){
-      msg+=`\n\nProcedimentos:`
+      msg=`Olá, ${nomeC}! Segue seu orçamento/tratamento odontológico:\n\nProcedimentos:`
       dentalProcs.filter(p=>p.nome.trim()).forEach((p,i)=>{
-        const dts=p.semDente?'Sem dente específico':(p.selectedTeeth.length>0?p.selectedTeeth.sort((a,b)=>parseInt(a)-parseInt(b)).join(', '):'Nenhum')
-        msg+=`\n${i+1}. ${p.nome}`
-        msg+=`\n   Dentes: ${dts}`
-        msg+=`\n   Total: R$ ${fmtBRL((parseFloat(p.qtd)||1)*(parseFloat(p.valor)||0))}`
-        msg+=`\n   Status: ${p.status==='realizado'?'Realizado':p.status==='em_andamento'?'Em andamento':'Pendente'}`
+        const dts=p.semDente?'Sem dente específico':(p.selectedTeeth.length>0?[...p.selectedTeeth].sort((a,b)=>parseInt(a)-parseInt(b)).join(', '):'Nenhum')
+        msg+=`\n${i+1}. ${p.nome}\n   Dentes: ${dts}\n   Qtd/Sessões: ${p.qtd||1}  ×  R$ ${fmtBRL(parseFloat(p.valor||'0'))}\n   Total: R$ ${fmtBRL((parseFloat(p.qtd)||1)*(parseFloat(p.valor)||0))}\n   Status: ${p.status==='realizado'?'Realizado':p.status==='em_andamento'?'Em andamento':'Pendente'}`
       })
+    } else {
+      const servs=(orc?.servicos||itens).filter((s:any)=>s.nome?.trim())
+      msg=`Olá, ${nomeC}! Segue seu orçamento:`
+      if(servs.length>0){
+        msg+=`\n\nServiços:`
+        servs.forEach((s:any,i:number)=>msg+=`\n${i+1}. ${s.nome}\n   Qtd: ${s.qtd||1}  ×  R$ ${fmtBRL(parseFloat(s.unitario||'0'))}\n   Total: R$ ${fmtBRL((parseInt(s.qtd)||1)*(parseFloat(s.unitario||'0')))}`)
+      }
     }
-    const link=orc.link_pagamento||linkPag
+    msg+=`\n\nTotal final: R$ ${fmtBRL(totalF)}`
+    if(pagoF>0) msg+=`\nPago: R$ ${fmtBRL(pagoF)}`
+    if(saldoF>0) msg+=`\nSaldo restante: R$ ${fmtBRL(saldoF)}`
+    msg+=`\nStatus: ${stF}`
+    const link=orc?.link_pagamento||linkPag
     if(link) msg+=`\n\nLink de pagamento:\n${link}`
     msg+=`\n\nQualquer dúvida, estamos à disposição.`
-    window.open('https://wa.me/55'+tel+'?text='+encodeURIComponent(msg),'_blank')
+    return msg
+  }
+
+  function enviarWpp(orc?:any,modo:'web'|'cel'='cel'){
+    const tel=((orc?.cliente_whatsapp||cWpp||'')).replace(/\D/g,'');if(!tel) return
+    const enc=encodeURIComponent(buildWppMsg(orc))
+    const url=modo==='web'
+      ?`https://web.whatsapp.com/send?phone=55${tel}&text=${enc}`
+      :`https://wa.me/55${tel}?text=${enc}`
+    window.open(url,'_blank')
+    setShowWppMenu(false)
+  }
+
+  function copiarMsgWpp(orc?:any){
+    navigator.clipboard.writeText(buildWppMsg(orc))
+    setMensagem('Mensagem copiada! ✓')
+    setTimeout(()=>setMensagem(''),2500)
+    setShowWppMenu(false)
   }
 
   function gerarPDF(){
@@ -1395,11 +1425,11 @@ export default function Orcamentos() {
                           )}
 
                           {/* Grid financeiro */}
-                          <div style={{display:'grid',gridTemplateColumns:'110px 1fr 1fr',gap:'8px',marginBottom:'10px'}} className="proc-grid">
+                          <div style={{display:'grid',gridTemplateColumns:'110px 1fr 190px',gap:'8px',marginBottom:'10px'}} className="proc-grid">
                             <style>{`@media(max-width:600px){.proc-grid{grid-template-columns:1fr!important}}`}</style>
                             <div>
                               <label style={lbl}>Qtd. / Sessões</label>
-                              <input style={{...inp,textAlign:'center'}} type="number" min="1" placeholder="1"
+                              <input style={{...inp,textAlign:'center',minHeight:'54px',fontSize:'16px',fontWeight:700}} type="number" min="1" placeholder="1"
                                 value={proc.qtd} onChange={e=>updateProc2(pidx,'qtd',e.target.value)}/>
                             </div>
                             <div>
@@ -1408,8 +1438,8 @@ export default function Orcamentos() {
                             </div>
                             <div>
                               <label style={lbl}>Total</label>
-                              <div style={{background:procTotal>0?'rgba(34,197,94,.14)':'rgba(255,255,255,.04)',border:`1.5px solid ${procTotal>0?'rgba(34,197,94,.32)':'rgba(255,255,255,.08)'}`,borderRadius:'10px',padding:'12px 14px',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',minHeight:'52px',boxShadow:procTotal>0?'0 0 14px rgba(34,197,94,.12)':'none'}}>
-                                <span style={{fontSize:'9px',fontWeight:700,color:procTotal>0?'rgba(74,222,128,.6)':'#374151',textTransform:'uppercase',letterSpacing:'.06em',marginBottom:'2px'}}>TOTAL</span>
+                              <div style={{background:procTotal>0?'rgba(34,197,94,.14)':'rgba(255,255,255,.04)',border:`1.5px solid ${procTotal>0?'rgba(34,197,94,.32)':'rgba(255,255,255,.08)'}`,borderRadius:'10px',padding:'10px 12px',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',minHeight:'54px',boxShadow:procTotal>0?'0 0 14px rgba(34,197,94,.12)':'none'}}>
+                                <span style={{fontSize:'9px',fontWeight:700,color:procTotal>0?'rgba(74,222,128,.6)':'#374151',textTransform:'uppercase' as const,letterSpacing:'.06em',marginBottom:'2px'}}>TOTAL</span>
                                 <span style={{fontSize:'16px',fontWeight:800,color:procTotal>0?'#4ADE80':'#475569',letterSpacing:'-0.02em'}}>R$ {fmtBRL(procTotal)}</span>
                               </div>
                             </div>
@@ -1959,18 +1989,49 @@ export default function Orcamentos() {
                     style={{width:'100%',background:'linear-gradient(135deg,#3B82F6,#7C3AED)',color:'#fff',border:'1px solid rgba(255,255,255,.10)',borderRadius:'10px',padding:'14px',fontSize:'14px',fontWeight:700,cursor:'pointer',fontFamily:'inherit',boxShadow:'0 12px 32px rgba(59,130,246,.30),0 0 28px rgba(124,58,237,.22)',marginBottom:'8px',display:'flex',alignItems:'center',justifyContent:'center',gap:'8px'}}>
                     📄 {editandoId?'Salvar alterações':'Criar orçamento'}
                   </button>
-                  <button onClick={()=>cWpp&&window.open('https://wa.me/55'+cWpp.replace(/\D/g,'')+'?text='+encodeURIComponent(`Olá, ${cNome||'cliente'}!\n\nSeu ${tipo==='__outro__'?tipoOutro:tipo}: R$ ${fmtBRL(total)}${linkPag?'\n\nLink:\n'+linkPag:''}\n\nApós pagar, envie o comprovante. Obrigado!`),'_blank')}
-                    disabled={!cWpp}
-                    style={{width:'100%',background:'rgba(34,197,94,.14)',color:cWpp?'#4ADE80':'#374151',border:'1px solid rgba(34,197,94,.28)',borderRadius:'10px',padding:'11px',fontSize:'13px',fontWeight:600,cursor:cWpp?'pointer':'not-allowed',fontFamily:'inherit',marginBottom:'8px',display:'flex',alignItems:'center',justifyContent:'center',gap:'6px',opacity:cWpp?1:0.55}}>
-                    💬 Enviar no WhatsApp
-                  </button>
 
-                  <button onClick={()=>orcCriadoId?gerarPDF():setMensagem('Crie o orçamento primeiro para gerar o PDF.')}
-                    style={{width:'100%',background:orcCriadoId?'rgba(59,130,246,.14)':'rgba(255,255,255,.04)',color:orcCriadoId?'#93C5FD':'#374151',border:`1px solid ${orcCriadoId?'rgba(59,130,246,.30)':'rgba(255,255,255,.08)'}`,borderRadius:'10px',padding:'11px',fontSize:'13px',fontWeight:600,cursor:orcCriadoId?'pointer':'not-allowed',fontFamily:'inherit',marginBottom:'8px',display:'flex',alignItems:'center',justifyContent:'center',gap:'6px',opacity:orcCriadoId?1:0.55}}>
-                    📄 {orcCriadoId?'Baixar PDF do orçamento':'PDF (salve primeiro)'}
+                  {/* WhatsApp dropdown */}
+                  <div style={{position:'relative',marginBottom:'8px'}}>
+                    <button onClick={()=>setShowWppMenu(!showWppMenu)} disabled={!wppReady}
+                      style={{width:'100%',background:wppReady?'rgba(34,197,94,.16)':'rgba(255,255,255,.04)',color:wppReady?'#4ADE80':'#374151',border:`1px solid ${wppReady?'rgba(34,197,94,.32)':'rgba(255,255,255,.08)'}`,borderRadius:'10px',padding:'11px',fontSize:'13px',fontWeight:600,cursor:wppReady?'pointer':'not-allowed',fontFamily:'inherit',display:'flex',alignItems:'center',justifyContent:'center',gap:'6px',opacity:wppReady?1:0.55,transition:'all .2s'}}>
+                      💬 Enviar no WhatsApp {wppReady&&<span style={{fontSize:'10px',opacity:.7}}>▾</span>}
+                    </button>
+                    {showWppMenu&&wppReady&&(
+                      <div style={{position:'absolute',top:'calc(100% + 4px)',left:0,right:0,background:'rgba(7,17,31,.98)',border:'1.5px solid rgba(34,197,94,.28)',borderRadius:'12px',zIndex:50,overflow:'hidden',boxShadow:'0 16px 40px rgba(0,0,0,.5)'}}>
+                        <button onClick={()=>enviarWpp(undefined,'web')}
+                          style={{width:'100%',background:'none',border:'none',borderBottom:'1px solid rgba(255,255,255,.06)',padding:'12px 14px',textAlign:'left',cursor:'pointer',fontFamily:'inherit',color:'#F8FAFC',fontSize:'13px',fontWeight:600,display:'flex',flexDirection:'column',gap:'2px'}}
+                          onMouseEnter={e=>(e.currentTarget.style.background='rgba(34,197,94,.1)')}
+                          onMouseLeave={e=>(e.currentTarget.style.background='none')}>
+                          🖥 WhatsApp Web
+                          <span style={{fontSize:'11px',color:'#64748B',fontWeight:400}}>Ideal para computador</span>
+                        </button>
+                        <button onClick={()=>enviarWpp(undefined,'cel')}
+                          style={{width:'100%',background:'none',border:'none',borderBottom:'1px solid rgba(255,255,255,.06)',padding:'12px 14px',textAlign:'left',cursor:'pointer',fontFamily:'inherit',color:'#F8FAFC',fontSize:'13px',fontWeight:600,display:'flex',flexDirection:'column',gap:'2px'}}
+                          onMouseEnter={e=>(e.currentTarget.style.background='rgba(34,197,94,.1)')}
+                          onMouseLeave={e=>(e.currentTarget.style.background='none')}>
+                          📱 WhatsApp Celular
+                          <span style={{fontSize:'11px',color:'#64748B',fontWeight:400}}>Ideal para smartphone</span>
+                        </button>
+                        <button onClick={()=>copiarMsgWpp()}
+                          style={{width:'100%',background:'none',border:'none',padding:'12px 14px',textAlign:'left',cursor:'pointer',fontFamily:'inherit',color:'#94A3B8',fontSize:'13px',fontWeight:500,display:'flex',flexDirection:'column',gap:'2px'}}
+                          onMouseEnter={e=>(e.currentTarget.style.background='rgba(255,255,255,.05)')}
+                          onMouseLeave={e=>(e.currentTarget.style.background='none')}>
+                          📋 Copiar mensagem
+                          <span style={{fontSize:'11px',color:'#64748B',fontWeight:400}}>Para enviar manualmente</span>
+                        </button>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* PDF */}
+                  <button onClick={()=>pdfReady?gerarPDF():undefined} disabled={!pdfReady}
+                    style={{width:'100%',background:pdfReady?'rgba(59,130,246,.14)':'rgba(255,255,255,.04)',color:pdfReady?'#93C5FD':'#374151',border:`1px solid ${pdfReady?'rgba(59,130,246,.32)':'rgba(255,255,255,.08)'}`,borderRadius:'10px',padding:'11px',fontSize:'13px',fontWeight:600,cursor:pdfReady?'pointer':'not-allowed',fontFamily:'inherit',marginBottom:'4px',display:'flex',alignItems:'center',justifyContent:'center',gap:'6px',opacity:pdfReady?1:0.55,transition:'all .2s'}}>
+                    📄 {pdfReady?'Baixar PDF do orçamento':'Gerar PDF'}
                   </button>
+                  {!pdfReady&&<p style={{fontSize:'10px',color:'#374151',textAlign:'center',marginBottom:'6px'}}>Preencha cliente, WhatsApp e um serviço/valor.</p>}
+
                   <button onClick={()=>{resetForm();setView('lista')}}
-                    style={{width:'100%',background:'rgba(255,255,255,.05)',color:'#64748B',border:'1px solid rgba(255,255,255,.08)',borderRadius:'10px',padding:'10px',fontSize:'13px',fontWeight:600,cursor:'pointer',fontFamily:'inherit'}}>
+                    style={{width:'100%',background:'rgba(255,255,255,.05)',color:'#64748B',border:'1px solid rgba(255,255,255,.08)',borderRadius:'10px',padding:'10px',fontSize:'13px',fontWeight:600,cursor:'pointer',fontFamily:'inherit',marginTop:'4px'}}>
                     Salvar como rascunho
                   </button>
 
