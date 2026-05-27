@@ -1242,7 +1242,7 @@ export default function Orcamentos() {
                     <p style={{fontSize:'12px',color:'#A5F3FC',lineHeight:1.5}}>Use o odontograma apenas quando precisar vincular dentes ou regiões ao orçamento / tratamento.</p>
                   </div>
                 </div>
-                }
+                ):null}
                 {budgetMode!=='dental'&&(
                 <div style={{...crd,padding:0,overflow:'hidden'}}>
                   <div onClick={()=>setShowOdonto(!showOdonto)} style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'16px 20px',cursor:'pointer',userSelect:'none'}}>
