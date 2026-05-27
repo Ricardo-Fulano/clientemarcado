@@ -294,11 +294,29 @@ export default function Orcamentos() {
   const [hpObs,setHpObs]       = useState('')
   const [editHpIdx,setEditHpIdx]= useState<number|null>(null)
 
-  // Odontologia
-  const [showOdonto,setShowOdonto]   = useState(false)
-  const [usarOdonto,setUsarOdonto]   = useState(false)
-  const [dentesSel,setDentesSel]     = useState<string[]>([])
-  const [obsOdonto,setObsOdonto]     = useState('')
+  // Odontologia — sistema completo
+  type ToothStatus = 'neutral'|'pending'|'done'
+  type ToothInfo = {status:ToothStatus;note?:string}
+  const [showOdonto,setShowOdonto]         = useState(false)
+  const [useOdontogram,setUseOdontogram]   = useState(false)
+  const [selectedTooth,setSelectedTooth]   = useState<string|null>(null)
+  const [toothStatuses,setToothStatuses]   = useState<Record<string,ToothInfo>>({})
+  const [odontologyNote,setOdontologyNote] = useState('')
+
+  const upperTeeth = ['18','17','16','15','14','13','12','11','21','22','23','24','25','26','27','28']
+  const lowerTeeth = ['48','47','46','45','44','43','42','41','31','32','33','34','35','36','37','38']
+  const markedTeeth  = Object.entries(toothStatuses)
+  const doneTeeth    = markedTeeth.filter(([_,i])=>i.status==='done')
+  const pendingTeeth = markedTeeth.filter(([_,i])=>i.status==='pending')
+
+  function handleSelectTooth(tooth:string){setSelectedTooth(tooth)}
+  function setToothStatus(tooth:string,status:ToothStatus){
+    setToothStatuses(prev=>({...prev,[tooth]:{...(prev[tooth]||{}),status}}))
+  }
+  function clearToothStatus(tooth:string){
+    setToothStatuses(prev=>{const n={...prev};delete n[tooth];return n})
+  }
+  function clearAllTeeth(){setToothStatuses({});setSelectedTooth(null)}
 
   // Accordions
   const [showDet,setShowDet]   = useState(false)
@@ -348,7 +366,7 @@ export default function Orcamentos() {
     setLinkPag('');setObsPag('');setObs('')
     setHistPags([]);setShowHpForm(false);setHpValor('');setHpForma('Pix');setHpFormaOut('');setHpObs('')
     setEditHpIdx(null);setShowDet(false);setShowPag(false);setShowObs2(false)
-    setShowOdonto(false);setUsarOdonto(false);setDentesSel([]);setObsOdonto('')
+    setShowOdonto(false);setUseOdontogram(false);setSelectedTooth(null);setToothStatuses({});setOdontologyNote('')
     setEditandoId(null)
   }
 
@@ -383,9 +401,9 @@ export default function Orcamentos() {
     if(itensV.length===0) erros.push('Adicione pelo menos um serviço com nome e valor.')
     if(erros.length){setMensagem(erros.join(' | '));return}
 
-    const obsOdontoFinal = usarOdonto&&dentesSel.length>0
-      ? `\n\n[Odontologia]\nDentes: ${dentesSel.join(', ')}${obsOdonto?'\nObs: '+obsOdonto:''}`
-      : ''
+    const obsOdontoFinal = useOdontogram&&markedTeeth.length>0
+      ? `\n\n[Odontologia]\nDentes marcados:\n${markedTeeth.map(([d,i])=>`- ${d}: ${i.status==='done'?'realizado':i.status==='pending'?'pendente':'neutro'}`).join('\n')}${odontologyNote?'\nObservação: '+odontologyNote:''}`
+      : (useOdontogram&&odontologyNote)?`\n\n[Odontologia]\nObservação: ${odontologyNote}`:''
 
     const payload:any={
       user_id:userId,cliente_nome:cNome.trim(),
@@ -912,12 +930,15 @@ export default function Orcamentos() {
                   </div>
                 </div>
 
+
                 {/* 3. CARD ODONTOLOGIA — opcional */}
                 <div style={{...crd,padding:0,overflow:'hidden'}}>
                   <div onClick={()=>setShowOdonto(!showOdonto)} style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'16px 20px',cursor:'pointer',userSelect:'none'}}>
                     <div style={{display:'flex',alignItems:'center',gap:'10px'}}>
                       <div style={{width:'32px',height:'32px',borderRadius:'10px',background:'rgba(6,182,212,.14)',border:'1px solid rgba(255,255,255,.10)',display:'flex',alignItems:'center',justifyContent:'center',color:'#22D3EE',flexShrink:0,boxShadow:'0 0 14px rgba(6,182,212,.18)'}}>
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2C8 2 5 5 5 9c0 2.5 1.2 4.7 3 6.1V20a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-4.9c1.8-1.4 3-3.6 3-6.1 0-4-3-7-7-7z"/></svg>
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M12 2C8.5 2 6 5 6 8.5c0 2 .8 3.8 2 5V20a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-6.5c1.2-1.2 2-3 2-5C18 5 15.5 2 12 2z"/>
+                        </svg>
                       </div>
                       <div>
                         <p style={{fontSize:'14px',fontWeight:700,color:'#F8FAFC'}}>Odontologia / Tratamento dentário</p>
@@ -925,97 +946,185 @@ export default function Orcamentos() {
                       </div>
                     </div>
                     <div style={{display:'flex',alignItems:'center',gap:'8px',flexShrink:0}}>
-                      {dentesSel.length>0&&<span style={{fontSize:'11px',fontWeight:700,color:'#22D3EE',background:'rgba(6,182,212,.14)',padding:'2px 8px',borderRadius:'999px',border:'1px solid rgba(6,182,212,.28)'}}>{dentesSel.length} dente{dentesSel.length>1?'s':''}</span>}
+                      {markedTeeth.length>0&&(
+                        <div style={{display:'flex',gap:'5px'}}>
+                          {doneTeeth.length>0&&<span style={{fontSize:'10px',fontWeight:700,color:'#4ADE80',background:'rgba(34,197,94,.14)',padding:'2px 7px',borderRadius:'999px',border:'1px solid rgba(34,197,94,.28)'}}>{doneTeeth.length} ✓</span>}
+                          {pendingTeeth.length>0&&<span style={{fontSize:'10px',fontWeight:700,color:'#F87171',background:'rgba(239,68,68,.14)',padding:'2px 7px',borderRadius:'999px',border:'1px solid rgba(239,68,68,.28)'}}>{pendingTeeth.length} !</span>}
+                        </div>
+                      )}
                       <span style={{color:'#64748B',transform:showOdonto?'rotate(180deg)':'none',transition:'transform .2s',display:'flex'}}><Icon.ChevronDown/></span>
                     </div>
                   </div>
 
                   {showOdonto&&(
                     <div style={{borderTop:'1px solid rgba(148,163,184,.08)',padding:'16px 20px 20px'}}>
-                      {!usarOdonto?(
-                        <div style={{textAlign:'center',padding:'8px 0 4px'}}>
-                          <p style={{fontSize:'13px',color:'#64748B',marginBottom:'14px',lineHeight:1.5}}>
-                            Para clínicas odontológicas: selecione dentes ou regiões para vincular ao tratamento.
+                      {!useOdontogram?(
+                        <div style={{textAlign:'center',padding:'8px 0 6px'}}>
+                          <p style={{fontSize:'13px',color:'#64748B',marginBottom:'14px',lineHeight:1.6,maxWidth:'340px',margin:'0 auto 16px'}}>
+                            Para clínicas odontológicas: selecione dentes, marque procedimentos como realizados ou pendentes e salve no orçamento.
                           </p>
-                          <button onClick={()=>setUsarOdonto(true)}
-                            style={{background:'linear-gradient(135deg,rgba(6,182,212,.2),rgba(37,99,235,.2))',border:'1.5px solid rgba(6,182,212,.35)',borderRadius:'10px',padding:'10px 24px',fontSize:'13px',fontWeight:700,color:'#22D3EE',cursor:'pointer',fontFamily:'inherit',display:'inline-flex',alignItems:'center',gap:'6px'}}>
+                          <button onClick={()=>setUseOdontogram(true)}
+                            style={{background:'linear-gradient(135deg,rgba(6,182,212,.22),rgba(37,99,235,.22))',border:'1.5px solid rgba(6,182,212,.40)',borderRadius:'10px',padding:'10px 28px',fontSize:'13px',fontWeight:700,color:'#22D3EE',cursor:'pointer',fontFamily:'inherit',display:'inline-flex',alignItems:'center',gap:'6px',boxShadow:'0 0 20px rgba(6,182,212,.14)'}}>
                             <Icon.Plus/> Usar odontograma
                           </button>
                         </div>
                       ):(
                         <div>
-                          <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:'14px'}}>
+                          {/* Header */}
+                          <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:'16px',flexWrap:'wrap',gap:'8px'}}>
                             <div>
-                              <p style={{fontSize:'13px',fontWeight:700,color:'#F8FAFC',marginBottom:'2px'}}>Odontograma básico</p>
-                              <p style={{fontSize:'11px',color:'#64748B'}}>Toque nos dentes para selecionar.</p>
+                              <p style={{fontSize:'14px',fontWeight:700,color:'#F8FAFC',marginBottom:'2px'}}>Odontograma básico</p>
+                              <p style={{fontSize:'12px',color:'#64748B'}}>Clique em um dente e marque o status do procedimento.</p>
                             </div>
-                            <button onClick={()=>{setDentesSel([]);setObsOdonto('');setUsarOdonto(false)}}
-                              style={{background:'rgba(239,68,68,.1)',border:'1px solid rgba(239,68,68,.25)',borderRadius:'6px',padding:'4px 10px',fontSize:'11px',fontWeight:600,color:'#F87171',cursor:'pointer',fontFamily:'inherit'}}>
-                              Limpar
+                            <button onClick={()=>{clearAllTeeth();setOdontologyNote('');setUseOdontogram(false)}}
+                              style={{background:'rgba(239,68,68,.1)',border:'1px solid rgba(239,68,68,.25)',borderRadius:'6px',padding:'5px 12px',fontSize:'12px',fontWeight:600,color:'#F87171',cursor:'pointer',fontFamily:'inherit',flexShrink:0}}>
+                              Limpar tudo
                             </button>
                           </div>
 
-                          {/* Arcada superior */}
-                          <p style={{fontSize:'10px',fontWeight:700,color:'#64748B',textTransform:'uppercase' as const,letterSpacing:'.07em',marginBottom:'8px'}}>Arcada superior</p>
-                          <div style={{display:'flex',flexWrap:'wrap' as const,gap:'5px',marginBottom:'6px',justifyContent:'center'}}>
-                            {['18','17','16','15','14','13','12','11'].map(d=>{
-                              const on=dentesSel.includes(d)
-                              return<button key={d} onClick={()=>setDentesSel(prev=>on?prev.filter(x=>x!==d):[...prev,d])}
-                                style={{minWidth:'34px',height:'34px',borderRadius:'8px',border:`1.5px solid ${on?'rgba(139,92,246,.55)':'rgba(148,163,184,.18)'}`,background:on?'linear-gradient(135deg,#2563EB,#7C3AED)':'rgba(15,23,42,.75)',color:on?'#fff':'#CBD5E1',fontSize:'11px',fontWeight:700,cursor:'pointer',fontFamily:'inherit',transition:'all .15s'}}>
-                                {d}
-                              </button>
-                            })}
-                            <span style={{alignSelf:'center',color:'#374151',fontSize:'16px',margin:'0 2px'}}>|</span>
-                            {['21','22','23','24','25','26','27','28'].map(d=>{
-                              const on=dentesSel.includes(d)
-                              return<button key={d} onClick={()=>setDentesSel(prev=>on?prev.filter(x=>x!==d):[...prev,d])}
-                                style={{minWidth:'34px',height:'34px',borderRadius:'8px',border:`1.5px solid ${on?'rgba(139,92,246,.55)':'rgba(148,163,184,.18)'}`,background:on?'linear-gradient(135deg,#2563EB,#7C3AED)':'rgba(15,23,42,.75)',color:on?'#fff':'#CBD5E1',fontSize:'11px',fontWeight:700,cursor:'pointer',fontFamily:'inherit',transition:'all .15s'}}>
-                                {d}
-                              </button>
-                            })}
+                          {/* Legenda */}
+                          <div style={{display:'flex',gap:'12px',marginBottom:'16px',flexWrap:'wrap',padding:'8px 12px',background:'rgba(255,255,255,.03)',borderRadius:'8px',border:'1px solid rgba(255,255,255,.06)'}}>
+                            <div style={{display:'flex',alignItems:'center',gap:'5px'}}>
+                              <div style={{width:'14px',height:'14px',borderRadius:'3px',background:'linear-gradient(180deg,#F8FAFC,#CBD5E1)',border:'1px solid rgba(148,163,184,.3)'}}/>
+                              <span style={{fontSize:'11px',color:'#64748B'}}>Neutro</span>
+                            </div>
+                            <div style={{display:'flex',alignItems:'center',gap:'5px'}}>
+                              <div style={{width:'14px',height:'14px',borderRadius:'3px',background:'rgba(239,68,68,.8)',border:'1px solid rgba(239,68,68,.5)'}}/>
+                              <span style={{fontSize:'11px',color:'#64748B'}}>Pendente</span>
+                            </div>
+                            <div style={{display:'flex',alignItems:'center',gap:'5px'}}>
+                              <div style={{width:'14px',height:'14px',borderRadius:'3px',background:'rgba(34,197,94,.8)',border:'1px solid rgba(34,197,94,.5)'}}/>
+                              <span style={{fontSize:'11px',color:'#64748B'}}>Realizado</span>
+                            </div>
                           </div>
 
-                          {/* Arcada inferior */}
-                          <p style={{fontSize:'10px',fontWeight:700,color:'#64748B',textTransform:'uppercase' as const,letterSpacing:'.07em',marginBottom:'8px',marginTop:'10px'}}>Arcada inferior</p>
-                          <div style={{display:'flex',flexWrap:'wrap' as const,gap:'5px',marginBottom:'14px',justifyContent:'center'}}>
-                            {['48','47','46','45','44','43','42','41'].map(d=>{
-                              const on=dentesSel.includes(d)
-                              return<button key={d} onClick={()=>setDentesSel(prev=>on?prev.filter(x=>x!==d):[...prev,d])}
-                                style={{minWidth:'34px',height:'34px',borderRadius:'8px',border:`1.5px solid ${on?'rgba(139,92,246,.55)':'rgba(148,163,184,.18)'}`,background:on?'linear-gradient(135deg,#2563EB,#7C3AED)':'rgba(15,23,42,.75)',color:on?'#fff':'#CBD5E1',fontSize:'11px',fontWeight:700,cursor:'pointer',fontFamily:'inherit',transition:'all .15s'}}>
-                                {d}
-                              </button>
-                            })}
-                            <span style={{alignSelf:'center',color:'#374151',fontSize:'16px',margin:'0 2px'}}>|</span>
-                            {['31','32','33','34','35','36','37','38'].map(d=>{
-                              const on=dentesSel.includes(d)
-                              return<button key={d} onClick={()=>setDentesSel(prev=>on?prev.filter(x=>x!==d):[...prev,d])}
-                                style={{minWidth:'34px',height:'34px',borderRadius:'8px',border:`1.5px solid ${on?'rgba(139,92,246,.55)':'rgba(148,163,184,.18)'}`,background:on?'linear-gradient(135deg,#2563EB,#7C3AED)':'rgba(15,23,42,.75)',color:on?'#fff':'#CBD5E1',fontSize:'11px',fontWeight:700,cursor:'pointer',fontFamily:'inherit',transition:'all .15s'}}>
-                                {d}
-                              </button>
-                            })}
-                          </div>
-
-                          {/* Selecionados */}
-                          <div style={{background:'rgba(255,255,255,.03)',borderRadius:'10px',padding:'10px 14px',border:'1px solid rgba(255,255,255,.07)',marginBottom:'12px'}}>
-                            <p style={{fontSize:'11px',fontWeight:700,color:'#64748B',textTransform:'uppercase' as const,letterSpacing:'.06em',marginBottom:'6px'}}>Dentes selecionados</p>
-                            {dentesSel.length===0
-                              ?<p style={{fontSize:'12px',color:'#374151'}}>Nenhum dente selecionado.</p>
-                              :<div style={{display:'flex',flexWrap:'wrap' as const,gap:'5px'}}>
-                                {[...dentesSel].sort((a,b)=>parseInt(a)-parseInt(b)).map(d=>(
-                                  <span key={d} style={{background:'linear-gradient(135deg,rgba(37,99,235,.3),rgba(124,58,237,.3))',border:'1px solid rgba(139,92,246,.4)',borderRadius:'6px',padding:'3px 9px',fontSize:'12px',fontWeight:700,color:'#C4B5FD'}}>
+                          {/* Odontograma */}
+                          <div style={{background:'rgba(6,182,212,.05)',border:'1.5px solid rgba(6,182,212,.18)',borderRadius:'14px',padding:'16px 12px',marginBottom:'14px',overflowX:'auto' as const}}>
+                            {/* Arcada superior */}
+                            <p style={{fontSize:'10px',fontWeight:700,color:'#22D3EE',textTransform:'uppercase' as const,letterSpacing:'.07em',marginBottom:'10px',textAlign:'center'}}>Arcada superior</p>
+                            <div style={{display:'flex',flexWrap:'wrap' as const,justifyContent:'center',gap:'4px',marginBottom:'10px'}}>
+                              {upperTeeth.map(d=>{
+                                const info=toothStatuses[d]
+                                const sel=selectedTooth===d
+                                const bg=info?.status==='done'?'rgba(34,197,94,.85)':info?.status==='pending'?'rgba(239,68,68,.85)':'linear-gradient(180deg,#F8FAFC 0%,#E5E7EB 55%,#CBD5E1 100%)'
+                                const c=info?.status?'#fff':'#1e293b'
+                                return(
+                                  <button key={d} onClick={()=>handleSelectTooth(d)}
+                                    style={{
+                                      position:'relative',width:'32px',height:'38px',
+                                      borderRadius:d<'20'?'40% 40% 30% 30% / 50% 50% 30% 30%':'40% 40% 30% 30% / 50% 50% 30% 30%',
+                                      border:`${sel?'2px':'1.5px'} solid ${sel?'#22D3EE':info?.status==='done'?'rgba(34,197,94,.6)':info?.status==='pending'?'rgba(239,68,68,.6)':'rgba(148,163,184,.25)'}`,
+                                      background:bg,color:c,fontSize:'10px',fontWeight:700,
+                                      cursor:'pointer',fontFamily:'inherit',
+                                      boxShadow:sel?'0 0 0 2px rgba(34,211,238,.3),0 2px 8px rgba(0,0,0,.3)':'0 2px 4px rgba(0,0,0,.25)',
+                                      transform:sel?'scale(1.12)':'scale(1)',
+                                      transition:'all .15s',flexShrink:0,display:'flex',alignItems:'center',justifyContent:'center',
+                                    }}>
                                     {d}
+                                  </button>
+                                )
+                              })}
+                            </div>
+
+                            {/* Separador */}
+                            <div style={{height:'1px',background:'rgba(6,182,212,.18)',margin:'6px 0 10px',position:'relative'}}>
+                              <span style={{position:'absolute',left:'50%',top:'-8px',transform:'translateX(-50%)',fontSize:'10px',color:'rgba(6,182,212,.5)',background:'transparent',padding:'0 6px'}}>—</span>
+                            </div>
+
+                            {/* Arcada inferior */}
+                            <p style={{fontSize:'10px',fontWeight:700,color:'#22D3EE',textTransform:'uppercase' as const,letterSpacing:'.07em',marginBottom:'10px',textAlign:'center'}}>Arcada inferior</p>
+                            <div style={{display:'flex',flexWrap:'wrap' as const,justifyContent:'center',gap:'4px'}}>
+                              {lowerTeeth.map(d=>{
+                                const info=toothStatuses[d]
+                                const sel=selectedTooth===d
+                                const bg=info?.status==='done'?'rgba(34,197,94,.85)':info?.status==='pending'?'rgba(239,68,68,.85)':'linear-gradient(180deg,#CBD5E1 0%,#E5E7EB 45%,#F8FAFC 100%)'
+                                const c=info?.status?'#fff':'#1e293b'
+                                return(
+                                  <button key={d} onClick={()=>handleSelectTooth(d)}
+                                    style={{
+                                      position:'relative',width:'32px',height:'38px',
+                                      borderRadius:'30% 30% 40% 40% / 30% 30% 50% 50%',
+                                      border:`${sel?'2px':'1.5px'} solid ${sel?'#22D3EE':info?.status==='done'?'rgba(34,197,94,.6)':info?.status==='pending'?'rgba(239,68,68,.6)':'rgba(148,163,184,.25)'}`,
+                                      background:bg,color:c,fontSize:'10px',fontWeight:700,
+                                      cursor:'pointer',fontFamily:'inherit',
+                                      boxShadow:sel?'0 0 0 2px rgba(34,211,238,.3),0 2px 8px rgba(0,0,0,.3)':'0 2px 4px rgba(0,0,0,.25)',
+                                      transform:sel?'scale(1.12)':'scale(1)',
+                                      transition:'all .15s',flexShrink:0,display:'flex',alignItems:'center',justifyContent:'center',
+                                    }}>
+                                    {d}
+                                  </button>
+                                )
+                              })}
+                            </div>
+                          </div>
+
+                          {/* Controles de status */}
+                          <div style={{background:'rgba(255,255,255,.03)',border:'1px solid rgba(255,255,255,.08)',borderRadius:'12px',padding:'14px',marginBottom:'12px'}}>
+                            {selectedTooth?(
+                              <>
+                                <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:'10px',flexWrap:'wrap',gap:'6px'}}>
+                                  <div>
+                                    <p style={{fontSize:'12px',color:'#94A3B8',marginBottom:'2px'}}>Dente selecionado</p>
+                                    <p style={{fontSize:'18px',fontWeight:800,color:'#22D3EE'}}>#{selectedTooth}</p>
+                                  </div>
+                                  <div>
+                                    <p style={{fontSize:'12px',color:'#94A3B8',marginBottom:'2px'}}>Status atual</p>
+                                    <span style={{fontSize:'12px',fontWeight:700,
+                                      color:toothStatuses[selectedTooth]?.status==='done'?'#4ADE80':toothStatuses[selectedTooth]?.status==='pending'?'#F87171':'#94A3B8'}}>
+                                      {toothStatuses[selectedTooth]?.status==='done'?'Realizado':toothStatuses[selectedTooth]?.status==='pending'?'Pendente':'Sem marcação'}
+                                    </span>
+                                  </div>
+                                </div>
+                                <div style={{display:'flex',gap:'8px',flexWrap:'wrap'}}>
+                                  <button onClick={()=>setToothStatus(selectedTooth,'done')}
+                                    style={{flex:1,minWidth:'80px',background:toothStatuses[selectedTooth]?.status==='done'?'rgba(34,197,94,.3)':'rgba(34,197,94,.12)',border:`1px solid ${toothStatuses[selectedTooth]?.status==='done'?'rgba(34,197,94,.6)':'rgba(34,197,94,.28)'}`,borderRadius:'8px',padding:'8px 10px',fontSize:'12px',fontWeight:700,color:'#4ADE80',cursor:'pointer',fontFamily:'inherit',transition:'all .15s'}}>
+                                    ✓ Realizado
+                                  </button>
+                                  <button onClick={()=>setToothStatus(selectedTooth,'pending')}
+                                    style={{flex:1,minWidth:'80px',background:toothStatuses[selectedTooth]?.status==='pending'?'rgba(239,68,68,.3)':'rgba(239,68,68,.12)',border:`1px solid ${toothStatuses[selectedTooth]?.status==='pending'?'rgba(239,68,68,.6)':'rgba(239,68,68,.28)'}`,borderRadius:'8px',padding:'8px 10px',fontSize:'12px',fontWeight:700,color:'#F87171',cursor:'pointer',fontFamily:'inherit',transition:'all .15s'}}>
+                                    ! Pendente
+                                  </button>
+                                  <button onClick={()=>clearToothStatus(selectedTooth)}
+                                    style={{background:'rgba(255,255,255,.06)',border:'1px solid rgba(255,255,255,.1)',borderRadius:'8px',padding:'8px 12px',fontSize:'12px',fontWeight:600,color:'#64748B',cursor:'pointer',fontFamily:'inherit'}}>
+                                    Limpar
+                                  </button>
+                                </div>
+                              </>
+                            ):(
+                              <p style={{fontSize:'13px',color:'#4B5563',textAlign:'center',padding:'6px 0'}}>Selecione um dente para definir o status do procedimento.</p>
+                            )}
+                          </div>
+
+                          {/* Dentes marcados */}
+                          {markedTeeth.length>0&&(
+                            <div style={{marginBottom:'12px'}}>
+                              <p style={{fontSize:'11px',fontWeight:700,color:'#64748B',textTransform:'uppercase' as const,letterSpacing:'.06em',marginBottom:'8px'}}>Dentes marcados</p>
+                              <div style={{display:'flex',flexWrap:'wrap' as const,gap:'5px'}}>
+                                {[...markedTeeth].sort((a,b)=>parseInt(a[0])-parseInt(b[0])).map(([d,info])=>(
+                                  <span key={d} onClick={()=>handleSelectTooth(d)} style={{
+                                    background:info.status==='done'?'rgba(34,197,94,.16)':info.status==='pending'?'rgba(239,68,68,.16)':'rgba(255,255,255,.06)',
+                                    border:`1px solid ${info.status==='done'?'rgba(34,197,94,.35)':info.status==='pending'?'rgba(239,68,68,.35)':'rgba(255,255,255,.12)'}`,
+                                    borderRadius:'6px',padding:'4px 10px',fontSize:'12px',fontWeight:700,
+                                    color:info.status==='done'?'#4ADE80':info.status==='pending'?'#F87171':'#94A3B8',
+                                    cursor:'pointer',transition:'opacity .15s',
+                                  }}>
+                                    {d} {info.status==='done'?'✓':info.status==='pending'?'!':''}
                                   </span>
                                 ))}
                               </div>
-                            }
-                          </div>
+                            </div>
+                          )}
 
                           {/* Obs odontológica */}
                           <div>
                             <label style={lbl}>Observação odontológica</label>
                             <input style={inp} type="text" placeholder="Ex: restauração no 11, canal no 26, avaliação geral, clareamento..."
-                              value={obsOdonto} onChange={e=>setObsOdonto(e.target.value)}/>
+                              value={odontologyNote} onChange={e=>setOdontologyNote(e.target.value)}/>
                           </div>
+
+                          <p style={{fontSize:'11px',color:'#374151',marginTop:'10px',lineHeight:1.5}}>
+                            💡 Para clínicas odontológicas, use este bloco apenas quando precisar selecionar dentes.
+                          </p>
                         </div>
                       )}
                     </div>
@@ -1288,10 +1397,13 @@ export default function Orcamentos() {
                     <div>
                       {(()=>{const cfg=STATUS_CFG[status]||STATUS_CFG['Aberto'];return<span style={{fontSize:'11px',fontWeight:700,padding:'3px 10px',borderRadius:'999px',background:cfg.bg,color:cfg.cor,border:`1px solid ${cfg.bd}`}}>{status}</span>})()}
                     </div>
-                    {dentesSel.length>0&&(
-                      <div style={{background:'rgba(6,182,212,.1)',border:'1px solid rgba(6,182,212,.22)',borderRadius:'8px',padding:'6px 10px',display:'flex',alignItems:'center',gap:'6px'}}>
-                        <span style={{fontSize:'12px'}}>🦷</span>
-                        <span style={{fontSize:'11px',fontWeight:600,color:'#22D3EE'}}>Dentes: {[...dentesSel].sort((a,b)=>parseInt(a)-parseInt(b)).join(', ')}</span>
+                    {markedTeeth.length>0&&(
+                      <div style={{background:'rgba(6,182,212,.1)',border:'1px solid rgba(6,182,212,.22)',borderRadius:'8px',padding:'7px 10px'}}>
+                        <p style={{fontSize:'10px',fontWeight:700,color:'#94A3B8',textTransform:'uppercase' as const,letterSpacing:'.05em',marginBottom:'4px'}}>Odontologia</p>
+                        <div style={{display:'flex',gap:'8px',flexWrap:'wrap'}}>
+                          {doneTeeth.length>0&&<span style={{fontSize:'11px',fontWeight:700,color:'#4ADE80'}}>✓ {doneTeeth.length} realizado{doneTeeth.length>1?'s':''}</span>}
+                          {pendingTeeth.length>0&&<span style={{fontSize:'11px',fontWeight:700,color:'#F87171'}}>! {pendingTeeth.length} pendente{pendingTeeth.length>1?'s':''}</span>}
+                        </div>
                       </div>
                     )}
                   </div>
