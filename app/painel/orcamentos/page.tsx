@@ -398,11 +398,11 @@ export default function Orcamentos() {
   // Odontologia — sistema completo
   type ToothStatus = 'neutral'|'pending'|'done'
   type ToothInfo = {status:ToothStatus;note?:string}
-  const [showOdonto,setShowOdonto]         = useState(false)
-  const [useOdontogram,setUseOdontogram]   = useState(false)
-  const [selectedTooth,setSelectedTooth]   = useState<string|null>(null)
-  const [toothStatuses,setToothStatuses]   = useState<Record<string,ToothInfo>>({})
-  const [odontologyNote,setOdontologyNote] = useState('')
+  const [showOdonto,setShowOdonto]           = useState(false)
+  const [useOdontogram,setUseOdontogram]     = useState(false)
+  const [selectedTeeth,setSelectedTeeth]     = useState<string[]>([])
+  const [toothStatuses,setToothStatuses]     = useState<Record<string,ToothInfo>>({})
+  const [odontologyNote,setOdontologyNote]   = useState('')
 
   const upperTeeth = ['18','17','16','15','14','13','12','11','21','22','23','24','25','26','27','28']
   const lowerTeeth = ['48','47','46','45','44','43','42','41','31','32','33','34','35','36','37','38']
@@ -410,8 +410,27 @@ export default function Orcamentos() {
   const doneTeeth    = markedTeeth.filter(([_,i])=>i.status==='done')
   const pendingTeeth = markedTeeth.filter(([_,i])=>i.status==='pending')
 
+  // Toggle múltiplo — acumulativo
   function handleSelectTooth(tooth:string){
-    setSelectedTooth(prev=>prev===tooth?null:tooth)
+    setSelectedTeeth(prev=>prev.includes(tooth)?prev.filter(t=>t!==tooth):[...prev,tooth])
+  }
+  function clearSelection(){setSelectedTeeth([])}
+
+  // Aplica status para TODOS os dentes selecionados
+  function applyStatusToSelected(status:ToothStatus){
+    if(selectedTeeth.length===0) return
+    setToothStatuses(prev=>{
+      const n={...prev}
+      selectedTeeth.forEach(t=>{n[t]={...(n[t]||{}),status}})
+      return n
+    })
+  }
+  function clearStatusSelected(){
+    setToothStatuses(prev=>{
+      const n={...prev}
+      selectedTeeth.forEach(t=>{delete n[t]})
+      return n
+    })
   }
   function setToothStatus(tooth:string,status:ToothStatus){
     setToothStatuses(prev=>({...prev,[tooth]:{...(prev[tooth]||{}),status}}))
@@ -419,7 +438,7 @@ export default function Orcamentos() {
   function clearToothStatus(tooth:string){
     setToothStatuses(prev=>{const n={...prev};delete n[tooth];return n})
   }
-  function clearAllTeeth(){setToothStatuses({});setSelectedTooth(null)}
+  function clearAllTeeth(){setToothStatuses({});setSelectedTeeth([])}
 
   // Accordions
   const [showDet,setShowDet]   = useState(false)
@@ -469,7 +488,7 @@ export default function Orcamentos() {
     setLinkPag('');setObsPag('');setObs('')
     setHistPags([]);setShowHpForm(false);setHpValor('');setHpForma('Pix');setHpFormaOut('');setHpObs('')
     setEditHpIdx(null);setShowDet(false);setShowPag(false);setShowObs2(false)
-    setShowOdonto(false);setUseOdontogram(false);setSelectedTooth(null);setToothStatuses({});setOdontologyNote('')
+    setShowOdonto(false);setUseOdontogram(false);setSelectedTeeth([]);setToothStatuses({});setOdontologyNote('')
     setBudgetMode('common');setDentalProc('');setDentalQtd('1');setDentalValor('')
     setDentalProcs([initProc()])
     setOrcCriadoId(null);setEditandoId(null)
@@ -1223,7 +1242,7 @@ export default function Orcamentos() {
                     <p style={{fontSize:'10px',fontWeight:700,color:'#22D3EE',textTransform:'uppercase' as const,letterSpacing:'.07em',marginBottom:'10px',textAlign:'center'}}>Arcada superior</p>
                     <div style={{display:'flex',flexWrap:'wrap' as const,justifyContent:'center',gap:'4px',marginBottom:'10px'}}>
                       {upperTeeth.map(d=>{
-                        const info=toothStatuses[d];const sel=selectedTooth===d
+                        const info=toothStatuses[d];const sel=selectedTeeth.includes(d)
                         const bg=info?.status==='done'?'rgba(34,197,94,.85)':info?.status==='pending'?'rgba(239,68,68,.85)':'linear-gradient(180deg,#F8FAFC 0%,#E5E7EB 55%,#CBD5E1 100%)'
                         return(<button key={d} onClick={()=>handleSelectTooth(d)} style={{width:'32px',height:'38px',borderRadius:'40% 40% 30% 30% / 50% 50% 30% 30%',border:`${sel?'2px':'1.5px'} solid ${sel?'#22D3EE':info?.status==='done'?'rgba(34,197,94,.6)':info?.status==='pending'?'rgba(239,68,68,.6)':'rgba(148,163,184,.25)'}`,background:bg,color:info?.status?'#fff':'#1e293b',fontSize:'10px',fontWeight:700,cursor:'pointer',fontFamily:'inherit',boxShadow:sel?'0 0 0 3px rgba(34,211,238,.35)':'0 2px 4px rgba(0,0,0,.25)',transform:sel?'scale(1.12)':'scale(1)',transition:'all .15s',flexShrink:0,display:'flex',alignItems:'center',justifyContent:'center'}}>{d}</button>)
                       })}
@@ -1232,36 +1251,52 @@ export default function Orcamentos() {
                     <p style={{fontSize:'10px',fontWeight:700,color:'#22D3EE',textTransform:'uppercase' as const,letterSpacing:'.07em',marginBottom:'10px',textAlign:'center'}}>Arcada inferior</p>
                     <div style={{display:'flex',flexWrap:'wrap' as const,justifyContent:'center',gap:'4px'}}>
                       {lowerTeeth.map(d=>{
-                        const info=toothStatuses[d];const sel=selectedTooth===d
+                        const info=toothStatuses[d];const sel=selectedTeeth.includes(d)
                         const bg=info?.status==='done'?'rgba(34,197,94,.85)':info?.status==='pending'?'rgba(239,68,68,.85)':'linear-gradient(180deg,#CBD5E1 0%,#E5E7EB 45%,#F8FAFC 100%)'
                         return(<button key={d} onClick={()=>handleSelectTooth(d)} style={{width:'32px',height:'38px',borderRadius:'30% 30% 40% 40% / 30% 30% 50% 50%',border:`${sel?'2px':'1.5px'} solid ${sel?'#22D3EE':info?.status==='done'?'rgba(34,197,94,.6)':info?.status==='pending'?'rgba(239,68,68,.6)':'rgba(148,163,184,.25)'}`,background:bg,color:info?.status?'#fff':'#1e293b',fontSize:'10px',fontWeight:700,cursor:'pointer',fontFamily:'inherit',boxShadow:sel?'0 0 0 3px rgba(34,211,238,.35)':'0 2px 4px rgba(0,0,0,.25)',transform:sel?'scale(1.12)':'scale(1)',transition:'all .15s',flexShrink:0,display:'flex',alignItems:'center',justifyContent:'center'}}>{d}</button>)
                       })}
                     </div>
                   </div>
 
-                  {/* Controles */}
+                  {/* Dentes selecionados + controles */}
                   <div style={{background:'rgba(255,255,255,.03)',border:'1px solid rgba(255,255,255,.08)',borderRadius:'12px',padding:'12px',marginBottom:'14px'}}>
-                    {selectedTooth?(
-                      <>
-                        <div style={{display:'flex',alignItems:'center',gap:'12px',marginBottom:'10px',flexWrap:'wrap'}}>
-                          <div><p style={{fontSize:'11px',color:'#94A3B8',marginBottom:'2px'}}>Selecionado</p><p style={{fontSize:'20px',fontWeight:800,color:'#22D3EE'}}>#{selectedTooth}</p></div>
-                          <div><p style={{fontSize:'11px',color:'#94A3B8',marginBottom:'2px'}}>Status</p>
-                            <span style={{fontSize:'12px',fontWeight:700,color:toothStatuses[selectedTooth]?.status==='done'?'#4ADE80':toothStatuses[selectedTooth]?.status==='pending'?'#F87171':'#94A3B8'}}>
-                              {toothStatuses[selectedTooth]?.status==='done'?'Realizado':toothStatuses[selectedTooth]?.status==='pending'?'Pendente':'Sem marcação'}
-                            </span></div>
+                    {/* Chips dos dentes selecionados */}
+                    <div style={{marginBottom:'10px'}}>
+                      <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:'6px'}}>
+                        <p style={{fontSize:'11px',fontWeight:700,color:'#64748B',textTransform:'uppercase' as const,letterSpacing:'.06em'}}>
+                          {selectedTeeth.length>0?`${selectedTeeth.length} dente${selectedTeeth.length>1?'s':''} selecionado${selectedTeeth.length>1?'s':''}` : 'Nenhum dente selecionado'}
+                        </p>
+                        {selectedTeeth.length>0&&<button onClick={clearSelection} style={{background:'none',border:'none',fontSize:'11px',color:'#64748B',cursor:'pointer',fontFamily:'inherit'}}>Limpar seleção</button>}
+                      </div>
+                      {selectedTeeth.length>0?(
+                        <div style={{display:'flex',flexWrap:'wrap' as const,gap:'4px'}}>
+                          {[...selectedTeeth].sort((a,b)=>parseInt(a)-parseInt(b)).map(d=>(
+                            <span key={d} style={{background:'rgba(6,182,212,.2)',border:'1.5px solid rgba(6,182,212,.45)',borderRadius:'6px',padding:'3px 8px',fontSize:'12px',fontWeight:700,color:'#22D3EE',display:'flex',alignItems:'center',gap:'4px'}}>
+                              {d}
+                              <button onClick={()=>handleSelectTooth(d)} style={{background:'none',border:'none',color:'rgba(34,211,238,.7)',cursor:'pointer',fontSize:'14px',lineHeight:1,padding:'0',fontFamily:'inherit'}}>×</button>
+                            </span>
+                          ))}
                         </div>
-                        <div style={{display:'flex',gap:'8px',flexWrap:'wrap'}}>
-                          <button onClick={()=>setToothStatus(selectedTooth,'done')} style={{flex:1,minWidth:'80px',background:toothStatuses[selectedTooth]?.status==='done'?'rgba(34,197,94,.3)':'rgba(34,197,94,.12)',border:`1px solid ${toothStatuses[selectedTooth]?.status==='done'?'rgba(34,197,94,.6)':'rgba(34,197,94,.28)'}`,borderRadius:'8px',padding:'8px',fontSize:'12px',fontWeight:700,color:'#4ADE80',cursor:'pointer',fontFamily:'inherit'}}>✓ Realizado</button>
-                          <button onClick={()=>setToothStatus(selectedTooth,'pending')} style={{flex:1,minWidth:'80px',background:toothStatuses[selectedTooth]?.status==='pending'?'rgba(239,68,68,.3)':'rgba(239,68,68,.12)',border:`1px solid ${toothStatuses[selectedTooth]?.status==='pending'?'rgba(239,68,68,.6)':'rgba(239,68,68,.28)'}`,borderRadius:'8px',padding:'8px',fontSize:'12px',fontWeight:700,color:'#F87171',cursor:'pointer',fontFamily:'inherit'}}>! Pendente</button>
-                          <button onClick={()=>clearToothStatus(selectedTooth)}
-                            style={{background:'rgba(239,68,68,.12)',border:'1px solid rgba(239,68,68,.40)',borderRadius:'8px',padding:'8px 12px',fontSize:'12px',fontWeight:700,color:'#FCA5A5',cursor:'pointer',fontFamily:'inherit',transition:'all .15s'}}
-                            onMouseEnter={e=>(e.currentTarget.style.background='rgba(239,68,68,.22)')}
-                            onMouseLeave={e=>(e.currentTarget.style.background='rgba(239,68,68,.12)')}>
-                            Limpar dente
-                          </button>
-                        </div>
-                      </>
-                    ):<p style={{fontSize:'13px',color:'#4B5563',textAlign:'center',padding:'4px 0'}}>Clique em um dente para definir o status.</p>}
+                      ):<p style={{fontSize:'12px',color:'#374151'}}>Clique nos dentes para selecionar vários ao mesmo tempo.</p>}
+                    </div>
+
+                    {/* Botões de status */}
+                    {selectedTeeth.length>0&&(
+                      <div style={{display:'flex',gap:'6px',flexWrap:'wrap'}}>
+                        <button onClick={()=>applyStatusToSelected('done')}
+                          style={{flex:1,minWidth:'80px',background:'rgba(34,197,94,.14)',border:'1px solid rgba(34,197,94,.35)',borderRadius:'8px',padding:'8px',fontSize:'12px',fontWeight:700,color:'#4ADE80',cursor:'pointer',fontFamily:'inherit',transition:'all .15s'}}>
+                          ✓ Realizado
+                        </button>
+                        <button onClick={()=>applyStatusToSelected('pending')}
+                          style={{flex:1,minWidth:'80px',background:'rgba(239,68,68,.12)',border:'1px solid rgba(239,68,68,.35)',borderRadius:'8px',padding:'8px',fontSize:'12px',fontWeight:700,color:'#F87171',cursor:'pointer',fontFamily:'inherit',transition:'all .15s'}}>
+                          ! Pendente
+                        </button>
+                        <button onClick={clearStatusSelected}
+                          style={{background:'rgba(239,68,68,.10)',border:'1px solid rgba(239,68,68,.30)',borderRadius:'8px',padding:'8px 10px',fontSize:'11px',fontWeight:700,color:'#FCA5A5',cursor:'pointer',fontFamily:'inherit',transition:'all .15s'}}>
+                          Limpar status
+                        </button>
+                      </div>
+                    )}
                   </div>
 
                   {/* Dentes marcados */}
@@ -1307,7 +1342,7 @@ export default function Orcamentos() {
                           <div style={{marginBottom:'10px'}}>
                             <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:'6px'}}>
                               <label style={lbl}>Dentes vinculados</label>
-                              <button onClick={()=>updateProc('dentes',[...new Set([...proc.dentes,...Object.keys(toothStatuses),...(selectedTooth?[selectedTooth]:[])].filter(Boolean))])}
+                              <button onClick={()=>updateProc('dentes',[...new Set([...proc.dentes,...selectedTeeth].filter(Boolean))])}
                                 style={{background:'rgba(6,182,212,.14)',border:'1px solid rgba(6,182,212,.28)',borderRadius:'6px',padding:'3px 10px',fontSize:'11px',fontWeight:600,color:'#22D3EE',cursor:'pointer',fontFamily:'inherit'}}>
                                 + Usar selecionados
                               </button>
@@ -1486,7 +1521,7 @@ export default function Orcamentos() {
                             <div style={{display:'flex',flexWrap:'wrap' as const,justifyContent:'center',gap:'4px',marginBottom:'10px'}}>
                               {upperTeeth.map(d=>{
                                 const info=toothStatuses[d]
-                                const sel=selectedTooth===d
+                                const sel=selectedTeeth.includes(d)
                                 const bg=info?.status==='done'?'rgba(34,197,94,.85)':info?.status==='pending'?'rgba(239,68,68,.85)':'linear-gradient(180deg,#F8FAFC 0%,#E5E7EB 55%,#CBD5E1 100%)'
                                 const c=info?.status?'#fff':'#1e293b'
                                 return(
@@ -1517,7 +1552,7 @@ export default function Orcamentos() {
                             <div style={{display:'flex',flexWrap:'wrap' as const,justifyContent:'center',gap:'4px'}}>
                               {lowerTeeth.map(d=>{
                                 const info=toothStatuses[d]
-                                const sel=selectedTooth===d
+                                const sel=selectedTeeth.includes(d)
                                 const bg=info?.status==='done'?'rgba(34,197,94,.85)':info?.status==='pending'?'rgba(239,68,68,.85)':'linear-gradient(180deg,#CBD5E1 0%,#E5E7EB 45%,#F8FAFC 100%)'
                                 const c=info?.status?'#fff':'#1e293b'
                                 return(
@@ -1540,40 +1575,29 @@ export default function Orcamentos() {
                           </div>
 
                           {/* Controles de status */}
-                          <div style={{background:'rgba(255,255,255,.03)',border:'1px solid rgba(255,255,255,.08)',borderRadius:'12px',padding:'14px',marginBottom:'12px'}}>
-                            {selectedTooth?(
+                          <div style={{background:'rgba(255,255,255,.03)',border:'1px solid rgba(255,255,255,.08)',borderRadius:'12px',padding:'12px',marginBottom:'12px'}}>
+                            <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:'8px'}}>
+                              <p style={{fontSize:'11px',fontWeight:700,color:'#64748B',textTransform:'uppercase' as const,letterSpacing:'.06em'}}>
+                                {selectedTeeth.length>0?`${selectedTeeth.length} selecionado${selectedTeeth.length>1?'s':''}` : 'Nenhum selecionado'}
+                              </p>
+                              {selectedTeeth.length>0&&<button onClick={clearSelection} style={{background:'none',border:'none',fontSize:'11px',color:'#64748B',cursor:'pointer',fontFamily:'inherit'}}>Limpar seleção</button>}
+                            </div>
+                            {selectedTeeth.length>0?(
                               <>
-                                <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:'10px',flexWrap:'wrap',gap:'6px'}}>
-                                  <div>
-                                    <p style={{fontSize:'12px',color:'#94A3B8',marginBottom:'2px'}}>Dente selecionado</p>
-                                    <p style={{fontSize:'18px',fontWeight:800,color:'#22D3EE'}}>#{selectedTooth}</p>
-                                  </div>
-                                  <div>
-                                    <p style={{fontSize:'12px',color:'#94A3B8',marginBottom:'2px'}}>Status atual</p>
-                                    <span style={{fontSize:'12px',fontWeight:700,
-                                      color:toothStatuses[selectedTooth]?.status==='done'?'#4ADE80':toothStatuses[selectedTooth]?.status==='pending'?'#F87171':'#94A3B8'}}>
-                                      {toothStatuses[selectedTooth]?.status==='done'?'Realizado':toothStatuses[selectedTooth]?.status==='pending'?'Pendente':'Sem marcação'}
+                                <div style={{display:'flex',flexWrap:'wrap' as const,gap:'4px',marginBottom:'10px'}}>
+                                  {[...selectedTeeth].sort((a,b)=>parseInt(a)-parseInt(b)).map(d=>(
+                                    <span key={d} style={{background:'rgba(6,182,212,.2)',border:'1.5px solid rgba(6,182,212,.45)',borderRadius:'6px',padding:'3px 8px',fontSize:'12px',fontWeight:700,color:'#22D3EE',display:'flex',alignItems:'center',gap:'4px'}}>
+                                      {d}<button onClick={()=>handleSelectTooth(d)} style={{background:'none',border:'none',color:'rgba(34,211,238,.7)',cursor:'pointer',fontSize:'14px',lineHeight:1,padding:'0',fontFamily:'inherit'}}>×</button>
                                     </span>
-                                  </div>
+                                  ))}
                                 </div>
-                                <div style={{display:'flex',gap:'8px',flexWrap:'wrap'}}>
-                                  <button onClick={()=>setToothStatus(selectedTooth,'done')}
-                                    style={{flex:1,minWidth:'80px',background:toothStatuses[selectedTooth]?.status==='done'?'rgba(34,197,94,.3)':'rgba(34,197,94,.12)',border:`1px solid ${toothStatuses[selectedTooth]?.status==='done'?'rgba(34,197,94,.6)':'rgba(34,197,94,.28)'}`,borderRadius:'8px',padding:'8px 10px',fontSize:'12px',fontWeight:700,color:'#4ADE80',cursor:'pointer',fontFamily:'inherit',transition:'all .15s'}}>
-                                    ✓ Realizado
-                                  </button>
-                                  <button onClick={()=>setToothStatus(selectedTooth,'pending')}
-                                    style={{flex:1,minWidth:'80px',background:toothStatuses[selectedTooth]?.status==='pending'?'rgba(239,68,68,.3)':'rgba(239,68,68,.12)',border:`1px solid ${toothStatuses[selectedTooth]?.status==='pending'?'rgba(239,68,68,.6)':'rgba(239,68,68,.28)'}`,borderRadius:'8px',padding:'8px 10px',fontSize:'12px',fontWeight:700,color:'#F87171',cursor:'pointer',fontFamily:'inherit',transition:'all .15s'}}>
-                                    ! Pendente
-                                  </button>
-                                  <button onClick={()=>clearToothStatus(selectedTooth)}
-                                    style={{background:'rgba(255,255,255,.06)',border:'1px solid rgba(255,255,255,.1)',borderRadius:'8px',padding:'8px 12px',fontSize:'12px',fontWeight:600,color:'#64748B',cursor:'pointer',fontFamily:'inherit'}}>
-                                    Limpar
-                                  </button>
+                                <div style={{display:'flex',gap:'6px',flexWrap:'wrap'}}>
+                                  <button onClick={()=>applyStatusToSelected('done')} style={{flex:1,minWidth:'80px',background:'rgba(34,197,94,.14)',border:'1px solid rgba(34,197,94,.35)',borderRadius:'8px',padding:'8px',fontSize:'12px',fontWeight:700,color:'#4ADE80',cursor:'pointer',fontFamily:'inherit'}}>✓ Realizado</button>
+                                  <button onClick={()=>applyStatusToSelected('pending')} style={{flex:1,minWidth:'80px',background:'rgba(239,68,68,.12)',border:'1px solid rgba(239,68,68,.35)',borderRadius:'8px',padding:'8px',fontSize:'12px',fontWeight:700,color:'#F87171',cursor:'pointer',fontFamily:'inherit'}}>! Pendente</button>
+                                  <button onClick={clearStatusSelected} style={{background:'rgba(239,68,68,.10)',border:'1px solid rgba(239,68,68,.30)',borderRadius:'8px',padding:'8px 10px',fontSize:'11px',fontWeight:700,color:'#FCA5A5',cursor:'pointer',fontFamily:'inherit'}}>Limpar status</button>
                                 </div>
                               </>
-                            ):(
-                              <p style={{fontSize:'13px',color:'#4B5563',textAlign:'center',padding:'6px 0'}}>Selecione um dente para definir o status do procedimento.</p>
-                            )}
+                            ):<p style={{fontSize:'13px',color:'#4B5563',textAlign:'center',padding:'4px 0'}}>Clique em vários dentes para selecionar e marcar o status.</p>}
                           </div>
 
                           {/* Dentes marcados */}
