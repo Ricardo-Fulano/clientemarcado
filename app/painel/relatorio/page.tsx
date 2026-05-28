@@ -71,6 +71,7 @@ export default function Relatorios(){
   const [loading,setLoading]=useState(true)
   const [mob,setMob]=useState(false)
   const [mes,setMes]=useState(new Date().toISOString().slice(0,7))
+  const [profSel,setProfSel]=useState<any>(null) // modal individual
 
   useEffect(()=>{load()},[])
   async function load(){
@@ -81,7 +82,7 @@ export default function Relatorios(){
       supabase.from('profissionais').select('id,nome,cargo,foto_url').eq('user_id',user.id).order('nome'),
       supabase.from('pagamentos').select('valor,data,status').eq('user_id',user.id),
       supabase.from('despesas').select('valor,data,categoria').eq('user_id',user.id),
-      supabase.from('agendamentos').select('profissional_id,data_hora,status,valor').eq('user_id',user.id),
+      supabase.from('agendamentos').select('id,profissional_id,cliente_nome,servicos(nome),data_hora,status,valor').eq('user_id',user.id).order('data_hora',{ascending:false}),
     ])
     setPerfil(p);setProfs(ps||[]);setPagamentos(pags||[]);setDespesas(desp||[]);setAgendamentos(ags||[]);setLoading(false)
   }
@@ -104,12 +105,15 @@ export default function Relatorios(){
   }).sort((a,b)=>b.rec-a.rec)
   const melhor=profStats[0]
 
-  // Dados do gráfico
+  // Dados do gráfico — "Resultado" em vez de "Prejuízo"
   const chartData=[
     {name:'Receita',valor:receita,fill:'#22C55E'},
     {name:'Despesas',valor:despTotal,fill:'#EF4444'},
-    {name:lucroPositivo?'Lucro':'Prejuízo',valor:Math.abs(lucro),fill:lucroPositivo?'#22C55E':'#EF4444'},
+    {name:'Resultado',valor:Math.abs(lucro),fill:lucroPositivo?'#22C55E':'#EF4444'},
   ]
+
+  // Melhor profissional — só destacar se rec > 0
+  const melhorComRec=profStats.find(p=>p.rec>0)||null
 
   const nomeMes=new Date(mes+'-02').toLocaleDateString('pt-BR',{month:'long',year:'numeric'})
   const nome=perfil?.nome_negocio||''
@@ -162,7 +166,7 @@ export default function Relatorios(){
               {l:'Receita total',d:'Entradas confirmadas no período',v:fBRL(receita),c:'#4ADE80',bg:'rgba(34,197,94,.10)',bd:'rgba(34,197,94,.26)',ico:'↑'},
               {l:'Despesas',d:'Custos registrados no período',v:fBRL(despTotal),c:'#F87171',bg:'rgba(239,68,68,.10)',bd:'rgba(239,68,68,.26)',ico:'↓'},
               {l:'Lucro estimado',d:'Receita menos despesas',v:fBRL(lucro),c:lucroPositivo?'#4ADE80':'#F87171',bg:lucroPositivo?'rgba(34,197,94,.10)':'rgba(239,68,68,.10)',bd:lucroPositivo?'rgba(34,197,94,.26)':'rgba(239,68,68,.26)',ico:lucroPositivo?'✓':'⚠'},
-              {l:'Melhor profissional',d:melhor?fBRL(melhor.rec)+' no período':'Sem dados',v:melhor?.nome||'—',c:'#C4B5FD',bg:'rgba(124,58,237,.10)',bd:'rgba(124,58,237,.26)',ico:'🏆'},
+              {l:'Melhor profissional',d:melhorComRec?fBRL(melhorComRec.rec)+' no período':'Nenhuma receita no período',v:melhorComRec?.nome||'Sem destaque ainda',c:'#C4B5FD',bg:'rgba(124,58,237,.10)',bd:'rgba(124,58,237,.26)',ico:'🏆'},
             ].map(k=>(
               <div key={k.l} style={{background:`radial-gradient(circle at top left,${k.bg},transparent 60%),linear-gradient(145deg,rgba(15,23,42,.97),rgba(8,20,33,.99))`,border:`1.5px solid ${k.bd}`,borderRadius:'18px',padding:'18px 16px',boxSizing:'border-box' as const,boxShadow:'0 20px 48px rgba(0,0,0,.28)'}}>
                 <div style={{width:'38px',height:'38px',borderRadius:'11px',background:k.bg,border:`1px solid ${k.bd}`,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'18px',marginBottom:'10px'}}>{k.ico}</div>
@@ -205,7 +209,7 @@ export default function Relatorios(){
                   {chartData.map(d=>(
                     <div key={d.name} style={{display:'flex',alignItems:'center',gap:'6px'}}>
                       <div style={{width:'10px',height:'10px',borderRadius:'3px',background:d.fill,flexShrink:0}}/>
-                      <span style={{fontSize:'12px',color:'#94A3B8'}}>{d.name}: <strong style={{color:'#CBD5E1'}}>{fBRL(d.name==='Prejuízo'?-lucro:d.valor)}</strong></span>
+                      <span style={{fontSize:'12px',color:'#94A3B8'}}>{d.name}: <strong style={{color:'#CBD5E1'}}>{d.name==='Resultado'?fBRL(lucro):fBRL(d.valor)}</strong></span>
                     </div>
                   ))}
                 </div>
@@ -245,10 +249,12 @@ export default function Relatorios(){
                         </div>
                       </div>
                       <div style={{textAlign:'right' as const,flexShrink:0}}>
-                        <p style={{fontSize:'22px',fontWeight:800,color:'#4ADE80',lineHeight:1,marginBottom:'4px'}}>{fBRL(p.rec)}</p>
-                        <Link href="/painel/agendamentos" style={{fontSize:'12px',color:'#64748B',textDecoration:'none',transition:'color .15s'}}
-                          onMouseEnter={e=>(e.currentTarget.style.color='#F8FAFC')}
-                          onMouseLeave={e=>(e.currentTarget.style.color='#64748B')}>Ver agenda →</Link>
+                        <p style={{fontSize:'22px',fontWeight:800,color:'#4ADE80',lineHeight:1,marginBottom:'8px'}}>{fBRL(p.rec)}</p>
+                        <button onClick={()=>setProfSel(p)} style={{background:'rgba(59,130,246,.10)',border:'1px solid rgba(59,130,246,.24)',color:'#93C5FD',borderRadius:'12px',padding:'8px 12px',fontSize:'13px',fontWeight:700,cursor:'pointer',fontFamily:'inherit',transition:'all .18s'}}
+                          onMouseEnter={e=>{(e.currentTarget as HTMLButtonElement).style.background='rgba(59,130,246,.18)';(e.currentTarget as HTMLButtonElement).style.borderColor='rgba(59,130,246,.40)';(e.currentTarget as HTMLButtonElement).style.color='#fff'}}
+                          onMouseLeave={e=>{(e.currentTarget as HTMLButtonElement).style.background='rgba(59,130,246,.10)';(e.currentTarget as HTMLButtonElement).style.borderColor='rgba(59,130,246,.24)';(e.currentTarget as HTMLButtonElement).style.color='#93C5FD'}}>
+                          Ver relatório →
+                        </button>
                       </div>
                     </div>
                   </div>
@@ -259,6 +265,136 @@ export default function Relatorios(){
 
         </div></div>
       </div>
+
+      {/* MODAL RELATÓRIO INDIVIDUAL */}
+      {profSel&&(()=>{
+        const pAgs=agendamentos.filter(a=>a.profissional_id===profSel.id&&a.data_hora?.startsWith(mes))
+        const pRec=pAgs.filter(a=>a.status==='realizado'||a.status==='confirmado').reduce((a,ag)=>a+(ag.valor||0),0)
+        const pAts=pAgs.length
+        const pRets=pAgs.filter(a=>a.status==='retorno').length
+        const pTicket=pAts>0?pRec/pAts:0
+        const ini2=(profSel.nome||'?').charAt(0).toUpperCase()
+        const nomeMesSel=new Date(mes+'-02').toLocaleDateString('pt-BR',{month:'long',year:'numeric'})
+
+        // Dados gráfico semanal
+        const semsData=[1,2,3,4].map(s=>{
+          const start=new Date(mes+'-01');start.setDate((s-1)*7+1)
+          const end=new Date(mes+'-01');end.setDate(s*7)
+          const v=pAgs.filter(a=>{
+            const d=new Date(a.data_hora)
+            return d>=start&&d<=end&&(a.status==='realizado'||a.status==='confirmado')
+          }).reduce((a,ag)=>a+(ag.valor||0),0)
+          return{name:`Sem ${s}`,valor:v,fill:'#3B82F6'}
+        })
+        const temDados=semsData.some(s=>s.valor>0)
+
+        const SC:Record<string,{c:string,t:string}>={
+          realizado:{c:'#4ADE80',t:'Realizado'},confirmado:{c:'#93C5FD',t:'Confirmado'},
+          pendente:{c:'#FBBF24',t:'Pendente'},cancelado:{c:'#F87171',t:'Cancelado'},
+          retorno:{c:'#C4B5FD',t:'Retorno'},em_atendimento:{c:'#22D3EE',t:'Em atendimento'},
+        }
+
+        return(
+          <>
+            {/* Overlay */}
+            <div onClick={()=>setProfSel(null)} style={{position:'fixed',inset:0,background:'rgba(0,0,0,.7)',zIndex:98,backdropFilter:'blur(4px)'}}/>
+            {/* Drawer lateral */}
+            <div style={{position:'fixed',top:0,right:0,bottom:0,width:'min(580px,100vw)',background:'linear-gradient(180deg,#07111F,#050B16)',borderLeft:'1.5px solid rgba(148,163,184,.18)',boxShadow:'-24px 0 60px rgba(0,0,0,.45)',zIndex:99,overflowY:'auto',overflowX:'hidden'}}>
+              {/* Header do drawer */}
+              <div style={{padding:'22px 24px 18px',borderBottom:'1px solid rgba(148,163,184,.12)',display:'flex',alignItems:'flex-start',justifyContent:'space-between',gap:'12px',position:'sticky',top:0,background:'rgba(7,17,31,.96)',backdropFilter:'blur(20px)',zIndex:10}}>
+                <div style={{display:'flex',alignItems:'center',gap:'12px'}}>
+                  {profSel.foto_url?(
+                    <img src={profSel.foto_url} alt={profSel.nome} style={{width:'52px',height:'52px',borderRadius:'50%',objectFit:'cover',border:'1px solid rgba(255,255,255,.12)',flexShrink:0}}/>
+                  ):(
+                    <div style={{width:'52px',height:'52px',borderRadius:'50%',background:AV,border:'1px solid rgba(255,255,255,.12)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'20px',fontWeight:800,color:'#fff',flexShrink:0}}>{ini2}</div>
+                  )}
+                  <div>
+                    <p style={{fontSize:'16px',fontWeight:800,color:'#F8FAFC',marginBottom:'2px'}}>{profSel.nome}</p>
+                    {profSel.cargo&&<p style={{fontSize:'12px',color:'#94A3B8',marginBottom:'2px'}}>{profSel.cargo}</p>}
+                    <p style={{fontSize:'11px',color:'#64748B',textTransform:'capitalize' as const}}>Período: {nomeMesSel}</p>
+                  </div>
+                </div>
+                <button onClick={()=>setProfSel(null)} style={{background:'rgba(15,23,42,.8)',border:'1px solid rgba(148,163,184,.18)',borderRadius:'8px',width:'34px',height:'34px',display:'flex',alignItems:'center',justifyContent:'center',color:'#94A3B8',cursor:'pointer',fontSize:'18px',lineHeight:1,flexShrink:0,transition:'color .15s'}}
+                  onMouseEnter={e=>(e.currentTarget.style.color='#fff')}
+                  onMouseLeave={e=>(e.currentTarget.style.color='#94A3B8')}>×</button>
+              </div>
+
+              <div style={{padding:'22px 24px 40px'}}>
+                {/* KPIs individuais */}
+                <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'10px',marginBottom:'22px'}}>
+                  {[
+                    {l:'Receita gerada',d:'Total confirmado',v:fBRL(pRec),c:'#4ADE80',bg:'rgba(34,197,94,.10)',bd:'rgba(34,197,94,.24)',ico:'↑'},
+                    {l:'Atendimentos',d:'No período',v:pAts,c:'#60A5FA',bg:'rgba(59,130,246,.10)',bd:'rgba(59,130,246,.24)',ico:'📅'},
+                    {l:'Retornos',d:'Retornos registrados',v:pRets,c:'#C4B5FD',bg:'rgba(124,58,237,.10)',bd:'rgba(124,58,237,.24)',ico:'↩'},
+                    {l:'Ticket médio',d:'Média por atendimento',v:fBRL(pTicket),c:'#22D3EE',bg:'rgba(6,182,212,.10)',bd:'rgba(6,182,212,.24)',ico:'↗'},
+                  ].map(k=>(
+                    <div key={k.l} style={{background:`radial-gradient(circle at top left,${k.bg},transparent 60%),linear-gradient(145deg,rgba(15,23,42,.97),rgba(8,20,33,.99))`,border:`1.5px solid ${k.bd}`,borderRadius:'16px',padding:'16px',boxSizing:'border-box' as const}}>
+                      <div style={{width:'34px',height:'34px',borderRadius:'10px',background:k.bg,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'16px',marginBottom:'8px'}}>{k.ico}</div>
+                      <p style={{fontSize:'10px',fontWeight:700,color:'#94A3B8',textTransform:'uppercase' as const,letterSpacing:'.07em',marginBottom:'2px'}}>{k.l}</p>
+                      <p style={{fontSize:'10px',color:'#64748B',marginBottom:'5px'}}>{k.d}</p>
+                      <p style={{fontSize:'20px',fontWeight:800,color:k.c,lineHeight:1}}>{k.v}</p>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Gráfico semanal */}
+                <div style={{background:'radial-gradient(circle at top left,rgba(59,130,246,.06),transparent 35%),linear-gradient(145deg,rgba(15,23,42,.97),rgba(8,20,33,.99))',border:'1.5px solid rgba(148,163,184,.16)',borderRadius:'16px',padding:'18px',marginBottom:'20px'}}>
+                  <p style={{fontSize:'14px',fontWeight:700,color:'#F8FAFC',marginBottom:'3px'}}>Evolução no período</p>
+                  <p style={{fontSize:'12px',color:'#64748B',marginBottom:'14px'}}>Receita gerada por semana.</p>
+                  {temDados?(
+                    <div style={{width:'100%',height:'200px'}}>
+                      <ResponsiveContainer width="100%" height="100%">
+                        <BarChart data={semsData} margin={{top:5,right:5,left:0,bottom:0}} barSize={36}>
+                          <CartesianGrid strokeDasharray="3 3" stroke="rgba(148,163,184,.10)" vertical={false}/>
+                          <XAxis dataKey="name" tick={{fill:'#94A3B8',fontSize:12}} axisLine={false} tickLine={false}/>
+                          <YAxis tickFormatter={v=>`R$${(v/1000).toFixed(1)}k`} tick={{fill:'#64748B',fontSize:10}} axisLine={false} tickLine={false} width={50}/>
+                          <Tooltip content={<CustomTooltip/>}/>
+                          <Bar dataKey="valor" fill="#3B82F6" radius={[6,6,0,0]} fillOpacity={0.85}/>
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </div>
+                  ):(
+                    <div style={{height:'120px',display:'flex',alignItems:'center',justifyContent:'center',flexDirection:'column',gap:'6px'}}>
+                      <p style={{fontSize:'13px',color:'#64748B'}}>Sem dados suficientes ainda</p>
+                      <p style={{fontSize:'11px',color:'#374151'}}>Quando este profissional tiver atendimentos pagos, o gráfico aparecerá aqui.</p>
+                    </div>
+                  )}
+                </div>
+
+                {/* Últimos atendimentos */}
+                <div>
+                  <p style={{fontSize:'14px',fontWeight:700,color:'#F8FAFC',marginBottom:'12px'}}>Últimos atendimentos</p>
+                  {pAgs.length===0?(
+                    <div style={{background:'rgba(15,23,42,.6)',border:'1px solid rgba(148,163,184,.12)',borderRadius:'14px',padding:'24px',textAlign:'center'}}>
+                      <p style={{fontSize:'13px',color:'#64748B',marginBottom:'4px'}}>Nenhum atendimento encontrado</p>
+                      <p style={{fontSize:'12px',color:'#374151'}}>Os atendimentos deste profissional aparecerão aqui.</p>
+                    </div>
+                  ):(
+                    pAgs.slice(0,10).map((a:any)=>{
+                      const st=SC[a.status]||{c:'#94A3B8',t:a.status}
+                      const fmtD=(s:string)=>new Date(s).toLocaleDateString('pt-BR',{day:'2-digit',month:'short'})
+                      return(
+                        <div key={a.id} style={{background:'rgba(15,23,42,.72)',border:'1px solid rgba(148,163,184,.12)',borderRadius:'14px',padding:'14px',marginBottom:'6px'}}>
+                          <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:'8px',flexWrap:'wrap'}}>
+                            <div style={{minWidth:0}}>
+                              <p style={{fontSize:'13px',fontWeight:600,color:'#F8FAFC',marginBottom:'2px'}}>{a.cliente_nome||'—'}</p>
+                              <p style={{fontSize:'11px',color:'#94A3B8'}}>{a.servicos?.nome||'Serviço'} · {fmtD(a.data_hora)}</p>
+                            </div>
+                            <div style={{display:'flex',alignItems:'center',gap:'8px',flexShrink:0}}>
+                              <span style={{fontSize:'10px',fontWeight:600,padding:'2px 8px',borderRadius:'999px',background:`rgba(${st.c==='#4ADE80'?'34,197,94':'59,130,246'},.12)`,color:st.c,border:`1px solid ${st.c}40`}}>{st.t}</span>
+                              {a.valor&&<p style={{fontSize:'13px',fontWeight:700,color:'#4ADE80'}}>{fBRL(a.valor)}</p>}
+                            </div>
+                          </div>
+                        </div>
+                      )
+                    })
+                  )}
+                </div>
+              </div>
+            </div>
+          </>
+        )
+      })()}
     </div>
   )
 }

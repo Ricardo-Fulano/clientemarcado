@@ -3,55 +3,56 @@ import { useEffect, useState, useRef, useCallback } from 'react'
 import { supabase } from '../../lib/supabase'
 import Link from 'next/link'
 
-const GRAD='linear-gradient(135deg,#2563EB,#4F46E5)'
-const AVATAR_BG='linear-gradient(135deg,#0E7490 0%,#2563EB 100%)'
+const G='linear-gradient(135deg,#3B82F6,#7C3AED)'
+const AV='linear-gradient(135deg,rgba(59,130,246,.95),rgba(124,58,237,.95))'
 
 const SB=[
   {href:'/painel',l:'Início'},{href:'/painel/agendamentos',l:'Agenda'},
   {href:'/painel/clientes',l:'Clientes',on:true},
   {href:'/painel/orcamentos',l:'Orçamentos'},{href:'/painel/financeiro',l:'Cobranças'},
-  {href:'/painel/financeiro',l:'Pagamentos'},{href:'/painel/servicos',l:'Serviços'},
+  {href:'/painel/pagamentos',l:'Pagamentos'},{href:'/painel/servicos',l:'Serviços'},
   {href:'/painel/profissionais',l:'Profissionais'},{href:'/painel/relatorio',l:'Relatórios'},
   {href:'/painel/perfil',l:'Configurações'},
 ]
 
 const CSS=`
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-html,body{overflow-x:hidden;width:100%;max-width:100%;background:#07111F}
+html,body{overflow-x:hidden;width:100%;max-width:100%;background:#050B16}
 input,select,textarea{color-scheme:dark}
-select option{background:#0B1628;color:#F8FAFC}
-.sb{width:250px;min-height:100vh;background:#0A1322;border-right:1px solid rgba(255,255,255,.06);display:flex;flex-direction:column;position:fixed;top:0;left:0;z-index:30}
-.sb-logo{padding:20px 18px 16px;border-bottom:1px solid rgba(255,255,255,.06);display:flex;align-items:center;gap:10px}
-.sb-ic{width:30px;height:30px;border-radius:8px;background:${GRAD};display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 0 18px rgba(124,58,237,.4)}
-.sb nav{flex:1;padding:10px;overflow-y:auto}
-.nl{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:10px;margin-bottom:2px;text-decoration:none;font-size:13px;font-weight:500;color:#CBD5E1;transition:all .15s;border:1px solid transparent}
-.nl:hover{background:rgba(59,130,246,.08);color:#fff}
-.nl.on{background:${GRAD};color:#fff;font-weight:700;box-shadow:0 8px 24px rgba(37,99,235,.25);border-color:rgba(255,255,255,.10)}
-.sb-foot{padding:12px;border-top:1px solid rgba(255,255,255,.06)}
-.mhdr{display:none;align-items:center;justify-content:space-between;padding:0 16px;height:56px;background:rgba(7,17,31,.96);backdrop-filter:blur(20px);border-bottom:1px solid rgba(255,255,255,.06);position:sticky;top:0;z-index:20;width:100%;max-width:100%}
-.drw{position:fixed;top:0;left:0;bottom:0;width:280px;max-width:85vw;background:#0A1322;z-index:50;transform:translateX(-100%);transition:transform .28s ease;display:flex;flex-direction:column;border-right:1px solid rgba(255,255,255,.06)}
+select option{background:#07111F;color:#F8FAFC}
+.sb{width:240px;min-height:100vh;background:radial-gradient(circle at top left,rgba(124,58,237,.14),transparent 32%),linear-gradient(180deg,#070F1D,#050B16);border-right:1px solid rgba(148,163,184,.14);display:flex;flex-direction:column;position:fixed;top:0;left:0;z-index:30}
+.sb-logo{padding:22px 18px 16px;border-bottom:1px solid rgba(148,163,184,.10);display:flex;align-items:center;gap:10px}
+.sb-ic{width:30px;height:30px;border-radius:8px;background:${G};display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 0 20px rgba(124,58,237,.5)}
+.sb nav{flex:1;padding:10px 8px;overflow-y:auto}
+.nl{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:10px;margin-bottom:2px;text-decoration:none;font-size:13px;font-weight:500;color:#94A3B8;transition:all .15s;border:1px solid transparent}
+.nl:hover{background:rgba(124,58,237,.10);border-color:rgba(124,58,237,.20);color:#fff}
+.nl.on{background:${G};color:#fff;font-weight:700;border-color:rgba(255,255,255,.10);box-shadow:0 0 26px rgba(124,58,237,.34),inset 0 1px 0 rgba(255,255,255,.12)}
+.sb-foot{padding:12px 10px;border-top:1px solid rgba(148,163,184,.10)}
+.mhdr{display:none;align-items:center;justify-content:space-between;padding:0 16px;height:56px;background:rgba(5,11,22,.96);backdrop-filter:blur(20px);border-bottom:1px solid rgba(148,163,184,.12);position:sticky;top:0;z-index:20;width:100%;max-width:100%}
+.drw{position:fixed;top:0;left:0;bottom:0;width:280px;max-width:85vw;background:radial-gradient(circle at top left,rgba(124,58,237,.14),transparent 32%),linear-gradient(180deg,#070F1D,#050B16);z-index:50;transform:translateX(-100%);transition:transform .28s ease;display:flex;flex-direction:column;border-right:1px solid rgba(148,163,184,.14)}
 .drw.open{transform:translateX(0)}
-.ovl{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:49;opacity:0;pointer-events:none;transition:opacity .28s}
+.ovl{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:49;opacity:0;pointer-events:none;transition:opacity .28s}
 .ovl.open{opacity:1;pointer-events:auto}
-.main{margin-left:250px;flex:1;min-height:100vh;width:calc(100% - 250px);max-width:calc(100% - 250px)}
-.pg{background:radial-gradient(circle at 15% 10%,rgba(6,182,212,.10),transparent 35%),radial-gradient(circle at 85% 10%,rgba(37,99,235,.08),transparent 32%),linear-gradient(180deg,#07111F,#081421);min-height:100vh;overflow-x:hidden}
+.main{margin-left:240px;flex:1;min-height:100vh;width:calc(100% - 240px);max-width:calc(100% - 240px)}
+.pg{background:radial-gradient(circle at top left,rgba(124,58,237,.20),transparent 32%),radial-gradient(circle at top right,rgba(37,99,235,.14),transparent 28%),linear-gradient(135deg,#050B16 0%,#07111F 45%,#050B16 100%);min-height:100vh;overflow-x:hidden}
 .bdy{max-width:1200px;margin:0 auto;padding:28px 32px 80px;width:100%;box-sizing:border-box}
-.btn-p{background:${GRAD};color:#fff;border:1px solid rgba(255,255,255,.10);border-radius:12px;height:44px;padding:0 18px;font-size:13px;font-weight:700;box-shadow:0 8px 22px rgba(37,99,235,.24);display:inline-flex;align-items:center;gap:6px;white-space:nowrap;transition:all .18s;font-family:inherit;cursor:pointer;text-decoration:none}
-.btn-p:hover{transform:translateY(-1px);box-shadow:0 12px 30px rgba(37,99,235,.34)}
-.btn-s{background:rgba(15,23,42,.7);color:#CBD5E1;border:1px solid rgba(255,255,255,.10);border-radius:12px;height:42px;padding:0 16px;font-size:13px;font-weight:600;display:inline-flex;align-items:center;gap:6px;white-space:nowrap;transition:all .18s;font-family:inherit;cursor:pointer;text-decoration:none}
-.btn-s:hover{border-color:rgba(59,130,246,.28);color:#fff;background:rgba(30,41,59,.8)}
-.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px}
-.cli-card{background:#0F1B2E;border:1px solid rgba(255,255,255,.08);border-radius:18px;padding:16px 18px;margin-bottom:8px;transition:all .18s;overflow:hidden}
-.cli-card:hover{border-color:rgba(6,182,212,.20);box-shadow:0 8px 24px rgba(0,0,0,.22)}
-.pill{padding:0 14px;border-radius:999px;font-size:12px;font-weight:600;cursor:pointer;border:1px solid rgba(255,255,255,.10);transition:all .18s;white-space:nowrap;background:rgba(15,23,42,.5);color:#94A3B8;height:34px;display:inline-flex;align-items:center}
-.pill:hover{border-color:rgba(255,255,255,.20);color:#CBD5E1}
-.pill.on{background:rgba(6,182,212,.14);border:1px solid rgba(6,182,212,.38);color:#F8FAFC}
-.srch{width:100%;background:#0E1728;border:1.5px solid rgba(255,255,255,.10);border-radius:12px;padding:0 16px;height:46px;font-size:14px;color:#F8FAFC;outline:none;font-family:inherit;transition:border-color .2s,box-shadow .2s}
-.srch:focus{border-color:rgba(6,182,212,.5);box-shadow:0 0 0 3px rgba(6,182,212,.10)}
-.inp{width:100%;background:#0E1728;border:1.5px solid rgba(255,255,255,.10);border-radius:12px;padding:0 14px;height:46px;font-size:14px;color:#F8FAFC;outline:none;font-family:inherit;transition:border-color .2s,box-shadow .2s;display:block}
-.inp:focus{border-color:rgba(6,182,212,.5);box-shadow:0 0 0 3px rgba(6,182,212,.10)}
-.lbl{font-size:11px;font-weight:700;color:#64748B;text-transform:uppercase;letter-spacing:.08em;display:block;margin-bottom:6px}
-.cli-act{border-radius:8px;padding:0 10px;font-size:11px;font-weight:600;cursor:pointer;border:1px solid transparent;transition:all .2s;font-family:inherit;display:inline-flex;align-items:center;gap:3px;white-space:nowrap;height:30px}
+.crd{background:radial-gradient(circle at top left,rgba(124,58,237,.10),transparent 38%),linear-gradient(145deg,rgba(15,23,42,.97),rgba(8,20,33,.99));border:1.5px solid rgba(148,163,184,.18);border-radius:18px;box-shadow:0 20px 48px rgba(0,0,0,.34),inset 0 1px 0 rgba(255,255,255,.04)}
+.btn-p{background:${G};color:#fff;border:1px solid rgba(255,255,255,.12);border-radius:14px;height:46px;padding:0 20px;font-size:13px;font-weight:700;box-shadow:0 12px 32px rgba(59,130,246,.30),0 0 28px rgba(124,58,237,.26);display:inline-flex;align-items:center;gap:6px;white-space:nowrap;transition:all .18s;font-family:inherit;cursor:pointer;text-decoration:none}
+.btn-p:hover{transform:translateY(-1px);box-shadow:0 16px 38px rgba(59,130,246,.36),0 0 34px rgba(124,58,237,.30)}
+.btn-s{background:rgba(15,23,42,.88);color:#CBD5E1;border:1px solid rgba(148,163,184,.20);border-radius:12px;height:44px;padding:0 16px;font-size:13px;font-weight:600;display:inline-flex;align-items:center;gap:6px;white-space:nowrap;transition:all .18s;font-family:inherit;cursor:pointer;text-decoration:none}
+.btn-s:hover{border-color:rgba(34,211,238,.35);color:#fff}
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:22px}
+.cli-card{background:radial-gradient(circle at top left,rgba(34,211,238,.06),transparent 36%),linear-gradient(145deg,rgba(15,23,42,.97),rgba(8,20,33,.99));border:1.5px solid rgba(148,163,184,.16);border-radius:18px;padding:16px 18px;margin-bottom:8px;transition:all .18s;overflow:hidden}
+.cli-card:hover{border-color:rgba(34,211,238,.30);box-shadow:0 0 28px rgba(34,211,238,.10);transform:translateY(-1px)}
+.pill{padding:0 14px;border-radius:999px;font-size:12px;font-weight:600;cursor:pointer;border:1px solid rgba(148,163,184,.18);transition:all .18s;white-space:nowrap;background:rgba(15,23,42,.72);color:#94A3B8;height:34px;display:inline-flex;align-items:center}
+.pill:hover{border-color:rgba(34,211,238,.32);color:#CBD5E1}
+.pill.on{background:rgba(34,211,238,.14);border:1px solid rgba(34,211,238,.38);color:#F8FAFC}
+.srch{width:100%;background:rgba(15,23,42,.88);border:1px solid rgba(148,163,184,.18);border-radius:14px;padding:0 16px 0 42px;height:48px;font-size:14px;color:#F8FAFC;outline:none;font-family:inherit;transition:border-color .2s,box-shadow .2s}
+.srch:focus{border-color:rgba(34,211,238,.55);box-shadow:0 0 0 3px rgba(34,211,238,.12)}
+.inp{width:100%;background:rgba(15,23,42,.88);border:1px solid rgba(148,163,184,.18);border-radius:14px;padding:0 14px;height:48px;font-size:14px;color:#F8FAFC;outline:none;font-family:inherit;transition:border-color .2s,box-shadow .2s;display:block;box-sizing:border-box}
+.inp:focus{border-color:rgba(34,211,238,.55);box-shadow:0 0 0 3px rgba(34,211,238,.12)}
+.lbl{font-size:11px;font-weight:700;color:#94A3B8;text-transform:uppercase;letter-spacing:.08em;display:block;margin-bottom:7px}
+.cli-act{border-radius:8px;padding:0 10px;font-size:11px;font-weight:600;cursor:pointer;border:1px solid transparent;transition:all .2s;font-family:inherit;display:inline-flex;align-items:center;gap:3px;white-space:nowrap;height:32px}
 .cli-act:hover{filter:brightness(1.15)}
 @media(max-width:1023px){
   .sb{display:none!important}
@@ -132,6 +133,7 @@ export default function Clientes(){
     if(!matchBusca) return false
     if(filtro==='ativos') return c.ativo!==false
     if(filtro==='inativos') return c.ativo===false
+    // com_retorno e com_cobranca: mostrar todos por enquanto (dados virão de joins futuros)
     return true
   })
 
@@ -149,22 +151,22 @@ export default function Clientes(){
       </div>
       <nav>{SB.map(it=><Link key={it.l} href={it.href} className={'nl'+(it.on?' on':'')}>{it.l}</Link>)}</nav>
       <div className="sb-foot">
-        <div style={{display:'flex',alignItems:'center',gap:'10px',background:'rgba(15,23,42,.8)',border:'1px solid rgba(255,255,255,.06)',borderRadius:'10px',padding:'10px 12px'}}>
-          <div style={{width:'32px',height:'32px',borderRadius:'50%',background:AVATAR_BG,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'13px',fontWeight:700,color:'#fff',flexShrink:0}}>{ini}</div>
+        <div style={{display:'flex',alignItems:'center',gap:'10px',background:'rgba(15,23,42,.6)',border:'1px solid rgba(148,163,184,.12)',borderRadius:'10px',padding:'10px 12px'}}>
+          <div style={{width:'32px',height:'32px',borderRadius:'50%',background:AV,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'13px',fontWeight:700,color:'#fff',flexShrink:0}}>{ini}</div>
           <div style={{minWidth:0}}><p style={{fontSize:'12px',fontWeight:600,color:'#F8FAFC',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{nome||'Meu negócio'}</p><p style={{fontSize:'10px',color:'#64748B'}}>Administrador</p></div>
         </div>
       </div>
     </aside>
   )
 
-  if(loading)return(<div style={{minHeight:'100vh',background:'#07111F',display:'flex',alignItems:'center',justifyContent:'center',fontFamily:'system-ui'}}><p style={{color:'#64748B',fontSize:'14px'}}>Carregando clientes...</p></div>)
+  if(loading)return(<div style={{minHeight:'100vh',background:'#050B16',display:'flex',alignItems:'center',justifyContent:'center',fontFamily:'system-ui'}}><p style={{color:'#64748B',fontSize:'14px'}}>Carregando clientes...</p></div>)
 
   return(
-    <div style={{display:'flex',minHeight:'100vh',background:'#07111F',fontFamily:'-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif',overflowX:'hidden',width:'100%',position:'relative'}}>
+    <div style={{display:'flex',minHeight:'100vh',background:'#050B16',fontFamily:'-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif',overflowX:'hidden',width:'100%',position:'relative'}}>
       <style dangerouslySetInnerHTML={{__html:CSS}}/>
       <div className={`ovl${mob?' open':''}`} onClick={()=>setMob(false)}/>
       <div className={`drw${mob?' open':''}`}>
-        <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'16px 18px',borderBottom:'1px solid rgba(255,255,255,.06)'}}>
+        <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'16px 18px',borderBottom:'1px solid rgba(148,163,184,.10)'}}>
           <span style={{fontSize:'14px',fontWeight:800,color:'#F8FAFC'}}>ClienteMarcado</span>
           <button onClick={()=>setMob(false)} style={{background:'none',border:'none',color:'rgba(255,255,255,.5)',cursor:'pointer',fontSize:'22px',lineHeight:1}}>×</button>
         </div>
@@ -178,7 +180,7 @@ export default function Clientes(){
             {[22,22,16].map((w,i)=><span key={i} style={{display:'block',width:`${w}px`,height:'2px',background:'rgba(255,255,255,.8)',borderRadius:'2px'}}/>)}
           </button>
           <span style={{fontSize:'14px',fontWeight:800,color:'#F8FAFC'}}>Clientes</span>
-          <div style={{width:'34px',height:'34px',borderRadius:'50%',background:AVATAR_BG,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'13px',fontWeight:700,color:'#fff'}}>{ini}</div>
+          <div style={{width:'34px',height:'34px',borderRadius:'50%',background:AV,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'13px',fontWeight:700,color:'#fff'}}>{ini}</div>
         </div>
 
         <div className="pg"><div className="bdy">
@@ -204,13 +206,13 @@ export default function Clientes(){
           <div className="kpi-grid">
             {[
               {l:'Total de clientes',v:clientes.length,c:'#22D3EE',bg:'rgba(6,182,212,.08)',bd:'rgba(6,182,212,.18)',ico:'👥'},
-              {l:'Ativos',v:clientes.filter(c=>c.ativo!==false).length,c:'#4ADE80',bg:'rgba(34,197,94,.08)',bd:'rgba(34,197,94,.18)',ico:'✓'},
-              {l:'Novos no mês',v:novosNoMes,c:'#60A5FA',bg:'rgba(37,99,235,.08)',bd:'rgba(37,99,235,.18)',ico:'✨'},
-              {l:'Inativos',v:clientes.filter(c=>c.ativo===false).length,c:'#94A3B8',bg:'rgba(71,85,105,.08)',bd:'rgba(71,85,105,.18)',ico:'—'},
+              {l:'Retornos pendentes',v:'—',c:'#FBBF24',bg:'rgba(245,158,11,.08)',bd:'rgba(245,158,11,.18)',ico:'🔄'},
+              {l:'Cobranças em aberto',v:'R$ —',c:'#C4B5FD',bg:'rgba(124,58,237,.08)',bd:'rgba(124,58,237,.18)',ico:'💳'},
+              {l:'Novos no mês',v:novosNoMes,c:'#4ADE80',bg:'rgba(34,197,94,.08)',bd:'rgba(34,197,94,.18)',ico:'✨'},
             ].map(k=>(
-              <div key={k.l} style={{background:'#0F1B2E',border:`1px solid ${k.bd}`,borderRadius:'16px',padding:'16px',boxSizing:'border-box' as const}}>
-                <div style={{width:'36px',height:'36px',borderRadius:'10px',background:k.bg,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'16px',marginBottom:'8px'}}>{k.ico}</div>
-                <p style={{fontSize:'10px',fontWeight:700,color:'#64748B',textTransform:'uppercase' as const,letterSpacing:'.08em',marginBottom:'3px'}}>{k.l}</p>
+              <div key={k.l} style={{background:`radial-gradient(circle at top left,${k.bg},transparent 60%),linear-gradient(145deg,rgba(15,23,42,.97),rgba(8,20,33,.99))`,border:`1.5px solid ${k.bd}`,borderRadius:'18px',padding:'18px 16px',boxSizing:'border-box' as const,boxShadow:'0 20px 48px rgba(0,0,0,.28),inset 0 1px 0 rgba(255,255,255,.04)'}}>
+                <div style={{width:'38px',height:'38px',borderRadius:'11px',background:k.bg,border:`1px solid ${k.bd}`,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'17px',marginBottom:'10px'}}>{k.ico}</div>
+                <p style={{fontSize:'10px',fontWeight:700,color:'#94A3B8',textTransform:'uppercase' as const,letterSpacing:'.08em',marginBottom:'4px'}}>{k.l}</p>
                 <p style={{fontSize:'26px',fontWeight:800,color:k.c,lineHeight:1,letterSpacing:'-0.03em'}}>{k.v}</p>
               </div>
             ))}
@@ -218,9 +220,9 @@ export default function Clientes(){
 
           {/* Form novo cliente */}
           {showForm&&(
-            <div style={{background:'#0F1B2E',border:'1.5px solid rgba(6,182,212,.24)',borderRadius:'20px',padding:'22px',marginBottom:'18px',boxShadow:'0 12px 30px rgba(0,0,0,.28)'}}>
+            <div className="crd" style={{padding:'22px',marginBottom:'18px',border:'1.5px solid rgba(34,211,238,.22)'}}>
               <p style={{fontSize:'14px',fontWeight:700,color:'#22D3EE',marginBottom:'16px',display:'flex',alignItems:'center',gap:'7px'}}>
-                <span style={{background:'rgba(6,182,212,.18)',borderRadius:'6px',padding:'2px 9px',fontSize:'11px'}}>Novo</span>
+                <span style={{background:'rgba(34,211,238,.14)',borderRadius:'6px',padding:'2px 9px',fontSize:'11px'}}>Novo</span>
                 Cadastrar cliente / paciente
               </p>
               <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'12px',marginBottom:'12px'}} className="form-grid2">
@@ -250,13 +252,19 @@ export default function Clientes(){
           )}
 
           {/* Busca + filtros */}
-          <div style={{background:'#0F1B2E',border:'1px solid rgba(255,255,255,.08)',borderRadius:'16px',padding:'14px 16px',marginBottom:'16px'}}>
+          <div className="crd" style={{padding:'16px 18px',marginBottom:'16px'}}>
             <div style={{position:'relative',marginBottom:'10px'}}>
               <svg style={{position:'absolute',left:'14px',top:'50%',transform:'translateY(-50%)',color:'#64748B',pointerEvents:'none'}} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
               <input className="srch" style={{paddingLeft:'42px'}} placeholder="Buscar cliente, paciente, WhatsApp ou e-mail..." value={busca} onChange={e=>setBusca(e.target.value)}/>
             </div>
             <div className="pills-row" style={{display:'flex',gap:'6px',flexWrap:'wrap'}}>
-              {[{v:'todos',l:'Todos'},{v:'ativos',l:'Ativos'},{v:'inativos',l:'Inativos'}].map(f=>(
+              {[
+                {v:'todos',l:'Todos'},
+                {v:'com_retorno',l:'Com retorno'},
+                {v:'com_cobranca',l:'Com cobrança'},
+                {v:'ativos',l:'Ativos'},
+                {v:'inativos',l:'Inativos'},
+              ].map(f=>(
                 <button key={f.v} className={`pill${filtro===f.v?' on':''}`} onClick={()=>setFiltro(f.v)}>{f.l}</button>
               ))}
             </div>
@@ -264,10 +272,10 @@ export default function Clientes(){
 
           {/* Lista */}
           {filtrados.length===0?(
-            <div style={{background:'#0F1B2E',border:'1px solid rgba(255,255,255,.08)',borderRadius:'20px',padding:'56px 24px',textAlign:'center'}}>
-              <div style={{width:'56px',height:'56px',borderRadius:'16px',background:'rgba(6,182,212,.12)',border:'1px solid rgba(6,182,212,.22)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'26px',margin:'0 auto 16px'}}>👥</div>
+            <div style={{background:'radial-gradient(circle at center,rgba(34,211,238,.08),transparent 35%),linear-gradient(145deg,rgba(15,23,42,.97),rgba(8,20,33,.99))',border:'1.5px solid rgba(148,163,184,.16)',borderRadius:'20px',padding:'60px 24px',textAlign:'center',boxShadow:'0 20px 48px rgba(0,0,0,.28)'}}>
+              <div style={{width:'58px',height:'58px',borderRadius:'16px',background:'rgba(34,211,238,.12)',border:'1px solid rgba(34,211,238,.28)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'26px',margin:'0 auto 16px',color:'#22D3EE'}}>👥</div>
               <p style={{fontSize:'16px',fontWeight:700,color:'#F8FAFC',marginBottom:'6px'}}>{busca?'Nenhum cliente encontrado':'Nenhum cliente cadastrado ainda'}</p>
-              <p style={{fontSize:'13px',color:'#64748B',lineHeight:1.5,maxWidth:'300px',margin:'0 auto 20px'}}>{busca?'Tente buscar com outro termo.':'Cadastre seu primeiro cliente para começar a organizar agenda, orçamentos e retornos.'}</p>
+              <p style={{fontSize:'13px',color:'#64748B',lineHeight:1.5,maxWidth:'300px',margin:'0 auto 20px'}}>{busca?'Tente buscar com outro termo.':'Cadastre seu primeiro cliente para organizar agenda, orçamentos, cobranças e retornos em um só lugar.'}</p>
               {!busca&&<button onClick={()=>setShowForm(true)} className="btn-p" style={{display:'inline-flex'}}>+ Criar primeiro cliente</button>}
             </div>
           ):(
@@ -277,7 +285,7 @@ export default function Clientes(){
                 <div key={c.id} className="cli-card">
                   <div className="cli-card-inner" style={{display:'flex',alignItems:'center',gap:'14px'}}>
                     {/* Avatar */}
-                    <div style={{width:'44px',height:'44px',borderRadius:'50%',background:AVATAR_BG,border:'1px solid rgba(6,182,212,.25)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'17px',fontWeight:700,color:'#fff',flexShrink:0}}>{inic}</div>
+                    <div style={{width:'44px',height:'44px',borderRadius:'50%',background:AV,border:'1px solid rgba(6,182,212,.25)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'17px',fontWeight:700,color:'#fff',flexShrink:0}}>{inic}</div>
 
                     {/* Info */}
                     <div style={{flex:1,minWidth:0}}>
