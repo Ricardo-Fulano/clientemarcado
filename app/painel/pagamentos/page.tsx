@@ -1,6 +1,6 @@
 'use client'
 import { useEffect, useState } from 'react'
-import { supabase } from '../../lib/supabase'
+import { supabase } from '../lib/supabase'
 import Link from 'next/link'
 
 const G='linear-gradient(135deg,#3B82F6,#7C3AED)'
