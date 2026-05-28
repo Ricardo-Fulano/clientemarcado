@@ -1,4 +1,4 @@
-'use client'
+ï»¿'use client'
 import { useEffect, useState, useRef } from 'react'
 import { supabase } from '../../lib/supabase'
 import Link from 'next/link'
@@ -6,11 +6,11 @@ import Link from 'next/link'
 const DIAS_SEMANA = [
   { key: 'domingo',   label: 'Domingo',       num: 0 },
   { key: 'segunda',   label: 'Segunda-feira',  num: 1 },
-  { key: 'terca',     label: 'Terça-feira',    num: 2 },
+  { key: 'terca',     label: 'Terï¿½a-feira',    num: 2 },
   { key: 'quarta',    label: 'Quarta-feira',   num: 3 },
   { key: 'quinta',    label: 'Quinta-feira',   num: 4 },
   { key: 'sexta',     label: 'Sexta-feira',    num: 5 },
-  { key: 'sabado',    label: 'Sábado',         num: 6 },
+  { key: 'sabado',    label: 'Sï¿½bado',         num: 6 },
 ]
 
 const HORARIOS_PADRAO: Record<string, { ativo: boolean; abertura: string; fechamento: string }> = {
@@ -93,8 +93,8 @@ export default function Perfil() {
 
   async function handleUpload(file: File) {
     setErroUpload('')
-    if (!['image/jpeg','image/png','image/webp'].includes(file.type)) { setErroUpload('JPG, PNG ou WEBP, máx. 5 MB.'); return }
-    if (file.size > 5*1024*1024) { setErroUpload('Imagem muito grande. Máx. 5 MB.'); return }
+    if (!['image/jpeg','image/png','image/webp'].includes(file.type)) { setErroUpload('JPG, PNG ou WEBP, mï¿½x. 5 MB.'); return }
+    if (file.size > 5*1024*1024) { setErroUpload('Imagem muito grande. Mï¿½x. 5 MB.'); return }
     setUploadando(true)
     const ext = file.name.split('.').pop()
     const path = userId + '/banner-' + Date.now() + '.' + ext
@@ -144,17 +144,17 @@ export default function Perfil() {
   }
 
   async function handleSalvar() {
-    if (!nomeNegocio || !slug) { setMensagem('Nome e link são obrigatórios.'); return }
-    // Validar horários
+    if (!nomeNegocio || !slug) { setMensagem('Nome e link sï¿½o obrigatï¿½rios.'); return }
+    // Validar horï¿½rios
     for (const d of DIAS_SEMANA) {
       const h = horariosFuncionamento[d.key]
       if (h.ativo) {
         if (!h.abertura || !h.fechamento) {
-          setMensagem(`Preencha os horários de ${d.label}.`)
+          setMensagem(`Preencha os horï¿½rios de ${d.label}.`)
           return
         }
         if (h.abertura >= h.fechamento) {
-          setMensagem(`Horário inválido em ${d.label}: fechamento deve ser após abertura.`)
+          setMensagem(`Horï¿½rio invï¿½lido em ${d.label}: fechamento deve ser apï¿½s abertura.`)
           return
         }
       }
@@ -178,7 +178,7 @@ export default function Perfil() {
       setMensagem(error ? 'Erro ao salvar.' : 'Perfil atualizado!')
     } else {
       const { error } = await supabase.from('perfis').insert({ user_id: user?.id, ...payload })
-      if (error) setMensagem(error.message.includes('slug') ? 'Esse link já está em uso.' : 'Erro ao salvar.')
+      if (error) setMensagem(error.message.includes('slug') ? 'Esse link jï¿½ estï¿½ em uso.' : 'Erro ao salvar.')
       else { setMensagem('Perfil criado!'); setPerfilExiste(true) }
     }
     setLoading(false)
@@ -191,7 +191,7 @@ export default function Perfil() {
   }
   function compartilharWhatsapp() {
     const link = 'https://clientemarcado.vercel.app/' + slug
-    window.open('https://wa.me/?text=' + encodeURIComponent('Agende seu horário pelo link: ' + link), '_blank')
+    window.open('https://wa.me/?text=' + encodeURIComponent('Agende seu horï¿½rio pelo link: ' + link), '_blank')
   }
 
   const css = `
@@ -230,7 +230,7 @@ export default function Perfil() {
     .btn-link { flex: 1; min-width: 80px; border: none; border-radius: 8px; padding: 9px 12px; font-size: 13px; font-weight: 600; cursor: pointer; font-family: inherit; transition: opacity 0.15s; -webkit-tap-highlight-color: transparent; }
     .btn-link:hover { opacity: 0.85; }
 
-    /* Card seções */
+    /* Card seï¿½ï¿½es */
     .section-card {
       background: linear-gradient(180deg, rgba(16,20,30,0.98) 0%, rgba(10,12,18,0.98) 100%);
       border: 1px solid rgba(255,255,255,0.09); border-radius: 18px;
@@ -297,7 +297,7 @@ export default function Perfil() {
     .dia-chip.on  { background: #3B82F6; color: #fff; border-color: #3B82F6; }
     .dia-chip.off { background: rgba(255,255,255,0.04); color: #6B7280; border-color: rgba(255,255,255,0.08); }
 
-    /* Horários por dia */
+    /* Horï¿½rios por dia */
     .dia-row {
       display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
       padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.04);
@@ -344,7 +344,7 @@ export default function Perfil() {
     .msg-ok  { font-size: 13px; color: #22C55E; padding: 10px 14px; background: rgba(34,197,94,0.08); border: 1px solid rgba(34,197,94,0.2); border-radius: 8px; text-align: center; }
     .msg-err { font-size: 13px; color: #EF4444; padding: 10px 14px; background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.2); border-radius: 8px; text-align: center; }
 
-    /* Botão salvar */
+    /* Botï¿½o salvar */
     .btn-salvar {
       width: 100%; background: #3B82F6; color: #fff; border: none; border-radius: 12px;
       padding: 14px; font-size: 15px; font-weight: 700; cursor: pointer;
@@ -356,7 +356,7 @@ export default function Perfil() {
     .btn-salvar:disabled { opacity: 0.6; cursor: not-allowed; }
   `
 
-  const diasSemanaChips = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb']
+  const diasSemanaChips = ['Dom','Seg','Ter','Qua','Qui','Sex','Sï¿½b']
 
   return (
     <div className="pg">
@@ -369,8 +369,8 @@ export default function Perfil() {
 
       <div className="body">
         <div className="heading">
-          <h1>Perfil do negócio</h1>
-          <p>Configure como seu negócio aparece para os clientes.</p>
+          <h1>Perfil do negï¿½cio</h1>
+          <p>Configure como seu negï¿½cio aparece para os clientes.</p>
         </div>
 
         {/* Link de agendamento */}
@@ -387,20 +387,20 @@ export default function Perfil() {
               </button>
               <a href={'/' + slug} target="_blank"
                 style={{ flex: 1, minWidth: '80px', textAlign: 'center', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '8px', padding: '9px 12px', fontSize: '13px', fontWeight: '600', color: '#9CA3AF', textDecoration: 'none', display: 'inline-block' }}>
-                Ver página
+                Ver pï¿½gina
               </a>
             </div>
           </div>
         )}
 
-        {/* -- SEÇÃO 1: Informações básicas -- */}
+        {/* -- SEï¿½ï¿½O 1: Informaï¿½ï¿½es bï¿½sicas -- */}
         <div className="section-card">
-          <p className="section-titulo">?? Informações do negócio</p>
-          <p className="section-sub">Dados principais que identificam seu negócio.</p>
+          <p className="section-titulo">?? Informaï¿½ï¿½es do negï¿½cio</p>
+          <p className="section-sub">Dados principais que identificam seu negï¿½cio.</p>
           <div className="fields">
             <div>
-              <label className="label">Nome do negócio *</label>
-              <input type="text" placeholder="Ex: Barbearia do João, Clínica Saúde & Bem-Estar"
+              <label className="label">Nome do negï¿½cio *</label>
+              <input type="text" placeholder="Ex: Barbearia do Joï¿½o, Clï¿½nica Saï¿½de & Bem-Estar"
                 value={nomeNegocio}
                 onChange={e => { setNomeNegocio(e.target.value); if (!perfilExiste) setSlug(gerarSlug(e.target.value)) }}
                 className="input" />
@@ -415,25 +415,25 @@ export default function Perfil() {
               </div>
             </div>
             <div>
-              <label className="label">Endereço (opcional)</label>
-              <input type="text" placeholder="Ex: Rua das Flores, 123 - São Paulo"
+              <label className="label">Endereï¿½o (opcional)</label>
+              <input type="text" placeholder="Ex: Rua das Flores, 123 - Sï¿½o Paulo"
                 value={endereco} onChange={e => setEndereco(e.target.value)} className="input" />
             </div>
           </div>
         </div>
 
-        {/* -- SEÇÃO 2: Dados públicos -- */}
+        {/* -- SEï¿½ï¿½O 2: Dados pï¿½blicos -- */}
         <div className="section-card">
-          <p className="section-titulo">?? Dados públicos do negócio</p>
-          <p className="section-sub">Informações que aparecem na sua página de agendamento.</p>
+          <p className="section-titulo">?? Dados pï¿½blicos do negï¿½cio</p>
+          <p className="section-sub">Informaï¿½ï¿½es que aparecem na sua pï¿½gina de agendamento.</p>
           <div className="fields">
             <div>
-              <label className="label">WhatsApp do negócio</label>
+              <label className="label">WhatsApp do negï¿½cio</label>
               <input type="tel" placeholder="Ex: (11) 99999-9999"
                 value={whatsapp}
                 onChange={e => setWhatsapp(aplicarMascaraTel(e.target.value))}
                 className="input" />
-              <p className="field-hint">Esse número será usado no botão de WhatsApp da sua página pública.</p>
+              <p className="field-hint">Esse nï¿½mero serï¿½ usado no botï¿½o de WhatsApp da sua pï¿½gina pï¿½blica.</p>
             </div>
             <div>
               <label className="label">Instagram</label>
@@ -442,13 +442,13 @@ export default function Perfil() {
             </div>
             <div>
               <label className="label">Cidade / Estado</label>
-              <input type="text" placeholder="Ex: São Paulo - SP"
+              <input type="text" placeholder="Ex: Sï¿½o Paulo - SP"
                 value={cidadeEstado} onChange={e => setCidadeEstado(e.target.value)} className="input" />
             </div>
             <div>
-              <label className="label">Descrição curta do negócio</label>
+              <label className="label">Descriï¿½ï¿½o curta do negï¿½cio</label>
               <textarea rows={3}
-                placeholder="Ex: Atendimento com horário marcado, ambiente confortável e profissionais especializados."
+                placeholder="Ex: Atendimento com horï¿½rio marcado, ambiente confortï¿½vel e profissionais especializados."
                 value={descricaoCurta}
                 onChange={e => { if (e.target.value.length <= 180) setDescricaoCurta(e.target.value) }}
                 className="textarea" />
@@ -457,14 +457,14 @@ export default function Perfil() {
           </div>
         </div>
 
-        {/* -- SEÇÃO 3: Funcionamento -- */}
+        {/* -- SEï¿½ï¿½O 3: Funcionamento -- */}
         <div className="section-card">
-          <p className="section-titulo">?? Funcionamento do negócio</p>
-          <p className="section-sub">Defina os dias e horários em que seus clientes podem agendar.</p>
+          <p className="section-titulo">?? Funcionamento do negï¿½cio</p>
+          <p className="section-sub">Defina os dias e horï¿½rios em que seus clientes podem agendar.</p>
 
           {/* Dias chips (legado) */}
           <div style={{ marginBottom: '20px' }}>
-            <label className="label">Dias ativos (seleção rápida)</label>
+            <label className="label">Dias ativos (seleï¿½ï¿½o rï¿½pida)</label>
             <div className="dias-chips">
               {diasSemanaChips.map((d, i) => (
                 <button key={i}
@@ -478,8 +478,8 @@ export default function Perfil() {
 
           <div className="divider" />
 
-          {/* Horários detalhados por dia */}
-          <label className="label" style={{ marginBottom: '12px', display: 'block' }}>Horários por dia</label>
+          {/* Horï¿½rios detalhados por dia */}
+          <label className="label" style={{ marginBottom: '12px', display: 'block' }}>Horï¿½rios por dia</label>
           {DIAS_SEMANA.map(dia => {
             const h = horariosFuncionamento[dia.key] || { ativo: false, abertura: '', fechamento: '' }
             return (
@@ -496,7 +496,7 @@ export default function Perfil() {
                     <input type="time" value={h.abertura}
                       onChange={e => atualizarHorario(dia.key, 'abertura', e.target.value)}
                       className="dia-horario-input" />
-                    <span className="dia-sep">até</span>
+                    <span className="dia-sep">atï¿½</span>
                     <input type="time" value={h.fechamento}
                       onChange={e => atualizarHorario(dia.key, 'fechamento', e.target.value)}
                       className="dia-horario-input" />
@@ -509,13 +509,13 @@ export default function Perfil() {
           })}
         </div>
 
-        {/* -- SEÇÃO 4: Configurações da agenda -- */}
+        {/* -- SEï¿½ï¿½O 4: Configuraï¿½ï¿½es da agenda -- */}
         <div className="section-card">
-          <p className="section-titulo">?? Configurações da agenda</p>
-          <p className="section-sub">Controle como o agendamento público funciona.</p>
+          <p className="section-titulo">?? Configuraï¿½ï¿½es da agenda</p>
+          <p className="section-sub">Controle como o agendamento pï¿½blico funciona.</p>
           <div className="fields">
             <div>
-              <label className="label">Intervalo entre horários</label>
+              <label className="label">Intervalo entre horï¿½rios</label>
               <select value={intervaloAgenda}
                 onChange={e => setIntervaloAgenda(Number(e.target.value))} className="select">
                 <option value={10}>10 minutos</option>
@@ -538,12 +538,12 @@ export default function Perfil() {
                   onChange={e => setHoraFechamento(e.target.value)} className="input" />
               </div>
             </div>
-            <p className="field-hint">Esses horários são usados como padrão quando um dia não tiver horário específico configurado acima.</p>
+            <p className="field-hint">Esses horï¿½rios sï¿½o usados como padrï¿½o quando um dia nï¿½o tiver horï¿½rio especï¿½fico configurado acima.</p>
             <div>
-              <label className="label">Antecedência mínima para agendamento</label>
+              <label className="label">Antecedï¿½ncia mï¿½nima para agendamento</label>
               <select value={antecedenciaMinima}
                 onChange={e => setAntecedenciaMinima(Number(e.target.value))} className="select">
-                <option value={0}>Sem restrição</option>
+                <option value={0}>Sem restriï¿½ï¿½o</option>
                 <option value={30}>30 minutos antes</option>
                 <option value={60}>1 hora antes</option>
                 <option value={120}>2 horas antes</option>
@@ -551,15 +551,15 @@ export default function Perfil() {
                 <option value={720}>12 horas antes</option>
                 <option value={1440}>24 horas antes</option>
               </select>
-              <p className="field-hint">Clientes não poderão agendar dentro desse prazo.</p>
+              <p className="field-hint">Clientes nï¿½o poderï¿½o agendar dentro desse prazo.</p>
             </div>
           </div>
         </div>
 
-        {/* -- SEÇÃO 5: Banner -- */}
+        {/* -- SEï¿½ï¿½O 5: Banner -- */}
         <div className="section-card">
           <p className="section-titulo">??? Imagem de capa</p>
-          <p className="section-sub">Aparece no topo da sua página de agendamento. Use uma imagem horizontal (16:9).</p>
+          <p className="section-sub">Aparece no topo da sua pï¿½gina de agendamento. Use uma imagem horizontal (16:9).</p>
           <input ref={inputRef} type="file" accept="image/jpeg,image/png,image/webp"
             style={{ display: 'none' }}
             onChange={e => { if (e.target.files?.[0]) handleUpload(e.target.files[0]) }} />
@@ -569,7 +569,7 @@ export default function Perfil() {
               <p style={{ fontWeight: '600', fontSize: '13px', color: '#D1D5DB', marginBottom: '4px' }}>
                 {uploadando ? 'Enviando...' : 'Clique para enviar uma imagem'}
               </p>
-              <p style={{ fontSize: '11px', color: '#4B5563' }}>16:9 · JPG, PNG ou WEBP · Máx. 5 MB</p>
+              <p style={{ fontSize: '11px', color: '#4B5563' }}>16:9 ï¿½ JPG, PNG ou WEBP ï¿½ Mï¿½x. 5 MB</p>
             </div>
           ) : (
             <div style={{ borderRadius: '14px', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.08)', position: 'relative' }}>
@@ -583,9 +583,9 @@ export default function Perfil() {
           {erroUpload && <p style={{ fontSize: '12px', color: '#EF4444', marginTop: '8px' }}>{erroUpload}</p>}
         </div>
 
-        {/* Mensagem + Botão salvar */}
+        {/* Mensagem + Botï¿½o salvar */}
         {mensagem && (
-          <div className={mensagem.includes('Erro') || mensagem.includes('obrigatório') || mensagem.includes('inválido') || mensagem.includes('uso') ? 'msg-err' : 'msg-ok'} style={{ marginBottom: '14px' }}>
+          <div className={mensagem.includes('Erro') || mensagem.includes('obrigatï¿½rio') || mensagem.includes('invï¿½lido') || mensagem.includes('uso') ? 'msg-err' : 'msg-ok'} style={{ marginBottom: '14px' }}>
             {mensagem}
           </div>
         )}
