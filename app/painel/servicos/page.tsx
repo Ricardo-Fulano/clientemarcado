@@ -4,15 +4,15 @@ import { supabase } from '../../lib/supabase'
 import Link from 'next/link'
 
 const GRAD='linear-gradient(135deg,#2563EB,#4F46E5)'
-const CATS=['Barbearia / SalÃ£o','EstÃ©tica','ClÃ­nica','Odontologia','Outros']
+const CATS=['Barbearia / Salão','Estética','Clínica','Odontologia','Outros']
 
 const SB=[
-  {href:'/painel',l:'InÃ­cio'},{href:'/painel/agendamentos',l:'Agenda'},
-  {href:'/painel/clientes',l:'Clientes'},{href:'/painel/orcamentos',l:'OrÃ§amentos'},
-  {href:'/painel/financeiro',l:'CobranÃ§as'},{href:'/painel/pagamentos',l:'Pagamentos'},
-  {href:'/painel/servicos',l:'ServiÃ§os',on:true},
-  {href:'/painel/profissionais',l:'Profissionais'},{href:'/painel/relatorio',l:'RelatÃ³rios'},
-  {href:'/painel/perfil',l:'ConfiguraÃ§Ãµes'},
+  {href:'/painel',l:'Início'},{href:'/painel/agendamentos',l:'Agenda'},
+  {href:'/painel/clientes',l:'Clientes'},{href:'/painel/orcamentos',l:'Orçamentos'},
+  {href:'/painel/financeiro',l:'Cobranças'},{href:'/painel/pagamentos',l:'Pagamentos'},
+  {href:'/painel/servicos',l:'Serviços',on:true},
+  {href:'/painel/profissionais',l:'Profissionais'},{href:'/painel/relatorio',l:'Relatórios'},
+  {href:'/painel/perfil',l:'Configurações'},
 ]
 
 const CSS=`
@@ -87,7 +87,7 @@ export default function Servicos(){
   const [editId,setEditId]=useState<string|null>(null)
 
   const [fNome,setFNome]=useState('')
-  const [fCat,setFCat]=useState('Barbearia / SalÃ£o')
+  const [fCat,setFCat]=useState('Barbearia / Salão')
   const [fValor,setFValor]=useState('')
   const [fDur,setFDur]=useState('')
   const [fProf,setFProf]=useState('')
@@ -108,16 +108,16 @@ export default function Servicos(){
     setPerfil(p);setServicos(sv||[]);setProfs(pr||[]);setLoading(false)
   }
 
-  function resetForm(){setFNome('');setFCat('Barbearia / SalÃ£o');setFValor('');setFDur('');setFProf('');setFDesc('');setFAtivo(true);setFOdonto(false);setEditId(null)}
+  function resetForm(){setFNome('');setFCat('Barbearia / Salão');setFValor('');setFDur('');setFProf('');setFDesc('');setFAtivo(true);setFOdonto(false);setEditId(null)}
 
   function abrirForm(s?:Servico){
-    if(s){setFNome(s.nome);setFCat(s.categoria||'Barbearia / SalÃ£o');setFValor(s.valor?.toString()||'');setFDur(s.duracao?.toString()||'');setFProf(s.profissional_nome||'');setFDesc(s.desc||'');setFAtivo(s.ativo!==false);setFOdonto(!!s.odonto);setEditId(s.id)}
+    if(s){setFNome(s.nome);setFCat(s.categoria||'Barbearia / Salão');setFValor(s.valor?.toString()||'');setFDur(s.duracao?.toString()||'');setFProf(s.profissional_nome||'');setFDesc(s.desc||'');setFAtivo(s.ativo!==false);setFOdonto(!!s.odonto);setEditId(s.id)}
     else resetForm()
     setShowForm(true)
   }
 
   async function salvar(){
-    if(!fNome.trim()){setMsg('âš  Informe o nome.');return}
+    if(!fNome.trim()){setMsg('⚠ Informe o nome.');return}
     setSalvando(true)
     const {data:{user}}=await supabase.auth.getUser()
     if(!user){setSalvando(false);return}
@@ -132,7 +132,7 @@ export default function Servicos(){
         desc:fDesc.trim()||null,
         ativo:fAtivo,odonto:fOdonto,
       }).eq('id',editId)
-      // Atualiza lista local imediatamente â€” nÃ£o depende do retorno do Supabase
+      // Atualiza lista local imediatamente — não depende do retorno do Supabase
       const idToUpdate=editId
       setServicos(prev=>prev.map(s=>s.id===idToUpdate?{
         ...s,
@@ -143,11 +143,11 @@ export default function Servicos(){
         desc:fDesc.trim()||null,
         ativo:fAtivo,odonto:fOdonto,
       }:s).sort((a,b)=>a.nome.localeCompare(b.nome)))
-      setMsg('ServiÃ§o atualizado! âœ“')
+      setMsg('Serviço atualizado! ✓')
     } else {
       const {data:novo}=await supabase.from('servicos').insert(payload).select('*').single()
       if(novo) setServicos(prev=>[...prev,novo].sort((a,b)=>a.nome.localeCompare(b.nome)))
-      setMsg('ServiÃ§o cadastrado! âœ“')
+      setMsg('Serviço cadastrado! ✓')
     }
     resetForm();setShowForm(false)
     setTimeout(()=>setMsg(''),2500)
@@ -163,7 +163,7 @@ export default function Servicos(){
     if(!confirm(`Remover "${nome}"?`)) return
     await supabase.from('servicos').delete().eq('id',id)
     setServicos(prev=>prev.filter(s=>s.id!==id))
-    setMsg('ServiÃ§o removido.');setTimeout(()=>setMsg(''),2000)
+    setMsg('Serviço removido.');setTimeout(()=>setMsg(''),2000)
   }
 
   const filtrados=servicos.filter(s=>{
@@ -173,7 +173,7 @@ export default function Servicos(){
     if(filtro==='ativos') return s.ativo!==false
     if(filtro==='inativos') return s.ativo===false
     if(filtro==='odonto') return !!s.odonto
-    const cats:Record<string,string>={'barbsalao':'Barbearia / SalÃ£o','estetica':'EstÃ©tica','clinica':'ClÃ­nica','odonto2':'Odontologia'}
+    const cats:Record<string,string>={'barbsalao':'Barbearia / Salão','estetica':'Estética','clinica':'Clínica','odonto2':'Odontologia'}
     if(cats[filtro]) return s.categoria===cats[filtro]
     return true
   })
@@ -194,13 +194,13 @@ export default function Servicos(){
       <div className="sb-foot">
         <div style={{display:'flex',alignItems:'center',gap:'10px',background:'rgba(15,23,42,.8)',border:'1px solid rgba(255,255,255,.06)',borderRadius:'10px',padding:'10px 12px'}}>
           <div style={{width:'32px',height:'32px',borderRadius:'50%',background:ABGR,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'13px',fontWeight:700,color:'#fff',flexShrink:0}}>{ini}</div>
-          <div style={{minWidth:0}}><p style={{fontSize:'12px',fontWeight:600,color:'#F8FAFC',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{nome||'Meu negÃ³cio'}</p><p style={{fontSize:'10px',color:'#64748B'}}>Administrador</p></div>
+          <div style={{minWidth:0}}><p style={{fontSize:'12px',fontWeight:600,color:'#F8FAFC',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{nome||'Meu negócio'}</p><p style={{fontSize:'10px',color:'#64748B'}}>Administrador</p></div>
         </div>
       </div>
     </aside>
   )
 
-  if(loading)return(<div style={{minHeight:'100vh',background:'#07111F',display:'flex',alignItems:'center',justifyContent:'center',fontFamily:'system-ui'}}><p style={{color:'#64748B',fontSize:'14px'}}>Carregando serviÃ§os...</p></div>)
+  if(loading)return(<div style={{minHeight:'100vh',background:'#07111F',display:'flex',alignItems:'center',justifyContent:'center',fontFamily:'system-ui'}}><p style={{color:'#64748B',fontSize:'14px'}}>Carregando serviços...</p></div>)
 
   return(
     <div style={{display:'flex',minHeight:'100vh',background:'#07111F',fontFamily:'-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif',overflowX:'hidden',width:'100%',position:'relative'}}>
@@ -209,7 +209,7 @@ export default function Servicos(){
       <div className={`drw${mob?' open':''}`}>
         <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'16px 18px',borderBottom:'1px solid rgba(255,255,255,.06)'}}>
           <span style={{fontSize:'14px',fontWeight:800,color:'#F8FAFC'}}>ClienteMarcado</span>
-          <button onClick={()=>setMob(false)} style={{background:'none',border:'none',color:'rgba(255,255,255,.5)',cursor:'pointer',fontSize:'22px',lineHeight:1}}>Ã—</button>
+          <button onClick={()=>setMob(false)} style={{background:'none',border:'none',color:'rgba(255,255,255,.5)',cursor:'pointer',fontSize:'22px',lineHeight:1}}>×</button>
         </div>
         <nav style={{flex:1,padding:'10px',overflowY:'auto'}}>{SB.map(it=><Link key={it.l+it.href} href={it.href} onClick={()=>setMob(false)} className={'nl'+(it.on?' on':'')} style={{fontSize:'14px'}}>{it.l}</Link>)}</nav>
       </div>
@@ -219,7 +219,7 @@ export default function Servicos(){
           <button onClick={()=>setMob(true)} style={{background:'none',border:'none',cursor:'pointer',padding:'8px',display:'flex',flexDirection:'column',gap:'5px'}}>
             {[22,22,16].map((w,i)=><span key={i} style={{display:'block',width:`${w}px`,height:'2px',background:'rgba(255,255,255,.8)',borderRadius:'2px'}}/>)}
           </button>
-          <span style={{fontSize:'14px',fontWeight:800,color:'#F8FAFC'}}>ServiÃ§os</span>
+          <span style={{fontSize:'14px',fontWeight:800,color:'#F8FAFC'}}>Serviços</span>
           <div style={{width:'34px',height:'34px',borderRadius:'50%',background:ABGR,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'13px',fontWeight:700,color:'#fff'}}>{ini}</div>
         </div>
         <div className="pg"><div className="bdy">
@@ -229,13 +229,13 @@ export default function Servicos(){
           {/* Header */}
           <div className="hdr-row" style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',gap:'16px',flexWrap:'wrap',marginBottom:'24px'}}>
             <div>
-              <h1 style={{fontSize:'24px',fontWeight:800,color:'#F8FAFC',letterSpacing:'-0.04em',marginBottom:'5px'}}>ServiÃ§os / Procedimentos</h1>
-              <p style={{fontSize:'13px',color:'#64748B',lineHeight:1.5}}>Cadastre serviÃ§os, procedimentos, valores, duraÃ§Ã£o e profissionais responsÃ¡veis.</p>
+              <h1 style={{fontSize:'24px',fontWeight:800,color:'#F8FAFC',letterSpacing:'-0.04em',marginBottom:'5px'}}>Serviços / Procedimentos</h1>
+              <p style={{fontSize:'13px',color:'#64748B',lineHeight:1.5}}>Cadastre serviços, procedimentos, valores, duração e profissionais responsáveis.</p>
             </div>
             <div className="hdr-btns" style={{display:'flex',gap:'8px',flexShrink:0}}>
               <button onClick={()=>abrirForm()} className="btn-p">
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-                {showForm&&!editId?'Cancelar':'Novo serviÃ§o'}
+                {showForm&&!editId?'Cancelar':'Novo serviço'}
               </button>
             </div>
           </div>
@@ -243,10 +243,10 @@ export default function Servicos(){
           {/* KPIs */}
           <div className="kpi-grid">
             {[
-              {l:'Total cadastrado',v:servicos.length,c:'#F472B6',bg:'rgba(219,39,119,.08)',bd:'rgba(219,39,119,.18)',ico:'ðŸ“‹'},
-              {l:'ServiÃ§os ativos',v:servicos.filter(s=>s.ativo!==false).length,c:'#4ADE80',bg:'rgba(34,197,94,.08)',bd:'rgba(34,197,94,.18)',ico:'âœ“'},
-              {l:'Categorias',v:cats,c:'#22D3EE',bg:'rgba(6,182,212,.08)',bd:'rgba(6,182,212,.18)',ico:'ðŸ“'},
-              {l:'Valor mÃ©dio',v:valorMedio>0?`R$ ${valorMedio.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})}`:'R$ â€”',c:'#FBBF24',bg:'rgba(245,158,11,.08)',bd:'rgba(245,158,11,.18)',ico:'ðŸ’°'},
+              {l:'Total cadastrado',v:servicos.length,c:'#F472B6',bg:'rgba(219,39,119,.08)',bd:'rgba(219,39,119,.18)',ico:'📋'},
+              {l:'Serviços ativos',v:servicos.filter(s=>s.ativo!==false).length,c:'#4ADE80',bg:'rgba(34,197,94,.08)',bd:'rgba(34,197,94,.18)',ico:'✓'},
+              {l:'Categorias',v:cats,c:'#22D3EE',bg:'rgba(6,182,212,.08)',bd:'rgba(6,182,212,.18)',ico:'📁'},
+              {l:'Valor médio',v:valorMedio>0?`R$ ${valorMedio.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})}`:'R$ —',c:'#FBBF24',bg:'rgba(245,158,11,.08)',bd:'rgba(245,158,11,.18)',ico:'💰'},
             ].map(k=>(
               <div key={k.l} style={{background:'#0F1B2E',border:`1px solid ${k.bd}`,borderRadius:'16px',padding:'16px',boxSizing:'border-box' as const}}>
                 <div style={{width:'36px',height:'36px',borderRadius:'10px',background:k.bg,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'16px',marginBottom:'8px'}}>{k.ico}</div>
@@ -261,12 +261,12 @@ export default function Servicos(){
             <div style={{background:'#0F1B2E',border:'1.5px solid rgba(219,39,119,.22)',borderRadius:'20px',padding:'22px',marginBottom:'18px',boxShadow:'0 12px 30px rgba(0,0,0,.28)'}}>
               <p style={{fontSize:'14px',fontWeight:700,color:'#F472B6',marginBottom:'16px',display:'flex',alignItems:'center',gap:'7px'}}>
                 <span style={{background:'rgba(219,39,119,.18)',borderRadius:'6px',padding:'2px 9px',fontSize:'11px'}}>{editId?'Editar':'Novo'}</span>
-                {editId?'Editar serviÃ§o':'Cadastrar serviÃ§o / procedimento'}
+                {editId?'Editar serviço':'Cadastrar serviço / procedimento'}
               </p>
               <div className="fg2" style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'12px',marginBottom:'12px'}}>
                 <div style={{gridColumn:'1/-1'}}>
-                  <label className="lbl">Nome do serviÃ§o / procedimento *</label>
-                  <input className="inp" type="text" placeholder="Ex: Corte masculino, Canal, RestauraÃ§Ã£o, Limpeza de pele..." value={fNome} onChange={e=>setFNome(e.target.value)}/>
+                  <label className="lbl">Nome do serviço / procedimento *</label>
+                  <input className="inp" type="text" placeholder="Ex: Corte masculino, Canal, Restauração, Limpeza de pele..." value={fNome} onChange={e=>setFNome(e.target.value)}/>
                 </div>
                 <div>
                   <label className="lbl">Categoria</label>
@@ -275,7 +275,7 @@ export default function Servicos(){
                   </select>
                 </div>
                 <div>
-                  <label className="lbl">Profissional responsÃ¡vel</label>
+                  <label className="lbl">Profissional responsável</label>
                   <select className="inp" value={fProf} onChange={e=>setFProf(e.target.value)}>
                     <option value="">Todos os profissionais</option>
                     {profs.map((p:any)=><option key={p.id} value={p.nome}>{p.nome}</option>)}
@@ -289,19 +289,19 @@ export default function Servicos(){
                   </div>
                 </div>
                 <div>
-                  <label className="lbl">DuraÃ§Ã£o estimada (min)</label>
+                  <label className="lbl">Duração estimada (min)</label>
                   <div style={{position:'relative'}}>
                     <input className="inp" type="number" min="0" placeholder="Ex: 40" value={fDur} onChange={e=>setFDur(e.target.value)} style={{paddingRight:'48px'}}/>
                     <span style={{position:'absolute',right:'14px',top:'50%',transform:'translateY(-50%)',fontSize:'12px',color:'#64748B',pointerEvents:'none'}}>min</span>
                   </div>
                 </div>
                 <div style={{gridColumn:'1/-1'}}>
-                  <label className="lbl">DescriÃ§Ã£o curta (opcional)</label>
-                  <input className="inp" type="text" placeholder="DescriÃ§Ã£o breve do serviÃ§o..." value={fDesc} onChange={e=>setFDesc(e.target.value)}/>
+                  <label className="lbl">Descrição curta (opcional)</label>
+                  <input className="inp" type="text" placeholder="Descrição breve do serviço..." value={fDesc} onChange={e=>setFDesc(e.target.value)}/>
                 </div>
               </div>
               <div style={{display:'flex',gap:'16px',marginBottom:'16px',flexWrap:'wrap'}}>
-                {[{val:fAtivo,set:setFAtivo,l:'Ativo',c:'#4ADE80'},{val:fOdonto,set:setFOdonto,l:'Procedimento odontolÃ³gico',c:'#22D3EE'}].map(({val,set,l,c})=>(
+                {[{val:fAtivo,set:setFAtivo,l:'Ativo',c:'#4ADE80'},{val:fOdonto,set:setFOdonto,l:'Procedimento odontológico',c:'#22D3EE'}].map(({val,set,l,c})=>(
                   <button key={l} onClick={()=>set(!val)} style={{display:'flex',alignItems:'center',gap:'8px',background:'none',border:'none',cursor:'pointer',fontFamily:'inherit',padding:0}}>
                     <div style={{width:'36px',height:'20px',borderRadius:'999px',border:'none',cursor:'pointer',position:'relative',background:val?c:'rgba(255,255,255,.15)',transition:'background .2s',flexShrink:0}}>
                       <span style={{position:'absolute',top:'3px',left:val?'18px':'3px',width:'14px',height:'14px',borderRadius:'50%',background:'#fff',transition:'left .2s'}}/>
@@ -311,7 +311,7 @@ export default function Servicos(){
                 ))}
               </div>
               <div style={{display:'flex',gap:'8px',flexWrap:'wrap'}}>
-                <button onClick={salvar} disabled={salvando} className="btn-p" style={{opacity:salvando?.7:1}}>{salvando?'Salvando...':'âœ“ Salvar serviÃ§o'}</button>
+                <button onClick={salvar} disabled={salvando} className="btn-p" style={{opacity:salvando?.7:1}}>{salvando?'Salvando...':'✓ Salvar serviço'}</button>
                 <button onClick={()=>{setShowForm(false);resetForm()}} className="btn-s">Cancelar</button>
               </div>
             </div>
@@ -321,10 +321,10 @@ export default function Servicos(){
           <div style={{background:'#0F1B2E',border:'1px solid rgba(255,255,255,.08)',borderRadius:'16px',padding:'14px 16px',marginBottom:'16px'}}>
             <div style={{position:'relative',marginBottom:'10px'}}>
               <svg style={{position:'absolute',left:'14px',top:'50%',transform:'translateY(-50%)',color:'#64748B',pointerEvents:'none'}} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-              <input className="srch" placeholder="Buscar serviÃ§o, procedimento, categoria ou profissional..." value={busca} onChange={e=>setBusca(e.target.value)}/>
+              <input className="srch" placeholder="Buscar serviço, procedimento, categoria ou profissional..." value={busca} onChange={e=>setBusca(e.target.value)}/>
             </div>
             <div className="pills-row" style={{display:'flex',gap:'6px',flexWrap:'wrap'}}>
-              {[{v:'todos',l:'Todos'},{v:'ativos',l:'Ativos'},{v:'inativos',l:'Inativos'},{v:'barbsalao',l:'Barbearia / SalÃ£o'},{v:'estetica',l:'EstÃ©tica'},{v:'clinica',l:'ClÃ­nica'},{v:'odonto',l:'Odontologia'}].map(f=>(
+              {[{v:'todos',l:'Todos'},{v:'ativos',l:'Ativos'},{v:'inativos',l:'Inativos'},{v:'barbsalao',l:'Barbearia / Salão'},{v:'estetica',l:'Estética'},{v:'clinica',l:'Clínica'},{v:'odonto',l:'Odontologia'}].map(f=>(
                 <button key={f.v} className={`pill${filtro===f.v?' on':''}`} onClick={()=>setFiltro(f.v)}>{f.l}</button>
               ))}
             </div>
@@ -333,16 +333,16 @@ export default function Servicos(){
           {/* Lista */}
           {filtrados.length===0?(
             <div style={{background:'#0F1B2E',border:'1px solid rgba(255,255,255,.08)',borderRadius:'20px',padding:'56px 24px',textAlign:'center'}}>
-              <div style={{width:'56px',height:'56px',borderRadius:'16px',background:'rgba(219,39,119,.10)',border:'1px solid rgba(219,39,119,.20)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'26px',margin:'0 auto 16px'}}>ðŸ“‹</div>
-              <p style={{fontSize:'16px',fontWeight:700,color:'#F8FAFC',marginBottom:'6px'}}>{busca?'Nenhum serviÃ§o encontrado':'Nenhum serviÃ§o cadastrado ainda'}</p>
-              <p style={{fontSize:'13px',color:'#64748B',lineHeight:1.5,maxWidth:'300px',margin:'0 auto 20px'}}>{busca?'Tente buscar com outro termo.':'Cadastre seus serviÃ§os ou procedimentos para usar na agenda, orÃ§amentos e cobranÃ§as.'}</p>
-              {!busca&&<button onClick={()=>abrirForm()} className="btn-p" style={{display:'inline-flex'}}>+ Criar primeiro serviÃ§o</button>}
+              <div style={{width:'56px',height:'56px',borderRadius:'16px',background:'rgba(219,39,119,.10)',border:'1px solid rgba(219,39,119,.20)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'26px',margin:'0 auto 16px'}}>📋</div>
+              <p style={{fontSize:'16px',fontWeight:700,color:'#F8FAFC',marginBottom:'6px'}}>{busca?'Nenhum serviço encontrado':'Nenhum serviço cadastrado ainda'}</p>
+              <p style={{fontSize:'13px',color:'#64748B',lineHeight:1.5,maxWidth:'300px',margin:'0 auto 20px'}}>{busca?'Tente buscar com outro termo.':'Cadastre seus serviços ou procedimentos para usar na agenda, orçamentos e cobranças.'}</p>
+              {!busca&&<button onClick={()=>abrirForm()} className="btn-p" style={{display:'inline-flex'}}>+ Criar primeiro serviço</button>}
             </div>
           ):(
             filtrados.map(s=>(
               <div key={s.id} className="srv-card">
                 <div className="srv-card-inner" style={{display:'flex',alignItems:'center',gap:'14px'}}>
-                  {/* Ãcone */}
+                  {/* Ícone */}
                   <div style={{width:'44px',height:'44px',borderRadius:'12px',background:s.odonto?'rgba(6,182,212,.12)':'rgba(59,130,246,.10)',border:`1px solid ${s.odonto?'rgba(6,182,212,.25)':'rgba(59,130,246,.18)'}`,display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
                     {s.odonto?(
                       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#22D3EE" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2C8.5 2 6 5 6 8.5c0 2 .8 3.8 2 5V20a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-6.5c1.2-1.2 2-3 2-5C18 5 15.5 2 12 2z"/></svg>
@@ -360,18 +360,18 @@ export default function Servicos(){
                     <div style={{display:'flex',gap:'12px',flexWrap:'wrap',alignItems:'center'}}>
                       {s.categoria&&<span style={{fontSize:'12px',color:'#64748B'}}>{s.categoria}</span>}
                       {s.valor!=null&&<span style={{fontSize:'13px',fontWeight:700,color:'#FBBF24'}}>R$ {s.valor.toLocaleString('pt-BR',{minimumFractionDigits:2})}</span>}
-                      {s.duracao&&<span style={{fontSize:'12px',color:'#64748B'}}>â± {s.duracao} min</span>}
-                      {s.profissional_nome&&<span style={{fontSize:'12px',color:'#64748B'}}>ðŸ‘¤ {s.profissional_nome}</span>}
+                      {s.duracao&&<span style={{fontSize:'12px',color:'#64748B'}}>⏱ {s.duracao} min</span>}
+                      {s.profissional_nome&&<span style={{fontSize:'12px',color:'#64748B'}}>👤 {s.profissional_nome}</span>}
                     </div>
                     {s.desc&&<p style={{fontSize:'11px',color:'#374151',marginTop:'3px',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{s.desc}</p>}
                   </div>
-                  {/* AÃ§Ãµes */}
+                  {/* Ações */}
                   <div className="srv-acts" style={{display:'flex',gap:'5px',flexShrink:0,flexWrap:'wrap',justifyContent:'flex-end'}}>
-                    <button onClick={()=>abrirForm(s)} className="srv-act" style={{background:'rgba(37,99,235,.10)',border:'1px solid rgba(37,99,235,.25)',color:'#60A5FA'}}>âœ Editar</button>
+                    <button onClick={()=>abrirForm(s)} className="srv-act" style={{background:'rgba(37,99,235,.10)',border:'1px solid rgba(37,99,235,.25)',color:'#60A5FA'}}>✏ Editar</button>
                     <button onClick={()=>toggleAtivo(s)} className="srv-act" style={{background:s.ativo!==false?'rgba(245,158,11,.08)':'rgba(34,197,94,.08)',border:`1px solid ${s.ativo!==false?'rgba(245,158,11,.22)':'rgba(34,197,94,.22)'}`,color:s.ativo!==false?'#FBBF24':'#4ADE80'}}>
                       {s.ativo!==false?'Desativar':'Ativar'}
                     </button>
-                    <button onClick={()=>excluir(s.id,s.nome)} className="srv-act" style={{background:'rgba(239,68,68,.08)',border:'1px solid rgba(239,68,68,.20)',color:'#F87171'}}>âœ•</button>
+                    <button onClick={()=>excluir(s.id,s.nome)} className="srv-act" style={{background:'rgba(239,68,68,.08)',border:'1px solid rgba(239,68,68,.20)',color:'#F87171'}}>✕</button>
                   </div>
                 </div>
               </div>

@@ -3,7 +3,7 @@ import { useEffect, useState, useRef, useCallback } from 'react'
 import { supabase } from '../lib/supabase'
 import Link from 'next/link'
 
-// â”€â”€ AutoResizeTextarea â”€â”€
+// ── AutoResizeTextarea ──
 function AutoResizeTextarea({value,onChange,placeholder,minHeight=48,style={}}:{value:string;onChange:(v:string)=>void;placeholder?:string;minHeight?:number;style?:React.CSSProperties}){
   const ref=useRef<HTMLTextAreaElement>(null)
   const adjust=useCallback(()=>{
@@ -27,7 +27,7 @@ function AutoResizeTextarea({value,onChange,placeholder,minHeight=48,style={}}:{
   )
 }
 
-// â”€â”€ MoneyInput â€” mÃ¡scara monetÃ¡ria brasileira â”€â”€
+// ── MoneyInput — máscara monetária brasileira ──
 function MoneyInput({value,onChange,placeholder='0,00'}:{value:string;onChange:(v:string)=>void;placeholder?:string}){
   const fmt=(raw:string)=>{
     const n=raw.replace(/\D/g,'')
@@ -52,8 +52,8 @@ function MoneyInput({value,onChange,placeholder='0,00'}:{value:string;onChange:(
   )
 }
 
-// â”€â”€ ProcedureAutocomplete â”€â”€
-const PROC_LIST = ['AvaliaÃ§Ã£o','Limpeza','RestauraÃ§Ã£o','ExtraÃ§Ã£o','Canal','Clareamento','Implante','PrÃ³tese','Aparelho','ManutenÃ§Ã£o de aparelho','Retorno','Profilaxia','Raspagem','Radiografia','Consulta','Tratamento periodontal','Cirurgia','Faceta','Lente de contato dental']
+// ── ProcedureAutocomplete ──
+const PROC_LIST = ['Avaliação','Limpeza','Restauração','Extração','Canal','Clareamento','Implante','Prótese','Aparelho','Manutenção de aparelho','Retorno','Profilaxia','Raspagem','Radiografia','Consulta','Tratamento periodontal','Cirurgia','Faceta','Lente de contato dental']
 
 function ProcedureAutocomplete({value,onChange}:{value:string;onChange:(v:string)=>void}){
   const [open,setOpen]=useState(false)
@@ -68,7 +68,7 @@ function ProcedureAutocomplete({value,onChange}:{value:string;onChange:(v:string
   },[])
   return(
     <div ref={ref} style={{position:'relative'}}>
-      <input type="text" value={q} placeholder="Ex: restauraÃ§Ã£o, canal, extraÃ§Ã£o, limpeza..."
+      <input type="text" value={q} placeholder="Ex: restauração, canal, extração, limpeza..."
         onChange={e=>{setQ(e.target.value);onChange(e.target.value);setOpen(true)}}
         onFocus={()=>setOpen(true)}
         style={{width:'100%',background:'rgba(15,23,42,.88)',border:'1.5px solid rgba(148,163,184,.18)',borderRadius:'10px',padding:'10px 14px',fontSize:'14px',color:'#F8FAFC',outline:'none',fontFamily:'inherit',boxSizing:'border-box' as const,transition:'border-color .2s,box-shadow .2s'}}
@@ -89,7 +89,7 @@ function ProcedureAutocomplete({value,onChange}:{value:string;onChange:(v:string
   )
 }
 
-// â”€â”€ Ãcones SVG (mesmo padrÃ£o da home) â”€â”€
+// ── Ícones SVG (mesmo padrão da home) ──
 const Icon = {
   ClipboardList: () => (
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
@@ -199,22 +199,22 @@ const Icon = {
 }
 
 const SIDEBAR_ITEMS = [
-  { href:'/painel',               IconC:Icon.Calendar,     label:'InÃ­cio'         },
+  { href:'/painel',               IconC:Icon.Calendar,     label:'Início'         },
   { href:'/painel/agendamentos',  IconC:Icon.Calendar,     label:'Agenda'         },
   { href:'/painel/clientes',      IconC:Icon.Users,        label:'Clientes'       },
-  { href:'/painel/orcamentos',    IconC:Icon.ClipboardList,label:'OrÃ§amentos', active:true },
-  { href:'/painel/financeiro',    IconC:Icon.Wallet,       label:'CobranÃ§as'      },
+  { href:'/painel/orcamentos',    IconC:Icon.ClipboardList,label:'Orçamentos', active:true },
+  { href:'/painel/financeiro',    IconC:Icon.Wallet,       label:'Cobranças'      },
   { href:'/painel/financeiro',    IconC:Icon.CreditCard,   label:'Pagamentos'     },
-  { href:'/painel/servicos',      IconC:Icon.Sparkles,     label:'ServiÃ§os'       },
+  { href:'/painel/servicos',      IconC:Icon.Sparkles,     label:'Serviços'       },
   { href:'/painel/profissionais', IconC:Icon.UserRound,    label:'Profissionais'  },
-  { href:'/painel/relatorio',     IconC:Icon.BarChart3,    label:'RelatÃ³rios'     },
-  { href:'/painel/perfil',        IconC:Icon.Settings,     label:'ConfiguraÃ§Ãµes'  },
+  { href:'/painel/relatorio',     IconC:Icon.BarChart3,    label:'Relatórios'     },
+  { href:'/painel/perfil',        IconC:Icon.Settings,     label:'Configurações'  },
 ]
 
-const STATUS_LIST = ['Todos','Aberto','Aguardando aprovaÃ§Ã£o','Em andamento','Parcialmente pago','Pago','Finalizado','Cancelado']
+const STATUS_LIST = ['Todos','Aberto','Aguardando aprovação','Em andamento','Parcialmente pago','Pago','Finalizado','Cancelado']
 const STATUS_CFG: Record<string,{bg:string;cor:string;bd:string}> = {
   'Aberto':               {bg:'rgba(59,130,246,.15)', cor:'#60A5FA', bd:'rgba(59,130,246,.35)'},
-  'Aguardando aprovaÃ§Ã£o': {bg:'rgba(245,158,11,.15)', cor:'#FBBF24', bd:'rgba(245,158,11,.35)'},
+  'Aguardando aprovação': {bg:'rgba(245,158,11,.15)', cor:'#FBBF24', bd:'rgba(245,158,11,.35)'},
   'Em andamento':         {bg:'rgba(34,211,238,.15)', cor:'#22D3EE', bd:'rgba(34,211,238,.35)'},
   'Parcialmente pago':    {bg:'rgba(139,92,246,.15)', cor:'#C4B5FD', bd:'rgba(139,92,246,.35)'},
   'Pago':                 {bg:'rgba(34,197,94,.15)',  cor:'#4ADE80', bd:'rgba(34,197,94,.35)'},
@@ -240,7 +240,7 @@ html,body{overflow-x:hidden;width:100%;max-width:100%}
 input,select,textarea{color-scheme:dark}
 select option{background:#070F1D;color:#F8FAFC}
 
-/* â”€â”€ Sidebar â”€â”€ */
+/* ── Sidebar ── */
 .sb{
   width:220px;min-height:100vh;
   background:
@@ -264,21 +264,21 @@ select option{background:#070F1D;color:#F8FAFC}
 .sb-sair{display:flex;align-items:center;gap:6px;width:100%;background:rgba(15,23,42,.72);border:1px solid rgba(148,163,184,.14);border-radius:8px;padding:8px 12px;font-size:12px;font-weight:500;color:#64748B;cursor:pointer;transition:all .18s;font-family:inherit}
 .sb-sair:hover{background:rgba(239,68,68,.08);border-color:rgba(239,68,68,.32);color:#F87171}
 
-/* â”€â”€ Mobile Header â”€â”€ */
+/* ── Mobile Header ── */
 .mob-hdr{display:none;align-items:center;justify-content:space-between;padding:0 16px;height:56px;background:rgba(5,11,22,.94);backdrop-filter:blur(20px);border-bottom:1px solid rgba(148,163,184,.1);position:sticky;top:0;z-index:20;flex-shrink:0;width:100%;max-width:100%}
 
-/* â”€â”€ Drawer â”€â”€ */
+/* ── Drawer ── */
 .drawer{position:fixed;top:0;left:0;bottom:0;width:300px;max-width:85vw;background:linear-gradient(180deg,#070F1D,#050B16);z-index:50;transform:translateX(-100%);transition:transform .3s ease;display:flex;flex-direction:column;border-right:1px solid rgba(148,163,184,.12)}
 .drawer.open{transform:translateX(0)}
 .ovl{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:49;opacity:0;pointer-events:none;transition:opacity .3s}
 .ovl.open{opacity:1;pointer-events:auto}
 
-/* â”€â”€ Layout â”€â”€ */
+/* ── Layout ── */
 .main{margin-left:220px;flex:1;min-height:100vh;display:flex;flex-direction:column;width:calc(100% - 220px);max-width:calc(100% - 220px)}
 .pg{background:radial-gradient(circle at top left,rgba(124,58,237,.20),transparent 30%),radial-gradient(circle at left center,rgba(37,99,235,.14),transparent 24%),radial-gradient(circle at top right,rgba(37,99,235,.12),transparent 28%),linear-gradient(135deg,#050B16 0%,#07111F 45%,#050B16 100%);min-height:100vh;width:100%;overflow-x:hidden}
 .body{max-width:1280px;margin:0 auto;padding:28px 32px 64px;width:100%;box-sizing:border-box}
 
-/* â”€â”€ BotÃµes â”€â”€ */
+/* ── Botões ── */
 .btn-pri{background:linear-gradient(135deg,#3B82F6,#7C3AED);color:#fff;border:1px solid rgba(255,255,255,.10);border-radius:10px;padding:11px 20px;font-size:13px;font-weight:700;box-shadow:0 12px 32px rgba(59,130,246,.30),0 0 28px rgba(124,58,237,.26);text-decoration:none;display:flex;align-items:center;justify-content:center;gap:6px;white-space:nowrap;transition:box-shadow .2s,transform .2s;font-family:inherit;cursor:pointer}
 .btn-pri:hover{box-shadow:0 16px 40px rgba(59,130,246,.36),0 0 36px rgba(124,58,237,.34);transform:translateY(-1px)}
 .btn-sec{background:rgba(15,23,42,.86);color:#CBD5E1;border:1px solid rgba(148,163,184,.20);border-radius:8px;padding:8px 14px;font-size:12px;font-weight:600;text-decoration:none;display:flex;align-items:center;justify-content:center;gap:5px;white-space:nowrap;transition:all .2s;font-family:inherit;cursor:pointer}
@@ -286,31 +286,31 @@ select option{background:#070F1D;color:#F8FAFC}
 .btn-wpp{background:rgba(34,197,94,.15);color:#4ADE80;border:1px solid rgba(34,197,94,.30);border-radius:8px;padding:8px 14px;font-size:12px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:5px;white-space:nowrap;transition:all .2s;font-family:inherit;cursor:pointer}
 .btn-wpp:hover{background:rgba(34,197,94,.22);border-color:rgba(34,197,94,.44)}
 
-/* â”€â”€ Card base â”€â”€ */
+/* ── Card base ── */
 .crd{background:radial-gradient(circle at top left,rgba(124,58,237,.08),transparent 38%),linear-gradient(145deg,rgba(15,23,42,.97),rgba(8,20,33,.99));border:1.5px solid rgba(148,163,184,.18);border-radius:18px;box-shadow:0 20px 48px rgba(0,0,0,.34),inset 0 1px 0 rgba(255,255,255,.04)}
 .crd-hov{transition:transform .2s,border-color .2s,box-shadow .2s}
 .crd-hov:hover{transform:translateY(-2px);border-color:rgba(124,58,237,.42)!important;box-shadow:0 24px 60px rgba(0,0,0,.44),0 0 28px rgba(124,58,237,.18),inset 0 1px 0 rgba(255,255,255,.05)!important}
 
-/* â”€â”€ Grids â”€â”€ */
+/* ── Grids ── */
 .atl-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px;width:100%}
 .kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px;width:100%}
 .ac-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;width:100%}
 
-/* â”€â”€ Input busca â”€â”€ */
+/* ── Input busca ── */
 .busca-wrap{position:relative;width:100%}
 .busca-ico{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:#64748B;pointer-events:none}
 .busca-inp{width:100%;background:rgba(15,23,42,.88);border:1.5px solid rgba(148,163,184,.18);border-radius:12px;padding:11px 16px 11px 42px;font-size:13px;color:#F8FAFC;outline:none;font-family:inherit;transition:border-color .2s,box-shadow .2s}
 .busca-inp::placeholder{color:#64748B}
 .busca-inp:focus{border-color:rgba(124,58,237,.55);box-shadow:0 0 0 3px rgba(124,58,237,.14)}
 
-/* â”€â”€ Filtros â”€â”€ */
+/* ── Filtros ── */
 .filtros-wrap{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;padding-bottom:4px;margin-bottom:20px}
 .filtros-wrap::-webkit-scrollbar{display:none}
 .filtro-pill{padding:7px 14px;border-radius:999px;font-size:12px;font-weight:600;cursor:pointer;border:1.5px solid rgba(148,163,184,.18);background:rgba(15,23,42,.86);color:#94A3B8;white-space:nowrap;flex-shrink:0;transition:all .18s;font-family:inherit}
 .filtro-pill:hover{background:rgba(124,58,237,.10);border-color:rgba(124,58,237,.28);color:#fff}
 .filtro-pill.on{background:linear-gradient(135deg,#3B82F6,#7C3AED);border-color:transparent;color:#fff;box-shadow:0 0 16px rgba(124,58,237,.28)}
 
-/* â”€â”€ Responsivo â”€â”€ */
+/* ── Responsivo ── */
 @media(max-width:1023px){
   .sb{display:none!important}
   .main{margin-left:0!important;width:100%!important;max-width:100%!important}
@@ -332,9 +332,9 @@ select option{background:#070F1D;color:#F8FAFC}
 }
 `
 
-// â”€â”€ Tipos form â”€â”€
-const TIPOS_PADRAO = ['OrÃ§amento','Atendimento','Tratamento','Ordem de serviÃ§o','Retorno']
-const FORMAS_PAG   = ['Pix','Dinheiro','CartÃ£o de dÃ©bito','CartÃ£o de crÃ©dito','TransferÃªncia','Link de pagamento','Outro']
+// ── Tipos form ──
+const TIPOS_PADRAO = ['Orçamento','Atendimento','Tratamento','Ordem de serviço','Retorno']
+const FORMAS_PAG   = ['Pix','Dinheiro','Cartão de débito','Cartão de crédito','Transferência','Link de pagamento','Outro']
 
 export default function Orcamentos() {
   const [userId,setUserId]         = useState('')
@@ -355,7 +355,7 @@ export default function Orcamentos() {
   const [cWpp,setCWpp]         = useState('')
   const [cEmail,setCEmail]     = useState('')
   const [cObs,setCObs]         = useState('')
-  const [tipo,setTipo]         = useState('OrÃ§amento')
+  const [tipo,setTipo]         = useState('Orçamento')
   const [tipoOutro,setTipoOutro]=useState('')
   const [tipoDesc,setTipoDesc] = useState('')
   const [profId,setProfId]     = useState('')
@@ -382,14 +382,14 @@ export default function Orcamentos() {
   const [orcCriadoId,setOrcCriadoId] = useState<string|null>(null)
   const [showWppMenu,setShowWppMenu] = useState(false)
 
-  // Modo de orÃ§amento
+  // Modo de orçamento
   const [budgetMode,setBudgetMode] = useState<'common'|'dental'>('common')
 
-  // Tipos odontolÃ³gicos
+  // Tipos odontológicos
   type ToothStatus2 = 'pending'|'done'
   type ToothMap = Record<string,ToothStatus2>
 
-  // Procedimentos odontolÃ³gicos â€” cada um com odontograma prÃ³prio
+  // Procedimentos odontológicos — cada um com odontograma próprio
   type DentalProc = {
     nome:string
     semDente:boolean
@@ -438,13 +438,13 @@ export default function Orcamentos() {
     setDentalProcs(prev=>prev.map((p,i)=>i===pidx?{...p,selectedTeeth:[],toothMap:{}}:p))
   }
 
-  // Legado (mantido para compatibilidade com cÃ³digo existente)
+  // Legado (mantido para compatibilidade com código existente)
   const [dentalProc,setDentalProc]   = useState('')
   const [dentalQtd,setDentalQtd]     = useState('1')
   const [dentalValor,setDentalValor] = useState('')
   const dentalTotal = (parseFloat(dentalQtd)||1)*(parseFloat(dentalValor)||0)
 
-  // Odontologia â€” sistema completo
+  // Odontologia — sistema completo
   type ToothStatus = 'neutral'|'pending'|'done'
   type ToothInfo = {status:ToothStatus;note?:string}
   const [showOdonto,setShowOdonto]           = useState(false)
@@ -459,7 +459,7 @@ export default function Orcamentos() {
   const doneTeeth    = markedTeeth.filter(([_,i])=>i.status==='done')
   const pendingTeeth = markedTeeth.filter(([_,i])=>i.status==='pending')
 
-  // Toggle mÃºltiplo â€” acumulativo
+  // Toggle múltiplo — acumulativo
   function handleSelectTooth(tooth:string){
     setSelectedTeeth(prev=>prev.includes(tooth)?prev.filter(t=>t!==tooth):[...prev,tooth])
   }
@@ -529,7 +529,7 @@ export default function Orcamentos() {
 
   function resetForm(){
     setCNome('');setCWpp('');setCEmail('');setCObs('')
-    setTipo('OrÃ§amento');setTipoOutro('');setTipoDesc('')
+    setTipo('Orçamento');setTipoOutro('');setTipoDesc('')
     setProfId('');setProfNome('');setSalvProf(false)
     setDataDoc(new Date().toISOString().split('T')[0]);setStatus('Aberto')
     setItens([{nome:'',qtd:1,unitario:'',total:0,obs:''}])
@@ -565,7 +565,7 @@ export default function Orcamentos() {
   const valorPago = histPags.reduce((a,p)=>a+parseFloat(p.valor||'0'),0)
   const saldo = Math.max(0,total-valorPago)
 
-  // PDF e WPP ficam ativos com dados mÃ­nimos â€” nÃ£o precisa salvar primeiro
+  // PDF e WPP ficam ativos com dados mínimos — não precisa salvar primeiro
   const wppReady = !!(cNome.trim()&&cWpp&&cWpp.replace(/\D/g,'').length>=10)
   const pdfReady = wppReady&&(
     budgetMode==='dental'
@@ -585,13 +585,13 @@ export default function Orcamentos() {
       if(valid.length===0) erros.push('Adicione pelo menos um procedimento com nome e valor.')
     } else {
       const itensVCheck=itens.filter(i=>i.nome?.trim()&&parseFloat(i.unitario||'0')>0&&parseInt(i.qtd||'1')>0)
-      if(itensVCheck.length===0) erros.push('Adicione pelo menos um serviÃ§o com nome e valor.')
+      if(itensVCheck.length===0) erros.push('Adicione pelo menos um serviço com nome e valor.')
     }
     if(erros.length){setMensagem(erros.join(' | '));return}
 
     const obsOdontoFinal = useOdontogram&&markedTeeth.length>0
-      ? `\n\n[Odontologia]\nDentes marcados:\n${markedTeeth.map(([d,i])=>`- ${d}: ${i.status==='done'?'realizado':i.status==='pending'?'pendente':'neutro'}`).join('\n')}${odontologyNote?'\nObservaÃ§Ã£o: '+odontologyNote:''}`
-      : (useOdontogram&&odontologyNote)?`\n\n[Odontologia]\nObservaÃ§Ã£o: ${odontologyNote}`:''
+      ? `\n\n[Odontologia]\nDentes marcados:\n${markedTeeth.map(([d,i])=>`- ${d}: ${i.status==='done'?'realizado':i.status==='pending'?'pendente':'neutro'}`).join('\n')}${odontologyNote?'\nObservação: '+odontologyNote:''}`
+      : (useOdontogram&&odontologyNote)?`\n\n[Odontologia]\nObservação: ${odontologyNote}`:''
 
     const itensV=budgetMode==='dental'
       ?dentalProcs.filter(p=>p.nome.trim()).map(p=>({
@@ -629,7 +629,7 @@ export default function Orcamentos() {
       setOrcCriadoId(editandoId)
     } else {
       const {data:novo,error}=await supabase.from('orcamentos').insert(payload).select('id').single()
-      if(error){setMensagem('Erro ao criar orÃ§amento.');return}
+      if(error){setMensagem('Erro ao criar orçamento.');return}
       setOrcCriadoId(novo?.id||null)
     }
     if(profId==='__outro__'&&profNome.trim()&&salvProf){
@@ -638,12 +638,12 @@ export default function Orcamentos() {
       setProfis(profs||[])
     }
     resetForm();setView('lista');await recarregar()
-    setMensagem(editandoId?'OrÃ§amento atualizado!':'OrÃ§amento criado!')
+    setMensagem(editandoId?'Orçamento atualizado!':'Orçamento criado!')
     setTimeout(()=>setMensagem(''),3000)
   }
 
   async function excluir(id:string){
-    if(!confirm('Excluir este orÃ§amento?')) return
+    if(!confirm('Excluir este orçamento?')) return
     await supabase.from('orcamentos').delete().eq('id',id)
     await recarregar()
   }
@@ -656,17 +656,17 @@ export default function Orcamentos() {
     const stF=orc?.status||status
     let msg=''
     if(budgetMode==='dental'&&dentalProcs.some(p=>p.nome.trim())){
-      msg=`OlÃ¡, ${nomeC}! Segue seu orÃ§amento/tratamento odontolÃ³gico:\n\nProcedimentos:`
+      msg=`Olá, ${nomeC}! Segue seu orçamento/tratamento odontológico:\n\nProcedimentos:`
       dentalProcs.filter(p=>p.nome.trim()).forEach((p,i)=>{
-        const dts=p.semDente?'Sem dente especÃ­fico':(p.selectedTeeth.length>0?[...p.selectedTeeth].sort((a,b)=>parseInt(a)-parseInt(b)).join(', '):'Nenhum')
-        msg+=`\n${i+1}. ${p.nome}\n   Dentes: ${dts}\n   Qtd/SessÃµes: ${p.qtd||1}  Ã—  R$ ${fmtBRL(parseFloat(p.valor||'0'))}\n   Total: R$ ${fmtBRL((parseFloat(p.qtd)||1)*(parseFloat(p.valor)||0))}\n   Status: ${p.status==='realizado'?'Realizado':p.status==='em_andamento'?'Em andamento':'Pendente'}`
+        const dts=p.semDente?'Sem dente específico':(p.selectedTeeth.length>0?[...p.selectedTeeth].sort((a,b)=>parseInt(a)-parseInt(b)).join(', '):'Nenhum')
+        msg+=`\n${i+1}. ${p.nome}\n   Dentes: ${dts}\n   Qtd/Sessões: ${p.qtd||1}  ×  R$ ${fmtBRL(parseFloat(p.valor||'0'))}\n   Total: R$ ${fmtBRL((parseFloat(p.qtd)||1)*(parseFloat(p.valor)||0))}\n   Status: ${p.status==='realizado'?'Realizado':p.status==='em_andamento'?'Em andamento':'Pendente'}`
       })
     } else {
       const servs=(orc?.servicos||itens).filter((s:any)=>s.nome?.trim())
-      msg=`OlÃ¡, ${nomeC}! Segue seu orÃ§amento:`
+      msg=`Olá, ${nomeC}! Segue seu orçamento:`
       if(servs.length>0){
-        msg+=`\n\nServiÃ§os:`
-        servs.forEach((s:any,i:number)=>msg+=`\n${i+1}. ${s.nome}\n   Qtd: ${s.qtd||1}  Ã—  R$ ${fmtBRL(parseFloat(s.unitario||'0'))}\n   Total: R$ ${fmtBRL((parseInt(s.qtd)||1)*(parseFloat(s.unitario||'0')))}`)
+        msg+=`\n\nServiços:`
+        servs.forEach((s:any,i:number)=>msg+=`\n${i+1}. ${s.nome}\n   Qtd: ${s.qtd||1}  ×  R$ ${fmtBRL(parseFloat(s.unitario||'0'))}\n   Total: R$ ${fmtBRL((parseInt(s.qtd)||1)*(parseFloat(s.unitario||'0')))}`)
       }
     }
     msg+=`\n\nTotal final: R$ ${fmtBRL(totalF)}`
@@ -675,7 +675,7 @@ export default function Orcamentos() {
     msg+=`\nStatus: ${stF}`
     const link=orc?.link_pagamento||linkPag
     if(link) msg+=`\n\nLink de pagamento:\n${link}`
-    msg+=`\n\nQualquer dÃºvida, estamos Ã  disposiÃ§Ã£o.`
+    msg+=`\n\nQualquer dúvida, estamos à disposição.`
     return msg
   }
 
@@ -691,7 +691,7 @@ export default function Orcamentos() {
 
   function copiarMsgWpp(orc?:any){
     navigator.clipboard.writeText(buildWppMsg(orc))
-    setMensagem('Mensagem copiada! âœ“')
+    setMensagem('Mensagem copiada! ✓')
     setTimeout(()=>setMensagem(''),2500)
     setShowWppMenu(false)
   }
@@ -703,7 +703,7 @@ export default function Orcamentos() {
     const itensV=itens.filter(i=>i.nome?.trim())
     const linhas:string[]=[]
     linhas.push(nomeNeg.toUpperCase())
-    linhas.push('â”€'.repeat(56))
+    linhas.push('─'.repeat(56))
     linhas.push(`${tipoDoc.toUpperCase()}   Data: ${fmtData(dataDoc)}`)
     linhas.push(`Status: ${status}`)
     linhas.push('')
@@ -711,16 +711,16 @@ export default function Orcamentos() {
     linhas.push(`Nome: ${cNome}`)
     if(cWpp) linhas.push(`WhatsApp: ${cWpp}`)
     if(cEmail) linhas.push(`E-mail: ${cEmail}`)
-    if(profNomeF) linhas.push(`Profissional responsÃ¡vel: ${profNomeF}`)
+    if(profNomeF) linhas.push(`Profissional responsável: ${profNomeF}`)
     linhas.push('')
-    linhas.push('SERVIÃ‡OS / PROCEDIMENTOS')
-    linhas.push('â”€'.repeat(56))
+    linhas.push('SERVIÇOS / PROCEDIMENTOS')
+    linhas.push('─'.repeat(56))
     itensV.forEach((it,i)=>{
       linhas.push(`${i+1}. ${it.nome}`)
-      linhas.push(`   ${it.qtd||1} Ã— R$ ${fmtBRL(parseFloat(it.unitario||'0'))} = R$ ${fmtBRL(it.total||0)}`)
+      linhas.push(`   ${it.qtd||1} × R$ ${fmtBRL(parseFloat(it.unitario||'0'))} = R$ ${fmtBRL(it.total||0)}`)
       if(it.obs) linhas.push(`   Obs: ${it.obs}`)
     })
-    linhas.push('â”€'.repeat(56))
+    linhas.push('─'.repeat(56))
     linhas.push(`Subtotal:      R$ ${fmtBRL(subtotal)}`)
     if(descontoN>0) linhas.push(`Desconto:      R$ ${fmtBRL(descontoN)}`)
     linhas.push(`TOTAL FINAL:   R$ ${fmtBRL(total)}`)
@@ -729,19 +729,19 @@ export default function Orcamentos() {
     linhas.push(`Valor pago:    R$ ${fmtBRL(valorPago)}`)
     linhas.push(`Saldo rest.:   R$ ${fmtBRL(saldo)}`)
     if(histPags.length>0){
-      linhas.push('HistÃ³rico:')
-      histPags.forEach((p,i)=>linhas.push(`  ${i+1}. R$ ${fmtBRL(p.valor)} â€” ${p.forma} â€” ${fmtData(p.data)}${p.obs?' ('+p.obs+')':''}`))
+      linhas.push('Histórico:')
+      histPags.forEach((p,i)=>linhas.push(`  ${i+1}. R$ ${fmtBRL(p.valor)} — ${p.forma} — ${fmtData(p.data)}${p.obs?' ('+p.obs+')':''}`))
     }
     if(linkPag) linhas.push(`Link pag.: ${linkPag}`)
     if(budgetMode==='dental'){
       linhas.push('')
-      linhas.push('PROCEDIMENTOS ODONTOLÃ“GICOS')
-      linhas.push('â”€'.repeat(56))
+      linhas.push('PROCEDIMENTOS ODONTOLÓGICOS')
+      linhas.push('─'.repeat(56))
       dentalProcs.filter(p=>p.nome.trim()).forEach((p,i)=>{
         linhas.push(`${i+1}. ${p.nome}`)
-        const dts=p.semDente?'Sem dente especÃ­fico':(p.selectedTeeth.length>0?p.selectedTeeth.sort((a,b)=>parseInt(a)-parseInt(b)).join(', '):'Nenhum')
+        const dts=p.semDente?'Sem dente específico':(p.selectedTeeth.length>0?p.selectedTeeth.sort((a,b)=>parseInt(a)-parseInt(b)).join(', '):'Nenhum')
         linhas.push(`   Dentes: ${dts}`)
-        linhas.push(`   Qtd/SessÃµes: ${p.qtd||1}  Ã—  R$ ${fmtBRL(parseFloat(p.valor||'0'))} = R$ ${fmtBRL((parseFloat(p.qtd)||1)*(parseFloat(p.valor)||0))}`)
+        linhas.push(`   Qtd/Sessões: ${p.qtd||1}  ×  R$ ${fmtBRL(parseFloat(p.valor||'0'))} = R$ ${fmtBRL((parseFloat(p.qtd)||1)*(parseFloat(p.valor)||0))}`)
         linhas.push(`   Status: ${p.status==='realizado'?'Realizado':p.status==='em_andamento'?'Em andamento':'Pendente'}`)
         if(p.obs) linhas.push(`   Obs: ${p.obs}`)
       })
@@ -749,15 +749,15 @@ export default function Orcamentos() {
     } else if(useOdontogram&&markedTeeth.length>0){
       linhas.push('')
       linhas.push('ODONTOLOGIA')
-      linhas.push('â”€'.repeat(56))
+      linhas.push('─'.repeat(56))
       if(doneTeeth.length>0) linhas.push(`Realizados: ${doneTeeth.map(([d])=>d).join(', ')}`)
       if(pendingTeeth.length>0) linhas.push(`Pendentes:  ${pendingTeeth.map(([d])=>d).join(', ')}`)
-      if(odontologyNote) linhas.push(`ObservaÃ§Ã£o: ${odontologyNote}`)
+      if(odontologyNote) linhas.push(`Observação: ${odontologyNote}`)
     }
-    if(observacoes){linhas.push('');linhas.push('OBSERVAÃ‡Ã•ES');linhas.push(observacoes)}
+    if(observacoes){linhas.push('');linhas.push('OBSERVAÇÕES');linhas.push(observacoes)}
     if(obsPag){linhas.push('Obs. pagamento: '+obsPag)}
-    linhas.push('');linhas.push('â”€'.repeat(56))
-    linhas.push(`Emitido em ${new Date().toLocaleDateString('pt-BR')} â€¢ ClienteMarcado`)
+    linhas.push('');linhas.push('─'.repeat(56))
+    linhas.push(`Emitido em ${new Date().toLocaleDateString('pt-BR')} • ClienteMarcado`)
     const conteudo=linhas.join('\n')
     const nomeArq=`orcamento-${(cNome||'cliente').replace(/\s+/g,'-').toLowerCase()}-${dataDoc}.txt`
     const blob=new Blob([conteudo],{type:'text/plain;charset=utf-8'})
@@ -774,7 +774,7 @@ export default function Orcamentos() {
 
   function salvarHp(){
     const valor=parseHpValor(hpValor)
-    if(!valor||valor<=0){setMensagem('Valor invÃ¡lido.');return}
+    if(!valor||valor<=0){setMensagem('Valor inválido.');return}
     if(hpForma==='Outro'&&!hpFormaOut.trim()){setMensagem('Especifique a forma.');return}
     const forma=hpForma==='Outro'?hpFormaOut.trim():hpForma
     const novo={valor,forma,data:hpData,obs:hpObs.trim()||''}
@@ -831,7 +831,7 @@ export default function Orcamentos() {
         <div className="sb-foot-in">
           <div style={{width:'32px',height:'32px',borderRadius:'50%',background:grad,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'13px',fontWeight:700,color:'#fff',flexShrink:0,boxShadow:'0 0 16px rgba(124,58,237,.4)'}}>{ini}</div>
           <div style={{minWidth:0}}>
-            <p style={{fontSize:'12px',fontWeight:600,color:'#F8FAFC',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{nome||'Meu negÃ³cio'}</p>
+            <p style={{fontSize:'12px',fontWeight:600,color:'#F8FAFC',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{nome||'Meu negócio'}</p>
             <p style={{fontSize:'10px',color:'#64748B',marginTop:'1px'}}>Administrador</p>
           </div>
         </div>
@@ -859,7 +859,7 @@ export default function Orcamentos() {
       <div className={`drawer${mob?' open':''}`}>
         <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'16px 20px',borderBottom:'1px solid rgba(148,163,184,.1)'}}>
           <span style={{fontSize:'14px',fontWeight:800,color:'#F8FAFC'}}>ClienteMarcado</span>
-          <button onClick={()=>setMob(false)} style={{background:'none',border:'none',color:'rgba(255,255,255,.5)',cursor:'pointer',fontSize:'24px',lineHeight:1}}>Ã—</button>
+          <button onClick={()=>setMob(false)} style={{background:'none',border:'none',color:'rgba(255,255,255,.5)',cursor:'pointer',fontSize:'24px',lineHeight:1}}>×</button>
         </div>
         <nav style={{flex:1,padding:'10px 8px',overflowY:'auto'}}>
           {SIDEBAR_ITEMS.map(it=>(
@@ -871,7 +871,7 @@ export default function Orcamentos() {
         <div style={{padding:'10px',borderTop:'1px solid rgba(148,163,184,.1)'}}>
           <div style={{display:'flex',alignItems:'center',gap:'10px',background:'rgba(15,23,42,.78)',border:'1px solid rgba(148,163,184,.12)',borderRadius:'10px',padding:'10px 12px',marginBottom:'6px'}}>
             <div style={{width:'32px',height:'32px',borderRadius:'50%',background:grad,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'13px',fontWeight:700,color:'#fff',flexShrink:0}}>{ini}</div>
-            <div><p style={{fontSize:'13px',fontWeight:600,color:'#F8FAFC'}}>{nome||'Meu negÃ³cio'}</p><p style={{fontSize:'11px',color:'#64748B'}}>Administrador</p></div>
+            <div><p style={{fontSize:'13px',fontWeight:600,color:'#F8FAFC'}}>{nome||'Meu negócio'}</p><p style={{fontSize:'11px',color:'#64748B'}}>Administrador</p></div>
           </div>
           <button onClick={logout} style={{display:'flex',alignItems:'center',gap:'6px',width:'100%',background:'rgba(15,23,42,.72)',border:'1px solid rgba(148,163,184,.14)',borderRadius:'8px',padding:'9px 12px',fontSize:'12px',color:'#64748B',cursor:'pointer',fontFamily:'inherit'}}>
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
@@ -896,18 +896,18 @@ export default function Orcamentos() {
         <div className="pg">
         <div className="body">
 
-        {/* â•â• LISTA â•â• */}
+        {/* ══ LISTA ══ */}
         {view==='lista'&&(<>
 
           {/* Topo */}
           <div className="topo-row" style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',gap:'16px',flexWrap:'wrap',marginBottom:'24px',width:'100%'}}>
             <div style={{minWidth:0}}>
-              <h1 style={{fontSize:'22px',fontWeight:800,color:'#F8FAFC',letterSpacing:'-0.03em',marginBottom:'4px'}}>OrÃ§amentos e CobranÃ§as</h1>
-              <p style={{fontSize:'14px',color:'#94A3B8'}}>Gerencie orÃ§amentos, cobranÃ§as e pagamentos com praticidade.</p>
+              <h1 style={{fontSize:'22px',fontWeight:800,color:'#F8FAFC',letterSpacing:'-0.03em',marginBottom:'4px'}}>Orçamentos e Cobranças</h1>
+              <p style={{fontSize:'14px',color:'#94A3B8'}}>Gerencie orçamentos, cobranças e pagamentos com praticidade.</p>
             </div>
             <div className="topo-btn-wrap" style={{flexShrink:0}}>
               <button onClick={()=>{resetForm();setView('form')}} className="btn-pri">
-                <Icon.Plus/> Novo orÃ§amento
+                <Icon.Plus/> Novo orçamento
               </button>
             </div>
           </div>
@@ -921,16 +921,16 @@ export default function Orcamentos() {
           {/* Cards atalho */}
           <div className="atl-grid">
             {[
-              {label:'Novo orÃ§amento', sub:'Crie um orÃ§amento personalizado em segundos.',Icon:Icon.ClipboardList,fn:()=>{resetForm();setView('form')},
+              {label:'Novo orçamento', sub:'Crie um orçamento personalizado em segundos.',Icon:Icon.ClipboardList,fn:()=>{resetForm();setView('form')},
                 bg:'radial-gradient(circle at top left,rgba(59,130,246,.28),transparent 38%),linear-gradient(145deg,rgba(15,23,42,.97),rgba(8,20,33,.99))',
                 bd:'rgba(59,130,246,.46)',ico_bg:'rgba(59,130,246,.20)',ico_c:'#60A5FA',glow:'rgba(59,130,246,.24)'},
-              {label:'CobranÃ§as',      sub:'Acompanhe e gerencie cobranÃ§as emitidas.',  Icon:Icon.Wallet,      fn:()=>setFiltro('Em andamento'),
+              {label:'Cobranças',      sub:'Acompanhe e gerencie cobranças emitidas.',  Icon:Icon.Wallet,      fn:()=>setFiltro('Em andamento'),
                 bg:'radial-gradient(circle at top left,rgba(124,58,237,.28),transparent 38%),linear-gradient(145deg,rgba(15,23,42,.97),rgba(8,20,33,.99))',
                 bd:'rgba(124,58,237,.46)',ico_bg:'rgba(124,58,237,.20)',ico_c:'#A78BFA',glow:'rgba(124,58,237,.24)'},
               {label:'Pagamentos',     sub:'Visualize pagamentos confirmados e pendentes.',Icon:Icon.CreditCard,fn:()=>setFiltro('Pago'),
                 bg:'radial-gradient(circle at top left,rgba(34,197,94,.22),transparent 38%),linear-gradient(145deg,rgba(15,23,42,.97),rgba(8,20,33,.99))',
                 bd:'rgba(34,197,94,.40)',ico_bg:'rgba(34,197,94,.18)',ico_c:'#4ADE80',glow:'rgba(34,197,94,.22)'},
-              {label:'Clientes',       sub:'Gerencie clientes e informaÃ§Ãµes de contato.', Icon:Icon.Users,   href:'/painel/clientes',
+              {label:'Clientes',       sub:'Gerencie clientes e informações de contato.', Icon:Icon.Users,   href:'/painel/clientes',
                 bg:'radial-gradient(circle at top left,rgba(34,211,238,.22),transparent 38%),linear-gradient(145deg,rgba(15,23,42,.97),rgba(8,20,33,.99))',
                 bd:'rgba(34,211,238,.38)',ico_bg:'rgba(34,211,238,.16)',ico_c:'#22D3EE',glow:'rgba(34,211,238,.20)'},
             ].map(a=>(
@@ -961,7 +961,7 @@ export default function Orcamentos() {
             {[
               {label:'Em aberto',       valor:emAberto,  fmt:'n',  Icon:Icon.ClipboardList,cor:'#60A5FA',bd:'rgba(59,130,246,.34)', ico_bg:'rgba(59,130,246,.15)', glow:'rgba(59,130,246,.24)'},
               {label:'A receber',       valor:aReceber,  fmt:'brl',Icon:Icon.Wallet,       cor:'#F59E0B',bd:'rgba(245,158,11,.38)', ico_bg:'rgba(245,158,11,.15)', glow:'rgba(245,158,11,.22)'},
-              {label:'Recebido no mÃªs', valor:recMes,    fmt:'brl',Icon:Icon.CreditCard,   cor:'#22C55E',bd:'rgba(34,197,94,.38)',  ico_bg:'rgba(34,197,94,.15)',  glow:'rgba(34,197,94,.22)'},
+              {label:'Recebido no mês', valor:recMes,    fmt:'brl',Icon:Icon.CreditCard,   cor:'#22C55E',bd:'rgba(34,197,94,.38)',  ico_bg:'rgba(34,197,94,.15)',  glow:'rgba(34,197,94,.22)'},
               {label:'Parciais',        valor:parciais,  fmt:'n',  Icon:Icon.BarChart3,    cor:'#A78BFA',bd:'rgba(124,58,237,.38)',ico_bg:'rgba(124,58,237,.17)',glow:'rgba(124,58,237,.26)'},
             ].map(m=>(
               <div key={m.label} style={{background:'radial-gradient(circle at top left,rgba(124,58,237,.08),transparent 40%),linear-gradient(145deg,rgba(15,23,42,.97),rgba(8,20,33,.99))',border:`1.5px solid ${m.bd}`,borderRadius:'16px',padding:'18px',boxSizing:'border-box' as const,boxShadow:'0 20px 48px rgba(0,0,0,.28),inset 0 1px 0 rgba(255,255,255,.04)'}}>
@@ -980,7 +980,7 @@ export default function Orcamentos() {
           <div style={{marginBottom:'12px',width:'100%'}}>
             <div className="busca-wrap" style={{marginBottom:'12px'}}>
               <span className="busca-ico"><Icon.Search/></span>
-              <input type="text" className="busca-inp" placeholder="Buscar cliente, contato ou serviÃ§o..."
+              <input type="text" className="busca-inp" placeholder="Buscar cliente, contato ou serviço..."
                 value={busca} onChange={e=>setBusca(e.target.value)}/>
             </div>
           </div>
@@ -997,14 +997,14 @@ export default function Orcamentos() {
                 <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="8" y="2" width="8" height="4" rx="1"/><rect x="3" y="6" width="18" height="16" rx="2"/><path d="M8 12h8M8 16h5"/></svg>
               </div>
               <p style={{fontSize:'18px',fontWeight:700,color:'#F8FAFC',marginBottom:'8px'}}>
-                {busca||filtroStatus!=='Todos'?'Nenhum orÃ§amento encontrado':'Nenhum orÃ§amento ainda'}
+                {busca||filtroStatus!=='Todos'?'Nenhum orçamento encontrado':'Nenhum orçamento ainda'}
               </p>
               <p style={{fontSize:'13px',color:'#64748B',lineHeight:1.6,marginBottom:'24px',maxWidth:'360px',margin:'0 auto 24px'}}>
-                {busca||filtroStatus!=='Todos'?'Tente ajustar os filtros ou a busca.':'Crie seu primeiro orÃ§amento, registre pagamentos e envie pelo WhatsApp.'}
+                {busca||filtroStatus!=='Todos'?'Tente ajustar os filtros ou a busca.':'Crie seu primeiro orçamento, registre pagamentos e envie pelo WhatsApp.'}
               </p>
               {!busca&&filtroStatus==='Todos'&&(
                 <button onClick={()=>{resetForm();setView('form')}} className="btn-pri" style={{display:'inline-flex',fontSize:'14px',padding:'12px 28px',borderRadius:'10px'}}>
-                  <Icon.Plus/> Criar primeiro orÃ§amento
+                  <Icon.Plus/> Criar primeiro orçamento
                 </button>
               )}
             </div>
@@ -1022,7 +1022,7 @@ export default function Orcamentos() {
                         </div>
                         <div style={{minWidth:0}}>
                           <p style={{fontSize:'15px',fontWeight:700,color:'#F8FAFC',marginBottom:'2px',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{orc.cliente_nome}</p>
-                          <p style={{fontSize:'12px',color:'#64748B'}}>{orc.tipo} Â· {fmtData(orc.data)}{orc.profissional_nome?` Â· ${orc.profissional_nome}`:''}</p>
+                          <p style={{fontSize:'12px',color:'#64748B'}}>{orc.tipo} · {fmtData(orc.data)}{orc.profissional_nome?` · ${orc.profissional_nome}`:''}</p>
                         </div>
                       </div>
                       <span style={{fontSize:'11px',fontWeight:700,padding:'4px 12px',borderRadius:'999px',background:cfg.bg,color:cfg.cor,border:`1px solid ${cfg.bd}`,flexShrink:0,whiteSpace:'nowrap'}}>
@@ -1058,15 +1058,15 @@ export default function Orcamentos() {
             </div>
           )}
 
-          {/* AÃ§Ãµes rÃ¡pidas */}
+          {/* Ações rápidas */}
           <div style={{marginBottom:'8px'}}>
-            <p style={{fontSize:'11px',fontWeight:700,color:'#475569',textTransform:'uppercase' as const,letterSpacing:'.09em',marginBottom:'12px'}}>AÃ§Ãµes rÃ¡pidas</p>
+            <p style={{fontSize:'11px',fontWeight:700,color:'#475569',textTransform:'uppercase' as const,letterSpacing:'.09em',marginBottom:'12px'}}>Ações rápidas</p>
             <div className="ac-grid">
               {[
-                {label:'Criar orÃ§amento',    sub:'Novo personalizado',         I:Icon.ClipboardList,fn:()=>{resetForm();setView('form')}, bg:'rgba(59,130,246,.1)', bd:'rgba(59,130,246,.32)', ic_bg:'rgba(59,130,246,.18)', cor:'#60A5FA', glow:'rgba(59,130,246,.24)'},
+                {label:'Criar orçamento',    sub:'Novo personalizado',         I:Icon.ClipboardList,fn:()=>{resetForm();setView('form')}, bg:'rgba(59,130,246,.1)', bd:'rgba(59,130,246,.32)', ic_bg:'rgba(59,130,246,.18)', cor:'#60A5FA', glow:'rgba(59,130,246,.24)'},
                 {label:'Registrar pagamento',sub:'Marcar recebido',             I:Icon.CreditCard,   fn:()=>setFiltro('Parcialmente pago'),bg:'rgba(34,197,94,.1)', bd:'rgba(34,197,94,.32)', ic_bg:'rgba(34,197,94,.16)', cor:'#4ADE80', glow:'rgba(34,197,94,.22)'},
                 {label:'Enviar link',        sub:'Compartilhar com cliente',    I:Icon.Link2,        fn:()=>{},                            bg:'rgba(124,58,237,.1)',bd:'rgba(124,58,237,.32)',ic_bg:'rgba(124,58,237,.18)',cor:'#A78BFA',glow:'rgba(124,58,237,.24)'},
-                {label:'RelatÃ³rios',         sub:'Ver indicadores',             I:Icon.BarChart3,    href:'/painel/relatorio',             bg:'rgba(34,211,238,.1)',bd:'rgba(34,211,238,.30)',ic_bg:'rgba(34,211,238,.16)',cor:'#22D3EE',glow:'rgba(34,211,238,.20)'},
+                {label:'Relatórios',         sub:'Ver indicadores',             I:Icon.BarChart3,    href:'/painel/relatorio',             bg:'rgba(34,211,238,.1)',bd:'rgba(34,211,238,.30)',ic_bg:'rgba(34,211,238,.16)',cor:'#22D3EE',glow:'rgba(34,211,238,.20)'},
               ].map(a=>(
                 a.href
                   ? <Link key={a.label} href={a.href} style={{background:`linear-gradient(145deg,rgba(15,23,42,.92),rgba(8,20,33,.96))`,border:`1.5px solid ${a.bd}`,borderRadius:'14px',padding:'16px',textDecoration:'none',display:'block',boxShadow:'0 12px 32px rgba(0,0,0,.24)'}}>
@@ -1089,7 +1089,7 @@ export default function Orcamentos() {
 
         </>)}
 
-        {/* â•â• FORMULÃRIO â•â• */}
+        {/* ══ FORMULÁRIO ══ */}
         {view==='form'&&(
           <div style={{maxWidth:'1060px',margin:'0 auto',width:'100%'}}>
 
@@ -1098,13 +1098,13 @@ export default function Orcamentos() {
               <div>
                 <button onClick={()=>{resetForm();setView('lista')}}
                   style={{background:'none',border:'none',cursor:'pointer',fontSize:'13px',color:'#64748B',fontFamily:'inherit',padding:'0',display:'flex',alignItems:'center',gap:'4px',marginBottom:'8px'}}>
-                  â† Voltar Ã  lista
+                  ← Voltar à lista
                 </button>
-                <h1 style={{fontSize:'20px',fontWeight:800,color:'#F8FAFC',letterSpacing:'-0.02em',marginBottom:'4px'}}>{editandoId?'Editar orÃ§amento':'Novo orÃ§amento'}</h1>
+                <h1 style={{fontSize:'20px',fontWeight:800,color:'#F8FAFC',letterSpacing:'-0.02em',marginBottom:'4px'}}>{editandoId?'Editar orçamento':'Novo orçamento'}</h1>
                 <p style={{fontSize:'13px',color:'#64748B'}}>Preencha os dados essenciais e envie para o cliente ou paciente.</p>
               </div>
               <div style={{display:'flex',alignItems:'center',gap:'6px',background:'rgba(34,197,94,.12)',border:'1px solid rgba(34,197,94,.25)',borderRadius:'8px',padding:'6px 12px',flexShrink:0}}>
-                <span style={{fontSize:'12px',color:'#4ADE80'}}>âœ“</span>
+                <span style={{fontSize:'12px',color:'#4ADE80'}}>✓</span>
                 <span style={{fontSize:'12px',fontWeight:600,color:'#4ADE80'}}>Salvo automaticamente</span>
               </div>
             </div>
@@ -1132,7 +1132,7 @@ export default function Orcamentos() {
                 }
               `}</style>
 
-              {/* â”€â”€ COLUNA PRINCIPAL â”€â”€ */}
+              {/* ── COLUNA PRINCIPAL ── */}
               <div className="fpb" style={{display:'flex',flexDirection:'column',gap:'12px'}}>
 
                 {/* 1. CARD CLIENTE */}
@@ -1143,13 +1143,13 @@ export default function Orcamentos() {
                     </div>
                     <div>
                       <p style={{fontSize:'15px',fontWeight:700,color:'#F8FAFC'}}>Cliente</p>
-                      <p style={{fontSize:'12px',color:'#64748B'}}>Nome e contato para envio da cobranÃ§a. Pode ser cliente ou paciente.</p>
+                      <p style={{fontSize:'12px',color:'#64748B'}}>Nome e contato para envio da cobrança. Pode ser cliente ou paciente.</p>
                     </div>
                   </div>
                   <div style={{display:'flex',flexDirection:'column',gap:'12px'}}>
                     <div>
                       <label style={lbl}>Nome do cliente / paciente *</label>
-                      <input style={inp} type="text" placeholder="Ex: Maria Silva, JoÃ£o Pereira..." value={cNome} onChange={e=>setCNome(e.target.value)}/>
+                      <input style={inp} type="text" placeholder="Ex: Maria Silva, João Pereira..." value={cNome} onChange={e=>setCNome(e.target.value)}/>
                     </div>
                     <div className="f-2c" style={{display:'grid',gap:'12px'}}>
                       <div>
@@ -1164,16 +1164,16 @@ export default function Orcamentos() {
                   </div>
                 </div>
 
-                {/* â”€â”€ SELETOR DE MODO â”€â”€ */}
+                {/* ── SELETOR DE MODO ── */}
                 <div style={crd}>
-                  <p style={{fontSize:'14px',fontWeight:700,color:'#F8FAFC',marginBottom:'4px'}}>Tipo de orÃ§amento</p>
-                  <p style={{fontSize:'12px',color:'#64748B',marginBottom:'14px'}}>Escolha como deseja montar este orÃ§amento.</p>
+                  <p style={{fontSize:'14px',fontWeight:700,color:'#F8FAFC',marginBottom:'4px'}}>Tipo de orçamento</p>
+                  <p style={{fontSize:'12px',color:'#64748B',marginBottom:'14px'}}>Escolha como deseja montar este orçamento.</p>
                   <div className="f-2c" style={{display:'grid',gap:'10px'}}>
                     {[
-                      {m:'common' as const,label:'OrÃ§amento comum',desc:'Para barbearia, salÃ£o, estÃ©tica e serviÃ§os gerais.',
+                      {m:'common' as const,label:'Orçamento comum',desc:'Para barbearia, salão, estética e serviços gerais.',
                         ico_bg:'rgba(124,58,237,.18)',ico_c:'#A78BFA',bd_on:'rgba(124,58,237,.55)',glow:'rgba(124,58,237,.28)',
                         icon:<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="8" y="2" width="8" height="4" rx="1"/><rect x="3" y="6" width="18" height="16" rx="2"/><path d="M8 12h8M8 16h5"/></svg>},
-                      {m:'dental' as const,label:'Tratamento odontolÃ³gico',desc:'Para selecionar dentes, procedimentos e acompanhar evoluÃ§Ã£o.',
+                      {m:'dental' as const,label:'Tratamento odontológico',desc:'Para selecionar dentes, procedimentos e acompanhar evolução.',
                         ico_bg:'rgba(6,182,212,.18)',ico_c:'#22D3EE',bd_on:'rgba(6,182,212,.55)',glow:'rgba(6,182,212,.28)',
                         icon:<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2C8.5 2 6 5 6 8.5c0 2 .8 3.8 2 5V20a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-6.5c1.2-1.2 2-3 2-5C18 5 15.5 2 12 2z"/></svg>},
                     ].map(opt=>{
@@ -1202,7 +1202,7 @@ export default function Orcamentos() {
                   </div>
                 </div>
 
-                {/* 2. CARD SERVIÃ‡O â€” apenas modo common */}
+                {/* 2. CARD SERVIÇO — apenas modo common */}
                 {budgetMode==='common'&&(
                 <div style={crd}>
                   <div style={{display:'flex',alignItems:'center',gap:'10px',marginBottom:'18px'}}>
@@ -1210,15 +1210,15 @@ export default function Orcamentos() {
                       <Icon.ClipboardList/>
                     </div>
                     <div>
-                      <p style={{fontSize:'15px',fontWeight:700,color:'#F8FAFC'}}>{itens.length>1?'ServiÃ§os / Procedimentos':'ServiÃ§o / Procedimento'}</p>
-                      <p style={{fontSize:'12px',color:'#64748B'}}>Adicione o serviÃ§o, procedimento ou item cobrado.</p>
+                      <p style={{fontSize:'15px',fontWeight:700,color:'#F8FAFC'}}>{itens.length>1?'Serviços / Procedimentos':'Serviço / Procedimento'}</p>
+                      <p style={{fontSize:'12px',color:'#64748B'}}>Adicione o serviço, procedimento ou item cobrado.</p>
                     </div>
                   </div>
 
                   {itens.map((item,idx)=>(
                     <div key={idx} style={{marginBottom:'14px',padding:'16px',background:'rgba(255,255,255,.04)',borderRadius:'14px',border:'1px solid rgba(255,255,255,.08)'}}>
                       <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'12px'}}>
-                        <span style={{fontSize:'11px',fontWeight:700,color:'#475569',textTransform:'uppercase' as const,letterSpacing:'.06em'}}>{itens.length>1?`Item ${idx+1}`:'ServiÃ§o'}</span>
+                        <span style={{fontSize:'11px',fontWeight:700,color:'#475569',textTransform:'uppercase' as const,letterSpacing:'.06em'}}>{itens.length>1?`Item ${idx+1}`:'Serviço'}</span>
                         {itens.length>1&&(
                           <button onClick={()=>setItens(prev=>prev.filter((_,i)=>i!==idx))}
                             style={{background:'rgba(239,68,68,.12)',border:'1px solid rgba(239,68,68,.26)',borderRadius:'6px',color:'#F87171',cursor:'pointer',fontSize:'12px',padding:'3px 10px',fontFamily:'inherit'}}>
@@ -1227,9 +1227,9 @@ export default function Orcamentos() {
                         )}
                       </div>
                       <div style={{marginBottom:'10px'}}>
-                        <label style={lbl}>ServiÃ§o / procedimento *</label>
+                        <label style={lbl}>Serviço / procedimento *</label>
                         <AutoResizeTextarea value={item.nome} minHeight={44}
-                          placeholder="Ex: corte de cabelo, limpeza de pele, restauraÃ§Ã£o, canal, avaliaÃ§Ã£o, procedimento..."
+                          placeholder="Ex: corte de cabelo, limpeza de pele, restauração, canal, avaliação, procedimento..."
                           onChange={v=>atualizarItem(idx,'nome',v)}/>
                       </div>
                       <div className="f-3c" style={{display:'grid',gap:'10px',marginBottom:'10px'}}>
@@ -1255,7 +1255,7 @@ export default function Orcamentos() {
                       <div>
                         <label style={lbl}>Obs. do item (opcional)</label>
                         <AutoResizeTextarea value={item.obs} minHeight={40}
-                          placeholder="Ex: sessÃ£o 1 de 3, inclui material, retorno em 30 dias..."
+                          placeholder="Ex: sessão 1 de 3, inclui material, retorno em 30 dias..."
                           onChange={v=>atualizarItem(idx,'obs',v)}/>
                       </div>
                     </div>
@@ -1263,7 +1263,7 @@ export default function Orcamentos() {
 
                   <button onClick={()=>setItens(prev=>[...prev,{nome:'',qtd:1,unitario:'',total:0,obs:''}])}
                     style={{background:'rgba(59,130,246,.1)',border:'1.5px dashed rgba(59,130,246,.3)',borderRadius:'10px',color:'#60A5FA',fontSize:'13px',fontWeight:600,cursor:'pointer',fontFamily:'inherit',padding:'10px 16px',display:'flex',alignItems:'center',gap:'6px',width:'100%',justifyContent:'center',transition:'background .2s'}}>
-                    <Icon.Plus/> Adicionar serviÃ§o / procedimento
+                    <Icon.Plus/> Adicionar serviço / procedimento
                   </button>
 
                   {/* Subtotal / Desconto / Total */}
@@ -1281,12 +1281,12 @@ export default function Orcamentos() {
                       <span style={{fontSize:'14px',fontWeight:700,color:'#F8FAFC'}}>Total final</span>
                       <span style={{fontSize:'22px',fontWeight:800,color:'#3B82F6',letterSpacing:'-0.02em'}}>R$ {fmtBRL(total)}</span>
                     </div>
-                    {descontoN>subtotal&&subtotal>0&&<p style={{fontSize:'11px',color:'#FBBF24',marginTop:'6px',textAlign:'right'}}>âš  Desconto maior que o subtotal.</p>}
+                    {descontoN>subtotal&&subtotal>0&&<p style={{fontSize:'11px',color:'#FBBF24',marginTop:'6px',textAlign:'right'}}>⚠ Desconto maior que o subtotal.</p>}
                   </div>
                 </div>
                 )}{/* fim budgetMode common */}
 
-                {/* 3. CARD ODONTOLOGIA â€” modo dental (principal) ou opcional no common */}
+                {/* 3. CARD ODONTOLOGIA — modo dental (principal) ou opcional no common */}
                 {budgetMode==='dental'?(
                 <div style={crd}>
                   <div style={{display:'flex',alignItems:'center',gap:'10px',marginBottom:'18px'}}>
@@ -1296,12 +1296,12 @@ export default function Orcamentos() {
                       </svg>
                     </div>
                     <div>
-                      <p style={{fontSize:'15px',fontWeight:700,color:'#F8FAFC'}}>Odontologia / Tratamento dentÃ¡rio</p>
-                      <p style={{fontSize:'12px',color:'#64748B'}}>Selecione dentes, registre procedimentos e acompanhe a evoluÃ§Ã£o do tratamento.</p>
+                      <p style={{fontSize:'15px',fontWeight:700,color:'#F8FAFC'}}>Odontologia / Tratamento dentário</p>
+                      <p style={{fontSize:'12px',color:'#64748B'}}>Selecione dentes, registre procedimentos e acompanhe a evolução do tratamento.</p>
                     </div>
                   </div>
 
-                  {/* PROCEDIMENTOS â€” cada um com odontograma prÃ³prio */}
+                  {/* PROCEDIMENTOS — cada um com odontograma próprio */}
                   <div style={{marginBottom:'14px'}}>
                     <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:'12px'}}>
                       <p style={{fontSize:'13px',fontWeight:700,color:'#F8FAFC'}}>Procedimentos do tratamento</p>
@@ -1333,18 +1333,18 @@ export default function Orcamentos() {
                             <ProcedureAutocomplete value={proc.nome} onChange={v=>updateProc2(pidx,'nome',v)}/>
                           </div>
 
-                          {/* OpÃ§Ã£o sem dente */}
+                          {/* Opção sem dente */}
                           <div style={{display:'flex',alignItems:'center',gap:'8px',marginBottom:'12px'}}>
                             <button onClick={()=>updateProc2(pidx,'semDente',!proc.semDente)}
                               style={{width:'32px',height:'18px',borderRadius:'999px',border:'none',cursor:'pointer',position:'relative',background:proc.semDente?'#22D3EE':'rgba(255,255,255,.15)',flexShrink:0,transition:'background .2s'}}>
                               <span style={{position:'absolute',top:'2px',left:proc.semDente?'16px':'2px',width:'14px',height:'14px',borderRadius:'50%',background:'#fff',transition:'left .2s'}}/>
                             </button>
                             <span style={{fontSize:'12px',color:'#94A3B8',cursor:'pointer'}} onClick={()=>updateProc2(pidx,'semDente',!proc.semDente)}>
-                              Procedimento sem dente especÃ­fico (limpeza, avaliaÃ§Ã£o, clareamento...)
+                              Procedimento sem dente específico (limpeza, avaliação, clareamento...)
                             </span>
                           </div>
 
-                          {/* ODONTOGRAMA prÃ³prio */}
+                          {/* ODONTOGRAMA próprio */}
                           {!proc.semDente&&(
                             <div style={{marginBottom:'14px'}}>
                               {/* Legenda */}
@@ -1381,7 +1381,7 @@ export default function Orcamentos() {
                                 </div>
                               </div>
 
-                              {/* Chips selecionados + botÃµes status */}
+                              {/* Chips selecionados + botões status */}
                               {proc.selectedTeeth.length>0?(
                                 <div style={{marginTop:'10px'}}>
                                   <div style={{display:'flex',alignItems:'center',gap:'6px',marginBottom:'8px',flexWrap:'wrap'}}>
@@ -1389,20 +1389,20 @@ export default function Orcamentos() {
                                     <div style={{display:'flex',flexWrap:'wrap' as const,gap:'3px',flex:1}}>
                                       {[...proc.selectedTeeth].sort((a,b)=>parseInt(a)-parseInt(b)).map(d=>(
                                         <span key={d} style={{background:'rgba(6,182,212,.2)',border:'1px solid rgba(6,182,212,.4)',borderRadius:'5px',padding:'2px 7px',fontSize:'11px',fontWeight:700,color:'#22D3EE',display:'flex',alignItems:'center',gap:'3px'}}>
-                                          {d}<button onClick={()=>toggleProcTooth(pidx,d)} style={{background:'none',border:'none',color:'rgba(34,211,238,.7)',cursor:'pointer',fontSize:'13px',lineHeight:1,padding:'0',fontFamily:'inherit'}}>Ã—</button>
+                                          {d}<button onClick={()=>toggleProcTooth(pidx,d)} style={{background:'none',border:'none',color:'rgba(34,211,238,.7)',cursor:'pointer',fontSize:'13px',lineHeight:1,padding:'0',fontFamily:'inherit'}}>×</button>
                                         </span>
                                       ))}
                                     </div>
-                                    <button onClick={()=>clearProcSelection(pidx)} style={{background:'none',border:'none',fontSize:'10px',color:'#64748B',cursor:'pointer',fontFamily:'inherit',flexShrink:0}}>Limpar seleÃ§Ã£o</button>
+                                    <button onClick={()=>clearProcSelection(pidx)} style={{background:'none',border:'none',fontSize:'10px',color:'#64748B',cursor:'pointer',fontFamily:'inherit',flexShrink:0}}>Limpar seleção</button>
                                   </div>
                                   <div style={{display:'flex',gap:'5px',flexWrap:'wrap'}}>
-                                    <button onClick={()=>applyProcStatus(pidx,'done')} style={{flex:1,minWidth:'70px',background:'rgba(34,197,94,.12)',border:'1px solid rgba(34,197,94,.30)',borderRadius:'7px',padding:'6px',fontSize:'11px',fontWeight:700,color:'#4ADE80',cursor:'pointer',fontFamily:'inherit'}}>âœ“ Realizado</button>
+                                    <button onClick={()=>applyProcStatus(pidx,'done')} style={{flex:1,minWidth:'70px',background:'rgba(34,197,94,.12)',border:'1px solid rgba(34,197,94,.30)',borderRadius:'7px',padding:'6px',fontSize:'11px',fontWeight:700,color:'#4ADE80',cursor:'pointer',fontFamily:'inherit'}}>✓ Realizado</button>
                                     <button onClick={()=>applyProcStatus(pidx,'pending')} style={{flex:1,minWidth:'70px',background:'rgba(239,68,68,.10)',border:'1px solid rgba(239,68,68,.28)',borderRadius:'7px',padding:'6px',fontSize:'11px',fontWeight:700,color:'#F87171',cursor:'pointer',fontFamily:'inherit'}}>! Pendente</button>
                                     <button onClick={()=>clearProcStatus(pidx)} style={{background:'rgba(239,68,68,.08)',border:'1px solid rgba(239,68,68,.22)',borderRadius:'7px',padding:'6px 9px',fontSize:'10px',fontWeight:700,color:'#FCA5A5',cursor:'pointer',fontFamily:'inherit'}}>Limpar status</button>
                                   </div>
                                 </div>
                               ):(
-                                <p style={{fontSize:'11px',color:'#374151',marginTop:'8px'}}>Clique nos dentes para selecionar (seleÃ§Ã£o mÃºltipla acumulativa).</p>
+                                <p style={{fontSize:'11px',color:'#374151',marginTop:'8px'}}>Clique nos dentes para selecionar (seleção múltipla acumulativa).</p>
                               )}
 
                               {/* Dentes marcados resumo */}
@@ -1410,7 +1410,7 @@ export default function Orcamentos() {
                                 <div style={{marginTop:'8px',display:'flex',flexWrap:'wrap' as const,gap:'3px'}}>
                                   {[...markedT].sort((a,b)=>parseInt(a[0])-parseInt(b[0])).map(([d,st])=>(
                                     <span key={d} style={{background:st==='done'?'rgba(34,197,94,.14)':'rgba(239,68,68,.14)',border:`1px solid ${st==='done'?'rgba(34,197,94,.30)':'rgba(239,68,68,.28)'}`,borderRadius:'5px',padding:'2px 8px',fontSize:'11px',fontWeight:700,color:st==='done'?'#4ADE80':'#F87171'}}>
-                                      {d} {st==='done'?'âœ“':'!'}
+                                      {d} {st==='done'?'✓':'!'}
                                     </span>
                                   ))}
                                 </div>
@@ -1420,7 +1420,7 @@ export default function Orcamentos() {
 
                           {proc.semDente&&(
                             <div style={{padding:'8px 12px',background:'rgba(6,182,212,.08)',border:'1px solid rgba(6,182,212,.20)',borderRadius:'8px',marginBottom:'12px',fontSize:'12px',color:'#22D3EE'}}>
-                              ðŸ¦· Procedimento sem dente especÃ­fico
+                              🦷 Procedimento sem dente específico
                             </div>
                           )}
 
@@ -1428,12 +1428,12 @@ export default function Orcamentos() {
                           <div style={{display:'grid',gridTemplateColumns:'110px 1fr 190px',gap:'8px',marginBottom:'10px'}} className="proc-grid">
                             <style>{`@media(max-width:600px){.proc-grid{grid-template-columns:1fr!important}}`}</style>
                             <div>
-                              <label style={lbl}>Qtd. / SessÃµes</label>
+                              <label style={lbl}>Qtd. / Sessões</label>
                               <input style={{...inp,textAlign:'center',minHeight:'54px',fontSize:'16px',fontWeight:700}} type="number" min="1" placeholder="1"
                                 value={proc.qtd} onChange={e=>updateProc2(pidx,'qtd',e.target.value)}/>
                             </div>
                             <div>
-                              <label style={lbl}>Valor unitÃ¡rio</label>
+                              <label style={lbl}>Valor unitário</label>
                               <MoneyInput value={proc.valor} onChange={v=>updateProc2(pidx,'valor',v)}/>
                             </div>
                             <div>
@@ -1451,8 +1451,8 @@ export default function Orcamentos() {
                             <div style={{display:'flex',gap:'5px',flexWrap:'wrap'}}>
                               {[
                                 {v:'pendente',    l:'! Pendente',     bg:'rgba(239,68,68,.12)',  bd:'rgba(239,68,68,.32)',  c:'#F87171'},
-                                {v:'em_andamento',l:'â†— Em andamento', bg:'rgba(6,182,212,.12)',  bd:'rgba(6,182,212,.32)',  c:'#22D3EE'},
-                                {v:'realizado',   l:'âœ“ Realizado',    bg:'rgba(34,197,94,.12)',  bd:'rgba(34,197,94,.32)',  c:'#4ADE80'},
+                                {v:'em_andamento',l:'↗ Em andamento', bg:'rgba(6,182,212,.12)',  bd:'rgba(6,182,212,.32)',  c:'#22D3EE'},
+                                {v:'realizado',   l:'✓ Realizado',    bg:'rgba(34,197,94,.12)',  bd:'rgba(34,197,94,.32)',  c:'#4ADE80'},
                               ].map(({v,l,bg,bd,c})=>(
                                 <button key={v} onClick={()=>updateProc2(pidx,'status',v as any)}
                                   style={{flex:1,minWidth:'80px',background:proc.status===v?bg:'rgba(255,255,255,.04)',border:`1px solid ${proc.status===v?bd:'rgba(148,163,184,.12)'}`,borderRadius:'8px',padding:'7px 6px',fontSize:'11px',fontWeight:700,color:proc.status===v?c:'#64748B',cursor:'pointer',fontFamily:'inherit',transition:'all .15s'}}>
@@ -1464,9 +1464,9 @@ export default function Orcamentos() {
 
                           {/* Obs procedimento */}
                           <div>
-                            <label style={lbl}>ObservaÃ§Ã£o do procedimento</label>
+                            <label style={lbl}>Observação do procedimento</label>
                             <AutoResizeTextarea value={proc.obs} minHeight={36}
-                              placeholder="Ex: sessÃ£o 1 de 3, inclui material, retorno em 30 dias..."
+                              placeholder="Ex: sessão 1 de 3, inclui material, retorno em 30 dias..."
                               onChange={v=>updateProc2(pidx,'obs',v)}/>
                           </div>
                         </div>
@@ -1499,15 +1499,15 @@ export default function Orcamentos() {
 
                   {/* Obs geral */}
                   <div style={{marginBottom:'12px'}}>
-                    <label style={lbl}>ObservaÃ§Ã£o odontolÃ³gica geral</label>
+                    <label style={lbl}>Observação odontológica geral</label>
                     <AutoResizeTextarea value={odontologyNote} minHeight={60}
-                      placeholder="Ex: plano de tratamento, recomendaÃ§Ãµes, retorno e acompanhamento..."
+                      placeholder="Ex: plano de tratamento, recomendações, retorno e acompanhamento..."
                       onChange={setOdontologyNote}/>
                   </div>
 
                   <div style={{display:'flex',alignItems:'flex-start',gap:'10px',padding:'10px 14px',background:'rgba(6,182,212,.08)',border:'1px solid rgba(6,182,212,.22)',borderRadius:'10px'}}>
-                    <span style={{fontSize:'14px',flexShrink:0}}>ðŸ’¡</span>
-                    <p style={{fontSize:'12px',color:'#A5F3FC',lineHeight:1.5}}>Cada procedimento tem seu prÃ³prio odontograma. Selecione dentes e marque status independentemente.</p>
+                    <span style={{fontSize:'14px',flexShrink:0}}>💡</span>
+                    <p style={{fontSize:'12px',color:'#A5F3FC',lineHeight:1.5}}>Cada procedimento tem seu próprio odontograma. Selecione dentes e marque status independentemente.</p>
                   </div>
                 </div>
                 ):null}
@@ -1521,14 +1521,14 @@ export default function Orcamentos() {
                         </svg>
                       </div>
                       <div>
-                        <p style={{fontSize:'14px',fontWeight:700,color:'#F8FAFC'}}>Odontologia / Tratamento dentÃ¡rio</p>
-                        <p style={{fontSize:'12px',color:'#64748B',marginTop:'1px'}}>Use apenas quando precisar selecionar dentes ou regiÃµes.</p>
+                        <p style={{fontSize:'14px',fontWeight:700,color:'#F8FAFC'}}>Odontologia / Tratamento dentário</p>
+                        <p style={{fontSize:'12px',color:'#64748B',marginTop:'1px'}}>Use apenas quando precisar selecionar dentes ou regiões.</p>
                       </div>
                     </div>
                     <div style={{display:'flex',alignItems:'center',gap:'8px',flexShrink:0}}>
                       {markedTeeth.length>0&&(
                         <div style={{display:'flex',gap:'5px'}}>
-                          {doneTeeth.length>0&&<span style={{fontSize:'10px',fontWeight:700,color:'#4ADE80',background:'rgba(34,197,94,.14)',padding:'2px 7px',borderRadius:'999px',border:'1px solid rgba(34,197,94,.28)'}}>{doneTeeth.length} âœ“</span>}
+                          {doneTeeth.length>0&&<span style={{fontSize:'10px',fontWeight:700,color:'#4ADE80',background:'rgba(34,197,94,.14)',padding:'2px 7px',borderRadius:'999px',border:'1px solid rgba(34,197,94,.28)'}}>{doneTeeth.length} ✓</span>}
                           {pendingTeeth.length>0&&<span style={{fontSize:'10px',fontWeight:700,color:'#F87171',background:'rgba(239,68,68,.14)',padding:'2px 7px',borderRadius:'999px',border:'1px solid rgba(239,68,68,.28)'}}>{pendingTeeth.length} !</span>}
                         </div>
                       )}
@@ -1541,7 +1541,7 @@ export default function Orcamentos() {
                       {!useOdontogram?(
                         <div style={{textAlign:'center',padding:'8px 0 6px'}}>
                           <p style={{fontSize:'13px',color:'#64748B',marginBottom:'14px',lineHeight:1.6,maxWidth:'340px',margin:'0 auto 16px'}}>
-                            Para clÃ­nicas odontolÃ³gicas: selecione dentes, marque procedimentos como realizados ou pendentes e salve no orÃ§amento.
+                            Para clínicas odontológicas: selecione dentes, marque procedimentos como realizados ou pendentes e salve no orçamento.
                           </p>
                           <button onClick={()=>setUseOdontogram(true)}
                             style={{background:'linear-gradient(135deg,rgba(6,182,212,.22),rgba(37,99,235,.22))',border:'1.5px solid rgba(6,182,212,.40)',borderRadius:'10px',padding:'10px 28px',fontSize:'13px',fontWeight:700,color:'#22D3EE',cursor:'pointer',fontFamily:'inherit',display:'inline-flex',alignItems:'center',gap:'6px',boxShadow:'0 0 20px rgba(6,182,212,.14)'}}>
@@ -1553,7 +1553,7 @@ export default function Orcamentos() {
                           {/* Header */}
                           <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:'16px',flexWrap:'wrap',gap:'8px'}}>
                             <div>
-                              <p style={{fontSize:'14px',fontWeight:700,color:'#F8FAFC',marginBottom:'2px'}}>Odontograma bÃ¡sico</p>
+                              <p style={{fontSize:'14px',fontWeight:700,color:'#F8FAFC',marginBottom:'2px'}}>Odontograma básico</p>
                               <p style={{fontSize:'12px',color:'#64748B'}}>Clique em um dente e marque o status do procedimento.</p>
                             </div>
                             <button onClick={()=>{clearAllTeeth();setOdontologyNote('');setUseOdontogram(false)}}
@@ -1608,7 +1608,7 @@ export default function Orcamentos() {
 
                             {/* Separador */}
                             <div style={{height:'1px',background:'rgba(6,182,212,.18)',margin:'6px 0 10px',position:'relative'}}>
-                              <span style={{position:'absolute',left:'50%',top:'-8px',transform:'translateX(-50%)',fontSize:'10px',color:'rgba(6,182,212,.5)',background:'transparent',padding:'0 6px'}}>â€”</span>
+                              <span style={{position:'absolute',left:'50%',top:'-8px',transform:'translateX(-50%)',fontSize:'10px',color:'rgba(6,182,212,.5)',background:'transparent',padding:'0 6px'}}>—</span>
                             </div>
 
                             {/* Arcada inferior */}
@@ -1644,24 +1644,24 @@ export default function Orcamentos() {
                               <p style={{fontSize:'11px',fontWeight:700,color:'#64748B',textTransform:'uppercase' as const,letterSpacing:'.06em'}}>
                                 {selectedTeeth.length>0?`${selectedTeeth.length} selecionado${selectedTeeth.length>1?'s':''}` : 'Nenhum selecionado'}
                               </p>
-                              {selectedTeeth.length>0&&<button onClick={clearSelection} style={{background:'none',border:'none',fontSize:'11px',color:'#64748B',cursor:'pointer',fontFamily:'inherit'}}>Limpar seleÃ§Ã£o</button>}
+                              {selectedTeeth.length>0&&<button onClick={clearSelection} style={{background:'none',border:'none',fontSize:'11px',color:'#64748B',cursor:'pointer',fontFamily:'inherit'}}>Limpar seleção</button>}
                             </div>
                             {selectedTeeth.length>0?(
                               <>
                                 <div style={{display:'flex',flexWrap:'wrap' as const,gap:'4px',marginBottom:'10px'}}>
                                   {[...selectedTeeth].sort((a,b)=>parseInt(a)-parseInt(b)).map(d=>(
                                     <span key={d} style={{background:'rgba(6,182,212,.2)',border:'1.5px solid rgba(6,182,212,.45)',borderRadius:'6px',padding:'3px 8px',fontSize:'12px',fontWeight:700,color:'#22D3EE',display:'flex',alignItems:'center',gap:'4px'}}>
-                                      {d}<button onClick={()=>handleSelectTooth(d)} style={{background:'none',border:'none',color:'rgba(34,211,238,.7)',cursor:'pointer',fontSize:'14px',lineHeight:1,padding:'0',fontFamily:'inherit'}}>Ã—</button>
+                                      {d}<button onClick={()=>handleSelectTooth(d)} style={{background:'none',border:'none',color:'rgba(34,211,238,.7)',cursor:'pointer',fontSize:'14px',lineHeight:1,padding:'0',fontFamily:'inherit'}}>×</button>
                                     </span>
                                   ))}
                                 </div>
                                 <div style={{display:'flex',gap:'6px',flexWrap:'wrap'}}>
-                                  <button onClick={()=>applyStatusToSelected('done')} style={{flex:1,minWidth:'80px',background:'rgba(34,197,94,.14)',border:'1px solid rgba(34,197,94,.35)',borderRadius:'8px',padding:'8px',fontSize:'12px',fontWeight:700,color:'#4ADE80',cursor:'pointer',fontFamily:'inherit'}}>âœ“ Realizado</button>
+                                  <button onClick={()=>applyStatusToSelected('done')} style={{flex:1,minWidth:'80px',background:'rgba(34,197,94,.14)',border:'1px solid rgba(34,197,94,.35)',borderRadius:'8px',padding:'8px',fontSize:'12px',fontWeight:700,color:'#4ADE80',cursor:'pointer',fontFamily:'inherit'}}>✓ Realizado</button>
                                   <button onClick={()=>applyStatusToSelected('pending')} style={{flex:1,minWidth:'80px',background:'rgba(239,68,68,.12)',border:'1px solid rgba(239,68,68,.35)',borderRadius:'8px',padding:'8px',fontSize:'12px',fontWeight:700,color:'#F87171',cursor:'pointer',fontFamily:'inherit'}}>! Pendente</button>
                                   <button onClick={clearStatusSelected} style={{background:'rgba(239,68,68,.10)',border:'1px solid rgba(239,68,68,.30)',borderRadius:'8px',padding:'8px 10px',fontSize:'11px',fontWeight:700,color:'#FCA5A5',cursor:'pointer',fontFamily:'inherit'}}>Limpar status</button>
                                 </div>
                               </>
-                            ):<p style={{fontSize:'13px',color:'#4B5563',textAlign:'center',padding:'4px 0'}}>Clique em vÃ¡rios dentes para selecionar e marcar o status.</p>}
+                            ):<p style={{fontSize:'13px',color:'#4B5563',textAlign:'center',padding:'4px 0'}}>Clique em vários dentes para selecionar e marcar o status.</p>}
                           </div>
 
                           {/* Dentes marcados */}
@@ -1677,25 +1677,25 @@ export default function Orcamentos() {
                                     color:info.status==='done'?'#4ADE80':info.status==='pending'?'#F87171':'#94A3B8',
                                     cursor:'pointer',transition:'opacity .15s',
                                   }}>
-                                    {d} {info.status==='done'?'âœ“':info.status==='pending'?'!':''}
+                                    {d} {info.status==='done'?'✓':info.status==='pending'?'!':''}
                                   </span>
                                 ))}
                               </div>
                             </div>
                           )}
 
-                          {/* Obs odontolÃ³gica */}
+                          {/* Obs odontológica */}
                           <div>
-                            <label style={lbl}>ObservaÃ§Ã£o odontolÃ³gica</label>
+                            <label style={lbl}>Observação odontológica</label>
                             <AutoResizeTextarea value={odontologyNote} minHeight={72}
-                              placeholder="Ex: restauraÃ§Ã£o no 11, canal no 26, avaliaÃ§Ã£o geral, testes clÃ­nicos realizados, retorno recomendado..."
+                              placeholder="Ex: restauração no 11, canal no 26, avaliação geral, testes clínicos realizados, retorno recomendado..."
                               onChange={setOdontologyNote}/>
                           </div>
 
                           <div style={{marginTop:'12px',display:'flex',alignItems:'flex-start',gap:'10px',padding:'10px 14px',background:'rgba(6,182,212,.1)',border:'1px solid rgba(6,182,212,.25)',borderRadius:'10px'}}>
-                            <span style={{fontSize:'16px',flexShrink:0}}>ðŸ’¡</span>
+                            <span style={{fontSize:'16px',flexShrink:0}}>💡</span>
                             <p style={{fontSize:'12px',color:'#A5F3FC',lineHeight:1.5}}>
-                              Use o odontograma apenas quando precisar vincular dentes ou regiÃµes ao orÃ§amento / tratamento.
+                              Use o odontograma apenas quando precisar vincular dentes ou regiões ao orçamento / tratamento.
                             </p>
                           </div>
                         </div>
@@ -1705,7 +1705,7 @@ export default function Orcamentos() {
                 </div>
                 )}
 
-                {/* 4. ACCORDION: Mais opÃ§Ãµes */}
+                {/* 4. ACCORDION: Mais opções */}
                 <div style={{...crd,padding:0,overflow:'hidden'}}>
                   <div onClick={()=>setShowDet(!showDet)} style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'16px 20px',cursor:'pointer',userSelect:'none'}}>
                     <div style={{display:'flex',alignItems:'center',gap:'10px'}}>
@@ -1713,7 +1713,7 @@ export default function Orcamentos() {
                         <Icon.ClipboardList/>
                       </div>
                       <div>
-                        <p style={{fontSize:'14px',fontWeight:700,color:'#F8FAFC'}}>Mais opÃ§Ãµes</p>
+                        <p style={{fontSize:'14px',fontWeight:700,color:'#F8FAFC'}}>Mais opções</p>
                         <p style={{fontSize:'12px',color:'#64748B',marginTop:'1px'}}>Tipo, profissional, data e status.</p>
                       </div>
                     </div>
@@ -1730,15 +1730,15 @@ export default function Orcamentos() {
                           </select>
                           {tipo==='__outro__'&&(
                             <div style={{marginTop:'8px',display:'flex',flexDirection:'column',gap:'6px'}}>
-                              <input style={inp} type="text" placeholder="Nome do tipo (Ex: AvaliaÃ§Ã£o, Laudo...)" value={tipoOutro} onChange={e=>setTipoOutro(e.target.value)}/>
-                              <input style={inp} type="text" placeholder="DescriÃ§Ã£o (opcional)" value={tipoDesc} onChange={e=>setTipoDesc(e.target.value)}/>
+                              <input style={inp} type="text" placeholder="Nome do tipo (Ex: Avaliação, Laudo...)" value={tipoOutro} onChange={e=>setTipoOutro(e.target.value)}/>
+                              <input style={inp} type="text" placeholder="Descrição (opcional)" value={tipoDesc} onChange={e=>setTipoDesc(e.target.value)}/>
                             </div>
                           )}
                         </div>
                         <div>
                           <label style={lbl}>Status</label>
                           <select style={sel} value={status} onChange={e=>setStatus(e.target.value)}>
-                            {['Aberto','Aguardando aprovaÃ§Ã£o','Em andamento','Parcialmente pago','Pago','Finalizado','Cancelado'].map(s=><option key={s}>{s}</option>)}
+                            {['Aberto','Aguardando aprovação','Em andamento','Parcialmente pago','Pago','Finalizado','Cancelado'].map(s=><option key={s}>{s}</option>)}
                           </select>
                         </div>
                       </div>
@@ -1748,7 +1748,7 @@ export default function Orcamentos() {
                           <select style={sel} value={profId} onChange={e=>{setProfId(e.target.value);if(e.target.value!=='__outro__'){setProfNome('');setSalvProf(false)}}}>
                             <option value="">Nenhum</option>
                             {profissionais.map((p:any)=><option key={p.id} value={p.id}>{p.nome}</option>)}
-                            <option value="__outro__">âœï¸ Outro / NÃ£o cadastrado</option>
+                            <option value="__outro__">✏️ Outro / Não cadastrado</option>
                           </select>
                           {profId==='__outro__'&&(
                             <div style={{marginTop:'8px',padding:'12px',background:'rgba(59,130,246,.08)',border:'1px solid rgba(59,130,246,.22)',borderRadius:'10px',display:'flex',flexDirection:'column',gap:'8px'}}>
@@ -1782,7 +1782,7 @@ export default function Orcamentos() {
                       <div>
                         <p style={{fontSize:'14px',fontWeight:700,color:'#F8FAFC'}}>Pagamento</p>
                         <p style={{fontSize:'12px',color:valorPago>0?'#4ADE80':'#64748B',marginTop:'1px'}}>
-                          {valorPago>0?`Pago: R$ ${fmtBRL(valorPago)} Â· Saldo: R$ ${fmtBRL(saldo)}`:'Entrada, parciais e link de cobranÃ§a.'}
+                          {valorPago>0?`Pago: R$ ${fmtBRL(valorPago)} · Saldo: R$ ${fmtBRL(saldo)}`:'Entrada, parciais e link de cobrança.'}
                         </p>
                       </div>
                     </div>
@@ -1821,13 +1821,13 @@ export default function Orcamentos() {
                       <div style={{marginBottom:'14px'}}>
                         <label style={lbl}>Link de pagamento (opcional)</label>
                         <input style={inp} type="url" placeholder="Cole o link do Mercado Pago, Asaas, PagSeguro..." value={linkPag} onChange={e=>setLinkPag(e.target.value)}/>
-                        <p style={{fontSize:'11px',color:'#374151',marginTop:'4px'}}>O ClienteMarcado organiza a cobranÃ§a. O pagamento Ã© feito pelo link do seu negÃ³cio.</p>
+                        <p style={{fontSize:'11px',color:'#374151',marginTop:'4px'}}>O ClienteMarcado organiza a cobrança. O pagamento é feito pelo link do seu negócio.</p>
                       </div>
                       <div style={{display:'flex',gap:'8px',flexWrap:'wrap',marginBottom:'16px'}}>
-                        <button onClick={()=>cWpp&&window.open('https://wa.me/55'+cWpp.replace(/\D/g,'')+'?text='+encodeURIComponent(`OlÃ¡, ${cNome||'cliente'}!\n\nSeu ${tipo==='__outro__'?tipoOutro:tipo}: R$ ${fmtBRL(total)}${linkPag?'\n\nLink:\n'+linkPag:''}\n\nApÃ³s pagar, envie o comprovante. Obrigado!`),'_blank')}
+                        <button onClick={()=>cWpp&&window.open('https://wa.me/55'+cWpp.replace(/\D/g,'')+'?text='+encodeURIComponent(`Olá, ${cNome||'cliente'}!\n\nSeu ${tipo==='__outro__'?tipoOutro:tipo}: R$ ${fmtBRL(total)}${linkPag?'\n\nLink:\n'+linkPag:''}\n\nApós pagar, envie o comprovante. Obrigado!`),'_blank')}
                           disabled={!cWpp}
                           style={{background:'rgba(34,197,94,.14)',border:'1px solid rgba(34,197,94,.28)',borderRadius:'8px',padding:'8px 14px',fontSize:'12px',fontWeight:600,color:cWpp?'#4ADE80':'#374151',cursor:cWpp?'pointer':'not-allowed',fontFamily:'inherit',display:'flex',alignItems:'center',gap:'5px',opacity:cWpp?1:0.5}}>
-                          <Icon.MessageCircle/> Enviar cobranÃ§a WhatsApp
+                          <Icon.MessageCircle/> Enviar cobrança WhatsApp
                         </button>
                       </div>
                       <div style={{borderTop:'1px solid rgba(255,255,255,.07)',paddingTop:'14px'}}>
@@ -1859,7 +1859,7 @@ export default function Orcamentos() {
                                 </select>
                                 {hpForma==='Outro'&&<input style={{...inp,marginTop:'6px'}} type="text" placeholder="Especifique..." value={hpFormaOut} onChange={e=>setHpFormaOut(e.target.value)}/>}
                               </div>
-                              <div><label style={lbl}>ObservaÃ§Ã£o</label>
+                              <div><label style={lbl}>Observação</label>
                                 <input style={inp} type="text" placeholder="Ex: entrada, parcela 2..." value={hpObs} onChange={e=>setHpObs(e.target.value)}/></div>
                               <div style={{display:'flex',gap:'8px'}}>
                                 <button onClick={()=>{setShowHpForm(false);setEditHpIdx(null)}}
@@ -1879,15 +1879,15 @@ export default function Orcamentos() {
                               <div style={{display:'flex',alignItems:'center',gap:'8px',marginBottom:'2px'}}>
                                 <span style={{fontSize:'15px',fontWeight:800,color:'#4ADE80'}}>R$ {fmtBRL(p.valor)}</span>
                                 <span style={{fontSize:'11px',color:'#64748B',background:'rgba(255,255,255,.06)',padding:'2px 7px',borderRadius:'999px'}}>{p.forma}</span>
-                                <span style={{fontSize:'11px',color:'#4B5563'}}>Â· {fmtData(p.data)}</span>
+                                <span style={{fontSize:'11px',color:'#4B5563'}}>· {fmtData(p.data)}</span>
                               </div>
                               {p.obs&&<p style={{fontSize:'12px',color:'#64748B'}}>{p.obs}</p>}
                             </div>
                             <div style={{display:'flex',gap:'5px',flexShrink:0}}>
                               <button onClick={()=>{setEditHpIdx(i);setHpValor(fmtHpValor(String(Math.round(p.valor*100))));setHpForma(FORMAS_PAG.includes(p.forma)?p.forma:'Outro');setHpFormaOut(FORMAS_PAG.includes(p.forma)?'':p.forma);setHpData(p.data);setHpObs(p.obs||'');setShowHpForm(true)}}
-                                style={{background:'rgba(255,255,255,.06)',border:'1px solid rgba(255,255,255,.1)',borderRadius:'6px',padding:'4px 9px',fontSize:'11px',color:'#94A3B8',cursor:'pointer',fontFamily:'inherit'}}>âœï¸</button>
+                                style={{background:'rgba(255,255,255,.06)',border:'1px solid rgba(255,255,255,.1)',borderRadius:'6px',padding:'4px 9px',fontSize:'11px',color:'#94A3B8',cursor:'pointer',fontFamily:'inherit'}}>✏️</button>
                               <button onClick={()=>setHistPags(prev=>prev.filter((_,j)=>j!==i))}
-                                style={{background:'rgba(239,68,68,.12)',border:'1px solid rgba(239,68,68,.25)',borderRadius:'6px',padding:'4px 9px',fontSize:'11px',color:'#F87171',cursor:'pointer',fontFamily:'inherit'}}>ðŸ—‘</button>
+                                style={{background:'rgba(239,68,68,.12)',border:'1px solid rgba(239,68,68,.25)',borderRadius:'6px',padding:'4px 9px',fontSize:'11px',color:'#F87171',cursor:'pointer',fontFamily:'inherit'}}>🗑</button>
                             </div>
                           </div>
                         ))}
@@ -1902,7 +1902,7 @@ export default function Orcamentos() {
                   )}
                 </div>
 
-                {/* 5. ACCORDION: ObservaÃ§Ãµes */}
+                {/* 5. ACCORDION: Observações */}
                 <div style={{...crd,padding:0,overflow:'hidden'}}>
                   <div onClick={()=>setShowObs2(!showObs2)} style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'16px 20px',cursor:'pointer',userSelect:'none'}}>
                     <div style={{display:'flex',alignItems:'center',gap:'10px'}}>
@@ -1910,49 +1910,49 @@ export default function Orcamentos() {
                         <Icon.Edit/>
                       </div>
                       <div>
-                        <p style={{fontSize:'14px',fontWeight:700,color:'#F8FAFC'}}>ObservaÃ§Ãµes</p>
-                        <p style={{fontSize:'12px',color:'#64748B',marginTop:'1px'}}>InformaÃ§Ãµes extras para o cliente ou para sua equipe.</p>
+                        <p style={{fontSize:'14px',fontWeight:700,color:'#F8FAFC'}}>Observações</p>
+                        <p style={{fontSize:'12px',color:'#64748B',marginTop:'1px'}}>Informações extras para o cliente ou para sua equipe.</p>
                       </div>
                     </div>
                     <span style={{color:'#64748B',fontSize:'18px',transform:showObs2?'rotate(180deg)':'none',transition:'transform .2s'}}><Icon.ChevronDown/></span>
                   </div>
                   {showObs2&&(
                     <div style={{padding:'0 20px 20px',borderTop:'1px solid rgba(148,163,184,.08)',display:'flex',flexDirection:'column',gap:'12px',marginTop:'16px'}}>
-                      <div><label style={lbl}>ObservaÃ§Ã£o do cliente / paciente</label>
+                      <div><label style={lbl}>Observação do cliente / paciente</label>
                         <AutoResizeTextarea value={cObs} minHeight={56}
-                          placeholder="Ex: alergias, preferÃªncias, histÃ³rico clÃ­nico, observaÃ§Ãµes do atendimento..."
+                          placeholder="Ex: alergias, preferências, histórico clínico, observações do atendimento..."
                           onChange={setCObs}/></div>
-                      <div><label style={lbl}>ObservaÃ§Ãµes gerais</label>
+                      <div><label style={lbl}>Observações gerais</label>
                         <AutoResizeTextarea value={observacoes} minHeight={90}
-                          placeholder="InformaÃ§Ãµes adicionais sobre o atendimento, tratamento ou orÃ§amento..."
+                          placeholder="Informações adicionais sobre o atendimento, tratamento ou orçamento..."
                           onChange={setObs}/></div>
-                      <div><label style={lbl}>ObservaÃ§Ãµes de pagamento</label>
-                        <input style={inp} type="text" placeholder="Ex: entrada paga, parcela 1 de 3, aguardando confirmaÃ§Ã£o..."
+                      <div><label style={lbl}>Observações de pagamento</label>
+                        <input style={inp} type="text" placeholder="Ex: entrada paga, parcela 1 de 3, aguardando confirmação..."
                           value={obsPag} onChange={e=>setObsPag(e.target.value)}/></div>
                     </div>
                   )}
                 </div>
 
                 <div style={{display:'flex',alignItems:'center',gap:'10px',padding:'12px 16px',background:'rgba(59,130,246,.08)',borderRadius:'10px',border:'1px solid rgba(59,130,246,.18)'}}>
-                  <span style={{fontSize:'18px',flexShrink:0}}>ðŸ’¡</span>
-                  <p style={{fontSize:'12px',color:'#93C5FD',lineHeight:1.5}}>Simples para criar rÃ¡pido â€” preencha apenas cliente, serviÃ§o/procedimento e valor para comeÃ§ar.</p>
+                  <span style={{fontSize:'18px',flexShrink:0}}>💡</span>
+                  <p style={{fontSize:'12px',color:'#93C5FD',lineHeight:1.5}}>Simples para criar rápido — preencha apenas cliente, serviço/procedimento e valor para começar.</p>
                 </div>
 
               </div>{/* fim coluna principal */}
 
-              {/* â”€â”€ COLUNA LATERAL STICKY â”€â”€ */}
+              {/* ── COLUNA LATERAL STICKY ── */}
               <div className="form-2col-r" style={{position:'sticky',top:'24px'}}>
                 <div style={{background:'radial-gradient(circle at top left,rgba(59,130,246,.14),transparent 40%),linear-gradient(145deg,rgba(15,23,42,.97),rgba(8,20,33,.99))',borderRadius:'18px',padding:'20px',border:'1.5px solid rgba(148,163,184,.18)',boxShadow:'0 20px 48px rgba(0,0,0,.28),inset 0 1px 0 rgba(255,255,255,.04)'}}>
                   <p style={{fontSize:'11px',fontWeight:700,color:'#64748B',textTransform:'uppercase' as const,letterSpacing:'.07em',marginBottom:'16px'}}>Resumo</p>
                   <div style={{display:'flex',flexDirection:'column',gap:'10px',marginBottom:'18px'}}>
                     <div>
                       <p style={{fontSize:'10px',fontWeight:700,color:'#374151',textTransform:'uppercase' as const,letterSpacing:'.06em',marginBottom:'3px'}}>Cliente</p>
-                      <p style={{fontSize:'14px',fontWeight:600,color:cNome?'#F8FAFC':'#374151'}}>{cNome||'â€”'}</p>
+                      <p style={{fontSize:'14px',fontWeight:600,color:cNome?'#F8FAFC':'#374151'}}>{cNome||'—'}</p>
                     </div>
                     <div>
                       <p style={{fontSize:'10px',fontWeight:700,color:'#374151',textTransform:'uppercase' as const,letterSpacing:'.06em',marginBottom:'3px'}}>Tipo</p>
                       <p style={{fontSize:'13px',color:'#94A3B8'}}>
-                        {budgetMode==='dental'?'Tratamento odontolÃ³gico':(tipo==='__outro__'?(tipoOutro||'Outro'):tipo)}
+                        {budgetMode==='dental'?'Tratamento odontológico':(tipo==='__outro__'?(tipoOutro||'Outro'):tipo)}
                       </p>
                     </div>
                     <div style={{height:'1px',background:'rgba(255,255,255,.07)'}}/>
@@ -1979,7 +1979,7 @@ export default function Orcamentos() {
                       <div style={{background:'rgba(6,182,212,.1)',border:'1px solid rgba(6,182,212,.22)',borderRadius:'8px',padding:'7px 10px'}}>
                         <p style={{fontSize:'10px',fontWeight:700,color:'#94A3B8',textTransform:'uppercase' as const,letterSpacing:'.05em',marginBottom:'4px'}}>Odontologia</p>
                         <div style={{display:'flex',gap:'8px',flexWrap:'wrap'}}>
-                          {doneTeeth.length>0&&<span style={{fontSize:'11px',fontWeight:700,color:'#4ADE80'}}>âœ“ {doneTeeth.length} realizado{doneTeeth.length>1?'s':''}</span>}
+                          {doneTeeth.length>0&&<span style={{fontSize:'11px',fontWeight:700,color:'#4ADE80'}}>✓ {doneTeeth.length} realizado{doneTeeth.length>1?'s':''}</span>}
                           {pendingTeeth.length>0&&<span style={{fontSize:'11px',fontWeight:700,color:'#F87171'}}>! {pendingTeeth.length} pendente{pendingTeeth.length>1?'s':''}</span>}
                         </div>
                       </div>
@@ -1987,14 +1987,14 @@ export default function Orcamentos() {
                   </div>
                   <button onClick={salvar}
                     style={{width:'100%',background:'linear-gradient(135deg,#3B82F6,#7C3AED)',color:'#fff',border:'1px solid rgba(255,255,255,.10)',borderRadius:'10px',padding:'14px',fontSize:'14px',fontWeight:700,cursor:'pointer',fontFamily:'inherit',boxShadow:'0 12px 32px rgba(59,130,246,.30),0 0 28px rgba(124,58,237,.22)',marginBottom:'8px',display:'flex',alignItems:'center',justifyContent:'center',gap:'8px'}}>
-                    ðŸ“„ {editandoId?'Salvar alteraÃ§Ãµes':'Criar orÃ§amento'}
+                    📄 {editandoId?'Salvar alterações':'Criar orçamento'}
                   </button>
 
                   {/* WhatsApp dropdown */}
                   <div style={{position:'relative',marginBottom:'8px'}}>
                     <button onClick={()=>setShowWppMenu(!showWppMenu)} disabled={!wppReady}
                       style={{width:'100%',background:wppReady?'rgba(34,197,94,.16)':'rgba(255,255,255,.04)',color:wppReady?'#4ADE80':'#374151',border:`1px solid ${wppReady?'rgba(34,197,94,.32)':'rgba(255,255,255,.08)'}`,borderRadius:'10px',padding:'11px',fontSize:'13px',fontWeight:600,cursor:wppReady?'pointer':'not-allowed',fontFamily:'inherit',display:'flex',alignItems:'center',justifyContent:'center',gap:'6px',opacity:wppReady?1:0.55,transition:'all .2s'}}>
-                      ðŸ’¬ Enviar no WhatsApp {wppReady&&<span style={{fontSize:'10px',opacity:.7}}>â–¾</span>}
+                      💬 Enviar no WhatsApp {wppReady&&<span style={{fontSize:'10px',opacity:.7}}>▾</span>}
                     </button>
                     {showWppMenu&&wppReady&&(
                       <div style={{position:'absolute',top:'calc(100% + 4px)',left:0,right:0,background:'rgba(7,17,31,.98)',border:'1.5px solid rgba(34,197,94,.28)',borderRadius:'12px',zIndex:50,overflow:'hidden',boxShadow:'0 16px 40px rgba(0,0,0,.5)'}}>
@@ -2002,21 +2002,21 @@ export default function Orcamentos() {
                           style={{width:'100%',background:'none',border:'none',borderBottom:'1px solid rgba(255,255,255,.06)',padding:'12px 14px',textAlign:'left',cursor:'pointer',fontFamily:'inherit',color:'#F8FAFC',fontSize:'13px',fontWeight:600,display:'flex',flexDirection:'column',gap:'2px'}}
                           onMouseEnter={e=>(e.currentTarget.style.background='rgba(34,197,94,.1)')}
                           onMouseLeave={e=>(e.currentTarget.style.background='none')}>
-                          ðŸ–¥ WhatsApp Web
+                          🖥 WhatsApp Web
                           <span style={{fontSize:'11px',color:'#64748B',fontWeight:400}}>Ideal para computador</span>
                         </button>
                         <button onClick={()=>enviarWpp(undefined,'cel')}
                           style={{width:'100%',background:'none',border:'none',borderBottom:'1px solid rgba(255,255,255,.06)',padding:'12px 14px',textAlign:'left',cursor:'pointer',fontFamily:'inherit',color:'#F8FAFC',fontSize:'13px',fontWeight:600,display:'flex',flexDirection:'column',gap:'2px'}}
                           onMouseEnter={e=>(e.currentTarget.style.background='rgba(34,197,94,.1)')}
                           onMouseLeave={e=>(e.currentTarget.style.background='none')}>
-                          ðŸ“± WhatsApp Celular
+                          📱 WhatsApp Celular
                           <span style={{fontSize:'11px',color:'#64748B',fontWeight:400}}>Ideal para smartphone</span>
                         </button>
                         <button onClick={()=>copiarMsgWpp()}
                           style={{width:'100%',background:'none',border:'none',padding:'12px 14px',textAlign:'left',cursor:'pointer',fontFamily:'inherit',color:'#94A3B8',fontSize:'13px',fontWeight:500,display:'flex',flexDirection:'column',gap:'2px'}}
                           onMouseEnter={e=>(e.currentTarget.style.background='rgba(255,255,255,.05)')}
                           onMouseLeave={e=>(e.currentTarget.style.background='none')}>
-                          ðŸ“‹ Copiar mensagem
+                          📋 Copiar mensagem
                           <span style={{fontSize:'11px',color:'#64748B',fontWeight:400}}>Para enviar manualmente</span>
                         </button>
                       </div>
@@ -2026,9 +2026,9 @@ export default function Orcamentos() {
                   {/* PDF */}
                   <button onClick={()=>pdfReady?gerarPDF():undefined} disabled={!pdfReady}
                     style={{width:'100%',background:pdfReady?'rgba(59,130,246,.14)':'rgba(255,255,255,.04)',color:pdfReady?'#93C5FD':'#374151',border:`1px solid ${pdfReady?'rgba(59,130,246,.32)':'rgba(255,255,255,.08)'}`,borderRadius:'10px',padding:'11px',fontSize:'13px',fontWeight:600,cursor:pdfReady?'pointer':'not-allowed',fontFamily:'inherit',marginBottom:'4px',display:'flex',alignItems:'center',justifyContent:'center',gap:'6px',opacity:pdfReady?1:0.55,transition:'all .2s'}}>
-                    ðŸ“„ {pdfReady?'Baixar PDF do orÃ§amento':'Gerar PDF'}
+                    📄 {pdfReady?'Baixar PDF do orçamento':'Gerar PDF'}
                   </button>
-                  {!pdfReady&&<p style={{fontSize:'10px',color:'#374151',textAlign:'center',marginBottom:'6px'}}>Preencha cliente, WhatsApp e um serviÃ§o/valor.</p>}
+                  {!pdfReady&&<p style={{fontSize:'10px',color:'#374151',textAlign:'center',marginBottom:'6px'}}>Preencha cliente, WhatsApp e um serviço/valor.</p>}
 
                   <button onClick={()=>{resetForm();setView('lista')}}
                     style={{width:'100%',background:'rgba(255,255,255,.05)',color:'#64748B',border:'1px solid rgba(255,255,255,.08)',borderRadius:'10px',padding:'10px',fontSize:'13px',fontWeight:600,cursor:'pointer',fontFamily:'inherit',marginTop:'4px'}}>
@@ -2036,7 +2036,7 @@ export default function Orcamentos() {
                   </button>
 
                   <p style={{fontSize:'11px',color:'#4B5563',textAlign:'center',marginTop:'10px',lineHeight:1.5}}>
-                    Preencha cliente, WhatsApp e serviÃ§o para criar.
+                    Preencha cliente, WhatsApp e serviço para criar.
                   </p>
                 </div>
               </div>
@@ -2053,11 +2053,11 @@ export default function Orcamentos() {
               <div style={{display:'grid',gridTemplateColumns:'1fr 2fr',gap:'8px'}}>
                 <button onClick={()=>{resetForm();setView('lista')}}
                   style={{background:'rgba(255,255,255,.07)',color:'#64748B',border:'1px solid rgba(255,255,255,.1)',borderRadius:'10px',padding:'13px 0',fontSize:'13px',fontWeight:600,cursor:'pointer',fontFamily:'inherit'}}>
-                  â† Voltar
+                  ← Voltar
                 </button>
                 <button onClick={salvar}
                   style={{background:'linear-gradient(135deg,#3B82F6,#7C3AED)',color:'#fff',border:'none',borderRadius:'10px',padding:'13px 0',fontSize:'14px',fontWeight:800,cursor:'pointer',fontFamily:'inherit',boxShadow:'0 4px 16px rgba(59,130,246,.35)'}}>
-                  {editandoId?'Salvar':'Criar orÃ§amento'}
+                  {editandoId?'Salvar':'Criar orçamento'}
                 </button>
               </div>
             </div>
@@ -2065,7 +2065,7 @@ export default function Orcamentos() {
           </div>
         )}
 
-        {/* â•â• DETALHE â•â• */}
+        {/* ══ DETALHE ══ */}
         {view==='detalhe'&&orcDetalhe&&(()=>{
           const orc=orcDetalhe
           const cfg=STATUS_CFG[orc.status]||STATUS_CFG['Aberto']
@@ -2073,17 +2073,17 @@ export default function Orcamentos() {
           return(
             <div style={{maxWidth:'800px',margin:'0 auto',width:'100%'}}>
               <div style={{display:'flex',alignItems:'center',gap:'12px',marginBottom:'20px',flexWrap:'wrap'}}>
-                <button onClick={()=>setView('lista')} style={{background:'none',border:'none',cursor:'pointer',fontSize:'13px',color:'#64748B',fontFamily:'inherit'}}>â† Voltar</button>
+                <button onClick={()=>setView('lista')} style={{background:'none',border:'none',cursor:'pointer',fontSize:'13px',color:'#64748B',fontFamily:'inherit'}}>← Voltar</button>
                 <div style={{width:'36px',height:'36px',borderRadius:'50%',background:ag3,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'14px',fontWeight:700,color:'#fff',flexShrink:0}}>
                   {(orc.cliente_nome||'?').charAt(0).toUpperCase()}
                 </div>
-                <h2 style={{fontSize:'18px',fontWeight:800,color:'#F8FAFC',flex:1,minWidth:0}}>{orc.tipo} â€” {orc.cliente_nome}</h2>
+                <h2 style={{fontSize:'18px',fontWeight:800,color:'#F8FAFC',flex:1,minWidth:0}}>{orc.tipo} — {orc.cliente_nome}</h2>
                 <span style={{fontSize:'11px',fontWeight:700,padding:'4px 12px',borderRadius:'999px',background:cfg.bg,color:cfg.cor,border:`1px solid ${cfg.bd}`,flexShrink:0}}>{orc.status}</span>
               </div>
 
               {/* Resumo financeiro */}
               <div style={crd}>
-                <p style={{fontSize:'14px',fontWeight:700,color:'#F8FAFC',marginBottom:'14px'}}>ðŸ“Š Resumo financeiro</p>
+                <p style={{fontSize:'14px',fontWeight:700,color:'#F8FAFC',marginBottom:'14px'}}>📊 Resumo financeiro</p>
                 <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'10px',marginBottom:'16px'}}>
                   {[{l:'Total',v:orc.total,c:'#F8FAFC'},{l:'Pago',v:orc.valor_pago,c:'#4ADE80'},{l:'Saldo',v:orc.saldo_restante,c:orc.saldo_restante>0?'#FBBF24':'#4ADE80'}].map(f=>(
                     <div key={f.l} style={{background:'rgba(255,255,255,.04)',borderRadius:'10px',padding:'12px',border:'1px solid rgba(255,255,255,.07)'}}>
@@ -2099,13 +2099,13 @@ export default function Orcamentos() {
                 </div>
               </div>
 
-              {/* ServiÃ§os */}
+              {/* Serviços */}
               {(orc.servicos?.length>0)&&(
                 <div style={crd}>
-                  <p style={{fontSize:'14px',fontWeight:700,color:'#F8FAFC',marginBottom:'12px'}}>ðŸ›Ž ServiÃ§os</p>
+                  <p style={{fontSize:'14px',fontWeight:700,color:'#F8FAFC',marginBottom:'12px'}}>🛎 Serviços</p>
                   {(orc.servicos||[]).map((s:any,i:number)=>(
                     <div key={i} style={{display:'flex',justifyContent:'space-between',padding:'10px 0',borderBottom:'1px solid rgba(148,163,184,.07)'}}>
-                      <div><p style={{fontSize:'13px',color:'#F8FAFC',fontWeight:600}}>{s.nome}</p><p style={{fontSize:'11px',color:'#64748B'}}>{s.qtd||1}x Â· R$ {fmtBRL(parseFloat(s.unitario||'0'))}</p></div>
+                      <div><p style={{fontSize:'13px',color:'#F8FAFC',fontWeight:600}}>{s.nome}</p><p style={{fontSize:'11px',color:'#64748B'}}>{s.qtd||1}x · R$ {fmtBRL(parseFloat(s.unitario||'0'))}</p></div>
                       <span style={{fontSize:'14px',fontWeight:700,color:'#4ADE80'}}>R$ {fmtBRL(s.total||0)}</span>
                     </div>
                   ))}
@@ -2118,12 +2118,12 @@ export default function Orcamentos() {
 
               {/* Hist pagamentos */}
               <div style={crd}>
-                <p style={{fontSize:'14px',fontWeight:700,color:'#F8FAFC',marginBottom:'12px'}}>ðŸ“œ HistÃ³rico de pagamentos</p>
+                <p style={{fontSize:'14px',fontWeight:700,color:'#F8FAFC',marginBottom:'12px'}}>📜 Histórico de pagamentos</p>
                 {(!orc.hist_pagamentos||orc.hist_pagamentos.length===0)
                   ?<p style={{fontSize:'13px',color:'#64748B'}}>Nenhum pagamento registrado.</p>
                   :(orc.hist_pagamentos||[]).map((p:any,i:number)=>(
                     <div key={i} style={{display:'flex',justifyContent:'space-between',padding:'10px 0',borderBottom:'1px solid rgba(148,163,184,.07)'}}>
-                      <div><p style={{fontSize:'13px',color:'#F8FAFC',fontWeight:600}}>{p.forma} Â· {fmtData(p.data)}</p>{p.obs&&<p style={{fontSize:'11px',color:'#64748B'}}>{p.obs}</p>}</div>
+                      <div><p style={{fontSize:'13px',color:'#F8FAFC',fontWeight:600}}>{p.forma} · {fmtData(p.data)}</p>{p.obs&&<p style={{fontSize:'11px',color:'#64748B'}}>{p.obs}</p>}</div>
                       <span style={{fontSize:'14px',fontWeight:700,color:'#4ADE80'}}>R$ {fmtBRL(p.valor)}</span>
                     </div>
                   ))
@@ -2132,17 +2132,17 @@ export default function Orcamentos() {
 
               {/* Cliente */}
               <div style={crd}>
-                <p style={{fontSize:'14px',fontWeight:700,color:'#F8FAFC',marginBottom:'12px'}}>ðŸ‘¤ Cliente</p>
+                <p style={{fontSize:'14px',fontWeight:700,color:'#F8FAFC',marginBottom:'12px'}}>👤 Cliente</p>
                 <div style={{display:'flex',alignItems:'center',gap:'12px',marginBottom:'10px'}}>
                   <div style={{width:'40px',height:'40px',borderRadius:'50%',background:ag3,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'16px',fontWeight:700,color:'#fff',flexShrink:0}}>
                     {(orc.cliente_nome||'?').charAt(0).toUpperCase()}
                   </div>
                   <div>
                     <p style={{fontSize:'15px',fontWeight:700,color:'#F8FAFC',marginBottom:'2px'}}>{orc.cliente_nome}</p>
-                    {orc.cliente_whatsapp&&<p style={{fontSize:'13px',color:'#64748B'}}>ðŸ“± {mascaraTel(orc.cliente_whatsapp)}</p>}
+                    {orc.cliente_whatsapp&&<p style={{fontSize:'13px',color:'#64748B'}}>📱 {mascaraTel(orc.cliente_whatsapp)}</p>}
                   </div>
                 </div>
-                {orc.cliente_email&&<p style={{fontSize:'13px',color:'#64748B',marginBottom:'2px'}}>âœ‰ï¸ {orc.cliente_email}</p>}
+                {orc.cliente_email&&<p style={{fontSize:'13px',color:'#64748B',marginBottom:'2px'}}>✉️ {orc.cliente_email}</p>}
                 {orc.observacoes&&<p style={{fontSize:'13px',color:'#4B5563',marginTop:'8px',lineHeight:'1.5'}}>{orc.observacoes}</p>}
               </div>
             </div>

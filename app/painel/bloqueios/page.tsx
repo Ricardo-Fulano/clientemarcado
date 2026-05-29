@@ -5,13 +5,13 @@ import Link from 'next/link'
 
 const G='linear-gradient(135deg,#3B82F6,#7C3AED)'
 const AV='linear-gradient(135deg,rgba(59,130,246,.95),rgba(124,58,237,.95))'
-const MOTIVOS=['AlmoÃ§o','Folga','Pausa','ReuniÃ£o','ManutenÃ§Ã£o','AusÃªncia','Feriado','Outro']
+const MOTIVOS=['Almoço','Folga','Pausa','Reunião','Manutenção','Ausência','Feriado','Outro']
 const SB_ITEMS=[
-  {h:'/painel',l:'InÃ­cio'},{h:'/painel/agendamentos',l:'Agenda',on:true},
-  {h:'/painel/clientes',l:'Clientes'},{h:'/painel/orcamentos',l:'OrÃ§amentos'},
-  {h:'/painel/financeiro',l:'CobranÃ§as'},{h:'/painel/pagamentos',l:'Pagamentos'},
-  {h:'/painel/servicos',l:'ServiÃ§os'},{h:'/painel/profissionais',l:'Profissionais'},
-  {h:'/painel/relatorio',l:'RelatÃ³rios'},{h:'/painel/perfil',l:'ConfiguraÃ§Ãµes'},
+  {h:'/painel',l:'Início'},{h:'/painel/agendamentos',l:'Agenda',on:true},
+  {h:'/painel/clientes',l:'Clientes'},{h:'/painel/orcamentos',l:'Orçamentos'},
+  {h:'/painel/financeiro',l:'Cobranças'},{h:'/painel/pagamentos',l:'Pagamentos'},
+  {h:'/painel/servicos',l:'Serviços'},{h:'/painel/profissionais',l:'Profissionais'},
+  {h:'/painel/relatorio',l:'Relatórios'},{h:'/painel/perfil',l:'Configurações'},
 ]
 const CSS=`
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -69,7 +69,7 @@ export default function Bloqueios(){
   const [data,setData]=useState(new Date().toISOString().split('T')[0])
   const [horaI,setHoraI]=useState('12:00')
   const [horaF,setHoraF]=useState('13:00')
-  const [motivo,setMotivo]=useState('AlmoÃ§o')
+  const [motivo,setMotivo]=useState('Almoço')
   const [motivoCustom,setMotivoCustom]=useState('')
   useEffect(()=>{init()},[])
   async function init(){
@@ -83,22 +83,22 @@ export default function Bloqueios(){
     setPerfil(p);setProfissionais(profs||[]);setBloqueios(blks||[]);setLoading(false)
   }
   async function salvar(){
-    if(!data||!horaI||!horaF){setMsg('âš  Preencha data e horÃ¡rios.');return}
-    if(horaF<=horaI){setMsg('âš  Hora fim deve ser maior que hora inÃ­cio.');return}
+    if(!data||!horaI||!horaF){setMsg('⚠ Preencha data e horários.');return}
+    if(horaF<=horaI){setMsg('⚠ Hora fim deve ser maior que hora início.');return}
     setSalvando(true)
     const {data:{user}}=await supabase.auth.getUser()
     if(!user){setSalvando(false);return}
-    const mot=motivo==='Outro'?(motivoCustom.trim()||'IndisponÃ­vel'):motivo
+    const mot=motivo==='Outro'?(motivoCustom.trim()||'Indisponível'):motivo
     const {data:novo}=await supabase.from('bloqueios').insert({user_id:user.id,profissional_id:profId==='todos'?null:profId,data,hora_inicio:horaI,hora_fim:horaF,motivo:mot,geral:profId==='todos'}).select('*,profissionais(nome)').single()
     if(novo) setBloqueios(prev=>[...prev,novo].sort((a,b)=>a.data>b.data?1:a.hora_inicio>b.hora_inicio?1:-1))
-    limpar();setMsg('Bloqueio adicionado! âœ“');setTimeout(()=>setMsg(''),2500);setSalvando(false)
+    limpar();setMsg('Bloqueio adicionado! ✓');setTimeout(()=>setMsg(''),2500);setSalvando(false)
   }
   async function excluir(id:string){
     await supabase.from('bloqueios').delete().eq('id',id)
     setBloqueios(prev=>prev.filter(b=>b.id!==id))
     setMsg('Removido.');setTimeout(()=>setMsg(''),2000)
   }
-  function limpar(){setProfId('todos');setData(new Date().toISOString().split('T')[0]);setHoraI('12:00');setHoraF('13:00');setMotivo('AlmoÃ§o');setMotivoCustom('')}
+  function limpar(){setProfId('todos');setData(new Date().toISOString().split('T')[0]);setHoraI('12:00');setHoraF('13:00');setMotivo('Almoço');setMotivoCustom('')}
   function fmtData(s:string){return new Date(s+'T12:00:00').toLocaleDateString('pt-BR',{weekday:'short',day:'2-digit',month:'short'})}
   const hoje=new Date().toISOString().split('T')[0]
   const fim7=new Date();fim7.setDate(fim7.getDate()+7)
@@ -117,7 +117,7 @@ export default function Bloqueios(){
       <div className="sb-foot">
         <div style={{display:'flex',alignItems:'center',gap:'10px',background:'rgba(15,23,42,.6)',border:'1px solid rgba(148,163,184,.12)',borderRadius:'10px',padding:'10px 12px'}}>
           <div style={{width:'32px',height:'32px',borderRadius:'50%',background:AV,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'13px',fontWeight:700,color:'#fff',flexShrink:0}}>{ini}</div>
-          <div style={{minWidth:0}}><p style={{fontSize:'12px',fontWeight:600,color:'#F8FAFC',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{nome||'Meu negÃ³cio'}</p><p style={{fontSize:'10px',color:'#64748B'}}>Administrador</p></div>
+          <div style={{minWidth:0}}><p style={{fontSize:'12px',fontWeight:600,color:'#F8FAFC',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{nome||'Meu negócio'}</p><p style={{fontSize:'10px',color:'#64748B'}}>Administrador</p></div>
         </div>
       </div>
     </aside>
@@ -130,7 +130,7 @@ export default function Bloqueios(){
       <div className={`drw${mob?' open':''}`}>
         <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'16px 18px',borderBottom:'1px solid rgba(148,163,184,.10)'}}>
           <span style={{fontSize:'14px',fontWeight:800,color:'#F8FAFC'}}>ClienteMarcado</span>
-          <button onClick={()=>setMob(false)} style={{background:'none',border:'none',color:'rgba(255,255,255,.5)',cursor:'pointer',fontSize:'22px',lineHeight:1}}>Ã—</button>
+          <button onClick={()=>setMob(false)} style={{background:'none',border:'none',color:'rgba(255,255,255,.5)',cursor:'pointer',fontSize:'22px',lineHeight:1}}>×</button>
         </div>
         <nav style={{flex:1,padding:'10px 8px',overflowY:'auto'}}>{SB_ITEMS.map(it=><Link key={it.l} href={it.h} onClick={()=>setMob(false)} className={'nl'+(it.on?' on':'')} style={{fontSize:'14px'}}>{it.l}</Link>)}</nav>
       </div>
@@ -140,25 +140,25 @@ export default function Bloqueios(){
           <button onClick={()=>setMob(true)} style={{background:'none',border:'none',cursor:'pointer',padding:'8px',display:'flex',flexDirection:'column',gap:'5px'}}>
             {[22,22,16].map((w,i)=><span key={i} style={{display:'block',width:`${w}px`,height:'2px',background:'rgba(255,255,255,.8)',borderRadius:'2px'}}/>)}
           </button>
-          <span style={{fontSize:'14px',fontWeight:800,color:'#F8FAFC'}}>Bloqueio de horÃ¡rios</span>
+          <span style={{fontSize:'14px',fontWeight:800,color:'#F8FAFC'}}>Bloqueio de horários</span>
           <div style={{width:'34px',height:'34px',borderRadius:'50%',background:AV,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'13px',fontWeight:700,color:'#fff'}}>{ini}</div>
         </div>
         <div className="pg"><div className="bdy">
           {msg&&<div style={{position:'fixed',top:'20px',left:'50%',transform:'translateX(-50%)',background:'rgba(239,68,68,.16)',border:'1px solid rgba(239,68,68,.36)',borderRadius:'10px',padding:'10px 20px',zIndex:99,color:'#F87171',fontSize:'13px',fontWeight:700,backdropFilter:'blur(20px)',whiteSpace:'nowrap'}}>{msg}</div>}
           <div className="hdr-row" style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',gap:'16px',flexWrap:'wrap',marginBottom:'24px'}}>
             <div>
-              <h1 style={{fontSize:'24px',fontWeight:800,color:'#F8FAFC',letterSpacing:'-0.04em',marginBottom:'5px'}}>Bloqueio de horÃ¡rios</h1>
-              <p style={{fontSize:'13px',color:'#64748B',lineHeight:1.5}}>Bloqueie horÃ¡rios para pausas, folgas, ausÃªncias, manutenÃ§Ã£o ou indisponibilidades.</p>
+              <h1 style={{fontSize:'24px',fontWeight:800,color:'#F8FAFC',letterSpacing:'-0.04em',marginBottom:'5px'}}>Bloqueio de horários</h1>
+              <p style={{fontSize:'13px',color:'#64748B',lineHeight:1.5}}>Bloqueie horários para pausas, folgas, ausências, manutenção ou indisponibilidades.</p>
             </div>
-            <div className="hdr-btns"><Link href="/painel/agendamentos" className="btn-s">â† Voltar Ã  agenda</Link></div>
+            <div className="hdr-btns"><Link href="/painel/agendamentos" className="btn-s">← Voltar à agenda</Link></div>
           </div>
           {/* KPIs */}
           <div className="kpi-grid">
             {[
-              {l:'Bloqueios hoje',v:blkHoje.length,c:'#F87171',bg:'rgba(239,68,68,.10)',bd:'rgba(239,68,68,.22)',ico:'ðŸš«'},
-              {l:'Esta semana',v:blkSem.length,c:'#FBBF24',bg:'rgba(245,158,11,.10)',bd:'rgba(245,158,11,.22)',ico:'ðŸ“…'},
-              {l:'Profissionais afetados',v:profsAf,c:'#22D3EE',bg:'rgba(6,182,212,.10)',bd:'rgba(6,182,212,.22)',ico:'ðŸ‘¤'},
-              {l:'Total cadastrado',v:bloqueios.length,c:'#C4B5FD',bg:'rgba(139,92,246,.10)',bd:'rgba(139,92,246,.22)',ico:'ðŸ“‹'},
+              {l:'Bloqueios hoje',v:blkHoje.length,c:'#F87171',bg:'rgba(239,68,68,.10)',bd:'rgba(239,68,68,.22)',ico:'🚫'},
+              {l:'Esta semana',v:blkSem.length,c:'#FBBF24',bg:'rgba(245,158,11,.10)',bd:'rgba(245,158,11,.22)',ico:'📅'},
+              {l:'Profissionais afetados',v:profsAf,c:'#22D3EE',bg:'rgba(6,182,212,.10)',bd:'rgba(6,182,212,.22)',ico:'👤'},
+              {l:'Total cadastrado',v:bloqueios.length,c:'#C4B5FD',bg:'rgba(139,92,246,.10)',bd:'rgba(139,92,246,.22)',ico:'📋'},
             ].map(k=>(
               <div key={k.l} style={{background:`radial-gradient(circle at top left,${k.bg},transparent 60%),linear-gradient(145deg,rgba(15,23,42,.97),rgba(8,20,33,.99))`,border:`1.5px solid ${k.bd}`,borderRadius:'16px',padding:'16px',boxSizing:'border-box' as const}}>
                 <div style={{width:'36px',height:'36px',borderRadius:'10px',background:k.bg,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'16px',marginBottom:'8px'}}>{k.ico}</div>
@@ -167,16 +167,16 @@ export default function Bloqueios(){
               </div>
             ))}
           </div>
-          {/* FormulÃ¡rio */}
+          {/* Formulário */}
           <div className="crd" style={{padding:'24px',marginBottom:'24px'}}>
             <p style={{fontSize:'14px',fontWeight:700,color:'#F8FAFC',marginBottom:'4px'}}>Adicionar bloqueio</p>
-            <p style={{fontSize:'12px',color:'#64748B',marginBottom:'18px'}}>Bloqueie um horÃ¡rio especÃ­fico na agenda da equipe.</p>
+            <p style={{fontSize:'12px',color:'#64748B',marginBottom:'18px'}}>Bloqueie um horário específico na agenda da equipe.</p>
             {/* Linha 1: Profissional | Data */}
             <div className="fg2">
               <div>
                 <label className="lbl">Profissional</label>
                 <select className="inp" value={profId} onChange={e=>setProfId(e.target.value)}>
-                  <option value="todos">ðŸ¢ Todos os profissionais</option>
+                  <option value="todos">🏢 Todos os profissionais</option>
                   {profissionais.map((p:any)=><option key={p.id} value={p.id}>{p.nome}</option>)}
                 </select>
               </div>
@@ -187,20 +187,20 @@ export default function Bloqueios(){
             </div>
             {profId==='todos'&&(
               <div style={{display:'flex',alignItems:'center',gap:'8px',padding:'8px 12px',background:'rgba(245,158,11,.08)',border:'1px solid rgba(245,158,11,.20)',borderRadius:'10px',marginBottom:'14px'}}>
-                <span style={{fontSize:'14px'}}>âš </span>
-                <p style={{fontSize:'12px',color:'#FBBF24'}}>Este bloqueio serÃ¡ aplicado para toda a equipe.</p>
+                <span style={{fontSize:'14px'}}>⚠</span>
+                <p style={{fontSize:'12px',color:'#FBBF24'}}>Este bloqueio será aplicado para toda a equipe.</p>
               </div>
             )}
             {/* Linha 2: Horas */}
             <div className="fg2">
               <div>
-                <label className="lbl">Hora inÃ­cio</label>
+                <label className="lbl">Hora início</label>
                 <input className="inp" type="time" value={horaI} onChange={e=>setHoraI(e.target.value)}/>
               </div>
               <div>
                 <label className="lbl">Hora fim</label>
                 <input className="inp" type="time" value={horaF} onChange={e=>setHoraF(e.target.value)}/>
-                {horaF&&horaI&&horaF<=horaI&&<p style={{fontSize:'11px',color:'#F87171',marginTop:'5px'}}>âš  Hora fim deve ser maior que hora inÃ­cio.</p>}
+                {horaF&&horaI&&horaF<=horaI&&<p style={{fontSize:'11px',color:'#F87171',marginTop:'5px'}}>⚠ Hora fim deve ser maior que hora início.</p>}
               </div>
             </div>
             {/* Motivo */}
@@ -213,7 +213,7 @@ export default function Bloqueios(){
             </div>
             <div style={{display:'flex',gap:'10px',flexWrap:'wrap'}}>
               <button onClick={salvar} disabled={salvando} className="btn-p" style={{opacity:salvando?.7:1,flex:1,minWidth:'180px',justifyContent:'center'}}>
-                {salvando?'Salvando...':'ðŸš« Adicionar bloqueio'}
+                {salvando?'Salvando...':'🚫 Adicionar bloqueio'}
               </button>
               <button onClick={limpar} className="btn-s">Limpar</button>
             </div>
@@ -226,23 +226,23 @@ export default function Bloqueios(){
             </div>
             {bloqueios.length===0?(
               <div className="crd" style={{padding:'48px 24px',textAlign:'center'}}>
-                <div style={{width:'52px',height:'52px',borderRadius:'14px',background:'rgba(239,68,68,.10)',border:'1.5px solid rgba(239,68,68,.22)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'24px',margin:'0 auto 14px'}}>ðŸš«</div>
+                <div style={{width:'52px',height:'52px',borderRadius:'14px',background:'rgba(239,68,68,.10)',border:'1.5px solid rgba(239,68,68,.22)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'24px',margin:'0 auto 14px'}}>🚫</div>
                 <p style={{fontSize:'15px',fontWeight:700,color:'#F8FAFC',marginBottom:'6px'}}>Nenhum bloqueio cadastrado</p>
-                <p style={{fontSize:'13px',color:'#64748B',lineHeight:1.5,maxWidth:'280px',margin:'0 auto'}}>Adicione bloqueios para impedir agendamentos em horÃ¡rios indisponÃ­veis.</p>
+                <p style={{fontSize:'13px',color:'#64748B',lineHeight:1.5,maxWidth:'280px',margin:'0 auto'}}>Adicione bloqueios para impedir agendamentos em horários indisponíveis.</p>
               </div>
             ):(
               bloqueios.map((b:any)=>(
                 <div key={b.id} className="blk-card">
                   <div style={{display:'flex',alignItems:'center',gap:'12px'}}>
                     <div style={{width:'40px',height:'40px',borderRadius:'11px',background:'rgba(239,68,68,.12)',border:'1.5px solid rgba(239,68,68,.24)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'18px',flexShrink:0}}>
-                      {b.geral?'ðŸ¢':'ðŸ‘¤'}
+                      {b.geral?'🏢':'👤'}
                     </div>
                     <div style={{flex:1,minWidth:0}}>
                       <div style={{display:'flex',alignItems:'center',gap:'7px',flexWrap:'wrap',marginBottom:'2px'}}>
                         <p style={{fontSize:'13px',fontWeight:700,color:'#F8FAFC'}}>{b.profissionais?.nome||'Equipe inteira'}</p>
                         <span style={{fontSize:'10px',fontWeight:600,padding:'2px 7px',borderRadius:'999px',background:b.geral?'rgba(245,158,11,.14)':'rgba(239,68,68,.12)',color:b.geral?'#FBBF24':'#F87171',border:`1px solid ${b.geral?'rgba(245,158,11,.28)':'rgba(239,68,68,.26)'}`}}>{b.geral?'Geral':'Individual'}</span>
                       </div>
-                      <p style={{fontSize:'12px',color:'#64748B'}}>ðŸ“… {fmtData(b.data)} Â· â° {b.hora_inicio} Ã s {b.hora_fim}{b.motivo?` Â· ${b.motivo}`:''}</p>
+                      <p style={{fontSize:'12px',color:'#64748B'}}>📅 {fmtData(b.data)} · ⏰ {b.hora_inicio} às {b.hora_fim}{b.motivo?` · ${b.motivo}`:''}</p>
                     </div>
                     <button onClick={()=>excluir(b.id)} style={{background:'rgba(239,68,68,.10)',border:'1px solid rgba(239,68,68,.24)',borderRadius:'8px',padding:'7px 12px',fontSize:'12px',fontWeight:600,color:'#F87171',cursor:'pointer',fontFamily:'inherit',transition:'all .15s',flexShrink:0}}
                       onMouseEnter={e=>(e.currentTarget.style.background='rgba(239,68,68,.20)')}
