@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../../lib/supabase'
 import Link from 'next/link'
-import { Check, CalendarDays, CircleDollarSign, TrendingUp, Search, Home, Calendar, Users, ClipboardList, Wallet, CreditCard, Sparkles, User, BarChart3, Settings } from 'lucide-react'
+import { CheckCircle2, CalendarDays, CircleDollarSign, TrendingUp, Search, Home, Calendar, Users, ClipboardList, Wallet, CreditCard, Sparkles, User, BarChart3, Settings } from 'lucide-react'
 
 const G='linear-gradient(135deg,#3B82F6,#7C3AED)'
 const AV='linear-gradient(135deg,rgba(59,130,246,.95),rgba(124,58,237,.95))'
@@ -45,9 +45,10 @@ select option{background:#07111F;color:#F8FAFC}
   .mob-hdr{display:flex!important}.bdy{padding:14px 16px 80px!important}
   .kpi-grid{grid-template-columns:1fr 1fr!important;gap:10px!important}
   .topo-r{flex-direction:column!important;align-items:stretch!important;gap:10px!important}
-  .topo-btns{flex-direction:row!important;gap:8px!important}
+  .topo-btns{display:flex!important;gap:8px!important}
   .topo-btns a,.topo-btns button{flex:1!important;justify-content:center!important}
-  .form-grid{grid-template-columns:1fr!important}
+  .fg3{grid-template-columns:1fr!important}
+  .fg2{grid-template-columns:1fr!important}
 }
 @media(max-width:480px){.kpi-grid{grid-template-columns:1fr!important}}
 `
@@ -76,8 +77,6 @@ export default function Pagamentos(){
   const [busca,setBusca]=useState('')
   const [filtro,setFiltro]=useState('Todos')
   const [showForm,setShowForm]=useState(false)
-
-  // Form
   const [fCliente,setFCliente]=useState('')
   const [fValor,setFValor]=useState('')
   const [fForma,setFForma]=useState('Pix')
@@ -99,10 +98,10 @@ export default function Pagamentos(){
 
   const nome=perfil?.nome_negocio||''
   const ini=(nome||'P').charAt(0).toUpperCase()
-
   const hoje=new Date().toISOString().split('T')[0]
   const mes=new Date().toISOString().slice(0,7)
   const fBRL=(v:number)=>`R$ ${(v||0).toLocaleString('pt-BR',{minimumFractionDigits:2})}`
+  const fData=(d:string)=>{if(!d)return'';const[a,m,di]=d.split('-');return`${di}/${m}/${a}`}
 
   const recMes=pagamentos.filter(p=>p.data?.startsWith(mes)).reduce((a,p)=>a+(p.valor||0),0)
   const recHoje=pagamentos.filter(p=>p.data===hoje).reduce((a,p)=>a+(p.valor||0),0)
@@ -110,7 +109,15 @@ export default function Pagamentos(){
   const ticket=pagamentos.length>0?pagamentos.reduce((a,p)=>a+(p.valor||0),0)/pagamentos.length:0
 
   const filtrados=pagamentos.filter(p=>{
-    const passaF=filtro==='Todos'||(filtro==='Hoje'&&p.data===hoje)||(filtro==='Este mês'&&p.data?.startsWith(mes))||(filtro==='Pix'&&p.forma==='Pix')||(filtro==='Cartão'&&p.forma?.includes('Cartão'))||(filtro==='Dinheiro'&&p.forma==='Dinheiro')||(filtro==='Parcial'&&p.tipo==='parcial')||(filtro==='Completo'&&p.tipo==='completo')
+    const passaF=
+      filtro==='Todos'||
+      (filtro==='Hoje'&&p.data===hoje)||
+      (filtro==='Este mês'&&p.data?.startsWith(mes))||
+      (filtro==='Pix'&&p.forma==='Pix')||
+      (filtro==='Cartão'&&p.forma?.toLowerCase().includes('cart'))||
+      (filtro==='Dinheiro'&&p.forma==='Dinheiro')||
+      (filtro==='Parcial'&&p.tipo==='parcial')||
+      (filtro==='Completo'&&p.tipo==='completo')
     const passaB=!busca||[p.cliente_nome,p.forma,p.referencia].some((v:string)=>v?.toLowerCase().includes(busca.toLowerCase()))
     return passaF&&passaB
   })
@@ -120,15 +127,31 @@ export default function Pagamentos(){
     setSalvando(true)
     const {data:{user}}=await supabase.auth.getUser()
     if(!user){setSalvando(false);return}
-    await supabase.from('pagamentos').insert({user_id:user.id,cliente_nome:fCliente.trim(),valor:parseFloat(fValor.replace(',','.'))||0,forma:fForma,tipo:fTipo,referencia:fRef.trim()||null,data:hoje,status:'confirmado'})
-    setFCliente('');setFValor('');setFForma('Pix');setFTipo('completo');setFRef('');setShowForm(false);setMsg('Pagamento registrado!');setTimeout(()=>setMsg(''),3000);setSalvando(false);await load()
+    await supabase.from('pagamentos').insert({
+      user_id:user.id,cliente_nome:fCliente.trim(),
+      valor:parseFloat(fValor.replace(',','.'))||0,
+      forma:fForma,tipo:fTipo,
+      referencia:fRef.trim()||null,
+      data:hoje,status:'confirmado'
+    })
+    setFCliente('');setFValor('');setFForma('Pix');setFTipo('completo');setFRef('')
+    setShowForm(false);setMsg('Pagamento registrado com sucesso!')
+    setTimeout(()=>setMsg(''),3000);setSalvando(false);await load()
   }
 
   const SidebarComp=()=>(
     <aside className="sb">
-      <div className="sb-logo"><div className="sb-ic"><Calendar size={14} color="#fff"/></div><span style={{fontSize:'14px',fontWeight:800,color:'#F8FAFC',letterSpacing:'-0.02em'}}>ClienteMarcado</span></div>
-      <nav>{SB_LINKS.map(it=>(<Link key={it.l} href={it.h} className={'nl'+(it.on?' on':'')}><it.I size={16}/><span>{it.l}</span></Link>))}</nav>
-      <div className="sb-foot"><div style={{display:'flex',alignItems:'center',gap:'10px',background:'rgba(15,23,42,.6)',border:'1px solid rgba(148,163,184,.12)',borderRadius:'10px',padding:'10px 12px'}}><div style={{width:'32px',height:'32px',borderRadius:'50%',background:AV,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'13px',fontWeight:700,color:'#fff',flexShrink:0}}>{ini}</div><div style={{minWidth:0}}><p style={{fontSize:'12px',fontWeight:600,color:'#F8FAFC',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{nome||'Meu negócio'}</p><p style={{fontSize:'10px',color:'#64748B'}}>Administrador</p></div></div></div>
+      <div className="sb-logo">
+        <div className="sb-ic"><Calendar size={14} color="#fff"/></div>
+        <span style={{fontSize:'14px',fontWeight:800,color:'#F8FAFC',letterSpacing:'-0.02em'}}>ClienteMarcado</span>
+      </div>
+      <nav>{SB_LINKS.map(it=>(<Link key={it.l} href={it.h} prefetch={false} className={'nl'+(it.on?' on':'')}><it.I size={16}/><span>{it.l}</span></Link>))}</nav>
+      <div className="sb-foot">
+        <div style={{display:'flex',alignItems:'center',gap:'10px',background:'rgba(15,23,42,.6)',border:'1px solid rgba(148,163,184,.12)',borderRadius:'10px',padding:'10px 12px'}}>
+          <div style={{width:'32px',height:'32px',borderRadius:'50%',background:AV,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'13px',fontWeight:700,color:'#fff',flexShrink:0}}>{ini}</div>
+          <div style={{minWidth:0}}><p style={{fontSize:'12px',fontWeight:600,color:'#F8FAFC',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{nome||'Meu negócio'}</p><p style={{fontSize:'10px',color:'#64748B'}}>Administrador</p></div>
+        </div>
+      </div>
     </aside>
   )
 
@@ -140,7 +163,7 @@ export default function Pagamentos(){
       <div className={`ovl${mob?' open':''}`} onClick={()=>setMob(false)}/>
       <div className={`drw${mob?' open':''}`}>
         <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'16px 18px',borderBottom:'1px solid rgba(148,163,184,.10)'}}><span style={{fontSize:'14px',fontWeight:800,color:'#F8FAFC'}}>ClienteMarcado</span><button onClick={()=>setMob(false)} style={{background:'none',border:'none',color:'rgba(255,255,255,.5)',cursor:'pointer',fontSize:'22px',lineHeight:1}}>×</button></div>
-        <nav style={{flex:1,padding:'10px 8px',overflowY:'auto'}}>{SB_LINKS.map(it=>(<Link key={it.l} href={it.h} onClick={()=>setMob(false)} className={'nl'+(it.on?' on':'')} style={{fontSize:'14px'}}><it.I size={16}/><span>{it.l}</span></Link>))}</nav>
+        <nav style={{flex:1,padding:'10px 8px',overflowY:'auto'}}>{SB_LINKS.map(it=>(<Link key={it.l} href={it.h} prefetch={false} onClick={()=>setMob(false)} className={'nl'+(it.on?' on':'')} style={{fontSize:'14px'}}><it.I size={16}/><span>{it.l}</span></Link>))}</nav>
       </div>
       <SidebarComp/>
       <div className="main">
@@ -154,33 +177,42 @@ export default function Pagamentos(){
           {msg&&<div style={{position:'fixed',top:'20px',left:'50%',transform:'translateX(-50%)',background:'rgba(34,197,94,.16)',border:'1px solid rgba(34,197,94,.36)',borderRadius:'10px',padding:'10px 20px',zIndex:99,color:'#4ADE80',fontSize:'13px',fontWeight:700,backdropFilter:'blur(20px)',whiteSpace:'nowrap'}}>{msg}</div>}
 
           {/* Header */}
-          <div className="topo-r" style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',gap:'16px',flexWrap:'wrap',marginBottom:'24px'}}>
+          <div className="topo-r" style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',gap:'16px',flexWrap:'wrap',marginBottom:'8px'}}>
             <div>
               <h1 style={{fontSize:'22px',fontWeight:800,color:'#F8FAFC',letterSpacing:'-0.04em',marginBottom:'5px'}}>Pagamentos</h1>
               <p style={{fontSize:'13px',color:'#64748B'}}>Histórico de valores recebidos e pagamentos confirmados.</p>
             </div>
             <div className="topo-btns" style={{display:'flex',gap:'8px',flexShrink:0}}>
               <button onClick={()=>setShowForm(!showForm)} className="btn-p">+ Registrar pagamento</button>
-              <Link href="/painel/cobrancas" className="btn-s">Ver cobranças</Link>
+              <Link href="/painel/cobrancas" prefetch={false} className="btn-s">Ver cobranças</Link>
             </div>
+          </div>
+
+          {/* Badge conceito */}
+          <div style={{display:'flex',alignItems:'center',gap:'8px',marginBottom:'22px',padding:'8px 14px',background:'rgba(34,197,94,.08)',border:'1px solid rgba(34,197,94,.18)',borderRadius:'10px',width:'fit-content'}}>
+            <CheckCircle2 size={14} color="#4ADE80"/>
+            <p style={{fontSize:'12px',color:'#4ADE80',fontWeight:600}}>Esta página mostra o dinheiro que <strong>já entrou</strong> no caixa</p>
           </div>
 
           {/* Form registrar */}
           {showForm&&(
             <div className="crd" style={{padding:'22px',marginBottom:'20px'}}>
-              <p style={{fontSize:'14px',fontWeight:700,color:'#C4B5FD',marginBottom:'16px'}}>Registrar pagamento</p>
-              <div className="form-grid" style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:'12px',marginBottom:'12px'}}>
+              <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:'16px'}}>
+                <p style={{fontSize:'14px',fontWeight:700,color:'#4ADE80'}}>Registrar recebimento</p>
+                <button onClick={()=>setShowForm(false)} style={{background:'none',border:'none',color:'#64748B',cursor:'pointer',fontSize:'20px',lineHeight:1,fontFamily:'inherit'}}>×</button>
+              </div>
+              <div className="fg3" style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:'12px',marginBottom:'12px'}}>
                 <div><label className="lbl">Cliente *</label><input className="inp" type="text" placeholder="Nome do cliente" value={fCliente} onChange={e=>setFCliente(e.target.value)}/></div>
-                <div><label className="lbl">Valor *</label><div style={{position:'relative'}}><span style={{position:'absolute',left:'12px',top:'50%',transform:'translateY(-50%)',fontSize:'13px',color:'#64748B',fontWeight:600}}>R$</span><input className="inp" type="text" inputMode="decimal" placeholder="0,00" value={fValor} onChange={e=>setFValor(e.target.value)} style={{paddingLeft:'36px'}}/></div></div>
-                <div><label className="lbl">Forma</label><select className="inp" value={fForma} onChange={e=>setFForma(e.target.value)}>{FORMAS.map(f=><option key={f}>{f}</option>)}</select></div>
+                <div><label className="lbl">Valor recebido *</label><div style={{position:'relative'}}><span style={{position:'absolute',left:'12px',top:'50%',transform:'translateY(-50%)',fontSize:'13px',color:'#64748B',fontWeight:600}}>R$</span><input className="inp" type="text" inputMode="decimal" placeholder="0,00" value={fValor} onChange={e=>setFValor(e.target.value)} style={{paddingLeft:'36px'}}/></div></div>
+                <div><label className="lbl">Forma de pagamento</label><select className="inp" style={{cursor:'pointer'}} value={fForma} onChange={e=>setFForma(e.target.value)}>{FORMAS.map(f=><option key={f}>{f}</option>)}</select></div>
               </div>
-              <div className="form-grid" style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'12px',marginBottom:'16px'}}>
-                <div><label className="lbl">Tipo</label><select className="inp" value={fTipo} onChange={e=>setFTipo(e.target.value)}><option value="completo">Completo</option><option value="parcial">Parcial</option></select></div>
-                <div><label className="lbl">Referência (opcional)</label><input className="inp" type="text" placeholder="Ex: orçamento #123, consulta..." value={fRef} onChange={e=>setFRef(e.target.value)}/></div>
+              <div className="fg2" style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'12px',marginBottom:'16px'}}>
+                <div><label className="lbl">Tipo de recebimento</label><select className="inp" style={{cursor:'pointer'}} value={fTipo} onChange={e=>setFTipo(e.target.value)}><option value="completo">Completo — valor total recebido</option><option value="parcial">Parcial — parte do valor</option></select></div>
+                <div><label className="lbl">Referência (opcional)</label><input className="inp" type="text" placeholder="Ex: orçamento #123, consulta do dia..." value={fRef} onChange={e=>setFRef(e.target.value)}/></div>
               </div>
-              <div style={{display:'flex',gap:'8px'}}>
+              <div style={{display:'flex',gap:'8px',alignItems:'center'}}>
+                <button onClick={registrar} disabled={salvando} className="btn-p" style={{opacity:salvando?.7:1,background:'linear-gradient(135deg,#16A34A,#059669)'}}>{salvando?'Registrando...':'✓ Confirmar recebimento'}</button>
                 <button onClick={()=>setShowForm(false)} className="btn-s">Cancelar</button>
-                <button onClick={registrar} disabled={salvando} className="btn-p" style={{opacity:salvando?.7:1}}>{salvando?'Salvando...':'Confirmar pagamento'}</button>
               </div>
             </div>
           )}
@@ -188,9 +220,9 @@ export default function Pagamentos(){
           {/* KPIs */}
           <div className="kpi-grid">
             {[
-              {l:'RECEBIDO NO MÊS',sub:'Total confirmado',v:fBRL(recMes),c:'#4ADE80',bg:'rgba(34,197,94,.10)',bd:'rgba(34,197,94,.28)',I:Check},
+              {l:'RECEBIDO NO MÊS',sub:'Total confirmado',v:fBRL(recMes),c:'#4ADE80',bg:'rgba(34,197,94,.10)',bd:'rgba(34,197,94,.28)',I:CheckCircle2},
               {l:'RECEBIDO HOJE',sub:'Entradas do dia',v:fBRL(recHoje),c:'#60A5FA',bg:'rgba(59,130,246,.10)',bd:'rgba(59,130,246,.28)',I:CalendarDays},
-              {l:'PAGAMENTOS PARCIAIS',sub:'Baixas parciais',v:parciais,c:'#C4B5FD',bg:'rgba(124,58,237,.10)',bd:'rgba(124,58,237,.28)',I:CircleDollarSign},
+              {l:'PAGAMENTOS PARCIAIS',sub:'Recebimentos incompletos',v:parciais,c:'#C4B5FD',bg:'rgba(124,58,237,.10)',bd:'rgba(124,58,237,.28)',I:CircleDollarSign},
               {l:'TICKET MÉDIO',sub:'Média por pagamento',v:fBRL(ticket),c:'#22D3EE',bg:'rgba(6,182,212,.10)',bd:'rgba(6,182,212,.28)',I:TrendingUp},
             ].map(k=>(
               <div key={k.l} className="crd" style={{padding:'18px 16px',background:`radial-gradient(circle at top left,${k.bg},transparent 60%),linear-gradient(145deg,rgba(15,23,42,.97),rgba(8,20,33,.99))`,border:`1.5px solid ${k.bd}`}}>
@@ -217,27 +249,50 @@ export default function Pagamentos(){
           {/* Lista */}
           {filtrados.length===0?(
             <div className="crd" style={{padding:'56px 24px',textAlign:'center'}}>
-              <div style={{width:'56px',height:'56px',borderRadius:'16px',background:'rgba(34,197,94,.14)',border:'1px solid rgba(34,197,94,.28)',display:'flex',alignItems:'center',justifyContent:'center',margin:'0 auto 16px'}}><CircleDollarSign size={24} color="#4ADE80"/></div>
+              <div style={{width:'60px',height:'60px',borderRadius:'18px',background:'rgba(34,197,94,.12)',border:'1px solid rgba(34,197,94,.28)',display:'flex',alignItems:'center',justifyContent:'center',margin:'0 auto 18px',boxShadow:'0 0 24px rgba(34,197,94,.14)'}}><CircleDollarSign size={26} color="#4ADE80"/></div>
               <p style={{fontSize:'16px',fontWeight:700,color:'#F8FAFC',marginBottom:'8px'}}>Nenhum pagamento registrado</p>
-              <p style={{fontSize:'13px',color:'#64748B',lineHeight:1.6,marginBottom:'6px'}}>Quando um cliente pagar uma cobrança ou orçamento, o recebimento aparecerá aqui.</p>
-              <p style={{fontSize:'12px',color:'#475569',marginBottom:'20px'}}>Você também pode registrar pagamentos diretamente em uma cobrança.</p>
-              <button onClick={()=>setShowForm(true)} className="btn-p" style={{display:'inline-flex'}}>+ Registrar pagamento</button>
+              <p style={{fontSize:'13px',color:'#64748B',lineHeight:1.6,marginBottom:'6px',maxWidth:'380px',margin:'0 auto 6px'}}>Quando um cliente pagar uma cobrança ou orçamento, o recebimento aparecerá aqui.</p>
+              <p style={{fontSize:'12px',color:'#475569',marginBottom:'24px'}}>Você também pode registrar pagamentos diretamente em uma cobrança.</p>
+              <div style={{display:'flex',gap:'10px',justifyContent:'center',flexWrap:'wrap'}}>
+                <button onClick={()=>setShowForm(true)} className="btn-p" style={{background:'linear-gradient(135deg,#16A34A,#059669)'}}>+ Registrar recebimento</button>
+                <Link href="/painel/cobrancas" prefetch={false} className="btn-s">Ver cobranças</Link>
+              </div>
             </div>
           ):(
-            <div style={{display:'flex',flexDirection:'column',gap:'8px'}}>
-              {filtrados.map(p=>(
-                <div key={p.id} className="crd" style={{padding:'16px 20px',display:'flex',alignItems:'center',justifyContent:'space-between',gap:'12px',flexWrap:'wrap'}}>
-                  <div style={{minWidth:0,flex:1}}>
-                    <p style={{fontSize:'14px',fontWeight:700,color:'#F8FAFC',marginBottom:'2px'}}>{p.cliente_nome}</p>
-                    <p style={{fontSize:'12px',color:'#64748B'}}>{p.forma} · {p.data} {p.referencia&&`· ${p.referencia}`}</p>
-                  </div>
-                  <div style={{display:'flex',alignItems:'center',gap:'10px',flexShrink:0}}>
-                    <span style={{fontSize:'11px',fontWeight:600,padding:'3px 10px',borderRadius:'999px',background:p.tipo==='parcial'?'rgba(124,58,237,.14)':'rgba(34,197,94,.14)',color:p.tipo==='parcial'?'#C4B5FD':'#4ADE80',border:`1px solid ${p.tipo==='parcial'?'rgba(124,58,237,.28)':'rgba(34,197,94,.28)'}`}}>{p.tipo==='parcial'?'Parcial':'Completo'}</span>
-                    <p style={{fontSize:'18px',fontWeight:800,color:'#4ADE80',whiteSpace:'nowrap'}}>{fBRL(p.valor)}</p>
-                  </div>
+            <>
+              {/* Resumo do total filtrado */}
+              {filtrados.length>0&&(
+                <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'10px 16px',background:'rgba(34,197,94,.08)',border:'1px solid rgba(34,197,94,.18)',borderRadius:'12px',marginBottom:'14px',flexWrap:'wrap',gap:'8px'}}>
+                  <p style={{fontSize:'12px',color:'#64748B'}}>{filtrados.length} pagamento{filtrados.length!==1?'s':''} encontrado{filtrados.length!==1?'s':''}</p>
+                  <p style={{fontSize:'15px',fontWeight:800,color:'#4ADE80'}}>Total: {fBRL(filtrados.reduce((a,p)=>a+(p.valor||0),0))}</p>
                 </div>
-              ))}
-            </div>
+              )}
+              <div style={{display:'flex',flexDirection:'column',gap:'8px'}}>
+                {filtrados.map(p=>{
+                  const isParcial=p.tipo==='parcial'
+                  return(
+                    <div key={p.id} className="crd" style={{padding:'16px 20px'}}>
+                      <div style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',gap:'12px',flexWrap:'wrap'}}>
+                        <div style={{flex:1,minWidth:0}}>
+                          <p style={{fontSize:'14px',fontWeight:700,color:'#F8FAFC',marginBottom:'4px'}}>{p.cliente_nome}</p>
+                          <div style={{display:'flex',alignItems:'center',gap:'8px',flexWrap:'wrap'}}>
+                            <span style={{fontSize:'12px',color:'#64748B'}}>{p.forma}</span>
+                            {p.data&&<><span style={{fontSize:'10px',color:'#374151'}}>·</span><span style={{fontSize:'12px',color:'#64748B'}}>{fData(p.data)}</span></>}
+                            {p.referencia&&<><span style={{fontSize:'10px',color:'#374151'}}>·</span><span style={{fontSize:'12px',color:'#94A3B8',fontStyle:'italic'}}>{p.referencia}</span></>}
+                          </div>
+                        </div>
+                        <div style={{display:'flex',flexDirection:'column',alignItems:'flex-end',gap:'6px',flexShrink:0}}>
+                          <p style={{fontSize:'20px',fontWeight:800,color:'#4ADE80',lineHeight:1}}>{fBRL(p.valor)}</p>
+                          <span style={{fontSize:'11px',fontWeight:700,padding:'3px 10px',borderRadius:'999px',background:isParcial?'rgba(124,58,237,.14)':'rgba(34,197,94,.14)',color:isParcial?'#C4B5FD':'#4ADE80',border:`1px solid ${isParcial?'rgba(124,58,237,.28)':'rgba(34,197,94,.28)'}`}}>
+                            {isParcial?'Parcial':'Recebido'}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </>
           )}
 
         </div></div>
