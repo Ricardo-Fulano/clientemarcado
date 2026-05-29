@@ -203,8 +203,8 @@ const SIDEBAR_ITEMS = [
   { href:'/painel/agendamentos',  IconC:Icon.Calendar,     label:'Agenda'         },
   { href:'/painel/clientes',      IconC:Icon.Users,        label:'Clientes'       },
   { href:'/painel/orcamentos',    IconC:Icon.ClipboardList,label:'Orçamentos', active:true },
-  { href:'/painel/financeiro',    IconC:Icon.Wallet,       label:'Cobranças'      },
-  { href:'/painel/financeiro',    IconC:Icon.CreditCard,   label:'Pagamentos'     },
+  { href:'/painel/cobrancas',    IconC:Icon.Wallet,       label:'Cobranças'      },
+  { href:'/painel/cobrancas',    IconC:Icon.CreditCard,   label:'Pagamentos'     },
   { href:'/painel/servicos',      IconC:Icon.Sparkles,     label:'Serviços'       },
   { href:'/painel/profissionais', IconC:Icon.UserRound,    label:'Profissionais'  },
   { href:'/painel/relatorio',     IconC:Icon.BarChart3,    label:'Relatórios'     },
@@ -343,7 +343,7 @@ export default function Orcamentos() {
   const [orcamentos,setOrcs]       = useState<any[]>([])
   const [loading,setLoading]       = useState(true)
   const [mob,setMob]               = useState(false)
-  const [view,setView]             = useState<'lista'|'form'|'detalhe'>('lista')
+  const [view,setView]             = useState<'lista'|'form'|'detalhe'>(typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('novo') === '1' ? 'form' : 'lista')
   const [editandoId,setEditandoId] = useState<string|null>(null)
   const [detalheId,setDetalheId]   = useState<string|null>(null)
   const [filtroStatus,setFiltro]   = useState('Todos')

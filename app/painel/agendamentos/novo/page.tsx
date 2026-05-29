@@ -9,7 +9,7 @@ const AV='linear-gradient(135deg,rgba(59,130,246,.95),rgba(124,58,237,.95))'
 const SB_ITEMS=[
   {h:'/painel',l:'InÃ­cio'},{h:'/painel/agendamentos',l:'Agenda',on:true},
   {h:'/painel/clientes',l:'Clientes'},{h:'/painel/orcamentos',l:'OrÃ§amentos'},
-  {h:'/painel/financeiro',l:'CobranÃ§as'},{h:'/painel/pagamentos',l:'Pagamentos'},
+  {h:'/painel/cobrancas',l:'CobranÃ§as'},{h:'/painel/pagamentos',l:'Pagamentos'},
   {h:'/painel/servicos',l:'ServiÃ§os'},{h:'/painel/profissionais',l:'Profissionais'},
   {h:'/painel/relatorio',l:'RelatÃ³rios'},{h:'/painel/perfil',l:'ConfiguraÃ§Ãµes'},
 ]

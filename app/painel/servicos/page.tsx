@@ -9,7 +9,7 @@ const CATS=['Barbearia / Salão','Estética','Clínica','Odontologia','Outros']
 const SB=[
   {href:'/painel',l:'Início'},{href:'/painel/agendamentos',l:'Agenda'},
   {href:'/painel/clientes',l:'Clientes'},{href:'/painel/orcamentos',l:'Orçamentos'},
-  {href:'/painel/financeiro',l:'Cobranças'},{href:'/painel/pagamentos',l:'Pagamentos'},
+  {href:'/painel/cobrancas',l:'Cobranças'},{href:'/painel/pagamentos',l:'Pagamentos'},
   {href:'/painel/servicos',l:'Serviços',on:true},
   {href:'/painel/profissionais',l:'Profissionais'},{href:'/painel/relatorio',l:'Relatórios'},
   {href:'/painel/perfil',l:'Configurações'},

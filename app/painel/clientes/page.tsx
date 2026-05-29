@@ -9,7 +9,7 @@ const AV='linear-gradient(135deg,rgba(59,130,246,.95),rgba(124,58,237,.95))'
 const SB=[
   {href:'/painel',l:'Início'},{href:'/painel/agendamentos',l:'Agenda'},
   {href:'/painel/clientes',l:'Clientes',on:true},
-  {href:'/painel/orcamentos',l:'Orçamentos'},{href:'/painel/financeiro',l:'Cobranças'},
+  {href:'/painel/orcamentos',l:'Orçamentos'},{href:'/painel/cobrancas',l:'Cobranças'},
   {href:'/painel/pagamentos',l:'Pagamentos'},{href:'/painel/servicos',l:'Serviços'},
   {href:'/painel/profissionais',l:'Profissionais'},{href:'/painel/relatorio',l:'Relatórios'},
   {href:'/painel/perfil',l:'Configurações'},

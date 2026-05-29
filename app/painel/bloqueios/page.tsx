@@ -9,7 +9,7 @@ const MOTIVOS=['Almoço','Folga','Pausa','Reunião','Manutenção','Ausência','
 const SB_ITEMS=[
   {h:'/painel',l:'Início'},{h:'/painel/agendamentos',l:'Agenda',on:true},
   {h:'/painel/clientes',l:'Clientes'},{h:'/painel/orcamentos',l:'Orçamentos'},
-  {h:'/painel/financeiro',l:'Cobranças'},{h:'/painel/pagamentos',l:'Pagamentos'},
+  {h:'/painel/cobrancas',l:'Cobranças'},{h:'/painel/pagamentos',l:'Pagamentos'},
   {h:'/painel/servicos',l:'Serviços'},{h:'/painel/profissionais',l:'Profissionais'},
   {h:'/painel/relatorio',l:'Relatórios'},{h:'/painel/perfil',l:'Configurações'},
 ]
