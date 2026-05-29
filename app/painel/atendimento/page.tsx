@@ -37,7 +37,7 @@ export default function RegistrarAtendimento() {
     carregar()
   }, [])
 
-  // Preenche valor ao selecionar serviço cadastrado
+  // Preenche valor ao selecionar serviÃ§o cadastrado
   useEffect(() => {
     if (!isOutroServico && servicoId) {
       const svc = servicos.find(s => s.id === servicoId)
@@ -94,7 +94,7 @@ export default function RegistrarAtendimento() {
       return
     }
     if (isOutroServico && !servicoOutro.trim()) {
-      setErro('Descreva o serviço realizado.')
+      setErro('Descreva o serviÃ§o realizado.')
       return
     }
     setLoading(true)
@@ -207,7 +207,7 @@ export default function RegistrarAtendimento() {
     .select option { background: #0F1117; color: #F1F5F9; }
     .textarea { resize: none; }
 
-    /* Valor field — prefix */
+    /* Valor field â€” prefix */
     .valor-wrap { position: relative; }
     .valor-prefix {
       position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
@@ -215,7 +215,7 @@ export default function RegistrarAtendimento() {
     }
     .valor-wrap .input { padding-left: 36px; }
 
-    /* Outro serviço reveal */
+    /* Outro serviÃ§o reveal */
     .outro-reveal {
       margin-top: 10px;
       padding: 14px;
@@ -228,7 +228,7 @@ export default function RegistrarAtendimento() {
     /* Erro */
     .msg-err { font-size: 13px; color: #EF4444; padding: 10px 14px; background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.2); border-radius: 8px; }
 
-    /* Botão */
+    /* BotÃ£o */
     .btn-registrar {
       width: 100%;
       background: #3B82F6; color: #fff;
@@ -254,7 +254,7 @@ export default function RegistrarAtendimento() {
 
       <nav className="nav">
         <span className="nav-logo">ClienteMarcado</span>
-        <Link href="/painel" className="nav-back">← Voltar ao painel</Link>
+        <Link href="/painel" className="nav-back">â† Voltar ao painel</Link>
       </nav>
 
       <div className="body">
@@ -264,19 +264,19 @@ export default function RegistrarAtendimento() {
         </div>
 
         {sucesso && (
-          <div className="msg-ok">✅ Atendimento registrado com sucesso!</div>
+          <div className="msg-ok">âœ… Atendimento registrado com sucesso!</div>
         )}
 
         <div className="card">
 
-          {/* ── PROFISSIONAL ── */}
+          {/* â”€â”€ PROFISSIONAL â”€â”€ */}
           <div>
             <p className="section-label">Profissional</p>
             <div className="section-group">
               {semProfissionais ? (
                 <div>
                   <label className="label">Nome do profissional *</label>
-                  <input type="text" placeholder="Ex: Antonio, João..."
+                  <input type="text" placeholder="Ex: Antonio, JoÃ£o..."
                     value={profissionalNomeManual}
                     onChange={e => setProfissionalNomeManual(e.target.value)}
                     className="input" />
@@ -299,29 +299,29 @@ export default function RegistrarAtendimento() {
 
           <div className="divider" />
 
-          {/* ── SERVIÇO ── */}
+          {/* â”€â”€ SERVIÃ‡O â”€â”€ */}
           <div>
-            <p className="section-label">Serviço</p>
+            <p className="section-label">ServiÃ§o</p>
             <div className="section-group">
               <div>
-                <label className="label">Serviço realizado (opcional)</label>
+                <label className="label">ServiÃ§o realizado (opcional)</label>
                 <select value={servicoId}
                   onChange={e => setServicoId(e.target.value)}
                   className="select">
-                  <option value="">Selecione o serviço...</option>
+                  <option value="">Selecione o serviÃ§o...</option>
                   {servicos.map(s => (
                     <option key={s.id} value={s.id}>
-                      {s.nome}{s.preco ? ` — R$ ${parseFloat(s.preco).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` : ''}
+                      {s.nome}{s.preco ? ` â€” R$ ${parseFloat(s.preco).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` : ''}
                     </option>
                   ))}
-                  <option value="__outro__">✏️ Outro serviço</option>
+                  <option value="__outro__">âœï¸ Outro serviÃ§o</option>
                 </select>
 
                 {isOutroServico && (
                   <div className="outro-reveal">
-                    <label className="label">Descreva o serviço realizado *</label>
+                    <label className="label">Descreva o serviÃ§o realizado *</label>
                     <input type="text"
-                      placeholder="Ex: ajuste rápido, retoque, venda de produto..."
+                      placeholder="Ex: ajuste rÃ¡pido, retoque, venda de produto..."
                       value={servicoOutro}
                       onChange={e => setServicoOutro(e.target.value)}
                       className="input" />
@@ -333,7 +333,7 @@ export default function RegistrarAtendimento() {
 
           <div className="divider" />
 
-          {/* ── CLIENTE ── */}
+          {/* â”€â”€ CLIENTE â”€â”€ */}
           <div>
             <p className="section-label">Cliente</p>
             <div className="section-group">
@@ -356,7 +356,7 @@ export default function RegistrarAtendimento() {
 
           <div className="divider" />
 
-          {/* ── PAGAMENTO ── */}
+          {/* â”€â”€ PAGAMENTO â”€â”€ */}
           <div>
             <p className="section-label">Pagamento</p>
             <div className="section-group">
@@ -372,7 +372,7 @@ export default function RegistrarAtendimento() {
                 </div>
                 {servicoId && !isOutroServico && servicos.find(s => s.id === servicoId)?.preco && (
                   <p style={{ fontSize: '11px', color: '#4B5563', marginTop: '6px' }}>
-                    Valor do serviço preenchido automaticamente. Edite se necessário.
+                    Valor do serviÃ§o preenchido automaticamente. Edite se necessÃ¡rio.
                   </p>
                 )}
               </div>
@@ -381,9 +381,9 @@ export default function RegistrarAtendimento() {
 
           <div className="divider" />
 
-          {/* ── OBSERVAÇÃO ── */}
+          {/* â”€â”€ OBSERVAÃ‡ÃƒO â”€â”€ */}
           <div>
-            <label className="label">Observação (opcional)</label>
+            <label className="label">ObservaÃ§Ã£o (opcional)</label>
             <textarea rows={3}
               placeholder="Ex: cliente pediu acabamento na navalha, pagou em dinheiro ou quer retorno em 15 dias"
               value={observacao}

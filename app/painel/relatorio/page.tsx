@@ -8,11 +8,11 @@ const G='linear-gradient(135deg,#3B82F6,#7C3AED)'
 const AV='linear-gradient(135deg,rgba(59,130,246,.95),rgba(124,58,237,.95))'
 const fBRL=(v:number)=>`R$ ${v.toLocaleString('pt-BR',{minimumFractionDigits:2})}`
 const SB=[
-  {h:'/painel',l:'Início'},{h:'/painel/agendamentos',l:'Agenda'},
-  {h:'/painel/clientes',l:'Clientes'},{h:'/painel/orcamentos',l:'Orçamentos'},
-  {h:'/painel/cobrancas',l:'Cobranças'},{h:'/painel/pagamentos',l:'Pagamentos'},
-  {h:'/painel/servicos',l:'Serviços'},{h:'/painel/profissionais',l:'Profissionais'},
-  {h:'/painel/relatorio',l:'Relatórios',on:true},{h:'/painel/perfil',l:'Configurações'},
+  {h:'/painel',l:'InÃ­cio'},{h:'/painel/agendamentos',l:'Agenda'},
+  {h:'/painel/clientes',l:'Clientes'},{h:'/painel/orcamentos',l:'OrÃ§amentos'},
+  {h:'/painel/cobrancas',l:'CobranÃ§as'},{h:'/painel/pagamentos',l:'Pagamentos'},
+  {h:'/painel/servicos',l:'ServiÃ§os'},{h:'/painel/profissionais',l:'Profissionais'},
+  {h:'/painel/relatorio',l:'RelatÃ³rios',on:true},{h:'/painel/perfil',l:'ConfiguraÃ§Ãµes'},
 ]
 const CSS=`
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -87,7 +87,7 @@ export default function Relatorios(){
     setPerfil(p);setProfs(ps||[]);setPagamentos(pags||[]);setDespesas(desp||[]);setAgendamentos(ags||[]);setLoading(false)
   }
 
-  // Cálculos filtrados pelo mês
+  // CÃ¡lculos filtrados pelo mÃªs
   const pagMes=pagamentos.filter(p=>p.data?.startsWith(mes))
   const despMes=despesas.filter(d=>d.data?.startsWith(mes))
   const agsMes=agendamentos.filter(a=>a.data_hora?.startsWith(mes))
@@ -97,7 +97,7 @@ export default function Relatorios(){
   const lucro=receita-despTotal
   const lucroPositivo=lucro>=0
 
-  // Melhor profissional: aquele com mais atendimentos realizados no mês
+  // Melhor profissional: aquele com mais atendimentos realizados no mÃªs
   const profStats=profs.map(p=>{
     const ags=agsMes.filter(a=>a.profissional_id===p.id&&a.status==='realizado')
     const rec=ags.reduce((a,ag)=>a+(ag.valor||0),0)
@@ -105,14 +105,14 @@ export default function Relatorios(){
   }).sort((a,b)=>b.rec-a.rec)
   const melhor=profStats[0]
 
-  // Dados do gráfico — "Resultado" em vez de "Prejuízo"
+  // Dados do grÃ¡fico â€” "Resultado" em vez de "PrejuÃ­zo"
   const chartData=[
     {name:'Receita',valor:receita,fill:'#22C55E'},
     {name:'Despesas',valor:despTotal,fill:'#EF4444'},
     {name:'Resultado',valor:Math.abs(lucro),fill:lucroPositivo?'#22C55E':'#EF4444'},
   ]
 
-  // Melhor profissional — só destacar se rec > 0
+  // Melhor profissional â€” sÃ³ destacar se rec > 0
   const melhorComRec=profStats.find(p=>p.rec>0)||null
 
   const nomeMes=new Date(mes+'-02').toLocaleDateString('pt-BR',{month:'long',year:'numeric'})
@@ -123,25 +123,25 @@ export default function Relatorios(){
     <aside className="sb">
       <div className="sb-logo"><div className="sb-ic"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div><span style={{fontSize:'14px',fontWeight:800,color:'#F8FAFC',letterSpacing:'-0.02em'}}>ClienteMarcado</span></div>
       <nav>{SB.map(it=><Link key={it.l} href={it.h} className={'nl'+(it.on?' on':'')}>{it.l}</Link>)}</nav>
-      <div className="sb-foot"><div style={{display:'flex',alignItems:'center',gap:'10px',background:'rgba(15,23,42,.6)',border:'1px solid rgba(148,163,184,.12)',borderRadius:'10px',padding:'10px 12px'}}><div style={{width:'32px',height:'32px',borderRadius:'50%',background:AV,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'13px',fontWeight:700,color:'#fff',flexShrink:0}}>{ini}</div><div style={{minWidth:0}}><p style={{fontSize:'12px',fontWeight:600,color:'#F8FAFC',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{nome||'Meu negócio'}</p><p style={{fontSize:'10px',color:'#64748B'}}>Administrador</p></div></div></div>
+      <div className="sb-foot"><div style={{display:'flex',alignItems:'center',gap:'10px',background:'rgba(15,23,42,.6)',border:'1px solid rgba(148,163,184,.12)',borderRadius:'10px',padding:'10px 12px'}}><div style={{width:'32px',height:'32px',borderRadius:'50%',background:AV,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'13px',fontWeight:700,color:'#fff',flexShrink:0}}>{ini}</div><div style={{minWidth:0}}><p style={{fontSize:'12px',fontWeight:600,color:'#F8FAFC',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{nome||'Meu negÃ³cio'}</p><p style={{fontSize:'10px',color:'#64748B'}}>Administrador</p></div></div></div>
     </aside>
   )
 
-  if(loading)return(<div style={{minHeight:'100vh',background:'#050B16',display:'flex',alignItems:'center',justifyContent:'center',fontFamily:'system-ui'}}><p style={{color:'#64748B',fontSize:'14px'}}>Carregando relatórios...</p></div>)
+  if(loading)return(<div style={{minHeight:'100vh',background:'#050B16',display:'flex',alignItems:'center',justifyContent:'center',fontFamily:'system-ui'}}><p style={{color:'#64748B',fontSize:'14px'}}>Carregando relatÃ³rios...</p></div>)
 
   return(
     <div style={{display:'flex',minHeight:'100vh',background:'#050B16',fontFamily:'-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif',overflowX:'hidden',width:'100%',position:'relative'}}>
       <style dangerouslySetInnerHTML={{__html:CSS}}/>
       <div className={`ovl${mob?' open':''}`} onClick={()=>setMob(false)}/>
       <div className={`drw${mob?' open':''}`}>
-        <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'16px 18px',borderBottom:'1px solid rgba(148,163,184,.10)'}}><span style={{fontSize:'14px',fontWeight:800,color:'#F8FAFC'}}>ClienteMarcado</span><button onClick={()=>setMob(false)} style={{background:'none',border:'none',color:'rgba(255,255,255,.5)',cursor:'pointer',fontSize:'22px',lineHeight:1}}>×</button></div>
+        <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'16px 18px',borderBottom:'1px solid rgba(148,163,184,.10)'}}><span style={{fontSize:'14px',fontWeight:800,color:'#F8FAFC'}}>ClienteMarcado</span><button onClick={()=>setMob(false)} style={{background:'none',border:'none',color:'rgba(255,255,255,.5)',cursor:'pointer',fontSize:'22px',lineHeight:1}}>Ã—</button></div>
         <nav style={{flex:1,padding:'10px 8px',overflowY:'auto'}}>{SB.map(it=><Link key={it.l} href={it.h} onClick={()=>setMob(false)} className={'nl'+(it.on?' on':'')} style={{fontSize:'14px'}}>{it.l}</Link>)}</nav>
       </div>
       <Sb/>
       <div className="main">
         <div className="mhdr">
           <button onClick={()=>setMob(true)} style={{background:'none',border:'none',cursor:'pointer',padding:'8px',display:'flex',flexDirection:'column',gap:'5px'}}>{[22,22,16].map((w,i)=><span key={i} style={{display:'block',width:`${w}px`,height:'2px',background:'rgba(255,255,255,.8)',borderRadius:'2px'}}/>)}</button>
-          <span style={{fontSize:'14px',fontWeight:800,color:'#F8FAFC'}}>Relatórios</span>
+          <span style={{fontSize:'14px',fontWeight:800,color:'#F8FAFC'}}>RelatÃ³rios</span>
           <div style={{width:'34px',height:'34px',borderRadius:'50%',background:AV,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'13px',fontWeight:700,color:'#fff'}}>{ini}</div>
         </div>
 
@@ -150,11 +150,11 @@ export default function Relatorios(){
           {/* Header */}
           <div className="hdr-r" style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',gap:'16px',flexWrap:'wrap',marginBottom:'28px'}}>
             <div>
-              <h1 style={{fontSize:'24px',fontWeight:800,color:'#F8FAFC',letterSpacing:'-0.04em',marginBottom:'5px'}}>Relatórios</h1>
-              <p style={{fontSize:'13px',color:'#64748B',lineHeight:1.5}}>Acompanhe receita, despesas, lucro e desempenho da equipe em um só lugar.</p>
+              <h1 style={{fontSize:'24px',fontWeight:800,color:'#F8FAFC',letterSpacing:'-0.04em',marginBottom:'5px'}}>RelatÃ³rios</h1>
+              <p style={{fontSize:'13px',color:'#64748B',lineHeight:1.5}}>Acompanhe receita, despesas, lucro e desempenho da equipe em um sÃ³ lugar.</p>
             </div>
             <div>
-              <p style={{fontSize:'11px',fontWeight:700,color:'#94A3B8',textTransform:'uppercase',letterSpacing:'.06em',marginBottom:'6px'}}>Período</p>
+              <p style={{fontSize:'11px',fontWeight:700,color:'#94A3B8',textTransform:'uppercase',letterSpacing:'.06em',marginBottom:'6px'}}>PerÃ­odo</p>
               <input type="month" value={mes} onChange={e=>setMes(e.target.value)} style={{background:'rgba(15,23,42,.88)',border:'1px solid rgba(148,163,184,.18)',borderRadius:'14px',padding:'0 14px',height:'46px',fontSize:'14px',color:'#F8FAFC',outline:'none',fontFamily:'inherit',minWidth:'200px'}}/>
               <p style={{fontSize:'12px',color:'#64748B',marginTop:'5px',textTransform:'capitalize'}}>{nomeMes}</p>
             </div>
@@ -163,10 +163,10 @@ export default function Relatorios(){
           {/* KPIs */}
           <div className="kpi-grid">
             {[
-              {l:'Receita total',d:'Entradas confirmadas no período',v:fBRL(receita),c:'#4ADE80',bg:'rgba(34,197,94,.10)',bd:'rgba(34,197,94,.26)',ico:'↑'},
-              {l:'Despesas',d:'Custos registrados no período',v:fBRL(despTotal),c:'#F87171',bg:'rgba(239,68,68,.10)',bd:'rgba(239,68,68,.26)',ico:'↓'},
-              {l:'Lucro estimado',d:'Receita menos despesas',v:fBRL(lucro),c:lucroPositivo?'#4ADE80':'#F87171',bg:lucroPositivo?'rgba(34,197,94,.10)':'rgba(239,68,68,.10)',bd:lucroPositivo?'rgba(34,197,94,.26)':'rgba(239,68,68,.26)',ico:lucroPositivo?'✓':'⚠'},
-              {l:'Melhor profissional',d:melhorComRec?fBRL(melhorComRec.rec)+' no período':'Nenhuma receita no período',v:melhorComRec?.nome||'Sem destaque ainda',c:'#C4B5FD',bg:'rgba(124,58,237,.10)',bd:'rgba(124,58,237,.26)',ico:'🏆'},
+              {l:'Receita total',d:'Entradas confirmadas no perÃ­odo',v:fBRL(receita),c:'#4ADE80',bg:'rgba(34,197,94,.10)',bd:'rgba(34,197,94,.26)',ico:'â†‘'},
+              {l:'Despesas',d:'Custos registrados no perÃ­odo',v:fBRL(despTotal),c:'#F87171',bg:'rgba(239,68,68,.10)',bd:'rgba(239,68,68,.26)',ico:'â†“'},
+              {l:'Lucro estimado',d:'Receita menos despesas',v:fBRL(lucro),c:lucroPositivo?'#4ADE80':'#F87171',bg:lucroPositivo?'rgba(34,197,94,.10)':'rgba(239,68,68,.10)',bd:lucroPositivo?'rgba(34,197,94,.26)':'rgba(239,68,68,.26)',ico:lucroPositivo?'âœ“':'âš '},
+              {l:'Melhor profissional',d:melhorComRec?fBRL(melhorComRec.rec)+' no perÃ­odo':'Nenhuma receita no perÃ­odo',v:melhorComRec?.nome||'Sem destaque ainda',c:'#C4B5FD',bg:'rgba(124,58,237,.10)',bd:'rgba(124,58,237,.26)',ico:'ðŸ†'},
             ].map(k=>(
               <div key={k.l} style={{background:`radial-gradient(circle at top left,${k.bg},transparent 60%),linear-gradient(145deg,rgba(15,23,42,.97),rgba(8,20,33,.99))`,border:`1.5px solid ${k.bd}`,borderRadius:'18px',padding:'18px 16px',boxSizing:'border-box' as const,boxShadow:'0 20px 48px rgba(0,0,0,.28)'}}>
                 <div style={{width:'38px',height:'38px',borderRadius:'11px',background:k.bg,border:`1px solid ${k.bd}`,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'18px',marginBottom:'10px'}}>{k.ico}</div>
@@ -177,17 +177,17 @@ export default function Relatorios(){
             ))}
           </div>
 
-          {/* Gráfico */}
+          {/* GrÃ¡fico */}
           <div style={{background:'radial-gradient(circle at top left,rgba(34,211,238,.08),transparent 35%),linear-gradient(145deg,rgba(15,23,42,.97),rgba(8,20,33,.99))',border:'1.5px solid rgba(148,163,184,.18)',borderRadius:'20px',padding:'24px',marginBottom:'22px',boxShadow:'0 20px 48px rgba(0,0,0,.28)'}}>
             <div style={{marginBottom:'18px'}}>
               <p style={{fontSize:'16px',fontWeight:700,color:'#F8FAFC',marginBottom:'4px'}}>Desempenho financeiro</p>
-              <p style={{fontSize:'13px',color:'#64748B'}}>Compare receita, despesas e lucro estimado no período selecionado.</p>
+              <p style={{fontSize:'13px',color:'#64748B'}}>Compare receita, despesas e lucro estimado no perÃ­odo selecionado.</p>
             </div>
             {receita===0&&despTotal===0?(
               <div style={{height:'200px',display:'flex',alignItems:'center',justifyContent:'center',flexDirection:'column',gap:'8px'}}>
-                <p style={{fontSize:'14px',color:'#64748B'}}>📊</p>
-                <p style={{fontSize:'13px',color:'#64748B'}}>Sem dados financeiros neste período.</p>
-                <p style={{fontSize:'12px',color:'#374151'}}>Registre pagamentos e despesas para visualizar o gráfico.</p>
+                <p style={{fontSize:'14px',color:'#64748B'}}>ðŸ“Š</p>
+                <p style={{fontSize:'13px',color:'#64748B'}}>Sem dados financeiros neste perÃ­odo.</p>
+                <p style={{fontSize:'12px',color:'#374151'}}>Registre pagamentos e despesas para visualizar o grÃ¡fico.</p>
               </div>
             ):(
               <>
@@ -221,7 +221,7 @@ export default function Relatorios(){
           <div>
             <div style={{marginBottom:'16px'}}>
               <p style={{fontSize:'16px',fontWeight:700,color:'#F8FAFC',marginBottom:'4px'}}>Desempenho por profissional</p>
-              <p style={{fontSize:'13px',color:'#64748B'}}>Veja quanto cada profissional gerou no período selecionado.</p>
+              <p style={{fontSize:'13px',color:'#64748B'}}>Veja quanto cada profissional gerou no perÃ­odo selecionado.</p>
             </div>
             {profStats.length===0?(
               <div className="crd" style={{padding:'40px 24px',textAlign:'center'}}>
@@ -253,7 +253,7 @@ export default function Relatorios(){
                         <button onClick={()=>setProfSel(p)} style={{background:'rgba(59,130,246,.10)',border:'1px solid rgba(59,130,246,.24)',color:'#93C5FD',borderRadius:'12px',padding:'8px 12px',fontSize:'13px',fontWeight:700,cursor:'pointer',fontFamily:'inherit',transition:'all .18s'}}
                           onMouseEnter={e=>{(e.currentTarget as HTMLButtonElement).style.background='rgba(59,130,246,.18)';(e.currentTarget as HTMLButtonElement).style.borderColor='rgba(59,130,246,.40)';(e.currentTarget as HTMLButtonElement).style.color='#fff'}}
                           onMouseLeave={e=>{(e.currentTarget as HTMLButtonElement).style.background='rgba(59,130,246,.10)';(e.currentTarget as HTMLButtonElement).style.borderColor='rgba(59,130,246,.24)';(e.currentTarget as HTMLButtonElement).style.color='#93C5FD'}}>
-                          Ver relatório →
+                          Ver relatÃ³rio â†’
                         </button>
                       </div>
                     </div>
@@ -266,7 +266,7 @@ export default function Relatorios(){
         </div></div>
       </div>
 
-      {/* MODAL RELATÓRIO INDIVIDUAL */}
+      {/* MODAL RELATÃ“RIO INDIVIDUAL */}
       {profSel&&(()=>{
         const pAgs=agendamentos.filter(a=>a.profissional_id===profSel.id&&a.data_hora?.startsWith(mes))
         const pRec=pAgs.filter(a=>a.status==='realizado'||a.status==='confirmado').reduce((a,ag)=>a+(ag.valor||0),0)
@@ -276,7 +276,7 @@ export default function Relatorios(){
         const ini2=(profSel.nome||'?').charAt(0).toUpperCase()
         const nomeMesSel=new Date(mes+'-02').toLocaleDateString('pt-BR',{month:'long',year:'numeric'})
 
-        // Dados gráfico semanal
+        // Dados grÃ¡fico semanal
         const semsData=[1,2,3,4].map(s=>{
           const start=new Date(mes+'-01');start.setDate((s-1)*7+1)
           const end=new Date(mes+'-01');end.setDate(s*7)
@@ -311,22 +311,22 @@ export default function Relatorios(){
                   <div>
                     <p style={{fontSize:'16px',fontWeight:800,color:'#F8FAFC',marginBottom:'2px'}}>{profSel.nome}</p>
                     {profSel.cargo&&<p style={{fontSize:'12px',color:'#94A3B8',marginBottom:'2px'}}>{profSel.cargo}</p>}
-                    <p style={{fontSize:'11px',color:'#64748B',textTransform:'capitalize' as const}}>Período: {nomeMesSel}</p>
+                    <p style={{fontSize:'11px',color:'#64748B',textTransform:'capitalize' as const}}>PerÃ­odo: {nomeMesSel}</p>
                   </div>
                 </div>
                 <button onClick={()=>setProfSel(null)} style={{background:'rgba(15,23,42,.8)',border:'1px solid rgba(148,163,184,.18)',borderRadius:'8px',width:'34px',height:'34px',display:'flex',alignItems:'center',justifyContent:'center',color:'#94A3B8',cursor:'pointer',fontSize:'18px',lineHeight:1,flexShrink:0,transition:'color .15s'}}
                   onMouseEnter={e=>(e.currentTarget.style.color='#fff')}
-                  onMouseLeave={e=>(e.currentTarget.style.color='#94A3B8')}>×</button>
+                  onMouseLeave={e=>(e.currentTarget.style.color='#94A3B8')}>Ã—</button>
               </div>
 
               <div style={{padding:'22px 24px 40px'}}>
                 {/* KPIs individuais */}
                 <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'10px',marginBottom:'22px'}}>
                   {[
-                    {l:'Receita gerada',d:'Total confirmado',v:fBRL(pRec),c:'#4ADE80',bg:'rgba(34,197,94,.10)',bd:'rgba(34,197,94,.24)',ico:'↑'},
-                    {l:'Atendimentos',d:'No período',v:pAts,c:'#60A5FA',bg:'rgba(59,130,246,.10)',bd:'rgba(59,130,246,.24)',ico:'📅'},
-                    {l:'Retornos',d:'Retornos registrados',v:pRets,c:'#C4B5FD',bg:'rgba(124,58,237,.10)',bd:'rgba(124,58,237,.24)',ico:'↩'},
-                    {l:'Ticket médio',d:'Média por atendimento',v:fBRL(pTicket),c:'#22D3EE',bg:'rgba(6,182,212,.10)',bd:'rgba(6,182,212,.24)',ico:'↗'},
+                    {l:'Receita gerada',d:'Total confirmado',v:fBRL(pRec),c:'#4ADE80',bg:'rgba(34,197,94,.10)',bd:'rgba(34,197,94,.24)',ico:'â†‘'},
+                    {l:'Atendimentos',d:'No perÃ­odo',v:pAts,c:'#60A5FA',bg:'rgba(59,130,246,.10)',bd:'rgba(59,130,246,.24)',ico:'ðŸ“…'},
+                    {l:'Retornos',d:'Retornos registrados',v:pRets,c:'#C4B5FD',bg:'rgba(124,58,237,.10)',bd:'rgba(124,58,237,.24)',ico:'â†©'},
+                    {l:'Ticket mÃ©dio',d:'MÃ©dia por atendimento',v:fBRL(pTicket),c:'#22D3EE',bg:'rgba(6,182,212,.10)',bd:'rgba(6,182,212,.24)',ico:'â†—'},
                   ].map(k=>(
                     <div key={k.l} style={{background:`radial-gradient(circle at top left,${k.bg},transparent 60%),linear-gradient(145deg,rgba(15,23,42,.97),rgba(8,20,33,.99))`,border:`1.5px solid ${k.bd}`,borderRadius:'16px',padding:'16px',boxSizing:'border-box' as const}}>
                       <div style={{width:'34px',height:'34px',borderRadius:'10px',background:k.bg,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'16px',marginBottom:'8px'}}>{k.ico}</div>
@@ -337,9 +337,9 @@ export default function Relatorios(){
                   ))}
                 </div>
 
-                {/* Gráfico semanal */}
+                {/* GrÃ¡fico semanal */}
                 <div style={{background:'radial-gradient(circle at top left,rgba(59,130,246,.06),transparent 35%),linear-gradient(145deg,rgba(15,23,42,.97),rgba(8,20,33,.99))',border:'1.5px solid rgba(148,163,184,.16)',borderRadius:'16px',padding:'18px',marginBottom:'20px'}}>
-                  <p style={{fontSize:'14px',fontWeight:700,color:'#F8FAFC',marginBottom:'3px'}}>Evolução no período</p>
+                  <p style={{fontSize:'14px',fontWeight:700,color:'#F8FAFC',marginBottom:'3px'}}>EvoluÃ§Ã£o no perÃ­odo</p>
                   <p style={{fontSize:'12px',color:'#64748B',marginBottom:'14px'}}>Receita gerada por semana.</p>
                   {temDados?(
                     <div style={{width:'100%',height:'200px'}}>
@@ -356,18 +356,18 @@ export default function Relatorios(){
                   ):(
                     <div style={{height:'120px',display:'flex',alignItems:'center',justifyContent:'center',flexDirection:'column',gap:'6px'}}>
                       <p style={{fontSize:'13px',color:'#64748B'}}>Sem dados suficientes ainda</p>
-                      <p style={{fontSize:'11px',color:'#374151'}}>Quando este profissional tiver atendimentos pagos, o gráfico aparecerá aqui.</p>
+                      <p style={{fontSize:'11px',color:'#374151'}}>Quando este profissional tiver atendimentos pagos, o grÃ¡fico aparecerÃ¡ aqui.</p>
                     </div>
                   )}
                 </div>
 
-                {/* Últimos atendimentos */}
+                {/* Ãšltimos atendimentos */}
                 <div>
-                  <p style={{fontSize:'14px',fontWeight:700,color:'#F8FAFC',marginBottom:'12px'}}>Últimos atendimentos</p>
+                  <p style={{fontSize:'14px',fontWeight:700,color:'#F8FAFC',marginBottom:'12px'}}>Ãšltimos atendimentos</p>
                   {pAgs.length===0?(
                     <div style={{background:'rgba(15,23,42,.6)',border:'1px solid rgba(148,163,184,.12)',borderRadius:'14px',padding:'24px',textAlign:'center'}}>
                       <p style={{fontSize:'13px',color:'#64748B',marginBottom:'4px'}}>Nenhum atendimento encontrado</p>
-                      <p style={{fontSize:'12px',color:'#374151'}}>Os atendimentos deste profissional aparecerão aqui.</p>
+                      <p style={{fontSize:'12px',color:'#374151'}}>Os atendimentos deste profissional aparecerÃ£o aqui.</p>
                     </div>
                   ):(
                     pAgs.slice(0,10).map((a:any)=>{
@@ -377,8 +377,8 @@ export default function Relatorios(){
                         <div key={a.id} style={{background:'rgba(15,23,42,.72)',border:'1px solid rgba(148,163,184,.12)',borderRadius:'14px',padding:'14px',marginBottom:'6px'}}>
                           <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:'8px',flexWrap:'wrap'}}>
                             <div style={{minWidth:0}}>
-                              <p style={{fontSize:'13px',fontWeight:600,color:'#F8FAFC',marginBottom:'2px'}}>{a.cliente_nome||'—'}</p>
-                              <p style={{fontSize:'11px',color:'#94A3B8'}}>{a.servicos?.nome||'Serviço'} · {fmtD(a.data_hora)}</p>
+                              <p style={{fontSize:'13px',fontWeight:600,color:'#F8FAFC',marginBottom:'2px'}}>{a.cliente_nome||'â€”'}</p>
+                              <p style={{fontSize:'11px',color:'#94A3B8'}}>{a.servicos?.nome||'ServiÃ§o'} Â· {fmtD(a.data_hora)}</p>
                             </div>
                             <div style={{display:'flex',alignItems:'center',gap:'8px',flexShrink:0}}>
                               <span style={{fontSize:'10px',fontWeight:600,padding:'2px 8px',borderRadius:'999px',background:`rgba(${st.c==='#4ADE80'?'34,197,94':'59,130,246'},.12)`,color:st.c,border:`1px solid ${st.c}40`}}>{st.t}</span>

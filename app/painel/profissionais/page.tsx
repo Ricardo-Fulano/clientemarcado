@@ -6,11 +6,11 @@ import Link from 'next/link'
 const G='linear-gradient(135deg,#3B82F6,#7C3AED)'
 const AV='linear-gradient(135deg,rgba(59,130,246,.95),rgba(124,58,237,.95))'
 const SB_ITEMS=[
-  {h:'/painel',l:'Início'},{h:'/painel/agendamentos',l:'Agenda'},
-  {h:'/painel/clientes',l:'Clientes'},{h:'/painel/orcamentos',l:'Orçamentos'},
-  {h:'/painel/financeiro',l:'Cobranças'},{h:'/painel/pagamentos',l:'Pagamentos'},
-  {h:'/painel/servicos',l:'Serviços'},{h:'/painel/profissionais',l:'Profissionais',on:true},
-  {h:'/painel/relatorio',l:'Relatórios'},{h:'/painel/perfil',l:'Configurações'},
+  {h:'/painel',l:'InÃ­cio'},{h:'/painel/agendamentos',l:'Agenda'},
+  {h:'/painel/clientes',l:'Clientes'},{h:'/painel/orcamentos',l:'OrÃ§amentos'},
+  {h:'/painel/financeiro',l:'CobranÃ§as'},{h:'/painel/pagamentos',l:'Pagamentos'},
+  {h:'/painel/servicos',l:'ServiÃ§os'},{h:'/painel/profissionais',l:'Profissionais',on:true},
+  {h:'/painel/relatorio',l:'RelatÃ³rios'},{h:'/painel/perfil',l:'ConfiguraÃ§Ãµes'},
 ]
 const CSS=`
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -131,7 +131,7 @@ export default function Profissionais(){
   }
 
   async function salvar(){
-    if(!fNome.trim()){setMsg('⚠ Informe o nome.');return}
+    if(!fNome.trim()){setMsg('âš  Informe o nome.');return}
     setSalvando(true)
     const {data:{user}}=await supabase.auth.getUser()
     if(!user){setSalvando(false);return}
@@ -156,11 +156,11 @@ export default function Profissionais(){
     if(editId){
       await supabase.from('profissionais').update(payload).eq('id',editId)
       setProfs(prev=>prev.map(p=>p.id===editId?{...p,...payload,id:editId}:p).sort((a,b)=>a.nome.localeCompare(b.nome)))
-      setMsg('Profissional atualizado! ✓')
+      setMsg('Profissional atualizado! âœ“')
     } else {
       const {data:novo}=await supabase.from('profissionais').insert(payload).select('*').single()
       if(novo) setProfs(prev=>[...prev,novo].sort((a,b)=>a.nome.localeCompare(b.nome)))
-      setMsg('Profissional cadastrado! ✓')
+      setMsg('Profissional cadastrado! âœ“')
     }
     resetForm();setShowForm(false)
     setTimeout(()=>setMsg(''),2500);setSalvando(false)
@@ -202,7 +202,7 @@ export default function Profissionais(){
       <div className="sb-foot">
         <div style={{display:'flex',alignItems:'center',gap:'10px',background:'rgba(15,23,42,.6)',border:'1px solid rgba(148,163,184,.12)',borderRadius:'10px',padding:'10px 12px'}}>
           <div style={{width:'32px',height:'32px',borderRadius:'50%',background:AV,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'13px',fontWeight:700,color:'#fff',flexShrink:0}}>{ini}</div>
-          <div style={{minWidth:0}}><p style={{fontSize:'12px',fontWeight:600,color:'#F8FAFC',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{nome||'Meu negócio'}</p><p style={{fontSize:'10px',color:'#64748B'}}>Administrador</p></div>
+          <div style={{minWidth:0}}><p style={{fontSize:'12px',fontWeight:600,color:'#F8FAFC',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{nome||'Meu negÃ³cio'}</p><p style={{fontSize:'10px',color:'#64748B'}}>Administrador</p></div>
         </div>
       </div>
     </aside>
@@ -217,7 +217,7 @@ export default function Profissionais(){
       <div className={`drw${mob?' open':''}`}>
         <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'16px 18px',borderBottom:'1px solid rgba(148,163,184,.10)'}}>
           <span style={{fontSize:'14px',fontWeight:800,color:'#F8FAFC'}}>ClienteMarcado</span>
-          <button onClick={()=>setMob(false)} style={{background:'none',border:'none',color:'rgba(255,255,255,.5)',cursor:'pointer',fontSize:'22px',lineHeight:1}}>×</button>
+          <button onClick={()=>setMob(false)} style={{background:'none',border:'none',color:'rgba(255,255,255,.5)',cursor:'pointer',fontSize:'22px',lineHeight:1}}>Ã—</button>
         </div>
         <nav style={{flex:1,padding:'10px 8px',overflowY:'auto'}}>{SB_ITEMS.map(it=><Link key={it.l} href={it.h} onClick={()=>setMob(false)} className={'nl'+(it.on?' on':'')} style={{fontSize:'14px'}}>{it.l}</Link>)}</nav>
       </div>
@@ -239,7 +239,7 @@ export default function Profissionais(){
           <div className="hdr-row" style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',gap:'16px',flexWrap:'wrap',marginBottom:'24px'}}>
             <div>
               <h1 style={{fontSize:'24px',fontWeight:800,color:'#F8FAFC',letterSpacing:'-0.04em',marginBottom:'5px'}}>Profissionais</h1>
-              <p style={{fontSize:'13px',color:'#64748B',lineHeight:1.5}}>Cadastre profissionais, funções e organize a agenda da equipe.</p>
+              <p style={{fontSize:'13px',color:'#64748B',lineHeight:1.5}}>Cadastre profissionais, funÃ§Ãµes e organize a agenda da equipe.</p>
             </div>
             <div className="hdr-btns">
               <button onClick={()=>abrirForm()} className="btn-p">
@@ -252,10 +252,10 @@ export default function Profissionais(){
           {/* KPIs */}
           <div className="kpi-grid">
             {[
-              {l:'Total',v:profs.length,c:'#C4B5FD',bg:'rgba(139,92,246,.10)',bd:'rgba(139,92,246,.22)',ico:'👥'},
-              {l:'Ativos',v:ativos,c:'#4ADE80',bg:'rgba(34,197,94,.10)',bd:'rgba(34,197,94,.22)',ico:'✓'},
-              {l:'Inativos',v:profs.length-ativos,c:'#94A3B8',bg:'rgba(71,85,105,.10)',bd:'rgba(71,85,105,.22)',ico:'—'},
-              {l:'Na agenda',v:ativos,c:'#60A5FA',bg:'rgba(59,130,246,.10)',bd:'rgba(59,130,246,.22)',ico:'📅'},
+              {l:'Total',v:profs.length,c:'#C4B5FD',bg:'rgba(139,92,246,.10)',bd:'rgba(139,92,246,.22)',ico:'ðŸ‘¥'},
+              {l:'Ativos',v:ativos,c:'#4ADE80',bg:'rgba(34,197,94,.10)',bd:'rgba(34,197,94,.22)',ico:'âœ“'},
+              {l:'Inativos',v:profs.length-ativos,c:'#94A3B8',bg:'rgba(71,85,105,.10)',bd:'rgba(71,85,105,.22)',ico:'â€”'},
+              {l:'Na agenda',v:ativos,c:'#60A5FA',bg:'rgba(59,130,246,.10)',bd:'rgba(59,130,246,.22)',ico:'ðŸ“…'},
             ].map(k=>(
               <div key={k.l} style={{background:`radial-gradient(circle at top left,${k.bg},transparent 60%),linear-gradient(145deg,rgba(15,23,42,.97),rgba(8,20,33,.99))`,border:`1.5px solid ${k.bd}`,borderRadius:'18px',padding:'18px 16px',boxSizing:'border-box' as const,boxShadow:'0 20px 48px rgba(0,0,0,.28)'}}>
                 <div style={{width:'38px',height:'38px',borderRadius:'11px',background:k.bg,border:`1px solid ${k.bd}`,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'17px',marginBottom:'10px'}}>{k.ico}</div>
@@ -265,14 +265,14 @@ export default function Profissionais(){
             ))}
           </div>
 
-          {/* Formulário */}
+          {/* FormulÃ¡rio */}
           {showForm&&(
             <div className="crd" style={{padding:'24px',marginBottom:'20px',border:'1.5px solid rgba(139,92,246,.28)'}}>
               <p style={{fontSize:'14px',fontWeight:700,color:'#C4B5FD',marginBottom:'4px',display:'flex',alignItems:'center',gap:'7px'}}>
                 <span style={{background:'rgba(139,92,246,.18)',borderRadius:'6px',padding:'2px 9px',fontSize:'11px'}}>{editId?'Editar':'Novo'}</span>
                 {editId?'Editar profissional':'Adicionar profissional'}
               </p>
-              <p style={{fontSize:'12px',color:'#64748B',marginBottom:'20px'}}>Inclua membros da equipe para usar na agenda, serviços e atendimentos.</p>
+              <p style={{fontSize:'12px',color:'#64748B',marginBottom:'20px'}}>Inclua membros da equipe para usar na agenda, serviÃ§os e atendimentos.</p>
 
               {/* Nome + Cargo */}
               <div className="fg2" style={{marginBottom:'12px'}}>
@@ -281,7 +281,7 @@ export default function Profissionais(){
                   <input className="inp form-nome" type="text" placeholder="Nome completo..." value={fNome} onChange={e=>setFNome(e.target.value)}/>
                 </div>
                 <div>
-                  <label className="lbl">Cargo / Função</label>
+                  <label className="lbl">Cargo / FunÃ§Ã£o</label>
                   <input className="inp" type="text" placeholder="Ex: Cabeleireiro, Dentista, Esteticista..." value={fCargo} onChange={e=>setFCargo(e.target.value)}/>
                 </div>
               </div>
@@ -305,7 +305,7 @@ export default function Profissionais(){
                   {fFotoPreview?(
                     <img src={fFotoPreview} alt="preview" style={{width:'60px',height:'60px',borderRadius:'50%',objectFit:'cover',border:'2px solid rgba(139,92,246,.4)',flexShrink:0}}/>
                   ):(
-                    <div style={{width:'60px',height:'60px',borderRadius:'50%',background:'rgba(139,92,246,.12)',border:'1.5px dashed rgba(139,92,246,.35)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'24px',flexShrink:0,color:'#8B5CF6'}}>👤</div>
+                    <div style={{width:'60px',height:'60px',borderRadius:'50%',background:'rgba(139,92,246,.12)',border:'1.5px dashed rgba(139,92,246,.35)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'24px',flexShrink:0,color:'#8B5CF6'}}>ðŸ‘¤</div>
                   )}
                   <div
                     onClick={()=>fileRef.current?.click()}
@@ -313,7 +313,7 @@ export default function Profissionais(){
                     onMouseEnter={e=>{(e.currentTarget as HTMLDivElement).style.borderColor='rgba(139,92,246,.45)';(e.currentTarget as HTMLDivElement).style.background='rgba(139,92,246,.06)'}}
                     onMouseLeave={e=>{(e.currentTarget as HTMLDivElement).style.borderColor='rgba(148,163,184,.24)';(e.currentTarget as HTMLDivElement).style.background='rgba(15,23,42,.6)'}}>
                     <p style={{fontSize:'13px',color:'#CBD5E1',marginBottom:'2px'}}>Clique para enviar uma foto</p>
-                    <p style={{fontSize:'11px',color:'#64748B'}}>Proporção 1:1 · JPG, PNG ou WEBP · Máx. 3 MB</p>
+                    <p style={{fontSize:'11px',color:'#64748B'}}>ProporÃ§Ã£o 1:1 Â· JPG, PNG ou WEBP Â· MÃ¡x. 3 MB</p>
                   </div>
                   <input ref={fileRef} type="file" accept="image/*" style={{display:'none'}} onChange={onFoto}/>
                 </div>
@@ -331,7 +331,7 @@ export default function Profissionais(){
 
               <div style={{display:'flex',gap:'10px',flexWrap:'wrap'}}>
                 <button onClick={salvar} disabled={salvando} className="btn-p" style={{opacity:salvando?.7:1}}>
-                  {salvando?'Salvando...':`✓ ${editId?'Salvar alterações':'Adicionar profissional'}`}
+                  {salvando?'Salvando...':`âœ“ ${editId?'Salvar alteraÃ§Ãµes':'Adicionar profissional'}`}
                 </button>
                 <button onClick={()=>{setShowForm(false);resetForm()}} className="btn-s">Cancelar</button>
               </div>
@@ -342,7 +342,7 @@ export default function Profissionais(){
           <div className="crd" style={{padding:'16px 18px',marginBottom:'16px'}}>
             <div style={{position:'relative',marginBottom:'10px'}}>
               <svg style={{position:'absolute',left:'14px',top:'50%',transform:'translateY(-50%)',color:'#64748B',pointerEvents:'none'}} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-              <input className="srch" placeholder="Buscar profissional, função ou cargo..." value={busca} onChange={e=>setBusca(e.target.value)}/>
+              <input className="srch" placeholder="Buscar profissional, funÃ§Ã£o ou cargo..." value={busca} onChange={e=>setBusca(e.target.value)}/>
             </div>
             <div className="pills-row" style={{display:'flex',gap:'6px',flexWrap:'wrap'}}>
               {[{v:'todos',l:'Todos'},{v:'ativos',l:'Ativos'},{v:'inativos',l:'Inativos'}].map(f=>(
@@ -360,9 +360,9 @@ export default function Profissionais(){
 
             {filtrados.length===0?(
               <div style={{background:'radial-gradient(circle at center,rgba(139,92,246,.08),transparent 35%),linear-gradient(145deg,rgba(15,23,42,.97),rgba(8,20,33,.99))',border:'1.5px solid rgba(148,163,184,.16)',borderRadius:'20px',padding:'60px 24px',textAlign:'center'}}>
-                <div style={{width:'58px',height:'58px',borderRadius:'16px',background:'rgba(139,92,246,.12)',border:'1px solid rgba(139,92,246,.28)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'26px',margin:'0 auto 16px'}}>👤</div>
+                <div style={{width:'58px',height:'58px',borderRadius:'16px',background:'rgba(139,92,246,.12)',border:'1px solid rgba(139,92,246,.28)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'26px',margin:'0 auto 16px'}}>ðŸ‘¤</div>
                 <p style={{fontSize:'16px',fontWeight:700,color:'#F8FAFC',marginBottom:'6px'}}>{busca?'Nenhum profissional encontrado':'Nenhum profissional cadastrado'}</p>
-                <p style={{fontSize:'13px',color:'#64748B',lineHeight:1.5,maxWidth:'300px',margin:'0 auto 20px'}}>{busca?'Tente outro termo.':'Cadastre sua equipe para organizar agenda, serviços, horários e atendimentos.'}</p>
+                <p style={{fontSize:'13px',color:'#64748B',lineHeight:1.5,maxWidth:'300px',margin:'0 auto 20px'}}>{busca?'Tente outro termo.':'Cadastre sua equipe para organizar agenda, serviÃ§os, horÃ¡rios e atendimentos.'}</p>
                 {!busca&&<button onClick={()=>abrirForm()} className="btn-p" style={{display:'inline-flex'}}>+ Adicionar primeiro profissional</button>}
               </div>
             ):(
@@ -388,18 +388,18 @@ export default function Profissionais(){
                         </div>
                         {p.cargo&&<p style={{fontSize:'12px',color:'#94A3B8',marginBottom:'2px'}}>{p.cargo}</p>}
                         <div style={{display:'flex',gap:'10px',flexWrap:'wrap'}}>
-                          {p.whatsapp&&<p style={{fontSize:'11px',color:'#64748B'}}>📱 {p.whatsapp}</p>}
-                          {p.email&&<p style={{fontSize:'11px',color:'#64748B'}}>✉ {p.email}</p>}
+                          {p.whatsapp&&<p style={{fontSize:'11px',color:'#64748B'}}>ðŸ“± {p.whatsapp}</p>}
+                          {p.email&&<p style={{fontSize:'11px',color:'#64748B'}}>âœ‰ {p.email}</p>}
                         </div>
                       </div>
 
-                      {/* Ações */}
+                      {/* AÃ§Ãµes */}
                       <div className="prof-acts" style={{display:'flex',gap:'5px',flexShrink:0,flexWrap:'wrap',justifyContent:'flex-end'}}>
-                        <button onClick={()=>abrirForm(p)} className="pact" style={{background:'rgba(59,130,246,.14)',border:'1px solid rgba(59,130,246,.32)',color:'#93C5FD'}}>✏ Editar</button>
+                        <button onClick={()=>abrirForm(p)} className="pact" style={{background:'rgba(59,130,246,.14)',border:'1px solid rgba(59,130,246,.32)',color:'#93C5FD'}}>âœ Editar</button>
                         <button onClick={()=>toggleAtivo(p)} className="pact" style={{background:p.ativo!==false?'rgba(245,158,11,.12)':'rgba(34,197,94,.12)',border:`1px solid ${p.ativo!==false?'rgba(245,158,11,.30)':'rgba(34,197,94,.30)'}`,color:p.ativo!==false?'#FBBF24':'#4ADE80'}}>
                           {p.ativo!==false?'Desativar':'Ativar'}
                         </button>
-                        <button onClick={()=>excluir(p.id,p.nome)} className="pact" style={{background:'rgba(239,68,68,.12)',border:'1px solid rgba(239,68,68,.28)',color:'#F87171'}}>✕</button>
+                        <button onClick={()=>excluir(p.id,p.nome)} className="pact" style={{background:'rgba(239,68,68,.12)',border:'1px solid rgba(239,68,68,.28)',color:'#F87171'}}>âœ•</button>
                       </div>
                     </div>
                   </div>

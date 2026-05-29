@@ -6,11 +6,11 @@ import Link from 'next/link'
 const G='linear-gradient(135deg,#3B82F6,#7C3AED)'
 const AV='linear-gradient(135deg,rgba(59,130,246,.95),rgba(124,58,237,.95))'
 const SB=[
-  {h:'/painel',l:'Início'},{h:'/painel/agendamentos',l:'Agenda'},
-  {h:'/painel/clientes',l:'Clientes'},{h:'/painel/orcamentos',l:'Orçamentos'},
-  {h:'/painel/cobrancas',l:'Cobranças',on:true},{h:'/painel/pagamentos',l:'Pagamentos'},
-  {h:'/painel/servicos',l:'Serviços'},{h:'/painel/profissionais',l:'Profissionais'},
-  {h:'/painel/relatorio',l:'Relatórios'},{h:'/painel/perfil',l:'Configurações'},
+  {h:'/painel',l:'InÃ­cio'},{h:'/painel/agendamentos',l:'Agenda'},
+  {h:'/painel/clientes',l:'Clientes'},{h:'/painel/orcamentos',l:'OrÃ§amentos'},
+  {h:'/painel/cobrancas',l:'CobranÃ§as',on:true},{h:'/painel/pagamentos',l:'Pagamentos'},
+  {h:'/painel/servicos',l:'ServiÃ§os'},{h:'/painel/profissionais',l:'Profissionais'},
+  {h:'/painel/relatorio',l:'RelatÃ³rios'},{h:'/painel/perfil',l:'ConfiguraÃ§Ãµes'},
 ]
 const fBRL=(v:number)=>`R$ ${v.toLocaleString('pt-BR',{minimumFractionDigits:2})}`
 const SC:Record<string,{bg:string,bd:string,c:string,t:string}>={
@@ -98,7 +98,7 @@ export default function Cobrancas(){
     const st=novo>=total?'paga':'parcial'
     await supabase.from('cobrancas').update({valor_pago:novo,status:st}).eq('id',id)
     setCobrancas(prev=>prev.map(c=>c.id===id?{...c,valor_pago:novo,status:st}:c))
-    setMsg('✓ Pagamento registrado!');setTimeout(()=>setMsg(''),2500)
+    setMsg('âœ“ Pagamento registrado!');setTimeout(()=>setMsg(''),2500)
   }
 
   const hoje=new Date().toISOString().split('T')[0]
@@ -127,25 +127,25 @@ export default function Cobrancas(){
     <aside className="sb">
       <div className="sb-logo"><div className="sb-ic"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div><span style={{fontSize:'14px',fontWeight:800,color:'#F8FAFC',letterSpacing:'-0.02em'}}>ClienteMarcado</span></div>
       <nav>{SB.map(it=><Link key={it.l} href={it.h} className={'nl'+(it.on?' on':'')}>{it.l}</Link>)}</nav>
-      <div className="sb-foot"><div style={{display:'flex',alignItems:'center',gap:'10px',background:'rgba(15,23,42,.6)',border:'1px solid rgba(148,163,184,.12)',borderRadius:'10px',padding:'10px 12px'}}><div style={{width:'32px',height:'32px',borderRadius:'50%',background:AV,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'13px',fontWeight:700,color:'#fff',flexShrink:0}}>{ini}</div><div style={{minWidth:0}}><p style={{fontSize:'12px',fontWeight:600,color:'#F8FAFC',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{nome||'Meu negócio'}</p><p style={{fontSize:'10px',color:'#64748B'}}>Administrador</p></div></div></div>
+      <div className="sb-foot"><div style={{display:'flex',alignItems:'center',gap:'10px',background:'rgba(15,23,42,.6)',border:'1px solid rgba(148,163,184,.12)',borderRadius:'10px',padding:'10px 12px'}}><div style={{width:'32px',height:'32px',borderRadius:'50%',background:AV,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'13px',fontWeight:700,color:'#fff',flexShrink:0}}>{ini}</div><div style={{minWidth:0}}><p style={{fontSize:'12px',fontWeight:600,color:'#F8FAFC',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{nome||'Meu negÃ³cio'}</p><p style={{fontSize:'10px',color:'#64748B'}}>Administrador</p></div></div></div>
     </aside>
   )
 
-  if(loading)return(<div style={{minHeight:'100vh',background:'#050B16',display:'flex',alignItems:'center',justifyContent:'center',fontFamily:'system-ui'}}><p style={{color:'#64748B',fontSize:'14px'}}>Carregando cobranças...</p></div>)
+  if(loading)return(<div style={{minHeight:'100vh',background:'#050B16',display:'flex',alignItems:'center',justifyContent:'center',fontFamily:'system-ui'}}><p style={{color:'#64748B',fontSize:'14px'}}>Carregando cobranÃ§as...</p></div>)
 
   return(
     <div style={{display:'flex',minHeight:'100vh',background:'#050B16',fontFamily:'-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif',overflowX:'hidden',width:'100%',position:'relative'}}>
       <style dangerouslySetInnerHTML={{__html:CSS}}/>
       <div className={`ovl${mob?' open':''}`} onClick={()=>setMob(false)}/>
       <div className={`drw${mob?' open':''}`}>
-        <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'16px 18px',borderBottom:'1px solid rgba(148,163,184,.10)'}}><span style={{fontSize:'14px',fontWeight:800,color:'#F8FAFC'}}>ClienteMarcado</span><button onClick={()=>setMob(false)} style={{background:'none',border:'none',color:'rgba(255,255,255,.5)',cursor:'pointer',fontSize:'22px',lineHeight:1}}>×</button></div>
+        <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'16px 18px',borderBottom:'1px solid rgba(148,163,184,.10)'}}><span style={{fontSize:'14px',fontWeight:800,color:'#F8FAFC'}}>ClienteMarcado</span><button onClick={()=>setMob(false)} style={{background:'none',border:'none',color:'rgba(255,255,255,.5)',cursor:'pointer',fontSize:'22px',lineHeight:1}}>Ã—</button></div>
         <nav style={{flex:1,padding:'10px 8px',overflowY:'auto'}}>{SB.map(it=><Link key={it.l} href={it.h} onClick={()=>setMob(false)} className={'nl'+(it.on?' on':'')} style={{fontSize:'14px'}}>{it.l}</Link>)}</nav>
       </div>
       <Sb/>
       <div className="main">
         <div className="mhdr">
           <button onClick={()=>setMob(true)} style={{background:'none',border:'none',cursor:'pointer',padding:'8px',display:'flex',flexDirection:'column',gap:'5px'}}>{[22,22,16].map((w,i)=><span key={i} style={{display:'block',width:`${w}px`,height:'2px',background:'rgba(255,255,255,.8)',borderRadius:'2px'}}/>)}</button>
-          <span style={{fontSize:'14px',fontWeight:800,color:'#F8FAFC'}}>Cobranças</span>
+          <span style={{fontSize:'14px',fontWeight:800,color:'#F8FAFC'}}>CobranÃ§as</span>
           <div style={{width:'34px',height:'34px',borderRadius:'50%',background:AV,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'13px',fontWeight:700,color:'#fff'}}>{ini}</div>
         </div>
         <div className="pg"><div className="bdy">
@@ -155,22 +155,22 @@ export default function Cobrancas(){
           {/* Header */}
           <div className="hdr-r" style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',gap:'16px',flexWrap:'wrap',marginBottom:'24px'}}>
             <div>
-              <h1 style={{fontSize:'24px',fontWeight:800,color:'#F8FAFC',letterSpacing:'-0.04em',marginBottom:'5px'}}>Cobranças</h1>
-              <p style={{fontSize:'13px',color:'#64748B',lineHeight:1.5}}>Veja quem ainda precisa pagar e envie cobranças com rapidez.</p>
+              <h1 style={{fontSize:'24px',fontWeight:800,color:'#F8FAFC',letterSpacing:'-0.04em',marginBottom:'5px'}}>CobranÃ§as</h1>
+              <p style={{fontSize:'13px',color:'#64748B',lineHeight:1.5}}>Veja quem ainda precisa pagar e envie cobranÃ§as com rapidez.</p>
             </div>
             <div className="hdr-btns" style={{display:'flex',gap:'8px',flexShrink:0}}>
-              <button className="btn-p" onClick={()=>setMsg('Em breve: criar cobrança')}>+ Nova cobrança</button>
-              <Link href="/painel/orcamentos" className="btn-s">Ver orçamentos</Link>
+              <button className="btn-p" onClick={()=>setMsg('Em breve: criar cobranÃ§a')}>+ Nova cobranÃ§a</button>
+              <Link href="/painel/orcamentos" className="btn-s">Ver orÃ§amentos</Link>
             </div>
           </div>
 
-          {/* KPIs — foco em PENDÊNCIAS */}
+          {/* KPIs â€” foco em PENDÃŠNCIAS */}
           <div className="kpi-grid">
             {[
-              {l:'A receber',d:'Total em aberto',v:fBRL(aReceber),c:'#FBBF24',bg:'rgba(245,158,11,.10)',bd:'rgba(245,158,11,.24)',ico:'💳'},
-              {l:'Vencidas',d:'Cobranças em atraso',v:vencidas,c:'#F87171',bg:'rgba(239,68,68,.10)',bd:'rgba(239,68,68,.24)',ico:'⚠'},
-              {l:'Parciais',d:'Pagas em parte',v:parciais,c:'#C4B5FD',bg:'rgba(124,58,237,.10)',bd:'rgba(124,58,237,.24)',ico:'◑'},
-              {l:'Em aberto',d:'Aguardando pagamento',v:emAberto,c:'#22D3EE',bg:'rgba(6,182,212,.10)',bd:'rgba(6,182,212,.24)',ico:'⏳'},
+              {l:'A receber',d:'Total em aberto',v:fBRL(aReceber),c:'#FBBF24',bg:'rgba(245,158,11,.10)',bd:'rgba(245,158,11,.24)',ico:'ðŸ’³'},
+              {l:'Vencidas',d:'CobranÃ§as em atraso',v:vencidas,c:'#F87171',bg:'rgba(239,68,68,.10)',bd:'rgba(239,68,68,.24)',ico:'âš '},
+              {l:'Parciais',d:'Pagas em parte',v:parciais,c:'#C4B5FD',bg:'rgba(124,58,237,.10)',bd:'rgba(124,58,237,.24)',ico:'â—‘'},
+              {l:'Em aberto',d:'Aguardando pagamento',v:emAberto,c:'#22D3EE',bg:'rgba(6,182,212,.10)',bd:'rgba(6,182,212,.24)',ico:'â³'},
             ].map(k=>(
               <div key={k.l} style={{background:`radial-gradient(circle at top left,${k.bg},transparent 60%),linear-gradient(145deg,rgba(15,23,42,.97),rgba(8,20,33,.99))`,border:`1.5px solid ${k.bd}`,borderRadius:'18px',padding:'18px 16px',boxSizing:'border-box' as const}}>
                 <div style={{width:'38px',height:'38px',borderRadius:'11px',background:k.bg,border:`1px solid ${k.bd}`,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'18px',marginBottom:'10px'}}>{k.ico}</div>
@@ -185,7 +185,7 @@ export default function Cobrancas(){
           <div className="crd" style={{padding:'16px 18px',marginBottom:'16px'}}>
             <div style={{position:'relative',marginBottom:'10px'}}>
               <svg style={{position:'absolute',left:'14px',top:'50%',transform:'translateY(-50%)',color:'#64748B',pointerEvents:'none'}} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-              <input className="srch" placeholder="Buscar cliente, serviço, WhatsApp ou cobrança..." value={busca} onChange={e=>setBusca(e.target.value)}/>
+              <input className="srch" placeholder="Buscar cliente, serviÃ§o, WhatsApp ou cobranÃ§a..." value={busca} onChange={e=>setBusca(e.target.value)}/>
             </div>
             <div className="pills-row" style={{display:'flex',gap:'5px',flexWrap:'wrap'}}>
               {[{v:'todas',l:'Todas'},{v:'em_aberto',l:'Em aberto'},{v:'vencidas',l:'Vencidas'},{v:'parciais',l:'Parciais'},{v:'pagas',l:'Pagas'},{v:'canceladas',l:'Canceladas'}].map(f=>(
@@ -197,11 +197,11 @@ export default function Cobrancas(){
           {/* Lista */}
           {filtrados.length===0?(
             <div className="crd" style={{padding:'60px 24px',textAlign:'center'}}>
-              <div style={{width:'58px',height:'58px',borderRadius:'16px',background:'rgba(245,158,11,.10)',border:'1px solid rgba(245,158,11,.24)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'28px',margin:'0 auto 16px'}}>💳</div>
-              <p style={{fontSize:'16px',fontWeight:700,color:'#F8FAFC',marginBottom:'6px'}}>Nenhuma cobrança em aberto</p>
-              <p style={{fontSize:'13px',color:'#64748B',lineHeight:1.6,maxWidth:'320px',margin:'0 auto 8px'}}>Quando houver orçamento pendente, cobrança vencida ou saldo restante, tudo aparecerá aqui.</p>
-              <p style={{fontSize:'12px',color:'#374151',marginBottom:'20px'}}>Você também pode gerar cobranças a partir de um orçamento.</p>
-              <button className="btn-p" style={{display:'inline-flex'}} onClick={()=>setMsg('Em breve: criar cobrança')}>+ Nova cobrança</button>
+              <div style={{width:'58px',height:'58px',borderRadius:'16px',background:'rgba(245,158,11,.10)',border:'1px solid rgba(245,158,11,.24)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'28px',margin:'0 auto 16px'}}>ðŸ’³</div>
+              <p style={{fontSize:'16px',fontWeight:700,color:'#F8FAFC',marginBottom:'6px'}}>Nenhuma cobranÃ§a em aberto</p>
+              <p style={{fontSize:'13px',color:'#64748B',lineHeight:1.6,maxWidth:'320px',margin:'0 auto 8px'}}>Quando houver orÃ§amento pendente, cobranÃ§a vencida ou saldo restante, tudo aparecerÃ¡ aqui.</p>
+              <p style={{fontSize:'12px',color:'#374151',marginBottom:'20px'}}>VocÃª tambÃ©m pode gerar cobranÃ§as a partir de um orÃ§amento.</p>
+              <button className="btn-p" style={{display:'inline-flex'}} onClick={()=>setMsg('Em breve: criar cobranÃ§a')}>+ Nova cobranÃ§a</button>
             </div>
           ):(
             filtrados.map((c:any)=>{
@@ -211,23 +211,23 @@ export default function Cobrancas(){
               const diasAtraso=isVencida?Math.floor((new Date().getTime()-new Date(c.vencimento+'T12:00:00').getTime())/(1000*60*60*24)):0
               return(
                 <div key={c.id} className="cob-card">
-                  {/* Cabeçalho do card */}
+                  {/* CabeÃ§alho do card */}
                   <div style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',gap:'10px',marginBottom:'12px',flexWrap:'wrap'}}>
                     <div style={{display:'flex',alignItems:'center',gap:'10px'}}>
                       <div style={{width:'42px',height:'42px',borderRadius:'50%',background:AV,border:'1px solid rgba(255,255,255,.12)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'16px',fontWeight:700,color:'#fff',flexShrink:0}}>{(c.cliente_nome||'?').charAt(0).toUpperCase()}</div>
                       <div>
-                        <p style={{fontSize:'15px',fontWeight:700,color:'#F8FAFC',marginBottom:'2px'}}>{c.cliente_nome||'—'}</p>
+                        <p style={{fontSize:'15px',fontWeight:700,color:'#F8FAFC',marginBottom:'2px'}}>{c.cliente_nome||'â€”'}</p>
                         {c.descricao&&<p style={{fontSize:'12px',color:'#94A3B8'}}>{c.descricao}</p>}
-                        {c.cliente_whatsapp&&<p style={{fontSize:'11px',color:'#64748B'}}>📱 {c.cliente_whatsapp}</p>}
+                        {c.cliente_whatsapp&&<p style={{fontSize:'11px',color:'#64748B'}}>ðŸ“± {c.cliente_whatsapp}</p>}
                       </div>
                     </div>
                     <div style={{display:'flex',flexDirection:'column',alignItems:'flex-end',gap:'4px'}}>
                       <span style={{fontSize:'10px',fontWeight:600,padding:'3px 9px',borderRadius:'999px',background:sc.bg,color:sc.c,border:`1px solid ${sc.bd}`}}>{sc.t}</span>
-                      {isVencida&&<span style={{fontSize:'10px',color:'#F87171'}}>Vencida há {diasAtraso} dia{diasAtraso!==1?'s':''}</span>}
+                      {isVencida&&<span style={{fontSize:'10px',color:'#F87171'}}>Vencida hÃ¡ {diasAtraso} dia{diasAtraso!==1?'s':''}</span>}
                     </div>
                   </div>
 
-                  {/* Valores — o SALDO é o mais importante */}
+                  {/* Valores â€” o SALDO Ã© o mais importante */}
                   <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:'8px',marginBottom:'12px',background:'rgba(15,23,42,.5)',borderRadius:'12px',padding:'12px'}}>
                     <div style={{textAlign:'center' as const}}>
                       <p style={{fontSize:'10px',color:'#64748B',marginBottom:'3px',textTransform:'uppercase' as const,letterSpacing:'.06em'}}>Total</p>
@@ -244,16 +244,16 @@ export default function Cobrancas(){
                   </div>
                   {c.vencimento&&<p style={{fontSize:'11px',color:isVencida?'#F87171':'#64748B',marginBottom:'10px'}}>Vencimento: {new Date(c.vencimento+'T12:00:00').toLocaleDateString('pt-BR')}</p>}
 
-                  {/* Ações — foco em COBRAR */}
+                  {/* AÃ§Ãµes â€” foco em COBRAR */}
                   <div className="cob-acts" style={{display:'flex',gap:'6px',flexWrap:'wrap'}}>
                     {c.status!=='paga'&&c.status!=='cancelada'&&(
-                      <button onClick={()=>regPagamento(c.id,c.valor_total||0,c.valor_pago||0)} className="act" style={{background:'rgba(34,197,94,.14)',border:'1px solid rgba(34,197,94,.32)',color:'#4ADE80',fontWeight:700}}>✓ Registrar pagamento</button>
+                      <button onClick={()=>regPagamento(c.id,c.valor_total||0,c.valor_pago||0)} className="act" style={{background:'rgba(34,197,94,.14)',border:'1px solid rgba(34,197,94,.32)',color:'#4ADE80',fontWeight:700}}>âœ“ Registrar pagamento</button>
                     )}
                     {c.cliente_whatsapp&&(
-                      <button onClick={()=>window.open(`https://wa.me/55${c.cliente_whatsapp.replace(/\D/g,'')}?text=${encodeURIComponent(`Olá, ${c.cliente_nome}! 👋\n\nPassando para lembrar que você tem uma cobrança em aberto de *${fBRL(saldo)}*.\n\nPodemos combinar o pagamento?`)}`,'_blank')} className="act" style={{background:'rgba(34,197,94,.10)',border:'1px solid rgba(34,197,94,.24)',color:'#6EE7B7'}}>💬 Cobrar no WhatsApp</button>
+                      <button onClick={()=>window.open(`https://wa.me/55${c.cliente_whatsapp.replace(/\D/g,'')}?text=${encodeURIComponent(`OlÃ¡, ${c.cliente_nome}! ðŸ‘‹\n\nPassando para lembrar que vocÃª tem uma cobranÃ§a em aberto de *${fBRL(saldo)}*.\n\nPodemos combinar o pagamento?`)}`,'_blank')} className="act" style={{background:'rgba(34,197,94,.10)',border:'1px solid rgba(34,197,94,.24)',color:'#6EE7B7'}}>ðŸ’¬ Cobrar no WhatsApp</button>
                     )}
                     {c.status!=='cancelada'&&c.status!=='paga'&&(
-                      <button onClick={async()=>{if(!confirm('Cancelar esta cobrança?'))return;await supabase.from('cobrancas').update({status:'cancelada'}).eq('id',c.id);setCobrancas(prev=>prev.map(x=>x.id===c.id?{...x,status:'cancelada'}:x))}} className="act" style={{background:'rgba(239,68,68,.08)',border:'1px solid rgba(239,68,68,.20)',color:'#F87171'}}>Cancelar</button>
+                      <button onClick={async()=>{if(!confirm('Cancelar esta cobranÃ§a?'))return;await supabase.from('cobrancas').update({status:'cancelada'}).eq('id',c.id);setCobrancas(prev=>prev.map(x=>x.id===c.id?{...x,status:'cancelada'}:x))}} className="act" style={{background:'rgba(239,68,68,.08)',border:'1px solid rgba(239,68,68,.20)',color:'#F87171'}}>Cancelar</button>
                     )}
                   </div>
                 </div>
