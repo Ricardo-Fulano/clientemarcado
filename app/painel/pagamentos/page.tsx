@@ -183,7 +183,7 @@ export default function Pagamentos(){
               <p style={{fontSize:'13px',color:'#64748B'}}>Histórico de valores recebidos e pagamentos confirmados.</p>
             </div>
             <div className="topo-btns" style={{display:'flex',gap:'8px',flexShrink:0}}>
-              <button onClick={()=>setShowForm(!showForm)} className="btn-p">+ Registrar pagamento</button>
+              <button onClick={()=>setShowForm(!showForm)} className="btn-p">+ Registrar recebimento</button>
               <Link href="/painel/cobrancas" prefetch={false} className="btn-s">Ver cobranças</Link>
             </div>
           </div>
@@ -251,7 +251,7 @@ export default function Pagamentos(){
             <div className="crd" style={{padding:'56px 24px',textAlign:'center'}}>
               <div style={{width:'60px',height:'60px',borderRadius:'18px',background:'rgba(34,197,94,.12)',border:'1px solid rgba(34,197,94,.28)',display:'flex',alignItems:'center',justifyContent:'center',margin:'0 auto 18px',boxShadow:'0 0 24px rgba(34,197,94,.14)'}}><CircleDollarSign size={26} color="#4ADE80"/></div>
               <p style={{fontSize:'16px',fontWeight:700,color:'#F8FAFC',marginBottom:'8px'}}>Nenhum pagamento registrado</p>
-              <p style={{fontSize:'13px',color:'#64748B',lineHeight:1.6,marginBottom:'6px',maxWidth:'380px',margin:'0 auto 6px'}}>Quando um cliente pagar uma cobrança ou orçamento, o recebimento aparecerá aqui.</p>
+              <p style={{fontSize:'13px',color:'#64748B',lineHeight:1.6,marginBottom:'6px',maxWidth:'380px',margin:'0 auto 6px'}}>Quando um recebimento for confirmado, ele aparecerá aqui no histórico.</p>
               <p style={{fontSize:'12px',color:'#475569',marginBottom:'24px'}}>Você também pode registrar pagamentos diretamente em uma cobrança.</p>
               <div style={{display:'flex',gap:'10px',justifyContent:'center',flexWrap:'wrap'}}>
                 <button onClick={()=>setShowForm(true)} className="btn-p" style={{background:'linear-gradient(135deg,#16A34A,#059669)'}}>+ Registrar recebimento</button>
