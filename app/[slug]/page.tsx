@@ -53,6 +53,7 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
   ])
 
   const temaId = perfil.tema_publico || perfil.tema_cor || 'padrao'
+  console.log('Tema publico:', temaId, '| Campo raw:', perfil.tema_publico)
   const tema = getTema(temaId)
 
   const nomeBusiness = perfil.nome_negocio || 'Agendamento Online'
@@ -184,18 +185,14 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
         <div style={{ background: `radial-gradient(circle at top left,${tema.soft},transparent 40%),linear-gradient(145deg,rgba(15,23,42,.97),rgba(8,20,33,.99))`, border: `1.5px solid ${tema.border}`, borderRadius: '18px', padding: '28px 28px', boxShadow: `0 0 32px ${tema.glow}` }}>
           <div className="cta-inner" style={{ display: 'flex', alignItems: 'center', gap: '20px', flexWrap: 'wrap' }}>
             <div style={{ flex: 1, minWidth: '200px' }}>
-              <p style={{ fontSize: '18px', fontWeight: 800, color: '#F8FAFC', marginBottom: '6px', letterSpacing: '-0.02em' }}>Pronto para marcar seu horário?</p>
-              <p style={{ fontSize: '13px', color: '#64748B', lineHeight: 1.6 }}>Escolha o serviço, veja os horários disponíveis e finalize em poucos segundos.</p>
+              <p style={{ fontSize: '18px', fontWeight: 800, color: '#F8FAFC', marginBottom: '6px', letterSpacing: '-0.02em' }}>Pronto para escolher seu horário?</p>
+              <p style={{ fontSize: '13px', color: '#64748B', lineHeight: 1.6 }}>Veja os serviços disponíveis e agende em poucos segundos.</p>
             </div>
             <div className="cta-btns" style={{ display: 'flex', gap: '10px', flexShrink: 0, flexWrap: 'wrap' }}>
               <Link href={`/${slug}/agendar`} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: tema.accent, color: tema.btnText, fontWeight: 800, padding: '13px 24px', borderRadius: '12px', textDecoration: 'none', fontSize: '14px', boxShadow: `0 8px 24px ${tema.glow}`, whiteSpace: 'nowrap' }}>
                 Agendar agora →
               </Link>
-              {linkWpp && (
-                <a href={linkWpp} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: '7px', background: 'rgba(15,23,42,.88)', color: '#94A3B8', fontWeight: 600, padding: '13px 18px', borderRadius: '12px', textDecoration: 'none', fontSize: '14px', border: '1px solid rgba(148,163,184,.18)', whiteSpace: 'nowrap' }}>
-                  Falar no WhatsApp
-                </a>
-              )}
+
             </div>
           </div>
         </div>

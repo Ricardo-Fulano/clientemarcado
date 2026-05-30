@@ -163,8 +163,8 @@ export default function Perfil(){
     } catch(_){}
 
     // Tema público — só envia se coluna existir (sem quebrar se não existir)
-    // TODO: criar coluna tema_publico text default 'padrao' na tabela perfis
-    // payloadBase.tema_publico=tema
+    // Salva tema na coluna tema_publico (criar se nao existir: ALTER TABLE perfis ADD COLUMN IF NOT EXISTS tema_publico text DEFAULT 'padrao')
+    payloadBase.tema_publico=tema
 
     console.log('Payload perfil:', payloadBase)
 
