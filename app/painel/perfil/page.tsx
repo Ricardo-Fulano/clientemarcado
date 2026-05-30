@@ -169,34 +169,27 @@ export default function Perfil(){
 
     console.log('Payload perfil:', payloadBase)
 
-    const {error}=await supabase.from('perfis').upsert(payloadBase,{onConflict:'user_id'})
+    // Verificar se perfil ja existe
+    const {data:existente}=await supabase.from('perfis').select('id').eq('user_id',userId).single()
 
-    if(error){
-      console.error('Erro ao salvar perfil:',error)
-      // Se erro for de coluna inexistente, tentar sem campos de agenda
-      if(error.message?.includes('column')||error.code==='42703'){
-        const payloadSimples={
-          user_id:userId,
-          nome_negocio:nome.trim(),
-          slug:slugFmt,
-          endereco:end.trim()||null,
-          whatsapp:wpp.replace(/\D/g,'')||null,
-          instagram:insta.trim()||null,
-          cidade:cidade.trim()||null,
-          descricao:desc.trim()||null,
-          capa_url:capUrl||null,
-          updated_at:new Date().toISOString(),
-        }
-        console.log('Tentando payload simplificado:', payloadSimples)
-        const {error:err2}=await supabase.from('perfis').upsert(payloadSimples,{onConflict:'user_id'})
-        if(err2){
-          console.error('Erro no payload simplificado:',err2)
-          setMsg('Erro ao salvar. Verifique os dados e tente novamente.')
-          setSalvando(false);return
-        }
-      } else {
-        setMsg('Erro ao salvar. Verifique os dados e tente novamente.')
-        setSalvando(false);return
+    let saveError:any=null
+    if(existente){
+      // UPDATE
+      const {error}=await supabase.from('perfis').update(payloadBase).eq('user_id',userId)
+      saveError=error
+    } else {
+      // INSERT
+      const {error}=await supabase.from('perfis').insert(payloadBase)
+      saveError=error
+    }
+
+    if(saveError){
+      console.error('Erro ao salvar perfil:',saveError)
+      // Tentar com payload minimo se houver erro de coluna
+      const payloadMin={nome_negocio:nome.trim(),slug:slugFmt,updated_at:new Date().toISOString()}
+      if(existente){
+        const {error:e2}=await supabase.from('perfis').update(payloadMin).eq('user_id',userId)
+        if(e2){console.error('Erro minimo:',e2);setMsg('Erro ao salvar. Verifique os dados e tente novamente.');setSalvando(false);return}
       }
     }
 
