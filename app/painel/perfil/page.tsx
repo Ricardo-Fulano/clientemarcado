@@ -171,26 +171,44 @@ export default function Perfil(){
     // Verificar se perfil ja existe
     const {data:existente}=await supabase.from('perfis').select('id').eq('user_id',userId).single()
 
+    // Salvar apenas campos seguros + public_theme
+    const payloadSeguro:any={
+      nome_negocio:nome.trim(),
+      slug:slugFmt,
+      public_theme:publicTheme,
+    }
+    // Adicionar campos opcionais se existirem
+    if(end!==undefined) payloadSeguro.endereco=end.trim()||null
+    if(wpp!==undefined) payloadSeguro.whatsapp=wpp.replace(/\D/g,'')||null
+    if(insta!==undefined) payloadSeguro.instagram=insta.trim()||null
+    if(cidade!==undefined) payloadSeguro.cidade=cidade.trim()||null
+    if(desc!==undefined) payloadSeguro.descricao=desc.trim()||null
+    if(capUrl!==undefined) payloadSeguro.capa_url=capUrl||null
+    try{payloadSeguro.dias_ativos=diasAtivos;payloadSeguro.horarios=horarios;payloadSeguro.intervalo=intervalo;payloadSeguro.abertura_geral=abertura;payloadSeguro.fechamento_geral=fechamento;payloadSeguro.antecedencia=antecedencia}catch(_){}
+
+    console.log('SALVANDO - publicTheme:', publicTheme)
+    console.log('PAYLOAD:', payloadSeguro)
+
     let saveError:any=null
     if(existente){
-      // UPDATE
-      const {error}=await supabase.from('perfis').update(payloadBase).eq('user_id',userId)
+      const {error,data:upd}=await supabase.from('perfis').update(payloadSeguro).eq('user_id',userId).select('public_theme')
+      console.log('UPDATE resultado:', upd, 'erro:', error)
       saveError=error
     } else {
-      // INSERT
-      const {error}=await supabase.from('perfis').insert(payloadBase)
+      const {error}=await supabase.from('perfis').insert({...payloadSeguro,user_id:userId})
       saveError=error
     }
 
     if(saveError){
-      console.error('Erro ao salvar perfil:',saveError)
-      // Tentar com payload minimo se houver erro de coluna
-      const payloadMin={nome_negocio:nome.trim(),slug:slugFmt}
-      if(existente){
-        const {error:e2}=await supabase.from('perfis').update(payloadMin).eq('user_id',userId)
-        if(e2){console.error('Erro minimo:',e2);setMsg('Erro ao salvar. Verifique os dados e tente novamente.');setSalvando(false);return}
-      }
+      console.error('Erro ao salvar:', saveError)
+      // Fallback: salvar apenas o essencial
+      const {error:e2}=await supabase.from('perfis').update({nome_negocio:nome.trim(),slug:slugFmt,public_theme:publicTheme}).eq('user_id',userId)
+      if(e2){console.error('Erro fallback:',e2);setMsg('Erro ao salvar. Tente novamente.');setSalvando(false);return}
     }
+
+    // Verificar o que foi salvo no banco
+    const {data:check}=await supabase.from('perfis').select('public_theme').eq('user_id',userId).single()
+    console.log('VERIFICACAO - public_theme no banco AGORA:', check?.public_theme)
 
     setSalvando(false)
     setMsg('Perfil salvo com sucesso!')
