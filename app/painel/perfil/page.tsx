@@ -142,7 +142,6 @@ export default function Perfil(){
       user_id:userId,
       nome_negocio:nome.trim(),
       slug:slugFmt,
-      updated_at:new Date().toISOString(),
     }
 
     // Campos opcionais — adicionados com segurança
@@ -186,7 +185,7 @@ export default function Perfil(){
     if(saveError){
       console.error('Erro ao salvar perfil:',saveError)
       // Tentar com payload minimo se houver erro de coluna
-      const payloadMin={nome_negocio:nome.trim(),slug:slugFmt,updated_at:new Date().toISOString()}
+      const payloadMin={nome_negocio:nome.trim(),slug:slugFmt}
       if(existente){
         const {error:e2}=await supabase.from('perfis').update(payloadMin).eq('user_id',userId)
         if(e2){console.error('Erro minimo:',e2);setMsg('Erro ao salvar. Verifique os dados e tente novamente.');setSalvando(false);return}
