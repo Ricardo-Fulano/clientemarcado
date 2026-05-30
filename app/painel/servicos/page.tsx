@@ -247,45 +247,32 @@ export default function Servicos(){
               <button onClick={()=>{resetForm();setShowForm(true)}} className="btn-p" style={{display:'inline-flex'}}><Plus size={15}/>Novo serviço</button>
             </div>
           ):(
-            <div className="svc-grid">
+            <div style={{display:"flex",flexDirection:"column",gap:"10px"}}>
               {filtrados.map(s=>{
-                const infoItems=[s.duracao,s.categoria,s.preco?fBRL(s.preco):null,s.profissional_nome||'Todos os profissionais'].filter(Boolean)
+                const durLabel=s.duracao?(/^\d+$/.test(s.duracao.trim())?`${s.duracao} min`:s.duracao):null
+                const infoItems=[durLabel,s.categoria,s.profissional_nome||'Todos os profissionais'].filter(Boolean)
                 return(
-                  <div key={s.id} className="crd" style={{padding:'20px',opacity:s.ativo?1:0.6,transition:'opacity .2s'}}>
-                    <div style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',gap:'10px',marginBottom:'12px'}}>
-                      <div style={{display:'flex',alignItems:'center',gap:'10px',minWidth:0,flex:1}}>
-                        <div style={{width:'40px',height:'40px',borderRadius:'12px',background:'rgba(236,72,153,.14)',border:'1px solid rgba(236,72,153,.24)',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}><Sparkles size={18} color="#F472B6"/></div>
-                        <div style={{minWidth:0}}>
-                          <p style={{fontSize:'15px',fontWeight:700,color:'#F8FAFC',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{s.nome}</p>
-                          {s.descricao&&<p style={{fontSize:'12px',color:'#64748B',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{s.descricao}</p>}
+                  <div key={s.id} className="crd" style={{padding:'18px 20px',width:'100%',boxSizing:'border-box' as const,background:s.ativo?'radial-gradient(circle at top left,rgba(124,58,237,.08),transparent 38%),linear-gradient(145deg,rgba(15,23,42,.97),rgba(8,20,33,.99))':'linear-gradient(145deg,rgba(10,18,30,.98),rgba(6,14,24,.99))',border:`1.5px solid ${s.ativo?'rgba(148,163,184,.18)':'rgba(148,163,184,.10)'}`}}>
+                    <div style={{display:'flex',alignItems:'center',gap:'16px',flexWrap:'wrap' as const}}>
+                      <div style={{display:'flex',alignItems:'center',gap:'12px',flex:1,minWidth:0}}>
+                        <div style={{width:'44px',height:'44px',borderRadius:'12px',background:'rgba(236,72,153,.14)',border:'1px solid rgba(236,72,153,.22)',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}><Sparkles size={20} color="#F472B6"/></div>
+                        <div style={{minWidth:0,flex:1}}>
+                          <div style={{display:'flex',alignItems:'center',gap:'8px',marginBottom:'4px',flexWrap:'wrap' as const}}>
+                            <p style={{fontSize:'15px',fontWeight:700,color:'#F8FAFC'}}>{s.nome}</p>
+                            {s.preco&&s.preco>0&&<span style={{fontSize:'13px',fontWeight:800,color:'#4ADE80'}}>{fBRL(s.preco)}</span>}
+                          </div>
+                          <div style={{display:'flex',flexWrap:'wrap' as const,gap:'5px'}}>
+                            {infoItems.map((item,i)=>(<span key={i} style={{fontSize:'11px',color:'#94A3B8',background:'rgba(255,255,255,.05)',border:'1px solid rgba(255,255,255,.07)',borderRadius:'6px',padding:'2px 8px'}}>{item}</span>))}
+                            {s.descricao&&<span style={{fontSize:'11px',color:'#64748B',fontStyle:'italic'}}>{s.descricao}</span>}
+                          </div>
                         </div>
                       </div>
-                      <span style={{fontSize:'11px',fontWeight:700,padding:'3px 10px',borderRadius:'999px',background:s.ativo?'rgba(34,197,94,.14)':'rgba(148,163,184,.10)',color:s.ativo?'#4ADE80':'#64748B',border:`1px solid ${s.ativo?'rgba(34,197,94,.28)':'rgba(148,163,184,.18)'}`,flexShrink:0,whiteSpace:'nowrap'}}>{s.ativo?'Ativo':'Inativo'}</span>
-                    </div>
-
-                    {/* Info line */}
-                    <div style={{display:'flex',flexWrap:'wrap',gap:'6px',marginBottom:'16px'}}>
-                      {infoItems.map((item,i)=>(
-                        <span key={i} style={{fontSize:'11px',color:'#94A3B8',background:'rgba(255,255,255,.05)',border:'1px solid rgba(255,255,255,.08)',borderRadius:'6px',padding:'3px 8px'}}>{item}</span>
-                      ))}
-                      {s.preco&&s.preco>0&&(
-                        <span style={{fontSize:'12px',fontWeight:800,color:'#4ADE80',marginLeft:'auto'}}>{fBRL(s.preco)}</span>
-                      )}
-                    </div>
-
-                    {/* Botoes */}
-                    <div style={{display:'flex',gap:'6px',flexWrap:'wrap'}}>
-                      <button onClick={()=>abrirEditar(s)} style={{flex:1,minWidth:'70px',height:'36px',background:'rgba(59,130,246,.12)',border:'1px solid rgba(59,130,246,.28)',borderRadius:'8px',fontSize:'12px',fontWeight:600,color:'#60A5FA',cursor:'pointer',fontFamily:'inherit',display:'flex',alignItems:'center',justifyContent:'center',gap:'4px',transition:'all .18s'}}
-                        onMouseEnter={e=>(e.currentTarget.style.background='rgba(59,130,246,.22)')} onMouseLeave={e=>(e.currentTarget.style.background='rgba(59,130,246,.12)')}>
-                        <Pencil size={13}/>Editar
-                      </button>
-                      <button onClick={()=>toggleAtivo(s)} style={{flex:1,minWidth:'80px',height:'36px',background:s.ativo?'rgba(245,158,11,.12)':'rgba(34,197,94,.12)',border:`1px solid ${s.ativo?'rgba(245,158,11,.28)':'rgba(34,197,94,.28)'}`,borderRadius:'8px',fontSize:'12px',fontWeight:600,color:s.ativo?'#FBBF24':'#4ADE80',cursor:'pointer',fontFamily:'inherit',display:'flex',alignItems:'center',justifyContent:'center',gap:'4px',transition:'all .18s'}}>
-                        <Power size={13}/>{s.ativo?'Desativar':'Ativar'}
-                      </button>
-                      <button onClick={()=>excluir(s.id)} style={{width:'36px',height:'36px',background:'rgba(239,68,68,.10)',border:'1px solid rgba(239,68,68,.24)',borderRadius:'8px',fontSize:'12px',fontWeight:600,color:'#F87171',cursor:'pointer',fontFamily:'inherit',display:'flex',alignItems:'center',justifyContent:'center',transition:'all .18s'}}
-                        onMouseEnter={e=>(e.currentTarget.style.background='rgba(239,68,68,.20)')} onMouseLeave={e=>(e.currentTarget.style.background='rgba(239,68,68,.10)')}>
-                        <Trash2 size={14}/>
-                      </button>
+                      <div style={{display:'flex',alignItems:'center',gap:'8px',flexShrink:0,flexWrap:'wrap' as const}}>
+                        <span style={{fontSize:'11px',fontWeight:700,padding:'4px 12px',borderRadius:'999px',background:s.ativo?'rgba(34,197,94,.14)':'rgba(148,163,184,.10)',color:s.ativo?'#4ADE80':'#94A3B8',border:`1px solid ${s.ativo?'rgba(34,197,94,.28)':'rgba(148,163,184,.16)'}`,whiteSpace:'nowrap'}}>{s.ativo?'Ativo':'Inativo'}</span>
+                        <button onClick={()=>abrirEditar(s)} style={{height:'36px',padding:'0 14px',background:'rgba(59,130,246,.12)',border:'1px solid rgba(59,130,246,.28)',borderRadius:'8px',fontSize:'12px',fontWeight:600,color:'#60A5FA',cursor:'pointer',fontFamily:'inherit',display:'flex',alignItems:'center',gap:'4px',whiteSpace:'nowrap',transition:'all .18s'}} onMouseEnter={e=>(e.currentTarget.style.background='rgba(59,130,246,.22)')} onMouseLeave={e=>(e.currentTarget.style.background='rgba(59,130,246,.12)')}><Pencil size={13}/>Editar</button>
+                        <button onClick={()=>toggleAtivo(s)} style={{height:'36px',padding:'0 14px',background:s.ativo?'rgba(245,158,11,.12)':'rgba(34,197,94,.12)',border:`1px solid ${s.ativo?'rgba(245,158,11,.28)':'rgba(34,197,94,.28)'}`,borderRadius:'8px',fontSize:'12px',fontWeight:600,color:s.ativo?'#FBBF24':'#4ADE80',cursor:'pointer',fontFamily:'inherit',display:'flex',alignItems:'center',gap:'4px',whiteSpace:'nowrap',transition:'all .18s'}}><Power size={13}/>{s.ativo?'Desativar':'Ativar'}</button>
+                        <button onClick={()=>excluir(s.id)} style={{width:'36px',height:'36px',background:'rgba(239,68,68,.10)',border:'1px solid rgba(239,68,68,.24)',borderRadius:'8px',color:'#F87171',cursor:'pointer',fontFamily:'inherit',display:'flex',alignItems:'center',justifyContent:'center',transition:'all .18s'}} onMouseEnter={e=>(e.currentTarget.style.background='rgba(239,68,68,.20)')} onMouseLeave={e=>(e.currentTarget.style.background='rgba(239,68,68,.10)')}><Trash2 size={14}/></button>
+                      </div>
                     </div>
                   </div>
                 )
