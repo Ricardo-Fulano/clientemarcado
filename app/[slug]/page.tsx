@@ -9,7 +9,7 @@ function getTema(temaPublico: string) {
     case 'beleza':   return { accent:'#EC4899', soft:'rgba(236,72,153,.12)', border:'rgba(236,72,153,.28)', glow:'rgba(236,72,153,.15)', btnText:'#fff' }
     case 'saude':    return { accent:'#22C55E', soft:'rgba(34,197,94,.12)',  border:'rgba(34,197,94,.28)',  glow:'rgba(34,197,94,.15)',  btnText:'#fff' }
     case 'barbearia':return { accent:'#F59E0B', soft:'rgba(245,158,11,.12)', border:'rgba(245,158,11,.28)', glow:'rgba(245,158,11,.15)', btnText:'#111827' }
-    case 'minimal':  return { accent:'#3B82F6', soft:'rgba(59,130,246,.12)', border:'rgba(59,130,246,.28)', glow:'rgba(59,130,246,.15)', btnText:'#fff' }
+    case 'minimal':  return { accent:'#94A3B8', soft:'rgba(148,163,184,.12)', border:'rgba(203,213,225,.28)', glow:'rgba(148,163,184,.10)', btnText:'#0F172A' }
     default:         return { accent:'#3B82F6', soft:'rgba(59,130,246,.12)', border:'rgba(59,130,246,.28)', glow:'rgba(59,130,246,.15)', btnText:'#fff' }
   }
 }
