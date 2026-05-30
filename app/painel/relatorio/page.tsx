@@ -197,7 +197,7 @@ export default function Relatorios(){
                       <CartesianGrid strokeDasharray="3 3" stroke="rgba(148,163,184,.10)" vertical={false}/>
                       <XAxis dataKey="name" tick={{fill:'#94A3B8',fontSize:13,fontWeight:600}} axisLine={false} tickLine={false}/>
                       <YAxis tickFormatter={(v)=>`R$ ${(v/1000).toFixed(0)}k`} tick={{fill:'#64748B',fontSize:11}} axisLine={false} tickLine={false} width={60}/>
-                      <Tooltip content={<CustomTooltip/>}/>
+                      <Tooltip content={<CustomTooltip/>} cursor={{fill:'rgba(148,163,184,.06)'}}/>
                       <Bar dataKey="valor" radius={[8,8,0,0]}>
                         {chartData.map((entry,i)=><Cell key={i} fill={entry.fill} fillOpacity={0.85}/>)}
                       </Bar>
@@ -348,7 +348,7 @@ export default function Relatorios(){
                           <CartesianGrid strokeDasharray="3 3" stroke="rgba(148,163,184,.10)" vertical={false}/>
                           <XAxis dataKey="name" tick={{fill:'#94A3B8',fontSize:12}} axisLine={false} tickLine={false}/>
                           <YAxis tickFormatter={v=>`R$${(v/1000).toFixed(1)}k`} tick={{fill:'#64748B',fontSize:10}} axisLine={false} tickLine={false} width={50}/>
-                          <Tooltip content={<CustomTooltip/>}/>
+                          <Tooltip content={<CustomTooltip/>} cursor={{fill:'rgba(148,163,184,.06)'}}/>
                           <Bar dataKey="valor" fill="#3B82F6" radius={[6,6,0,0]} fillOpacity={0.85}/>
                         </BarChart>
                       </ResponsiveContainer>
