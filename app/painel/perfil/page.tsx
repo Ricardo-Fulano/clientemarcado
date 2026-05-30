@@ -101,7 +101,7 @@ export default function Perfil(){
   const [antecedencia,setAntecedencia]=useState('Sem restrição')
 
   // Tema (estado local — conectar ao banco quando criar coluna tema_publico)
-  const [tema,setTema]=useState('padrao')
+  const [publicTheme,setPublicTheme]=useState('padrao')
 
   useEffect(()=>{load()},[])
 
@@ -128,7 +128,7 @@ export default function Perfil(){
       if(p.fechamento_geral) setFechamento(p.fechamento_geral)
       if(p.antecedencia||p.antecedencia_minima) setAntecedencia(p.antecedencia||p.antecedencia_minima||'Sem restrição')
       // Tema (se existir no banco)
-      if(p.tema_publico||p.tema_cor) setTema(p.tema_publico||p.tema_cor||'padrao')
+      if(p.public_theme||p.tema_publico||p.tema_cor) setPublicTheme(p.public_theme||p.tema_publico||p.tema_cor||'padrao')
     }
   }
 
@@ -163,7 +163,8 @@ export default function Perfil(){
     } catch(_){}
 
     // Tema público — só envia se coluna existir (sem quebrar se não existir)
-    payloadBase.tema_publico=tema
+    payloadBase.public_theme=publicTheme
+    console.log('Tema antes de salvar:', publicTheme)
 
     console.log('Payload perfil:', payloadBase)
 
@@ -376,15 +377,15 @@ export default function Perfil(){
               {/* TODO: conectar tema ao banco criando coluna tema_publico text default 'padrao' na tabela perfis */}
               <div className="temas-grid" style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'10px'}}>
                 {TEMAS.map(t=>(
-                  <button key={t.id} onClick={()=>setTema(t.id)} className={`tema-card${tema===t.id?' on':''}`}>
+                  <button key={t.id} onClick={()=>setPublicTheme(t.id)} className={`tema-card${publicTheme===t.id?' on':''}`}>
                     <div style={{display:'flex',alignItems:'center',gap:'8px',marginBottom:'8px'}}>
                       <div style={{display:'flex',gap:'4px'}}>
                         <div style={{width:'16px',height:'16px',borderRadius:'50%',background:t.p,flexShrink:0}}/>
                         <div style={{width:'16px',height:'16px',borderRadius:'50%',background:t.s,flexShrink:0}}/>
                       </div>
-                      {tema===t.id&&<span style={{fontSize:'10px',fontWeight:700,color:'#C4B5FD',background:'rgba(124,58,237,.18)',borderRadius:'6px',padding:'2px 7px',marginLeft:'auto'}}>Ativo</span>}
+                      {publicTheme===t.id&&<span style={{fontSize:'10px',fontWeight:700,color:'#C4B5FD',background:'rgba(124,58,237,.18)',borderRadius:'6px',padding:'2px 7px',marginLeft:'auto'}}>Ativo</span>}
                     </div>
-                    <p style={{fontSize:'12px',fontWeight:700,color:tema===t.id?'#F8FAFC':'#CBD5E1',marginBottom:'3px'}}>{t.nome}</p>
+                    <p style={{fontSize:'12px',fontWeight:700,color:publicTheme===t.id?'#F8FAFC':'#CBD5E1',marginBottom:'3px'}}>{t.nome}</p>
                     <p style={{fontSize:'11px',color:'#64748B',lineHeight:1.4}}>{t.desc}</p>
                   </button>
                 ))}

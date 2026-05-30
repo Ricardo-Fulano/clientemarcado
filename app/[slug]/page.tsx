@@ -52,8 +52,8 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
     supabase.from('profissionais').select('*').eq('user_id', perfil.user_id).eq('ativo', true).order('nome'),
   ])
 
-  const temaId = perfil.tema_publico || perfil.tema_cor || 'padrao'
-  console.log('Tema publico:', temaId, '| Campo raw:', perfil.tema_publico)
+  const temaId = perfil.public_theme || perfil.tema_publico || perfil.tema_cor || 'padrao'
+  console.log('Tema publico lido:', temaId, '| public_theme:', perfil.public_theme)
   const tema = getTema(temaId)
 
   const nomeBusiness = perfil.nome_negocio || 'Agendamento Online'
