@@ -249,7 +249,7 @@ export default function Servicos(){
           ):(
             <div style={{display:"flex",flexDirection:"column",gap:"10px"}}>
               {filtrados.map(s=>{
-                const durLabel=s.duracao?(/^\d+$/.test(s.duracao.trim())?`${s.duracao} min`:s.duracao):null
+                const durRaw=s.duracao?String(s.duracao).trim():null;const durLabel=durRaw?(/^\d+$/.test(durRaw)?`${durRaw} min`:durRaw):null
                 const infoItems=[durLabel,s.categoria,s.profissional_nome||'Todos os profissionais'].filter(Boolean)
                 return(
                   <div key={s.id} className="crd" style={{padding:'18px 20px',width:'100%',boxSizing:'border-box' as const,background:s.ativo?'radial-gradient(circle at top left,rgba(124,58,237,.08),transparent 38%),linear-gradient(145deg,rgba(15,23,42,.97),rgba(8,20,33,.99))':'linear-gradient(145deg,rgba(10,18,30,.98),rgba(6,14,24,.99))',border:`1.5px solid ${s.ativo?'rgba(148,163,184,.18)':'rgba(148,163,184,.10)'}`}}>
