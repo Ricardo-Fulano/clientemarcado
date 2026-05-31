@@ -160,7 +160,7 @@ export default function Servicos(){
       <style dangerouslySetInnerHTML={{__html:CSS}}/>
       <div className={`ovl${mob?' open':''}`} onClick={()=>setMob(false)}/>
       <div className={`drw${mob?' open':''}`}>
-        <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'16px 18px',borderBottom:'1px solid rgba(148,163,184,.10)'}}><span style={{fontSize:'14px',fontWeight:800,color:'#F8FAFC'}}>ClienteMarcado</span><button onClick={()=>setMob(false)} style={{background:'none',border:'none',color:'rgba(255,255,255,.5)',cursor:'pointer',fontSize:'22px',lineHeight:1}}>×</button></div>
+        <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'16px 18px',borderBottom:'1px solid rgba(148,163,184,.10)'}}><span style={{fontSize:'14px',fontWeight:800,color:'#F8FAFC'}}>ClienteMarcado</span><button onClick={()=>setMob(false)} style={{background:'none',border:'none',color:'rgba(255,255,255,.5)',cursor:'pointer',fontSize:'22px',lineHeight:1}}>Ã</button></div>
         <nav style={{flex:1,padding:'10px 8px',overflowY:'auto'}}>{SB_LINKS.map(it=>(<Link key={it.l} href={it.h} prefetch={false} onClick={()=>setMob(false)} className={'nl'+(it.on?' on':'')} style={{fontSize:'14px'}}><it.I size={16}/><span>{it.l}</span></Link>))}</nav>
       </div>
       <SidebarComp/>
@@ -190,7 +190,7 @@ export default function Servicos(){
             <div className="crd" style={{padding:'24px',marginBottom:'20px',border:'1.5px solid rgba(124,58,237,.28)'}}>
               <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:'18px'}}>
                 <p style={{fontSize:'15px',fontWeight:700,color:'#C4B5FD'}}>{editId?'Editar serviço':'Novo serviço'}</p>
-                <button onClick={()=>{resetForm();setShowForm(false)}} style={{background:'none',border:'none',color:'#64748B',cursor:'pointer',fontSize:'22px',lineHeight:1}}>×</button>
+                <button onClick={()=>{resetForm();setShowForm(false)}} style={{background:'none',border:'none',color:'#64748B',cursor:'pointer',fontSize:'22px',lineHeight:1}}>Ã</button>
               </div>
               <div className="fg2" style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'14px',marginBottom:'14px'}}>
                 <div><label className="lbl">Nome do serviço *</label><input className="inp" type="text" placeholder="Ex: Corte masculino, Canal, Limpeza de pele..." value={fNome} onChange={e=>setFNome(e.target.value)}/></div>
@@ -213,9 +213,9 @@ export default function Servicos(){
           <div className="kpi-grid">
             {[
               {l:'TOTAL CADASTRADO',sub:'Serviços e procedimentos',v:servicos.length,fmt:'n',c:'#F472B6',bg:'rgba(236,72,153,.10)',bd:'rgba(236,72,153,.28)',I:Sparkles},
-              {l:'SERVIÇOS ATIVOS',sub:'Disponíveis para agendamento',v:ativos,fmt:'n',c:'#4ADE80',bg:'rgba(34,197,94,.10)',bd:'rgba(34,197,94,.28)',I:Tag},
+              {l:'SERVIÃOS ATIVOS',sub:'Disponíveis para agendamento',v:ativos,fmt:'n',c:'#4ADE80',bg:'rgba(34,197,94,.10)',bd:'rgba(34,197,94,.28)',I:Tag},
               {l:'CATEGORIAS',sub:'Tipos de serviço',v:cats||0,fmt:'n',c:'#22D3EE',bg:'rgba(6,182,212,.10)',bd:'rgba(6,182,212,.28)',I:Tag},
-              {l:'VALOR MÉDIO',sub:comPreco.length>0?'Média dos serviços com preço':'Sem valores cadastrados',v:ticketMedio,fmt:'brl',c:'#FBBF24',bg:'rgba(245,158,11,.10)',bd:'rgba(245,158,11,.28)',I:Tag},
+              {l:'VALOR MÃDIO',sub:comPreco.length>0?'Média dos serviços com preço':'Sem valores cadastrados',v:ticketMedio,fmt:'brl',c:'#FBBF24',bg:'rgba(245,158,11,.10)',bd:'rgba(245,158,11,.28)',I:Tag},
             ].map(k=>(
               <div key={k.l} className="crd" style={{padding:'18px 16px',background:`radial-gradient(circle at top left,${k.bg},transparent 60%),linear-gradient(145deg,rgba(15,23,42,.97),rgba(8,20,33,.99))`,border:`1.5px solid ${k.bd}`}}>
                 <div style={{width:'36px',height:'36px',borderRadius:'10px',background:k.bg,display:'flex',alignItems:'center',justifyContent:'center',marginBottom:'10px'}}><k.I size={18} color={k.c}/></div>

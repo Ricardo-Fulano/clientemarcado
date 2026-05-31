@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { Zap, CalendarDays, CheckCircle, Sparkles } from 'lucide-react'
 
-// Presets de cor — mesmos do perfil
+// Presets de cor â mesmos do perfil
 function getTema(temaPublico: string) {
   switch(temaPublico) {
     case 'beleza':   return { accent:'#EC4899', soft:'rgba(236,72,153,.12)', border:'rgba(236,72,153,.28)', glow:'rgba(236,72,153,.15)', btnText:'#fff' }
@@ -88,12 +88,12 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
           </p>
           {endereco && (
             <p style={{ fontSize: '13px', color: '#94A3B8', display: 'flex', alignItems: 'center', gap: '5px' }}>
-              <span style={{ fontSize: '12px' }}>📍</span> {endereco}
+              <span style={{ fontSize: '12px' }}>ð</span> {endereco}
             </p>
           )}
           <div className="hero-btns">
             <Link href={`/${slug}/agendar`} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: tema.accent, color: tema.btnText, fontWeight: 800, padding: '13px 26px', borderRadius: '12px', textDecoration: 'none', fontSize: '14px', boxShadow: `0 8px 24px ${tema.glow}`, letterSpacing: '-0.01em' }}>
-              Agendar agora →
+              Agendar agora â
             </Link>
             {linkWpp && (
               <a href={linkWpp} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: '7px', background: 'rgba(34,197,94,.14)', color: '#4ADE80', fontWeight: 700, padding: '13px 22px', borderRadius: '12px', textDecoration: 'none', fontSize: '14px', border: '1px solid rgba(34,197,94,.28)' }}>
@@ -123,11 +123,11 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
                     {s.descricao && <p style={{ fontSize: '11px', color: '#64748B', marginBottom: '3px', lineHeight: 1.4 }}>{s.descricao}</p>}
                     <p style={{ fontSize: '12px', color: '#94A3B8' }}>
                       {s.duracao && <span>{s.duracao}</span>}
-                      {s.duracao && s.preco ? <span style={{ margin: '0 5px' }}>·</span> : null}
+                      {s.duracao && s.preco ? <span style={{ margin: '0 5px' }}>Â·</span> : null}
                       {s.preco && <span style={{ color: tema.accent, fontWeight: 700 }}>{fBRL(parseFloat(s.preco))}</span>}
                     </p>
                   </div>
-                  <span style={{ fontSize: '18px', color: '#374151', flexShrink: 0 }}>›</span>
+                  <span style={{ fontSize: '18px', color: '#374151', flexShrink: 0 }}>âº</span>
                 </Link>
               ))}
             </div>
@@ -152,7 +152,7 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
                     <p style={{ fontSize: '14px', fontWeight: 600, color: '#F8FAFC', marginBottom: '2px' }}>{p.nome}</p>
                     <p style={{ fontSize: '12px', color: '#64748B' }}>{p.cargo || 'Profissional'}</p>
                   </div>
-                  <span style={{ fontSize: '18px', color: '#374151' }}>›</span>
+                  <span style={{ fontSize: '18px', color: '#374151' }}>âº</span>
                 </div>
               ))}
             </div>
@@ -190,7 +190,7 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
             </div>
             <div className="cta-btns" style={{ display: 'flex', gap: '10px', flexShrink: 0, flexWrap: 'wrap' }}>
               <Link href={`/${slug}/agendar`} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: tema.accent, color: tema.btnText, fontWeight: 800, padding: '13px 24px', borderRadius: '12px', textDecoration: 'none', fontSize: '14px', boxShadow: `0 8px 24px ${tema.glow}`, whiteSpace: 'nowrap' }}>
-                Agendar agora →
+                Agendar agora â
               </Link>
 
             </div>

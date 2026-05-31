@@ -115,7 +115,7 @@ export default function Agendamentos(){
   async function updSt(id:string,status:string){
     await supabase.from('agendamentos').update({status}).eq('id',id)
     setAgs(prev=>prev.map(a=>a.id===id?{...a,status}:a))
-    setMsg('✓ Atualizado');setTimeout(()=>setMsg(''),2000)
+    setMsg('â Atualizado');setTimeout(()=>setMsg(''),2000)
   }
   const fH=(s:string)=>new Date(s).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})
   const fD=(s:string)=>new Date(s+'T12:00:00').toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'long'})
@@ -127,11 +127,11 @@ export default function Agendamentos(){
   })
   const agHoje=ags.filter(a=>a.data_hora?.startsWith(hoje)&&a.status!=='cancelado')
   const kpis=[
-    {l:'Hoje',v:agHoje.length,c:'#60A5FA',bg:'rgba(59,130,246,.10)',bd:'rgba(59,130,246,.24)',ico:'📅'},
-    {l:'Confirmados',v:ags.filter(a=>a.data_hora?.startsWith(hoje)&&a.status==='confirmado').length,c:'#4ADE80',bg:'rgba(34,197,94,.10)',bd:'rgba(34,197,94,.24)',ico:'✓'},
-    {l:'Pendentes',v:ags.filter(a=>a.data_hora?.startsWith(hoje)&&a.status==='pendente').length,c:'#FBBF24',bg:'rgba(245,158,11,.10)',bd:'rgba(245,158,11,.24)',ico:'⏳'},
-    {l:'Retornos',v:ags.filter(a=>a.status==='retorno').length,c:'#C4B5FD',bg:'rgba(139,92,246,.10)',bd:'rgba(139,92,246,.24)',ico:'↩'},
-    {l:'Cancelados',v:ags.filter(a=>a.data_hora?.startsWith(hoje)&&a.status==='cancelado').length,c:'#F87171',bg:'rgba(239,68,68,.10)',bd:'rgba(239,68,68,.24)',ico:'✕'},
+    {l:'Hoje',v:agHoje.length,c:'#60A5FA',bg:'rgba(59,130,246,.10)',bd:'rgba(59,130,246,.24)',ico:'ð'},
+    {l:'Confirmados',v:ags.filter(a=>a.data_hora?.startsWith(hoje)&&a.status==='confirmado').length,c:'#4ADE80',bg:'rgba(34,197,94,.10)',bd:'rgba(34,197,94,.24)',ico:'â'},
+    {l:'Pendentes',v:ags.filter(a=>a.data_hora?.startsWith(hoje)&&a.status==='pendente').length,c:'#FBBF24',bg:'rgba(245,158,11,.10)',bd:'rgba(245,158,11,.24)',ico:'â³'},
+    {l:'Retornos',v:ags.filter(a=>a.status==='retorno').length,c:'#C4B5FD',bg:'rgba(139,92,246,.10)',bd:'rgba(139,92,246,.24)',ico:'â©'},
+    {l:'Cancelados',v:ags.filter(a=>a.data_hora?.startsWith(hoje)&&a.status==='cancelado').length,c:'#F87171',bg:'rgba(239,68,68,.10)',bd:'rgba(239,68,68,.24)',ico:'â'},
   ]
   function getSem(){
     const b=new Date();b.setDate(b.getDate()+semOff*7)
@@ -168,7 +168,7 @@ export default function Agendamentos(){
       <div className={`drw${mob?' open':''}`}>
         <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'16px 18px',borderBottom:'1px solid rgba(148,163,184,.10)'}}>
           <span style={{fontSize:'14px',fontWeight:800,color:'#F8FAFC'}}>ClienteMarcado</span>
-          <button onClick={()=>setMob(false)} style={{background:'none',border:'none',color:'rgba(255,255,255,.5)',cursor:'pointer',fontSize:'22px',lineHeight:1}}>×</button>
+          <button onClick={()=>setMob(false)} style={{background:'none',border:'none',color:'rgba(255,255,255,.5)',cursor:'pointer',fontSize:'22px',lineHeight:1}}>Ã</button>
         </div>
         <nav style={{flex:1,padding:'10px 8px',overflowY:'auto'}}>{SB_ITEMS.map(it=><Link key={it.l} href={it.h} onClick={()=>setMob(false)} className={'nl'+(it.on?' on':'')} style={{fontSize:'14px'}}>{it.l}</Link>)}</nav>
       </div>
@@ -214,7 +214,7 @@ export default function Agendamentos(){
           <div className="ctl-bar crd" style={{padding:'14px 16px',marginBottom:'18px',display:'flex',alignItems:'center',gap:'12px',flexWrap:'wrap',borderRadius:'18px'}}>
             <div className="seg">
               {(['lista','semana'] as const).map(v=>(
-                <button key={v} onClick={()=>setView(v)} className={`seg-b${view===v?' on':''}`}>{v==='lista'?'☰ Lista':'▦ Semana'}</button>
+                <button key={v} onClick={()=>setView(v)} className={`seg-b${view===v?' on':''}`}>{v==='lista'?'â° Lista':'â¦ Semana'}</button>
               ))}
             </div>
             <div className="pills-row" style={{display:'flex',gap:'5px',flex:1,flexWrap:'wrap'}}>
@@ -232,10 +232,10 @@ export default function Agendamentos(){
             )}
             {view==='semana'&&(
               <div style={{display:'flex',alignItems:'center',gap:'6px',flexShrink:0,flexWrap:'wrap'}}>
-                <button onClick={()=>setSemOff(o=>o-1)} className="btn-s" style={{height:'36px',padding:'0 12px',fontSize:'12px'}}>← Ant.</button>
+                <button onClick={()=>setSemOff(o=>o-1)} className="btn-s" style={{height:'36px',padding:'0 12px',fontSize:'12px'}}>â Ant.</button>
                 <button onClick={()=>{setSemOff(0);setDiaSel(hoje)}} className="btn-s" style={{height:'36px',padding:'0 12px',fontSize:'12px',color:semOff===0?'#60A5FA':'#94A3B8'}}>Hoje</button>
-                <span style={{fontSize:'12px',color:'#64748B',whiteSpace:'nowrap'}}>{fDC(sem[0])} – {fDC(sem[6])}</span>
-                <button onClick={()=>setSemOff(o=>o+1)} className="btn-s" style={{height:'36px',padding:'0 12px',fontSize:'12px'}}>Próx. →</button>
+                <span style={{fontSize:'12px',color:'#64748B',whiteSpace:'nowrap'}}>{fDC(sem[0])} â {fDC(sem[6])}</span>
+                <button onClick={()=>setSemOff(o=>o+1)} className="btn-s" style={{height:'36px',padding:'0 12px',fontSize:'12px'}}>Próx. â</button>
               </div>
             )}
           </div>
@@ -243,7 +243,7 @@ export default function Agendamentos(){
           {view==='lista'&&(
             dias.length===0?(
               <div className="crd" style={{padding:'56px 24px',textAlign:'center',borderRadius:'20px'}}>
-                <div style={{width:'56px',height:'56px',borderRadius:'16px',background:'rgba(59,130,246,.14)',border:'1.5px solid rgba(59,130,246,.28)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'26px',margin:'0 auto 16px'}}>📅</div>
+                <div style={{width:'56px',height:'56px',borderRadius:'16px',background:'rgba(59,130,246,.14)',border:'1.5px solid rgba(59,130,246,.28)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'26px',margin:'0 auto 16px'}}>ð</div>
                 <p style={{fontSize:'16px',fontWeight:700,color:'#F8FAFC',marginBottom:'6px'}}>Nenhum agendamento encontrado</p>
                 <p style={{fontSize:'13px',color:'#64748B',lineHeight:1.5,maxWidth:'280px',margin:'0 auto 20px'}}>Ajuste os filtros ou crie um novo agendamento.</p>
                 <Link href="/painel/agendamentos/novo" className="btn-p" style={{display:'inline-flex'}}>+ Novo agendamento</Link>
@@ -253,7 +253,7 @@ export default function Agendamentos(){
                 <div key={dia} style={{marginBottom:'22px'}}>
                   <div style={{display:'flex',alignItems:'center',gap:'10px',marginBottom:'12px'}}>
                     <div style={{width:'7px',height:'7px',borderRadius:'50%',background:dia===hoje?'#3B82F6':'#334155',boxShadow:dia===hoje?'0 0 10px rgba(59,130,246,.8)':'none',flexShrink:0}}/>
-                    <p style={{fontSize:'13px',fontWeight:700,color:dia===hoje?'#60A5FA':'#94A3B8',textTransform:'capitalize' as const}}>{fD(dia!)}{dia===hoje?' — Hoje':''}</p>
+                    <p style={{fontSize:'13px',fontWeight:700,color:dia===hoje?'#60A5FA':'#94A3B8',textTransform:'capitalize' as const}}>{fD(dia!)}{dia===hoje?' â Hoje':''}</p>
                     <div style={{flex:1,height:'1px',background:'rgba(148,163,184,.10)'}}/>
                     <span style={{fontSize:'11px',color:'#374151',flexShrink:0}}>{agsD(dia!).length} atend.</span>
                   </div>
@@ -268,16 +268,16 @@ export default function Agendamentos(){
                           </div>
                           <div style={{minWidth:0}}>
                             <div style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',gap:'5px',marginBottom:'2px',flexWrap:'wrap'}}>
-                              <p style={{fontSize:'15px',fontWeight:800,color:'#F8FAFC',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',flex:1,lineHeight:1.15}}>{a.cliente_nome||'—'}</p>
+                              <p style={{fontSize:'15px',fontWeight:800,color:'#F8FAFC',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',flex:1,lineHeight:1.15}}>{a.cliente_nome||'â'}</p>
                               <span style={{fontSize:'10px',fontWeight:600,padding:'2px 8px',borderRadius:'999px',background:sc.bg,color:sc.c,border:`1px solid ${sc.bd}`,whiteSpace:'nowrap',flexShrink:0,lineHeight:'18px'}}>{sc.t}</span>
                             </div>
                             <p style={{fontSize:'13px',color:'#94A3B8',marginBottom:'1px',lineHeight:1.2,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{a.servicos?.nome||'Serviço não informado'}</p>
                             {a.profissionais?.nome&&<p style={{fontSize:'11px',color:'#64748B',lineHeight:1.2}}>Prof.: {a.profissionais.nome}</p>}
                             <div className="act-grid" style={{display:'flex',gap:'6px',marginTop:'10px',flexWrap:'wrap',width:'100%',maxWidth:'100%'}}>
-                              {a.status!=='confirmado'&&a.status!=='realizado'&&a.status!=='cancelado'&&<button onClick={()=>updSt(a.id,'confirmado')} className="act-b" style={{background:'rgba(34,197,94,.12)',border:'1px solid rgba(34,197,94,.35)',color:'#4ADE80'}}>✓ Confirmar</button>}
+                              {a.status!=='confirmado'&&a.status!=='realizado'&&a.status!=='cancelado'&&<button onClick={()=>updSt(a.id,'confirmado')} className="act-b" style={{background:'rgba(34,197,94,.12)',border:'1px solid rgba(34,197,94,.35)',color:'#4ADE80'}}>â Confirmar</button>}
                               {a.status!=='realizado'&&a.status!=='cancelado'&&<button onClick={()=>updSt(a.id,'realizado')} className="act-b" style={{background:'rgba(59,130,246,.12)',border:'1px solid rgba(59,130,246,.30)',color:'#93C5FD'}}>Realizado</button>}
                               {a.status!=='retorno'&&a.status!=='cancelado'&&<button onClick={()=>updSt(a.id,'retorno')} className="act-b" style={{background:'rgba(139,92,246,.12)',border:'1px solid rgba(139,92,246,.30)',color:'#C4B5FD'}}>Retorno</button>}
-                              {a.cliente_whatsapp&&<button onClick={()=>window.open(`https://wa.me/55${a.cliente_whatsapp.replace(/\D/g,'')}?text=${encodeURIComponent(`Olá, ${a.cliente_nome}! Confirmando seu atendimento às ${fH(a.data_hora)}.`)}`,'_blank')} className="act-b" style={{background:'rgba(34,197,94,.08)',border:'1px solid rgba(34,197,94,.20)',color:'#6EE7B7'}}>💬</button>}
+                              {a.cliente_whatsapp&&<button onClick={()=>window.open(`https://wa.me/55${a.cliente_whatsapp.replace(/\D/g,'')}?text=${encodeURIComponent(`Olá, ${a.cliente_nome}! Confirmando seu atendimento Ã s ${fH(a.data_hora)}.`)}`,'_blank')} className="act-b" style={{background:'rgba(34,197,94,.08)',border:'1px solid rgba(34,197,94,.20)',color:'#6EE7B7'}}>ð¬</button>}
                               {a.status!=='cancelado'&&<button onClick={()=>updSt(a.id,'cancelado')} className="act-b" style={{background:'rgba(239,68,68,.12)',border:'1px solid rgba(239,68,68,.30)',color:'#F87171'}}>Cancelar</button>}
                             </div>
                           </div>
@@ -303,7 +303,7 @@ export default function Agendamentos(){
                         <div style={{marginTop:'4px',display:'flex',flexDirection:'column',gap:'2px'}}>
                           {as.slice(0,3).map((a:any)=>{const s=SC[a.status]||SC.pendente;return(
                             <div key={a.id} style={{background:s.bg,borderRadius:'4px',padding:'2px 4px',fontSize:'9px',fontWeight:600,color:s.c,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',border:`1px solid ${s.bd}`}}>
-                              {fH(a.data_hora)} {a.cliente_nome?.split(' ')[0]||'—'}
+                              {fH(a.data_hora)} {a.cliente_nome?.split(' ')[0]||'â'}
                             </div>
                           )})}
                           {as.length>3&&<p style={{fontSize:'9px',color:'#64748B'}}>+{as.length-3}</p>}
@@ -316,7 +316,7 @@ export default function Agendamentos(){
               {diaSel&&(
                 <div className="crd" style={{padding:'18px',borderRadius:'18px'}}>
                   <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:'14px',flexWrap:'wrap',gap:'8px'}}>
-                    <p style={{fontSize:'14px',fontWeight:700,color:'#F8FAFC',textTransform:'capitalize' as const}}>{fD(diaSel)}{diaSel===hoje?' — Hoje':''}</p>
+                    <p style={{fontSize:'14px',fontWeight:700,color:'#F8FAFC',textTransform:'capitalize' as const}}>{fD(diaSel)}{diaSel===hoje?' â Hoje':''}</p>
                     <span style={{fontSize:'12px',color:'#64748B'}}>{agsD(diaSel).length} atendimento{agsD(diaSel).length!==1?'s':''}</span>
                   </div>
                   {agsD(diaSel).length===0?(
@@ -328,14 +328,14 @@ export default function Agendamentos(){
                         <div style={{background:G,borderRadius:'8px',padding:'3px 8px',fontSize:'11px',fontWeight:700,color:'#fff',flexShrink:0}}>{fH(a.data_hora)}</div>
                         <div style={{width:'28px',height:'28px',borderRadius:'50%',background:AV,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'12px',fontWeight:700,color:'#fff',flexShrink:0}}>{(a.cliente_nome||'?').charAt(0).toUpperCase()}</div>
                         <div style={{flex:1,minWidth:0}}>
-                          <p style={{fontSize:'13px',fontWeight:600,color:'#F8FAFC',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{a.cliente_nome||'—'}</p>
-                          <p style={{fontSize:'11px',color:'#64748B'}}>{a.servicos?.nome||''}{a.profissionais?.nome?' · '+a.profissionais.nome:''}</p>
+                          <p style={{fontSize:'13px',fontWeight:600,color:'#F8FAFC',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{a.cliente_nome||'â'}</p>
+                          <p style={{fontSize:'11px',color:'#64748B'}}>{a.servicos?.nome||''}{a.profissionais?.nome?' Â· '+a.profissionais.nome:''}</p>
                         </div>
                         <span style={{fontSize:'10px',fontWeight:600,padding:'2px 8px',borderRadius:'999px',background:sc.bg,color:sc.c,border:`1px solid ${sc.bd}`,flexShrink:0}}>{sc.t}</span>
                         <div style={{display:'flex',gap:'4px'}}>
-                          {a.status!=='confirmado'&&a.status!=='realizado'&&a.status!=='cancelado'&&<button onClick={()=>updSt(a.id,'confirmado')} className="act-b" style={{background:'rgba(34,197,94,.12)',border:'1px solid rgba(34,197,94,.30)',color:'#4ADE80'}}>✓</button>}
-                          {a.cliente_whatsapp&&<button onClick={()=>window.open(`https://wa.me/55${a.cliente_whatsapp.replace(/\D/g,'')}?text=${encodeURIComponent(`Olá, ${a.cliente_nome}!`)}`,'_blank')} className="act-b" style={{background:'rgba(34,197,94,.08)',border:'1px solid rgba(34,197,94,.18)',color:'#6EE7B7'}}>💬</button>}
-                          {a.status!=='cancelado'&&<button onClick={()=>updSt(a.id,'cancelado')} className="act-b" style={{background:'rgba(239,68,68,.10)',border:'1px solid rgba(239,68,68,.24)',color:'#F87171'}}>✕</button>}
+                          {a.status!=='confirmado'&&a.status!=='realizado'&&a.status!=='cancelado'&&<button onClick={()=>updSt(a.id,'confirmado')} className="act-b" style={{background:'rgba(34,197,94,.12)',border:'1px solid rgba(34,197,94,.30)',color:'#4ADE80'}}>â</button>}
+                          {a.cliente_whatsapp&&<button onClick={()=>window.open(`https://wa.me/55${a.cliente_whatsapp.replace(/\D/g,'')}?text=${encodeURIComponent(`Olá, ${a.cliente_nome}!`)}`,'_blank')} className="act-b" style={{background:'rgba(34,197,94,.08)',border:'1px solid rgba(34,197,94,.18)',color:'#6EE7B7'}}>ð¬</button>}
+                          {a.status!=='cancelado'&&<button onClick={()=>updSt(a.id,'cancelado')} className="act-b" style={{background:'rgba(239,68,68,.10)',border:'1px solid rgba(239,68,68,.24)',color:'#F87171'}}>â</button>}
                         </div>
                       </div>
                     )

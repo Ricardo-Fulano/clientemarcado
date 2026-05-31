@@ -7,7 +7,7 @@ import { useRouter } from 'next/navigation'
 const G='linear-gradient(135deg,#3B82F6,#7C3AED)'
 const AV='linear-gradient(135deg,rgba(59,130,246,.95),rgba(124,58,237,.95))'
 const SB_ITEMS=[
-  {h:'/painel',l:'InÃ­cio'},{h:'/painel/agendamentos',l:'Agenda',on:true},
+  {h:'/painel',l:'Início'},{h:'/painel/agendamentos',l:'Agenda',on:true},
   {h:'/painel/clientes',l:'Clientes'},{h:'/painel/orcamentos',l:'Orçamentos'},
   {h:'/painel/cobrancas',l:'Cobranças'},{h:'/painel/pagamentos',l:'Pagamentos'},
   {h:'/painel/servicos',l:'Serviços'},{h:'/painel/profissionais',l:'Profissionais'},
@@ -137,7 +137,7 @@ export default function NovoAgendamento(){
       <div className={`drw${mob?' open':''}`}>
         <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'16px 18px',borderBottom:'1px solid rgba(148,163,184,.10)'}}>
           <span style={{fontSize:'14px',fontWeight:800,color:'#F8FAFC'}}>ClienteMarcado</span>
-          <button onClick={()=>setMob(false)} style={{background:'none',border:'none',color:'rgba(255,255,255,.5)',cursor:'pointer',fontSize:'22px',lineHeight:1}}>×</button>
+          <button onClick={()=>setMob(false)} style={{background:'none',border:'none',color:'rgba(255,255,255,.5)',cursor:'pointer',fontSize:'22px',lineHeight:1}}>Ã</button>
         </div>
         <nav style={{flex:1,padding:'10px 8px',overflowY:'auto'}}>{SB_ITEMS.map(it=><Link key={it.l} href={it.h} onClick={()=>setMob(false)} className={'nl'+(it.on?' on':'')} style={{fontSize:'14px'}}>{it.l}</Link>)}</nav>
       </div>
@@ -152,7 +152,7 @@ export default function NovoAgendamento(){
         </div>
         <div className="pg"><div className="bdy">
           <div style={{display:'flex',alignItems:'center',gap:'12px',marginBottom:'24px',flexWrap:'wrap'}}>
-            <Link href="/painel/agendamentos" className="btn-s" style={{height:'38px',padding:'0 14px',fontSize:'12px'}}>â† Voltar</Link>
+            <Link href="/painel/agendamentos" className="btn-s" style={{height:'38px',padding:'0 14px',fontSize:'12px'}}>Ã¢â Â Voltar</Link>
             <div>
               <h1 style={{fontSize:'20px',fontWeight:800,color:'#F8FAFC',letterSpacing:'-0.03em',marginBottom:'3px'}}>Novo agendamento</h1>
               <p style={{fontSize:'12px',color:'#64748B'}}>Preencha os dados para registrar o horário na agenda.</p>
@@ -160,7 +160,7 @@ export default function NovoAgendamento(){
           </div>
           {erros.length>0&&(
             <div style={{background:'rgba(239,68,68,.10)',border:'1px solid rgba(239,68,68,.28)',borderRadius:'12px',padding:'12px 16px',marginBottom:'16px'}}>
-              {erros.map((e,i)=><p key={i} style={{fontSize:'13px',color:'#F87171',marginBottom:i<erros.length-1?'4px':0}}>âš  {e}</p>)}
+              {erros.map((e,i)=><p key={i} style={{fontSize:'13px',color:'#F87171',marginBottom:i<erros.length-1?'4px':0}}>Ã¢Å¡Â  {e}</p>)}
             </div>
           )}
           <div className="layout" style={{display:'flex',gap:'18px',alignItems:'flex-start'}}>
@@ -233,7 +233,7 @@ export default function NovoAgendamento(){
                 </div>
                 <label className="lbl">Status inicial</label>
                 <div style={{display:'flex',gap:'6px',flexWrap:'wrap'}}>
-                  {[{v:'pendente',l:'â³ Pendente',c:'#FBBF24',bg:'rgba(245,158,11,.12)',bd:'rgba(245,158,11,.35)'},{v:'confirmado',l:'âœ“ Confirmado',c:'#4ADE80',bg:'rgba(34,197,94,.12)',bd:'rgba(34,197,94,.35)'}].map(s=>(
+                  {[{v:'pendente',l:'Ã¢ÂÂ³ Pendente',c:'#FBBF24',bg:'rgba(245,158,11,.12)',bd:'rgba(245,158,11,.35)'},{v:'confirmado',l:'Ã¢Åâ Confirmado',c:'#4ADE80',bg:'rgba(34,197,94,.12)',bd:'rgba(34,197,94,.35)'}].map(s=>(
                     <button key={s.v} onClick={()=>setStatus(s.v)}
                       style={{background:status===s.v?s.bg:'rgba(15,23,42,.75)',border:`1px solid ${status===s.v?s.bd:'rgba(148,163,184,.18)'}`,borderRadius:'10px',height:'40px',padding:'0 16px',fontSize:'13px',fontWeight:600,color:status===s.v?s.c:'#94A3B8',cursor:'pointer',fontFamily:'inherit',transition:'all .15s'}}>
                       {s.l}
@@ -254,13 +254,13 @@ export default function NovoAgendamento(){
               <div className="crd" style={{padding:'20px'}}>
                 <p style={{fontSize:'13px',fontWeight:700,color:'#60A5FA',marginBottom:'16px'}}>Resumo</p>
                 {[
-                  {l:'Cliente',v:cNome||'â€”'},
-                  {l:'Serviço',v:servSel?.nome||'â€”'},
+                  {l:'Cliente',v:cNome||'\"â'},
+                  {l:'Serviço',v:servSel?.nome||'\"â'},
                   {l:'Profissional',v:profSel?.nome||'Qualquer'},
-                  {l:'Data',v:data?new Date(data+'T12:00:00').toLocaleDateString('pt-BR'):'â€”'},
-                  {l:'Horário',v:hora||'â€”'},
+                  {l:'Data',v:data?new Date(data+'T12:00:00').toLocaleDateString('pt-BR'):'\"â'},
+                  {l:'Horário',v:hora||'\"â'},
                   {l:'Status',v:status==='confirmado'?'Confirmado':'Pendente'},
-                  {l:'Valor',v:valor?`R$ ${parseFloat(valor).toLocaleString('pt-BR',{minimumFractionDigits:2})}`:'â€”'},
+                  {l:'Valor',v:valor?`R$ ${parseFloat(valor).toLocaleString('pt-BR',{minimumFractionDigits:2})}`:'\"â'},
                 ].map(r=>(
                   <div key={r.l} style={{display:'flex',justifyContent:'space-between',marginBottom:'10px',paddingBottom:'10px',borderBottom:'1px solid rgba(148,163,184,.08)'}}>
                     <span style={{fontSize:'11px',fontWeight:700,color:'#64748B',textTransform:'uppercase' as const,letterSpacing:'.06em'}}>{r.l}</span>
@@ -269,7 +269,7 @@ export default function NovoAgendamento(){
                 ))}
                 <div style={{display:'flex',flexDirection:'column',gap:'8px',marginTop:'8px'}}>
                   <button onClick={salvar} disabled={salvando} className="btn-p" style={{width:'100%',height:'48px',justifyContent:'center',opacity:salvando?.7:1}}>
-                    {salvando?'Salvando...':'ðŸ“… Criar agendamento'}
+                    {salvando?'Salvando...':'Ã°Å¸ââ¦ Criar agendamento'}
                   </button>
                   <Link href="/painel/agendamentos" className="btn-s" style={{width:'100%',height:'44px',justifyContent:'center'}}>Cancelar</Link>
                 </div>

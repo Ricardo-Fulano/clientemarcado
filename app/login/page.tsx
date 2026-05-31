@@ -391,7 +391,7 @@ export default function Login() {
           <div className="beneficios">
             {['Agenda organizada em um só lugar','Clientes e cobranças centralizados','Relatórios e pagamentos simplificados'].map(b => (
               <div key={b} className="beneficio">
-                <div className="beneficio-dot">✓</div>
+                <div className="beneficio-dot">â</div>
                 <span>{b}</span>
               </div>
             ))}

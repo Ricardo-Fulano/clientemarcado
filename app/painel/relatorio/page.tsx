@@ -87,7 +87,7 @@ export default function Relatorios(){
     setPerfil(p);setProfs(ps||[]);setPagamentos(pags||[]);setDespesas(desp||[]);setAgendamentos(ags||[]);setLoading(false)
   }
 
-  // Cálculos filtrados pelo mês
+  // Cálculos filtrados pelo mÃªs
   const pagMes=pagamentos.filter(p=>p.data?.startsWith(mes))
   const despMes=despesas.filter(d=>d.data?.startsWith(mes))
   const agsMes=agendamentos.filter(a=>a.data_hora?.startsWith(mes))
@@ -97,7 +97,7 @@ export default function Relatorios(){
   const lucro=receita-despTotal
   const lucroPositivo=lucro>=0
 
-  // Melhor profissional: aquele com mais atendimentos realizados no mês
+  // Melhor profissional: aquele com mais atendimentos realizados no mÃªs
   const profStats=profs.map(p=>{
     const ags=agsMes.filter(a=>a.profissional_id===p.id&&a.status==='realizado')
     const rec=ags.reduce((a,ag)=>a+(ag.valor||0),0)
@@ -105,14 +105,14 @@ export default function Relatorios(){
   }).sort((a,b)=>b.rec-a.rec)
   const melhor=profStats[0]
 
-  // Dados do gráfico — "Resultado" em vez de "Prejuízo"
+  // Dados do gráfico â "Resultado" em vez de "Prejuízo"
   const chartData=[
     {name:'Receita',valor:receita,fill:'#22C55E'},
     {name:'Despesas',valor:despTotal,fill:'#EF4444'},
     {name:'Resultado',valor:Math.abs(lucro),fill:lucroPositivo?'#22C55E':'#EF4444'},
   ]
 
-  // Melhor profissional — só destacar se rec > 0
+  // Melhor profissional â só destacar se rec > 0
   const melhorComRec=profStats.find(p=>p.rec>0)||null
 
   const nomeMes=new Date(mes+'-02').toLocaleDateString('pt-BR',{month:'long',year:'numeric'})
@@ -134,7 +134,7 @@ export default function Relatorios(){
       <style dangerouslySetInnerHTML={{__html:CSS}}/>
       <div className={`ovl${mob?' open':''}`} onClick={()=>setMob(false)}/>
       <div className={`drw${mob?' open':''}`}>
-        <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'16px 18px',borderBottom:'1px solid rgba(148,163,184,.10)'}}><span style={{fontSize:'14px',fontWeight:800,color:'#F8FAFC'}}>ClienteMarcado</span><button onClick={()=>setMob(false)} style={{background:'none',border:'none',color:'rgba(255,255,255,.5)',cursor:'pointer',fontSize:'22px',lineHeight:1}}>×</button></div>
+        <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'16px 18px',borderBottom:'1px solid rgba(148,163,184,.10)'}}><span style={{fontSize:'14px',fontWeight:800,color:'#F8FAFC'}}>ClienteMarcado</span><button onClick={()=>setMob(false)} style={{background:'none',border:'none',color:'rgba(255,255,255,.5)',cursor:'pointer',fontSize:'22px',lineHeight:1}}>Ã</button></div>
         <nav style={{flex:1,padding:'10px 8px',overflowY:'auto'}}>{SB.map(it=><Link key={it.l} href={it.h} onClick={()=>setMob(false)} className={'nl'+(it.on?' on':'')} style={{fontSize:'14px'}}>{it.l}</Link>)}</nav>
       </div>
       <Sb/>
@@ -163,10 +163,10 @@ export default function Relatorios(){
           {/* KPIs */}
           <div className="kpi-grid">
             {[
-              {l:'Receita total',d:'Entradas confirmadas no período',v:fBRL(receita),c:'#4ADE80',bg:'rgba(34,197,94,.10)',bd:'rgba(34,197,94,.26)',ico:'↑'},
-              {l:'Despesas',d:'Custos registrados no período',v:fBRL(despTotal),c:'#F87171',bg:'rgba(239,68,68,.10)',bd:'rgba(239,68,68,.26)',ico:'↓'},
-              {l:'Lucro estimado',d:'Receita menos despesas',v:fBRL(lucro),c:lucroPositivo?'#4ADE80':'#F87171',bg:lucroPositivo?'rgba(34,197,94,.10)':'rgba(239,68,68,.10)',bd:lucroPositivo?'rgba(34,197,94,.26)':'rgba(239,68,68,.26)',ico:lucroPositivo?'✓':'⚠'},
-              {l:'Melhor profissional',d:melhorComRec?fBRL(melhorComRec.rec)+' no período':'Nenhuma receita no período',v:melhorComRec?.nome||'Sem destaque ainda',c:'#C4B5FD',bg:'rgba(124,58,237,.10)',bd:'rgba(124,58,237,.26)',ico:'🏆'},
+              {l:'Receita total',d:'Entradas confirmadas no período',v:fBRL(receita),c:'#4ADE80',bg:'rgba(34,197,94,.10)',bd:'rgba(34,197,94,.26)',ico:'â'},
+              {l:'Despesas',d:'Custos registrados no período',v:fBRL(despTotal),c:'#F87171',bg:'rgba(239,68,68,.10)',bd:'rgba(239,68,68,.26)',ico:'â'},
+              {l:'Lucro estimado',d:'Receita menos despesas',v:fBRL(lucro),c:lucroPositivo?'#4ADE80':'#F87171',bg:lucroPositivo?'rgba(34,197,94,.10)':'rgba(239,68,68,.10)',bd:lucroPositivo?'rgba(34,197,94,.26)':'rgba(239,68,68,.26)',ico:lucroPositivo?'â':'â '},
+              {l:'Melhor profissional',d:melhorComRec?fBRL(melhorComRec.rec)+' no período':'Nenhuma receita no período',v:melhorComRec?.nome||'Sem destaque ainda',c:'#C4B5FD',bg:'rgba(124,58,237,.10)',bd:'rgba(124,58,237,.26)',ico:'ð'},
             ].map(k=>(
               <div key={k.l} style={{background:`radial-gradient(circle at top left,${k.bg},transparent 60%),linear-gradient(145deg,rgba(15,23,42,.97),rgba(8,20,33,.99))`,border:`1.5px solid ${k.bd}`,borderRadius:'18px',padding:'18px 16px',boxSizing:'border-box' as const,boxShadow:'0 20px 48px rgba(0,0,0,.28)'}}>
                 <div style={{width:'38px',height:'38px',borderRadius:'11px',background:k.bg,border:`1px solid ${k.bd}`,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'18px',marginBottom:'10px'}}>{k.ico}</div>
@@ -185,7 +185,7 @@ export default function Relatorios(){
             </div>
             {receita===0&&despTotal===0?(
               <div style={{height:'200px',display:'flex',alignItems:'center',justifyContent:'center',flexDirection:'column',gap:'8px'}}>
-                <p style={{fontSize:'14px',color:'#64748B'}}>📊</p>
+                <p style={{fontSize:'14px',color:'#64748B'}}>ð</p>
                 <p style={{fontSize:'13px',color:'#64748B'}}>Sem dados financeiros neste período.</p>
                 <p style={{fontSize:'12px',color:'#374151'}}>Registre pagamentos e despesas para visualizar o gráfico.</p>
               </div>
@@ -253,7 +253,7 @@ export default function Relatorios(){
                         <button onClick={()=>setProfSel(p)} style={{background:'rgba(59,130,246,.10)',border:'1px solid rgba(59,130,246,.24)',color:'#93C5FD',borderRadius:'12px',padding:'8px 12px',fontSize:'13px',fontWeight:700,cursor:'pointer',fontFamily:'inherit',transition:'all .18s'}}
                           onMouseEnter={e=>{(e.currentTarget as HTMLButtonElement).style.background='rgba(59,130,246,.18)';(e.currentTarget as HTMLButtonElement).style.borderColor='rgba(59,130,246,.40)';(e.currentTarget as HTMLButtonElement).style.color='#fff'}}
                           onMouseLeave={e=>{(e.currentTarget as HTMLButtonElement).style.background='rgba(59,130,246,.10)';(e.currentTarget as HTMLButtonElement).style.borderColor='rgba(59,130,246,.24)';(e.currentTarget as HTMLButtonElement).style.color='#93C5FD'}}>
-                          Ver relatório →
+                          Ver relatório â
                         </button>
                       </div>
                     </div>
@@ -266,7 +266,7 @@ export default function Relatorios(){
         </div></div>
       </div>
 
-      {/* MODAL RELATÓRIO INDIVIDUAL */}
+      {/* MODAL RELATÃRIO INDIVIDUAL */}
       {profSel&&(()=>{
         const pAgs=agendamentos.filter(a=>a.profissional_id===profSel.id&&a.data_hora?.startsWith(mes))
         const pRec=pAgs.filter(a=>a.status==='realizado'||a.status==='confirmado').reduce((a,ag)=>a+(ag.valor||0),0)
@@ -316,17 +316,17 @@ export default function Relatorios(){
                 </div>
                 <button onClick={()=>setProfSel(null)} style={{background:'rgba(15,23,42,.8)',border:'1px solid rgba(148,163,184,.18)',borderRadius:'8px',width:'34px',height:'34px',display:'flex',alignItems:'center',justifyContent:'center',color:'#94A3B8',cursor:'pointer',fontSize:'18px',lineHeight:1,flexShrink:0,transition:'color .15s'}}
                   onMouseEnter={e=>(e.currentTarget.style.color='#fff')}
-                  onMouseLeave={e=>(e.currentTarget.style.color='#94A3B8')}>×</button>
+                  onMouseLeave={e=>(e.currentTarget.style.color='#94A3B8')}>Ã</button>
               </div>
 
               <div style={{padding:'22px 24px 40px'}}>
                 {/* KPIs individuais */}
                 <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'10px',marginBottom:'22px'}}>
                   {[
-                    {l:'Receita gerada',d:'Total confirmado',v:fBRL(pRec),c:'#4ADE80',bg:'rgba(34,197,94,.10)',bd:'rgba(34,197,94,.24)',ico:'↑'},
-                    {l:'Atendimentos',d:'No período',v:pAts,c:'#60A5FA',bg:'rgba(59,130,246,.10)',bd:'rgba(59,130,246,.24)',ico:'📅'},
-                    {l:'Retornos',d:'Retornos registrados',v:pRets,c:'#C4B5FD',bg:'rgba(124,58,237,.10)',bd:'rgba(124,58,237,.24)',ico:'↩'},
-                    {l:'Ticket médio',d:'Média por atendimento',v:fBRL(pTicket),c:'#22D3EE',bg:'rgba(6,182,212,.10)',bd:'rgba(6,182,212,.24)',ico:'↗'},
+                    {l:'Receita gerada',d:'Total confirmado',v:fBRL(pRec),c:'#4ADE80',bg:'rgba(34,197,94,.10)',bd:'rgba(34,197,94,.24)',ico:'â'},
+                    {l:'Atendimentos',d:'No período',v:pAts,c:'#60A5FA',bg:'rgba(59,130,246,.10)',bd:'rgba(59,130,246,.24)',ico:'ð'},
+                    {l:'Retornos',d:'Retornos registrados',v:pRets,c:'#C4B5FD',bg:'rgba(124,58,237,.10)',bd:'rgba(124,58,237,.24)',ico:'â©'},
+                    {l:'Ticket médio',d:'Média por atendimento',v:fBRL(pTicket),c:'#22D3EE',bg:'rgba(6,182,212,.10)',bd:'rgba(6,182,212,.24)',ico:'â'},
                   ].map(k=>(
                     <div key={k.l} style={{background:`radial-gradient(circle at top left,${k.bg},transparent 60%),linear-gradient(145deg,rgba(15,23,42,.97),rgba(8,20,33,.99))`,border:`1.5px solid ${k.bd}`,borderRadius:'16px',padding:'16px',boxSizing:'border-box' as const}}>
                       <div style={{width:'34px',height:'34px',borderRadius:'10px',background:k.bg,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'16px',marginBottom:'8px'}}>{k.ico}</div>
@@ -361,9 +361,9 @@ export default function Relatorios(){
                   )}
                 </div>
 
-                {/* Últimos atendimentos */}
+                {/* Ãltimos atendimentos */}
                 <div>
-                  <p style={{fontSize:'14px',fontWeight:700,color:'#F8FAFC',marginBottom:'12px'}}>Últimos atendimentos</p>
+                  <p style={{fontSize:'14px',fontWeight:700,color:'#F8FAFC',marginBottom:'12px'}}>Ãltimos atendimentos</p>
                   {pAgs.length===0?(
                     <div style={{background:'rgba(15,23,42,.6)',border:'1px solid rgba(148,163,184,.12)',borderRadius:'14px',padding:'24px',textAlign:'center'}}>
                       <p style={{fontSize:'13px',color:'#64748B',marginBottom:'4px'}}>Nenhum atendimento encontrado</p>
@@ -377,8 +377,8 @@ export default function Relatorios(){
                         <div key={a.id} style={{background:'rgba(15,23,42,.72)',border:'1px solid rgba(148,163,184,.12)',borderRadius:'14px',padding:'14px',marginBottom:'6px'}}>
                           <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:'8px',flexWrap:'wrap'}}>
                             <div style={{minWidth:0}}>
-                              <p style={{fontSize:'13px',fontWeight:600,color:'#F8FAFC',marginBottom:'2px'}}>{a.cliente_nome||'—'}</p>
-                              <p style={{fontSize:'11px',color:'#94A3B8'}}>{a.servicos?.nome||'Serviço'} · {fmtD(a.data_hora)}</p>
+                              <p style={{fontSize:'13px',fontWeight:600,color:'#F8FAFC',marginBottom:'2px'}}>{a.cliente_nome||'â'}</p>
+                              <p style={{fontSize:'11px',color:'#94A3B8'}}>{a.servicos?.nome||'Serviço'} Â· {fmtD(a.data_hora)}</p>
                             </div>
                             <div style={{display:'flex',alignItems:'center',gap:'8px',flexShrink:0}}>
                               <span style={{fontSize:'10px',fontWeight:600,padding:'2px 8px',borderRadius:'999px',background:`rgba(${st.c==='#4ADE80'?'34,197,94':'59,130,246'},.12)`,color:st.c,border:`1px solid ${st.c}40`}}>{st.t}</span>
