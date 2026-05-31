@@ -2,8 +2,8 @@
 import Link from 'next/link'
 import { useState, useEffect } from 'react'
 
-const ESSENCIAL_CHECKOUT_URL = "COLE_AQUI_O_LINK_DO_PLANO_ESSENCIAL"
-const COMPLETO_CHECKOUT_URL = "COLE_AQUI_O_LINK_DO_PLANO_COMPLETO"
+const ESSENCIAL_CHECKOUT_URL = "https://www.mercadopago.com.br/subscriptions/checkout?preapproval_plan_id=1a0fb25c46214e45b0eb3d21b494e5d6"
+const COMPLETO_CHECKOUT_URL = "https://www.mercadopago.com.br/subscriptions/checkout?preapproval_plan_id=5939bff1048d4e24849edaa1d2db8cc2"
 
 const G = 'linear-gradient(135deg,#3B82F6,#7C3AED)'
 
