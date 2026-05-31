@@ -269,7 +269,7 @@ export default function NovoAgendamento(){
                 ))}
                 <div style={{display:'flex',flexDirection:'column',gap:'8px',marginTop:'8px'}}>
                   <button onClick={salvar} disabled={salvando} className="btn-p" style={{width:'100%',height:'48px',justifyContent:'center',opacity:salvando?.7:1}}>
-                    {salvando?'Salvando...':'ðŸ“… Criar agendamento'}
+                    {salvando?'Salvando...':'📅 Criar agendamento'}
                   </button>
                   <Link href="/painel/agendamentos" className="btn-s" style={{width:'100%',height:'44px',justifyContent:'center'}}>Cancelar</Link>
                 </div>
