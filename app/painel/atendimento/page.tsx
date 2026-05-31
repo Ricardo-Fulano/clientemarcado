@@ -207,7 +207,7 @@ export default function RegistrarAtendimento() {
     .select option { background: #0F1117; color: #F1F5F9; }
     .textarea { resize: none; }
 
-    /* Valor field â€” prefix */
+    /* Valor field "” prefix */
     .valor-wrap { position: relative; }
     .valor-prefix {
       position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
@@ -254,7 +254,7 @@ export default function RegistrarAtendimento() {
 
       <nav className="nav">
         <span className="nav-logo">ClienteMarcado</span>
-        <Link href="/painel" className="nav-back">â† Voltar ao painel</Link>
+        <Link href="/painel" className="nav-back">← Voltar ao painel</Link>
       </nav>
 
       <div className="body">
@@ -311,7 +311,7 @@ export default function RegistrarAtendimento() {
                   <option value="">Selecione o serviço...</option>
                   {servicos.map(s => (
                     <option key={s.id} value={s.id}>
-                      {s.nome}{s.preco ? ` â€” R$ ${parseFloat(s.preco).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` : ''}
+                      {s.nome}{s.preco ? ` "” R$ ${parseFloat(s.preco).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` : ''}
                     </option>
                   ))}
                   <option value="__outro__">âœï¸ Outro serviço</option>

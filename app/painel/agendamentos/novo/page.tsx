@@ -152,7 +152,7 @@ export default function NovoAgendamento(){
         </div>
         <div className="pg"><div className="bdy">
           <div style={{display:'flex',alignItems:'center',gap:'12px',marginBottom:'24px',flexWrap:'wrap'}}>
-            <Link href="/painel/agendamentos" className="btn-s" style={{height:'38px',padding:'0 14px',fontSize:'12px'}}>â† Voltar</Link>
+            <Link href="/painel/agendamentos" className="btn-s" style={{height:'38px',padding:'0 14px',fontSize:'12px'}}>← Voltar</Link>
             <div>
               <h1 style={{fontSize:'20px',fontWeight:800,color:'#F8FAFC',letterSpacing:'-0.03em',marginBottom:'3px'}}>Novo agendamento</h1>
               <p style={{fontSize:'12px',color:'#64748B'}}>Preencha os dados para registrar o horário na agenda.</p>
@@ -233,7 +233,7 @@ export default function NovoAgendamento(){
                 </div>
                 <label className="lbl">Status inicial</label>
                 <div style={{display:'flex',gap:'6px',flexWrap:'wrap'}}>
-                  {[{v:'pendente',l:'â³ Pendente',c:'#FBBF24',bg:'rgba(245,158,11,.12)',bd:'rgba(245,158,11,.35)'},{v:'confirmado',l:'âœ“ Confirmado',c:'#4ADE80',bg:'rgba(34,197,94,.12)',bd:'rgba(34,197,94,.35)'}].map(s=>(
+                  {[{v:'pendente',l:'⏳ Pendente',c:'#FBBF24',bg:'rgba(245,158,11,.12)',bd:'rgba(245,158,11,.35)'},{v:'confirmado',l:'âœ“ Confirmado',c:'#4ADE80',bg:'rgba(34,197,94,.12)',bd:'rgba(34,197,94,.35)'}].map(s=>(
                     <button key={s.v} onClick={()=>setStatus(s.v)}
                       style={{background:status===s.v?s.bg:'rgba(15,23,42,.75)',border:`1px solid ${status===s.v?s.bd:'rgba(148,163,184,.18)'}`,borderRadius:'10px',height:'40px',padding:'0 16px',fontSize:'13px',fontWeight:600,color:status===s.v?s.c:'#94A3B8',cursor:'pointer',fontFamily:'inherit',transition:'all .15s'}}>
                       {s.l}
@@ -254,13 +254,13 @@ export default function NovoAgendamento(){
               <div className="crd" style={{padding:'20px'}}>
                 <p style={{fontSize:'13px',fontWeight:700,color:'#60A5FA',marginBottom:'16px'}}>Resumo</p>
                 {[
-                  {l:'Cliente',v:cNome||'â€”'},
-                  {l:'Serviço',v:servSel?.nome||'â€”'},
+                  {l:'Cliente',v:cNome||'"”'},
+                  {l:'Serviço',v:servSel?.nome||'"”'},
                   {l:'Profissional',v:profSel?.nome||'Qualquer'},
-                  {l:'Data',v:data?new Date(data+'T12:00:00').toLocaleDateString('pt-BR'):'â€”'},
-                  {l:'Horário',v:hora||'â€”'},
+                  {l:'Data',v:data?new Date(data+'T12:00:00').toLocaleDateString('pt-BR'):'"”'},
+                  {l:'Horário',v:hora||'"”'},
                   {l:'Status',v:status==='confirmado'?'Confirmado':'Pendente'},
-                  {l:'Valor',v:valor?`R$ ${parseFloat(valor).toLocaleString('pt-BR',{minimumFractionDigits:2})}`:'â€”'},
+                  {l:'Valor',v:valor?`R$ ${parseFloat(valor).toLocaleString('pt-BR',{minimumFractionDigits:2})}`:'"”'},
                 ].map(r=>(
                   <div key={r.l} style={{display:'flex',justifyContent:'space-between',marginBottom:'10px',paddingBottom:'10px',borderBottom:'1px solid rgba(148,163,184,.08)'}}>
                     <span style={{fontSize:'11px',fontWeight:700,color:'#64748B',textTransform:'uppercase' as const,letterSpacing:'.06em'}}>{r.l}</span>
