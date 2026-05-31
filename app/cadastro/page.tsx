@@ -83,9 +83,9 @@ export default function Cadastro() {
       flex-direction: column;
     }
 
-    /* ââââââââââââââââââââââââââââââ
+    /* ══════════════════════════════
        BASE = MOBILE  (coluna única)
-    ââââââââââââââââââââââââââââââ */
+    ══════════════════════════════ */
 
     /* Esconde lado esquerdo (desktop only) */
     .col-esquerda { display: none; }
@@ -99,7 +99,7 @@ export default function Cadastro() {
       gap: 0;
     }
 
-    /* ââ Logo mobile ââ */
+    /* ── Logo mobile ── */
     .logo-bloco {
       width: 100%;
       max-width: 480px;
@@ -120,7 +120,7 @@ export default function Cadastro() {
       color: #F1F5F9; letter-spacing: -0.02em;
     }
 
-    /* ââ Headline mobile ââ */
+    /* ── Headline mobile ── */
     .headline-bloco {
       width: 100%;
       max-width: 480px;
@@ -136,14 +136,14 @@ export default function Cadastro() {
       font-size: 14px; color: #6B7280; line-height: 1.55;
     }
 
-    /* ââ Formulário mobile ââ */
+    /* ── Formulário mobile ── */
     .form-bloco {
       width: 100%;
       max-width: 480px;
       margin-bottom: 20px;
     }
 
-    /* ââ Benefícios mobile (abaixo do form) ââ */
+    /* ── Benefícios mobile (abaixo do form) ── */
     .beneficios-mobile {
       width: 100%;
       max-width: 480px;
@@ -171,9 +171,9 @@ export default function Cadastro() {
       font-size: 13px; font-weight: 600; color: #D1D5DB;
     }
 
-    /* ââââââââââââââââââââââââââââââ
-       DESKTOP (â¥ 900px) â 2 colunas
-    ââââââââââââââââââââââââââââââ */
+    /* ══════════════════════════════
+       DESKTOP (≥ 900px) — 2 colunas
+    ══════════════════════════════ */
     @media (min-width: 900px) {
 
       /* Ativa coluna esquerda */
@@ -212,7 +212,7 @@ export default function Cadastro() {
       }
     }
 
-    /* ââ Desktop: logo esquerda ââ */
+    /* ── Desktop: logo esquerda ── */
     .desk-logo-row {
       display: flex; align-items: center; gap: 10px;
     }
@@ -250,7 +250,7 @@ export default function Cadastro() {
     .desk-beneficio-titulo { font-size: 14px; font-weight: 700; color: #F1F5F9; margin-bottom: 3px; }
     .desk-beneficio-desc   { font-size: 13px; color: #6B7280; line-height: 1.45; }
 
-    /* ââ Card formulário ââ */
+    /* ── Card formulário ── */
     .card {
       background: linear-gradient(180deg, rgba(16,20,30,0.98) 0%, rgba(10,12,18,0.98) 100%);
       border: 1px solid rgba(255,255,255,0.09);
@@ -265,7 +265,7 @@ export default function Cadastro() {
     .card-titulo { font-size: 19px; font-weight: 800; color: #F1F5F9; letter-spacing: -0.02em; margin-bottom: 3px; }
     .card-sub    { font-size: 13px; color: #6B7280; margin-bottom: 22px; }
 
-    /* ââ Campos ââ */
+    /* ── Campos ── */
     .campos { display: flex; flex-direction: column; gap: 14px; margin-bottom: 20px; }
     .label {
       display: block; font-size: 11px; font-weight: 600;
@@ -304,7 +304,7 @@ export default function Cadastro() {
     }
     .olho:hover { color: #9CA3AF; }
 
-    /* ââ Botão ââ */
+    /* ── Botão ── */
     .btn-criar {
       width: 100%;
       background: #3B82F6; color: #fff;
@@ -321,16 +321,16 @@ export default function Cadastro() {
     .btn-criar:hover   { background: #2563EB; box-shadow: 0 4px 28px rgba(59,130,246,0.5); }
     .btn-criar:disabled { opacity: 0.6; cursor: not-allowed; }
 
-    /* ââ Link login ââ */
+    /* ── Link login ── */
     .link-login { text-align: center; font-size: 13px; color: #4B5563; }
     .link-login a { color: #3B82F6; font-weight: 600; text-decoration: none; }
     .link-login a:hover { text-decoration: underline; }
 
-    /* ââ Mensagens ââ */
+    /* ── Mensagens ── */
     .msg-ok  { background: rgba(34,197,94,0.08); border: 1px solid rgba(34,197,94,0.2); border-radius: 10px; padding: 11px 14px; font-size: 13px; color: #22C55E; margin-bottom: 14px; text-align: center; }
     .msg-err { background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.2); border-radius: 10px; padding: 11px 14px; font-size: 13px; color: #EF4444; margin-bottom: 14px; text-align: center; }
 
-    /* ââ Footer ââ */
+    /* ── Footer ── */
     .footer {
       text-align: center; padding: 16px;
       font-size: 12px; color: #374151;
@@ -344,7 +344,7 @@ export default function Cadastro() {
 
       <div className="pg-body">
 
-        {/* ââ COLUNA ESQUERDA â só desktop ââ */}
+        {/* ══ COLUNA ESQUERDA — só desktop ══ */}
         <div className="col-esquerda">
           <div className="desk-logo-row">
             <div className="desk-logo-icone"><CalIcon /></div>
@@ -357,7 +357,7 @@ export default function Cadastro() {
             </h1>
             <p className="desk-hero-sub">
               Seu cliente agenda sozinho.<br />
-              VocÃª controla tudo pelo painel.
+              Você controla tudo pelo painel.
             </p>
           </div>
 
@@ -374,7 +374,7 @@ export default function Cadastro() {
           </div>
         </div>
 
-        {/* ââ BLOCOS MOBILE (somem no desktop) ââ */}
+        {/* ══ BLOCOS MOBILE (somem no desktop) ══ */}
 
         {/* 1. Logo */}
         <div className="logo-bloco">
@@ -392,7 +392,7 @@ export default function Cadastro() {
         <div className="form-bloco">
           <div className="card">
             <p className="card-titulo">Criar conta grátis</p>
-            <p className="card-sub">Ã rápido, fácil e sem compromisso.</p>
+            <p className="card-sub">É rápido, fácil e sem compromisso.</p>
 
             <div className="campos">
               <div>

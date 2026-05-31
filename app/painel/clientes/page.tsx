@@ -105,7 +105,7 @@ export default function Clientes(){
   }
 
   async function salvarCliente(){
-    if(!fNome.trim()){setMsg('â  Informe o nome.');return}
+    if(!fNome.trim()){setMsg('⚠ Informe o nome.');return}
     setSalvando(true)
     const {data:{user}}=await supabase.auth.getUser()
     if(!user){setSalvando(false);return}
@@ -116,7 +116,7 @@ export default function Clientes(){
     if(error){setMsg('Erro ao salvar.');setSalvando(false);return}
     setClientes(prev=>[novo,...prev].sort((a,b)=>a.nome.localeCompare(b.nome)))
     setFNome('');setFWpp('');setFEmail('');setFTipo('cliente');setFObs('')
-    setShowForm(false);setMsg('Cliente cadastrado! â')
+    setShowForm(false);setMsg('Cliente cadastrado! ✓')
     setTimeout(()=>setMsg(''),2500)
     setSalvando(false)
   }
@@ -168,7 +168,7 @@ export default function Clientes(){
       <div className={`drw${mob?' open':''}`}>
         <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'16px 18px',borderBottom:'1px solid rgba(148,163,184,.10)'}}>
           <span style={{fontSize:'14px',fontWeight:800,color:'#F8FAFC'}}>ClienteMarcado</span>
-          <button onClick={()=>setMob(false)} style={{background:'none',border:'none',color:'rgba(255,255,255,.5)',cursor:'pointer',fontSize:'22px',lineHeight:1}}>Ã</button>
+          <button onClick={()=>setMob(false)} style={{background:'none',border:'none',color:'rgba(255,255,255,.5)',cursor:'pointer',fontSize:'22px',lineHeight:1}}>×</button>
         </div>
         <nav style={{flex:1,padding:'10px',overflowY:'auto'}}>{SB.map(it=><Link key={it.l} href={it.href} onClick={()=>setMob(false)} className={'nl'+(it.on?' on':'')} style={{fontSize:'14px'}}>{it.l}</Link>)}</nav>
       </div>
@@ -205,10 +205,10 @@ export default function Clientes(){
           {/* KPIs */}
           <div className="kpi-grid">
             {[
-              {l:'Total de clientes',v:clientes.length,c:'#22D3EE',bg:'rgba(6,182,212,.08)',bd:'rgba(6,182,212,.18)',ico:'ð¥'},
-              {l:'Retornos pendentes',v:'â',c:'#FBBF24',bg:'rgba(245,158,11,.08)',bd:'rgba(245,158,11,.18)',ico:'ð'},
-              {l:'Cobranças em aberto',v:'R$ â',c:'#C4B5FD',bg:'rgba(124,58,237,.08)',bd:'rgba(124,58,237,.18)',ico:'ð³'},
-              {l:'Novos no mÃªs',v:novosNoMes,c:'#4ADE80',bg:'rgba(34,197,94,.08)',bd:'rgba(34,197,94,.18)',ico:'â¨'},
+              {l:'Total de clientes',v:clientes.length,c:'#22D3EE',bg:'rgba(6,182,212,.08)',bd:'rgba(6,182,212,.18)',ico:'👥'},
+              {l:'Retornos pendentes',v:'—',c:'#FBBF24',bg:'rgba(245,158,11,.08)',bd:'rgba(245,158,11,.18)',ico:'🔄'},
+              {l:'Cobranças em aberto',v:'R$ —',c:'#C4B5FD',bg:'rgba(124,58,237,.08)',bd:'rgba(124,58,237,.18)',ico:'💳'},
+              {l:'Novos no mês',v:novosNoMes,c:'#4ADE80',bg:'rgba(34,197,94,.08)',bd:'rgba(34,197,94,.18)',ico:'✨'},
             ].map(k=>(
               <div key={k.l} style={{background:`radial-gradient(circle at top left,${k.bg},transparent 60%),linear-gradient(145deg,rgba(15,23,42,.97),rgba(8,20,33,.99))`,border:`1.5px solid ${k.bd}`,borderRadius:'18px',padding:'18px 16px',boxSizing:'border-box' as const,boxShadow:'0 20px 48px rgba(0,0,0,.28),inset 0 1px 0 rgba(255,255,255,.04)'}}>
                 <div style={{width:'38px',height:'38px',borderRadius:'11px',background:k.bg,border:`1px solid ${k.bd}`,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'17px',marginBottom:'10px'}}>{k.ico}</div>
@@ -240,11 +240,11 @@ export default function Clientes(){
               </div>
               <div style={{marginBottom:'16px'}}>
                 <label className="lbl">Observações internas</label>
-                <textarea className="inp" rows={2} placeholder="Alergias, preferÃªncias, observações clínicas..." value={fObs} onChange={e=>setFObs(e.target.value)} style={{height:'auto',padding:'10px 14px',resize:'none',lineHeight:1.5}}/>
+                <textarea className="inp" rows={2} placeholder="Alergias, preferências, observações clínicas..." value={fObs} onChange={e=>setFObs(e.target.value)} style={{height:'auto',padding:'10px 14px',resize:'none',lineHeight:1.5}}/>
               </div>
               <div style={{display:'flex',gap:'8px',flexWrap:'wrap'}}>
                 <button onClick={salvarCliente} disabled={salvando} className="btn-p" style={{opacity:salvando?.7:1}}>
-                  {salvando?'Salvando...':'â Salvar cliente'}
+                  {salvando?'Salvando...':'✓ Salvar cliente'}
                 </button>
                 <button onClick={()=>setShowForm(false)} className="btn-s">Cancelar</button>
               </div>
@@ -273,7 +273,7 @@ export default function Clientes(){
           {/* Lista */}
           {filtrados.length===0?(
             <div style={{background:'radial-gradient(circle at center,rgba(34,211,238,.08),transparent 35%),linear-gradient(145deg,rgba(15,23,42,.97),rgba(8,20,33,.99))',border:'1.5px solid rgba(148,163,184,.16)',borderRadius:'20px',padding:'60px 24px',textAlign:'center',boxShadow:'0 20px 48px rgba(0,0,0,.28)'}}>
-              <div style={{width:'58px',height:'58px',borderRadius:'16px',background:'rgba(34,211,238,.12)',border:'1px solid rgba(34,211,238,.28)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'26px',margin:'0 auto 16px',color:'#22D3EE'}}>ð¥</div>
+              <div style={{width:'58px',height:'58px',borderRadius:'16px',background:'rgba(34,211,238,.12)',border:'1px solid rgba(34,211,238,.28)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'26px',margin:'0 auto 16px',color:'#22D3EE'}}>👥</div>
               <p style={{fontSize:'16px',fontWeight:700,color:'#F8FAFC',marginBottom:'6px'}}>{busca?'Nenhum cliente encontrado':'Nenhum cliente cadastrado ainda'}</p>
               <p style={{fontSize:'13px',color:'#64748B',lineHeight:1.5,maxWidth:'300px',margin:'0 auto 20px'}}>{busca?'Tente buscar com outro termo.':'Cadastre seu primeiro cliente para organizar agenda, orçamentos, cobranças e retornos em um só lugar.'}</p>
               {!busca&&<button onClick={()=>setShowForm(true)} className="btn-p" style={{display:'inline-flex'}}>+ Criar primeiro cliente</button>}
@@ -294,18 +294,18 @@ export default function Clientes(){
                         <span style={{fontSize:'10px',fontWeight:600,padding:'2px 8px',borderRadius:'999px',background:'rgba(6,182,212,.12)',color:'#22D3EE',border:'1px solid rgba(6,182,212,.25)',flexShrink:0,textTransform:'capitalize' as const}}>{c.tipo||'cliente'}</span>
                         {c.ativo===false&&<span style={{fontSize:'10px',fontWeight:600,padding:'2px 8px',borderRadius:'999px',background:'rgba(71,85,105,.14)',color:'#94A3B8',border:'1px solid rgba(71,85,105,.25)',flexShrink:0}}>Inativo</span>}
                       </div>
-                      {c.whatsapp&&<p style={{fontSize:'12px',color:'#64748B',marginBottom:'1px'}}>ð± {c.whatsapp}</p>}
-                      {c.email&&<p style={{fontSize:'12px',color:'#64748B'}}>â {c.email}</p>}
+                      {c.whatsapp&&<p style={{fontSize:'12px',color:'#64748B',marginBottom:'1px'}}>📱 {c.whatsapp}</p>}
+                      {c.email&&<p style={{fontSize:'12px',color:'#64748B'}}>✉ {c.email}</p>}
                     </div>
 
                     {/* Ações */}
                     <div className="cli-acts" style={{display:'flex',gap:'5px',flexShrink:0,flexWrap:'wrap',justifyContent:'flex-end'}}>
                       {c.whatsapp&&(
-                        <button onClick={()=>window.open(`https://wa.me/55${c.whatsapp.replace(/\D/g,'')}?text=${encodeURIComponent(`Olá, ${c.nome}!`)}`,'_blank')} className="cli-act" style={{background:'rgba(34,197,94,.10)',border:'1px solid rgba(34,197,94,.28)',color:'#4ADE80'}}>ð¬ WhatsApp</button>
+                        <button onClick={()=>window.open(`https://wa.me/55${c.whatsapp.replace(/\D/g,'')}?text=${encodeURIComponent(`Olá, ${c.nome}!`)}`,'_blank')} className="cli-act" style={{background:'rgba(34,197,94,.10)',border:'1px solid rgba(34,197,94,.28)',color:'#4ADE80'}}>💬 WhatsApp</button>
                       )}
-                      <Link href={`/painel/agendamentos/novo?cliente=${c.id}&nome=${encodeURIComponent(c.nome)}`} className="cli-act" style={{background:'rgba(37,99,235,.10)',border:'1px solid rgba(37,99,235,.28)',color:'#60A5FA',textDecoration:'none'}}>ð Agendar</Link>
-                      <Link href={`/painel/orcamentos?cliente=${c.id}&nome=${encodeURIComponent(c.nome)}`} className="cli-act" style={{background:'rgba(124,58,237,.10)',border:'1px solid rgba(124,58,237,.28)',color:'#C4B5FD',textDecoration:'none'}}>ð Orçamento</Link>
-                      <button onClick={()=>confirm(`Remover ${c.nome}?`)&&excluir(c.id)} className="cli-act" style={{background:'rgba(239,68,68,.08)',border:'1px solid rgba(239,68,68,.22)',color:'#F87171'}}>â</button>
+                      <Link href={`/painel/agendamentos/novo?cliente=${c.id}&nome=${encodeURIComponent(c.nome)}`} className="cli-act" style={{background:'rgba(37,99,235,.10)',border:'1px solid rgba(37,99,235,.28)',color:'#60A5FA',textDecoration:'none'}}>📅 Agendar</Link>
+                      <Link href={`/painel/orcamentos?cliente=${c.id}&nome=${encodeURIComponent(c.nome)}`} className="cli-act" style={{background:'rgba(124,58,237,.10)',border:'1px solid rgba(124,58,237,.28)',color:'#C4B5FD',textDecoration:'none'}}>📄 Orçamento</Link>
+                      <button onClick={()=>confirm(`Remover ${c.nome}?`)&&excluir(c.id)} className="cli-act" style={{background:'rgba(239,68,68,.08)',border:'1px solid rgba(239,68,68,.22)',color:'#F87171'}}>✕</button>
                     </div>
                   </div>
                 </div>

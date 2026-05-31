@@ -211,7 +211,7 @@ export default function Agendar() {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     }
 
-    /* ââ Header ââ */
+    /* ── Header ── */
     .header {
       border-bottom: 1px solid rgba(255,255,255,0.06);
       padding: 13px 16px;
@@ -241,7 +241,7 @@ export default function Agendar() {
     }
     .header-spacer { min-width: 48px; }
 
-    /* ââ Container ââ */
+    /* ── Container ── */
     .container {
       max-width: 600px;
       margin: 0 auto;
@@ -259,7 +259,7 @@ export default function Agendar() {
       .container-wide { max-width: 1000px; padding: 28px 24px 64px; }
     }
 
-    /* ââ Steps ââ */
+    /* ── Steps ── */
     .steps-wrap { margin-bottom: 24px; }
     @media (min-width: 720px) { .steps-wrap { margin-bottom: 32px; } }
     .steps-track {
@@ -301,7 +301,7 @@ export default function Agendar() {
       .step-label { font-size: 10px; }
     }
 
-    /* ââ Section heading ââ */
+    /* ── Section heading ── */
     .section-title {
       font-size: 20px;
       font-weight: 800;
@@ -319,14 +319,14 @@ export default function Agendar() {
       .section-sub { margin-bottom: 24px; }
     }
 
-    /* ââ Card base ââ */
+    /* ── Card base ── */
     .card {
       background: linear-gradient(180deg, rgba(18,22,30,0.97) 0%, rgba(10,12,16,0.97) 100%);
       border: 1px solid rgba(255,255,255,0.08);
       border-radius: 14px;
     }
 
-    /* ââ Serviço cards ââ */
+    /* ── Serviço cards ── */
     .servico-list { display: flex; flex-direction: column; gap: 10px; }
     .servico-card {
       display: flex;
@@ -371,7 +371,7 @@ export default function Agendar() {
     .servico-preco { color: #22C55E; font-weight: 700; }
     .servico-arrow { font-size: 20px; color: #3B82F6; flex-shrink: 0; }
 
-    /* ââ Profissional cards ââ */
+    /* ── Profissional cards ── */
     .prof-grid {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
@@ -415,7 +415,7 @@ export default function Agendar() {
     .prof-nome { font-size: 13px; font-weight: 700; color: #F1F5F9; margin-bottom: 2px; }
     .prof-cargo { font-size: 12px; color: #6B7280; }
 
-    /* ââ Resumo strip (etapa 3) ââ */
+    /* ── Resumo strip (etapa 3) ── */
     .resumo-strip {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
@@ -459,7 +459,7 @@ export default function Agendar() {
       overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
     }
 
-    /* ââ Etapa3 grid ââ */
+    /* ── Etapa3 grid ── */
     .etapa3-cols {
       display: flex; flex-direction: column; gap: 12px;
       margin-bottom: 14px;
@@ -473,7 +473,7 @@ export default function Agendar() {
       }
     }
 
-    /* ââ Calendário ââ */
+    /* ── Calendário ── */
     .cal-wrap {
       background: linear-gradient(180deg, rgba(18,22,30,0.97) 0%, rgba(10,12,16,0.97) 100%);
       border: 1px solid rgba(255,255,255,0.07);
@@ -540,7 +540,7 @@ export default function Agendar() {
       box-shadow: 0 2px 8px rgba(59,130,246,0.35);
     }
 
-    /* ââ Horários ââ */
+    /* ── Horários ── */
     .horarios-wrap {
       background: linear-gradient(180deg, rgba(18,22,30,0.97) 0%, rgba(10,12,16,0.97) 100%);
       border: 1px solid rgba(255,255,255,0.07);
@@ -607,7 +607,7 @@ export default function Agendar() {
       justify-content: center; min-height: 160px; gap: 10px;
     }
 
-    /* ââ Nav buttons ââ */
+    /* ── Nav buttons ── */
     .nav-row { display: flex; gap: 10px; }
     .btn-voltar {
       flex: 1;
@@ -650,7 +650,7 @@ export default function Agendar() {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     }
 
-    /* ââ Inputs ââ */
+    /* ── Inputs ── */
     .input-field {
       width: 100%;
       background: rgba(18,22,30,0.97);
@@ -675,7 +675,7 @@ export default function Agendar() {
       display: block; margin-bottom: 8px;
     }
 
-    /* ââ Resumo card (etapa 4) ââ */
+    /* ── Resumo card (etapa 4) ── */
     .resumo-card {
       background: linear-gradient(180deg, rgba(18,22,30,0.97) 0%, rgba(10,12,16,0.97) 100%);
       border: 1px solid rgba(255,255,255,0.07);
@@ -692,7 +692,7 @@ export default function Agendar() {
     .resumo-row-valor { font-size: 13px; font-weight: 700; }
     .resumo-divider { border: none; border-top: 1px solid rgba(255,255,255,0.05); margin: 10px 0; }
 
-    /* ââ Sucesso ââ */
+    /* ── Sucesso ── */
     .sucesso-wrap {
       min-height: 100vh; background: #08080A;
       display: flex; align-items: center; justify-content: center;
@@ -730,12 +730,12 @@ export default function Agendar() {
     .erro-msg { font-size: 13px; color: #EF4444; margin-top: 10px; }
   `
 
-  // ââ SUCESSO ââ
+  // ── SUCESSO ──
   if (sucesso) return (
     <div className="sucesso-wrap">
       <style>{css}</style>
       <div className="sucesso-inner">
-        <div className="sucesso-icon">â</div>
+        <div className="sucesso-icon">✅</div>
         <h1 className="sucesso-title">Agendamento confirmado!</h1>
         <p className="sucesso-sub">
           Obrigado, <strong style={{ color: '#F1F5F9' }}>{clienteNome}</strong>! Seu agendamento foi recebido.
@@ -767,21 +767,21 @@ export default function Agendar() {
               Falar com o estabelecimento
             </a>
           )}
-          <button onClick={baixarAgendaICS} className="btn-ics">ð Adicionar Ã  agenda do celular</button>
+          <button onClick={baixarAgendaICS} className="btn-ics">📅 Adicionar à agenda do celular</button>
           <Link href={'/' + slug} className="btn-inicio">Voltar ao início</Link>
         </div>
       </div>
     </div>
   )
 
-  // ââ Steps helper ââ
+  // ── Steps helper ──
   const Steps = () => (
     <div className="steps-wrap">
       <div className="steps-track">
         {[1, 2, 3, 4].map((n) => (
           <div key={n} style={{ display: 'flex', alignItems: 'center', flex: n < 4 ? 1 : 'none' }}>
             <div className={`step-dot ${etapa > n ? 'done' : etapa === n ? 'active' : 'idle'}`}>
-              {etapa > n ? 'â' : n}
+              {etapa > n ? '✓' : n}
             </div>
             {n < 4 && (
               <div className="step-line" style={{ background: etapa > n ? '#3B82F6' : 'rgba(255,255,255,0.07)' }} />
@@ -811,12 +811,12 @@ export default function Agendar() {
 
       {/* HEADER */}
       <div className="header">
-        <Link href={'/' + slug} className="header-back">â Voltar</Link>
+        <Link href={'/' + slug} className="header-back">← Voltar</Link>
         <p className="header-title">{perfil?.nome_negocio}</p>
         <div className="header-spacer" />
       </div>
 
-      {/* ââ ETAPA 1 â SERVIÃO ââ */}
+      {/* ── ETAPA 1 — SERVIÇO ── */}
       {etapa === 1 && (
         <div className="container">
           <Steps />
@@ -828,7 +828,7 @@ export default function Agendar() {
                 onClick={() => { setServicoId(s.id); setEtapa(2) }}
                 className={'servico-card' + (servicoId === s.id ? ' sel' : '')}>
                 <div className="servico-accent" />
-                <div className="servico-icon">âï¸</div>
+                <div className="servico-icon">✂️</div>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <p className="servico-nome">{s.nome}</p>
                   {s.descricao
@@ -837,18 +837,18 @@ export default function Agendar() {
                   }
                   <p className="servico-meta">
                     {s.duracao_minutos ? s.duracao_minutos + ' min' : ''}
-                    {s.duracao_minutos && s.preco ? ' Â· ' : ''}
+                    {s.duracao_minutos && s.preco ? ' · ' : ''}
                     {s.preco ? <span className="servico-preco">R$ {s.preco}</span> : null}
                   </p>
                 </div>
-                <span className="servico-arrow">âº</span>
+                <span className="servico-arrow">›</span>
               </button>
             ))}
           </div>
         </div>
       )}
 
-      {/* ââ ETAPA 2 â PROFISSIONAL ââ */}
+      {/* ── ETAPA 2 — PROFISSIONAL ── */}
       {etapa === 2 && (
         <div className="container">
           <Steps />
@@ -874,11 +874,11 @@ export default function Agendar() {
               </button>
             ))}
           </div>
-          <button onClick={() => setEtapa(1)} className="btn-link-voltar">â Voltar</button>
+          <button onClick={() => setEtapa(1)} className="btn-link-voltar">← Voltar</button>
         </div>
       )}
 
-      {/* ââ ETAPA 3 â DATA E HORÃRIO ââ */}
+      {/* ── ETAPA 3 — DATA E HORÁRIO ── */}
       {etapa === 3 && (
         <div className="container-wide">
           <Steps />
@@ -907,10 +907,10 @@ export default function Agendar() {
             <div className="cal-wrap">
               <div className="cal-header">
                 <button className="cal-nav"
-                  onClick={() => setMesAtual(new Date(mesAtual.getFullYear(), mesAtual.getMonth() - 1, 1))}>â¹</button>
+                  onClick={() => setMesAtual(new Date(mesAtual.getFullYear(), mesAtual.getMonth() - 1, 1))}>‹</button>
                 <p className="cal-mes">{mesAtual.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })}</p>
                 <button className="cal-nav"
-                  onClick={() => setMesAtual(new Date(mesAtual.getFullYear(), mesAtual.getMonth() + 1, 1))}>âº</button>
+                  onClick={() => setMesAtual(new Date(mesAtual.getFullYear(), mesAtual.getMonth() + 1, 1))}>›</button>
               </div>
               <div className="cal-dow">
                 {['D','S','T','Q','Q','S','S'].map((d, i) => (
@@ -946,7 +946,7 @@ export default function Agendar() {
             <div className="horarios-wrap">
               {!dataSelecionada && (
                 <div className="horarios-placeholder">
-                  <span style={{ fontSize: '30px', opacity: 0.25 }}>ð</span>
+                  <span style={{ fontSize: '30px', opacity: 0.25 }}>📅</span>
                   <p style={{ fontSize: '13px', color: '#4B5563', textAlign: 'center', lineHeight: 1.5 }}>
                     Selecione uma data<br />para ver os horários
                   </p>
@@ -962,7 +962,7 @@ export default function Agendar() {
                   )}
                   {!carregandoHorarios && horariosDisponiveis.length === 0 && (
                     <div className="horarios-empty">
-                      <span style={{ fontSize: '26px', opacity: 0.3 }}>ð</span>
+                      <span style={{ fontSize: '26px', opacity: 0.3 }}>😔</span>
                       <p style={{ fontSize: '13px', color: '#6B7280', textAlign: 'center' }}>
                         Nenhum horário disponível<br />nesta data.
                       </p>
@@ -1000,7 +1000,7 @@ export default function Agendar() {
 
           {/* Rodapé */}
           <div className="nav-row">
-            <button onClick={() => setEtapa(2)} className="btn-voltar">â Voltar</button>
+            <button onClick={() => setEtapa(2)} className="btn-voltar">← Voltar</button>
             <button
               onClick={() => {
                 if (!dataSelecionada || !horarioSelecionado) { setErro('Selecione data e horário.'); return }
@@ -1008,14 +1008,14 @@ export default function Agendar() {
               }}
               disabled={!dataSelecionada || !horarioSelecionado}
               className={'btn-continuar ' + (dataSelecionada && horarioSelecionado ? 'on' : 'off')}>
-              Continuar â
+              Continuar →
             </button>
           </div>
           {erro && <p className="erro-msg">{erro}</p>}
         </div>
       )}
 
-      {/* ââ ETAPA 4 â DADOS ââ */}
+      {/* ── ETAPA 4 — DADOS ── */}
       {etapa === 4 && (
         <div className="container">
           <Steps />
@@ -1064,7 +1064,7 @@ export default function Agendar() {
           {erro && <p className="erro-msg" style={{ marginBottom: '12px' }}>{erro}</p>}
 
           <div className="nav-row">
-            <button onClick={() => setEtapa(3)} className="btn-voltar">â Voltar</button>
+            <button onClick={() => setEtapa(3)} className="btn-voltar">← Voltar</button>
             <button onClick={handleAgendar} disabled={loading} className="btn-confirmar"
               style={{ opacity: loading ? 0.7 : 1 }}>
               {loading ? 'Confirmando...' : 'Confirmar agendamento'}

@@ -66,8 +66,8 @@ const SB_LINKS=[
   {h:'/painel/perfil',l:'Configurações',I:Settings},
 ]
 
-const FILTROS=['Todos','Hoje','Este mÃªs','Pix','Cartão','Dinheiro','Parcial','Completo']
-const FORMAS=['Pix','Dinheiro','Cartão de débito','Cartão de crédito','TransferÃªncia','Outro']
+const FILTROS=['Todos','Hoje','Este mês','Pix','Cartão','Dinheiro','Parcial','Completo']
+const FORMAS=['Pix','Dinheiro','Cartão de débito','Cartão de crédito','Transferência','Outro']
 
 export default function Pagamentos(){
   const [perfil,setPerfil]=useState<any>(null)
@@ -112,7 +112,7 @@ export default function Pagamentos(){
     const passaF=
       filtro==='Todos'||
       (filtro==='Hoje'&&p.data===hoje)||
-      (filtro==='Este mÃªs'&&p.data?.startsWith(mes))||
+      (filtro==='Este mês'&&p.data?.startsWith(mes))||
       (filtro==='Pix'&&p.forma==='Pix')||
       (filtro==='Cartão'&&p.forma?.toLowerCase().includes('cart'))||
       (filtro==='Dinheiro'&&p.forma==='Dinheiro')||
@@ -162,7 +162,7 @@ export default function Pagamentos(){
       <style dangerouslySetInnerHTML={{__html:CSS}}/>
       <div className={`ovl${mob?' open':''}`} onClick={()=>setMob(false)}/>
       <div className={`drw${mob?' open':''}`}>
-        <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'16px 18px',borderBottom:'1px solid rgba(148,163,184,.10)'}}><span style={{fontSize:'14px',fontWeight:800,color:'#F8FAFC'}}>ClienteMarcado</span><button onClick={()=>setMob(false)} style={{background:'none',border:'none',color:'rgba(255,255,255,.5)',cursor:'pointer',fontSize:'22px',lineHeight:1}}>Ã</button></div>
+        <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'16px 18px',borderBottom:'1px solid rgba(148,163,184,.10)'}}><span style={{fontSize:'14px',fontWeight:800,color:'#F8FAFC'}}>ClienteMarcado</span><button onClick={()=>setMob(false)} style={{background:'none',border:'none',color:'rgba(255,255,255,.5)',cursor:'pointer',fontSize:'22px',lineHeight:1}}>×</button></div>
         <nav style={{flex:1,padding:'10px 8px',overflowY:'auto'}}>{SB_LINKS.map(it=>(<Link key={it.l} href={it.h} prefetch={false} onClick={()=>setMob(false)} className={'nl'+(it.on?' on':'')} style={{fontSize:'14px'}}><it.I size={16}/><span>{it.l}</span></Link>))}</nav>
       </div>
       <SidebarComp/>
@@ -199,7 +199,7 @@ export default function Pagamentos(){
             <div className="crd" style={{padding:'22px',marginBottom:'20px'}}>
               <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:'16px'}}>
                 <p style={{fontSize:'14px',fontWeight:700,color:'#4ADE80'}}>Registrar recebimento</p>
-                <button onClick={()=>setShowForm(false)} style={{background:'none',border:'none',color:'#64748B',cursor:'pointer',fontSize:'20px',lineHeight:1,fontFamily:'inherit'}}>Ã</button>
+                <button onClick={()=>setShowForm(false)} style={{background:'none',border:'none',color:'#64748B',cursor:'pointer',fontSize:'20px',lineHeight:1,fontFamily:'inherit'}}>×</button>
               </div>
               <div className="fg3" style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:'12px',marginBottom:'12px'}}>
                 <div><label className="lbl">Cliente *</label><input className="inp" type="text" placeholder="Nome do cliente" value={fCliente} onChange={e=>setFCliente(e.target.value)}/></div>
@@ -207,11 +207,11 @@ export default function Pagamentos(){
                 <div><label className="lbl">Forma de pagamento</label><select className="inp" style={{cursor:'pointer'}} value={fForma} onChange={e=>setFForma(e.target.value)}>{FORMAS.map(f=><option key={f}>{f}</option>)}</select></div>
               </div>
               <div className="fg2" style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'12px',marginBottom:'16px'}}>
-                <div><label className="lbl">Tipo de recebimento</label><select className="inp" style={{cursor:'pointer'}} value={fTipo} onChange={e=>setFTipo(e.target.value)}><option value="completo">Completo â valor total recebido</option><option value="parcial">Parcial â parte do valor</option></select></div>
-                <div><label className="lbl">ReferÃªncia (opcional)</label><input className="inp" type="text" placeholder="Ex: orçamento #123, consulta do dia..." value={fRef} onChange={e=>setFRef(e.target.value)}/></div>
+                <div><label className="lbl">Tipo de recebimento</label><select className="inp" style={{cursor:'pointer'}} value={fTipo} onChange={e=>setFTipo(e.target.value)}><option value="completo">Completo — valor total recebido</option><option value="parcial">Parcial — parte do valor</option></select></div>
+                <div><label className="lbl">Referência (opcional)</label><input className="inp" type="text" placeholder="Ex: orçamento #123, consulta do dia..." value={fRef} onChange={e=>setFRef(e.target.value)}/></div>
               </div>
               <div style={{display:'flex',gap:'8px',alignItems:'center'}}>
-                <button onClick={registrar} disabled={salvando} className="btn-p" style={{opacity:salvando?.7:1,background:'linear-gradient(135deg,#16A34A,#059669)'}}>{salvando?'Registrando...':'â Confirmar recebimento'}</button>
+                <button onClick={registrar} disabled={salvando} className="btn-p" style={{opacity:salvando?.7:1,background:'linear-gradient(135deg,#16A34A,#059669)'}}>{salvando?'Registrando...':'✓ Confirmar recebimento'}</button>
                 <button onClick={()=>setShowForm(false)} className="btn-s">Cancelar</button>
               </div>
             </div>
@@ -220,10 +220,10 @@ export default function Pagamentos(){
           {/* KPIs */}
           <div className="kpi-grid">
             {[
-              {l:'RECEBIDO NO MÃS',sub:'Total confirmado',v:fBRL(recMes),c:'#4ADE80',bg:'rgba(34,197,94,.10)',bd:'rgba(34,197,94,.28)',I:CheckCircle2},
+              {l:'RECEBIDO NO MÊS',sub:'Total confirmado',v:fBRL(recMes),c:'#4ADE80',bg:'rgba(34,197,94,.10)',bd:'rgba(34,197,94,.28)',I:CheckCircle2},
               {l:'RECEBIDO HOJE',sub:'Entradas do dia',v:fBRL(recHoje),c:'#60A5FA',bg:'rgba(59,130,246,.10)',bd:'rgba(59,130,246,.28)',I:CalendarDays},
               {l:'PAGAMENTOS PARCIAIS',sub:'Recebimentos incompletos',v:parciais,c:'#C4B5FD',bg:'rgba(124,58,237,.10)',bd:'rgba(124,58,237,.28)',I:CircleDollarSign},
-              {l:'TICKET MÃDIO',sub:'Média por pagamento',v:fBRL(ticket),c:'#22D3EE',bg:'rgba(6,182,212,.10)',bd:'rgba(6,182,212,.28)',I:TrendingUp},
+              {l:'TICKET MÉDIO',sub:'Média por pagamento',v:fBRL(ticket),c:'#22D3EE',bg:'rgba(6,182,212,.10)',bd:'rgba(6,182,212,.28)',I:TrendingUp},
             ].map(k=>(
               <div key={k.l} className="crd" style={{padding:'18px 16px',background:`radial-gradient(circle at top left,${k.bg},transparent 60%),linear-gradient(145deg,rgba(15,23,42,.97),rgba(8,20,33,.99))`,border:`1.5px solid ${k.bd}`}}>
                 <div style={{width:'36px',height:'36px',borderRadius:'10px',background:k.bg,display:'flex',alignItems:'center',justifyContent:'center',marginBottom:'10px'}}><k.I size={18} color={k.c}/></div>
@@ -237,7 +237,7 @@ export default function Pagamentos(){
           {/* Busca */}
           <div style={{position:'relative',marginBottom:'12px'}}>
             <Search size={15} color="#64748B" style={{position:'absolute',left:'14px',top:'50%',transform:'translateY(-50%)',pointerEvents:'none'}}/>
-            <input type="text" placeholder="Buscar pagamento, cliente, forma ou referÃªncia..." value={busca} onChange={e=>setBusca(e.target.value)}
+            <input type="text" placeholder="Buscar pagamento, cliente, forma ou referência..." value={busca} onChange={e=>setBusca(e.target.value)}
               style={{width:'100%',background:'rgba(15,23,42,.88)',border:'1.5px solid rgba(148,163,184,.18)',borderRadius:'12px',padding:'11px 16px 11px 42px',fontSize:'13px',color:'#F8FAFC',outline:'none',fontFamily:'inherit',boxSizing:'border-box'}}/>
           </div>
 
@@ -252,7 +252,7 @@ export default function Pagamentos(){
               <div style={{width:'60px',height:'60px',borderRadius:'18px',background:'rgba(34,197,94,.12)',border:'1px solid rgba(34,197,94,.28)',display:'flex',alignItems:'center',justifyContent:'center',margin:'0 auto 18px',boxShadow:'0 0 24px rgba(34,197,94,.14)'}}><CircleDollarSign size={26} color="#4ADE80"/></div>
               <p style={{fontSize:'16px',fontWeight:700,color:'#F8FAFC',marginBottom:'8px'}}>Nenhum pagamento registrado</p>
               <p style={{fontSize:'13px',color:'#64748B',lineHeight:1.6,marginBottom:'6px',maxWidth:'380px',margin:'0 auto 6px'}}>Quando um recebimento for confirmado, ele aparecerá aqui no histórico.</p>
-              <p style={{fontSize:'12px',color:'#475569',marginBottom:'24px'}}>VocÃª também pode registrar pagamentos diretamente em uma cobrança.</p>
+              <p style={{fontSize:'12px',color:'#475569',marginBottom:'24px'}}>Você também pode registrar pagamentos diretamente em uma cobrança.</p>
               <div style={{display:'flex',gap:'10px',justifyContent:'center',flexWrap:'wrap'}}>
                 <button onClick={()=>setShowForm(true)} className="btn-p" style={{background:'linear-gradient(135deg,#16A34A,#059669)'}}>+ Registrar recebimento</button>
                 <Link href="/painel/cobrancas" prefetch={false} className="btn-s">Ver cobranças</Link>
@@ -277,8 +277,8 @@ export default function Pagamentos(){
                           <p style={{fontSize:'14px',fontWeight:700,color:'#F8FAFC',marginBottom:'4px'}}>{p.cliente_nome}</p>
                           <div style={{display:'flex',alignItems:'center',gap:'8px',flexWrap:'wrap'}}>
                             <span style={{fontSize:'12px',color:'#64748B'}}>{p.forma}</span>
-                            {p.data&&<><span style={{fontSize:'10px',color:'#374151'}}>Â·</span><span style={{fontSize:'12px',color:'#64748B'}}>{fData(p.data)}</span></>}
-                            {p.referencia&&<><span style={{fontSize:'10px',color:'#374151'}}>Â·</span><span style={{fontSize:'12px',color:'#94A3B8',fontStyle:'italic'}}>{p.referencia}</span></>}
+                            {p.data&&<><span style={{fontSize:'10px',color:'#374151'}}>·</span><span style={{fontSize:'12px',color:'#64748B'}}>{fData(p.data)}</span></>}
+                            {p.referencia&&<><span style={{fontSize:'10px',color:'#374151'}}>·</span><span style={{fontSize:'12px',color:'#94A3B8',fontStyle:'italic'}}>{p.referencia}</span></>}
                           </div>
                         </div>
                         <div style={{display:'flex',flexDirection:'column',alignItems:'flex-end',gap:'6px',flexShrink:0}}>

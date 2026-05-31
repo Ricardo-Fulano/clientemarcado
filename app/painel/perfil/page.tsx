@@ -100,7 +100,7 @@ export default function Perfil(){
   const [fechamento,setFechamento]=useState('18:00')
   const [antecedencia,setAntecedencia]=useState('Sem restrição')
 
-  // Tema (estado local â conectar ao banco quando criar coluna tema_publico)
+  // Tema (estado local — conectar ao banco quando criar coluna tema_publico)
   const [publicTheme,setPublicTheme]=useState('padrao')
 
   useEffect(()=>{load()},[])
@@ -120,7 +120,7 @@ export default function Perfil(){
       setCidade(p.cidade||p.cidade_estado||'')
       setDesc(p.descricao||'')
       setCapUrl(p.capa_url||p.imagem_capa||'')
-      // Agenda â campos podem ter nomes diferentes dependendo da versão
+      // Agenda — campos podem ter nomes diferentes dependendo da versão
       if(p.dias_ativos) setDiasAtivos(p.dias_ativos)
       if(p.horarios) setHorarios(p.horarios)
       if(p.intervalo||p.intervalo_agenda) setIntervalo(p.intervalo||p.intervalo_agenda||'30 min')
@@ -144,7 +144,7 @@ export default function Perfil(){
       slug:slugFmt,
     }
 
-    // Campos opcionais â adicionados com segurança
+    // Campos opcionais — adicionados com segurança
     if(end!==undefined) payloadBase.endereco=end.trim()||null
     if(wpp!==undefined) payloadBase.whatsapp=wpp.replace(/\D/g,'')||null
     if(insta!==undefined) payloadBase.instagram=insta.trim()||null
@@ -152,7 +152,7 @@ export default function Perfil(){
     if(desc!==undefined) payloadBase.descricao=desc.trim()||null
     if(capUrl!==undefined) payloadBase.capa_url=capUrl||null
 
-    // Campos de agenda â tentar enviar, capturar erro por coluna
+    // Campos de agenda — tentar enviar, capturar erro por coluna
     try {
       payloadBase.dias_ativos=diasAtivos
       payloadBase.horarios=horarios
@@ -162,7 +162,7 @@ export default function Perfil(){
       payloadBase.antecedencia=antecedencia
     } catch(_){}
 
-    // Tema público â só envia se coluna existir (sem quebrar se não existir)
+    // Tema público — só envia se coluna existir (sem quebrar se não existir)
     payloadBase.public_theme=publicTheme
     console.log('Tema antes de salvar:', publicTheme)
 
@@ -245,7 +245,7 @@ export default function Perfil(){
       <style dangerouslySetInnerHTML={{__html:CSS}}/>
       <div className={`ovl${mob?' open':''}`} onClick={()=>setMob(false)}/>
       <div className={`drw${mob?' open':''}`}>
-        <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'16px 18px',borderBottom:'1px solid rgba(148,163,184,.10)'}}><span style={{fontSize:'14px',fontWeight:800,color:'#F8FAFC'}}>ClienteMarcado</span><button onClick={()=>setMob(false)} style={{background:'none',border:'none',color:'rgba(255,255,255,.5)',cursor:'pointer',fontSize:'22px',lineHeight:1}}>Ã</button></div>
+        <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'16px 18px',borderBottom:'1px solid rgba(148,163,184,.10)'}}><span style={{fontSize:'14px',fontWeight:800,color:'#F8FAFC'}}>ClienteMarcado</span><button onClick={()=>setMob(false)} style={{background:'none',border:'none',color:'rgba(255,255,255,.5)',cursor:'pointer',fontSize:'22px',lineHeight:1}}>×</button></div>
         <nav style={{flex:1,padding:'10px 8px',overflowY:'auto'}}>{SB_LINKS.map(it=>(<Link key={it.l} href={it.h} prefetch={false} onClick={()=>setMob(false)} className={'nl'+(it.on?' on':'')} style={{fontSize:'14px'}}><it.I size={16}/><span>{it.l}</span></Link>))}</nav>
       </div>
       <SidebarComp/>
@@ -269,7 +269,7 @@ export default function Perfil(){
               <h1 style={{fontSize:'22px',fontWeight:800,color:'#F8FAFC',letterSpacing:'-0.04em',marginBottom:'5px'}}>Perfil do negócio</h1>
               <p style={{fontSize:'13px',color:'#64748B'}}>Configure como seu negócio aparece para os clientes.</p>
             </div>
-            <Link href="/painel" prefetch={false} style={{fontSize:'13px',color:'#64748B',textDecoration:'none',display:'flex',alignItems:'center',gap:'4px',flexShrink:0,padding:'8px 12px',background:'rgba(15,23,42,.72)',border:'1px solid rgba(148,163,184,.14)',borderRadius:'8px'}}>â Voltar ao painel</Link>
+            <Link href="/painel" prefetch={false} style={{fontSize:'13px',color:'#64748B',textDecoration:'none',display:'flex',alignItems:'center',gap:'4px',flexShrink:0,padding:'8px 12px',background:'rgba(15,23,42,.72)',border:'1px solid rgba(148,163,184,.14)',borderRadius:'8px'}}>← Voltar ao painel</Link>
           </div>
 
           {/* Link publico */}
@@ -358,7 +358,7 @@ export default function Perfil(){
             <p style={{fontSize:'12px',color:'#64748B',marginBottom:'18px'}}>Controle como o agendamento público funciona.</p>
             <div className="fg2" style={{marginBottom:'14px'}}>
               <div><label className="lbl">Intervalo entre horários</label><select className="inp" style={{cursor:'pointer'}} value={intervalo} onChange={e=>setIntervalo(e.target.value)}>{INTERVALOS.map(v=><option key={v}>{v}</option>)}</select></div>
-              <div><label className="lbl">AntecedÃªncia mínima</label><select className="inp" style={{cursor:'pointer'}} value={antecedencia} onChange={e=>setAntecedencia(e.target.value)}>{ANTECEDENCIAS.map(v=><option key={v}>{v}</option>)}</select></div>
+              <div><label className="lbl">Antecedência mínima</label><select className="inp" style={{cursor:'pointer'}} value={antecedencia} onChange={e=>setAntecedencia(e.target.value)}>{ANTECEDENCIAS.map(v=><option key={v}>{v}</option>)}</select></div>
             </div>
             <div className="fg2">
               <div><label className="lbl">Abertura geral</label><input className="inp" type="time" value={abertura} onChange={e=>setAbertura(e.target.value)}/></div>
@@ -368,7 +368,7 @@ export default function Perfil(){
 
           {/* Aparencia */}
           <div className="crd">
-            <p style={{fontSize:'15px',fontWeight:700,color:'#F8FAFC',marginBottom:'4px'}}>AparÃªncia da página pública</p>
+            <p style={{fontSize:'15px',fontWeight:700,color:'#F8FAFC',marginBottom:'4px'}}>Aparência da página pública</p>
             <p style={{fontSize:'12px',color:'#64748B',marginBottom:'18px'}}>Personalize a página que seus clientes acessam para agendar.</p>
 
             <p style={{fontSize:'13px',fontWeight:600,color:'#CBD5E1',marginBottom:'8px'}}>Imagem de capa</p>

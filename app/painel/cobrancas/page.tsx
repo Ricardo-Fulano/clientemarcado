@@ -103,7 +103,7 @@ export default function Cobrancas(){
   function enviarWpp(orc:any){
     const tel=(orc.cliente_whatsapp||'').replace(/\D/g,'')
     if(!tel)return
-    const msg=`Olá, ${orc.cliente_nome}!\n\nVocÃª tem um saldo pendente de ${fBRL(orc.saldo_restante)} referente a ${orc.tipo}.\n\nPor favor, entre em contato para regularizar. Obrigado!`
+    const msg=`Olá, ${orc.cliente_nome}!\n\nVocê tem um saldo pendente de ${fBRL(orc.saldo_restante)} referente a ${orc.tipo}.\n\nPor favor, entre em contato para regularizar. Obrigado!`
     window.open(`https://wa.me/55${tel}?text=${encodeURIComponent(msg)}`,'_blank')
   }
 
@@ -130,7 +130,7 @@ export default function Cobrancas(){
       <style dangerouslySetInnerHTML={{__html:CSS}}/>
       <div className={`ovl${mob?' open':''}`} onClick={()=>setMob(false)}/>
       <div className={`drw${mob?' open':''}`}>
-        <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'16px 18px',borderBottom:'1px solid rgba(148,163,184,.10)'}}><span style={{fontSize:'14px',fontWeight:800,color:'#F8FAFC'}}>ClienteMarcado</span><button onClick={()=>setMob(false)} style={{background:'none',border:'none',color:'rgba(255,255,255,.5)',cursor:'pointer',fontSize:'22px',lineHeight:1}}>Ã</button></div>
+        <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'16px 18px',borderBottom:'1px solid rgba(148,163,184,.10)'}}><span style={{fontSize:'14px',fontWeight:800,color:'#F8FAFC'}}>ClienteMarcado</span><button onClick={()=>setMob(false)} style={{background:'none',border:'none',color:'rgba(255,255,255,.5)',cursor:'pointer',fontSize:'22px',lineHeight:1}}>×</button></div>
         <nav style={{flex:1,padding:'10px 8px',overflowY:'auto'}}>{SB_LINKS.map(it=>(<Link key={it.l} href={it.h} onClick={()=>setMob(false)} className={'nl'+(it.on?' on':'')} style={{fontSize:'14px'}}><it.I size={16}/><span>{it.l}</span></Link>))}</nav>
       </div>
       <SidebarComp/>
@@ -189,7 +189,7 @@ export default function Cobrancas(){
               <div style={{width:'56px',height:'56px',borderRadius:'16px',background:'rgba(59,130,246,.14)',border:'1px solid rgba(59,130,246,.28)',display:'flex',alignItems:'center',justifyContent:'center',margin:'0 auto 16px'}}><CreditCard size={24} color="#60A5FA"/></div>
               <p style={{fontSize:'16px',fontWeight:700,color:'#F8FAFC',marginBottom:'8px'}}>Nenhuma cobrança em aberto</p>
               <p style={{fontSize:'13px',color:'#64748B',lineHeight:1.6,marginBottom:'6px'}}>Quando houver orçamento pendente, cobrança vencida ou saldo restante, tudo aparecerá aqui.</p>
-              <p style={{fontSize:'12px',color:'#475569',marginBottom:'20px'}}>VocÃª também pode gerar cobranças a partir de um orçamento.</p>
+              <p style={{fontSize:'12px',color:'#475569',marginBottom:'20px'}}>Você também pode gerar cobranças a partir de um orçamento.</p>
               <Link href="/painel/orcamentos/novo" className="btn-p" style={{display:'inline-flex'}}>+ Nova cobrança</Link>
             </div>
           ):(
@@ -202,7 +202,7 @@ export default function Cobrancas(){
                     <div style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',gap:'12px',marginBottom:'14px',flexWrap:'wrap'}}>
                       <div>
                         <p style={{fontSize:'15px',fontWeight:700,color:'#F8FAFC',marginBottom:'3px'}}>{orc.cliente_nome}</p>
-                        <p style={{fontSize:'12px',color:'#64748B'}}>{orc.tipo} Â· {fData(orc.data)}{orc.cliente_whatsapp&&` Â· ${orc.cliente_whatsapp}`}</p>
+                        <p style={{fontSize:'12px',color:'#64748B'}}>{orc.tipo} · {fData(orc.data)}{orc.cliente_whatsapp&&` · ${orc.cliente_whatsapp}`}</p>
                       </div>
                       <span style={{fontSize:'11px',fontWeight:700,padding:'4px 12px',borderRadius:'999px',background:statusC.bg,color:statusC.c,border:`1px solid ${statusC.bd}`,flexShrink:0,whiteSpace:'nowrap'}}>{orc.status}</span>
                     </div>
@@ -215,7 +215,7 @@ export default function Cobrancas(){
                       ))}
                     </div>
                     <div style={{display:'flex',gap:'8px',flexWrap:'wrap'}}>
-                      {orc.cliente_whatsapp&&<button onClick={()=>enviarWpp(orc)} style={{flex:1,minWidth:'100px',background:'rgba(34,197,94,.12)',border:'1px solid rgba(34,197,94,.28)',borderRadius:'8px',height:'38px',fontSize:'12px',fontWeight:600,color:'#4ADE80',cursor:'pointer',fontFamily:'inherit',display:'flex',alignItems:'center',justifyContent:'center',gap:'5px'}}>ð¬ Cobrar no WhatsApp</button>}
+                      {orc.cliente_whatsapp&&<button onClick={()=>enviarWpp(orc)} style={{flex:1,minWidth:'100px',background:'rgba(34,197,94,.12)',border:'1px solid rgba(34,197,94,.28)',borderRadius:'8px',height:'38px',fontSize:'12px',fontWeight:600,color:'#4ADE80',cursor:'pointer',fontFamily:'inherit',display:'flex',alignItems:'center',justifyContent:'center',gap:'5px'}}>💬 Cobrar no WhatsApp</button>}
                       <Link href="/painel/orcamentos" style={{flex:1,minWidth:'100px',background:'rgba(15,23,42,.88)',border:'1px solid rgba(148,163,184,.20)',borderRadius:'8px',height:'38px',fontSize:'12px',fontWeight:600,color:'#CBD5E1',display:'flex',alignItems:'center',justifyContent:'center',gap:'5px',textDecoration:'none'}}>Ver detalhes</Link>
                     </div>
                   </div>

@@ -1,17 +1,17 @@
 export default function Home() {
   const features = [
     {
-      icon: 'ð',
+      icon: '📅',
       titulo: 'Agendamento online',
       desc: 'Seus clientes agendam pelo celular, 24h por dia, sem precisar ligar.',
     },
     {
-      icon: 'â',
+      icon: '✅',
       titulo: 'Controle presencial',
       desc: 'Registre atendimentos presenciais com 2 toques. Simples e rápido.',
     },
     {
-      icon: 'ð',
+      icon: '📊',
       titulo: 'Relatório por profissional',
       desc: 'Veja receita, serviços e atendimentos de cada profissional em um lugar só.',
     },
@@ -30,12 +30,12 @@ export default function Home() {
 
       <section style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', padding: '120px 24px 80px', maxWidth: '800px', margin: '0 auto' }}>
         <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', fontSize: '12px', fontWeight: '500', padding: '4px 12px', borderRadius: '999px', marginBottom: '32px', background: 'var(--accent-soft)', color: 'var(--accent)', border: '1px solid var(--accent-border)' }}>
-          â¦ Agendamento inteligente para negócios locais
+          ✦ Agendamento inteligente para negócios locais
         </div>
 
         <h2 style={{ fontSize: '52px', fontWeight: 'bold', lineHeight: '1.15', marginBottom: '24px', color: 'var(--text-primary)' }}>
           Seu cliente agenda sozinho.{' '}
-          <span style={{ color: 'var(--accent)' }}>VocÃª só atende.</span>
+          <span style={{ color: 'var(--accent)' }}>Você só atende.</span>
         </h2>
 
         <p style={{ fontSize: '18px', color: 'var(--text-secondary)', maxWidth: '480px', lineHeight: '1.7', marginBottom: '40px' }}>
@@ -62,7 +62,7 @@ export default function Home() {
       </section>
 
       <footer style={{ textAlign: 'center', paddingBottom: '40px', fontSize: '12px', color: 'var(--text-muted)' }}>
-        Â© 2025 ClienteMarcado Â· Todos os direitos reservados
+        © 2025 ClienteMarcado · Todos os direitos reservados
       </footer>
 
     </main>
