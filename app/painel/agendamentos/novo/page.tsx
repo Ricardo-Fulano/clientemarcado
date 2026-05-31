@@ -8,10 +8,10 @@ const G='linear-gradient(135deg,#3B82F6,#7C3AED)'
 const AV='linear-gradient(135deg,rgba(59,130,246,.95),rgba(124,58,237,.95))'
 const SB_ITEMS=[
   {h:'/painel',l:'InÃ­cio'},{h:'/painel/agendamentos',l:'Agenda',on:true},
-  {h:'/painel/clientes',l:'Clientes'},{h:'/painel/orcamentos',l:'OrÃ§amentos'},
-  {h:'/painel/cobrancas',l:'CobranÃ§as'},{h:'/painel/pagamentos',l:'Pagamentos'},
-  {h:'/painel/servicos',l:'ServiÃ§os'},{h:'/painel/profissionais',l:'Profissionais'},
-  {h:'/painel/relatorio',l:'RelatÃ³rios'},{h:'/painel/perfil',l:'ConfiguraÃ§Ãµes'},
+  {h:'/painel/clientes',l:'Clientes'},{h:'/painel/orcamentos',l:'Orçamentos'},
+  {h:'/painel/cobrancas',l:'Cobranças'},{h:'/painel/pagamentos',l:'Pagamentos'},
+  {h:'/painel/servicos',l:'Serviços'},{h:'/painel/profissionais',l:'Profissionais'},
+  {h:'/painel/relatorio',l:'Relatórios'},{h:'/painel/perfil',l:'Configurações'},
 ]
 const CSS=`
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -94,7 +94,7 @@ export default function NovoAgendamento(){
     const err:string[]=[]
     if(!cNome.trim()) err.push('Informe o nome do cliente / paciente.')
     if(!data) err.push('Selecione a data.')
-    if(!hora) err.push('Selecione o horÃ¡rio.')
+    if(!hora) err.push('Selecione o horário.')
     if(err.length){setErros(err);return}
     setErros([]);setSalvando(true)
     const {data:{user}}=await supabase.auth.getUser()
@@ -124,7 +124,7 @@ export default function NovoAgendamento(){
       <div className="sb-foot">
         <div style={{display:'flex',alignItems:'center',gap:'10px',background:'rgba(15,23,42,.6)',border:'1px solid rgba(148,163,184,.12)',borderRadius:'10px',padding:'10px 12px'}}>
           <div style={{width:'32px',height:'32px',borderRadius:'50%',background:AV,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'13px',fontWeight:700,color:'#fff',flexShrink:0}}>{ini}</div>
-          <div style={{minWidth:0}}><p style={{fontSize:'12px',fontWeight:600,color:'#F8FAFC',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{nome||'Meu negÃ³cio'}</p><p style={{fontSize:'10px',color:'#64748B'}}>Administrador</p></div>
+          <div style={{minWidth:0}}><p style={{fontSize:'12px',fontWeight:600,color:'#F8FAFC',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{nome||'Meu negócio'}</p><p style={{fontSize:'10px',color:'#64748B'}}>Administrador</p></div>
         </div>
       </div>
     </aside>
@@ -137,7 +137,7 @@ export default function NovoAgendamento(){
       <div className={`drw${mob?' open':''}`}>
         <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'16px 18px',borderBottom:'1px solid rgba(148,163,184,.10)'}}>
           <span style={{fontSize:'14px',fontWeight:800,color:'#F8FAFC'}}>ClienteMarcado</span>
-          <button onClick={()=>setMob(false)} style={{background:'none',border:'none',color:'rgba(255,255,255,.5)',cursor:'pointer',fontSize:'22px',lineHeight:1}}>Ã—</button>
+          <button onClick={()=>setMob(false)} style={{background:'none',border:'none',color:'rgba(255,255,255,.5)',cursor:'pointer',fontSize:'22px',lineHeight:1}}>×</button>
         </div>
         <nav style={{flex:1,padding:'10px 8px',overflowY:'auto'}}>{SB_ITEMS.map(it=><Link key={it.l} href={it.h} onClick={()=>setMob(false)} className={'nl'+(it.on?' on':'')} style={{fontSize:'14px'}}>{it.l}</Link>)}</nav>
       </div>
@@ -155,7 +155,7 @@ export default function NovoAgendamento(){
             <Link href="/painel/agendamentos" className="btn-s" style={{height:'38px',padding:'0 14px',fontSize:'12px'}}>â† Voltar</Link>
             <div>
               <h1 style={{fontSize:'20px',fontWeight:800,color:'#F8FAFC',letterSpacing:'-0.03em',marginBottom:'3px'}}>Novo agendamento</h1>
-              <p style={{fontSize:'12px',color:'#64748B'}}>Preencha os dados para registrar o horÃ¡rio na agenda.</p>
+              <p style={{fontSize:'12px',color:'#64748B'}}>Preencha os dados para registrar o horário na agenda.</p>
             </div>
           </div>
           {erros.length>0&&(
@@ -198,10 +198,10 @@ export default function NovoAgendamento(){
               {/* Bloco 2 */}
               <div className="crd" style={{padding:'22px',marginBottom:'14px'}}>
                 <p style={{fontSize:'13px',fontWeight:700,color:'#60A5FA',marginBottom:'14px',display:'flex',alignItems:'center',gap:'7px'}}>
-                  <span style={{background:'rgba(59,130,246,.18)',borderRadius:'6px',padding:'2px 9px',fontSize:'11px'}}>2</span>ServiÃ§o e profissional
+                  <span style={{background:'rgba(59,130,246,.18)',borderRadius:'6px',padding:'2px 9px',fontSize:'11px'}}>2</span>Serviço e profissional
                 </p>
                 <div className="fg2" style={{marginBottom:'12px'}}>
-                  <div><label className="lbl">ServiÃ§o / Procedimento</label>
+                  <div><label className="lbl">Serviço / Procedimento</label>
                     <select className="inp" value={servId} onChange={e=>selServ(e.target.value)}>
                       <option value="">Selecionar...</option>
                       {servs.map((s:any)=><option key={s.id} value={s.id}>{s.nome}</option>)}
@@ -225,11 +225,11 @@ export default function NovoAgendamento(){
               {/* Bloco 3 */}
               <div className="crd" style={{padding:'22px',marginBottom:'14px'}}>
                 <p style={{fontSize:'13px',fontWeight:700,color:'#60A5FA',marginBottom:'14px',display:'flex',alignItems:'center',gap:'7px'}}>
-                  <span style={{background:'rgba(59,130,246,.18)',borderRadius:'6px',padding:'2px 9px',fontSize:'11px'}}>3</span>Data e horÃ¡rio
+                  <span style={{background:'rgba(59,130,246,.18)',borderRadius:'6px',padding:'2px 9px',fontSize:'11px'}}>3</span>Data e horário
                 </p>
                 <div className="fg2" style={{marginBottom:'14px'}}>
                   <div><label className="lbl">Data *</label><input className="inp" type="date" value={data} onChange={e=>setData(e.target.value)}/></div>
-                  <div><label className="lbl">HorÃ¡rio *</label><input className="inp" type="time" value={hora} onChange={e=>setHora(e.target.value)}/></div>
+                  <div><label className="lbl">Horário *</label><input className="inp" type="time" value={hora} onChange={e=>setHora(e.target.value)}/></div>
                 </div>
                 <label className="lbl">Status inicial</label>
                 <div style={{display:'flex',gap:'6px',flexWrap:'wrap'}}>
@@ -244,9 +244,9 @@ export default function NovoAgendamento(){
               {/* Bloco 4 */}
               <div className="crd" style={{padding:'22px'}}>
                 <p style={{fontSize:'13px',fontWeight:700,color:'#60A5FA',marginBottom:'14px',display:'flex',alignItems:'center',gap:'7px'}}>
-                  <span style={{background:'rgba(59,130,246,.18)',borderRadius:'6px',padding:'2px 9px',fontSize:'11px'}}>4</span>ObservaÃ§Ãµes
+                  <span style={{background:'rgba(59,130,246,.18)',borderRadius:'6px',padding:'2px 9px',fontSize:'11px'}}>4</span>Observações
                 </p>
-                <textarea className="inp" rows={3} placeholder="InformaÃ§Ãµes adicionais sobre o atendimento..." value={obs} onChange={e=>setObs(e.target.value)} style={{height:'auto',padding:'12px 14px',resize:'none',lineHeight:1.6}}/>
+                <textarea className="inp" rows={3} placeholder="Informações adicionais sobre o atendimento..." value={obs} onChange={e=>setObs(e.target.value)} style={{height:'auto',padding:'12px 14px',resize:'none',lineHeight:1.6}}/>
               </div>
             </div>
             {/* Resumo lateral */}
@@ -255,10 +255,10 @@ export default function NovoAgendamento(){
                 <p style={{fontSize:'13px',fontWeight:700,color:'#60A5FA',marginBottom:'16px'}}>Resumo</p>
                 {[
                   {l:'Cliente',v:cNome||'â€”'},
-                  {l:'ServiÃ§o',v:servSel?.nome||'â€”'},
+                  {l:'Serviço',v:servSel?.nome||'â€”'},
                   {l:'Profissional',v:profSel?.nome||'Qualquer'},
                   {l:'Data',v:data?new Date(data+'T12:00:00').toLocaleDateString('pt-BR'):'â€”'},
-                  {l:'HorÃ¡rio',v:hora||'â€”'},
+                  {l:'Horário',v:hora||'â€”'},
                   {l:'Status',v:status==='confirmado'?'Confirmado':'Pendente'},
                   {l:'Valor',v:valor?`R$ ${parseFloat(valor).toLocaleString('pt-BR',{minimumFractionDigits:2})}`:'â€”'},
                 ].map(r=>(
