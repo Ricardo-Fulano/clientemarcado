@@ -2,7 +2,7 @@
 import { useEffect, useState, useRef, useCallback } from 'react'
 import { supabase } from '../../lib/supabase'
 import Link from 'next/link'
-import PlanoBloqueado from '../../components/PlanoBloqueado'
+import PlanoBloqueado from '@/components/PlanoBloqueado'
 
 // ── AutoResizeTextarea ──
 function AutoResizeTextarea({value,onChange,placeholder,minHeight=48,style={}}:{value:string;onChange:(v:string)=>void;placeholder?:string;minHeight?:number;style?:React.CSSProperties}){

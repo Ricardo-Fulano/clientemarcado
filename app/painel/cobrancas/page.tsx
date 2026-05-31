@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react'
 import { supabase } from '../../lib/supabase'
 import Link from 'next/link'
 import { CreditCard, AlertTriangle, Hourglass, CircleDollarSign, Search, Home, Calendar, Users, ClipboardList, Wallet, Sparkles, User, BarChart3, Settings } from 'lucide-react'
-import PlanoBloqueado from '../../components/PlanoBloqueado'
+import PlanoBloqueado from '@/components/PlanoBloqueado'
 
 const G='linear-gradient(135deg,#3B82F6,#7C3AED)'
 const AV='linear-gradient(135deg,rgba(59,130,246,.95),rgba(124,58,237,.95))'
