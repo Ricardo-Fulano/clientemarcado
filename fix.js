@@ -1,11 +1,27 @@
 const fs = require('fs')
 
-let c = fs.readFileSync('app/painel/cobrancas/page.tsx', 'utf8')
-c = c.replace('recurso="Pagamentos"', 'recurso="Cobranças"')
-fs.writeFileSync('app/painel/cobrancas/page.tsx', c, 'utf8')
-console.log('cobrancas OK')
+const pages = [
+  { file: 'app/painel/pagamentos/page.tsx', recurso: 'Pagamentos' },
+  { file: 'app/painel/cobrancas/page.tsx', recurso: 'Cobranças' },
+  { file: 'app/painel/relatorio/page.tsx', recurso: 'Relatórios' },
+]
 
-c = fs.readFileSync('app/painel/relatorio/page.tsx', 'utf8')
-c = c.replace('recurso="Pagamentos"', 'recurso="Relatórios"')
-fs.writeFileSync('app/painel/relatorio/page.tsx', c, 'utf8')
-console.log('relatorio OK')
+for (const p of pages) {
+  let c = fs.readFileSync(p.file, 'utf8')
+
+  // Remove todas as linhas com plano
+  const lines = c.split('\n')
+  const clean = lines.filter(l => 
+    !l.includes('const plano =') && 
+    !l.includes("plano !== 'completo'") &&
+    !l.includes('// Controle de plano')
+  )
+  c = clean.join('\n')
+
+  // Verifica se limpou
+  const count = (c.match(/const plano/g) || []).length
+  console.log(p.file, '- planos restantes:', count)
+
+  fs.writeFileSync(p.file, c, 'utf8')
+}
+console.log('Limpeza concluida!')
