@@ -1,38 +1,34 @@
 const fs = require('fs')
 const path = require('path')
-const fixes = [
-  ['â\x80\x94', '—'],
-  ['â\x80\x9c', '"'],
-  ['â\x80\x9d', '"'],
-  ['â\x86\x90', '←'],
-  ['â\x8f\xb3', '⏳'],
-  ['â\x9c\x93', '✓'],
-  ['â\x9a\xa0', '⚠'],
-  ['\xf0\x9f\x93\x85', '📅'],
-  ['ðŸ"…', '📅'],
-  ['â†', '←'],
-  ['â³', '⏳'],
-  ['âœ"', '✓'],
-  ['âš ', '⚠'],
-  ['â€"', '—'],
-  ['â€œ', '"'],
-  ['â€', '"'],
-]
-function walk(dir) {
-  const entries = fs.readdirSync(dir, { withFileTypes: true })
-  for (const e of entries) {
-    const full = path.join(dir, e.name)
-    if (e.isDirectory() && e.name !== 'node_modules' && e.name !== '.next') walk(full)
-    else if (e.isFile() && e.name.endsWith('.tsx')) {
-      let c = fs.readFileSync(full, 'utf8')
-      const orig = c
-      for (const [bad, good] of fixes) c = c.split(bad).join(good)
-      if (c !== orig) {
-        fs.writeFileSync(full, c, 'utf8')
-        console.log('Corrigido:', full)
-      }
-    }
+
+function fixFile(filePath) {
+  const buf = fs.readFileSync(filePath)
+  let c = buf.toString('utf8')
+  const orig = c
+
+  // Corrige emoji e simbolos corrompidos byte a byte
+  c = c.replace(/\u00f0\u009f\u0094\u0085/g, '📅')
+  c = c.replace(/\u00e2\u0086\u0090/g, '←')
+  c = c.replace(/\u00e2\u0080\u0094/g, '—')
+  c = c.replace(/\u00e2\u0080\u009c/g, '"')
+  c = c.replace(/\u00e2\u0080\u009d/g, '"')
+  c = c.replace(/\u00e2\u009c\u0093/g, '✓')
+  c = c.replace(/\u00e2\u009a\u00a0/g, '⚠')
+  c = c.replace(/\u00e2\u008f\u00b3/g, '⏳')
+
+  if (c !== orig) {
+    fs.writeFileSync(filePath, c, 'utf8')
+    console.log('Corrigido:', filePath)
   }
 }
+
+function walk(dir) {
+  for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
+    const full = path.join(dir, e.name)
+    if (e.isDirectory() && e.name !== 'node_modules' && e.name !== '.next') walk(full)
+    else if (e.isFile() && e.name.endsWith('.tsx')) fixFile(full)
+  }
+}
+
 walk('app')
 console.log('Concluido!')
