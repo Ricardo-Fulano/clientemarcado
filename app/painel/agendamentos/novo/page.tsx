@@ -7,7 +7,7 @@ import { useRouter } from 'next/navigation'
 const G='linear-gradient(135deg,#3B82F6,#7C3AED)'
 const AV='linear-gradient(135deg,rgba(59,130,246,.95),rgba(124,58,237,.95))'
 const SB_ITEMS=[
-  {h:'/painel',l:'InÃ­cio'},{h:'/painel/agendamentos',l:'Agenda',on:true},
+  {h:'/painel',l:'Início'},{h:'/painel/agendamentos',l:'Agenda',on:true},
   {h:'/painel/clientes',l:'Clientes'},{h:'/painel/orcamentos',l:'Orçamentos'},
   {h:'/painel/cobrancas',l:'Cobranças'},{h:'/painel/pagamentos',l:'Pagamentos'},
   {h:'/painel/servicos',l:'Serviços'},{h:'/painel/profissionais',l:'Profissionais'},

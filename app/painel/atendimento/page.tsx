@@ -37,7 +37,7 @@ export default function RegistrarAtendimento() {
     carregar()
   }, [])
 
-  // Preenche valor ao selecionar serviÃ§o cadastrado
+  // Preenche valor ao selecionar serviço cadastrado
   useEffect(() => {
     if (!isOutroServico && servicoId) {
       const svc = servicos.find(s => s.id === servicoId)
@@ -94,7 +94,7 @@ export default function RegistrarAtendimento() {
       return
     }
     if (isOutroServico && !servicoOutro.trim()) {
-      setErro('Descreva o serviÃ§o realizado.')
+      setErro('Descreva o serviço realizado.')
       return
     }
     setLoading(true)
@@ -215,7 +215,7 @@ export default function RegistrarAtendimento() {
     }
     .valor-wrap .input { padding-left: 36px; }
 
-    /* Outro serviÃ§o reveal */
+    /* Outro serviço reveal */
     .outro-reveal {
       margin-top: 10px;
       padding: 14px;
@@ -228,7 +228,7 @@ export default function RegistrarAtendimento() {
     /* Erro */
     .msg-err { font-size: 13px; color: #EF4444; padding: 10px 14px; background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.2); border-radius: 8px; }
 
-    /* BotÃ£o */
+    /* Botão */
     .btn-registrar {
       width: 100%;
       background: #3B82F6; color: #fff;
@@ -276,7 +276,7 @@ export default function RegistrarAtendimento() {
               {semProfissionais ? (
                 <div>
                   <label className="label">Nome do profissional *</label>
-                  <input type="text" placeholder="Ex: Antonio, JoÃ£o..."
+                  <input type="text" placeholder="Ex: Antonio, João..."
                     value={profissionalNomeManual}
                     onChange={e => setProfissionalNomeManual(e.target.value)}
                     className="input" />
@@ -301,27 +301,27 @@ export default function RegistrarAtendimento() {
 
           {/* â”€â”€ SERVIÃ‡O â”€â”€ */}
           <div>
-            <p className="section-label">ServiÃ§o</p>
+            <p className="section-label">Serviço</p>
             <div className="section-group">
               <div>
-                <label className="label">ServiÃ§o realizado (opcional)</label>
+                <label className="label">Serviço realizado (opcional)</label>
                 <select value={servicoId}
                   onChange={e => setServicoId(e.target.value)}
                   className="select">
-                  <option value="">Selecione o serviÃ§o...</option>
+                  <option value="">Selecione o serviço...</option>
                   {servicos.map(s => (
                     <option key={s.id} value={s.id}>
                       {s.nome}{s.preco ? ` â€” R$ ${parseFloat(s.preco).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` : ''}
                     </option>
                   ))}
-                  <option value="__outro__">âœï¸ Outro serviÃ§o</option>
+                  <option value="__outro__">âœï¸ Outro serviço</option>
                 </select>
 
                 {isOutroServico && (
                   <div className="outro-reveal">
-                    <label className="label">Descreva o serviÃ§o realizado *</label>
+                    <label className="label">Descreva o serviço realizado *</label>
                     <input type="text"
-                      placeholder="Ex: ajuste rÃ¡pido, retoque, venda de produto..."
+                      placeholder="Ex: ajuste rápido, retoque, venda de produto..."
                       value={servicoOutro}
                       onChange={e => setServicoOutro(e.target.value)}
                       className="input" />
@@ -372,7 +372,7 @@ export default function RegistrarAtendimento() {
                 </div>
                 {servicoId && !isOutroServico && servicos.find(s => s.id === servicoId)?.preco && (
                   <p style={{ fontSize: '11px', color: '#4B5563', marginTop: '6px' }}>
-                    Valor do serviÃ§o preenchido automaticamente. Edite se necessÃ¡rio.
+                    Valor do serviço preenchido automaticamente. Edite se necessário.
                   </p>
                 )}
               </div>
@@ -383,7 +383,7 @@ export default function RegistrarAtendimento() {
 
           {/* â”€â”€ OBSERVAÃ‡ÃƒO â”€â”€ */}
           <div>
-            <label className="label">ObservaÃ§Ã£o (opcional)</label>
+            <label className="label">Observação (opcional)</label>
             <textarea rows={3}
               placeholder="Ex: cliente pediu acabamento na navalha, pagou em dinheiro ou quer retorno em 15 dias"
               value={observacao}
