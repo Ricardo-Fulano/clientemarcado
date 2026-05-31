@@ -233,7 +233,7 @@ export default function NovoAgendamento(){
                 </div>
                 <label className="lbl">Status inicial</label>
                 <div style={{display:'flex',gap:'6px',flexWrap:'wrap'}}>
-                  {[{v:'pendente',l:'⏳ Pendente',c:'#FBBF24',bg:'rgba(245,158,11,.12)',bd:'rgba(245,158,11,.35)'},{v:'confirmado',l:'âœ“ Confirmado',c:'#4ADE80',bg:'rgba(34,197,94,.12)',bd:'rgba(34,197,94,.35)'}].map(s=>(
+                  {[{v:'pendente',l:'⏳ Pendente',c:'#FBBF24',bg:'rgba(245,158,11,.12)',bd:'rgba(245,158,11,.35)'},{v:'confirmado',l:'✓ Confirmado',c:'#4ADE80',bg:'rgba(34,197,94,.12)',bd:'rgba(34,197,94,.35)'}].map(s=>(
                     <button key={s.v} onClick={()=>setStatus(s.v)}
                       style={{background:status===s.v?s.bg:'rgba(15,23,42,.75)',border:`1px solid ${status===s.v?s.bd:'rgba(148,163,184,.18)'}`,borderRadius:'10px',height:'40px',padding:'0 16px',fontSize:'13px',fontWeight:600,color:status===s.v?s.c:'#94A3B8',cursor:'pointer',fontFamily:'inherit',transition:'all .15s'}}>
                       {s.l}
