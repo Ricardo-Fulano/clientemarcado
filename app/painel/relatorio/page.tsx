@@ -128,7 +128,9 @@ export default function Relatorios(){
     </aside>
   )
 
-  if(loading)return(<div style={{minHeight:'100vh',background:'#050B16',display:'flex',alignItems:'center',justifyContent:'center',fontFamily:'system-ui'}}><p style={{color:'#64748B',fontSize:'14px'}}>Carregando relatórios...</p></div>)
+    const plano = perfil?.plano || 'essencial'
+  if (!loading && plano !== 'completo') return <PlanoBloqueado recurso="Relatórios" />
+  const plano=perfil?.plano||'essencial';if(!loading&&plano!=='completo')return <PlanoBloqueado recurso="Relatórios"/>;if(loading)return(<div style={{minHeight:'100vh',background:'#050B16',display:'flex',alignItems:'center',justifyContent:'center',fontFamily:'system-ui'}}><p style={{color:'#64748B',fontSize:'14px'}}>Carregando relatórios...</p></div>)
 
   return(
     <div style={{display:'flex',minHeight:'100vh',background:'#050B16',fontFamily:'-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif',overflowX:'hidden',width:'100%',position:'relative'}}>
@@ -260,8 +262,6 @@ export default function Relatorios(){
                     </div>
                   </div>
                 )
-  const plano = perfil?.plano || 'essencial'
-  if (plano !== 'completo') return <PlanoBloqueado recurso="Relatórios" />
               })
             )}
           </div>
