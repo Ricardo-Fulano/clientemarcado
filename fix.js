@@ -1,34 +1,68 @@
 const fs = require('fs')
 const path = require('path')
 
-function fixFile(filePath) {
-  const buf = fs.readFileSync(filePath)
-  let c = buf.toString('utf8')
-  const orig = c
+const IMPORT_LINE = `import PlanoBloqueado from '../../components/PlanoBloqueado'`
+const IMPORT_LINE_NOVO = `import PlanoBloqueado from '../../../components/PlanoBloqueado'`
 
-  // Corrige emoji e simbolos corrompidos byte a byte
-  c = c.replace(/\u00f0\u009f\u0094\u0085/g, '📅')
-  c = c.replace(/\u00e2\u0086\u0090/g, '←')
-  c = c.replace(/\u00e2\u0080\u0094/g, '—')
-  c = c.replace(/\u00e2\u0080\u009c/g, '"')
-  c = c.replace(/\u00e2\u0080\u009d/g, '"')
-  c = c.replace(/\u00e2\u009c\u0093/g, '✓')
-  c = c.replace(/\u00e2\u009a\u00a0/g, '⚠')
-  c = c.replace(/\u00e2\u008f\u00b3/g, '⏳')
+const pages = [
+  {
+    file: 'app/painel/orcamentos/page.tsx',
+    import: IMPORT_LINE,
+    recurso: 'Orçamentos',
+  },
+  {
+    file: 'app/painel/cobrancas/page.tsx',
+    import: IMPORT_LINE,
+    recurso: 'Cobranças',
+  },
+  {
+    file: 'app/painel/pagamentos/page.tsx',
+    import: IMPORT_LINE,
+    recurso: 'Pagamentos',
+  },
+  {
+    file: 'app/painel/relatorio/page.tsx',
+    import: IMPORT_LINE,
+    recurso: 'Relatórios',
+  },
+]
 
-  if (c !== orig) {
-    fs.writeFileSync(filePath, c, 'utf8')
-    console.log('Corrigido:', filePath)
+for (const p of pages) {
+  let c = fs.readFileSync(p.file, 'utf8')
+
+  if (c.includes('PlanoBloqueado')) {
+    console.log('Já tem bloqueio:', p.file)
+    continue
   }
+
+  // Adiciona import após a última linha de import
+  const lines = c.split('\n')
+  let lastImport = 0
+  for (let i = 0; i < lines.length; i++) {
+    if (lines[i].startsWith('import ')) lastImport = i
+  }
+  lines.splice(lastImport + 1, 0, p.import)
+  c = lines.join('\n')
+
+  // Encontra o nome da função export default
+  const match = c.match(/export default function (\w+)/)
+  if (!match) { console.log('Não achou função em:', p.file); continue }
+  const fnName = match[1]
+
+  // Adiciona verificação de plano logo após o useState de perfil
+  const bloqueio = `
+  // Controle de plano
+  const plano = perfil?.plano || 'essencial'
+  if (!loading && plano !== 'completo') return <PlanoBloqueado recurso="${p.recurso}" />`
+
+  // Insere antes do primeiro return da função (que não seja de loading)
+  c = c.replace(
+    /(\s*if\s*\(loading\)[^\n]*\n)/,
+    `$1${bloqueio}\n`
+  )
+
+  fs.writeFileSync(p.file, c, 'utf8')
+  console.log('Bloqueio adicionado:', p.file)
 }
 
-function walk(dir) {
-  for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
-    const full = path.join(dir, e.name)
-    if (e.isDirectory() && e.name !== 'node_modules' && e.name !== '.next') walk(full)
-    else if (e.isFile() && e.name.endsWith('.tsx')) fixFile(full)
-  }
-}
-
-walk('app')
 console.log('Concluido!')

@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import { supabase } from '../../lib/supabase'
 import Link from 'next/link'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts'
+import PlanoBloqueado from '../../components/PlanoBloqueado'
 
 const G='linear-gradient(135deg,#3B82F6,#7C3AED)'
 const AV='linear-gradient(135deg,rgba(59,130,246,.95),rgba(124,58,237,.95))'
@@ -128,6 +129,10 @@ export default function Relatorios(){
   )
 
   if(loading)return(<div style={{minHeight:'100vh',background:'#050B16',display:'flex',alignItems:'center',justifyContent:'center',fontFamily:'system-ui'}}><p style={{color:'#64748B',fontSize:'14px'}}>Carregando relatórios...</p></div>)
+
+  // Controle de plano
+  const plano = perfil?.plano || 'essencial'
+  if (!loading && plano !== 'completo') return <PlanoBloqueado recurso="Relatórios" />
 
   return(
     <div style={{display:'flex',minHeight:'100vh',background:'#050B16',fontFamily:'-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif',overflowX:'hidden',width:'100%',position:'relative'}}>
