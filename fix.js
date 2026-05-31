@@ -1,68 +1,26 @@
 const fs = require('fs')
-const path = require('path')
-
-const IMPORT_LINE = `import PlanoBloqueado from '../../components/PlanoBloqueado'`
-const IMPORT_LINE_NOVO = `import PlanoBloqueado from '../../../components/PlanoBloqueado'`
 
 const pages = [
-  {
-    file: 'app/painel/orcamentos/page.tsx',
-    import: IMPORT_LINE,
-    recurso: 'Orçamentos',
-  },
-  {
-    file: 'app/painel/cobrancas/page.tsx',
-    import: IMPORT_LINE,
-    recurso: 'Cobranças',
-  },
-  {
-    file: 'app/painel/pagamentos/page.tsx',
-    import: IMPORT_LINE,
-    recurso: 'Pagamentos',
-  },
-  {
-    file: 'app/painel/relatorio/page.tsx',
-    import: IMPORT_LINE,
-    recurso: 'Relatórios',
-  },
+  { file: 'app/painel/orcamentos/page.tsx', recurso: 'Orçamentos' },
+  { file: 'app/painel/cobrancas/page.tsx', recurso: 'Cobranças' },
+  { file: 'app/painel/pagamentos/page.tsx', recurso: 'Pagamentos' },
+  { file: 'app/painel/relatorio/page.tsx', recurso: 'Relatórios' },
 ]
 
 for (const p of pages) {
   let c = fs.readFileSync(p.file, 'utf8')
 
-  if (c.includes('PlanoBloqueado')) {
-    console.log('Já tem bloqueio:', p.file)
-    continue
-  }
+  // Remove bloqueio mal inserido
+  c = c.replace(/\n\s*\/\/ Controle de plano\n\s*const plano[^\n]*\n\s*if \(!loading[^\n]*\n/g, '\n')
 
-  // Adiciona import após a última linha de import
-  const lines = c.split('\n')
-  let lastImport = 0
-  for (let i = 0; i < lines.length; i++) {
-    if (lines[i].startsWith('import ')) lastImport = i
-  }
-  lines.splice(lastImport + 1, 0, p.import)
-  c = lines.join('\n')
-
-  // Encontra o nome da função export default
-  const match = c.match(/export default function (\w+)/)
-  if (!match) { console.log('Não achou função em:', p.file); continue }
-  const fnName = match[1]
-
-  // Adiciona verificação de plano logo após o useState de perfil
-  const bloqueio = `
-  // Controle de plano
-  const plano = perfil?.plano || 'essencial'
-  if (!loading && plano !== 'completo') return <PlanoBloqueado recurso="${p.recurso}" />`
-
-  // Insere antes do primeiro return da função (que não seja de loading)
+  // Encontra o if(loading) return e insere o bloqueio DEPOIS dele
   c = c.replace(
-    /(\s*if\s*\(loading\)[^\n]*\n)/,
-    `$1${bloqueio}\n`
+    /(if\s*\(loading\)\s*return[\s\S]*?\n\s*\)\s*\n)/,
+    (match) => match + '  const plano = perfil?.plano || \'essencial\'\n  if (plano !== \'completo\') return <PlanoBloqueado recurso="' + p.recurso + '" />\n'
   )
 
   fs.writeFileSync(p.file, c, 'utf8')
-  console.log('Bloqueio adicionado:', p.file)
+  console.log('Corrigido:', p.file)
 }
 
-console.log('Concluido!')
+console.log('Pronto!')

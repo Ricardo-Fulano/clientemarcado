@@ -126,10 +126,6 @@ export default function Cobrancas(){
 
   if(loading)return(<div style={{minHeight:'100vh',background:'#050B16',display:'flex',alignItems:'center',justifyContent:'center',fontFamily:'system-ui'}}><p style={{color:'#64748B',fontSize:'14px'}}>Carregando...</p></div>)
 
-  // Controle de plano
-  const plano = perfil?.plano || 'essencial'
-  if (!loading && plano !== 'completo') return <PlanoBloqueado recurso="Cobranças" />
-
   return(
     <div style={{display:'flex',minHeight:'100vh',background:'#050B16',fontFamily:'-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif',overflowX:'hidden',width:'100%'}}>
       <style dangerouslySetInnerHTML={{__html:CSS}}/>
@@ -225,6 +221,8 @@ export default function Cobrancas(){
                     </div>
                   </div>
                 )
+  const plano = perfil?.plano || 'essencial'
+  if (plano !== 'completo') return <PlanoBloqueado recurso="Cobranças" />
               })}
             </div>
           )}
