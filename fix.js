@@ -1,335 +1,386 @@
 const fs = require('fs')
 
-const CHECKOUT_URL = "https://www.mercadopago.com.br/subscriptions/checkout?preapproval_plan_id=1a0fb25c46214e45b0eb3d21b494e5d6"
+const nova = `'use client'
+import { useEffect, useState, useRef } from 'react'
+import { supabase } from '../../lib/supabase'
+import Link from 'next/link'
+
 const G = 'linear-gradient(135deg,#3B82F6,#7C3AED)'
 
-// 1. LAYOUT DO PAINEL com lógica inline
-const layout = `'use client'
-import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { supabase } from '../lib/supabase'
+const statusCfg: Record<string, {t:string,bg:string,c:string,bd:string}> = {
+  pendente:    {t:'Pendente',    bg:'rgba(245,158,11,.12)', c:'#FCD34D', bd:'rgba(245,158,11,.25)'},
+  confirmado:  {t:'Confirmado',  bg:'rgba(34,197,94,.12)',  c:'#4ADE80', bd:'rgba(34,197,94,.25)'},
+  realizado:   {t:'Realizado',   bg:'rgba(34,197,94,.10)',  c:'#22C55E', bd:'rgba(34,197,94,.20)'},
+  cancelado:   {t:'Cancelado',   bg:'rgba(239,68,68,.10)',  c:'#F87171', bd:'rgba(239,68,68,.22)'},
+  retorno:     {t:'Retorno',     bg:'rgba(124,58,237,.12)', c:'#C4B5FD', bd:'rgba(124,58,237,.25)'},
+  compareceu:  {t:'Compareceu',  bg:'rgba(34,197,94,.12)',  c:'#4ADE80', bd:'rgba(34,197,94,.25)'},
+  faltou:      {t:'Faltou',      bg:'rgba(239,68,68,.10)',  c:'#F87171', bd:'rgba(239,68,68,.22)'},
+  em_atendimento:{t:'Em atendimento',bg:'rgba(59,130,246,.12)',c:'#60A5FA',bd:'rgba(59,130,246,.25)'},
+}
 
-const CHECKOUT_URL = "${CHECKOUT_URL}"
-const G = '${G}'
+function fH(dh: string) {
+  const d = new Date(dh)
+  return d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})
+}
+function fData(dh: string) {
+  const d = new Date(dh)
+  return d.toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'2-digit'})
+}
+function fDataCurta(dh: string) {
+  const d = new Date(dh)
+  return d.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'})
+}
 
-function AvisoStatus({ status, vencimento }: { status: string; vencimento?: string }) {
-  const fmtData = (d?: string) => {
-    if (!d) return ''
-    const [a,m,dia] = d.split('-')
-    return dia+'/'+m+'/'+a
+const css = \`
+  *{box-sizing:border-box}
+  .pg{min-height:100vh;background:linear-gradient(180deg,#060C18,#050B16);color:#F8FAFC;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;padding-bottom:60px}
+  .bdy{max-width:1100px;margin:0 auto;padding:24px 20px}
+  .hdr{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:28px;flex-wrap:wrap}
+  .hdr-txt h1{font-size:28px;font-weight:800;color:#F8FAFC;letter-spacing:-0.03em;margin-bottom:4px}
+  .hdr-txt p{font-size:14px;color:#64748B;line-height:1.5}
+  .hdr-btns{display:flex;gap:10px;flex-shrink:0;flex-wrap:wrap}
+  .btn-prim{background:\${G};color:#fff;border:none;border-radius:12px;padding:0 20px;height:42px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;text-decoration:none;display:inline-flex;align-items:center;gap:6px;white-space:nowrap;box-shadow:0 4px 16px rgba(59,130,246,.25);transition:opacity .15s}
+  .btn-prim:hover{opacity:.9}
+  .btn-sec{background:rgba(15,23,42,.88);color:#94A3B8;border:1px solid rgba(148,163,184,.18);border-radius:12px;padding:0 18px;height:42px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;white-space:nowrap;transition:all .15s}
+  .btn-sec:hover{border-color:rgba(148,163,184,.35);color:#F8FAFC}
+  .kpi{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:24px}
+  .kpi-card{background:radial-gradient(circle at top left,rgba(124,58,237,.07),transparent 60%),linear-gradient(145deg,rgba(15,23,42,.97),rgba(8,20,33,.99));border:1px solid rgba(148,163,184,.12);border-radius:16px;padding:18px 20px}
+  .kpi-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#475569;margin-bottom:8px}
+  .kpi-num{font-size:32px;font-weight:900;letter-spacing:-0.03em}
+  .ctrl{display:flex;align-items:center;gap:10px;margin-bottom:20px;flex-wrap:wrap}
+  .aba{background:transparent;border:1px solid rgba(148,163,184,.14);border-radius:10px;padding:0 18px;height:38px;font-size:13px;font-weight:600;cursor:pointer;color:#64748B;font-family:inherit;transition:all .15s;white-space:nowrap}
+  .aba.on{background:rgba(59,130,246,.15);border-color:rgba(59,130,246,.35);color:#60A5FA}
+  .aba:hover:not(.on){border-color:rgba(148,163,184,.28);color:#94A3B8}
+  .filtros{display:flex;gap:8px;flex-wrap:wrap;flex:1}
+  .filt{background:transparent;border:1px solid rgba(148,163,184,.12);border-radius:8px;padding:0 14px;height:34px;font-size:12px;font-weight:600;cursor:pointer;color:#64748B;font-family:inherit;transition:all .15s;white-space:nowrap}
+  .filt.on{background:rgba(59,130,246,.12);border-color:rgba(59,130,246,.30);color:#60A5FA}
+  .filt:hover:not(.on){color:#94A3B8}
+  .prof-sel{background:rgba(15,23,42,.88);border:1px solid rgba(148,163,184,.15);border-radius:10px;padding:0 14px;height:36px;font-size:12px;color:#94A3B8;font-family:inherit;cursor:pointer;outline:none;margin-left:auto}
+  .dia-titulo{font-size:13px;font-weight:700;color:#475569;text-transform:capitalize;margin:20px 0 10px;letter-spacing:.02em}
+  .card-ag{background:radial-gradient(circle at top left,rgba(124,58,237,.05),transparent 60%),linear-gradient(145deg,rgba(15,23,42,.97),rgba(8,20,33,.99));border:1px solid rgba(148,163,184,.12);border-radius:18px;padding:16px 18px;margin-bottom:10px;display:flex;gap:14px;align-items:flex-start;transition:border-color .15s}
+  .card-ag:hover{border-color:rgba(148,163,184,.22)}
+  .hora-badge{background:rgba(59,130,246,.12);border:1px solid rgba(59,130,246,.22);border-radius:10px;padding:8px 10px;min-width:58px;text-align:center;flex-shrink:0}
+  .hora-badge span{font-size:15px;font-weight:800;color:#60A5FA;display:block;letter-spacing:-0.01em}
+  .ag-info{flex:1;min-width:0}
+  .ag-top{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:4px}
+  .ag-nome{font-size:15px;font-weight:800;color:#F8FAFC;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .st-badge{font-size:10px;font-weight:700;padding:3px 10px;border-radius:999px;white-space:nowrap;flex-shrink:0;line-height:18px}
+  .ag-sub{font-size:12px;color:#64748B;margin-bottom:10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .ag-acoes{display:flex;gap:7px;flex-wrap:wrap;align-items:center}
+  .ac-btn{border-radius:9px;padding:6px 12px;font-size:11px;font-weight:700;cursor:pointer;border:1px solid;font-family:inherit;white-space:nowrap;transition:opacity .15s;text-decoration:none;display:inline-flex;align-items:center;gap:4px}
+  .ac-btn:hover{opacity:.8}
+  .ac-mais{background:rgba(255,255,255,.04);border-color:rgba(148,163,184,.18);color:#64748B;position:relative}
+  .menu-mais{position:absolute;top:calc(100% + 6px);left:0;background:rgba(15,23,42,.98);border:1px solid rgba(148,163,184,.18);border-radius:14px;padding:8px;min-width:160px;z-index:50;box-shadow:0 16px 48px rgba(0,0,0,.5)}
+  .menu-item{display:flex;align-items:center;gap:8px;padding:9px 12px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;color:#CBD5E1;border:none;background:none;font-family:inherit;width:100%;text-align:left;white-space:nowrap;transition:background .1s}
+  .menu-item:hover{background:rgba(255,255,255,.06)}
+  .vazio{text-align:center;padding:60px 24px;background:radial-gradient(circle at center,rgba(124,58,237,.06),transparent 60%),linear-gradient(145deg,rgba(15,23,42,.97),rgba(8,20,33,.99));border:1px solid rgba(148,163,184,.10);border-radius:18px}
+  .sem-wrap{display:flex;flex-direction:column;align-items:center;justify-content:space-between;min-height:500px;padding:16px}
+  .sem-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+  .sem-dia{background:rgba(15,23,42,.88);border:1px solid rgba(148,163,184,.10);border-radius:12px;overflow:hidden;min-height:120px}
+  .sem-dia-hdr{background:rgba(59,130,246,.08);padding:6px 8px;text-align:center;font-size:10px;font-weight:700;color:#64748B;text-transform:uppercase;border-bottom:1px solid rgba(148,163,184,.08)}
+  .sem-dia-hdr.hj{color:#60A5FA;background:rgba(59,130,246,.15)}
+  .sem-ag{background:rgba(59,130,246,.10);border-radius:6px;padding:4px 6px;margin:4px;font-size:10px;color:#93C5FD;cursor:pointer;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;border:1px solid rgba(59,130,246,.15)}
+  .toast{position:fixed;top:20px;left:50%;transform:translateX(-50%);background:rgba(15,23,42,.97);border:1px solid rgba(59,130,246,.30);border-radius:12px;padding:12px 24px;font-size:13px;font-weight:600;color:#F8FAFC;z-index:100;box-shadow:0 8px 32px rgba(0,0,0,.4)}
+  @media(max-width:768px){
+    .bdy{padding:16px 14px}
+    .hdr{flex-direction:column}
+    .hdr-btns{width:100%;display:grid;grid-template-columns:1fr 1fr;gap:8px}
+    .hdr-btns .btn-prim,.hdr-btns .btn-sec{width:100%;justify-content:center}
+    .kpi{grid-template-columns:repeat(3,1fr);gap:10px}
+    .kpi-card{padding:14px 12px}
+    .kpi-num{font-size:24px}
+    .ctrl{gap:8px}
+    .filtros{gap:6px}
+    .prof-sel{margin-left:0;width:100%}
+    .hdr-txt h1{font-size:22px}
   }
+  @media(max-width:480px){
+    .kpi{grid-template-columns:repeat(3,1fr)}
+    .kpi-label{font-size:9px}
+    .sem-grid{grid-template-columns:repeat(7,1fr);gap:3px}
+  }
+\`
 
-  if (status === 'teste_gratis') return (
-    <div style={{background:'rgba(124,58,237,.10)',border:'1px solid rgba(124,58,237,.28)',borderRadius:'16px',padding:'16px 20px',marginBottom:'24px',display:'flex',alignItems:'center',justifyContent:'space-between',flexWrap:'wrap',gap:'12px'}}>
-      <div>
-        <p style={{fontSize:'13px',fontWeight:700,color:'#C4B5FD',marginBottom:'3px'}}>
-          Voce esta no teste gratis do ClienteMarcado
-        </p>
-        <p style={{fontSize:'12px',color:'#7C3AED',lineHeight:1.5}}>
-          Aproveite 7 dias para configurar sua agenda e testar o painel completo.
-          {vencimento && <span style={{color:'#A78BFA'}}> Seu teste termina em: {fmtData(vencimento)}</span>}
-        </p>
-      </div>
-      <a href={CHECKOUT_URL} target="_blank" rel="noreferrer" style={{display:'inline-flex',alignItems:'center',justifyContent:'center',height:'38px',padding:'0 18px',background:G,color:'#fff',borderRadius:'10px',textDecoration:'none',fontSize:'12px',fontWeight:700,whiteSpace:'nowrap',flexShrink:0}}>
-        Assinar agora
-      </a>
-    </div>
-  )
-
-  if (status === 'em_atraso') return (
-    <div style={{background:'rgba(245,158,11,.08)',border:'1px solid rgba(245,158,11,.28)',borderRadius:'16px',padding:'16px 20px',marginBottom:'24px',display:'flex',alignItems:'center',justifyContent:'space-between',flexWrap:'wrap',gap:'12px'}}>
-      <div>
-        <p style={{fontSize:'13px',fontWeight:700,color:'#FCD34D',marginBottom:'3px'}}>
-          Sua mensalidade esta pendente
-        </p>
-        <p style={{fontSize:'12px',color:'#B45309',lineHeight:1.5}}>
-          Regularize o pagamento para evitar o bloqueio do painel.
-        </p>
-      </div>
-      <a href={CHECKOUT_URL} target="_blank" rel="noreferrer" style={{display:'inline-flex',alignItems:'center',justifyContent:'center',height:'38px',padding:'0 18px',background:G,color:'#fff',borderRadius:'10px',textDecoration:'none',fontSize:'12px',fontWeight:700,whiteSpace:'nowrap',flexShrink:0}}>
-        Regularizar pagamento
-      </a>
-    </div>
-  )
-
-  return null
-}
-
-function TelaBloqueada({ status }: { status: string }) {
-  const bloqueado = status === 'bloqueado'
-  return (
-    <div style={{minHeight:'100vh',background:'radial-gradient(ellipse at top,rgba(124,58,237,.12),transparent 50%),linear-gradient(180deg,#060C18,#050B16)',display:'flex',alignItems:'center',justifyContent:'center',padding:'24px',fontFamily:'-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif'}}>
-      <div style={{width:'100%',maxWidth:'480px',background:'rgba(15,23,42,.95)',border:'1px solid rgba(124,58,237,.30)',borderRadius:'22px',padding:'40px 32px',textAlign:'center',boxShadow:'0 32px 80px rgba(0,0,0,.5)'}}>
-        <div style={{width:'68px',height:'68px',borderRadius:'50%',background:bloqueado?'rgba(239,68,68,.10)':'rgba(100,116,139,.10)',border:bloqueado?'1px solid rgba(239,68,68,.25)':'1px solid rgba(100,116,139,.25)',display:'flex',alignItems:'center',justifyContent:'center',margin:'0 auto 24px',fontSize:'30px'}}>
-          {bloqueado?'🔒':'⛔'}
-        </div>
-        <div style={{display:'flex',alignItems:'center',justifyContent:'center',gap:'8px',marginBottom:'16px'}}>
-          <div style={{width:'28px',height:'28px',borderRadius:'8px',background:G,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'14px'}}>📅</div>
-          <span style={{fontSize:'14px',fontWeight:800,color:'#F8FAFC'}}>ClienteMarcado</span>
-        </div>
-        <h2 style={{fontSize:'22px',fontWeight:800,color:'#F8FAFC',marginBottom:'12px',letterSpacing:'-0.02em',lineHeight:1.3}}>
-          {bloqueado?'Acesso temporariamente bloqueado':'Acesso cancelado'}
-        </h2>
-        <p style={{fontSize:'14px',color:'#94A3B8',lineHeight:1.7,marginBottom:'8px'}}>
-          {bloqueado?'Identificamos uma pendencia na sua mensalidade. Regularize o pagamento para voltar a acessar o ClienteMarcado.':'Seu acesso ao ClienteMarcado foi encerrado. Para reativar sua conta, entre em contato com o suporte.'}
-        </p>
-        <p style={{fontSize:'13px',color:'#475569',lineHeight:1.6,marginBottom:'32px'}}>
-          {bloqueado?'Assim que o pagamento for confirmado, seu acesso sera liberado.':'Podemos ajuda-lo a reativar sua conta.'}
-        </p>
-        <div style={{display:'flex',flexDirection:'column',gap:'10px'}}>
-          <a href={CHECKOUT_URL} target="_blank" rel="noreferrer" style={{display:'flex',alignItems:'center',justifyContent:'center',height:'50px',background:G,color:'#fff',borderRadius:'14px',textDecoration:'none',fontSize:'14px',fontWeight:700,boxShadow:'0 8px 24px rgba(59,130,246,.25)'}}>
-            {bloqueado?'Regularizar pagamento':'Regularizar pagamento'}
-          </a>
-          <a href="https://wa.me/5511999999999" target="_blank" rel="noreferrer" style={{display:'flex',alignItems:'center',justifyContent:'center',height:'44px',background:'rgba(15,23,42,.88)',color:'#CBD5E1',border:'1px solid rgba(148,163,184,.18)',borderRadius:'12px',textDecoration:'none',fontSize:'13px',fontWeight:600}}>
-            Falar com suporte
-          </a>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-export default function PainelLayout({ children }: { children: React.ReactNode }) {
-  const [status, setStatus] = useState<string|null>(null)
-  const [vencimento, setVencimento] = useState<string|undefined>(undefined)
+export default function Agendamentos() {
+  const [perfil, setPerfil] = useState<any>(null)
+  const [profs, setProfs] = useState<any[]>([])
+  const [ags, setAgs] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
-  const router = useRouter()
+  const [view, setView] = useState<'hoje'|'semana'>('hoje')
+  const [fSt, setFSt] = useState('todos')
+  const [fPr, setFPr] = useState('todos')
+  const [semOff, setSemOff] = useState(0)
+  const [msg, setMsg] = useState('')
+  const [menuAberto, setMenuAberto] = useState<string|null>(null)
+  const menuRef = useRef<HTMLDivElement>(null)
+  const hoje = new Date().toISOString().split('T')[0]
+
+  useEffect(() => { load() }, [])
 
   useEffect(() => {
-    async function verificar() {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) { router.push('/login'); return }
-      const { data: perfil } = await supabase
-        .from('perfis').select('status_acesso, data_vencimento').eq('user_id', user.id).single()
-      setStatus(perfil?.status_acesso || 'ativo')
-      setVencimento(perfil?.data_vencimento || undefined)
-      setLoading(false)
+    function fechar(e: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setMenuAberto(null)
+      }
     }
-    verificar()
+    document.addEventListener('mousedown', fechar)
+    return () => document.removeEventListener('mousedown', fechar)
   }, [])
+
+  async function load() {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) { window.location.href = '/login'; return }
+    const { data: p } = await supabase.from('perfis').select('*').eq('user_id', user.id).single()
+    setPerfil(p)
+    const { data: pr } = await supabase.from('profissionais').select('*').eq('user_id', user.id)
+    setProfs(pr || [])
+    const fim = new Date(); fim.setDate(fim.getDate() + 60)
+    const atas = new Date(); atas.setDate(atas.getDate() - 30)
+    const { data: a } = await supabase.from('agendamentos')
+      .select('*,servicos(nome,preco),profissionais(nome)')
+      .eq('user_id', user.id)
+      .gte('data_hora', atas.toISOString())
+      .lte('data_hora', fim.toISOString())
+      .order('data_hora', { ascending: true })
+    setAgs(a || [])
+    setLoading(false)
+  }
+
+  function toast(m: string) { setMsg(m); setTimeout(() => setMsg(''), 2500) }
+
+  async function atualizarStatus(id: string, status: string) {
+    await supabase.from('agendamentos').update({ status }).eq('id', id)
+    setAgs(prev => prev.map(a => a.id === id ? { ...a, status } : a))
+    setMenuAberto(null)
+    toast('Status atualizado!')
+  }
+
+  function wppLink(a: any, tipo: 'confirmar'|'lembrete') {
+    const tel = (a.cliente_whatsapp || a.cliente_telefone || '').replace(/\\D/g, '')
+    if (!tel) return null
+    const d = new Date(a.data_hora)
+    const dataFmt = d.toLocaleDateString('pt-BR', {day:'2-digit',month:'2-digit',year:'numeric'})
+    const horaFmt = d.toLocaleTimeString('pt-BR', {hour:'2-digit',minute:'2-digit'})
+    const msg = tipo === 'confirmar'
+      ? encodeURIComponent('Ola, '+a.cliente_nome+'! Seu agendamento foi confirmado.\\n\\nServico: '+(a.servicos?.nome||'')+'\\nProfissional: '+(a.profissionais?.nome||'')+'\\nData: '+dataFmt+'\\nHorario: '+horaFmt+'\\n\\n'+(perfil?.nome_negocio||''))
+      : encodeURIComponent('Ola, '+a.cliente_nome+'! Passando para lembrar do seu agendamento.\\n\\nServico: '+(a.servicos?.nome||'')+'\\nData: '+dataFmt+'\\nHorario: '+horaFmt+'\\n\\nTe esperamos!\\n'+(perfil?.nome_negocio||''))
+    return 'https://wa.me/55'+tel+'?text='+msg
+  }
+
+  const agsFiltrados = ags.filter(a => {
+    if (fSt !== 'todos' && a.status !== fSt) return false
+    if (fPr !== 'todos' && a.profissional_id !== fPr) return false
+    if (view === 'hoje') {
+      const d = new Date(a.data_hora).toISOString().split('T')[0]
+      return d === hoje
+    }
+    return true
+  })
+
+  // KPIs do dia
+  const agsHoje = ags.filter(a => new Date(a.data_hora).toISOString().split('T')[0] === hoje)
+  const confirmados = agsHoje.filter(a => a.status === 'confirmado').length
+  const pendentes = agsHoje.filter(a => a.status === 'pendente').length
+
+  // Semana
+  function getInicioSemana(off: number) {
+    const d = new Date(); d.setHours(0,0,0,0)
+    const dow = d.getDay()
+    d.setDate(d.getDate() - dow + off * 7)
+    return d
+  }
+  const inicioSem = getInicioSemana(semOff)
+  const diasSem = Array.from({length:7}, (_,i) => {
+    const d = new Date(inicioSem); d.setDate(inicioSem.getDate()+i)
+    return d
+  })
+
+  // Agrupar por data para visão lista
+  const grupos: Record<string, any[]> = {}
+  agsFiltrados.forEach(a => {
+    const d = new Date(a.data_hora).toISOString().split('T')[0]
+    if (!grupos[d]) grupos[d] = []
+    grupos[d].push(a)
+  })
+
+  function CardAg({ a }: { a: any }) {
+    const sc = statusCfg[a.status] || statusCfg.pendente
+    const wppC = wppLink(a, 'confirmar')
+    const wppL = wppLink(a, 'lembrete')
+    const aberto = menuAberto === a.id
+
+    return (
+      <div className="card-ag">
+        <div className="hora-badge">
+          <span>{fH(a.data_hora)}</span>
+        </div>
+        <div className="ag-info">
+          <div className="ag-top">
+            <p className="ag-nome">{a.cliente_nome || '—'}</p>
+            <span className="st-badge" style={{background:sc.bg,color:sc.c,border:\`1px solid \${sc.bd}\`}}>{sc.t}</span>
+          </div>
+          <p className="ag-sub">
+            {a.servicos?.nome || 'Servico nao informado'}
+            {a.profissionais?.nome ? ' · Prof. '+a.profissionais.nome : ''}
+            {a.servicos?.preco ? ' · R$ '+a.servicos.preco : ''}
+          </p>
+          <div className="ag-acoes" ref={aberto ? menuRef : undefined}>
+            {wppC && (a.status === 'pendente' || a.status === 'retorno') && (
+              <a href={wppC} target="_blank" rel="noreferrer" className="ac-btn" style={{background:'rgba(34,197,94,.10)',borderColor:'rgba(34,197,94,.25)',color:'#22C55E'}}>
+                ✓ Confirmar
+              </a>
+            )}
+            {wppL && (
+              <a href={wppL} target="_blank" rel="noreferrer" className="ac-btn" style={{background:'rgba(59,130,246,.10)',borderColor:'rgba(59,130,246,.25)',color:'#60A5FA'}}>
+                🔔 Lembrete
+              </a>
+            )}
+            <div style={{position:'relative'}}>
+              <button className="ac-btn ac-mais" onClick={()=>setMenuAberto(aberto?null:a.id)}>
+                ··· Mais
+              </button>
+              {aberto && (
+                <div className="menu-mais">
+                  {a.status !== 'compareceu' && <button className="menu-item" onClick={()=>atualizarStatus(a.id,'compareceu')}><span style={{color:'#22C55E'}}>✓</span> Compareceu</button>}
+                  {a.status !== 'faltou' && <button className="menu-item" onClick={()=>atualizarStatus(a.id,'faltou')}><span style={{color:'#F87171'}}>✗</span> Faltou</button>}
+                  {a.status !== 'realizado' && <button className="menu-item" onClick={()=>atualizarStatus(a.id,'realizado')}><span style={{color:'#4ADE80'}}>★</span> Realizado</button>}
+                  {a.status !== 'retorno' && <button className="menu-item" onClick={()=>atualizarStatus(a.id,'retorno')}><span style={{color:'#C4B5FD'}}>↩</span> Retorno</button>}
+                  {a.status !== 'cancelado' && <button className="menu-item" onClick={()=>atualizarStatus(a.id,'cancelado')}><span style={{color:'#F87171'}}>✕</span> Cancelar</button>}
+                  {a.status !== 'confirmado' && <button className="menu-item" onClick={()=>atualizarStatus(a.id,'confirmado')}><span style={{color:'#4ADE80'}}>✓</span> Confirmar</button>}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   if (loading) return (
-    <div style={{minHeight:'100vh',background:'#050B16',display:'flex',alignItems:'center',justifyContent:'center',fontFamily:'system-ui'}}>
-      <p style={{color:'#475569',fontSize:'14px'}}>Carregando...</p>
+    <div style={{minHeight:'100vh',background:'#050B16',display:'flex',alignItems:'center',justifyContent:'center'}}>
+      <p style={{color:'#475569',fontSize:'14px'}}>Carregando agenda...</p>
     </div>
   )
 
-  if (status === 'bloqueado' || status === 'cancelado') {
-    return <TelaBloqueada status={status} />
-  }
-
   return (
-    <>
-      <style>{\`
-        .aviso-painel{padding:20px 24px 0;max-width:1400px;margin:0 auto;box-sizing:border-box}
-        @media(max-width:768px){.aviso-painel{padding:12px 16px 0}}
-      \`}</style>
-      {(status === 'em_atraso' || status === 'teste_gratis') && (
-        <div className="aviso-painel">
-          <AvisoStatus status={status} vencimento={vencimento} />
-        </div>
-      )}
-      {children}
-    </>
-  )
-}
-`
+    <div className="pg">
+      <style>{css}</style>
+      {msg && <div className="toast">{msg}</div>}
 
-fs.writeFileSync('app/painel/layout.tsx', layout, 'utf8')
-console.log('Layout OK!')
-
-// 2. LANDING corrigida — botao vai para /cadastro
-const landing = `'use client'
-import Link from 'next/link'
-import { useState, useEffect } from 'react'
-
-const CHECKOUT_URL = "${CHECKOUT_URL}"
-const G = '${G}'
-
-const beneficios = [
-  { icon: '📅', titulo: 'Agendamento online', texto: 'Seu cliente agenda pelo celular, sem depender de mensagens manuais.' },
-  { icon: '🔗', titulo: 'Pagina publica profissional', texto: 'Compartilhe seu link e receba agendamentos com uma pagina moderna do seu negocio.' },
-  { icon: '🏪', titulo: 'Controle presencial', texto: 'Registre atendimentos no balcao em poucos segundos, mesmo quando o cliente chega sem agendar.' },
-  { icon: '👥', titulo: 'Gestao da equipe', texto: 'Organize profissionais, servicos, horarios e responsabilidades em um painel simples.' },
-  { icon: '💳', titulo: 'Financeiro simples', texto: 'Acompanhe valores recebidos, cobrancas e pendencias sem depender de planilhas.' },
-  { icon: '📊', titulo: 'Relatorios do negocio', texto: 'Veja o desempenho do periodo e acompanhe melhor sua operacao.' },
-]
-
-const inclusos = [
-  'Agenda online e agendamento publico',
-  'Clientes, servicos e profissionais',
-  'Pagina publica de agendamento',
-  'Perfil e personalizacao do negocio',
-  'Orcamentos e cobrancas',
-  'Pagamentos e historico financeiro',
-  'Relatorios e indicadores',
-  'Confirmacao e lembrete via WhatsApp',
-  'Controle de comparecimento',
-  'Suporte por WhatsApp',
-]
-
-export default function Home() {
-  const [scrolled, setScrolled] = useState(false)
-  useEffect(() => {
-    const h = () => setScrolled(window.scrollY > 20)
-    window.addEventListener('scroll', h)
-    return () => window.removeEventListener('scroll', h)
-  }, [])
-
-  const scrollToPlano = () => {
-    document.getElementById('plano')?.scrollIntoView({ behavior: 'smooth' })
-  }
-
-  return (
-    <div style={{background:'#050B16',minHeight:'100vh',fontFamily:'-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif',overflowX:'hidden',width:'100%'}}>
-      <style>{\`
-        *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-        html,body{overflow-x:hidden;width:100%;max-width:100%}
-        .btn-p{background:\${G};color:#fff;border:1px solid rgba(255,255,255,.12);border-radius:14px;padding:0 28px;height:50px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;transition:all .2s;box-shadow:0 12px 32px rgba(59,130,246,.25);white-space:nowrap}
-        .btn-p:hover{transform:translateY(-2px)}
-        .btn-s{background:rgba(15,23,42,.88);color:#CBD5E1;border:1px solid rgba(148,163,184,.25);border-radius:14px;padding:0 28px;height:50px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;transition:all .2s;white-space:nowrap}
-        .btn-s:hover{border-color:rgba(124,58,237,.45);color:#fff}
-        .card-b{background:radial-gradient(circle at top left,rgba(124,58,237,.07),transparent 60%),linear-gradient(145deg,rgba(15,23,42,.96),rgba(8,20,33,.99));border:1px solid rgba(148,163,184,.13);border-radius:18px;padding:28px 24px;transition:border-color .2s,transform .2s}
-        .card-b:hover{border-color:rgba(124,58,237,.28);transform:translateY(-3px)}
-        @media(max-width:768px){
-          .hero-btns{flex-direction:column!important;align-items:stretch!important;gap:10px!important}
-          .hero-btns a{width:100%!important}
-          .grid-3{grid-template-columns:1fr!important}
-          .cta-btns{flex-direction:column!important;align-items:stretch!important;gap:10px!important}
-          .cta-btns a{width:100%!important}
-        }
-      \`}</style>
-
-      <header style={{position:'sticky',top:0,zIndex:50,background:scrolled?'rgba(5,11,22,.97)':'transparent',backdropFilter:'blur(20px)',borderBottom:scrolled?'1px solid rgba(148,163,184,.10)':'1px solid transparent',transition:'all .3s',padding:'0 24px'}}>
-        <div style={{maxWidth:'1100px',margin:'0 auto',height:'64px',display:'flex',alignItems:'center',justifyContent:'space-between'}}>
-          <div style={{display:'flex',alignItems:'center',gap:'10px'}}>
-            <div style={{width:'32px',height:'32px',borderRadius:'9px',background:G,display:'flex',alignItems:'center',justifyContent:'center',boxShadow:'0 0 20px rgba(124,58,237,.45)',flexShrink:0}}>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-            </div>
-            <span style={{fontSize:'15px',fontWeight:800,color:'#F8FAFC',letterSpacing:'-0.02em'}}>ClienteMarcado</span>
+      <div className="bdy">
+        {/* Header */}
+        <div className="hdr">
+          <div className="hdr-txt">
+            <h1>Agenda</h1>
+            <p>Veja seus horarios, confirme clientes e acompanhe os atendimentos do dia.</p>
           </div>
-          <div style={{display:'flex',gap:'12px',alignItems:'center'}}>
-            <Link href="/login" style={{fontSize:'13px',color:'#94A3B8',textDecoration:'none',fontWeight:500}}>Entrar</Link>
-            <button onClick={scrollToPlano} className="btn-p" style={{height:'40px',padding:'0 20px',fontSize:'13px',borderRadius:'10px'}}>Comecar gratis</button>
+          <div className="hdr-btns">
+            <Link href="/painel/agendamentos/novo" className="btn-prim">+ Novo agendamento</Link>
+            <Link href="/painel/bloqueios" className="btn-sec">Bloquear horario</Link>
           </div>
         </div>
-      </header>
 
-      <section style={{padding:'100px 24px 80px',textAlign:'center',background:'radial-gradient(ellipse at 50% -10%,rgba(124,58,237,.22),transparent 55%)'}}>
-        <div style={{maxWidth:'760px',margin:'0 auto'}}>
-          <div style={{display:'inline-flex',alignItems:'center',gap:'8px',background:'rgba(59,130,246,.10)',border:'1px solid rgba(59,130,246,.22)',borderRadius:'999px',padding:'6px 18px',marginBottom:'36px'}}>
-            <span style={{width:'6px',height:'6px',borderRadius:'50%',background:'#3B82F6',display:'inline-block',flexShrink:0}}/>
-            <span style={{fontSize:'12px',fontWeight:600,color:'#60A5FA',letterSpacing:'.04em'}}>7 dias gratis para testar o painel completo</span>
+        {/* KPIs */}
+        <div className="kpi">
+          <div className="kpi-card">
+            <p className="kpi-label">Hoje</p>
+            <p className="kpi-num" style={{color:'#60A5FA'}}>{agsHoje.length}</p>
           </div>
-          <h1 style={{fontSize:'clamp(38px,6vw,66px)',fontWeight:900,color:'#F8FAFC',letterSpacing:'-0.04em',lineHeight:1.05,marginBottom:'24px'}}>
-            Seu cliente agenda sozinho.<br/>
-            <span style={{background:G,WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent',backgroundClip:'text'}}>Voce so atende.</span>
-          </h1>
-          <p style={{fontSize:'clamp(15px,2vw,17px)',color:'#94A3B8',lineHeight:1.75,marginBottom:'44px',maxWidth:'580px',margin:'0 auto 44px'}}>
-            Organize agendamentos, clientes, equipe, cobrancas e atendimentos em um painel simples, moderno e profissional.
-          </p>
-          <div className="hero-btns" style={{display:'flex',gap:'12px',justifyContent:'center',flexWrap:'wrap'}}>
-            <Link href="/cadastro" className="btn-p">Comecar 7 dias gratis</Link>
-            <Link href="/login" className="btn-s">Ja tenho conta</Link>
+          <div className="kpi-card">
+            <p className="kpi-label">Confirmados</p>
+            <p className="kpi-num" style={{color:'#4ADE80'}}>{confirmados}</p>
           </div>
-          <p style={{fontSize:'12px',color:'#475569',marginTop:'16px'}}>Teste gratis por 7 dias. Depois R$ 79,90/mes. Sem fidelidade.</p>
+          <div className="kpi-card">
+            <p className="kpi-label">Pendentes</p>
+            <p className="kpi-num" style={{color:'#FCD34D'}}>{pendentes}</p>
+          </div>
         </div>
-      </section>
 
-      <section style={{padding:'80px 24px',maxWidth:'1100px',margin:'0 auto'}}>
-        <div style={{textAlign:'center',marginBottom:'52px'}}>
-          <h2 style={{fontSize:'clamp(22px,4vw,34px)',fontWeight:800,color:'#F8FAFC',letterSpacing:'-0.03em',marginBottom:'12px'}}>Tudo que seu negocio precisa</h2>
-          <p style={{fontSize:'15px',color:'#94A3B8',maxWidth:'480px',margin:'0 auto',lineHeight:1.6}}>Do agendamento ao financeiro, em um painel simples e completo.</p>
-        </div>
-        <div className="grid-3" style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'16px'}}>
-          {beneficios.map((b,i)=>(
-            <div key={i} className="card-b">
-              <div style={{fontSize:'28px',marginBottom:'16px'}}>{b.icon}</div>
-              <h3 style={{fontSize:'15px',fontWeight:700,color:'#F8FAFC',marginBottom:'8px'}}>{b.titulo}</h3>
-              <p style={{fontSize:'13px',color:'#94A3B8',lineHeight:1.65}}>{b.texto}</p>
-            </div>
-          ))}
-        </div>
-      </section>
+        {/* Controles */}
+        <div className="ctrl">
+          <button className={'aba'+(view==='hoje'?' on':'')} onClick={()=>setView('hoje')}>Hoje</button>
+          <button className={'aba'+(view==='semana'?' on':'')} onClick={()=>setView('semana')}>Semana</button>
 
-      <section id="plano" style={{padding:'80px 24px',background:'radial-gradient(ellipse at 50% 50%,rgba(124,58,237,.09),transparent 65%)'}}>
-        <div style={{maxWidth:'520px',margin:'0 auto'}}>
-          <div style={{textAlign:'center',marginBottom:'40px'}}>
-            <h2 style={{fontSize:'clamp(22px,4vw,34px)',fontWeight:800,color:'#F8FAFC',letterSpacing:'-0.03em',marginBottom:'12px'}}>Um plano. Tudo incluso.</h2>
-            <p style={{fontSize:'15px',color:'#94A3B8',lineHeight:1.6}}>Tudo que seu negocio precisa em um so painel.</p>
-          </div>
-          <div style={{background:'radial-gradient(ellipse at top,rgba(124,58,237,.16),transparent 55%),rgba(15,23,42,.97)',border:'1.5px solid rgba(124,58,237,.50)',borderRadius:'22px',padding:'40px 36px',boxShadow:'0 0 64px rgba(124,58,237,.14)',position:'relative' as const}}>
-            <div style={{position:'absolute' as const,top:'-13px',left:'50%',transform:'translateX(-50%)',background:G,borderRadius:'999px',padding:'4px 18px',fontSize:'11px',fontWeight:700,color:'#fff',whiteSpace:'nowrap' as const}}>7 dias gratis</div>
-            <div style={{textAlign:'center',marginBottom:'28px'}}>
-              <h3 style={{fontSize:'22px',fontWeight:800,color:'#F8FAFC',marginBottom:'16px'}}>Plano ClienteMarcado</h3>
-              <div style={{marginBottom:'8px'}}>
-                <span style={{fontSize:'52px',fontWeight:900,color:'#F8FAFC',letterSpacing:'-0.03em'}}>R$ 79</span>
-                <span style={{fontSize:'22px',fontWeight:700,color:'#F8FAFC'}}>,90</span>
-                <span style={{fontSize:'15px',color:'#94A3B8'}}>/mes</span>
-              </div>
-              <p style={{fontSize:'13px',color:'#64748B'}}>Sem fidelidade. Cancele quando quiser.</p>
-            </div>
-            <div style={{marginBottom:'32px'}}>
-              {inclusos.map((item,i)=>(
-                <div key={i} style={{display:'flex',alignItems:'center',gap:'10px',marginBottom:'10px'}}>
-                  <span style={{color:'#22C55E',fontSize:'14px',flexShrink:0,fontWeight:700}}>✓</span>
-                  <span style={{fontSize:'14px',color:'#CBD5E1'}}>{item}</span>
-                </div>
+          {view === 'hoje' && (
+            <div className="filtros">
+              {['todos','pendente','confirmado','realizado','cancelado'].map(f=>(
+                <button key={f} className={'filt'+(fSt===f?' on':'')} onClick={()=>setFSt(f)}>
+                  {f==='todos'?'Todos':statusCfg[f]?.t||f}
+                </button>
               ))}
             </div>
-            <Link href="/cadastro" className="btn-p" style={{width:'100%',justifyContent:'center',height:'52px',fontSize:'15px'}}>
-              Comecar 7 dias gratis
-            </Link>
-            <p style={{textAlign:'center',fontSize:'12px',color:'#475569',marginTop:'16px'}}>Teste gratis por 7 dias. Depois R$ 79,90/mes.</p>
-          </div>
-        </div>
-      </section>
+          )}
 
-      <section style={{padding:'80px 24px',textAlign:'center',background:'radial-gradient(ellipse at 50% 50%,rgba(124,58,237,.10),transparent 60%)'}}>
-        <div style={{maxWidth:'600px',margin:'0 auto'}}>
-          <h2 style={{fontSize:'clamp(22px,4vw,32px)',fontWeight:800,color:'#F8FAFC',letterSpacing:'-0.03em',marginBottom:'16px',lineHeight:1.2}}>
-            Pronto para organizar seu negocio de vez?
-          </h2>
-          <p style={{fontSize:'15px',color:'#94A3B8',marginBottom:'36px',lineHeight:1.7}}>
-            Comece gratis e veja como o ClienteMarcado pode transformar sua agenda, clientes e financeiro.
-          </p>
-          <div className="cta-btns" style={{display:'flex',gap:'12px',justifyContent:'center',flexWrap:'wrap'}}>
-            <Link href="/cadastro" className="btn-p">Comecar 7 dias gratis</Link>
-            <Link href="/login" className="btn-s">Ja tenho conta</Link>
-          </div>
-          <p style={{fontSize:'13px',color:'#475569',marginTop:'20px'}}>Teste gratis por 7 dias. Depois R$ 79,90/mes. Sem fidelidade.</p>
+          <select className="prof-sel" value={fPr} onChange={e=>setFPr(e.target.value)}>
+            <option value="todos">Todos profissionais</option>
+            {profs.map(p=><option key={p.id} value={p.id}>{p.nome}</option>)}
+          </select>
         </div>
-      </section>
 
-      <footer style={{borderTop:'1px solid rgba(148,163,184,.08)',padding:'32px 24px',textAlign:'center'}}>
-        <p style={{fontSize:'13px',color:'#334155'}}>2026 ClienteMarcado. Todos os direitos reservados.</p>
-      </footer>
+        {/* VISÃO HOJE */}
+        {view === 'hoje' && (
+          <div>
+            <p className="dia-titulo">
+              {fSt === 'todos' ? 'Proximos atendimentos de hoje' : (statusCfg[fSt]?.t||fSt)+' hoje'}
+            </p>
+            {agsFiltrados.length === 0 ? (
+              <div className="vazio">
+                <div style={{fontSize:'40px',marginBottom:'16px',opacity:.4}}>📅</div>
+                <h3 style={{fontSize:'18px',fontWeight:800,color:'#F8FAFC',marginBottom:'8px'}}>Nenhum atendimento para hoje</h3>
+                <p style={{fontSize:'14px',color:'#64748B',marginBottom:'24px',lineHeight:1.6}}>Quando seus clientes agendarem, os horarios aparecerão aqui.</p>
+                <Link href="/painel/agendamentos/novo" className="btn-prim" style={{display:'inline-flex',margin:'0 auto'}}>+ Novo agendamento</Link>
+              </div>
+            ) : (
+              agsFiltrados.map(a => <CardAg key={a.id} a={a} />)
+            )}
+          </div>
+        )}
+
+        {/* VISÃO SEMANA */}
+        {view === 'semana' && (
+          <div>
+            <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:'16px',flexWrap:'wrap',gap:'10px'}}>
+              <p style={{fontSize:'14px',fontWeight:700,color:'#94A3B8'}}>
+                {inicioSem.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'})} – {diasSem[6].toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric'})}
+              </p>
+              <div style={{display:'flex',gap:'8px'}}>
+                <button className="btn-sec" style={{height:'34px',padding:'0 14px',fontSize:'12px'}} onClick={()=>setSemOff(s=>s-1)}>‹ Anterior</button>
+                <button className="btn-sec" style={{height:'34px',padding:'0 14px',fontSize:'12px'}} onClick={()=>setSemOff(0)}>Hoje</button>
+                <button className="btn-sec" style={{height:'34px',padding:'0 14px',fontSize:'12px'}} onClick={()=>setSemOff(s=>s+1)}>Próxima ›</button>
+              </div>
+            </div>
+            <div className="sem-grid">
+              {diasSem.map((d,i) => {
+                const dStr = d.toISOString().split('T')[0]
+                const ehHoje = dStr === hoje
+                const diasAgs = ags.filter(a => {
+                  const ad = new Date(a.data_hora).toISOString().split('T')[0]
+                  if (ad !== dStr) return false
+                  if (fPr !== 'todos' && a.profissional_id !== fPr) return false
+                  return true
+                })
+                return (
+                  <div key={i} className="sem-dia">
+                    <div className={'sem-dia-hdr'+(ehHoje?' hj':'')}>
+                      <div>{['D','S','T','Q','Q','S','S'][d.getDay()]}</div>
+                      <div style={{fontSize:'12px',fontWeight:800}}>{d.getDate()}</div>
+                    </div>
+                    {diasAgs.map(a => (
+                      <div key={a.id} className="sem-ag" title={a.cliente_nome+' - '+fH(a.data_hora)}>
+                        {fH(a.data_hora)} {(a.cliente_nome||'').split(' ')[0]}
+                      </div>
+                    ))}
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   )
 }
 `
 
-fs.writeFileSync('app/page.tsx', landing, 'utf8')
-console.log('Landing OK!')
-
-// 3. CADASTRO — adicionar status_acesso = teste_gratis
-let cadastro = fs.readFileSync('app/cadastro/page.tsx', 'utf8')
-if (!cadastro.includes('teste_gratis')) {
-  // Adicionar data_vencimento + 7 dias na criação do perfil
-  cadastro = cadastro.replace(
-    /await supabase\.from\('perfis'\)\.insert\(\{/,
-    `const _hoje = new Date()
-      const _venc = new Date(_hoje)
-      _venc.setDate(_hoje.getDate() + 7)
-      const _vencStr = _venc.toISOString().split('T')[0]
-      await supabase.from('perfis').insert({
-        status_acesso: 'teste_gratis',
-        data_vencimento: _vencStr,`
-  )
-  fs.writeFileSync('app/cadastro/page.tsx', cadastro, 'utf8')
-  console.log('Cadastro atualizado com teste_gratis!')
-} else {
-  console.log('Cadastro ja tem teste_gratis!')
-}
-
-console.log('\nPronto! Rode: git add -A && git commit -m "feat: teste gratis controlado + landing + layout acesso" && git push')
+fs.writeFileSync('app/painel/agendamentos/page.tsx', nova, 'utf8')
+console.log('Pagina de agendamentos refatorada!')
