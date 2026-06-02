@@ -232,6 +232,7 @@ export default function Profissionais(){
         </div>
 
         <div className="pg"><div className="bdy">
+          <AvisoAtraso/>
                     
 
           {msg&&<div style={{position:'fixed',top:'20px',left:'50%',transform:'translateX(-50%)',background:'rgba(139,92,246,.18)',border:'1px solid rgba(139,92,246,.40)',borderRadius:'10px',padding:'10px 20px',zIndex:99,color:'#C4B5FD',fontSize:'13px',fontWeight:700,backdropFilter:'blur(20px)',whiteSpace:'nowrap'}}>{msg}</div>}

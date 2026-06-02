@@ -256,6 +256,7 @@ export default function Perfil(){
           <div style={{width:'34px',height:'34px',borderRadius:'50%',background:AV,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'13px',fontWeight:700,color:'#fff'}}>{ini}</div>
         </div>
         <div className="pg"><div className="bdy">
+          <AvisoAtraso/>
                     
 
           {msg&&(

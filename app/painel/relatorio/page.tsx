@@ -145,6 +145,7 @@ export default function Relatorios(){
         </div>
 
         <div className="pg"><div className="bdy">
+          <AvisoAtraso/>
                     
 
           {/* Header */}
