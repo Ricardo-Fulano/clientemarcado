@@ -1,30 +1,29 @@
 const fs = require('fs')
 
-const paginas = [
-  'app/painel/agendamentos/page.tsx',
-  'app/painel/clientes/page.tsx',
-  'app/painel/orcamentos/page.tsx',
-  'app/painel/cobrancas/page.tsx',
-  'app/painel/pagamentos/page.tsx',
-  'app/painel/servicos/page.tsx',
-  'app/painel/profissionais/page.tsx',
-  'app/painel/relatorio/page.tsx',
-  'app/painel/perfil/page.tsx',
-  'app/painel/page.tsx',
-]
+// Corrigir especificamente o app/painel/page.tsx
+let c = fs.readFileSync('app/painel/page.tsx', 'utf8')
 
-for (const file of paginas) {
-  if (!fs.existsSync(file)) continue
-  let c = fs.readFileSync(file, 'utf8')
+// Remove TODOS os imports de AvisoAtraso
+const linhas = c.split('\n')
+const semDuplicata = []
+let jaAdicionou = false
 
-  // Remove TODOS os imports de AvisoAtraso
-  c = c.replace(/import \{ AvisoAtraso \} from '[^']+'\n/g, '')
-
-  // Adiciona UM import correto após 'use client'
-  c = c.replace("'use client'\n", "'use client'\nimport { AvisoAtraso } from '../../components/AcessoGuard'\n")
-
-  fs.writeFileSync(file, c, 'utf8')
-  console.log('OK:', file)
+for (const linha of linhas) {
+  if (linha.includes('AvisoAtraso') && linha.includes('import')) {
+    if (!jaAdicionou) {
+      semDuplicata.push(linha)
+      jaAdicionou = true
+    }
+    // segunda ocorrência é ignorada
+  } else {
+    semDuplicata.push(linha)
+  }
 }
 
+c = semDuplicata.join('\n')
+fs.writeFileSync('app/painel/page.tsx', c, 'utf8')
+
+// Verificar
+const resultado = c.split('\n').slice(0, 6)
+resultado.forEach((l, i) => console.log(i+1, l))
 console.log('Pronto!')
