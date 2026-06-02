@@ -17,16 +17,11 @@ for (const file of paginas) {
   if (!fs.existsSync(file)) continue
   let c = fs.readFileSync(file, 'utf8')
 
-  // Remove qualquer import AvisoAtraso existente
+  // Remove TODOS os imports de AvisoAtraso
   c = c.replace(/import \{ AvisoAtraso \} from '[^']+'\n/g, '')
 
-  // Adiciona import correto logo após 'use client'
+  // Adiciona UM import correto após 'use client'
   c = c.replace("'use client'\n", "'use client'\nimport { AvisoAtraso } from '../../components/AcessoGuard'\n")
-
-  // Garante que <AvisoAtraso/> existe após o bdy
-  if (!c.includes('<AvisoAtraso/>')) {
-    c = c.replace(/<div className="bdy"([^>]*)>/, '<div className="bdy"$1>\n          <AvisoAtraso/>')
-  }
 
   fs.writeFileSync(file, c, 'utf8')
   console.log('OK:', file)
