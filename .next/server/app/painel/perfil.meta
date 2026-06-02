@@ -1,0 +1,16 @@
+{
+  "headers": {
+    "x-nextjs-stale-time": "300",
+    "x-nextjs-prerender": "1",
+    "x-next-cache-tags": "_N_T_/layout,_N_T_/painel/layout,_N_T_/painel/perfil/layout,_N_T_/painel/perfil/page,_N_T_/painel/perfil"
+  },
+  "segmentPaths": [
+    "/_tree",
+    "/_full",
+    "/painel/perfil/__PAGE__",
+    "/painel/perfil",
+    "/painel",
+    "/_index",
+    "/_head"
+  ]
+}

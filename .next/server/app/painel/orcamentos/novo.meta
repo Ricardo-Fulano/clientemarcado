@@ -1,0 +1,17 @@
+{
+  "headers": {
+    "x-nextjs-stale-time": "300",
+    "x-nextjs-prerender": "1",
+    "x-next-cache-tags": "_N_T_/layout,_N_T_/painel/layout,_N_T_/painel/orcamentos/layout,_N_T_/painel/orcamentos/novo/layout,_N_T_/painel/orcamentos/novo/page,_N_T_/painel/orcamentos/novo"
+  },
+  "segmentPaths": [
+    "/_tree",
+    "/_full",
+    "/painel/orcamentos/novo/__PAGE__",
+    "/painel/orcamentos/novo",
+    "/painel/orcamentos",
+    "/painel",
+    "/_index",
+    "/_head"
+  ]
+}

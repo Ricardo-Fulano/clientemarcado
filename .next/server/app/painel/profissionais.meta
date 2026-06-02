@@ -1,0 +1,16 @@
+{
+  "headers": {
+    "x-nextjs-stale-time": "300",
+    "x-nextjs-prerender": "1",
+    "x-next-cache-tags": "_N_T_/layout,_N_T_/painel/layout,_N_T_/painel/profissionais/layout,_N_T_/painel/profissionais/page,_N_T_/painel/profissionais"
+  },
+  "segmentPaths": [
+    "/_tree",
+    "/_full",
+    "/painel/profissionais/__PAGE__",
+    "/painel/profissionais",
+    "/painel",
+    "/_index",
+    "/_head"
+  ]
+}
