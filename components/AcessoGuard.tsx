@@ -1,6 +1,6 @@
 'use client'
 import { useEffect, useState, createContext, useContext } from 'react'
-import { supabase } from '../app/lib/supabase'
+import { supabase } from '@/app/lib/supabase'
 import { useRouter } from 'next/navigation'
 
 const CHECKOUT_URL = "https://www.mercadopago.com.br/subscriptions/checkout?preapproval_plan_id=1a0fb25c46214e45b0eb3d21b494e5d6"
