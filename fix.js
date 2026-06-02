@@ -17,19 +17,12 @@ for (const file of paginas) {
   if (!fs.existsSync(file)) continue
   let c = fs.readFileSync(file, 'utf8')
 
-  const temJSX = c.includes('<AvisoAtraso')
-  const temImport = c.includes("from '../../components/AcessoGuard'") || 
-                    c.includes("from '../../../components/AcessoGuard'")
+  // Remove qualquer import existente do AvisoAtraso (em qualquer lugar)
+  c = c.replace(/^import \{ AvisoAtraso \}.*\n/gm, '')
+  c = c.replace(/<AvisoAtraso\/>/g, '')
 
-  if (temJSX && !temImport) {
-    c = c.replace("'use client'\n", "'use client'\nimport { AvisoAtraso } from '../../components/AcessoGuard'\n")
-    fs.writeFileSync(file, c, 'utf8')
-    console.log('Import adicionado:', file)
-  } else if (temJSX && temImport) {
-    console.log('Ja tem import:', file)
-  } else {
-    console.log('Sem AvisoAtraso:', file)
-  }
+  fs.writeFileSync(file, c, 'utf8')
+  console.log('Limpo:', file)
 }
 
-console.log('Pronto!')
+console.log('Tudo limpo! Agora sem AvisoAtraso.')
