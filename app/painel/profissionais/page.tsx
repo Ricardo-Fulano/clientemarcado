@@ -1,5 +1,5 @@
 'use client'
-import { AvisoAtraso } from '../../components/AcessoGuard'
+import { AvisoAtraso } from '../components/AcessoGuard'
 import { useEffect, useState, useRef } from 'react'
 import { supabase } from '../../lib/supabase'
 import Link from 'next/link'
