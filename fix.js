@@ -3,30 +3,7 @@ const fs = require('fs')
 const CHECKOUT_URL = "https://www.mercadopago.com.br/subscriptions/checkout?preapproval_plan_id=1a0fb25c46214e45b0eb3d21b494e5d6"
 const G = 'linear-gradient(135deg,#3B82F6,#7C3AED)'
 
-// 1. REMOVER AvisoAtraso de todas as páginas
-const paginas = [
-  'app/painel/agendamentos/page.tsx',
-  'app/painel/clientes/page.tsx',
-  'app/painel/orcamentos/page.tsx',
-  'app/painel/cobrancas/page.tsx',
-  'app/painel/pagamentos/page.tsx',
-  'app/painel/servicos/page.tsx',
-  'app/painel/profissionais/page.tsx',
-  'app/painel/relatorio/page.tsx',
-  'app/painel/perfil/page.tsx',
-  'app/painel/page.tsx',
-]
-
-for (const file of paginas) {
-  if (!fs.existsSync(file)) continue
-  let c = fs.readFileSync(file, 'utf8')
-  c = c.replace(/import \{ AvisoAtraso \} from '[^']+'\r?\n/g, '')
-  c = c.replace(/<AvisoAtraso\/>\r?\n?/g, '')
-  fs.writeFileSync(file, c, 'utf8')
-  console.log('Limpo:', file)
-}
-
-// 2. LAYOUT com toda lógica de acesso inline
+// 1. LAYOUT DO PAINEL com lógica inline
 const layout = `'use client'
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
@@ -35,29 +12,46 @@ import { supabase } from '../lib/supabase'
 const CHECKOUT_URL = "${CHECKOUT_URL}"
 const G = '${G}'
 
-function AvisoStatus({ status }: { status: string }) {
+function AvisoStatus({ status, vencimento }: { status: string; vencimento?: string }) {
+  const fmtData = (d?: string) => {
+    if (!d) return ''
+    const [a,m,dia] = d.split('-')
+    return dia+'/'+m+'/'+a
+  }
+
   if (status === 'teste_gratis') return (
-    <div style={{background:'rgba(124,58,237,.10)',border:'1px solid rgba(124,58,237,.28)',borderRadius:'16px',padding:'14px 20px',marginBottom:'24px',display:'flex',alignItems:'center',justifyContent:'space-between',flexWrap:'wrap',gap:'12px'}}>
+    <div style={{background:'rgba(124,58,237,.10)',border:'1px solid rgba(124,58,237,.28)',borderRadius:'16px',padding:'16px 20px',marginBottom:'24px',display:'flex',alignItems:'center',justifyContent:'space-between',flexWrap:'wrap',gap:'12px'}}>
       <div>
-        <p style={{fontSize:'13px',fontWeight:700,color:'#C4B5FD',marginBottom:'3px'}}>Voce esta no teste gratis do ClienteMarcado</p>
-        <p style={{fontSize:'12px',color:'#7C3AED',lineHeight:1.5}}>Aproveite 7 dias para configurar sua agenda e testar o painel completo.</p>
+        <p style={{fontSize:'13px',fontWeight:700,color:'#C4B5FD',marginBottom:'3px'}}>
+          Voce esta no teste gratis do ClienteMarcado
+        </p>
+        <p style={{fontSize:'12px',color:'#7C3AED',lineHeight:1.5}}>
+          Aproveite 7 dias para configurar sua agenda e testar o painel completo.
+          {vencimento && <span style={{color:'#A78BFA'}}> Seu teste termina em: {fmtData(vencimento)}</span>}
+        </p>
       </div>
       <a href={CHECKOUT_URL} target="_blank" rel="noreferrer" style={{display:'inline-flex',alignItems:'center',justifyContent:'center',height:'38px',padding:'0 18px',background:G,color:'#fff',borderRadius:'10px',textDecoration:'none',fontSize:'12px',fontWeight:700,whiteSpace:'nowrap',flexShrink:0}}>
         Assinar agora
       </a>
     </div>
   )
+
   if (status === 'em_atraso') return (
-    <div style={{background:'rgba(245,158,11,.08)',border:'1px solid rgba(245,158,11,.28)',borderRadius:'16px',padding:'14px 20px',marginBottom:'24px',display:'flex',alignItems:'center',justifyContent:'space-between',flexWrap:'wrap',gap:'12px'}}>
+    <div style={{background:'rgba(245,158,11,.08)',border:'1px solid rgba(245,158,11,.28)',borderRadius:'16px',padding:'16px 20px',marginBottom:'24px',display:'flex',alignItems:'center',justifyContent:'space-between',flexWrap:'wrap',gap:'12px'}}>
       <div>
-        <p style={{fontSize:'13px',fontWeight:700,color:'#FCD34D',marginBottom:'3px'}}>Sua mensalidade esta pendente</p>
-        <p style={{fontSize:'12px',color:'#B45309',lineHeight:1.5}}>Regularize o pagamento para evitar o bloqueio do painel.</p>
+        <p style={{fontSize:'13px',fontWeight:700,color:'#FCD34D',marginBottom:'3px'}}>
+          Sua mensalidade esta pendente
+        </p>
+        <p style={{fontSize:'12px',color:'#B45309',lineHeight:1.5}}>
+          Regularize o pagamento para evitar o bloqueio do painel.
+        </p>
       </div>
       <a href={CHECKOUT_URL} target="_blank" rel="noreferrer" style={{display:'inline-flex',alignItems:'center',justifyContent:'center',height:'38px',padding:'0 18px',background:G,color:'#fff',borderRadius:'10px',textDecoration:'none',fontSize:'12px',fontWeight:700,whiteSpace:'nowrap',flexShrink:0}}>
         Regularizar pagamento
       </a>
     </div>
   )
+
   return null
 }
 
@@ -69,6 +63,10 @@ function TelaBloqueada({ status }: { status: string }) {
         <div style={{width:'68px',height:'68px',borderRadius:'50%',background:bloqueado?'rgba(239,68,68,.10)':'rgba(100,116,139,.10)',border:bloqueado?'1px solid rgba(239,68,68,.25)':'1px solid rgba(100,116,139,.25)',display:'flex',alignItems:'center',justifyContent:'center',margin:'0 auto 24px',fontSize:'30px'}}>
           {bloqueado?'🔒':'⛔'}
         </div>
+        <div style={{display:'flex',alignItems:'center',justifyContent:'center',gap:'8px',marginBottom:'16px'}}>
+          <div style={{width:'28px',height:'28px',borderRadius:'8px',background:G,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'14px'}}>📅</div>
+          <span style={{fontSize:'14px',fontWeight:800,color:'#F8FAFC'}}>ClienteMarcado</span>
+        </div>
         <h2 style={{fontSize:'22px',fontWeight:800,color:'#F8FAFC',marginBottom:'12px',letterSpacing:'-0.02em',lineHeight:1.3}}>
           {bloqueado?'Acesso temporariamente bloqueado':'Acesso cancelado'}
         </h2>
@@ -79,8 +77,11 @@ function TelaBloqueada({ status }: { status: string }) {
           {bloqueado?'Assim que o pagamento for confirmado, seu acesso sera liberado.':'Podemos ajuda-lo a reativar sua conta.'}
         </p>
         <div style={{display:'flex',flexDirection:'column',gap:'10px'}}>
-          <a href={CHECKOUT_URL} target="_blank" rel="noreferrer" style={{display:'flex',alignItems:'center',justifyContent:'center',height:'50px',background:G,color:'#fff',borderRadius:'14px',textDecoration:'none',fontSize:'14px',fontWeight:700}}>
+          <a href={CHECKOUT_URL} target="_blank" rel="noreferrer" style={{display:'flex',alignItems:'center',justifyContent:'center',height:'50px',background:G,color:'#fff',borderRadius:'14px',textDecoration:'none',fontSize:'14px',fontWeight:700,boxShadow:'0 8px 24px rgba(59,130,246,.25)'}}>
             {bloqueado?'Regularizar pagamento':'Regularizar pagamento'}
+          </a>
+          <a href="https://wa.me/5511999999999" target="_blank" rel="noreferrer" style={{display:'flex',alignItems:'center',justifyContent:'center',height:'44px',background:'rgba(15,23,42,.88)',color:'#CBD5E1',border:'1px solid rgba(148,163,184,.18)',borderRadius:'12px',textDecoration:'none',fontSize:'13px',fontWeight:600}}>
+            Falar com suporte
           </a>
         </div>
       </div>
@@ -90,6 +91,7 @@ function TelaBloqueada({ status }: { status: string }) {
 
 export default function PainelLayout({ children }: { children: React.ReactNode }) {
   const [status, setStatus] = useState<string|null>(null)
+  const [vencimento, setVencimento] = useState<string|undefined>(undefined)
   const [loading, setLoading] = useState(true)
   const router = useRouter()
 
@@ -98,8 +100,9 @@ export default function PainelLayout({ children }: { children: React.ReactNode }
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) { router.push('/login'); return }
       const { data: perfil } = await supabase
-        .from('perfis').select('status_acesso').eq('user_id', user.id).single()
+        .from('perfis').select('status_acesso, data_vencimento').eq('user_id', user.id).single()
       setStatus(perfil?.status_acesso || 'ativo')
+      setVencimento(perfil?.data_vencimento || undefined)
       setLoading(false)
     }
     verificar()
@@ -116,26 +119,26 @@ export default function PainelLayout({ children }: { children: React.ReactNode }
   }
 
   return (
-    <div>
+    <>
       <style>{\`
-        .aviso-wrap{padding:24px 24px 0;max-width:1400px;margin:0 auto}
-        @media(max-width:768px){.aviso-wrap{padding:16px 16px 0}}
+        .aviso-painel{padding:20px 24px 0;max-width:1400px;margin:0 auto;box-sizing:border-box}
+        @media(max-width:768px){.aviso-painel{padding:12px 16px 0}}
       \`}</style>
       {(status === 'em_atraso' || status === 'teste_gratis') && (
-        <div className="aviso-wrap">
-          <AvisoStatus status={status} />
+        <div className="aviso-painel">
+          <AvisoStatus status={status} vencimento={vencimento} />
         </div>
       )}
       {children}
-    </div>
+    </>
   )
 }
 `
 
 fs.writeFileSync('app/painel/layout.tsx', layout, 'utf8')
-console.log('Layout criado!')
+console.log('Layout OK!')
 
-// 3. LANDING atualizada
+// 2. LANDING corrigida — botao vai para /cadastro
 const landing = `'use client'
 import Link from 'next/link'
 import { useState, useEffect } from 'react'
@@ -182,7 +185,7 @@ export default function Home() {
       <style>{\`
         *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
         html,body{overflow-x:hidden;width:100%;max-width:100%}
-        .btn-p{background:\${G};color:#fff;border:1px solid rgba(255,255,255,.12);border-radius:14px;padding:0 28px;height:50px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;transition:all .2s;box-shadow:0 12px 32px rgba(59,130,246,.25),0 0 28px rgba(124,58,237,.20);white-space:nowrap}
+        .btn-p{background:\${G};color:#fff;border:1px solid rgba(255,255,255,.12);border-radius:14px;padding:0 28px;height:50px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;transition:all .2s;box-shadow:0 12px 32px rgba(59,130,246,.25);white-space:nowrap}
         .btn-p:hover{transform:translateY(-2px)}
         .btn-s{background:rgba(15,23,42,.88);color:#CBD5E1;border:1px solid rgba(148,163,184,.25);border-radius:14px;padding:0 28px;height:50px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;transition:all .2s;white-space:nowrap}
         .btn-s:hover{border-color:rgba(124,58,237,.45);color:#fff}
@@ -190,7 +193,7 @@ export default function Home() {
         .card-b:hover{border-color:rgba(124,58,237,.28);transform:translateY(-3px)}
         @media(max-width:768px){
           .hero-btns{flex-direction:column!important;align-items:stretch!important;gap:10px!important}
-          .hero-btns button,.hero-btns a{width:100%!important}
+          .hero-btns a{width:100%!important}
           .grid-3{grid-template-columns:1fr!important}
           .cta-btns{flex-direction:column!important;align-items:stretch!important;gap:10px!important}
           .cta-btns a{width:100%!important}
@@ -216,7 +219,7 @@ export default function Home() {
         <div style={{maxWidth:'760px',margin:'0 auto'}}>
           <div style={{display:'inline-flex',alignItems:'center',gap:'8px',background:'rgba(59,130,246,.10)',border:'1px solid rgba(59,130,246,.22)',borderRadius:'999px',padding:'6px 18px',marginBottom:'36px'}}>
             <span style={{width:'6px',height:'6px',borderRadius:'50%',background:'#3B82F6',display:'inline-block',flexShrink:0}}/>
-            <span style={{fontSize:'12px',fontWeight:600,color:'#60A5FA',letterSpacing:'.04em'}}>7 dias gratis para testar</span>
+            <span style={{fontSize:'12px',fontWeight:600,color:'#60A5FA',letterSpacing:'.04em'}}>7 dias gratis para testar o painel completo</span>
           </div>
           <h1 style={{fontSize:'clamp(38px,6vw,66px)',fontWeight:900,color:'#F8FAFC',letterSpacing:'-0.04em',lineHeight:1.05,marginBottom:'24px'}}>
             Seu cliente agenda sozinho.<br/>
@@ -226,9 +229,10 @@ export default function Home() {
             Organize agendamentos, clientes, equipe, cobrancas e atendimentos em um painel simples, moderno e profissional.
           </p>
           <div className="hero-btns" style={{display:'flex',gap:'12px',justifyContent:'center',flexWrap:'wrap'}}>
-            <a href={CHECKOUT_URL} target="_blank" rel="noreferrer" className="btn-p">Comecar 7 dias gratis</a>
+            <Link href="/cadastro" className="btn-p">Comecar 7 dias gratis</Link>
             <Link href="/login" className="btn-s">Ja tenho conta</Link>
           </div>
+          <p style={{fontSize:'12px',color:'#475569',marginTop:'16px'}}>Teste gratis por 7 dias. Depois R$ 79,90/mes. Sem fidelidade.</p>
         </div>
       </section>
 
@@ -257,13 +261,10 @@ export default function Home() {
           <div style={{background:'radial-gradient(ellipse at top,rgba(124,58,237,.16),transparent 55%),rgba(15,23,42,.97)',border:'1.5px solid rgba(124,58,237,.50)',borderRadius:'22px',padding:'40px 36px',boxShadow:'0 0 64px rgba(124,58,237,.14)',position:'relative' as const}}>
             <div style={{position:'absolute' as const,top:'-13px',left:'50%',transform:'translateX(-50%)',background:G,borderRadius:'999px',padding:'4px 18px',fontSize:'11px',fontWeight:700,color:'#fff',whiteSpace:'nowrap' as const}}>7 dias gratis</div>
             <div style={{textAlign:'center',marginBottom:'28px'}}>
-              <h3 style={{fontSize:'22px',fontWeight:800,color:'#F8FAFC',marginBottom:'8px'}}>Plano ClienteMarcado</h3>
-              <div style={{marginBottom:'4px'}}>
-                <span style={{fontSize:'14px',color:'#64748B',textDecoration:'line-through'}}>R$ 97</span>
-              </div>
+              <h3 style={{fontSize:'22px',fontWeight:800,color:'#F8FAFC',marginBottom:'16px'}}>Plano ClienteMarcado</h3>
               <div style={{marginBottom:'8px'}}>
                 <span style={{fontSize:'52px',fontWeight:900,color:'#F8FAFC',letterSpacing:'-0.03em'}}>R$ 79</span>
-                <span style={{fontSize:'18px',fontWeight:700,color:'#F8FAFC'}}>,90</span>
+                <span style={{fontSize:'22px',fontWeight:700,color:'#F8FAFC'}}>,90</span>
                 <span style={{fontSize:'15px',color:'#94A3B8'}}>/mes</span>
               </div>
               <p style={{fontSize:'13px',color:'#64748B'}}>Sem fidelidade. Cancele quando quiser.</p>
@@ -271,15 +272,15 @@ export default function Home() {
             <div style={{marginBottom:'32px'}}>
               {inclusos.map((item,i)=>(
                 <div key={i} style={{display:'flex',alignItems:'center',gap:'10px',marginBottom:'10px'}}>
-                  <span style={{color:'#22C55E',fontSize:'14px',flexShrink:0}}>checkmark</span>
+                  <span style={{color:'#22C55E',fontSize:'14px',flexShrink:0,fontWeight:700}}>✓</span>
                   <span style={{fontSize:'14px',color:'#CBD5E1'}}>{item}</span>
                 </div>
               ))}
             </div>
-            <a href={CHECKOUT_URL} target="_blank" rel="noreferrer" className="btn-p" style={{width:'100%',justifyContent:'center',height:'52px',fontSize:'15px'}}>
+            <Link href="/cadastro" className="btn-p" style={{width:'100%',justifyContent:'center',height:'52px',fontSize:'15px'}}>
               Comecar 7 dias gratis
-            </a>
-            <p style={{textAlign:'center',fontSize:'12px',color:'#475569',marginTop:'16px'}}>Depois R$ 79,90/mes. Cancele quando quiser.</p>
+            </Link>
+            <p style={{textAlign:'center',fontSize:'12px',color:'#475569',marginTop:'16px'}}>Teste gratis por 7 dias. Depois R$ 79,90/mes.</p>
           </div>
         </div>
       </section>
@@ -290,13 +291,13 @@ export default function Home() {
             Pronto para organizar seu negocio de vez?
           </h2>
           <p style={{fontSize:'15px',color:'#94A3B8',marginBottom:'36px',lineHeight:1.7}}>
-            Comece gratis e veja como o ClienteMarcado pode transformar sua agenda, seus clientes e seu financeiro.
+            Comece gratis e veja como o ClienteMarcado pode transformar sua agenda, clientes e financeiro.
           </p>
           <div className="cta-btns" style={{display:'flex',gap:'12px',justifyContent:'center',flexWrap:'wrap'}}>
-            <a href={CHECKOUT_URL} target="_blank" rel="noreferrer" className="btn-p">Comecar 7 dias gratis</a>
+            <Link href="/cadastro" className="btn-p">Comecar 7 dias gratis</Link>
             <Link href="/login" className="btn-s">Ja tenho conta</Link>
           </div>
-          <p style={{fontSize:'13px',color:'#475569',marginTop:'20px'}}>Depois R$ 79,90/mes. Sem fidelidade.</p>
+          <p style={{fontSize:'13px',color:'#475569',marginTop:'20px'}}>Teste gratis por 7 dias. Depois R$ 79,90/mes. Sem fidelidade.</p>
         </div>
       </section>
 
@@ -309,6 +310,26 @@ export default function Home() {
 `
 
 fs.writeFileSync('app/page.tsx', landing, 'utf8')
-console.log('Landing atualizada!')
+console.log('Landing OK!')
 
-console.log('\nTudo pronto! Rode: git add -A && git commit -m "feat: layout acesso + landing plano unico" && git push')
+// 3. CADASTRO — adicionar status_acesso = teste_gratis
+let cadastro = fs.readFileSync('app/cadastro/page.tsx', 'utf8')
+if (!cadastro.includes('teste_gratis')) {
+  // Adicionar data_vencimento + 7 dias na criação do perfil
+  cadastro = cadastro.replace(
+    /await supabase\.from\('perfis'\)\.insert\(\{/,
+    `const _hoje = new Date()
+      const _venc = new Date(_hoje)
+      _venc.setDate(_hoje.getDate() + 7)
+      const _vencStr = _venc.toISOString().split('T')[0]
+      await supabase.from('perfis').insert({
+        status_acesso: 'teste_gratis',
+        data_vencimento: _vencStr,`
+  )
+  fs.writeFileSync('app/cadastro/page.tsx', cadastro, 'utf8')
+  console.log('Cadastro atualizado com teste_gratis!')
+} else {
+  console.log('Cadastro ja tem teste_gratis!')
+}
+
+console.log('\nPronto! Rode: git add -A && git commit -m "feat: teste gratis controlado + landing + layout acesso" && git push')

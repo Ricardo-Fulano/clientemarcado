@@ -44,7 +44,7 @@ export default function Home() {
       <style>{`
         *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
         html,body{overflow-x:hidden;width:100%;max-width:100%}
-        .btn-p{background:${G};color:#fff;border:1px solid rgba(255,255,255,.12);border-radius:14px;padding:0 28px;height:50px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;transition:all .2s;box-shadow:0 12px 32px rgba(59,130,246,.25),0 0 28px rgba(124,58,237,.20);white-space:nowrap}
+        .btn-p{background:${G};color:#fff;border:1px solid rgba(255,255,255,.12);border-radius:14px;padding:0 28px;height:50px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;transition:all .2s;box-shadow:0 12px 32px rgba(59,130,246,.25);white-space:nowrap}
         .btn-p:hover{transform:translateY(-2px)}
         .btn-s{background:rgba(15,23,42,.88);color:#CBD5E1;border:1px solid rgba(148,163,184,.25);border-radius:14px;padding:0 28px;height:50px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;transition:all .2s;white-space:nowrap}
         .btn-s:hover{border-color:rgba(124,58,237,.45);color:#fff}
@@ -52,7 +52,7 @@ export default function Home() {
         .card-b:hover{border-color:rgba(124,58,237,.28);transform:translateY(-3px)}
         @media(max-width:768px){
           .hero-btns{flex-direction:column!important;align-items:stretch!important;gap:10px!important}
-          .hero-btns button,.hero-btns a{width:100%!important}
+          .hero-btns a{width:100%!important}
           .grid-3{grid-template-columns:1fr!important}
           .cta-btns{flex-direction:column!important;align-items:stretch!important;gap:10px!important}
           .cta-btns a{width:100%!important}
@@ -78,7 +78,7 @@ export default function Home() {
         <div style={{maxWidth:'760px',margin:'0 auto'}}>
           <div style={{display:'inline-flex',alignItems:'center',gap:'8px',background:'rgba(59,130,246,.10)',border:'1px solid rgba(59,130,246,.22)',borderRadius:'999px',padding:'6px 18px',marginBottom:'36px'}}>
             <span style={{width:'6px',height:'6px',borderRadius:'50%',background:'#3B82F6',display:'inline-block',flexShrink:0}}/>
-            <span style={{fontSize:'12px',fontWeight:600,color:'#60A5FA',letterSpacing:'.04em'}}>7 dias gratis para testar</span>
+            <span style={{fontSize:'12px',fontWeight:600,color:'#60A5FA',letterSpacing:'.04em'}}>7 dias gratis para testar o painel completo</span>
           </div>
           <h1 style={{fontSize:'clamp(38px,6vw,66px)',fontWeight:900,color:'#F8FAFC',letterSpacing:'-0.04em',lineHeight:1.05,marginBottom:'24px'}}>
             Seu cliente agenda sozinho.<br/>
@@ -88,9 +88,10 @@ export default function Home() {
             Organize agendamentos, clientes, equipe, cobrancas e atendimentos em um painel simples, moderno e profissional.
           </p>
           <div className="hero-btns" style={{display:'flex',gap:'12px',justifyContent:'center',flexWrap:'wrap'}}>
-            <a href={CHECKOUT_URL} target="_blank" rel="noreferrer" className="btn-p">Comecar 7 dias gratis</a>
+            <Link href="/cadastro" className="btn-p">Comecar 7 dias gratis</Link>
             <Link href="/login" className="btn-s">Ja tenho conta</Link>
           </div>
+          <p style={{fontSize:'12px',color:'#475569',marginTop:'16px'}}>Teste gratis por 7 dias. Depois R$ 79,90/mes. Sem fidelidade.</p>
         </div>
       </section>
 
@@ -119,13 +120,10 @@ export default function Home() {
           <div style={{background:'radial-gradient(ellipse at top,rgba(124,58,237,.16),transparent 55%),rgba(15,23,42,.97)',border:'1.5px solid rgba(124,58,237,.50)',borderRadius:'22px',padding:'40px 36px',boxShadow:'0 0 64px rgba(124,58,237,.14)',position:'relative' as const}}>
             <div style={{position:'absolute' as const,top:'-13px',left:'50%',transform:'translateX(-50%)',background:G,borderRadius:'999px',padding:'4px 18px',fontSize:'11px',fontWeight:700,color:'#fff',whiteSpace:'nowrap' as const}}>7 dias gratis</div>
             <div style={{textAlign:'center',marginBottom:'28px'}}>
-              <h3 style={{fontSize:'22px',fontWeight:800,color:'#F8FAFC',marginBottom:'8px'}}>Plano ClienteMarcado</h3>
-              <div style={{marginBottom:'4px'}}>
-                <span style={{fontSize:'14px',color:'#64748B',textDecoration:'line-through'}}>R$ 97</span>
-              </div>
+              <h3 style={{fontSize:'22px',fontWeight:800,color:'#F8FAFC',marginBottom:'16px'}}>Plano ClienteMarcado</h3>
               <div style={{marginBottom:'8px'}}>
                 <span style={{fontSize:'52px',fontWeight:900,color:'#F8FAFC',letterSpacing:'-0.03em'}}>R$ 79</span>
-                <span style={{fontSize:'18px',fontWeight:700,color:'#F8FAFC'}}>,90</span>
+                <span style={{fontSize:'22px',fontWeight:700,color:'#F8FAFC'}}>,90</span>
                 <span style={{fontSize:'15px',color:'#94A3B8'}}>/mes</span>
               </div>
               <p style={{fontSize:'13px',color:'#64748B'}}>Sem fidelidade. Cancele quando quiser.</p>
@@ -133,15 +131,15 @@ export default function Home() {
             <div style={{marginBottom:'32px'}}>
               {inclusos.map((item,i)=>(
                 <div key={i} style={{display:'flex',alignItems:'center',gap:'10px',marginBottom:'10px'}}>
-                  <span style={{color:'#22C55E',fontSize:'14px',flexShrink:0}}>checkmark</span>
+                  <span style={{color:'#22C55E',fontSize:'14px',flexShrink:0,fontWeight:700}}>✓</span>
                   <span style={{fontSize:'14px',color:'#CBD5E1'}}>{item}</span>
                 </div>
               ))}
             </div>
-            <a href={CHECKOUT_URL} target="_blank" rel="noreferrer" className="btn-p" style={{width:'100%',justifyContent:'center',height:'52px',fontSize:'15px'}}>
+            <Link href="/cadastro" className="btn-p" style={{width:'100%',justifyContent:'center',height:'52px',fontSize:'15px'}}>
               Comecar 7 dias gratis
-            </a>
-            <p style={{textAlign:'center',fontSize:'12px',color:'#475569',marginTop:'16px'}}>Depois R$ 79,90/mes. Cancele quando quiser.</p>
+            </Link>
+            <p style={{textAlign:'center',fontSize:'12px',color:'#475569',marginTop:'16px'}}>Teste gratis por 7 dias. Depois R$ 79,90/mes.</p>
           </div>
         </div>
       </section>
@@ -152,13 +150,13 @@ export default function Home() {
             Pronto para organizar seu negocio de vez?
           </h2>
           <p style={{fontSize:'15px',color:'#94A3B8',marginBottom:'36px',lineHeight:1.7}}>
-            Comece gratis e veja como o ClienteMarcado pode transformar sua agenda, seus clientes e seu financeiro.
+            Comece gratis e veja como o ClienteMarcado pode transformar sua agenda, clientes e financeiro.
           </p>
           <div className="cta-btns" style={{display:'flex',gap:'12px',justifyContent:'center',flexWrap:'wrap'}}>
-            <a href={CHECKOUT_URL} target="_blank" rel="noreferrer" className="btn-p">Comecar 7 dias gratis</a>
+            <Link href="/cadastro" className="btn-p">Comecar 7 dias gratis</Link>
             <Link href="/login" className="btn-s">Ja tenho conta</Link>
           </div>
-          <p style={{fontSize:'13px',color:'#475569',marginTop:'20px'}}>Depois R$ 79,90/mes. Sem fidelidade.</p>
+          <p style={{fontSize:'13px',color:'#475569',marginTop:'20px'}}>Teste gratis por 7 dias. Depois R$ 79,90/mes. Sem fidelidade.</p>
         </div>
       </section>
 
