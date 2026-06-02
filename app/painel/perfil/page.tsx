@@ -1,5 +1,4 @@
 'use client'
-import { AvisoAtraso } from '../components/AcessoGuard'
 import { useEffect, useState, useRef } from 'react'
 import { supabase } from '../../lib/supabase'
 import Link from 'next/link'
@@ -257,8 +256,7 @@ export default function Perfil(){
           <div style={{width:'34px',height:'34px',borderRadius:'50%',background:AV,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'13px',fontWeight:700,color:'#fff'}}>{ini}</div>
         </div>
         <div className="pg"><div className="bdy">
-          <AvisoAtraso/>
-                    
+                              
 
           {msg&&(
             <div style={{position:'fixed',top:'20px',left:'50%',transform:'translateX(-50%)',background:msg.includes('rro')?'rgba(239,68,68,.16)':'rgba(34,197,94,.16)',border:`1px solid ${msg.includes('rro')?'rgba(239,68,68,.36)':'rgba(34,197,94,.36)'}`,borderRadius:'10px',padding:'10px 20px',zIndex:99,color:msg.includes('rro')?'#F87171':'#4ADE80',fontSize:'13px',fontWeight:700,backdropFilter:'blur(20px)',whiteSpace:'nowrap'}}>

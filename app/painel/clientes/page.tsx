@@ -1,5 +1,4 @@
 'use client'
-import { AvisoAtraso } from '../components/AcessoGuard'
 import { useEffect, useState, useRef, useCallback } from 'react'
 import { supabase } from '../../lib/supabase'
 import Link from 'next/link'
@@ -185,8 +184,7 @@ export default function Clientes(){
         </div>
 
         <div className="pg"><div className="bdy">
-          <AvisoAtraso/>
-                    
+                              
 
           {/* Toast */}
           {msg&&<div style={{position:'fixed',top:'20px',left:'50%',transform:'translateX(-50%)',background:'rgba(6,182,212,.18)',border:'1px solid rgba(6,182,212,.40)',borderRadius:'10px',padding:'10px 20px',zIndex:99,color:'#22D3EE',fontSize:'13px',fontWeight:700,backdropFilter:'blur(20px)',whiteSpace:'nowrap',boxShadow:'0 8px 24px rgba(0,0,0,.4)'}}>{msg}</div>}

@@ -1,5 +1,4 @@
 'use client'
-import { AvisoAtraso } from '../components/AcessoGuard'
 import { useEffect, useState } from 'react'
 import { supabase } from '../../lib/supabase'
 import Link from 'next/link'
@@ -141,8 +140,7 @@ export default function Cobrancas(){
           <div style={{width:'34px',height:'34px',borderRadius:'50%',background:AV,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'13px',fontWeight:700,color:'#fff'}}>{ini}</div>
         </div>
         <div className="pg"><div className="bdy">
-          <AvisoAtraso/>
-                    
+                              
 
           {/* Header */}
           <div className="topo-r" style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',gap:'16px',flexWrap:'wrap',marginBottom:'24px'}}>
