@@ -145,8 +145,7 @@ export default function Relatorios(){
         </div>
 
         <div className="pg"><div className="bdy">
-          <AvisoAtraso/>
-          
+                    
 
           {/* Header */}
           <div className="hdr-r" style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',gap:'16px',flexWrap:'wrap',marginBottom:'28px'}}>
