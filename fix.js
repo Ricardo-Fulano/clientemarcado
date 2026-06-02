@@ -1,87 +1,22 @@
 const fs = require('fs')
+let c = fs.readFileSync('app/painel/agendamentos/page.tsx', 'utf8')
 
-// Simplificar o layout - remover aviso daqui, ele já está nas páginas
-const layout = `'use client'
-import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { supabase } from '../lib/supabase'
+const cssStart = c.indexOf('const CSS=`\n') + 11
+const cssEnd = c.indexOf('\n`\nexport default', cssStart)
+const cssContent = c.slice(cssStart, cssEnd)
 
-const CHECKOUT_URL = "https://www.mercadopago.com.br/subscriptions/checkout?preapproval_plan_id=1a0fb25c46214e45b0eb3d21b494e5d6"
-const G = 'linear-gradient(135deg,#3B82F6,#7C3AED)'
+// Escapar backticks dentro do CSS
+const cssFixed = cssContent.replace(/`/g, '\\`')
 
-function TelaBloqueada({ status }: { status: string }) {
-  const bloqueado = status === 'bloqueado'
-  return (
-    <div style={{minHeight:'100vh',background:'radial-gradient(ellipse at top,rgba(124,58,237,.12),transparent 50%),linear-gradient(180deg,#060C18,#050B16)',display:'flex',alignItems:'center',justifyContent:'center',padding:'24px',fontFamily:'-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif'}}>
-      <div style={{width:'100%',maxWidth:'480px',background:'rgba(15,23,42,.95)',border:'1px solid rgba(124,58,237,.30)',borderRadius:'22px',padding:'40px 32px',textAlign:'center',boxShadow:'0 32px 80px rgba(0,0,0,.5)'}}>
-        <div style={{width:'68px',height:'68px',borderRadius:'50%',background:bloqueado?'rgba(239,68,68,.10)':'rgba(100,116,139,.10)',border:bloqueado?'1px solid rgba(239,68,68,.25)':'1px solid rgba(100,116,139,.25)',display:'flex',alignItems:'center',justifyContent:'center',margin:'0 auto 24px',fontSize:'30px'}}>
-          {bloqueado?'🔒':'⛔'}
-        </div>
-        <h2 style={{fontSize:'22px',fontWeight:800,color:'#F8FAFC',marginBottom:'12px',letterSpacing:'-0.02em',lineHeight:1.3}}>
-          {bloqueado?'Acesso temporariamente bloqueado':'Acesso cancelado'}
-        </h2>
-        <p style={{fontSize:'14px',color:'#94A3B8',lineHeight:1.7,marginBottom:'8px'}}>
-          {bloqueado?'Identificamos uma pendencia na sua mensalidade. Regularize o pagamento para voltar a acessar o ClienteMarcado.':'Seu acesso ao ClienteMarcado foi encerrado. Para reativar sua conta, entre em contato com o suporte.'}
-        </p>
-        <p style={{fontSize:'13px',color:'#475569',lineHeight:1.6,marginBottom:'32px'}}>
-          {bloqueado?'Assim que o pagamento for confirmado, seu acesso sera liberado.':'Podemos ajuda-lo a reativar sua conta.'}
-        </p>
-        <div style={{display:'flex',flexDirection:'column',gap:'10px'}}>
-          <a href={CHECKOUT_URL} target="_blank" rel="noreferrer" style={{display:'flex',alignItems:'center',justifyContent:'center',height:'50px',background:G,color:'#fff',borderRadius:'14px',textDecoration:'none',fontSize:'14px',fontWeight:700}}>
-            Regularizar pagamento
-          </a>
-        </div>
-      </div>
-    </div>
-  )
-}
+c = c.slice(0, cssStart) + cssFixed + c.slice(cssEnd)
 
-export default function PainelLayout({ children }: { children: React.ReactNode }) {
-  const [status, setStatus] = useState<string|null>(null)
-  const [loading, setLoading] = useState(true)
-  const router = useRouter()
+fs.writeFileSync('app/painel/agendamentos/page.tsx', c, 'utf8')
 
-  useEffect(() => {
-    async function verificar() {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) { router.push('/login'); return }
-      const { data: perfil } = await supabase
-        .from('perfis').select('status_acesso').eq('user_id', user.id).single()
-      setStatus(perfil?.status_acesso || 'ativo')
-      setLoading(false)
-    }
-    verificar()
-  }, [])
-
-  if (loading) return (
-    <div style={{minHeight:'100vh',background:'#050B16',display:'flex',alignItems:'center',justifyContent:'center',fontFamily:'system-ui'}}>
-      <p style={{color:'#475569',fontSize:'14px'}}>Carregando...</p>
-    </div>
-  )
-
-  if (status === 'bloqueado' || status === 'cancelado') {
-    return <TelaBloqueada status={status} />
-  }
-
-  return <>{children}</>
-}
-`
-
-fs.writeFileSync('app/painel/layout.tsx', layout, 'utf8')
-console.log('Layout simplificado!')
-
-// Agora adicionar aviso dentro da página de agendamentos, dentro do flex container
-let ag = fs.readFileSync('app/painel/agendamentos/page.tsx', 'utf8')
-
-// Verificar se já tem aviso inline
-if (!ag.includes('em_atraso') || !ag.includes('CHECKOUT_URL')) {
-  console.log('Pagina nao tem aviso inline - precisamos adicionar')
-} else {
-  console.log('Pagina ja tem aviso inline')
-}
-
-// Verificar estrutura do content wrapper
-const pgIdx = ag.indexOf('<div className="pg"')
-console.log('Tem div.pg:', pgIdx > -1 ? 'SIM em pos '+pgIdx : 'NAO')
-const bdyIdx = ag.indexOf('<div className="bdy"')
-console.log('Tem div.bdy:', bdyIdx > -1 ? 'SIM em pos '+bdyIdx : 'NAO')
+// Verificar
+const c2 = fs.readFileSync('app/painel/agendamentos/page.tsx', 'utf8')
+const cssStart2 = c2.indexOf('const CSS=`\n') + 11
+const cssEnd2 = c2.indexOf('\n`\nexport default', cssStart2)
+const cssContent2 = c2.slice(cssStart2, cssEnd2)
+const btks = (cssContent2.match(/(?<!\\)`/g) || []).length
+console.log('Backticks nao escapados restantes:', btks)
+console.log('Corrigido!')

@@ -42,7 +42,7 @@ function fTel(t:string){
 }
 function getTelLimpo(a:any){return(a.cliente_whatsapp||a.cliente_telefone||'').replace(/\D/g,'')}
 
-const CSS = `
+const CSS = \`
 '
 import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
@@ -57,7 +57,7 @@ const SB=[
   {h:'/painel/servicos',l:'Servicos'},{h:'/painel/profissionais',l:'Profissionais'},
   {h:'/painel/relatorio',l:'Relatorios'},{h:'/painel/perfil',l:'Configuracoes'},
 ]
-const CSS=`
+const CSS=\`
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html,body{overflow-x:hidden;width:100%;max-width:100%;background:#050B16}
 input,select,textarea{color-scheme:dark}
@@ -97,7 +97,7 @@ input,select,textarea{color-scheme:dark}
   .hdr-btns a{flex:1!important;justify-content:center!important}
 }
 @media(max-width:480px){.kpi-grid{grid-template-columns:1fr!important}.atalho-grid{grid-template-columns:1fr 1fr!important}}
-`
+\`
 
 export default function Home(){
   const [perfil,setPerfil]=useState<any>(null)
@@ -126,14 +126,14 @@ export default function Home(){
   const proximos=agendamentos.filter(a=>a.data_hora>new Date().toISOString()&&a.status!=='cancelado').slice(0,5)
   const mesAtual=new Date().toISOString().slice(0,7)
   const recMes=pagamentos.filter(p=>p.data?.startsWith(mesAtual)).reduce((a,p)=>a+(p.valor||0),0)
-  const fBRL=(v:number)=>`R$ ${v.toLocaleString('pt-BR',{minimumFractionDigits:2})}`
+  const fBRL=(v:number)=>\`R$ ${v.toLocaleString('pt-BR',{minimumFractionDigits:2})}\`
   const orcsAbertos=orcamentos.filter(o=>o.status==='aberto'||o.status==='em_andamento').length
   const saldo=orcamentos.filter(o=>o.status!=='pago'&&o.status!=='cancelado').reduce((a,o)=>(o.valor_total||0)-(o.valor_pago||0)+a,0)
 
   const nome=perfil?.nome_negocio||'seu negocio'
   const slug=perfil?.slug||''
   const ini=(nome||'C').charAt(0).toUpperCase()
-  const pubUrl=slug?`${window?.location?.origin}/${slug}`:`${typeof window!=='undefined'?window.location.origin:''}/`
+  const pubUrl=slug?\`${window?.location?.origin}/${slug}\`:\`${typeof window!=='undefined'?window.location.origin:''}/\`
 
   function copiarLink(){
     navigator.clipboard.writeText(pubUrl)
@@ -156,15 +156,15 @@ export default function Home(){
   return(
     <div style={{display:'flex',minHeight:'100vh',background:'#050B16',fontFamily:'-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif',overflowX:'hidden',width:'100%',position:'relative'}}>
       <style dangerouslySetInnerHTML={{__html:CSS}}/>
-      <div className={`ovl${mob?' open':''}`} onClick={()=>setMob(false)}/>
-      <div className={`drw${mob?' open':''}`}>
+      <div className={\`ovl${mob?' open':''}\`} onClick={()=>setMob(false)}/>
+      <div className={\`drw${mob?' open':''}\`}>
         <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'16px 18px',borderBottom:'1px solid rgba(148,163,184,.10)'}}><span style={{fontSize:'14px',fontWeight:800,color:'#F8FAFC'}}>ClienteMarcado</span><button onClick={()=>setMob(false)} style={{background:'none',border:'none',color:'rgba(255,255,255,.5)',cursor:'pointer',fontSize:'22px',lineHeight:1}}>x</button></div>
         <nav style={{flex:1,padding:'10px 8px',overflowY:'auto'}}>{SB.map(it=><Link key={it.l} href={it.h} onClick={()=>setMob(false)} className={'nl'+(it.on?' on':'')} style={{fontSize:'14px'}}>{it.l}</Link>)}</nav>
       </div>
       <Sb/>
       <div className="main">
         <div className="mhdr">
-          <button onClick={()=>setMob(true)} style={{background:'none',border:'none',cursor:'pointer',padding:'8px',display:'flex',flexDirection:'column',gap:'5px'}}>{[22,22,16].map((w,i)=><span key={i} style={{display:'block',width:`${w}px`,height:'2px',background:'rgba(255,255,255,.8)',borderRadius:'2px'}}/>)}</button>
+          <button onClick={()=>setMob(true)} style={{background:'none',border:'none',cursor:'pointer',padding:'8px',display:'flex',flexDirection:'column',gap:'5px'}}>{[22,22,16].map((w,i)=><span key={i} style={{display:'block',width:\`${w}px\`,height:'2px',background:'rgba(255,255,255,.8)',borderRadius:'2px'}}/>)}</button>
           <span style={{fontSize:'14px',fontWeight:800,color:'#F8FAFC'}}>Inicio</span>
           <div style={{width:'34px',height:'34px',borderRadius:'50%',background:AV,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'13px',fontWeight:700,color:'#fff'}}>{ini}</div>
         </div>
@@ -208,7 +208,7 @@ export default function Home(){
               {l:'Recebido no mes',v:fBRL(recMes),c:'#4ADE80',bg:'rgba(34,197,94,.10)',bd:'rgba(34,197,94,.24)',ico:'✓'},
               {l:'Clientes cadastrados',v:'—',c:'#22D3EE',bg:'rgba(6,182,212,.10)',bd:'rgba(6,182,212,.24)',ico:'👥'},
             ].map(k=>(
-              <div key={k.l} style={{background:`radial-gradient(circle at top left,${k.bg},transparent 60%),linear-gradient(145deg,rgba(15,23,42,.97),rgba(8,20,33,.99))`,border:`1.5px solid ${k.bd}`,borderRadius:'18px',padding:'18px 16px',boxSizing:'border-box' as const}}>
+              <div key={k.l} style={{background:\`radial-gradient(circle at top left,${k.bg},transparent 60%),linear-gradient(145deg,rgba(15,23,42,.97),rgba(8,20,33,.99))\`,border:\`1.5px solid ${k.bd}\`,borderRadius:'18px',padding:'18px 16px',boxSizing:'border-box' as const}}>
                 <div style={{width:'36px',height:'36px',borderRadius:'10px',background:k.bg,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'17px',marginBottom:'8px'}}>{k.ico}</div>
                 <p style={{fontSize:'10px',fontWeight:700,color:'#94A3B8',textTransform:'uppercase' as const,letterSpacing:'.08em',marginBottom:'4px'}}>{k.l}</p>
                 <p style={{fontSize:'22px',fontWeight:800,color:k.c,lineHeight:1}}>{k.v}</p>
@@ -371,7 +371,7 @@ export default function Home(){
 }
 @media(min-width:769px){.sem-mob{display:none}}
 @media(max-width:960px){.kpi-grid{grid-template-columns:repeat(3,1fr)}}
-`
+\`
 
 export default function Agendamentos() {
   const pathname = usePathname()
@@ -502,7 +502,7 @@ export default function Agendamentos() {
         <div className="det-avatar">{(sel.cliente_nome||'C').charAt(0).toUpperCase()}</div>
         <p className="det-nome">{sel.cliente_nome||'Cliente sem nome'}</p>
         <div style={{textAlign:'center',marginBottom:'18px'}}>
-          <span className="st-badge" style={{background:sc.bg,color:sc.c,border:`1px solid ${sc.bd}`}}>{sc.t}</span>
+          <span className="st-badge" style={{background:sc.bg,color:sc.c,border:\`1px solid ${sc.bd}\`}}>{sc.t}</span>
         </div>
         <div className="det-sec">
           <p className="det-sec-t">Contato</p>
@@ -640,7 +640,7 @@ export default function Agendamentos() {
                       <div className="ag-row1">
                         <span className="ag-hora">{fH(a.data_hora)}</span>
                         <span className="ag-nome">{a.cliente_nome||'—'}</span>
-                        <span className="st-badge" style={{background:sc.bg,color:sc.c,border:`1px solid ${sc.bd}`}}>{sc.t}</span>
+                        <span className="st-badge" style={{background:sc.bg,color:sc.c,border:\`1px solid ${sc.bd}\`}}>{sc.t}</span>
                       </div>
                       {telFmt&&<p className="ag-tel">📱 {telFmt}</p>}
                       <p className="ag-sub">
@@ -731,7 +731,7 @@ export default function Agendamentos() {
                             <p className="sem-mob-nome">{a.cliente_nome||'—'}</p>
                             <p className="sem-mob-sub">{a.servicos?.nome||''}{a.profissionais?.nome?' · Prof. '+a.profissionais.nome:''}</p>
                           </div>
-                          <span className="st-badge" style={{fontSize:'9px',padding:'2px 7px',background:(statusCfg[a.status]||statusCfg.pendente).bg,color:(statusCfg[a.status]||statusCfg.pendente).c,border:`1px solid ${(statusCfg[a.status]||statusCfg.pendente).bd}`}}>
+                          <span className="st-badge" style={{fontSize:'9px',padding:'2px 7px',background:(statusCfg[a.status]||statusCfg.pendente).bg,color:(statusCfg[a.status]||statusCfg.pendente).c,border:\`1px solid ${(statusCfg[a.status]||statusCfg.pendente).bd}\`}}>
                             {(statusCfg[a.status]||statusCfg.pendente).t}
                           </span>
                         </div>
