@@ -120,41 +120,51 @@ export default function Agendamentos(){
   const iS=gIS(semOff)
   const dS=Array.from({length:7},(_,i)=>{const d=new Date(iS);d.setDate(iS.getDate()+i);return d})
 
-  // Shared styles
-  const card:React.CSSProperties={background:'radial-gradient(circle at top left,rgba(124,58,237,.06),transparent 60%),linear-gradient(145deg,rgba(15,23,42,.98),rgba(8,20,33,.99))',border:'1px solid rgba(148,163,184,.13)',borderRadius:18,padding:'16px 18px',marginBottom:8,cursor:'pointer',transition:'border-color .15s'}
-  const btnP:React.CSSProperties={background:G,color:'#fff',border:'none',borderRadius:12,padding:'0 16px',height:38,fontSize:12,fontWeight:700,cursor:'pointer',fontFamily:'inherit',textDecoration:'none',display:'inline-flex',alignItems:'center',gap:5,whiteSpace:'nowrap',transition:'opacity .15s'}
-  const btnS:React.CSSProperties={background:'rgba(15,23,42,.88)',color:'#CBD5E1',border:'1px solid rgba(148,163,184,.20)',borderRadius:12,padding:'0 14px',height:38,fontSize:12,fontWeight:600,cursor:'pointer',fontFamily:'inherit',whiteSpace:'nowrap',display:'inline-flex',alignItems:'center',transition:'all .15s'}
-  const badge=(sc:any):React.CSSProperties=>({fontSize:10,fontWeight:700,padding:'3px 10px',borderRadius:999,whiteSpace:'nowrap',flexShrink:0,lineHeight:'18px',background:sc.bg,color:sc.c,border:'1px solid '+sc.bd})
-  const detBtn=(extra:React.CSSProperties):React.CSSProperties=>({borderRadius:10,padding:'9px 10px',fontSize:11,fontWeight:700,cursor:'pointer',border:'1px solid',fontFamily:'inherit',whiteSpace:'nowrap',textDecoration:'none',display:'flex',alignItems:'center',justifyContent:'center',gap:4,transition:'opacity .15s',...extra})
+  const btnP:React.CSSProperties={background:G,color:'#fff',border:'none',borderRadius:12,padding:'0 18px',height:40,fontSize:13,fontWeight:700,cursor:'pointer',fontFamily:'inherit',textDecoration:'none',display:'inline-flex',alignItems:'center',gap:6,whiteSpace:'nowrap',transition:'opacity .15s'}
+  const btnS:React.CSSProperties={background:'rgba(15,23,42,.88)',color:'#CBD5E1',border:'1px solid rgba(148,163,184,.20)',borderRadius:12,padding:'0 16px',height:40,fontSize:13,fontWeight:600,cursor:'pointer',fontFamily:'inherit',whiteSpace:'nowrap',display:'inline-flex',alignItems:'center',transition:'all .15s'}
+
+  function stBadge(status:string){
+    const sc=stCfg[status]||stCfg.pendente
+    return{fontSize:10,fontWeight:700,padding:'3px 10px',borderRadius:999,whiteSpace:'nowrap' as const,lineHeight:'18px',background:sc.bg,color:sc.c,border:'1px solid '+sc.bd} as React.CSSProperties
+  }
+
+  function detBtn(extra:React.CSSProperties):React.CSSProperties{
+    return{borderRadius:10,padding:'9px 10px',fontSize:11,fontWeight:700,cursor:'pointer',border:'1px solid',fontFamily:'inherit',whiteSpace:'nowrap' as const,textDecoration:'none',display:'flex',alignItems:'center',justifyContent:'center',gap:4,transition:'opacity .15s',...extra}
+  }
 
   function PainelDetalhe(){
-    if(!sel)return(
-      <div style={{background:'radial-gradient(circle at top left,rgba(124,58,237,.06),transparent 50%),linear-gradient(145deg,rgba(15,23,42,.98),rgba(8,20,33,.99))',border:'1px solid rgba(148,163,184,.13)',borderRadius:20,padding:24,height:'100%',minHeight:400}}>
-        <div style={{display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',height:'100%',padding:'48px 16px',textAlign:'center',gap:12}}>
-          <div style={{fontSize:40,opacity:.2}}>📋</div>
-          <p style={{fontSize:15,fontWeight:700,color:'#F8FAFC'}}>Selecione um agendamento</p>
-          <p style={{fontSize:13,color:'#475569',lineHeight:1.6}}>Clique em um atendimento da lista para ver detalhes e acoes rapidas.</p>
-        </div>
+    const sc=stCfg[sel?.status]||stCfg.pendente
+    const tf=sel?fTel(sel.cliente_whatsapp||sel.cliente_telefone||''):''
+    const wC=sel?wpp(sel,'c'):null
+    const wL=sel?wpp(sel,'l'):null
+    const wW=sel?wpp(sel,'w'):null
+    const sec:React.CSSProperties={marginBottom:16,paddingBottom:16,borderBottom:'1px solid rgba(148,163,184,.07)'}
+    const secT:React.CSSProperties={fontSize:10,fontWeight:700,textTransform:'uppercase' as const,letterSpacing:'.10em',color:'#475569',marginBottom:10}
+    const row:React.CSSProperties={display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:7}
+    const g2:React.CSSProperties={display:'grid',gridTemplateColumns:'1fr 1fr',gap:7,marginTop:8}
+
+    if(!sel) return(
+      <div style={{background:'radial-gradient(circle at top left,rgba(124,58,237,.06),transparent 50%),linear-gradient(145deg,rgba(15,23,42,.98),rgba(8,20,33,.99))',border:'1px solid rgba(148,163,184,.13)',borderRadius:20,padding:24,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',minHeight:400,textAlign:'center',gap:12}}>
+        <div style={{fontSize:40,opacity:.2}}>📋</div>
+        <p style={{fontSize:15,fontWeight:700,color:'#F8FAFC'}}>Selecione um agendamento</p>
+        <p style={{fontSize:13,color:'#475569',lineHeight:1.6}}>Clique em um atendimento da lista para ver detalhes e acoes rapidas.</p>
       </div>
     )
-    const sc=stCfg[sel.status]||stCfg.pendente
-    const tf=fTel(sel.cliente_whatsapp||sel.cliente_telefone||'')
-    const wC=wpp(sel,'c'),wL=wpp(sel,'l'),wW=wpp(sel,'w')
-    const grid2:React.CSSProperties={display:'grid',gridTemplateColumns:'1fr 1fr',gap:7,marginTop:8}
-    const secStyle:React.CSSProperties={marginBottom:18,paddingBottom:18,borderBottom:'1px solid rgba(148,163,184,.07)'}
-    const secTitle:React.CSSProperties={fontSize:10,fontWeight:700,textTransform:'uppercase',letterSpacing:'.10em',color:'#475569',marginBottom:10}
-    const rowStyle:React.CSSProperties={display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:7}
-    return(
-      <div style={{background:'radial-gradient(circle at top left,rgba(124,58,237,.08),transparent 50%),linear-gradient(145deg,rgba(15,23,42,.98),rgba(8,20,33,.99))',border:'1px solid rgba(124,58,237,.22)',borderRadius:20,padding:22,position:'sticky',top:0}}>
-        <p style={secTitle}>Detalhes do agendamento</p>
-        <div style={{width:52,height:52,borderRadius:'50%',background:G,display:'flex',alignItems:'center',justifyContent:'center',fontSize:20,fontWeight:800,color:'#fff',margin:'0 auto 12px',boxShadow:'0 0 20px rgba(59,130,246,.22)'}}>{(sel.cliente_nome||'C').charAt(0).toUpperCase()}</div>
-        <p style={{fontSize:17,fontWeight:800,color:'#F8FAFC',textAlign:'center',marginBottom:4}}>{sel.cliente_nome||'Cliente sem nome'}</p>
-        <div style={{textAlign:'center',marginBottom:16}}><span style={badge(sc)}>{sc.t}</span></div>
 
-        <div style={secStyle}>
-          <p style={secTitle}>Contato</p>
-          <div style={rowStyle}><span style={{fontSize:12,color:'#64748B'}}>WhatsApp</span><span style={{fontSize:12,fontWeight:700,color:'#CBD5E1'}}>{tf||'Nao informado'}</span></div>
-          <div style={grid2}>
+    return(
+      <div style={{background:'radial-gradient(circle at top left,rgba(124,58,237,.08),transparent 50%),linear-gradient(145deg,rgba(15,23,42,.98),rgba(8,20,33,.99))',border:'1px solid rgba(124,58,237,.22)',borderRadius:20,padding:22}}>
+        <p style={{...secT,marginBottom:16}}>Detalhes do agendamento</p>
+
+        <div style={{width:52,height:52,borderRadius:'50%',background:G,display:'flex',alignItems:'center',justifyContent:'center',fontSize:20,fontWeight:800,color:'#fff',margin:'0 auto 12px',boxShadow:'0 0 20px rgba(59,130,246,.22)'}}>
+          {(sel.cliente_nome||'C').charAt(0).toUpperCase()}
+        </div>
+        <p style={{fontSize:17,fontWeight:800,color:'#F8FAFC',textAlign:'center',marginBottom:4}}>{sel.cliente_nome||'Cliente sem nome'}</p>
+        <div style={{textAlign:'center',marginBottom:18}}><span style={stBadge(sel.status)}>{sc.t}</span></div>
+
+        <div style={sec}>
+          <p style={secT}>Contato</p>
+          <div style={row}><span style={{fontSize:12,color:'#64748B'}}>WhatsApp</span><span style={{fontSize:12,fontWeight:700,color:'#CBD5E1'}}>{tf||'Nao informado'}</span></div>
+          <div style={g2}>
             {wW
               ?<a href={wW} target="_blank" rel="noreferrer" style={{...detBtn({background:'rgba(37,211,102,.12)',borderColor:'rgba(37,211,102,.25)',color:'#25D366'}),gridColumn:'1/-1'}}>
                 <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
@@ -166,25 +176,25 @@ export default function Agendamentos(){
           </div>
         </div>
 
-        <div style={secStyle}>
-          <p style={secTitle}>Atendimento</p>
+        <div style={sec}>
+          <p style={secT}>Atendimento</p>
           {[
             {l:'Servico',v:sel.servicos?.nome||'Nao informado',c:'#F8FAFC'},
             {l:'Profissional',v:sel.profissionais?.nome||'Nao informado',c:'#F8FAFC'},
-            {l:'Data',v:fDataFull(sel.data_hora),c:'#CBD5E1',fs:11},
+            {l:'Data',v:fDataFull(sel.data_hora),c:'#CBD5E1',fs:10},
             {l:'Horario',v:fH(sel.data_hora),c:'#60A5FA'},
             ...(sel.servicos?.preco?[{l:'Valor',v:'R$ '+sel.servicos.preco,c:'#22C55E'}]:[]),
           ].map(({l,v,c,fs}:any)=>(
-            <div key={l} style={rowStyle}>
+            <div key={l} style={row}>
               <span style={{fontSize:12,color:'#64748B'}}>{l}</span>
-              <span style={{fontSize:fs||12,fontWeight:700,color:c,textAlign:'right',maxWidth:'58%'}}>{v}</span>
+              <span style={{fontSize:fs||12,fontWeight:700,color:c,textAlign:'right' as const,maxWidth:'58%'}}>{v}</span>
             </div>
           ))}
         </div>
 
         <div>
-          <p style={secTitle}>Acoes rapidas</p>
-          <div style={grid2}>
+          <p style={secT}>Acoes rapidas</p>
+          <div style={g2}>
             {wC&&(sel.status==='pendente'||!sel.status||sel.status==='retorno')&&<a href={wC} target="_blank" rel="noreferrer" style={detBtn({background:'rgba(34,197,94,.12)',borderColor:'rgba(34,197,94,.25)',color:'#22C55E'})}>✓ Confirmar</a>}
             {wL&&<a href={wL} target="_blank" rel="noreferrer" style={detBtn({background:'rgba(245,158,11,.10)',borderColor:'rgba(245,158,11,.22)',color:'#FCD34D'})}>🔔 Lembrete</a>}
             {sel.status!=='compareceu'&&<button onClick={()=>updSt(sel.id,'compareceu')} style={detBtn({background:'rgba(34,197,94,.10)',borderColor:'rgba(34,197,94,.20)',color:'#4ADE80'})}>✓ Compareceu</button>}
@@ -204,27 +214,49 @@ export default function Agendamentos(){
     <div style={{paddingBottom:80}}>
       {msg&&<div style={{position:'fixed',top:20,left:'50%',transform:'translateX(-50%)',background:'rgba(15,23,42,.97)',border:'1px solid rgba(59,130,246,.30)',borderRadius:12,padding:'12px 24px',fontSize:13,fontWeight:600,color:'#F8FAFC',zIndex:200,boxShadow:'0 8px 32px rgba(0,0,0,.5)',pointerEvents:'none',whiteSpace:'nowrap'}}>{msg}</div>}
 
+      <style>{`
+        .ag-grid{display:grid;grid-template-columns:1fr;gap:20px}
+        .det-col{display:none}
+        @media(min-width:1100px){.ag-grid{grid-template-columns:1fr 400px}.det-col{display:block}}
+        .sem-desk{display:none}
+        .sem-mob{display:flex;flex-direction:column;gap:16px}
+        @media(min-width:769px){.sem-desk{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}.sem-mob{display:none}}
+        .ag-item{background:radial-gradient(circle at top left,rgba(124,58,237,.04),transparent 60%),linear-gradient(145deg,rgba(15,23,42,.98),rgba(8,20,33,.99));border:1px solid rgba(148,163,184,.13);border-radius:16px;padding:14px 16px;margin-bottom:8px;cursor:pointer;transition:all .15s}
+        .ag-item:hover{border-color:rgba(148,163,184,.26)}
+        .ag-item.sel{border-color:rgba(59,130,246,.50);background:radial-gradient(circle at top left,rgba(59,130,246,.10),transparent 60%),linear-gradient(145deg,rgba(15,23,42,.98),rgba(8,20,33,.99))}
+        .hdr-btns{display:flex;gap:10px;flex-wrap:wrap}
+        .kpi-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:22px}
+        .fil-row{display:flex;align-items:center;gap:8px;margin-bottom:18px;flex-wrap:wrap}
+        .fil-inner{display:flex;gap:6px;flex:1;overflow-x:auto;flex-wrap:nowrap}
+        .fil-inner::-webkit-scrollbar{display:none}
+        @media(max-width:640px){
+          .hdr-btns{width:100%;display:grid;grid-template-columns:1fr 1fr;gap:8px}
+          .hdr-btns a,.hdr-btns button{width:100%;justify-content:center}
+          .kpi-grid{gap:8px}
+        }
+      `}</style>
+
       {/* Header */}
       <div style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',gap:16,marginBottom:24,flexWrap:'wrap'}}>
         <div>
           <h1 style={{fontSize:24,fontWeight:800,color:'#F8FAFC',letterSpacing:'-0.03em',marginBottom:4}}>Agenda</h1>
           <p style={{fontSize:14,color:'#CBD5E1',lineHeight:1.5}}>Veja seus horarios, confirme clientes e acompanhe os atendimentos do dia.</p>
         </div>
-        <div style={{display:'flex',gap:10,flexWrap:'wrap'}}>
-          <Link href="/painel/agendamentos/novo" style={{...btnP,height:40,fontSize:13}}>+ Novo agendamento</Link>
-          <button style={{...btnS,height:40,fontSize:13}} onClick={()=>toast('Funcao de bloqueio em breve!')}>Bloquear horario</button>
+        <div className="hdr-btns">
+          <Link href="/painel/agendamentos/novo" style={btnP}>+ Novo agendamento</Link>
+          <button style={btnS} onClick={()=>toast('Funcao de bloqueio em breve!')}>Bloquear horario</button>
         </div>
       </div>
 
       {/* KPIs */}
-      <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:12,marginBottom:22}}>
+      <div className="kpi-grid">
         {[
           {l:'Hoje',n:agsHj.length,c:'#60A5FA',bd:'rgba(59,130,246,.25)',ic:'📅'},
-          {l:'Confirmados',n:conf,c:'#4ADE80',bd:'rgba(34,197,94,.22)',ic:'✓'},
+          {l:'Confirmados',n:conf,c:'#4ADE80',bd:'rgba(34,197,94,.22)',ic:'✅'},
           {l:'Pendentes',n:pend,c:'#FCD34D',bd:'rgba(245,158,11,.22)',ic:'⏳'},
         ].map(({l,n,c,bd,ic})=>(
           <div key={l} style={{background:'radial-gradient(circle at top left,rgba(124,58,237,.08),transparent 60%),linear-gradient(145deg,rgba(15,23,42,.98),rgba(8,20,33,.99))',border:'1px solid '+bd,borderRadius:16,padding:'16px 20px',display:'flex',alignItems:'center',gap:14}}>
-            <span style={{fontSize:22,opacity:.7}}>{ic}</span>
+            <span style={{fontSize:20,opacity:.8}}>{ic}</span>
             <div>
               <p style={{fontSize:10,fontWeight:700,textTransform:'uppercase',letterSpacing:'.10em',color:'#64748B',marginBottom:4}}>{l}</p>
               <p style={{fontSize:28,fontWeight:900,letterSpacing:'-0.04em',lineHeight:1,color:c}}>{n}</p>
@@ -234,14 +266,14 @@ export default function Agendamentos(){
       </div>
 
       {/* Controls */}
-      <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:18,flexWrap:'wrap'}}>
+      <div className="fil-row">
         {(['hoje','semana'] as const).map(v=>(
-          <button key={v} onClick={()=>setView(v)} style={{height:36,padding:'0 16px',borderRadius:10,fontSize:13,fontWeight:600,cursor:'pointer',border:'1px solid '+(view===v?'rgba(59,130,246,.35)':'rgba(148,163,184,.16)'),background:view===v?'rgba(59,130,246,.14)':'transparent',color:view===v?'#60A5FA':'#64748B',fontFamily:'inherit',transition:'all .15s',whiteSpace:'nowrap'}}>
+          <button key={v} onClick={()=>setView(v)} style={{height:36,padding:'0 16px',borderRadius:10,fontSize:13,fontWeight:600,cursor:'pointer',border:'1px solid '+(view===v?'rgba(59,130,246,.35)':'rgba(148,163,184,.16)'),background:view===v?'rgba(59,130,246,.14)':'transparent',color:view===v?'#60A5FA':'#64748B',fontFamily:'inherit',transition:'all .15s',whiteSpace:'nowrap',flexShrink:0}}>
             {v==='hoje'?'Hoje':'Semana'}
           </button>
         ))}
         {view==='hoje'&&(
-          <div style={{display:'flex',gap:6,flex:1,overflowX:'auto',flexWrap:'nowrap'}}>
+          <div className="fil-inner">
             {['todos','pendente','confirmado','realizado','cancelado'].map(f=>(
               <button key={f} onClick={()=>setFSt(f)} style={{height:32,padding:'0 12px',borderRadius:8,fontSize:12,fontWeight:600,cursor:'pointer',border:'1px solid '+(fSt===f?'rgba(59,130,246,.28)':'rgba(148,163,184,.14)'),background:fSt===f?'rgba(59,130,246,.12)':'transparent',color:fSt===f?'#60A5FA':'#64748B',fontFamily:'inherit',transition:'all .15s',whiteSpace:'nowrap',flexShrink:0}}>
                 {f==='todos'?'Todos':stCfg[f]?.t||f}
@@ -257,75 +289,70 @@ export default function Agendamentos(){
 
       {/* ABA HOJE */}
       {view==='hoje'&&(
-        <div style={{display:'grid',gridTemplateColumns:'1fr',gap:20}}>
-          {/* DESKTOP: 2 colunas via CSS injection */}
-          <style>{`@media(min-width:1100px){.ag-2col{grid-template-columns:1fr 400px!important}}`}</style>
-          <div className="ag-2col" style={{display:'grid',gridTemplateColumns:'1fr',gap:20}}>
-
-            {/* Lista */}
-            <div>
-              <p style={{fontSize:11,fontWeight:700,color:'#475569',textTransform:'uppercase',margin:'0 0 10px',letterSpacing:'.06em'}}>
-                {agsF.length>0?'Proximos atendimentos de hoje':'Nenhum atendimento'}
-              </p>
-              {agsF.length===0?(
-                <div style={{textAlign:'center',padding:'50px 20px',background:'linear-gradient(145deg,rgba(15,23,42,.97),rgba(8,20,33,.99))',border:'1px solid rgba(148,163,184,.10)',borderRadius:18}}>
-                  <div style={{fontSize:32,marginBottom:12,opacity:.3}}>📅</div>
-                  <h3 style={{fontSize:16,fontWeight:800,color:'#F8FAFC',marginBottom:8}}>Nenhum atendimento para hoje</h3>
-                  <p style={{fontSize:13,color:'#64748B',marginBottom:20,lineHeight:1.6}}>Quando seus clientes agendarem, os horarios aparecerao aqui.</p>
-                  <Link href="/painel/agendamentos/novo" style={{...btnP,display:'inline-flex',height:40,fontSize:13}}>+ Novo agendamento</Link>
-                </div>
-              ):agsF.map(a=>{
-                const sc=stCfg[a.status]||stCfg.pendente
-                const tf=fTel(a.cliente_whatsapp||a.cliente_telefone||'')
-                const isSel=sel?.id===a.id
-                const wW=wpp(a,'w')
-                const wC=wpp(a,'c')
-                return(
-                  <div key={a.id} onClick={()=>setSel(a)} style={{...card,borderColor:isSel?'rgba(59,130,246,.50)':'rgba(148,163,184,.13)',background:isSel?'radial-gradient(circle at top left,rgba(59,130,246,.10),transparent 60%),linear-gradient(145deg,rgba(15,23,42,.98),rgba(8,20,33,.99))':card.background}}>
-                    <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:6,flexWrap:'wrap'}}>
-                      <span style={{display:'inline-flex',background:'rgba(59,130,246,.12)',border:'1px solid rgba(59,130,246,.22)',borderRadius:8,padding:'4px 10px',fontSize:14,fontWeight:800,color:'#60A5FA',flexShrink:0}}>{fH(a.data_hora)}</span>
-                      <span style={{fontSize:14,fontWeight:800,color:'#F8FAFC',flex:1,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{a.cliente_nome||'—'}</span>
-                      <span style={badge(sc)}>{sc.t}</span>
-                    </div>
-                    {tf&&<p style={{fontSize:12,color:'#CBD5E1',marginBottom:4}}>📱 {tf}</p>}
-                    <p style={{fontSize:12,color:'#94A3B8',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',marginBottom:10}}>
-                      {a.servicos?.nome||'Servico nao informado'}
-                      {a.profissionais?.nome?' · Prof. '+a.profissionais.nome:''}
-                      {a.servicos?.preco?<span style={{color:'#22C55E'}}> · R$ {a.servicos.preco}</span>:null}
-                    </p>
-                    {/* Mobile actions */}
-                    <div style={{display:'flex',gap:6,flexWrap:'wrap'}} onClick={e=>e.stopPropagation()}>
-                      {wW&&<a href={wW} target="_blank" rel="noreferrer" style={{borderRadius:8,padding:'5px 10px',fontSize:11,fontWeight:700,cursor:'pointer',border:'1px solid rgba(37,211,102,.22)',background:'rgba(37,211,102,.10)',color:'#25D366',textDecoration:'none',display:'inline-flex',alignItems:'center',gap:3}}>WhatsApp</a>}
-                      {wC&&(a.status==='pendente'||!a.status)&&<a href={wC} target="_blank" rel="noreferrer" style={{borderRadius:8,padding:'5px 10px',fontSize:11,fontWeight:700,cursor:'pointer',border:'1px solid rgba(34,197,94,.22)',background:'rgba(34,197,94,.10)',color:'#22C55E',textDecoration:'none',display:'inline-flex',alignItems:'center',gap:3}}>✓ Confirmar</a>}
-                      <div style={{position:'relative',display:'inline-block'}} ref={mnu===a.id?mnuRef:undefined}>
-                        <button onClick={()=>setMnu(mnu===a.id?null:a.id)} style={{borderRadius:8,padding:'5px 10px',fontSize:11,fontWeight:700,cursor:'pointer',border:'1px solid rgba(148,163,184,.16)',background:'rgba(255,255,255,.04)',color:'#64748B',fontFamily:'inherit'}}>Mais</button>
-                        {mnu===a.id&&(
-                          <div style={{position:'absolute',top:'calc(100% + 6px)',left:0,background:'rgba(10,15,25,.98)',border:'1px solid rgba(148,163,184,.20)',borderRadius:14,padding:8,minWidth:170,zIndex:50,boxShadow:'0 20px 60px rgba(0,0,0,.6)'}}>
-                            {[
-                              {l:'📋 Copiar contato',fn:()=>copiar(a)},
-                              {l:'✓ Compareceu',fn:()=>updSt(a.id,'compareceu'),skip:a.status==='compareceu'},
-                              {l:'✗ Faltou',fn:()=>updSt(a.id,'faltou'),skip:a.status==='faltou'},
-                              {l:'★ Realizado',fn:()=>updSt(a.id,'realizado'),skip:a.status==='realizado'},
-                              {l:'↩ Retorno',fn:()=>updSt(a.id,'retorno'),skip:a.status==='retorno'},
-                              {l:'✓ Confirmado',fn:()=>updSt(a.id,'confirmado'),skip:a.status==='confirmado'},
-                              {l:'✕ Cancelar',fn:()=>updSt(a.id,'cancelado'),skip:a.status==='cancelado'},
-                            ].filter((i:any)=>!i.skip).map(({l,fn}:any)=>(
-                              <button key={l} onClick={fn} style={{display:'flex',alignItems:'center',gap:8,padding:'9px 12px',borderRadius:8,fontSize:12,fontWeight:600,cursor:'pointer',color:'#CBD5E1',border:'none',background:'none',fontFamily:'inherit',width:'100%',textAlign:'left',whiteSpace:'nowrap'}}>
-                                {l}
-                              </button>
-                            ))}
-                          </div>
-                        )}
-                      </div>
+        <div className="ag-grid">
+          {/* Lista */}
+          <div>
+            <p style={{fontSize:11,fontWeight:700,color:'#475569',textTransform:'uppercase',margin:'0 0 10px',letterSpacing:'.06em'}}>
+              Proximos atendimentos de hoje
+            </p>
+            {agsF.length===0?(
+              <div style={{textAlign:'center',padding:'50px 20px',background:'linear-gradient(145deg,rgba(15,23,42,.97),rgba(8,20,33,.99))',border:'1px solid rgba(148,163,184,.10)',borderRadius:18}}>
+                <div style={{fontSize:32,marginBottom:12,opacity:.3}}>📅</div>
+                <h3 style={{fontSize:16,fontWeight:800,color:'#F8FAFC',marginBottom:8}}>Nenhum atendimento para hoje</h3>
+                <p style={{fontSize:13,color:'#64748B',marginBottom:20,lineHeight:1.6}}>Quando seus clientes agendarem, os horarios aparecerao aqui.</p>
+                <Link href="/painel/agendamentos/novo" style={{...btnP,display:'inline-flex'}}>+ Novo agendamento</Link>
+              </div>
+            ):agsF.map(a=>{
+              const sc=stCfg[a.status]||stCfg.pendente
+              const tf=fTel(a.cliente_whatsapp||a.cliente_telefone||'')
+              const isSel=sel?.id===a.id
+              const wW=wpp(a,'w')
+              const wC=wpp(a,'c')
+              return(
+                <div key={a.id} className={'ag-item'+(isSel?' sel':'')} onClick={()=>setSel(a)}>
+                  <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:6,flexWrap:'wrap'}}>
+                    <span style={{display:'inline-flex',background:'rgba(59,130,246,.12)',border:'1px solid rgba(59,130,246,.22)',borderRadius:8,padding:'4px 10px',fontSize:14,fontWeight:800,color:'#60A5FA',flexShrink:0}}>{fH(a.data_hora)}</span>
+                    <span style={{fontSize:14,fontWeight:800,color:'#F8FAFC',flex:1,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{a.cliente_nome||'—'}</span>
+                    <span style={stBadge(a.status)}>{sc.t}</span>
+                  </div>
+                  {tf&&<p style={{fontSize:12,color:'#CBD5E1',marginBottom:4}}>📱 {tf}</p>}
+                  <p style={{fontSize:12,color:'#94A3B8',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',marginBottom:10}}>
+                    {a.servicos?.nome||'Servico nao informado'}
+                    {a.profissionais?.nome?' · Prof. '+a.profissionais.nome:''}
+                    {a.servicos?.preco?<span style={{color:'#22C55E'}}> · R$ {a.servicos.preco}</span>:null}
+                  </p>
+                  <div style={{display:'flex',gap:6,flexWrap:'wrap'}} onClick={e=>e.stopPropagation()}>
+                    {wW&&<a href={wW} target="_blank" rel="noreferrer" style={{borderRadius:8,padding:'5px 10px',fontSize:11,fontWeight:700,cursor:'pointer',border:'1px solid rgba(37,211,102,.22)',background:'rgba(37,211,102,.10)',color:'#25D366',textDecoration:'none',display:'inline-flex',alignItems:'center',gap:3}}>WhatsApp</a>}
+                    {wC&&(a.status==='pendente'||!a.status)&&<a href={wC} target="_blank" rel="noreferrer" style={{borderRadius:8,padding:'5px 10px',fontSize:11,fontWeight:700,cursor:'pointer',border:'1px solid rgba(34,197,94,.22)',background:'rgba(34,197,94,.10)',color:'#22C55E',textDecoration:'none',display:'inline-flex',alignItems:'center',gap:3}}>✓ Confirmar</a>}
+                    <div style={{position:'relative',display:'inline-block'}} ref={mnu===a.id?mnuRef:undefined}>
+                      <button onClick={()=>setMnu(mnu===a.id?null:a.id)} style={{borderRadius:8,padding:'5px 10px',fontSize:11,fontWeight:700,cursor:'pointer',border:'1px solid rgba(148,163,184,.16)',background:'rgba(255,255,255,.04)',color:'#64748B',fontFamily:'inherit'}}>Mais</button>
+                      {mnu===a.id&&(
+                        <div style={{position:'absolute',top:'calc(100% + 6px)',left:0,background:'rgba(10,15,25,.98)',border:'1px solid rgba(148,163,184,.20)',borderRadius:14,padding:8,minWidth:170,zIndex:50,boxShadow:'0 20px 60px rgba(0,0,0,.6)'}}>
+                          {[
+                            {l:'📋 Copiar contato',fn:()=>copiar(a)},
+                            {l:'✓ Compareceu',fn:()=>updSt(a.id,'compareceu'),skip:a.status==='compareceu'},
+                            {l:'✗ Faltou',fn:()=>updSt(a.id,'faltou'),skip:a.status==='faltou'},
+                            {l:'★ Realizado',fn:()=>updSt(a.id,'realizado'),skip:a.status==='realizado'},
+                            {l:'↩ Retorno',fn:()=>updSt(a.id,'retorno'),skip:a.status==='retorno'},
+                            {l:'✓ Confirmado',fn:()=>updSt(a.id,'confirmado'),skip:a.status==='confirmado'},
+                            {l:'✕ Cancelar',fn:()=>updSt(a.id,'cancelado'),skip:a.status==='cancelado'},
+                          ].filter((i:any)=>!i.skip).map(({l,fn}:any)=>(
+                            <button key={l} onClick={fn} style={{display:'flex',alignItems:'center',gap:8,padding:'9px 12px',borderRadius:8,fontSize:12,fontWeight:600,cursor:'pointer',color:'#CBD5E1',border:'none',background:'none',fontFamily:'inherit',width:'100%',textAlign:'left',whiteSpace:'nowrap'}}>
+                              {l}
+                            </button>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   </div>
-                )
-              })}
-            </div>
+                </div>
+              )
+            })}
+          </div>
 
-            {/* Painel Detalhes - só desktop via CSS */}
-            <style>{`@media(max-width:1099px){.det-panel{display:none!important}}`}</style>
-            <div className="det-panel">
+          {/* Painel detalhes - só desktop */}
+          <div className="det-col">
+            <div style={{position:'sticky',top:0}}>
               <PainelDetalhe/>
             </div>
           </div>
@@ -344,10 +371,7 @@ export default function Agendamentos(){
             </div>
           </div>
 
-          {/* Desktop: grade 7 colunas */}
-          <style>{`@media(max-width:768px){.sem-desktop{display:none!important}}@media(min-width:769px){.sem-mobile{display:none!important}}`}</style>
-
-          <div className="sem-desktop" style={{display:'grid',gridTemplateColumns:'repeat(7,1fr)',gap:5}}>
+          <div className="sem-desk">
             {dS.map((d,i)=>{
               const ds=d.toISOString().split('T')[0]
               const eh=ds===hoje
@@ -371,8 +395,7 @@ export default function Agendamentos(){
             })}
           </div>
 
-          {/* Mobile: lista por dia */}
-          <div className="sem-mobile" style={{display:'flex',flexDirection:'column',gap:16}}>
+          <div className="sem-mob">
             {dS.map((d,i)=>{
               const ds=d.toISOString().split('T')[0]
               const eh=ds===hoje
@@ -396,7 +419,7 @@ export default function Agendamentos(){
                             <p style={{fontSize:13,fontWeight:700,color:'#F8FAFC',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{a.cliente_nome||'—'}</p>
                             <p style={{fontSize:11,color:'#94A3B8',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{a.servicos?.nome||''}{a.profissionais?.nome?' · Prof. '+a.profissionais.nome:''}</p>
                           </div>
-                          <span style={badge(sc)}>{sc.t}</span>
+                          <span style={stBadge(a.status)}>{sc.t}</span>
                         </div>
                       )
                     })
