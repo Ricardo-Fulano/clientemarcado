@@ -1,6 +1,7 @@
 'use client'
 import Link from 'next/link'
 import { useState, useEffect } from 'react'
+import AssistenteComercial from '@/app/components/AssistenteComercial'
 
 const CHECKOUT_URL = "https://www.mercadopago.com.br/subscriptions/checkout?preapproval_plan_id=1a0fb25c46214e45b0eb3d21b494e5d6"
 const G = 'linear-gradient(135deg,#3B82F6,#7C3AED)'
@@ -163,6 +164,9 @@ export default function Home() {
       <footer style={{borderTop:'1px solid rgba(148,163,184,.08)',padding:'32px 24px',textAlign:'center'}}>
         <p style={{fontSize:'13px',color:'#334155'}}>2026 ClienteMarcado. Todos os direitos reservados.</p>
       </footer>
+
+      {/* Assistente comercial flutuante */}
+      <AssistenteComercial checkoutUrl={CHECKOUT_URL} />
     </div>
   )
 }
