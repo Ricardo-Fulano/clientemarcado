@@ -115,7 +115,7 @@ export default function Servicos(){
   async function salvar(){
     if(!fNome.trim()){setMsg('Informe o nome do serviço.');return}
     setSalvando(true)
-    const payload={user_id:userId,nome:fNome.trim(),descricao:fDesc.trim()||null,preco:parseFloat(fPreco.replace(',','.'))||null,duracao:fDur,categoria:fCat,profissional_nome:fProf.trim()||null,ativo:true}
+    const payload={nome:fNome.trim(),descricao:fDesc.trim()||null,preco:parseFloat(fPreco.replace(',','.'))||null,duracao:fDur,categoria:fCat,profissional_nome:fProf.trim()||null,ativo:true}
     if(editId){await supabase.from('servicos').update(payload).eq('id',editId)}
     else{await supabase.from('servicos').insert(payloadInsert)}
     await load();resetForm();setShowForm(false);setSalvando(false);setMsg(editId?'Serviço atualizado!':'Serviço cadastrado!');setTimeout(()=>setMsg(''),3000);await load()
