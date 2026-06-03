@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 import { useEffect, useState, useRef } from 'react'
 import { supabase } from '../../lib/supabase'
 import Link from 'next/link'
@@ -31,6 +31,14 @@ const TEMAS=[
   {id:'barbearia',nome:'Barbearia Premium',desc:'Laranja + dourado, ideal para barbearias.',p:'#F59E0B',s:'#FACC15'},
   {id:'minimal',nome:'Minimal Premium',desc:'Azul + cinza, visual neutro e profissional.',p:'#3B82F6',s:'#94A3B8'},
 ]
+
+const TEMA_CORES: Record<string, {primary:string;secondary:string;accent:string;border:string;bg:string;text:string;btnText:string}> = {
+  padrao:    {primary:'#3B82F6',secondary:'#7C3AED',accent:'#818CF8',border:'rgba(99,102,241,.38)',   bg:'rgba(99,102,241,.10)', text:'#A5B4FC', btnText:'#fff'},
+  beleza:    {primary:'#EC4899',secondary:'#A855F7',accent:'#F472B6',border:'rgba(236,72,153,.38)',   bg:'rgba(236,72,153,.10)', text:'#F9A8D4', btnText:'#fff'},
+  saude:     {primary:'#22C55E',secondary:'#06B6D4',accent:'#34D399',border:'rgba(34,197,94,.38)',    bg:'rgba(34,197,94,.10)',  text:'#86EFAC', btnText:'#fff'},
+  barbearia: {primary:'#F59E0B',secondary:'#FACC15',accent:'#FCD34D',border:'rgba(245,158,11,.38)',   bg:'rgba(245,158,11,.10)', text:'#FCD34D', btnText:'#020617'},
+  minimal:   {primary:'#3B82F6',secondary:'#94A3B8',accent:'#94A3B8',border:'rgba(100,116,139,.38)', bg:'rgba(100,116,139,.10)',text:'#CBD5E1', btnText:'#fff'},
+}
 
 const CSS=`
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -91,7 +99,6 @@ export default function Perfil(){
   const [copied,setCopied]=useState(false)
   const imgRef=useRef<HTMLInputElement>(null)
 
-  // Campos da tabela perfis (apenas campos que existem no banco)
   const [nome,setNome]=useState('')
   const [slug,setSlug]=useState('')
   const [end,setEnd]=useState('')
@@ -101,16 +108,16 @@ export default function Perfil(){
   const [desc,setDesc]=useState('')
   const [capUrl,setCapUrl]=useState('')
 
-  // Campos de agenda (verificar se existem no banco antes de enviar)
   const [diasAtivos,setDiasAtivos]=useState([false,true,true,true,true,true,true])
   const [horarios,setHorarios]=useState(DIAS.map(()=>({abertura:'08:00',fechamento:'18:00'})))
   const [intervalo,setIntervalo]=useState('30 min')
   const [abertura,setAbertura]=useState('08:00')
   const [fechamento,setFechamento]=useState('18:00')
   const [antecedencia,setAntecedencia]=useState('Sem restrição')
-
-  // Tema (estado local — conectar ao banco quando criar coluna tema_publico)
   const [publicTheme,setPublicTheme]=useState('padrao')
+
+  // Cores do tema ativo — usadas na prévia da promoção e no container da seção
+  const tc = TEMA_CORES[publicTheme] ?? TEMA_CORES.padrao
 
   useEffect(()=>{load()},[])
 
@@ -129,15 +136,23 @@ export default function Perfil(){
       setCidade(p.cidade||p.cidade_estado||'')
       setDesc(p.descricao||'')
       setCapUrl(p.capa_url||p.imagem_capa||'')
-      // Agenda — campos podem ter nomes diferentes dependendo da versão
       if(p.dias_ativos) setDiasAtivos(p.dias_ativos)
       if(p.horarios) setHorarios(p.horarios)
       if(p.intervalo||p.intervalo_agenda) setIntervalo(p.intervalo||p.intervalo_agenda||'30 min')
       if(p.abertura_geral) setAbertura(p.abertura_geral)
       if(p.fechamento_geral) setFechamento(p.fechamento_geral)
       if(p.antecedencia||p.antecedencia_minima) setAntecedencia(p.antecedencia||p.antecedencia_minima||'Sem restrição')
-      // Tema (se existir no banco)
       if(p.public_theme||p.tema_publico||p.tema_cor) setPublicTheme(p.public_theme||p.tema_publico||p.tema_cor||'padrao')
+      // Promoção
+      if(p.promocao_ativa!==undefined&&p.promocao_ativa!==null) setPromoAtiva(p.promocao_ativa)
+      if(p.promocao_titulo) setPromoTitulo(p.promocao_titulo)
+      if(p.promocao_descricao) setPromoDesc(p.promocao_descricao)
+      if(p.promocao_preco_antigo) setPromoPrecoAnt(String(p.promocao_preco_antigo))
+      if(p.promocao_preco_novo) setPromoPrecoNovo(String(p.promocao_preco_novo))
+      if(p.promocao_botao_texto) setPromoBotao(p.promocao_botao_texto)
+      if(p.promocao_observacao) setPromoObs(p.promocao_observacao)
+      if(p.promocao_data_inicio) setPromoInicio(p.promocao_data_inicio)
+      if(p.promocao_data_fim) setPromoFim(p.promocao_data_fim)
     }
   }
 
@@ -146,54 +161,18 @@ export default function Perfil(){
     setSalvando(true)
     const slugFmt=slug.toLowerCase().replace(/\s+/g,'-').replace(/[^a-z0-9-]/g,'')
 
-    // Payload com apenas campos base garantidos na tabela perfis
-    const payloadBase:any={
-      user_id:userId,
-      nome_negocio:nome.trim(),
-      slug:slugFmt,
-    }
-
-    // Campos opcionais — adicionados com segurança
-    if(end!==undefined) payloadBase.endereco=end.trim()||null
-    if(wpp!==undefined) payloadBase.whatsapp=wpp.replace(/\D/g,'')||null
-
-    if(insta!==undefined) payloadBase.instagram=insta.trim()||null
-    if(cidade!==undefined) payloadBase.cidade=cidade.trim()||null
-    if(desc!==undefined) payloadBase.descricao=desc.trim()||null
-    if(capUrl!==undefined) payloadBase.capa_url=capUrl||null
-
-    // Campos de agenda — tentar enviar, capturar erro por coluna
-    try {
-      payloadBase.dias_ativos=diasAtivos
-      payloadBase.horarios=horarios
-      payloadBase.intervalo=intervalo
-      payloadBase.abertura_geral=abertura
-      payloadBase.fechamento_geral=fechamento
-      payloadBase.antecedencia=antecedencia
-    } catch(_){}
-
-    // Tema público — só envia se coluna existir (sem quebrar se não existir)
-    payloadBase.public_theme=publicTheme
-    console.log('Tema antes de salvar:', publicTheme)
-
-    console.log('Payload perfil:', payloadBase)
-
-    // Verificar se perfil ja existe
-    const {data:existente}=await supabase.from('perfis').select('id').eq('user_id',userId).single()
-
-    // Salvar apenas campos seguros + public_theme
     const payloadSeguro:any={
       nome_negocio:nome.trim(),
       slug:slugFmt,
       public_theme:publicTheme,
     }
-    // Adicionar campos opcionais se existirem
     if(end!==undefined) payloadSeguro.endereco=end.trim()||null
     if(wpp!==undefined) payloadSeguro.whatsapp=wpp.replace(/\D/g,'')||null
     if(insta!==undefined) payloadSeguro.instagram=insta.trim()||null
     if(cidade!==undefined) payloadSeguro.cidade=cidade.trim()||null
     if(desc!==undefined) payloadSeguro.descricao=desc.trim()||null
     if(capUrl!==undefined) payloadSeguro.capa_url=capUrl||null
+
     // Campos de promoção
     payloadSeguro.promocao_ativa=promoAtiva
     payloadSeguro.promocao_titulo=promoTitulo.trim()||null
@@ -204,14 +183,23 @@ export default function Perfil(){
     payloadSeguro.promocao_observacao=promoObs.trim()||null
     payloadSeguro.promocao_data_inicio=promoInicio||null
     payloadSeguro.promocao_data_fim=promoFim||null
-    try{payloadSeguro.dias_ativos=diasAtivos;payloadSeguro.horarios=horarios;payloadSeguro.intervalo=intervalo;payloadSeguro.abertura_geral=abertura;payloadSeguro.fechamento_geral=fechamento;payloadSeguro.antecedencia=antecedencia}catch(_){}
 
-    console.log('SALVANDO - publicTheme:', publicTheme)
-    console.log('PAYLOAD:', payloadSeguro)
+    try{
+      payloadSeguro.dias_ativos=diasAtivos
+      payloadSeguro.horarios=horarios
+      payloadSeguro.intervalo=intervalo
+      payloadSeguro.abertura_geral=abertura
+      payloadSeguro.fechamento_geral=fechamento
+      payloadSeguro.antecedencia=antecedencia
+    }catch(_){}
+
+    console.log('PAYLOAD enviado:', payloadSeguro)
+
+    const {data:existente}=await supabase.from('perfis').select('id').eq('user_id',userId).single()
 
     let saveError:any=null
     if(existente){
-      const {error,data:upd}=await supabase.from('perfis').update(payloadSeguro).eq('user_id',userId).select('public_theme')
+      const {error,data:upd}=await supabase.from('perfis').update(payloadSeguro).eq('user_id',userId).select()
       console.log('UPDATE resultado:', upd, 'erro:', error)
       saveError=error
     } else {
@@ -221,14 +209,10 @@ export default function Perfil(){
 
     if(saveError){
       console.error('Erro ao salvar:', saveError)
-      // Fallback: salvar apenas o essencial
-      const {error:e2}=await supabase.from('perfis').update({nome_negocio:nome.trim(),slug:slugFmt,public_theme:publicTheme}).eq('user_id',userId)
-      if(e2){console.error('Erro fallback:',e2);setMsg('Erro ao salvar. Tente novamente.');setSalvando(false);return}
+      setMsg('Erro ao salvar: '+saveError.message)
+      setSalvando(false)
+      return
     }
-
-    // Verificar o que foi salvo no banco
-    const {data:check}=await supabase.from('perfis').select('public_theme').eq('user_id',userId).single()
-    console.log('VERIFICACAO - public_theme no banco AGORA:', check?.public_theme)
 
     setSalvando(false)
     setMsg('Perfil salvo com sucesso!')
@@ -276,7 +260,6 @@ export default function Perfil(){
           <div style={{width:'34px',height:'34px',borderRadius:'50%',background:AV,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'13px',fontWeight:700,color:'#fff'}}>{ini}</div>
         </div>
         <div className="pg"><div className="bdy">
-                              
 
           {msg&&(
             <div style={{position:'fixed',top:'20px',left:'50%',transform:'translateX(-50%)',background:msg.includes('rro')?'rgba(239,68,68,.16)':'rgba(34,197,94,.16)',border:`1px solid ${msg.includes('rro')?'rgba(239,68,68,.36)':'rgba(34,197,94,.36)'}`,borderRadius:'10px',padding:'10px 20px',zIndex:99,color:msg.includes('rro')?'#F87171':'#4ADE80',fontSize:'13px',fontWeight:700,backdropFilter:'blur(20px)',whiteSpace:'nowrap'}}>
@@ -413,7 +396,6 @@ export default function Perfil(){
             <div style={{borderTop:'1px solid rgba(148,163,184,.10)',paddingTop:'18px',marginTop:'4px'}}>
               <p style={{fontSize:'13px',fontWeight:600,color:'#CBD5E1',marginBottom:'4px'}}>Cor de destaque</p>
               <p style={{fontSize:'12px',color:'#64748B',marginBottom:'14px'}}>Escolha uma cor pronta para combinar com o estilo do seu negócio. Afeta apenas a página pública.</p>
-              {/* TODO: conectar tema ao banco criando coluna tema_publico text default 'padrao' na tabela perfis */}
               <div className="temas-grid" style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'10px'}}>
                 {TEMAS.map(t=>(
                   <button key={t.id} onClick={()=>setPublicTheme(t.id)} className={`tema-card${publicTheme===t.id?' on':''}`}>
@@ -432,8 +414,15 @@ export default function Perfil(){
             </div>
           </div>
 
-          {/* SECAO PROMOCAO */}
-          <div style={{marginTop:32,background:'radial-gradient(circle at top right,rgba(245,158,11,.08),transparent 40%),linear-gradient(145deg,rgba(15,23,42,.98),rgba(8,20,33,.99))',border:'1px solid rgba(245,158,11,.25)',borderRadius:20,padding:'24px 28px'}}>
+          {/* SECAO PROMOCAO — borda e fundo refletem o tema ativo */}
+          <div style={{
+            marginTop:32,
+            background:`radial-gradient(circle at top right,${tc.bg},transparent 40%),linear-gradient(145deg,rgba(15,23,42,.98),rgba(8,20,33,.99))`,
+            border:`1px solid ${tc.border}`,
+            borderRadius:20,
+            padding:'24px 28px',
+            transition:'border-color .3s, background .3s',
+          }}>
             <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:20,flexWrap:'wrap' as const,gap:10}}>
               <div>
                 <h3 style={{fontSize:16,fontWeight:800,color:'#F8FAFC',marginBottom:4}}>Promoção em destaque</h3>
@@ -448,6 +437,7 @@ export default function Perfil(){
                 </button>
               </div>
             </div>
+
             <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(220px,1fr))',gap:14,marginBottom:20}}>
               {([
                 {lbl:'Título da promoção',val:promoTitulo,set:setPromoTitulo,ph:'Ex: Corte + Barba Especial'},
@@ -459,31 +449,58 @@ export default function Perfil(){
               ] as any[]).map(({lbl,val,set,ph}:any)=>(
                 <div key={lbl}>
                   <label style={{display:'block',fontSize:11,fontWeight:700,color:'#64748B',textTransform:'uppercase' as const,letterSpacing:'.08em',marginBottom:6}}>{lbl}</label>
-                  <input type="text" value={val} onChange={(e:any)=>set(e.target.value)} placeholder={ph} style={{width:'100%',background:'rgba(15,23,42,.88)',border:'1px solid rgba(148,163,184,.18)',borderRadius:10,padding:'10px 14px',fontSize:13,color:'#F8FAFC',fontFamily:'inherit',outline:'none',boxSizing:'border-box' as const}}/>
+                  <input type="text" value={val} onChange={(e:any)=>set(e.target.value)} placeholder={ph} style={{width:'100%',background:'rgba(15,23,42,.88)',border:`1px solid ${tc.border}`,borderRadius:10,padding:'10px 14px',fontSize:13,color:'#F8FAFC',fontFamily:'inherit',outline:'none',boxSizing:'border-box' as const,transition:'border-color .2s'}}
+                    onFocus={e=>(e.target.style.borderColor=tc.accent)}
+                    onBlur={e=>(e.target.style.borderColor=tc.border)}
+                  />
                 </div>
               ))}
               <div>
                 <label style={{display:'block',fontSize:11,fontWeight:700,color:'#64748B',textTransform:'uppercase' as const,letterSpacing:'.08em',marginBottom:6}}>Data início</label>
-                <input type="date" value={promoInicio} onChange={(e:any)=>setPromoInicio(e.target.value)} style={{width:'100%',background:'rgba(15,23,42,.88)',border:'1px solid rgba(148,163,184,.18)',borderRadius:10,padding:'10px 14px',fontSize:13,color:'#F8FAFC',fontFamily:'inherit',outline:'none',boxSizing:'border-box' as const,colorScheme:'dark' as const}}/>
+                <input type="date" value={promoInicio} onChange={(e:any)=>setPromoInicio(e.target.value)} style={{width:'100%',background:'rgba(15,23,42,.88)',border:`1px solid ${tc.border}`,borderRadius:10,padding:'10px 14px',fontSize:13,color:'#F8FAFC',fontFamily:'inherit',outline:'none',boxSizing:'border-box' as const,colorScheme:'dark' as const}}/>
               </div>
               <div>
                 <label style={{display:'block',fontSize:11,fontWeight:700,color:'#64748B',textTransform:'uppercase' as const,letterSpacing:'.08em',marginBottom:6}}>Data fim</label>
-                <input type="date" value={promoFim} onChange={(e:any)=>setPromoFim(e.target.value)} style={{width:'100%',background:'rgba(15,23,42,.88)',border:'1px solid rgba(148,163,184,.18)',borderRadius:10,padding:'10px 14px',fontSize:13,color:'#F8FAFC',fontFamily:'inherit',outline:'none',boxSizing:'border-box' as const,colorScheme:'dark' as const}}/>
+                <input type="date" value={promoFim} onChange={(e:any)=>setPromoFim(e.target.value)} style={{width:'100%',background:'rgba(15,23,42,.88)',border:`1px solid ${tc.border}`,borderRadius:10,padding:'10px 14px',fontSize:13,color:'#F8FAFC',fontFamily:'inherit',outline:'none',boxSizing:'border-box' as const,colorScheme:'dark' as const}}/>
               </div>
             </div>
+
+            {/* PRÉVIA — cores 100% vinculadas ao tema ativo */}
             {promoAtiva&&promoTitulo&&(
               <div>
                 <p style={{fontSize:11,fontWeight:700,color:'#475569',textTransform:'uppercase' as const,letterSpacing:'.08em',marginBottom:12}}>Prévia na página pública</p>
-                <div style={{background:'radial-gradient(circle at top right,rgba(245,158,11,.18),transparent 35%),linear-gradient(135deg,rgba(15,23,42,.98),rgba(17,24,39,.96))',border:'1px solid rgba(245,158,11,.35)',borderRadius:18,padding:'20px 24px',display:'flex',alignItems:'center',justifyContent:'space-between',gap:20,flexWrap:'wrap' as const}}>
+                <div style={{
+                  background:`radial-gradient(circle at top right,${tc.bg.replace(',.10)',', .22)')},transparent 35%),linear-gradient(135deg,rgba(15,23,42,.98),rgba(17,24,39,.96))`,
+                  border:`1px solid ${tc.border}`,
+                  borderRadius:18,
+                  padding:'20px 24px',
+                  display:'flex',
+                  alignItems:'center',
+                  justifyContent:'space-between',
+                  gap:20,
+                  flexWrap:'wrap' as const,
+                  transition:'all .3s',
+                }}>
                   <div style={{flex:1,minWidth:200}}>
-                    <p style={{fontSize:10,fontWeight:800,color:'#F59E0B',letterSpacing:'.12em',textTransform:'uppercase' as const,marginBottom:6}}>Oferta da semana</p>
+                    <p style={{fontSize:10,fontWeight:800,color:tc.accent,letterSpacing:'.12em',textTransform:'uppercase' as const,marginBottom:6}}>Oferta da semana</p>
                     <p style={{fontSize:20,fontWeight:900,color:'#F8FAFC',marginBottom:4}}>{promoTitulo}</p>
                     {promoDesc&&<p style={{fontSize:13,color:'#CBD5E1'}}>{promoDesc}</p>}
+                    {promoObs&&<p style={{fontSize:12,color:'#64748B',marginTop:6}}>{promoObs}</p>}
                   </div>
                   <div style={{display:'flex',flexDirection:'column' as const,alignItems:'center',gap:8}}>
                     {promoPrecoAnt&&<p style={{fontSize:12,color:'#64748B',textDecoration:'line-through',margin:0}}>De R$ {promoPrecoAnt}</p>}
-                    {promoPrecoNovo&&<p style={{fontSize:24,fontWeight:900,color:'#F59E0B',margin:0}}>R$ {promoPrecoNovo}</p>}
-                    <div style={{background:'#F59E0B',color:'#020617',borderRadius:10,padding:'8px 18px',fontSize:13,fontWeight:800}}>{promoBotao||'Agendar promoção'} →</div>
+                    {promoPrecoNovo&&<p style={{fontSize:24,fontWeight:900,color:tc.accent,margin:0}}>R$ {promoPrecoNovo}</p>}
+                    <div style={{
+                      background:`linear-gradient(135deg,${tc.primary},${tc.secondary})`,
+                      color:tc.btnText,
+                      borderRadius:10,
+                      padding:'9px 20px',
+                      fontSize:13,
+                      fontWeight:800,
+                      cursor:'pointer',
+                      boxShadow:`0 4px 20px ${tc.border}`,
+                      whiteSpace:'nowrap' as const,
+                    }}>{promoBotao||'Agendar promoção'} →</div>
                   </div>
                 </div>
               </div>
@@ -491,7 +508,7 @@ export default function Perfil(){
           </div>
 
           {/* Salvar */}
-          <button onClick={salvar} disabled={salvando} style={{width:'100%',background:G,color:'#fff',border:'1px solid rgba(255,255,255,.12)',borderRadius:'14px',height:'52px',fontSize:'15px',fontWeight:800,cursor:salvando?'not-allowed':'pointer',fontFamily:'inherit',boxShadow:'0 12px 32px rgba(59,130,246,.30),0 0 28px rgba(124,58,237,.22)',opacity:salvando?.7:1,transition:'all .18s'}}>
+          <button onClick={salvar} disabled={salvando} style={{width:'100%',marginTop:24,background:G,color:'#fff',border:'1px solid rgba(255,255,255,.12)',borderRadius:'14px',height:'52px',fontSize:'15px',fontWeight:800,cursor:salvando?'not-allowed':'pointer',fontFamily:'inherit',boxShadow:'0 12px 32px rgba(59,130,246,.30),0 0 28px rgba(124,58,237,.22)',opacity:salvando?.7:1,transition:'all .18s'}}>
             {salvando?'Salvando...':'Salvar perfil'}
           </button>
 
