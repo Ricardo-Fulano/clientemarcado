@@ -115,9 +115,9 @@ export default function Servicos(){
   async function salvar(){
     if(!fNome.trim()){setMsg('Informe o nome do serviço.');return}
     setSalvando(true)
-    const payload={nome:fNome.trim(),descricao:fDesc.trim()||null,preco:parseFloat(fPreco.replace(',','.'))||null,duracao:fDur,categoria:fCat,profissional_nome:fProf.trim()||null}
+    const payload={nome:fNome.trim(),descricao:fDesc.trim()||null,preco:parseFloat(fPreco.replace(',','.'))||null,duracao:fDur,categoria:fCat,profissional_nome:fProf.trim()||null,ativo:true}
     if(editId){await supabase.from('servicos').update(payload).eq('id',editId).eq('user_id',userId)}
-    else{await supabase.from('servicos').insert({user_id:userId,ativo:true,...payload})}
+    else{await supabase.from('servicos').insert({user_id:userId,...payload})}
     await load();resetForm();setShowForm(false);setSalvando(false);setMsg(editId?'Serviço atualizado!':'Serviço cadastrado!');setTimeout(()=>setMsg(''),3000);await load()
   }
 
@@ -263,7 +263,7 @@ export default function Servicos(){
                             {s.preco&&s.preco>0&&<span style={{fontSize:'13px',fontWeight:800,color:'#4ADE80'}}>{fBRL(s.preco)}</span>}
                           </div>
                           <div style={{display:'flex',flexWrap:'wrap' as const,gap:'5px'}}>
-                            {infoItems.map((item,i)=>(<span key={i} style={{fontSize:'11px',color:'#94A3B8',background:'rgba(255,255,255,.05)',border:'1px solid rgba(255,255,255,.07)',borderRadius:'6px',padding:'2px 8px',whiteSpace:'nowrap',display:'inline-flex',alignItems:'center'}}>{item}</span>))}
+                            {infoItems.map((item,i)=>(<span key={i} style={{fontSize:'11px',color:'#94A3B8',background:'rgba(255,255,255,.05)',border:'1px solid rgba(255,255,255,.07)',borderRadius:'6px',padding:'2px 8px'}}>{item}</span>))}
                             {s.descricao&&<span style={{fontSize:'11px',color:'#64748B',fontStyle:'italic'}}>{s.descricao}</span>}
                           </div>
                         </div>
