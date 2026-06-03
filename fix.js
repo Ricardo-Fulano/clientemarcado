@@ -1,13 +1,10 @@
 const fs = require('fs')
 let c = fs.readFileSync('app/painel/servicos/page.tsx', 'utf8')
 
-// Corrigir update
 c = c.replace(
-  ".update(payload).eq('id',editId)}",
-  ".update(payload).eq('id',editId).eq('user_id',userId)}"
+  "const durRaw=s.duracao?String(s.duracao).trim():null;const durLabel=durRaw?(/^\\d+$/.test(durRaw)?`${durRaw} min`:durRaw):null",
+  "const durRaw=s.duracao?String(s.duracao).trim().replace(/ min$/,''):null;const durLabel=durRaw?durRaw+' min':null"
 )
 
 fs.writeFileSync('app/painel/servicos/page.tsx', c, 'utf8')
-
-const idx = c.indexOf('async function salvar')
-console.log(c.slice(idx, idx+500))
+console.log('OK')
