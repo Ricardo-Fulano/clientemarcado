@@ -6,11 +6,11 @@ import { Zap, CalendarDays, CheckCircle, Sparkles } from 'lucide-react'
 // Presets de cor — mesmos do perfil
 function getTema(temaPublico: string) {
   switch(temaPublico) {
-    case 'beleza':   return { accent:'#EC4899', soft:'rgba(236,72,153,.12)', border:'rgba(236,72,153,.28)', glow:'rgba(236,72,153,.15)', btnText:'#fff' }
-    case 'saude':    return { accent:'#22C55E', soft:'rgba(34,197,94,.12)',  border:'rgba(34,197,94,.28)',  glow:'rgba(34,197,94,.15)',  btnText:'#fff' }
-    case 'barbearia':return { accent:'#F59E0B', soft:'rgba(245,158,11,.12)', border:'rgba(245,158,11,.28)', glow:'rgba(245,158,11,.15)', btnText:'#111827' }
-    case 'minimal':  return { accent:'#94A3B8', soft:'rgba(148,163,184,.12)', border:'rgba(203,213,225,.28)', glow:'rgba(148,163,184,.10)', btnText:'#0F172A' }
-    default:         return { accent:'#3B82F6', soft:'rgba(59,130,246,.12)', border:'rgba(59,130,246,.28)', glow:'rgba(59,130,246,.15)', btnText:'#fff' }
+    case 'beleza':    return { accent:'#EC4899', soft:'rgba(236,72,153,.12)', border:'rgba(236,72,153,.28)', glow:'rgba(236,72,153,.15)', btnText:'#fff', secondary:'#A855F7' }
+    case 'saude':     return { accent:'#22C55E', soft:'rgba(34,197,94,.12)',  border:'rgba(34,197,94,.28)',  glow:'rgba(34,197,94,.15)',  btnText:'#fff', secondary:'#06B6D4' }
+    case 'barbearia': return { accent:'#F59E0B', soft:'rgba(245,158,11,.12)', border:'rgba(245,158,11,.28)', glow:'rgba(245,158,11,.15)', btnText:'#111827', secondary:'#FACC15' }
+    case 'minimal':   return { accent:'#94A3B8', soft:'rgba(148,163,184,.12)', border:'rgba(203,213,225,.28)', glow:'rgba(148,163,184,.10)', btnText:'#0F172A', secondary:'#64748B' }
+    default:          return { accent:'#3B82F6', soft:'rgba(59,130,246,.12)', border:'rgba(59,130,246,.28)', glow:'rgba(59,130,246,.15)', btnText:'#fff', secondary:'#7C3AED' }
   }
 }
 
@@ -53,7 +53,6 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
   ])
 
   const temaId = perfil.public_theme || perfil.tema_publico || perfil.tema_cor || 'padrao'
-  console.log('Tema publico lido:', temaId, '| public_theme:', perfil.public_theme)
   const tema = getTema(temaId)
 
   const nomeBusiness = perfil.nome_negocio || 'Agendamento Online'
@@ -108,33 +107,53 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
       {/* CONTEUDO */}
       <div className="wrap" style={{ paddingTop: '32px', paddingBottom: '60px' }}>
 
-        {/* BANNER PROMOCAO */}
+        {/* BANNER PROMOCAO — cores do tema ativo */}
         {perfil?.promocao_ativa && perfil?.promocao_titulo && (()=>{
           const hoje=new Date();hoje.setHours(0,0,0,0)
           if(perfil.promocao_data_inicio&&hoje<new Date(perfil.promocao_data_inicio))return null
           if(perfil.promocao_data_fim){const fim=new Date(perfil.promocao_data_fim);fim.setHours(23,59,59,999);if(hoje>fim)return null}
           const href=perfil.promocao_servico_id?`/${slug}/agendar?servico=${perfil.promocao_servico_id}`:`/${slug}/agendar`
-          const fBRL=(v:number)=>v.toLocaleString('pt-BR',{style:'currency',currency:'BRL'})
+          const fBRLp=(v:number)=>v.toLocaleString('pt-BR',{style:'currency',currency:'BRL'})
           const btnTxt=perfil.promocao_botao_texto||'Agendar promoção'
           return(
-            <div style={{background:'radial-gradient(circle at top right,rgba(245,158,11,.18),transparent 35%),radial-gradient(circle at bottom left,rgba(124,58,237,.16),transparent 40%),linear-gradient(135deg,rgba(15,23,42,.98),rgba(17,24,39,.96))',border:'1px solid rgba(245,158,11,.35)',borderRadius:24,padding:'28px 32px',marginBottom:32,boxShadow:'0 24px 70px rgba(0,0,0,.35)'}}>
+            <div style={{
+              background:`radial-gradient(circle at top right,${tema.soft},transparent 35%),radial-gradient(circle at bottom left,rgba(124,58,237,.10),transparent 40%),linear-gradient(135deg,rgba(15,23,42,.98),rgba(17,24,39,.96))`,
+              border:`1px solid ${tema.border}`,
+              borderRadius:24,
+              padding:'28px 32px',
+              marginBottom:32,
+              boxShadow:`0 24px 70px rgba(0,0,0,.35), 0 0 40px ${tema.glow}`,
+            }}>
               <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:24,flexWrap:'wrap' as const}}>
                 <div style={{flex:'1 1 280px',minWidth:0}}>
                   <div style={{display:'flex',alignItems:'center',gap:6,marginBottom:10}}>
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
-                    <span style={{fontSize:11,fontWeight:800,color:'#F59E0B',letterSpacing:'.12em',textTransform:'uppercase' as const}}>Oferta da semana</span>
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke={tema.accent} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+                    <span style={{fontSize:11,fontWeight:800,color:tema.accent,letterSpacing:'.12em',textTransform:'uppercase' as const}}>Oferta da semana</span>
                   </div>
                   <h2 style={{fontSize:'clamp(20px,4vw,28px)',fontWeight:900,color:'#F8FAFC',letterSpacing:'-0.02em',marginBottom:8,lineHeight:1.2}}>{perfil.promocao_titulo}</h2>
                   {perfil.promocao_descricao&&<p style={{fontSize:14,color:'#CBD5E1',lineHeight:1.6,marginBottom:10}}>{perfil.promocao_descricao}</p>}
-                  {perfil.promocao_observacao&&<div style={{display:'flex',alignItems:'center',gap:6}}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" strokeWidth="2" strokeLinecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg><span style={{fontSize:12,color:'#94A3B8'}}>{perfil.promocao_observacao}</span></div>}
+                  {perfil.promocao_observacao&&<div style={{display:'flex',alignItems:'center',gap:6}}>
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" strokeWidth="2" strokeLinecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                    <span style={{fontSize:12,color:'#94A3B8'}}>{perfil.promocao_observacao}</span>
+                  </div>}
                 </div>
                 <div style={{display:'flex',flexDirection:'column' as const,alignItems:'center',gap:10,minWidth:200}}>
-                  {perfil.promocao_preco_antigo&&<p style={{fontSize:13,color:'#64748B',textDecoration:'line-through',margin:0}}>De {fBRL(perfil.promocao_preco_antigo)}</p>}
-                  {perfil.promocao_preco_novo&&<div style={{textAlign:'center' as const}}><span style={{fontSize:13,color:'#CBD5E1',fontWeight:600}}>Por </span><span style={{fontSize:36,fontWeight:900,color:'#F59E0B',letterSpacing:'-0.02em',lineHeight:1}}>{fBRL(perfil.promocao_preco_novo)}</span></div>}
-                  <a href={href} style={{display:'inline-flex',alignItems:'center',justifyContent:'center',background:'#F59E0B',color:'#020617',borderRadius:14,padding:'13px 26px',fontSize:15,fontWeight:800,textDecoration:'none',whiteSpace:'nowrap' as const,boxShadow:'0 8px 24px rgba(245,158,11,.35)',width:'100%'}}>{btnTxt} →</a>
+                  {perfil.promocao_preco_antigo&&<p style={{fontSize:13,color:'#64748B',textDecoration:'line-through',margin:0}}>De {fBRLp(perfil.promocao_preco_antigo)}</p>}
+                  {perfil.promocao_preco_novo&&<div style={{textAlign:'center' as const}}>
+                    <span style={{fontSize:13,color:'#CBD5E1',fontWeight:600}}>Por </span>
+                    <span style={{fontSize:36,fontWeight:900,color:tema.accent,letterSpacing:'-0.02em',lineHeight:1}}>{fBRLp(perfil.promocao_preco_novo)}</span>
+                  </div>}
+                  <a href={href} style={{
+                    display:'inline-flex',alignItems:'center',justifyContent:'center',
+                    background:`linear-gradient(135deg,${tema.accent},${tema.secondary})`,
+                    color:tema.btnText,
+                    borderRadius:14,padding:'13px 26px',fontSize:15,fontWeight:800,
+                    textDecoration:'none',whiteSpace:'nowrap' as const,
+                    boxShadow:`0 8px 24px ${tema.glow}`,
+                    width:'100%',
+                  }}>{btnTxt} →</a>
                 </div>
               </div>
-              <style>{`@media(max-width:600px){.promo-right{min-width:unset!important;width:100%!important}}`}</style>
             </div>
           )
         })()}
@@ -223,7 +242,6 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
               <Link href={`/${slug}/agendar`} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: tema.accent, color: tema.btnText, fontWeight: 800, padding: '13px 24px', borderRadius: '12px', textDecoration: 'none', fontSize: '14px', boxShadow: `0 8px 24px ${tema.glow}`, whiteSpace: 'nowrap' }}>
                 Agendar agora →
               </Link>
-
             </div>
           </div>
         </div>
