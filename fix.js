@@ -1,9 +1,15 @@
 const fs = require('fs')
-const c = fs.readFileSync('app/painel/agendamentos/page.tsx', 'utf8')
-console.log('tem aside:', c.includes('<aside'))
-console.log('tem sb-logo:', c.includes('sb-logo'))
-console.log('tem display flex minHeight:', c.includes('display:\'flex\''))
-console.log('linhas:', c.split('\n').length)
-// Ver o return principal
-const idx = c.lastIndexOf('return(')
-console.log(c.slice(idx, idx+200))
+let c = fs.readFileSync('app/painel/servicos/page.tsx', 'utf8')
+
+// Adicionar load() após salvar
+c = c.replace(
+  'resetForm();setShowForm(false);setSalvando(false);',
+  'await load();resetForm();setShowForm(false);setSalvando(false);'
+)
+
+fs.writeFileSync('app/painel/servicos/page.tsx', c, 'utf8')
+console.log('Corrigido!')
+
+// Verificar
+const idx = c.indexOf('async function salvar')
+console.log(c.slice(idx, idx+400))
