@@ -156,16 +156,7 @@ export default function Perfil(){
     // Campos opcionais — adicionados com segurança
     if(end!==undefined) payloadBase.endereco=end.trim()||null
     if(wpp!==undefined) payloadBase.whatsapp=wpp.replace(/\D/g,'')||null
-    // Campos de promoção
-    payloadBase.promocao_ativa=promoAtiva
-    payloadBase.promocao_titulo=promoTitulo.trim()||null
-    payloadBase.promocao_descricao=promoDesc.trim()||null
-    payloadBase.promocao_preco_antigo=promoPrecoAnt?parseFloat(promoPrecoAnt.replace(',','.'))||null:null
-    payloadBase.promocao_preco_novo=promoPrecoNovo?parseFloat(promoPrecoNovo.replace(',','.'))||null:null
-    payloadBase.promocao_botao_texto=promoBotao.trim()||'Agendar promoção'
-    payloadBase.promocao_observacao=promoObs.trim()||null
-    payloadBase.promocao_data_inicio=promoInicio||null
-    payloadBase.promocao_data_fim=promoFim||null
+
     if(insta!==undefined) payloadBase.instagram=insta.trim()||null
     if(cidade!==undefined) payloadBase.cidade=cidade.trim()||null
     if(desc!==undefined) payloadBase.descricao=desc.trim()||null
@@ -203,6 +194,16 @@ export default function Perfil(){
     if(cidade!==undefined) payloadSeguro.cidade=cidade.trim()||null
     if(desc!==undefined) payloadSeguro.descricao=desc.trim()||null
     if(capUrl!==undefined) payloadSeguro.capa_url=capUrl||null
+    // Campos de promoção
+    payloadSeguro.promocao_ativa=promoAtiva
+    payloadSeguro.promocao_titulo=promoTitulo.trim()||null
+    payloadSeguro.promocao_descricao=promoDesc.trim()||null
+    payloadSeguro.promocao_preco_antigo=promoPrecoAnt?parseFloat(promoPrecoAnt.replace(',','.'))||null:null
+    payloadSeguro.promocao_preco_novo=promoPrecoNovo?parseFloat(promoPrecoNovo.replace(',','.'))||null:null
+    payloadSeguro.promocao_botao_texto=promoBotao.trim()||'Agendar promoção'
+    payloadSeguro.promocao_observacao=promoObs.trim()||null
+    payloadSeguro.promocao_data_inicio=promoInicio||null
+    payloadSeguro.promocao_data_fim=promoFim||null
     try{payloadSeguro.dias_ativos=diasAtivos;payloadSeguro.horarios=horarios;payloadSeguro.intervalo=intervalo;payloadSeguro.abertura_geral=abertura;payloadSeguro.fechamento_geral=fechamento;payloadSeguro.antecedencia=antecedencia}catch(_){}
 
     console.log('SALVANDO - publicTheme:', publicTheme)
