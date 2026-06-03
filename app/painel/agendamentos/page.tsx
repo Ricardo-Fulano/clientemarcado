@@ -130,6 +130,72 @@ export default function Agendamentos(){
     return{borderRadius:8,padding:'7px 8px',fontSize:11,fontWeight:700,cursor:'pointer',border:'1px solid',fontFamily:'inherit',whiteSpace:'nowrap' as const,textDecoration:'none',display:'flex',alignItems:'center',justifyContent:'center',gap:3,transition:'opacity .15s',...ex}
   }
 
+  // Semana: lista por dia (igual ao mobile, mas em 2 colunas no desktop)
+  function SemanaLista(){
+    return(
+      <div>
+        <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:16,flexWrap:'wrap',gap:8}}>
+          <p style={{fontSize:14,fontWeight:700,color:'#CBD5E1'}}>{fDC(dS[0])} - {fDC(dS[6])} {dS[6].getFullYear()}</p>
+          <div style={{display:'flex',gap:6}}>
+            {[{l:'Anterior',fn:()=>setSemOff(s=>s-1)},{l:'Hoje',fn:()=>setSemOff(0)},{l:'Proxima',fn:()=>setSemOff(s=>s+1)}].map(({l,fn})=>(
+              <button key={l} onClick={fn} style={{...btnS,height:30,padding:'0 12px',fontSize:11}}>{l}</button>
+            ))}
+          </div>
+        </div>
+
+        <style>{`
+          .sem-lista{display:flex;flex-direction:column;gap:14px}
+          @media(min-width:900px){.sem-lista{display:grid;grid-template-columns:1fr 1fr;gap:14px}}
+        `}</style>
+
+        <div className="sem-lista">
+          {dS.map((d,i)=>{
+            const ds=d.toISOString().split('T')[0]
+            const eh=ds===hoje
+            const it=ags.filter(a=>{
+              const ad=new Date(a.data_hora).toISOString().split('T')[0]
+              return ad===ds&&(fPr==='todos'||a.profissional_id===fPr)
+            })
+            return(
+              <div key={i} style={{background:eh?'rgba(59,130,246,.04)':'transparent',border:eh?'1px solid rgba(59,130,246,.15)':'1px solid transparent',borderRadius:14,padding:eh?'14px':'0 0 4px 0'}}>
+                <p style={{fontSize:12,fontWeight:700,color:eh?'#60A5FA':'#94A3B8',marginBottom:10,textTransform:'capitalize',paddingBottom:8,borderBottom:'1px solid '+(eh?'rgba(59,130,246,.15)':'rgba(148,163,184,.08)')}}>
+                  {d.toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'2-digit'})}
+                  {eh?<span style={{marginLeft:8,fontSize:10,fontWeight:700,background:'rgba(59,130,246,.14)',color:'#60A5FA',border:'1px solid rgba(59,130,246,.25)',borderRadius:999,padding:'1px 7px'}}>Hoje</span>:null}
+                </p>
+                {it.length===0
+                  ?<p style={{fontSize:11,color:'#334155',padding:'4px 0'}}>Nenhum atendimento</p>
+                  :it.map(a=>{
+                    const sc=stCfg[a.status]||stCfg.pendente
+                    const tf=fTel(a.cliente_whatsapp||a.cliente_telefone||'')
+                    const wW=wpp(a,'w')
+                    return(
+                      <div key={a.id} onClick={()=>{setSel(a);setView('hoje')}} style={{background:'linear-gradient(145deg,rgba(15,23,42,.98),rgba(8,20,33,.99))',border:'1px solid rgba(148,163,184,.12)',borderRadius:12,padding:'11px 13px',marginBottom:6,cursor:'pointer',transition:'border-color .15s',display:'flex',gap:12,alignItems:'flex-start'}}>
+                        <span style={{fontSize:13,fontWeight:800,color:'#60A5FA',flexShrink:0,minWidth:42,paddingTop:1}}>{fH(a.data_hora)}</span>
+                        <div style={{minWidth:0,flex:1}}>
+                          <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:8,marginBottom:3}}>
+                            <p style={{fontSize:13,fontWeight:700,color:'#F8FAFC',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{a.cliente_nome||'—'}</p>
+                            <span style={stBadge(a.status)}>{sc.t}</span>
+                          </div>
+                          <p style={{fontSize:11,color:'#94A3B8',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',marginBottom:tf?3:0}}>
+                            {a.servicos?.nome||''}{a.profissionais?.nome?' · Prof. '+a.profissionais.nome:''}
+                          </p>
+                          {tf&&<p style={{fontSize:11,color:'#CBD5E1'}}>📱 {tf}</p>}
+                        </div>
+                        {wW&&<a href={wW} target="_blank" rel="noreferrer" onClick={e=>e.stopPropagation()} style={{flexShrink:0,width:30,height:30,borderRadius:8,background:'rgba(37,211,102,.10)',border:'1px solid rgba(37,211,102,.22)',color:'#25D366',display:'flex',alignItems:'center',justifyContent:'center',textDecoration:'none',fontSize:14}}>
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+                        </a>}
+                      </div>
+                    )
+                  })
+                }
+              </div>
+            )
+          })}
+        </div>
+      </div>
+    )
+  }
+
   function Det(){
     const sc=stCfg[sel?.status]||stCfg.pendente
     const tf=sel?fTel(sel.cliente_whatsapp||sel.cliente_telefone||''):''
@@ -156,7 +222,6 @@ export default function Agendamentos(){
         </div>
         <p style={{fontSize:15,fontWeight:800,color:'#F8FAFC',textAlign:'center',marginBottom:3}}>{sel.cliente_nome||'Cliente sem nome'}</p>
         <div style={{textAlign:'center',marginBottom:12}}><span style={stBadge(sel.status)}>{sc.t}</span></div>
-
         <div style={sec}>
           <p style={secT}>Contato</p>
           <div style={row}><span style={{fontSize:11,color:'#64748B'}}>WhatsApp</span><span style={{fontSize:11,fontWeight:700,color:'#CBD5E1'}}>{tf||'Nao informado'}</span></div>
@@ -171,7 +236,6 @@ export default function Agendamentos(){
             <button onClick={()=>copiar(sel)} style={{...dBtn({background:'rgba(255,255,255,.04)',borderColor:'rgba(148,163,184,.14)',color:'#94A3B8'}),gridColumn:'1/-1'}}>📋 Copiar contato</button>
           </div>
         </div>
-
         <div style={sec}>
           <p style={secT}>Atendimento</p>
           {[
@@ -187,7 +251,6 @@ export default function Agendamentos(){
             </div>
           ))}
         </div>
-
         <div>
           <p style={secT}>Acoes rapidas</p>
           <div style={g2}>
@@ -214,9 +277,6 @@ export default function Agendamentos(){
         .ag-grid{display:grid;grid-template-columns:1fr;gap:16px}
         .det-col{display:none}
         @media(min-width:1100px){.ag-grid{grid-template-columns:1fr 360px}.det-col{display:block}}
-        .sem-desk{display:none}
-        .sem-mob{display:flex;flex-direction:column;gap:12px}
-        @media(min-width:769px){.sem-desk{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}.sem-mob{display:none}}
         .ag-item{background:linear-gradient(145deg,rgba(15,23,42,.98),rgba(8,20,33,.99));border:1px solid rgba(148,163,184,.12);border-radius:14px;padding:12px 14px;margin-bottom:6px;cursor:pointer;transition:all .15s}
         .ag-item:hover{border-color:rgba(148,163,184,.24)}
         .ag-item.sel{border-color:rgba(59,130,246,.48);background:radial-gradient(circle at top left,rgba(59,130,246,.09),transparent 60%),linear-gradient(145deg,rgba(15,23,42,.98),rgba(8,20,33,.99))}
@@ -233,9 +293,8 @@ export default function Agendamentos(){
           .kpi-g{grid-template-columns:1fr 1fr;gap:8px}
           .kpi-g>div:last-child{grid-column:1/-1}
         }
-        @media(max-width:380px){
-          .kpi-g{grid-template-columns:1fr}
-        }
+        @media(max-width:380px){.kpi-g{grid-template-columns:1fr}}
+        .sem-item-row:hover{border-color:rgba(148,163,184,.24)!important}
       `}</style>
 
       {/* Header */}
@@ -352,77 +411,8 @@ export default function Agendamentos(){
         </div>
       )}
 
-      {/* ABA SEMANA */}
-      {view==='semana'&&(
-        <div>
-          <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:12,flexWrap:'wrap',gap:8}}>
-            <p style={{fontSize:13,fontWeight:700,color:'#CBD5E1'}}>{fDC(dS[0])} - {fDC(dS[6])} {dS[6].getFullYear()}</p>
-            <div style={{display:'flex',gap:6}}>
-              {[{l:'Anterior',fn:()=>setSemOff(s=>s-1)},{l:'Hoje',fn:()=>setSemOff(0)},{l:'Proxima',fn:()=>setSemOff(s=>s+1)}].map(({l,fn})=>(
-                <button key={l} onClick={fn} style={{...btnS,height:30,padding:'0 10px',fontSize:11}}>{l}</button>
-              ))}
-            </div>
-          </div>
-
-          <div className="sem-desk">
-            {dS.map((d,i)=>{
-              const ds=d.toISOString().split('T')[0]
-              const eh=ds===hoje
-              const it=ags.filter(a=>{
-                const ad=new Date(a.data_hora).toISOString().split('T')[0]
-                return ad===ds&&(fPr==='todos'||a.profissional_id===fPr)
-              })
-              return(
-                <div key={i} style={{background:eh?'rgba(59,130,246,.05)':'rgba(15,23,42,.70)',border:'1px solid '+(eh?'rgba(59,130,246,.28)':'rgba(148,163,184,.09)'),borderRadius:12,overflow:'hidden',minHeight:120}}>
-                  <div style={{padding:'7px 6px',textAlign:'center',fontSize:9,fontWeight:700,color:eh?'#60A5FA':'#64748B',textTransform:'uppercase',borderBottom:'1px solid '+(eh?'rgba(59,130,246,.15)':'rgba(148,163,184,.07)'),background:eh?'rgba(59,130,246,.12)':'rgba(59,130,246,.03)'}}>
-                    <div>{['Dom','Seg','Ter','Qua','Qui','Sex','Sab'][d.getDay()]}</div>
-                    <div style={{fontSize:13,fontWeight:800,color:eh?'#60A5FA':'#F8FAFC',marginTop:1}}>{d.getDate()}</div>
-                  </div>
-                  {it.map(a=>(
-                    <div key={a.id} onClick={()=>{setSel(a);setView('hoje')}} style={{background:'rgba(59,130,246,.09)',borderRadius:5,padding:'3px 5px',margin:'3px 4px',fontSize:9,color:'#93C5FD',cursor:'pointer',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',border:'1px solid rgba(59,130,246,.14)',lineHeight:1.5,transition:'background .1s'}} title={a.cliente_nome+' '+fH(a.data_hora)}>
-                      {fH(a.data_hora)} {(a.cliente_nome||'').split(' ')[0]}
-                    </div>
-                  ))}
-                </div>
-              )
-            })}
-          </div>
-
-          <div className="sem-mob">
-            {dS.map((d,i)=>{
-              const ds=d.toISOString().split('T')[0]
-              const eh=ds===hoje
-              const it=ags.filter(a=>{
-                const ad=new Date(a.data_hora).toISOString().split('T')[0]
-                return ad===ds&&(fPr==='todos'||a.profissional_id===fPr)
-              })
-              return(
-                <div key={i}>
-                  <p style={{fontSize:11,fontWeight:700,color:eh?'#60A5FA':'#94A3B8',marginBottom:7,textTransform:'capitalize',paddingBottom:5,borderBottom:'1px solid rgba(59,130,246,.10)'}}>
-                    {d.toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'2-digit'})}{eh?' · Hoje':''}
-                  </p>
-                  {it.length===0
-                    ?<p style={{fontSize:11,color:'#334155',padding:'6px 0'}}>Nenhum atendimento</p>
-                    :it.map(a=>{
-                      const sc=stCfg[a.status]||stCfg.pendente
-                      return(
-                        <div key={a.id} style={{background:'rgba(15,23,42,.88)',border:'1px solid rgba(148,163,184,.11)',borderRadius:11,padding:'11px 13px',marginBottom:5,display:'flex',gap:10,alignItems:'center'}}>
-                          <span style={{fontSize:12,fontWeight:800,color:'#60A5FA',flexShrink:0,minWidth:40}}>{fH(a.data_hora)}</span>
-                          <div style={{minWidth:0,flex:1}}>
-                            <p style={{fontSize:12,fontWeight:700,color:'#F8FAFC',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{a.cliente_nome||'—'}</p>
-                            <p style={{fontSize:10,color:'#94A3B8',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{a.servicos?.nome||''}{a.profissionais?.nome?' · Prof. '+a.profissionais.nome:''}</p>
-                          </div>
-                          <span style={stBadge(a.status)}>{sc.t}</span>
-                        </div>
-                      )
-                    })
-                  }
-                </div>
-              )
-            })}
-          </div>
-        </div>
-      )}
+      {/* ABA SEMANA — lista por dia em ambos desktop e mobile */}
+      {view==='semana'&&<SemanaLista/>}
     </div>
   )
 }
