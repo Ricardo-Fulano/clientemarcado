@@ -1,21 +1,22 @@
+
 const fs = require('fs')
 let c = fs.readFileSync('app/painel/agendamentos/page.tsx', 'utf8')
+
+// Encontrar e remover o bloco CSS inteiro
+const cssStart = c.indexOf('\nconst CSS=`')
+const cssEnd = c.indexOf('`\nexport default', cssStart)
+
+if (cssStart > -1 && cssEnd > -1) {
+  console.log('Removendo CSS de', cssStart, 'ate', cssEnd + 2)
+  c = c.slice(0, cssStart) + '\n' + c.slice(cssEnd + 1)
+  console.log('CSS removido!')
+} else {
+  console.log('CSS nao encontrado, cssStart:', cssStart, 'cssEnd:', cssEnd)
+}
+
+// Verificar linhas ao redor
 const linhas = c.split('\n')
-console.log('Linha 1:', linhas[0])
-console.log('Linha 2:', linhas[1])
+linhas.slice(213, 220).forEach((l,i) => console.log(i+214, l.slice(0,60)))
 
-// Corrigir primeira linha
-if (linhas[0] !== "'use client'") {
-  linhas[0] = "'use client'"
-}
-// Remover segunda linha se for lixo
-if (linhas[1] && !linhas[1].startsWith('import') && !linhas[1].startsWith("'use") && linhas[1].trim() !== '') {
-  console.log('Removendo linha 2 corrompida:', linhas[1])
-  linhas.splice(1, 1)
-}
-
-c = linhas.join('\n')
 fs.writeFileSync('app/painel/agendamentos/page.tsx', c, 'utf8')
-console.log('Corrigido!')
-console.log('Nova linha 1:', c.split('\n')[0])
-console.log('Nova linha 2:', c.split('\n')[1])
+console.log('Total linhas:', linhas.length)
