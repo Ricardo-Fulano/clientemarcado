@@ -108,37 +108,6 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
       {/* CONTEUDO */}
       <div className="wrap" style={{ paddingTop: '32px', paddingBottom: '60px' }}>
 
-        {/* BANNER PROMOCAO */}
-        {perfil?.promocao_ativa && perfil?.promocao_titulo && (()=>{
-          const hoje=new Date();hoje.setHours(0,0,0,0)
-          if(perfil.promocao_data_inicio&&hoje<new Date(perfil.promocao_data_inicio))return null
-          if(perfil.promocao_data_fim){const fim=new Date(perfil.promocao_data_fim);fim.setHours(23,59,59,999);if(hoje>fim)return null}
-          const href=perfil.promocao_servico_id?`/${slug}/agendar?servico=${perfil.promocao_servico_id}`:`/${slug}/agendar`
-          const fBRL=(v:number)=>v.toLocaleString('pt-BR',{style:'currency',currency:'BRL'})
-          const btnTxt=perfil.promocao_botao_texto||'Agendar promoção'
-          return(
-            <div style={{background:'radial-gradient(circle at top right,rgba(245,158,11,.18),transparent 35%),radial-gradient(circle at bottom left,rgba(124,58,237,.16),transparent 40%),linear-gradient(135deg,rgba(15,23,42,.98),rgba(17,24,39,.96))',border:'1px solid rgba(245,158,11,.35)',borderRadius:24,padding:'28px 32px',marginBottom:32,boxShadow:'0 24px 70px rgba(0,0,0,.35)'}}>
-              <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:24,flexWrap:'wrap' as const}}>
-                <div style={{flex:'1 1 280px',minWidth:0}}>
-                  <div style={{display:'flex',alignItems:'center',gap:6,marginBottom:10}}>
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
-                    <span style={{fontSize:11,fontWeight:800,color:'#F59E0B',letterSpacing:'.12em',textTransform:'uppercase' as const}}>Oferta da semana</span>
-                  </div>
-                  <h2 style={{fontSize:'clamp(20px,4vw,28px)',fontWeight:900,color:'#F8FAFC',letterSpacing:'-0.02em',marginBottom:8,lineHeight:1.2}}>{perfil.promocao_titulo}</h2>
-                  {perfil.promocao_descricao&&<p style={{fontSize:14,color:'#CBD5E1',lineHeight:1.6,marginBottom:10}}>{perfil.promocao_descricao}</p>}
-                  {perfil.promocao_observacao&&<div style={{display:'flex',alignItems:'center',gap:6}}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" strokeWidth="2" strokeLinecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg><span style={{fontSize:12,color:'#94A3B8'}}>{perfil.promocao_observacao}</span></div>}
-                </div>
-                <div style={{display:'flex',flexDirection:'column' as const,alignItems:'center',gap:10,minWidth:200}}>
-                  {perfil.promocao_preco_antigo&&<p style={{fontSize:13,color:'#64748B',textDecoration:'line-through',margin:0}}>De {fBRL(perfil.promocao_preco_antigo)}</p>}
-                  {perfil.promocao_preco_novo&&<div style={{textAlign:'center' as const}}><span style={{fontSize:13,color:'#CBD5E1',fontWeight:600}}>Por </span><span style={{fontSize:36,fontWeight:900,color:'#F59E0B',letterSpacing:'-0.02em',lineHeight:1}}>{fBRL(perfil.promocao_preco_novo)}</span></div>}
-                  <a href={href} style={{display:'inline-flex',alignItems:'center',justifyContent:'center',background:'#F59E0B',color:'#020617',borderRadius:14,padding:'13px 26px',fontSize:15,fontWeight:800,textDecoration:'none',whiteSpace:'nowrap' as const,boxShadow:'0 8px 24px rgba(245,158,11,.35)',width:'100%'}}>{btnTxt} →</a>
-                </div>
-              </div>
-              <style>{`@media(max-width:600px){.promo-right{min-width:unset!important;width:100%!important}}`}</style>
-            </div>
-          )
-        })()}
-
         {/* SERVICOS */}
         {servicos && servicos.length > 0 && (
           <div style={{ marginBottom: '32px' }}>
