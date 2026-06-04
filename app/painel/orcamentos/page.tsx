@@ -354,7 +354,7 @@ export default function Orcamentos() {
   function gerarMsgCobranca(){
     const tipoDoc=tipo==='__outro__'?tipoOutro:tipo
     const neg=perfil?.nome_negocio||'nosso negócio'
-    let msg=`Olá, ${clienteNome||'cliente'}! Aqui é d${neg.match(/^[aeiouAEIOU]/)?'a ':'o '}${neg}.\n\nSeu ${tipoDoc}: R$ ${fmtBRL(total)}.\nPago: R$ ${fmtBRL(valorPagoLocal)}. Saldo: R$ ${fmtBRL(saldoLocal)}.`
+    let msg=`Olá, ${clienteNome||'cliente'}! Aqui é d${(neg[0]&&'aeiouAEIOUáéíóúÁÉÍÓÚ'.includes(neg[0])?'a ':'o ')}${neg}.\n\nSeu ${tipoDoc}: R$ ${fmtBRL(total)}.\nPago: R$ ${fmtBRL(valorPagoLocal)}. Saldo: R$ ${fmtBRL(saldoLocal)}.`
     if(linkPag) msg+=`\n\nPagamento:\n${linkPag}`
     msg+=`\n\nApós pagar, envie o comprovante. Obrigado!`
     return msg
