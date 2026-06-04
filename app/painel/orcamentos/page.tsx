@@ -6,13 +6,13 @@ import PainelSidebar from '@/app/components/PainelSidebar'
 
 const STATUS_LIST = ['Todos','Aberto','Aguardando aprovação','Em andamento','Parcialmente pago','Pago','Finalizado','Cancelado']
 const STATUS_COR: Record<string, {bg:string;color:string;border:string}> = {
-  'Aberto':               {bg:'rgba(59,130,246,.15)',  color:'#60A5FA', border:'rgba(59,130,246,.35)'},
-  'Aguardando aprovação': {bg:'rgba(245,158,11,.15)',  color:'#FACC15', border:'rgba(245,158,11,.35)'},
-  'Em andamento':         {bg:'rgba(124,58,237,.15)',  color:'#A78BFA', border:'rgba(124,58,237,.35)'},
-  'Parcialmente pago':    {bg:'rgba(249,115,22,.15)',  color:'#FB923C', border:'rgba(249,115,22,.35)'},
-  'Pago':                 {bg:'rgba(34,197,94,.15)',   color:'#22C55E', border:'rgba(34,197,94,.35)'},
-  'Finalizado':           {bg:'rgba(34,197,94,.12)',   color:'#22C55E', border:'rgba(34,197,94,.28)'},
-  'Cancelado':            {bg:'rgba(239,68,68,.15)',   color:'#F87171', border:'rgba(239,68,68,.35)'},
+  'Aberto':               {bg:'#EFF6FF',color:'#2563EB',border:'#BFDBFE'},
+  'Aguardando aprovação': {bg:'#FFFBEB',color:'#D97706',border:'#FDE68A'},
+  'Em andamento':         {bg:'#F5F3FF',color:'#7C3AED',border:'#DDD6FE'},
+  'Parcialmente pago':    {bg:'#FFF7ED',color:'#EA580C',border:'#FED7AA'},
+  'Pago':                 {bg:'#F0FDF4',color:'#16A34A',border:'#BBF7D0'},
+  'Finalizado':           {bg:'#F0FDF4',color:'#15803D',border:'#86EFAC'},
+  'Cancelado':            {bg:'#FEF2F2',color:'#DC2626',border:'#FECACA'},
 }
 
 function fmtBRL(v:number){return (v||0).toLocaleString('pt-BR',{minimumFractionDigits:2})}
@@ -26,39 +26,102 @@ function aplicarMascaraTel(v:string){
   return ''
 }
 
+const SIDEBAR_ITEMS = [
+  {icon:'⊞',label:'Início',href:'/painel'},
+  {icon:'👥',label:'Clientes',href:'/painel'},
+  {icon:'📋',label:'Orçamentos',href:'/painel/orcamentos',active:true},
+  {icon:'💰',label:'Cobranças',href:'/painel/financeiro'},
+  {icon:'💳',label:'Pagamentos',href:'/painel/financeiro'},
+  {icon:'✂️',label:'Serviços',href:'/painel/servicos'},
+  {icon:'📅',label:'Agenda',href:'/painel/agendamentos'},
+  {icon:'📊',label:'Relatórios',href:'/painel/relatorio'},
+  {icon:'⚙️',label:'Configurações',href:'/painel/perfil'},
+]
+
 const MOBILE_CSS = `
-  html,body{overflow-x:hidden;width:100%;background:#050B16}
-  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-  input,select,textarea{color-scheme:dark}
-  select option{background:#07111F;color:#F8FAFC}
-  .cm-drawer{position:fixed;top:0;left:0;bottom:0;width:300px;max-width:85vw;background:#070F1D;z-index:50;transform:translateX(-100%);transition:transform .3s ease;display:flex;flex-direction:column;border-right:1px solid rgba(148,163,184,.12)}
-  .cm-drawer.open{transform:translateX(0)}
-  .cm-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:49;opacity:0;pointer-events:none;transition:opacity .3s}
-  .cm-overlay.open{opacity:1;pointer-events:auto}
-  .cm-header-mobile{display:none;align-items:center;justify-content:space-between;padding:0 16px;height:56px;background:rgba(5,11,22,.96);backdrop-filter:blur(20px);border-bottom:1px solid rgba(148,163,184,.12);z-index:20;width:100%;flex-shrink:0}
-  .cm-mobile-footer{display:none;position:fixed;bottom:0;left:0;right:0;background:rgba(5,11,22,.97);border-top:1px solid rgba(148,163,184,.12);padding:10px 16px calc(10px + env(safe-area-inset-bottom,0px));z-index:25;flex-direction:column;gap:6px;backdrop-filter:blur(20px)}
+  html, body { overflow-x: hidden; width: 100%; }
+  *, *::before, *::after { box-sizing: border-box; }
+
+  .cm-drawer { position:fixed; top:0; left:0; bottom:0; width:300px; max-width:85vw; background:#0B172A; z-index:50; transform:translateX(-100%); transition:transform .3s ease; display:flex; flex-direction:column; }
+  .cm-drawer.open { transform:translateX(0); }
+  .cm-overlay { position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:49; opacity:0; pointer-events:none; transition:opacity .3s; }
+  .cm-overlay.open { opacity:1; pointer-events:auto; }
+
+  .cm-header-mobile { display:none; align-items:center; justify-content:space-between; padding:0 16px; height:56px; background:#0B172A; z-index:10; box-shadow:0 1px 4px rgba(0,0,0,.2); width:100%; max-width:100%; flex-shrink:0; overflow:hidden; }
+
+  .cm-mobile-footer { display:none; position:fixed; bottom:0; left:0; right:0; width:100%; max-width:100%; background:#fff; border-top:1px solid #DCE3EA; padding:10px 16px calc(10px + env(safe-area-inset-bottom,0px)); z-index:25; flex-direction:column; gap:6px; box-shadow:0 -2px 12px rgba(0,0,0,.07); box-sizing:border-box; }
+
   @media(min-width:1024px){
-    .cm-header-mobile{display:none!important}
-    .cm-mobile-footer{display:none!important}
-    .cm-resumo-mobile{display:none!important}
-    .cm-form-right{display:block!important}
-    .cm-form-grid{grid-template-columns:1fr 300px!important}
+    .cm-header-mobile { display:none !important; }
+    .cm-mobile-footer { display:none !important; }
+    .cm-sidebar { display:flex !important; }
+    .cm-main { margin-left:220px !important; }
+    .cm-resumo-mobile { display:none !important; }
+    .cm-form-right { display:block !important; }
+    .cm-form-grid { grid-template-columns:1fr 300px !important; }
+  }
+
+  @media(max-width:1023px){
+    .cm-sidebar { display:none !important; }
+    .cm-main { margin-left:0 !important; width:100% !important; max-width:100% !important; overflow-x:hidden; }
+    .cm-header-mobile { display:flex !important; }
+    .cm-form-grid { grid-template-columns:1fr !important; }
+    .cm-form-right { display:none !important; }
+    .cm-mobile-footer { display:flex !important; }
+    .cm-resumo-mobile { display:block !important; }
+    .cm-lista-pad { padding:16px 16px 100px !important; }
+    .cm-orc-filters { overflow-x:auto !important; flex-wrap:nowrap !important; padding-bottom:4px; -webkit-overflow-scrolling:touch; }
+    .cm-form-pad { padding:0 !important; }
+    .cm-form-inner { padding:16px !important; padding-bottom:150px !important; }
+    .cm-detalhe-pad { padding:16px 16px 80px !important; }
+    .cm-metrics { grid-template-columns:1fr 1fr !important; gap:10px !important; }
+    .cm-orc-filters { overflow-x:auto !important; flex-wrap:nowrap !important; padding-bottom:4px; -webkit-overflow-scrolling:touch; max-width:100%; }
+    .cm-orc-search { width:100% !important; max-width:100% !important; margin-top:8px; }
+    .cm-2col { grid-template-columns:1fr !important; }
+    .cm-inprow { grid-template-columns:1fr !important; }
+    .cm-btn-novo { width:100% !important; margin-top:8px; }
+    .cm-title-row { flex-direction:column !important; }
+    .cm-card { width:100% !important; max-width:100% !important; box-sizing:border-box !important; padding:16px !important; border-radius:16px !important; margin-bottom:14px !important; }
+  }
+
+  @media(max-width:1023px){
+    .cm-lista-topo { padding:16px 16px 0 !important; }
+    .cm-lista-body { padding:0 16px 80px !important; }
+    .cm-novo-btn-lista { width:100% !important; margin-top:12px; height:52px !important; border-radius:14px !important; font-size:16px !important; }
+    .cm-atalhos-grid { grid-template-columns:1fr 1fr !important; gap:10px !important; }
+    .cm-kpi-grid { grid-template-columns:1fr 1fr !important; gap:10px !important; }
+    .cm-busca-filtros { flex-direction:column !important; gap:10px !important; }
+    .cm-busca-input { width:100% !important; }
+    .cm-filtros-wrap { overflow-x:auto !important; flex-wrap:nowrap !important; -webkit-overflow-scrolling:touch !important; padding-bottom:4px; scrollbar-width:none; }
+    .cm-filtros-wrap::-webkit-scrollbar { display:none; }
+    .cm-acoes-rapidas-wrap { overflow-x:auto !important; flex-wrap:nowrap !important; -webkit-overflow-scrolling:touch !important; scroll-snap-type:x mandatory; padding-bottom:4px; scrollbar-width:none; }
+    .cm-acoes-rapidas-wrap::-webkit-scrollbar { display:none; }
+    .cm-acao-card { min-width:150px !important; max-width:160px !important; scroll-snap-align:start !important; flex-shrink:0 !important; }
+    .cm-tabela-desktop { display:none !important; }
+    .cm-cards-mobile { display:flex !important; }
+    .cm-novo-btn { width:100% !important; margin-top:8px; }
+  }
+  @media(min-width:1024px){
+    .cm-tabela-desktop { display:block !important; }
+    .cm-cards-mobile { display:none !important; }
+    .cm-novo-btn-lista { height:auto !important; width:auto !important; }
   }
   @media(max-width:1023px){
-    .cm-header-mobile{display:flex!important}
-    .cm-mobile-footer{display:flex!important}
-    .cm-form-grid{grid-template-columns:1fr!important}
-    .cm-form-right{display:none!important}
-    .cm-resumo-mobile{display:block!important}
-    .cm-2col{grid-template-columns:1fr!important}
-    .cm-item-grid{grid-template-columns:1fr!important}
-    .cm-metrics{grid-template-columns:1fr 1fr!important}
-    .cm-lista-pad{padding:16px 16px 60px!important}
-    .cm-form-pad{padding:16px 16px 130px!important}
-    .cm-detalhe-pad{padding:16px 16px 60px!important}
-    .cm-orc-filters{overflow-x:auto;flex-wrap:nowrap!important;padding-bottom:4px}
+    .cm-acoes-grid { grid-template-columns:1fr 1fr !important; }
   }
-  @media(max-width:480px){.cm-metrics{grid-template-columns:1fr!important}}
+  @media(max-width:380px){
+    .cm-atalhos-grid { grid-template-columns:1fr !important; }
+    .cm-kpi-grid { grid-template-columns:1fr !important; }
+    .cm-acoes-grid { grid-template-columns:1fr !important; }
+  }
+  .cm-acoes-scroll::-webkit-scrollbar { display:none; }
+  .cm-acoes-scroll { scrollbar-width:none; -ms-overflow-style:none; }
+  .cm-lista-body { overflow-x:hidden; }
+  .cm-lista-topo { overflow-x:hidden; }
+  @media(max-width:380px){
+    .cm-metrics { grid-template-columns:1fr !important; }
+    .cm-serv-qtd-val { grid-template-columns:1fr !important; }
+  }
 `
 
 export default function Orcamentos() {
@@ -358,25 +421,45 @@ export default function Orcamentos() {
   const orcDetalhe=orcamentos.find(o=>o.id===detalheId)
 
   // Style constants
-  const BG='rgba(255,255,255,.04)'
+  const BG='#050B16'
   const SIDEBAR='#0B172A'
   const inp:React.CSSProperties={width:'100%',border:'1.5px solid rgba(255,255,255,.12)',borderRadius:'8px',padding:'10px 14px',fontSize:'15px',color:'#fff',outline:'none',fontFamily:'inherit',background:'rgba(255,255,255,.06)',boxSizing:'border-box' as const}
   const sel:React.CSSProperties={...inp,cursor:'pointer',appearance:'none' as any,color:'#fff'}
   const lbl:React.CSSProperties={fontSize:'12px',fontWeight:600,color:'#94A3B8',textTransform:'uppercase' as const,letterSpacing:'.05em',display:'block',marginBottom:'6px'}
   const card:React.CSSProperties={background:'rgba(255,255,255,.06)',borderRadius:'16px',padding:'20px 24px',marginBottom:'12px',border:'1px solid rgba(255,255,255,.1)',boxShadow:'0 4px 20px rgba(0,0,0,.2)'}
 
-    if(loading) return (<div style={{minHeight:'100vh',background:'#050B16',display:'flex',alignItems:'center',justifyContent:'center',fontFamily:'system-ui'}}><p style={{color:'#64748B',fontSize:'14px'}}>Carregando...</p></div>)
+
+  if(loading) return (
+    <div style={{display:'flex',minHeight:'100vh',background:BG}}>
+      <div style={{marginLeft:'220px',flex:1,display:'flex',alignItems:'center',justifyContent:'center',background:'#07111F'}}>
+        <p style={{color:'#94A3B8',fontSize:'14px'}}>Carregando...</p>
+      </div>
+    </div>
+  )
 
   return (
-    <div style={{display:'flex',minHeight:'100vh',background:'#050B16',fontFamily:'-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif',overflowX:'hidden',width:'100%',maxWidth:'100%',position:'relative'}}>
+    <div style={{display:'flex',minHeight:'100vh',background:BG,fontFamily:'-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif',overflowX:'hidden',width:'100%',maxWidth:'100%',position:'relative'}}>
       <style dangerouslySetInnerHTML={{__html:MOBILE_CSS}} />
 
-      {/* Mobile Overlay */}
-            {/* Mobile Drawer */}
+      <PainelSidebar nome={perfil?.nome_negocio||''} tituloMobile='Orçamentos' />
+
+
       <div className="psb-main" style={{flex:1,minWidth:0,minHeight:'100vh',display:'flex',flexDirection:'column'}}>
 
         {/* Mobile Header — inside cm-main so it pushes content down */}
-              {/* ══ LISTA ══ */}
+        <div className="cm-header-mobile">
+          <button onClick={()=>setMobileMenuOpen(true)} style={{background:'none',border:'none',cursor:'pointer',padding:'8px',display:'flex',flexDirection:'column',gap:'5px'}}>
+            <span style={{display:'block',width:'22px',height:'2px',background:'#fff',borderRadius:'2px'}} />
+            <span style={{display:'block',width:'22px',height:'2px',background:'#fff',borderRadius:'2px'}} />
+            <span style={{display:'block',width:'22px',height:'2px',background:'#fff',borderRadius:'2px'}} />
+          </button>
+          <span style={{fontSize:'15px',fontWeight:800,color:'#fff',letterSpacing:'-0.01em'}}>ClienteMarcado</span>
+          <div style={{width:'38px',height:'38px',borderRadius:'50%',background:'#2563EB',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'14px',fontWeight:700,color:'#fff'}}>
+            {(perfil?.nome_negocio||'N').charAt(0).toUpperCase()}
+          </div>
+        </div>
+
+        {/* ══ LISTA ══ */}
         {view==='lista'&&(
           <div style={{minHeight:'100vh',background:'#07111F'}}>
 
@@ -634,7 +717,7 @@ export default function Orcamentos() {
                 <div className="cm-card" style={card}>
                   <div style={{display:'flex',alignItems:'center',gap:'8px',marginBottom:'16px'}}>
                     <span style={{fontSize:'16px'}}>👤</span>
-                    <p style={{fontSize:'15px',fontWeight:700,color:'#F8FAFC'}}>Cliente</p>
+                    <p style={{fontSize:'15px',fontWeight:700,color:'#0F172A'}}>Cliente</p>
                   </div>
                   <div style={{display:'flex',flexDirection:'column',gap:'12px'}}>
                     <div>
@@ -707,7 +790,7 @@ export default function Orcamentos() {
                               <div style={{display:'flex',alignItems:'center',gap:'8px'}}>
                                 <button onClick={()=>setSalvarFreelancer(!salvarFreelancer)}
                                   style={{width:'32px',height:'18px',borderRadius:'999px',border:'none',cursor:'pointer',position:'relative',background:salvarFreelancer?'#2563EB':'#D1D5DB',flexShrink:0}}>
-                                  <span style={{position:'absolute',top:'2px',left:salvarFreelancer?'14px':'2px',width:'14px',height:'14px',borderRadius:'50%',background:'linear-gradient(145deg,rgba(15,23,42,.97),rgba(8,20,33,.99))',transition:'left .2s'}} />
+                                  <span style={{position:'absolute',top:'2px',left:salvarFreelancer?'14px':'2px',width:'14px',height:'14px',borderRadius:'50%',background:'#fff',transition:'left .2s'}} />
                                 </button>
                                 <span style={{fontSize:'12px',color:'#94A3B8'}}>Salvar na equipe?</span>
                               </div>
@@ -727,19 +810,19 @@ export default function Orcamentos() {
                 <div className="cm-card" style={card}>
                   <div style={{display:'flex',alignItems:'center',gap:'8px',marginBottom:'4px'}}>
                     <span style={{fontSize:'16px'}}>✂️</span>
-                    <p style={{fontSize:'15px',fontWeight:700,color:'#F8FAFC'}}>Serviços / Procedimentos</p>
+                    <p style={{fontSize:'15px',fontWeight:700,color:'#0F172A'}}>Serviços / Procedimentos</p>
                   </div>
                   <p style={{fontSize:'12px',color:'#94A3B8',marginBottom:'16px'}}>Adicione os serviços, procedimentos, produtos ou itens deste orçamento.</p>
 
                   {/* Header tabela — oculto no mobile */}
                   <div style={{display:'grid',gridTemplateColumns:'3fr 80px 120px 110px 32px',gap:'8px',marginBottom:'8px'}} className="cm-hide-mobile">
                     {['Nome do serviço','Qtd.','Valor unitário','Total',''].map(h=>(
-                      <p key={h} style={{fontSize:'11px',fontWeight:600,color:'#64748B',textTransform:'uppercase',letterSpacing:'.05em'}}>{h}</p>
+                      <p key={h} style={{fontSize:'11px',fontWeight:600,color:'#667085',textTransform:'uppercase',letterSpacing:'.05em'}}>{h}</p>
                     ))}
                   </div>
 
                   {itens.map((item,idx)=>(
-                    <div key={idx} style={{marginBottom:'12px',padding:'14px',background:'#F8FAFC',borderRadius:'12px',border:'1px solid rgba(148,163,184,.14)',width:'100%',maxWidth:'100%',boxSizing:'border-box'}}>
+                    <div key={idx} style={{marginBottom:'12px',padding:'14px',background:'#F8FAFC',borderRadius:'12px',border:'1px solid #DCE3EA',width:'100%',maxWidth:'100%',boxSizing:'border-box'}}>
                       <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'10px'}}>
                         <span style={{fontSize:'11px',fontWeight:600,color:'#64748B',textTransform:'uppercase',letterSpacing:'.05em'}}>Item {idx+1}</span>
                         {itens.length>1&&(
@@ -751,19 +834,19 @@ export default function Orcamentos() {
                       </div>
                       {/* Nome */}
                       <div style={{marginBottom:'8px'}}>
-                        <label style={{fontSize:'12px',fontWeight:600,color:'#64748B',display:'block',marginBottom:'6px',whiteSpace:'normal',lineHeight:'1.3'}}>Nome do serviço *</label>
+                        <label style={{fontSize:'12px',fontWeight:600,color:'#667085',display:'block',marginBottom:'6px',whiteSpace:'normal',lineHeight:'1.3'}}>Nome do serviço *</label>
                         <input style={{...inp,width:'100%'}} type="text" placeholder="Ex: Corte de cabelo, limpeza de pele..."
                           value={item.nome} onChange={e=>atualizarItem(idx,'nome',e.target.value)} />
                       </div>
                       {/* Qtd + Valor */}
                       <div className="cm-serv-qtd-val" style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'8px',marginBottom:'8px',width:'100%',maxWidth:'100%'}}>
                         <div>
-                          <label style={{fontSize:'12px',fontWeight:600,color:'#64748B',display:'block',marginBottom:'6px'}}>Qtd.</label>
+                          <label style={{fontSize:'12px',fontWeight:600,color:'#667085',display:'block',marginBottom:'6px'}}>Qtd.</label>
                           <input style={{...inp,textAlign:'center',width:'100%'}} type="number" min="1"
                             value={item.qtd} onChange={e=>atualizarItem(idx,'qtd',e.target.value)} />
                         </div>
                         <div>
-                          <label style={{fontSize:'12px',fontWeight:600,color:'#64748B',display:'block',marginBottom:'6px'}}>Valor</label>
+                          <label style={{fontSize:'12px',fontWeight:600,color:'#667085',display:'block',marginBottom:'6px'}}>Valor</label>
                           <div style={{position:'relative'}}>
                             <span style={{position:'absolute',left:'10px',top:'50%',transform:'translateY(-50%)',fontSize:'12px',color:'#475569',fontWeight:600}}>R$</span>
                             <input style={{...inp,paddingLeft:'32px',width:'100%',maxWidth:'100%',boxSizing:'border-box'}} type="number" min="0" step="0.01" placeholder="0,00"
@@ -793,7 +876,7 @@ export default function Orcamentos() {
                       <span>Subtotal</span>
                       <span style={{fontWeight:600,color:'#fff'}}>R$ {fmtBRL(subtotal)}</span>
                     </div>
-                    <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',fontSize:'13px',color:'#64748B',marginBottom:'8px',paddingBottom:'8px',borderBottom:'1px solid #DCE3EA'}}>
+                    <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',fontSize:'13px',color:'#667085',marginBottom:'8px',paddingBottom:'8px',borderBottom:'1px solid #DCE3EA'}}>
                       <span>Desconto</span>
                       <input type="number" min="0" step="0.01" placeholder="R$ 0,00" value={desconto}
                         onChange={e=>setDesconto(e.target.value)}
@@ -808,33 +891,33 @@ export default function Orcamentos() {
                 </div>
 
                 {/* Resumo mobile — só aparece no mobile */}
-                <div className="cm-resumo-mobile" style={{display:'none',background:'linear-gradient(145deg,rgba(15,23,42,.97),rgba(8,20,33,.99))',borderRadius:'14px',padding:'14px 16px',marginBottom:'12px',border:'1px solid rgba(148,163,184,.14)',boxShadow:'0 1px 3px rgba(0,0,0,.05)'}}>
-                  <p style={{fontSize:'12px',fontWeight:700,color:'#64748B',textTransform:'uppercase',letterSpacing:'.06em',marginBottom:'10px'}}>Resumo</p>
+                <div className="cm-resumo-mobile" style={{display:'none',background:'#fff',borderRadius:'14px',padding:'14px 16px',marginBottom:'12px',border:'1px solid #DCE3EA',boxShadow:'0 1px 3px rgba(0,0,0,.05)'}}>
+                  <p style={{fontSize:'12px',fontWeight:700,color:'#667085',textTransform:'uppercase',letterSpacing:'.06em',marginBottom:'10px'}}>Resumo</p>
                   <div style={{display:'flex',flexDirection:'column',gap:'6px'}}>
                     <div style={{display:'flex',justifyContent:'space-between',fontSize:'13px'}}>
-                      <span style={{color:'#64748B'}}>Cliente</span>
+                      <span style={{color:'#667085'}}>Cliente</span>
                       <span style={{fontWeight:600,color:clienteNome?'#fff':'#475569',maxWidth:'60%',textAlign:'right',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{clienteNome||'Não informado'}</span>
                     </div>
                     <div style={{display:'flex',justifyContent:'space-between',fontSize:'13px'}}>
-                      <span style={{color:'#64748B'}}>Tipo</span>
-                      <span style={{color:'#F8FAFC'}}>{tipo==='__outro__'?(tipoOutro||'Outro'):tipo}</span>
+                      <span style={{color:'#667085'}}>Tipo</span>
+                      <span style={{color:'#0F172A'}}>{tipo==='__outro__'?(tipoOutro||'Outro'):tipo}</span>
                     </div>
                     <div style={{display:'flex',justifyContent:'space-between',fontSize:'13px'}}>
-                      <span style={{color:'#64748B'}}>Status</span>
+                      <span style={{color:'#667085'}}>Status</span>
                       <span style={{fontSize:'11px',fontWeight:700,padding:'2px 8px',borderRadius:'999px',background:STATUS_COR[status]?.bg||'#EFF6FF',color:STATUS_COR[status]?.color||'#2563EB',border:`1px solid ${STATUS_COR[status]?.border||'#BFDBFE'}`}}>{status}</span>
                     </div>
                     <div style={{height:'1px',background:'rgba(255,255,255,.08)',margin:'2px 0'}} />
                     <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
-                      <span style={{fontSize:'13px',color:'#64748B'}}>Total</span>
+                      <span style={{fontSize:'13px',color:'#667085'}}>Total</span>
                       <span style={{fontSize:'18px',fontWeight:800,color:'#2563EB'}}>R$ {fmtBRL(total)}</span>
                     </div>
                     {valorPagoLocal>0&&(<>
                       <div style={{display:'flex',justifyContent:'space-between',fontSize:'13px'}}>
-                        <span style={{color:'#64748B'}}>Pago</span>
+                        <span style={{color:'#667085'}}>Pago</span>
                         <span style={{fontWeight:700,color:'#16A34A'}}>R$ {fmtBRL(valorPagoLocal)}</span>
                       </div>
                       <div style={{display:'flex',justifyContent:'space-between',fontSize:'13px'}}>
-                        <span style={{color:'#64748B'}}>Saldo</span>
+                        <span style={{color:'#667085'}}>Saldo</span>
                         <span style={{fontWeight:700,color:'#EA580C'}}>R$ {fmtBRL(saldoLocal)}</span>
                       </div>
                     </>)}
@@ -844,7 +927,7 @@ export default function Orcamentos() {
                 {/* Odontograma */}
                 {isOdonto&&(
                   <div className="cm-card" style={card}>
-                    <p style={{fontSize:'15px',fontWeight:700,color:'#F8FAFC',marginBottom:'12px'}}>🦷 Odontograma</p>
+                    <p style={{fontSize:'15px',fontWeight:700,color:'#0F172A',marginBottom:'12px'}}>🦷 Odontograma</p>
                     {[DENTES_SUPERIOR,DENTES_INFERIOR].map((arco,ai)=>(
                       <div key={ai} style={{display:'flex',gap:'4px',flexWrap:'wrap',marginBottom:'8px'}}>
                         {arco.slice(0,arco.length/2).map(n=>(
@@ -868,12 +951,12 @@ export default function Orcamentos() {
                       <div><label style={lbl}>Valor</label><input style={inp} type="number" placeholder="0,00" value={procValor} onChange={e=>setProcValor(e.target.value)} /></div>
                     </div>
                     <button onClick={adicionarProcOdonto} disabled={!procNome||dentesSelec.length===0}
-                      style={{border:'1.5px dashed #DCE3EA',borderRadius:'8px',padding:'10px',background:'transparent',color:'#64748B',fontSize:'13px',fontWeight:600,cursor:'pointer',fontFamily:'inherit',width:'100%',marginBottom:'10px'}}>
+                      style={{border:'1.5px dashed #DCE3EA',borderRadius:'8px',padding:'10px',background:'transparent',color:'#667085',fontSize:'13px',fontWeight:600,cursor:'pointer',fontFamily:'inherit',width:'100%',marginBottom:'10px'}}>
                       + Adicionar procedimento
                     </button>
                     {procOdonto.map((p,i)=>(
-                      <div key={i} style={{background:BG,border:'1px solid rgba(148,163,184,.14)',borderRadius:'8px',padding:'10px 12px',display:'flex',justifyContent:'space-between',marginBottom:'6px'}}>
-                        <span style={{fontSize:'13px',color:'#CBD5E1'}}>{p.dente?`Dente ${p.dente} — `:''}  {p.nome} · {p.status}</span>
+                      <div key={i} style={{background:BG,border:'1px solid #DCE3EA',borderRadius:'8px',padding:'10px 12px',display:'flex',justifyContent:'space-between',marginBottom:'6px'}}>
+                        <span style={{fontSize:'13px',color:'#374151'}}>{p.dente?`Dente ${p.dente} — `:''}  {p.nome} · {p.status}</span>
                         <div style={{display:'flex',gap:'8px'}}>
                           <span style={{fontSize:'13px',color:'#059669',fontWeight:700}}>R$ {fmtBRL(parseFloat(p.valor||'0'))}</span>
                           <button onClick={()=>setProcOdonto(prev=>prev.filter((_,j)=>j!==i))} style={{background:'none',border:'none',color:'#EF4444',cursor:'pointer',fontSize:'16px'}}>×</button>
@@ -903,8 +986,8 @@ export default function Orcamentos() {
                       {/* Cards resumo */}
                       <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'8px',margin:'16px 0'}}>
                         {[{l:'Total',v:total,c:'#0F172A'},{l:'Pago',v:valorPagoLocal,c:'#16A34A'},{l:'Saldo',v:saldoLocal,c:saldoLocal>0?'#EA580C':'#16A34A'}].map(f=>(
-                          <div key={f.l} style={{background:BG,borderRadius:'8px',padding:'10px',border:'1px solid rgba(148,163,184,.14)'}}>
-                            <p style={{fontSize:'10px',fontWeight:600,color:'#64748B',textTransform:'uppercase',letterSpacing:'.05em',marginBottom:'3px'}}>{f.l}</p>
+                          <div key={f.l} style={{background:BG,borderRadius:'8px',padding:'10px',border:'1px solid #DCE3EA'}}>
+                            <p style={{fontSize:'10px',fontWeight:600,color:'#667085',textTransform:'uppercase',letterSpacing:'.05em',marginBottom:'3px'}}>{f.l}</p>
                             <p style={{fontSize:'15px',fontWeight:800,color:f.c}}>R$ {fmtBRL(f.v)}</p>
                           </div>
                         ))}
@@ -915,12 +998,12 @@ export default function Orcamentos() {
                         <div style={{display:'flex',alignItems:'center',gap:'10px',marginBottom:exigirSinal?'12px':'0'}}>
                           <button onClick={()=>setExigirSinal(!exigirSinal)}
                             style={{width:'36px',height:'20px',borderRadius:'999px',border:'none',cursor:'pointer',position:'relative',background:exigirSinal?'#2563EB':'#D1D5DB'}}>
-                            <span style={{position:'absolute',top:'2px',left:exigirSinal?'18px':'2px',width:'16px',height:'16px',borderRadius:'50%',background:'linear-gradient(145deg,rgba(15,23,42,.97),rgba(8,20,33,.99))',transition:'left .2s'}} />
+                            <span style={{position:'absolute',top:'2px',left:exigirSinal?'18px':'2px',width:'16px',height:'16px',borderRadius:'50%',background:'#fff',transition:'left .2s'}} />
                           </button>
-                          <span style={{fontSize:'13px',color:'#F8FAFC',fontWeight:500,cursor:'pointer'}} onClick={()=>setExigirSinal(!exigirSinal)}>Exigir entrada/sinal?</span>
+                          <span style={{fontSize:'13px',color:'#0F172A',fontWeight:500,cursor:'pointer'}} onClick={()=>setExigirSinal(!exigirSinal)}>Exigir entrada/sinal?</span>
                         </div>
                         {exigirSinal&&(
-                          <div style={{background:BG,borderRadius:'10px',padding:'14px',border:'1px solid rgba(148,163,184,.14)',display:'flex',flexDirection:'column',gap:'10px'}}>
+                          <div style={{background:BG,borderRadius:'10px',padding:'14px',border:'1px solid #DCE3EA',display:'flex',flexDirection:'column',gap:'10px'}}>
                             <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'10px'}}>
                               <div><label style={lbl}>Tipo</label>
                                 <select style={sel} value={sinalTipo} onChange={e=>setSinalTipo(e.target.value)}>
@@ -970,7 +1053,7 @@ export default function Orcamentos() {
                       {/* Pagamentos registrados */}
                       <div style={{borderTop:'1px solid #F1F4F8',paddingTop:'14px'}}>
                         <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:'10px'}}>
-                          <p style={{fontSize:'13px',fontWeight:600,color:'#F8FAFC'}}>Pagamentos registrados</p>
+                          <p style={{fontSize:'13px',fontWeight:600,color:'#0F172A'}}>Pagamentos registrados</p>
                           <button onClick={()=>{setShowHpForm(!showHpForm);setEditandoPagIdx(null);setHpValor('');setHpForma('Pix');setHpFormaOutro('');setHpData(new Date().toISOString().split('T')[0]);setHpObs('')}}
                             style={{background:'#EFF6FF',border:'1.5px solid #BFDBFE',borderRadius:'6px',padding:'5px 12px',fontSize:'12px',fontWeight:600,color:'#2563EB',cursor:'pointer',fontFamily:'inherit'}}>
                             + Registrar pagamento
@@ -1002,7 +1085,7 @@ export default function Orcamentos() {
                               <div><label style={lbl}>Observação</label><input style={inp} type="text" placeholder="Ex: entrada, parcela 2..." value={hpObs} onChange={e=>setHpObs(e.target.value)} /></div>
                               <div style={{display:'flex',gap:'8px'}}>
                                 <button onClick={()=>{setShowHpForm(false);setEditandoPagIdx(null)}}
-                                  style={{flex:1,background:'#F8FAFC',border:'1.5px solid rgba(148,163,184,.18)',borderRadius:'8px',padding:'10px',fontSize:'13px',fontWeight:600,color:'#64748B',cursor:'pointer',fontFamily:'inherit'}}>Cancelar</button>
+                                  style={{flex:1,background:'#F8FAFC',border:'1.5px solid #DCE3EA',borderRadius:'8px',padding:'10px',fontSize:'13px',fontWeight:600,color:'#667085',cursor:'pointer',fontFamily:'inherit'}}>Cancelar</button>
                                 <button onClick={salvarHpPag}
                                   style={{flex:2,background:'#2563EB',border:'none',borderRadius:'8px',padding:'10px',fontSize:'13px',fontWeight:700,color:'#fff',cursor:'pointer',fontFamily:'inherit'}}>
                                   {editandoPagIdx!==null?'Atualizar':'Salvar pagamento'}
@@ -1018,13 +1101,13 @@ export default function Orcamentos() {
                             <div>
                               <div style={{display:'flex',alignItems:'center',gap:'8px',marginBottom:'2px'}}>
                                 <span style={{fontSize:'14px',fontWeight:700,color:'#16A34A'}}>R$ {fmtBRL(p.valor)}</span>
-                                <span style={{fontSize:'11px',color:'#64748B'}}>{p.forma}</span>
+                                <span style={{fontSize:'11px',color:'#667085'}}>{p.forma}</span>
                                 <span style={{fontSize:'11px',color:'#9CA3AF'}}>· {fmtData(p.data)}</span>
                               </div>
                               {p.obs&&<p style={{fontSize:'12px',color:'#475569'}}>{p.obs}</p>}
                             </div>
                             <div style={{display:'flex',gap:'6px'}}>
-                              <button onClick={()=>editarHpPag(i)} style={{background:'#F8FAFC',border:'1.5px solid rgba(148,163,184,.18)',borderRadius:'6px',padding:'3px 8px',fontSize:'11px',fontWeight:600,color:'#64748B',cursor:'pointer',fontFamily:'inherit'}}>Editar</button>
+                              <button onClick={()=>editarHpPag(i)} style={{background:'#F8FAFC',border:'1.5px solid #DCE3EA',borderRadius:'6px',padding:'3px 8px',fontSize:'11px',fontWeight:600,color:'#667085',cursor:'pointer',fontFamily:'inherit'}}>Editar</button>
                               <button onClick={()=>excluirHpPag(i)} style={{background:'#FEF2F2',border:'1.5px solid #FECACA',borderRadius:'6px',padding:'3px 8px',fontSize:'11px',fontWeight:600,color:'#DC2626',cursor:'pointer',fontFamily:'inherit'}}>Excluir</button>
                             </div>
                           </div>
@@ -1107,18 +1190,18 @@ export default function Orcamentos() {
                     </div>
                     <div style={{height:'1px',background:'rgba(255,255,255,.08)'}} />
                     <div>
-                      <p style={{fontSize:'11px',fontWeight:600,color:'#64748B',textTransform:'uppercase',letterSpacing:'.05em',marginBottom:'4px'}}>Total final</p>
+                      <p style={{fontSize:'11px',fontWeight:600,color:'#667085',textTransform:'uppercase',letterSpacing:'.05em',marginBottom:'4px'}}>Total final</p>
                       <p style={{fontSize:'24px',fontWeight:800,color:'#2563EB',letterSpacing:'-0.02em'}}>R$ {fmtBRL(total)}</p>
                     </div>
                     {valorPagoLocal>0&&(
                       <div>
-                        <p style={{fontSize:'11px',fontWeight:600,color:'#64748B',textTransform:'uppercase',letterSpacing:'.05em',marginBottom:'2px'}}>Valor pago</p>
+                        <p style={{fontSize:'11px',fontWeight:600,color:'#667085',textTransform:'uppercase',letterSpacing:'.05em',marginBottom:'2px'}}>Valor pago</p>
                         <p style={{fontSize:'16px',fontWeight:700,color:'#16A34A'}}>R$ {fmtBRL(valorPagoLocal)}</p>
                       </div>
                     )}
                     {saldoLocal>0&&(
                       <div>
-                        <p style={{fontSize:'11px',fontWeight:600,color:'#64748B',textTransform:'uppercase',letterSpacing:'.05em',marginBottom:'2px'}}>Saldo restante</p>
+                        <p style={{fontSize:'11px',fontWeight:600,color:'#667085',textTransform:'uppercase',letterSpacing:'.05em',marginBottom:'2px'}}>Saldo restante</p>
                         <p style={{fontSize:'16px',fontWeight:700,color:'#EA580C'}}>R$ {fmtBRL(saldoLocal)}</p>
                       </div>
                     )}
@@ -1164,18 +1247,18 @@ export default function Orcamentos() {
             <div className="cm-detalhe-pad" style={{padding:'28px 32px 60px',maxWidth:'900px'}}>
               <div style={{display:'flex',alignItems:'center',gap:'12px',marginBottom:'20px',flexWrap:'wrap'}}>
                 <button onClick={()=>{setView('lista');setShowPagForm(false)}}
-                  style={{background:'none',border:'none',cursor:'pointer',fontSize:'13px',color:'#64748B',fontFamily:'inherit'}}>← Voltar</button>
-                <h2 style={{fontSize:'20px',fontWeight:800,color:'#F8FAFC'}}>{orc.tipo} — {orc.cliente_nome}</h2>
+                  style={{background:'none',border:'none',cursor:'pointer',fontSize:'13px',color:'#667085',fontFamily:'inherit'}}>← Voltar</button>
+                <h2 style={{fontSize:'20px',fontWeight:800,color:'#0F172A'}}>{orc.tipo} — {orc.cliente_nome}</h2>
                 <span style={{fontSize:'11px',fontWeight:700,padding:'3px 10px',borderRadius:'999px',background:cfg.bg,color:cfg.color,border:`1px solid ${cfg.border}`}}>{orc.status}</span>
               </div>
               {mensagem&&<div style={{fontSize:'13px',padding:'10px 14px',borderRadius:'8px',marginBottom:'14px',background:'#F0FDF4',border:'1px solid #BBF7D0',color:'#16A34A'}}>{mensagem}</div>}
 
               <div style={card}>
-                <p style={{fontSize:'14px',fontWeight:700,color:'#F8FAFC',marginBottom:'14px'}}>📊 Resumo financeiro</p>
+                <p style={{fontSize:'14px',fontWeight:700,color:'#0F172A',marginBottom:'14px'}}>📊 Resumo financeiro</p>
                 <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'8px',marginBottom:'14px'}}>
                   {[{l:'Total',v:orc.total,c:'#0F172A'},{l:'Pago',v:orc.valor_pago,c:'#16A34A'},{l:'Saldo',v:orc.saldo_restante,c:orc.saldo_restante>0?'#EA580C':'#16A34A'}].map(f=>(
-                    <div key={f.l} style={{background:BG,borderRadius:'8px',padding:'12px',border:'1px solid rgba(148,163,184,.14)'}}>
-                      <p style={{fontSize:'10px',fontWeight:600,color:'#64748B',textTransform:'uppercase',letterSpacing:'.05em',marginBottom:'4px'}}>{f.l}</p>
+                    <div key={f.l} style={{background:BG,borderRadius:'8px',padding:'12px',border:'1px solid #DCE3EA'}}>
+                      <p style={{fontSize:'10px',fontWeight:600,color:'#667085',textTransform:'uppercase',letterSpacing:'.05em',marginBottom:'4px'}}>{f.l}</p>
                       <p style={{fontSize:'18px',fontWeight:800,color:f.c}}>R$ {fmtBRL(f.v)}</p>
                     </div>
                   ))}
@@ -1203,7 +1286,7 @@ export default function Orcamentos() {
                       </select></div>
                     <div style={{marginBottom:'12px'}}><label style={lbl}>Observação</label><input type="text" placeholder="Opcional" value={pagObs} onChange={e=>setPagObs(e.target.value)} style={inp} /></div>
                     <div style={{display:'flex',gap:'8px'}}>
-                      <button onClick={()=>setShowPagForm(false)} style={{flex:1,background:'#F8FAFC',border:'1.5px solid rgba(148,163,184,.18)',borderRadius:'8px',padding:'10px',fontSize:'13px',fontWeight:600,color:'#64748B',cursor:'pointer',fontFamily:'inherit'}}>Cancelar</button>
+                      <button onClick={()=>setShowPagForm(false)} style={{flex:1,background:'#F8FAFC',border:'1.5px solid #DCE3EA',borderRadius:'8px',padding:'10px',fontSize:'13px',fontWeight:600,color:'#667085',cursor:'pointer',fontFamily:'inherit'}}>Cancelar</button>
                       <button disabled={savingPag} onClick={()=>handleRegistrarPagamento(orc)} style={{flex:2,background:'#2563EB',border:'none',borderRadius:'8px',padding:'10px',fontSize:'13px',fontWeight:700,color:'#fff',cursor:'pointer',fontFamily:'inherit'}}>{savingPag?'Salvando...':'Confirmar pagamento'}</button>
                     </div>
                   </div>
@@ -1212,35 +1295,35 @@ export default function Orcamentos() {
 
               {(orc.servicos?.length>0)&&(
                 <div className="cm-card" style={card}>
-                  <p style={{fontSize:'14px',fontWeight:700,color:'#F8FAFC',marginBottom:'12px'}}>🛎 Serviços</p>
+                  <p style={{fontSize:'14px',fontWeight:700,color:'#0F172A',marginBottom:'12px'}}>🛎 Serviços</p>
                   {(orc.servicos||[]).map((s:any,i:number)=>(
                     <div key={i} style={{display:'flex',justifyContent:'space-between',padding:'8px 0',borderBottom:'1px solid rgba(255,255,255,.08)'}}>
-                      <div><p style={{fontSize:'13px',color:'#F8FAFC',fontWeight:600}}>{s.nome}</p><p style={{fontSize:'11px',color:'#9CA3AF'}}>{s.qtd||1}x · R$ {fmtBRL(parseFloat(s.unitario||'0'))}</p></div>
+                      <div><p style={{fontSize:'13px',color:'#0F172A',fontWeight:600}}>{s.nome}</p><p style={{fontSize:'11px',color:'#9CA3AF'}}>{s.qtd||1}x · R$ {fmtBRL(parseFloat(s.unitario||'0'))}</p></div>
                       <span style={{fontSize:'14px',fontWeight:700,color:'#059669'}}>R$ {fmtBRL(s.total||0)}</span>
                     </div>
                   ))}
                   <div style={{display:'flex',justifyContent:'space-between',fontSize:'16px',fontWeight:800,paddingTop:'10px',marginTop:'4px'}}>
-                    <span style={{color:'#F8FAFC'}}>Total</span><span style={{color:'#2563EB'}}>R$ {fmtBRL(orc.total)}</span>
+                    <span style={{color:'#0F172A'}}>Total</span><span style={{color:'#2563EB'}}>R$ {fmtBRL(orc.total)}</span>
                   </div>
                 </div>
               )}
 
               <div style={card}>
-                <p style={{fontSize:'14px',fontWeight:700,color:'#F8FAFC',marginBottom:'12px'}}>📜 Histórico de pagamentos</p>
+                <p style={{fontSize:'14px',fontWeight:700,color:'#0F172A',marginBottom:'12px'}}>📜 Histórico de pagamentos</p>
                 {pagamentos.length===0?<p style={{fontSize:'13px',color:'#9CA3AF'}}>Nenhum pagamento registrado.</p>
                 :pagamentos.map((p,i)=>(
                   <div key={i} style={{display:'flex',justifyContent:'space-between',padding:'8px 0',borderBottom:'1px solid rgba(255,255,255,.08)'}}>
-                    <div><p style={{fontSize:'13px',color:'#F8FAFC',fontWeight:600}}>{p.forma} · {fmtData(p.data)}</p>{p.observacao&&<p style={{fontSize:'11px',color:'#9CA3AF'}}>{p.observacao}</p>}</div>
+                    <div><p style={{fontSize:'13px',color:'#0F172A',fontWeight:600}}>{p.forma} · {fmtData(p.data)}</p>{p.observacao&&<p style={{fontSize:'11px',color:'#9CA3AF'}}>{p.observacao}</p>}</div>
                     <span style={{fontSize:'14px',fontWeight:700,color:'#16A34A'}}>R$ {fmtBRL(p.valor)}</span>
                   </div>
                 ))}
               </div>
 
               <div style={card}>
-                <p style={{fontSize:'14px',fontWeight:700,color:'#F8FAFC',marginBottom:'10px'}}>👤 Cliente</p>
-                <p style={{fontSize:'14px',fontWeight:600,color:'#F8FAFC',marginBottom:'4px'}}>{orc.cliente_nome}</p>
-                {orc.cliente_whatsapp&&<p style={{fontSize:'13px',color:'#64748B',marginBottom:'2px'}}>📱 {aplicarMascaraTel(orc.cliente_whatsapp)}</p>}
-                {orc.cliente_email&&<p style={{fontSize:'13px',color:'#64748B'}}>✉️ {orc.cliente_email}</p>}
+                <p style={{fontSize:'14px',fontWeight:700,color:'#0F172A',marginBottom:'10px'}}>👤 Cliente</p>
+                <p style={{fontSize:'14px',fontWeight:600,color:'#0F172A',marginBottom:'4px'}}>{orc.cliente_nome}</p>
+                {orc.cliente_whatsapp&&<p style={{fontSize:'13px',color:'#667085',marginBottom:'2px'}}>📱 {aplicarMascaraTel(orc.cliente_whatsapp)}</p>}
+                {orc.cliente_email&&<p style={{fontSize:'13px',color:'#667085'}}>✉️ {orc.cliente_email}</p>}
                 {orc.observacoes&&<p style={{fontSize:'13px',color:'#9CA3AF',marginTop:'8px'}}>{orc.observacoes}</p>}
               </div>
             </div>
