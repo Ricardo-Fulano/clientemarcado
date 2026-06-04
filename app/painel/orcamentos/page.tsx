@@ -398,6 +398,8 @@ export default function Orcamentos() {
   }
 
   const isOdonto=perfil?.tipo_negocio?.toLowerCase().includes('odont')
+  const [usarOdontograma,setUsarOdontograma]=useState(false)
+  const mostrarOdontograma=usarOdontograma||tipo==='Tratamento'||isOdonto
   const DENTES_SUPERIOR=[18,17,16,15,14,13,12,11,21,22,23,24,25,26,27,28]
   const DENTES_INFERIOR=[48,47,46,45,44,43,42,41,31,32,33,34,35,36,37,38]
   function toggleDente(n:number){setDentesSelec(prev=>prev.includes(n)?prev.filter(d=>d!==n):[...prev,n])}
@@ -429,13 +431,7 @@ export default function Orcamentos() {
   const card:React.CSSProperties={background:'rgba(255,255,255,.06)',borderRadius:'16px',padding:'20px 24px',marginBottom:'12px',border:'1px solid rgba(255,255,255,.1)',boxShadow:'0 4px 20px rgba(0,0,0,.2)'}
 
 
-  if(loading) return (
-    <div style={{display:'flex',minHeight:'100vh',background:BG}}>
-      <div style={{marginLeft:'220px',flex:1,display:'flex',alignItems:'center',justifyContent:'center',background:'#07111F'}}>
-        <p style={{color:'#94A3B8',fontSize:'14px'}}>Carregando...</p>
-      </div>
-    </div>
-  )
+  if(loading) return (<div style={{minHeight:'100vh',background:'#050B16',display:'flex',alignItems:'center',justifyContent:'center',fontFamily:'system-ui'}}><p style={{color:'#64748B',fontSize:'14px'}}>Carregando...</p></div>)
 
   return (
     <div style={{display:'flex',minHeight:'100vh',background:BG,fontFamily:'-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif',overflowX:'hidden',width:'100%',maxWidth:'100%',position:'relative'}}>
@@ -443,9 +439,13 @@ export default function Orcamentos() {
 
       <PainelSidebar nome={perfil?.nome_negocio||''} tituloMobile='Orçamentos' />
 
+      {/* Mobile Overlay */}
 
+      {/* Mobile Drawer */}
       <div className="psb-main" style={{flex:1,minWidth:0,minHeight:'100vh',display:'flex',flexDirection:'column'}}>
 
+        {/* Mobile Header — inside cm-main so it pushes content down */}
+        </div>
 
         {/* ══ LISTA ══ */}
         {view==='lista'&&(
@@ -810,7 +810,7 @@ export default function Orcamentos() {
                   </div>
 
                   {itens.map((item,idx)=>(
-                    <div key={idx} style={{marginBottom:'12px',padding:'14px',background:'#F8FAFC',borderRadius:'12px',border:'1px solid #DCE3EA',width:'100%',maxWidth:'100%',boxSizing:'border-box'}}>
+                    <div key={idx} style={{marginBottom:'12px',padding:'14px',background:'rgba(15,23,42,.88)',borderRadius:'12px',border:'1px solid #DCE3EA',width:'100%',maxWidth:'100%',boxSizing:'border-box'}}>
                       <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'10px'}}>
                         <span style={{fontSize:'11px',fontWeight:600,color:'#64748B',textTransform:'uppercase',letterSpacing:'.05em'}}>Item {idx+1}</span>
                         {itens.length>1&&(
@@ -913,8 +913,19 @@ export default function Orcamentos() {
                 </div>
 
                 {/* Odontograma */}
-                {isOdonto&&(
-                  <div className="cm-card" style={card}>
+                {!mostrarOdontograma&&(
+                    <div style={{marginBottom:12}}>
+                      <button onClick={()=>setUsarOdontograma(true)} style={{display:'flex',alignItems:'center',gap:8,background:'rgba(34,211,238,.08)',border:'1.5px solid rgba(34,211,238,.22)',borderRadius:14,padding:'12px 18px',cursor:'pointer',fontFamily:'inherit',width:'100%'}}>
+                        <span style={{fontSize:18}}>🦷</span>
+                        <div style={{textAlign:'left'}}>
+                          <p style={{fontSize:13,fontWeight:700,color:'#22D3EE',marginBottom:2}}>+ Usar odontograma</p>
+                          <p style={{fontSize:11,color:'#64748B'}}>Selecione dentes e registre procedimentos odontológicos</p>
+                        </div>
+                      </button>
+                    </div>
+                  )}
+                  {mostrarOdontograma&&(
+                    <div className="cm-card" style={card}>
                     <p style={{fontSize:'15px',fontWeight:700,color:'#0F172A',marginBottom:'12px'}}>🦷 Odontograma</p>
                     {[DENTES_SUPERIOR,DENTES_INFERIOR].map((arco,ai)=>(
                       <div key={ai} style={{display:'flex',gap:'4px',flexWrap:'wrap',marginBottom:'8px'}}>
