@@ -10,7 +10,8 @@ const SB=[
   {h:'/painel/clientes',l:'Clientes'},{h:'/painel/orcamentos',l:'Orcamentos'},
   {h:'/painel/cobrancas',l:'Cobrancas'},{h:'/painel/pagamentos',l:'Pagamentos'},
   {h:'/painel/servicos',l:'Servicos'},{h:'/painel/profissionais',l:'Profissionais'},
-  {h:'/painel/relatorio',l:'Relatorios'},{h:'/painel/perfil',l:'Configuracoes'},
+  {h:'/painel/relatorio',l:'Relatorios'},{h:'/painel/suporte',l:'Suporte'},
+  {h:'/painel/perfil',l:'Configuracoes'},
 ]
 const CSS=`
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
