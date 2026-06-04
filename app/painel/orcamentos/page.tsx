@@ -16,13 +16,13 @@ const STATUS_COR: Record<string, {bg:string;color:string;border:string}> = {
 }
 
 function fmtBRL(v:number){return (v||0).toLocaleString('pt-BR',{minimumFractionDigits:2})}
-function fmtData(d:string){if(!d)return '';const[a,m,di]=d.split('-');return `${di}/${m}/${a}`}
+function fmtData(d:string){if(!d)return '';const[a,m,di]=d.split('-');return di+'/'+m+'/'+a}
 function aplicarMascaraTel(v:string){
   const n=v.replace(/\D/g,'').slice(0,11)
-  if(n.length>10)return `(${n.slice(0,2)}) ${n.slice(2,7)}-${n.slice(7)}`
-  if(n.length>6) return `(${n.slice(0,2)}) ${n.slice(2,6)}-${n.slice(6)}`
-  if(n.length>2) return `(${n.slice(0,2)}) ${n.slice(2)}`
-  if(n.length>0) return `(${n}`
+  if(n.length>10)return '('+n.slice(0,2)+') '+n.slice(2,7)+'-'+n.slice(7)
+  if(n.length>6) return '('+n.slice(0,2)+') '+n.slice(2,6)+'-'+n.slice(6)
+  if(n.length>2) return '('+n.slice(0,2)+') '+n.slice(2)
+  if(n.length>0) return '('+n
   return ''
 }
 
@@ -321,9 +321,9 @@ export default function Orcamentos() {
 
   function enviarWpp(orc:any){
     const tel=(orc.cliente_whatsapp||'').replace(/\D/g,''); if(!tel) return
-    let msg=`Olá, ${orc.cliente_nome}!\n\nSeu ${orc.tipo} — Total: R$ ${fmtBRL(orc.total)}\nPago: R$ ${fmtBRL(orc.valor_pago)}\nSaldo: R$ ${fmtBRL(orc.saldo_restante)}`
-    if(orc.link_pagamento) msg+=`\n\nLink:\n${orc.link_pagamento}`
-    msg+=`\n\nApós pagar, envie o comprovante. Obrigado!`
+    let msg='Olá, '+orc.cliente_nome+'!\n\nSeu '+orc.tipo+' — Total: R$ '+fmtBRL(orc.total)+'\nPago: R$ '+fmtBRL(orc.valor_pago)+'\nSaldo: R$ '+fmtBRL(orc.saldo_restante)
+    if(orc.link_pagamento) msg+='\n\nLink:\n'+orc.link_pagamento
+    msg+='\n\nApós pagar, envie o comprovante. Obrigado!'
     window.open('https://wa.me/55'+tel+'?text='+encodeURIComponent(msg),'_blank')
   }
 
@@ -346,9 +346,10 @@ export default function Orcamentos() {
   function gerarMsgCobranca(){
     const tipoDoc=tipo==='__outro__'?tipoOutro:tipo
     const neg=perfil?.nome_negocio||'nosso negócio'
-    let msg=`Olá, ${clienteNome||'cliente'}! Aqui é d${(neg[0]&&'aeiouAEIOUáéíóúÁÉÍÓÚ'.includes(neg[0])?'a ':'o ')}${neg}.\n\nSeu ${tipoDoc}: R$ ${fmtBRL(total)}.\nPago: R$ ${fmtBRL(valorPagoLocal)}. Saldo: R$ ${fmtBRL(saldoLocal)}.`
-    if(linkPag) msg+=`\n\nPagamento:\n${linkPag}`
-    msg+=`\n\nApós pagar, envie o comprovante. Obrigado!`
+    const artigo=(neg[0]&&'aeiouAEIOU'.includes(neg[0]))?'a ':'o '
+    let msg='Olá, '+(clienteNome||'cliente')+'! Aqui é d'+artigo+neg+'.\n\nSeu '+tipoDoc+': R$ '+fmtBRL(total)+'.\nPago: R$ '+fmtBRL(valorPagoLocal)+'. Saldo: R$ '+fmtBRL(saldoLocal)+'.
+    if(linkPag) msg+='\n\nPagamento:\n'+linkPag
+    msg+='\n\nApós pagar, envie o comprovante. Obrigado!'
     return msg
   }
 
@@ -471,8 +472,8 @@ export default function Orcamentos() {
                   {icon:'✅',label:'Recebido no mês',valor:recebidoMes,fmt:'brl',cor:'#22C55E',bg:'rgba(34,197,94,.12)',border:'rgba(34,197,94,.25)'},
                   {icon:'🔄',label:'Parciais',valor:parciais,fmt:'n',cor:'#A78BFA',bg:'rgba(167,139,250,.12)',border:'rgba(167,139,250,.25)'},
                 ].map(m=>(
-                  <div key={m.label} style={{background:m.bg,border:`1px solid ${m.border}`,borderRadius:'14px',padding:'16px',boxSizing:'border-box' as const}}>
-                    <div style={{width:'36px',height:'36px',borderRadius:'10px',background:m.bg,border:`1px solid ${m.border}`,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'18px',marginBottom:'10px'}}>
+                  <div key={m.label} style={{background:m.bg,border:'1px solid '+m.border,borderRadius:'14px',padding:'16px',boxSizing:'border-box' as const}}>
+                    <div style={{width:'36px',height:'36px',borderRadius:'10px',background:m.bg,border:'1px solid '+m.border,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'18px',marginBottom:'10px'}}>
                       {m.icon}
                     </div>
                     <p style={{fontSize:'11px',fontWeight:600,color:'#94A3B8',textTransform:'uppercase' as const,letterSpacing:'.05em',marginBottom:'4px'}}>{m.label}</p>
@@ -550,7 +551,7 @@ export default function Orcamentos() {
                           <p style={{fontSize:'14px',fontWeight:700,color:'#fff'}}>R$ {fmtBRL(orc.total)}</p>
                           <p style={{fontSize:'14px',fontWeight:600,color:'#22C55E'}}>R$ {fmtBRL(orc.valor_pago)}</p>
                           <p style={{fontSize:'14px',fontWeight:600,color:orc.saldo_restante>0?'#F59E0B':'#22C55E'}}>R$ {fmtBRL(orc.saldo_restante)}</p>
-                          <span style={{fontSize:'11px',fontWeight:700,padding:'4px 10px',borderRadius:'999px',background:cfg.bg,color:cfg.color,border:`1px solid ${cfg.border}`,display:'inline-block'}}>
+                          <span style={{fontSize:'11px',fontWeight:700,padding:'4px 10px',borderRadius:'999px',background:cfg.bg,color:cfg.color,border:'1px solid '+cfg.border,display:'inline-block'}}>
                             {orc.status}
                           </span>
                           <div style={{display:'flex',gap:'5px'}}>
@@ -579,7 +580,7 @@ export default function Orcamentos() {
                               <p style={{fontSize:'15px',fontWeight:700,color:'#fff',marginBottom:'2px'}}>{orc.cliente_nome}</p>
                               <p style={{fontSize:'12px',color:'#64748B'}}>{orc.tipo} · {fmtData(orc.data)}</p>
                             </div>
-                            <span style={{fontSize:'11px',fontWeight:700,padding:'3px 10px',borderRadius:'999px',background:cfg.bg,color:cfg.color,border:`1px solid ${cfg.border}`,whiteSpace:'nowrap' as const}}>
+                            <span style={{fontSize:'11px',fontWeight:700,padding:'3px 10px',borderRadius:'999px',background:cfg.bg,color:cfg.color,border:'1px solid '+cfg.border,whiteSpace:'nowrap' as const}}>
                               {orc.status}
                             </span>
                           </div>
@@ -678,7 +679,7 @@ export default function Orcamentos() {
               <div style={{fontSize:'13px',padding:'10px 14px',borderRadius:'8px',marginBottom:'16px',
                 color:mensagem.includes('rro')?'#F87171':'#4ADE80',
                 background:mensagem.includes('rro')?'rgba(220,38,38,.15)':'rgba(34,197,94,.15)',
-                border:`1px solid ${mensagem.includes('rro')?'rgba(220,38,38,.3)':'rgba(34,197,94,.3)'}`}}>
+                border:(mensagem.includes('rro')?'1px solid rgba(220,38,38,.3)':'1px solid rgba(34,197,94,.3)')}}>
                 {mensagem}
               </div>
             )}
@@ -831,7 +832,7 @@ export default function Orcamentos() {
                         </div>
                       </div>
                       {/* Total */}
-                      <div style={{background:item.total>0?'rgba(34,197,94,.12)':'rgba(255,255,255,.04)',border:`1.5px solid ${item.total>0?'rgba(34,197,94,.3)':'rgba(255,255,255,.08)'}`,borderRadius:'8px',padding:'10px 14px',display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'8px'}}>
+                      <div style={{background:item.total>0?'rgba(34,197,94,.12)':'rgba(255,255,255,.04)',border:(item.total>0?'1.5px solid rgba(34,197,94,.3)':'1.5px solid rgba(255,255,255,.08)'),borderRadius:'8px',padding:'10px 14px',display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'8px'}}>
                         <span style={{fontSize:'12px',color:'#94A3B8',fontWeight:600}}>Total</span>
                         <span style={{fontSize:'16px',fontWeight:800,color:item.total>0?'#4ADE80':'#475569'}}>R$ {fmtBRL(item.total||0)}</span>
                       </div>
@@ -880,7 +881,7 @@ export default function Orcamentos() {
                     </div>
                     <div style={{display:'flex',justifyContent:'space-between',fontSize:'13px'}}>
                       <span style={{color:'#667085'}}>Status</span>
-                      <span style={{fontSize:'11px',fontWeight:700,padding:'2px 8px',borderRadius:'999px',background:STATUS_COR[status]?.bg||'#EFF6FF',color:STATUS_COR[status]?.color||'#2563EB',border:`1px solid ${STATUS_COR[status]?.border||'#BFDBFE'}`}}>{status}</span>
+                      <span style={{fontSize:'11px',fontWeight:700,padding:'2px 8px',borderRadius:'999px',background:STATUS_COR[status]?.bg||'#EFF6FF',color:STATUS_COR[status]?.color||'#2563EB',border:'1px solid '+(STATUS_COR[status]?.border||'#BFDBFE')}}>{status}</span>
                     </div>
                     <div style={{height:'1px',background:'rgba(255,255,255,.08)',margin:'2px 0'}} />
                     <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
@@ -908,14 +909,14 @@ export default function Orcamentos() {
                       <div key={ai} style={{display:'flex',gap:'4px',flexWrap:'wrap',marginBottom:'8px'}}>
                         {arco.slice(0,arco.length/2).map(n=>(
                           <button key={n} onClick={()=>toggleDente(n)}
-                            style={{width:'32px',height:'32px',borderRadius:'6px',background:dentesSelec.includes(n)?'rgba(34,211,238,.25)':'rgba(255,255,255,.06)',color:dentesSelec.includes(n)?'#22D3EE':'#94A3B8',border:`1.5px solid ${dentesSelec.includes(n)?'#22D3EE':'rgba(148,163,184,.18)'}`,fontSize:'10px',fontWeight:700,cursor:'pointer',fontFamily:'inherit'}}>
+                            style={{width:'32px',height:'32px',borderRadius:'6px',background:dentesSelec.includes(n)?'rgba(34,211,238,.25)':'rgba(255,255,255,.06)',color:dentesSelec.includes(n)?'#22D3EE':'#94A3B8',border:(dentesSelec.includes(n)?'1.5px solid #22D3EE':'1.5px solid rgba(148,163,184,.18)'),fontSize:'10px',fontWeight:700,cursor:'pointer',fontFamily:'inherit'}}>
                             {n}
                           </button>
                         ))}
                         <div style={{width:'1px',background:'#DCE3EA',margin:'0 4px'}} />
                         {arco.slice(arco.length/2).map(n=>(
                           <button key={n} onClick={()=>toggleDente(n)}
-                            style={{width:'32px',height:'32px',borderRadius:'6px',background:dentesSelec.includes(n)?'rgba(34,211,238,.25)':'rgba(255,255,255,.06)',color:dentesSelec.includes(n)?'#22D3EE':'#94A3B8',border:`1.5px solid ${dentesSelec.includes(n)?'#22D3EE':'rgba(148,163,184,.18)'}`,fontSize:'10px',fontWeight:700,cursor:'pointer',fontFamily:'inherit'}}>
+                            style={{width:'32px',height:'32px',borderRadius:'6px',background:dentesSelec.includes(n)?'rgba(34,211,238,.25)':'rgba(255,255,255,.06)',color:dentesSelec.includes(n)?'#22D3EE':'#94A3B8',border:(dentesSelec.includes(n)?'1.5px solid #22D3EE':'1.5px solid rgba(148,163,184,.18)'),fontSize:'10px',fontWeight:700,cursor:'pointer',fontFamily:'inherit'}}>
                             {n}
                           </button>
                         ))}
@@ -932,7 +933,7 @@ export default function Orcamentos() {
                     </button>
                     {procOdonto.map((p,i)=>(
                       <div key={i} style={{background:BG,border:'1px solid #DCE3EA',borderRadius:'8px',padding:'10px 12px',display:'flex',justifyContent:'space-between',marginBottom:'6px'}}>
-                        <span style={{fontSize:'13px',color:'#374151'}}>{p.dente?`Dente ${p.dente} — `:''}  {p.nome} · {p.status}</span>
+                        <span style={{fontSize:'13px',color:'#374151'}}>{p.dente?'Dente '+p.dente+' — ':''}  {p.nome} · {p.status}</span>
                         <div style={{display:'flex',gap:'8px'}}>
                           <span style={{fontSize:'13px',color:'#059669',fontWeight:700}}>R$ {fmtBRL(parseFloat(p.valor||'0'))}</span>
                           <button onClick={()=>setProcOdonto(prev=>prev.filter((_,j)=>j!==i))} style={{background:'none',border:'none',color:'#EF4444',cursor:'pointer',fontSize:'16px'}}>×</button>
@@ -951,7 +952,7 @@ export default function Orcamentos() {
                       <div>
                         <p style={{fontSize:'14px',fontWeight:700,color:'#fff'}}>Pagamento</p>
                         <p style={{fontSize:'12px',color:'#64748B',marginTop:'1px'}}>
-                          {valorPagoLocal>0?`Pago: R$ ${fmtBRL(valorPagoLocal)} · Saldo: R$ ${fmtBRL(saldoLocal)}`:'Entrada, pagamentos parciais e link de cobrança.'}
+                          {valorPagoLocal>0?'Pago: R$ '+fmtBRL(valorPagoLocal)+' · Saldo: R$ '+fmtBRL(saldoLocal):'Entrada, pagamentos parciais e link de cobrança.'}
                         </p>
                       </div>
                     </div>
@@ -1183,7 +1184,7 @@ export default function Orcamentos() {
                     )}
                     <div>
                       <p style={{fontSize:'11px',fontWeight:600,color:'#64748B',textTransform:'uppercase',letterSpacing:'.05em',marginBottom:'4px'}}>Status</p>
-                      <span style={{fontSize:'12px',fontWeight:600,padding:'3px 10px',borderRadius:'999px',background:STATUS_COR[status]?.bg||'#EFF6FF',color:STATUS_COR[status]?.color||'#2563EB',border:`1px solid ${STATUS_COR[status]?.border||'#BFDBFE'}`}}>{status}</span>
+                      <span style={{fontSize:'12px',fontWeight:600,padding:'3px 10px',borderRadius:'999px',background:STATUS_COR[status]?.bg||'#EFF6FF',color:STATUS_COR[status]?.color||'#2563EB',border:'1px solid '+(STATUS_COR[status]?.border||'#BFDBFE')}}>{status}</span>
                     </div>
                   </div>
 
@@ -1225,7 +1226,7 @@ export default function Orcamentos() {
                 <button onClick={()=>{setView('lista');setShowPagForm(false)}}
                   style={{background:'none',border:'none',cursor:'pointer',fontSize:'13px',color:'#667085',fontFamily:'inherit'}}>← Voltar</button>
                 <h2 style={{fontSize:'20px',fontWeight:800,color:'#F8FAFC'}}>{orc.tipo} — {orc.cliente_nome}</h2>
-                <span style={{fontSize:'11px',fontWeight:700,padding:'3px 10px',borderRadius:'999px',background:cfg.bg,color:cfg.color,border:`1px solid ${cfg.border}`}}>{orc.status}</span>
+                <span style={{fontSize:'11px',fontWeight:700,padding:'3px 10px',borderRadius:'999px',background:cfg.bg,color:cfg.color,border:'1px solid '+cfg.border}}>{orc.status}</span>
               </div>
               {mensagem&&<div style={{fontSize:'13px',padding:'10px 14px',borderRadius:'8px',marginBottom:'14px',background:'#F0FDF4',border:'1px solid #BBF7D0',color:'#16A34A'}}>{mensagem}</div>}
 
