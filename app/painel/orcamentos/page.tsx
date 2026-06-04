@@ -347,7 +347,7 @@ export default function Orcamentos() {
     const tipoDoc=tipo==='__outro__'?tipoOutro:tipo
     const neg=perfil?.nome_negocio||'nosso negócio'
     const artigo=(neg[0]&&'aeiouAEIOU'.includes(neg[0]))?'a ':'o '
-    let msg='Olá, '+(clienteNome||'cliente')+'! Aqui é d'+artigo+neg+'.\n\nSeu '+tipoDoc+': R$ '+fmtBRL(total)+'.\nPago: R$ '+fmtBRL(valorPagoLocal)+'. Saldo: R$ '+fmtBRL(saldoLocal)+'.
+    let msg='Olá, '+(clienteNome||'cliente')+'! Aqui é d'+artigo+neg+'.\n\nSeu '+tipoDoc+': R$ '+fmtBRL(total)+'.\nPago: R$ '+fmtBRL(valorPagoLocal)+'. Saldo: R$ '+fmtBRL(saldoLocal)+'.'
     if(linkPag) msg+='\n\nPagamento:\n'+linkPag
     msg+='\n\nApós pagar, envie o comprovante. Obrigado!'
     return msg
