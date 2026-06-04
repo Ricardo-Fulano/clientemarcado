@@ -2,17 +2,16 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../../lib/supabase'
 import Link from 'next/link'
-import PainelSidebar from '@/app/components/PainelSidebar'
 
 const STATUS_LIST = ['Todos','Aberto','Aguardando aprovação','Em andamento','Parcialmente pago','Pago','Finalizado','Cancelado']
 const STATUS_COR: Record<string, {bg:string;color:string;border:string}> = {
-  'Aberto':               {bg:'#EFF6FF',color:'#2563EB',border:'#BFDBFE'},
-  'Aguardando aprovação': {bg:'#FFFBEB',color:'#D97706',border:'#FDE68A'},
-  'Em andamento':         {bg:'#F5F3FF',color:'#7C3AED',border:'#DDD6FE'},
-  'Parcialmente pago':    {bg:'#FFF7ED',color:'#EA580C',border:'#FED7AA'},
-  'Pago':                 {bg:'#F0FDF4',color:'#16A34A',border:'#BBF7D0'},
-  'Finalizado':           {bg:'#F0FDF4',color:'#15803D',border:'#86EFAC'},
-  'Cancelado':            {bg:'#FEF2F2',color:'#DC2626',border:'#FECACA'},
+  'Aberto':               {bg:'rgba(59,130,246,.15)',  color:'#60A5FA', border:'rgba(59,130,246,.35)'},
+  'Aguardando aprovação': {bg:'rgba(245,158,11,.15)',  color:'#FACC15', border:'rgba(245,158,11,.35)'},
+  'Em andamento':         {bg:'rgba(124,58,237,.15)',  color:'#A78BFA', border:'rgba(124,58,237,.35)'},
+  'Parcialmente pago':    {bg:'rgba(249,115,22,.15)',  color:'#FB923C', border:'rgba(249,115,22,.35)'},
+  'Pago':                 {bg:'rgba(34,197,94,.15)',   color:'#22C55E', border:'rgba(34,197,94,.35)'},
+  'Finalizado':           {bg:'rgba(34,197,94,.12)',   color:'#22C55E', border:'rgba(34,197,94,.28)'},
+  'Cancelado':            {bg:'rgba(239,68,68,.15)',   color:'#F87171', border:'rgba(239,68,68,.35)'},
 }
 
 function fmtBRL(v:number){return (v||0).toLocaleString('pt-BR',{minimumFractionDigits:2})}
@@ -126,6 +125,7 @@ const MOBILE_CSS = `
 
 export default function Orcamentos() {
   const [userId,setUserId]=useState('')
+  const [mobileMenuOpen,setMobileMenuOpen]=useState(false)
   const [perfil,setPerfil]=useState<any>(null)
   const [profissionais,setProfissionais]=useState<any[]>([])
   const [orcamentos,setOrcamentos]=useState<any[]>([])
@@ -190,6 +190,7 @@ export default function Orcamentos() {
   const [showHpForm,setShowHpForm]=useState(false)
   const [showSinal,setShowSinal]=useState(false)
   const [showLinkPag,setShowLinkPag]=useState(false)
+  const [usarOdontograma,setUsarOdontograma]=useState(false)
 
   useEffect(()=>{init()},[])
 
@@ -397,9 +398,6 @@ export default function Orcamentos() {
     if(editandoPagIdx===idx){setEditandoPagIdx(null);setShowHpForm(false)}
   }
 
-  const isOdonto=perfil?.tipo_negocio?.toLowerCase().includes('odont')
-  const [usarOdontograma,setUsarOdontograma]=useState(false)
-  const mostrarOdontograma=usarOdontograma||tipo==='Tratamento'||isOdonto
   const DENTES_SUPERIOR=[18,17,16,15,14,13,12,11,21,22,23,24,25,26,27,28]
   const DENTES_INFERIOR=[48,47,46,45,44,43,42,41,31,32,33,34,35,36,37,38]
   function toggleDente(n:number){setDentesSelec(prev=>prev.includes(n)?prev.filter(d=>d!==n):[...prev,n])}
@@ -422,28 +420,100 @@ export default function Orcamentos() {
   const parciais=orcamentos.filter(o=>o.status==='Parcialmente pago').length
   const orcDetalhe=orcamentos.find(o=>o.id===detalheId)
 
+  const isOdonto=perfil?.tipo_negocio?.toLowerCase().includes('odont')
+  const mostrarOdontograma=usarOdontograma||tipo==='Tratamento'||isOdonto
+
   // Style constants
-  const BG='#050B16'
+  const BG='#F1F4F8'
   const SIDEBAR='#0B172A'
   const inp:React.CSSProperties={width:'100%',border:'1.5px solid rgba(255,255,255,.12)',borderRadius:'8px',padding:'10px 14px',fontSize:'15px',color:'#fff',outline:'none',fontFamily:'inherit',background:'rgba(255,255,255,.06)',boxSizing:'border-box' as const}
   const sel:React.CSSProperties={...inp,cursor:'pointer',appearance:'none' as any,color:'#fff'}
   const lbl:React.CSSProperties={fontSize:'12px',fontWeight:600,color:'#94A3B8',textTransform:'uppercase' as const,letterSpacing:'.05em',display:'block',marginBottom:'6px'}
   const card:React.CSSProperties={background:'rgba(255,255,255,.06)',borderRadius:'16px',padding:'20px 24px',marginBottom:'12px',border:'1px solid rgba(255,255,255,.1)',boxShadow:'0 4px 20px rgba(0,0,0,.2)'}
 
+  // Sidebar component
+  const Sidebar = () => (
+    <div className="cm-sidebar" style={{width:'220px',minHeight:'100vh',background:SIDEBAR,display:'flex',flexDirection:'column',position:'fixed',top:0,left:0,zIndex:30,flexShrink:0}}>
+      <div style={{padding:'20px 16px 16px',borderBottom:'1px solid rgba(255,255,255,.08)'}}>
+        <span style={{fontSize:'15px',fontWeight:800,color:'#fff',letterSpacing:'-0.02em'}}>ClienteMarcado</span>
+      </div>
+      <nav style={{flex:1,padding:'12px 8px'}}>
+        {SIDEBAR_ITEMS.map(item=>(
+          <Link key={item.label} href={item.href}
+            style={{display:'flex',alignItems:'center',gap:'10px',padding:'9px 12px',borderRadius:'8px',marginBottom:'2px',textDecoration:'none',background:item.active?'#2563EB':'transparent',color:item.active?'#fff':'rgba(255,255,255,.65)',fontSize:'13px',fontWeight:item.active?600:400,transition:'all .15s'}}>
+            <span style={{fontSize:'16px'}}>{item.icon}</span>
+            {item.label}
+          </Link>
+        ))}
+      </nav>
+      <div style={{padding:'12px 16px',borderTop:'1px solid rgba(255,255,255,.08)',display:'flex',alignItems:'center',gap:'10px'}}>
+        <div style={{width:'32px',height:'32px',borderRadius:'50%',background:'#2563EB',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'14px',fontWeight:700,color:'#fff',flexShrink:0}}>
+          {(perfil?.nome_negocio||'N').charAt(0).toUpperCase()}
+        </div>
+        <div>
+          <p style={{fontSize:'12px',fontWeight:600,color:'#fff',lineHeight:1.2}}>{perfil?.nome_negocio||'Meu negócio'}</p>
+          <p style={{fontSize:'11px',color:'rgba(255,255,255,.5)',marginTop:'2px'}}>Ver perfil</p>
+        </div>
+      </div>
+    </div>
+  )
 
-  if(loading) return (<div style={{minHeight:'100vh',background:'#050B16',display:'flex',alignItems:'center',justifyContent:'center',fontFamily:'system-ui'}}><p style={{color:'#64748B',fontSize:'14px'}}>Carregando...</p></div>)
+  if(loading) return (
+    <div style={{display:'flex',minHeight:'100vh',background:BG}}>
+      <Sidebar />
+      <div style={{marginLeft:'220px',flex:1,display:'flex',alignItems:'center',justifyContent:'center',background:'#07111F'}}>
+        <p style={{color:'#94A3B8',fontSize:'14px'}}>Carregando...</p>
+      </div>
+    </div>
+  )
 
   return (
     <div style={{display:'flex',minHeight:'100vh',background:BG,fontFamily:'-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif',overflowX:'hidden',width:'100%',maxWidth:'100%',position:'relative'}}>
       <style dangerouslySetInnerHTML={{__html:MOBILE_CSS}} />
 
-      <PainelSidebar nome={perfil?.nome_negocio||''} tituloMobile='Orçamentos' />
-
       {/* Mobile Overlay */}
+      <div className={`cm-overlay${mobileMenuOpen?' open':''}`} onClick={()=>setMobileMenuOpen(false)} />
 
       {/* Mobile Drawer */}
-      <div className="psb-main" style={{flex:1,minWidth:0,minHeight:'100vh',display:'flex',flexDirection:'column'}}>
+      <div className={`cm-drawer${mobileMenuOpen?' open':''}`}>
+        <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'16px 20px',borderBottom:'1px solid rgba(255,255,255,.08)'}}>
+          <span style={{fontSize:'15px',fontWeight:800,color:'#fff'}}>ClienteMarcado</span>
+          <button onClick={()=>setMobileMenuOpen(false)} style={{background:'none',border:'none',color:'rgba(255,255,255,.6)',cursor:'pointer',fontSize:'24px',lineHeight:1}}>×</button>
+        </div>
+        <nav style={{flex:1,padding:'12px 8px',overflowY:'auto'}}>
+          {SIDEBAR_ITEMS.map(item=>(
+            <Link key={item.label} href={item.href} onClick={()=>setMobileMenuOpen(false)}
+              style={{display:'flex',alignItems:'center',gap:'10px',padding:'11px 14px',borderRadius:'8px',marginBottom:'2px',textDecoration:'none',background:item.active?'#2563EB':'transparent',color:item.active?'#fff':'rgba(255,255,255,.7)',fontSize:'14px',fontWeight:item.active?600:400}}>
+              <span style={{fontSize:'18px'}}>{item.icon}</span>{item.label}
+            </Link>
+          ))}
+        </nav>
+        <div style={{padding:'14px 20px',borderTop:'1px solid rgba(255,255,255,.08)',display:'flex',alignItems:'center',gap:'10px'}}>
+          <div style={{width:'34px',height:'34px',borderRadius:'50%',background:'#2563EB',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'14px',fontWeight:700,color:'#fff',flexShrink:0}}>
+            {(perfil?.nome_negocio||'N').charAt(0).toUpperCase()}
+          </div>
+          <div>
+            <p style={{fontSize:'13px',fontWeight:600,color:'#fff'}}>{perfil?.nome_negocio||'Meu negócio'}</p>
+            <p style={{fontSize:'11px',color:'rgba(255,255,255,.5)'}}>Ver perfil</p>
+          </div>
+        </div>
+      </div>
 
+      <Sidebar />
+      <div className="cm-main" style={{flex:1,minWidth:0,minHeight:'100vh',display:'flex',flexDirection:'column'}}>
+
+        {/* Mobile Header — inside cm-main so it pushes content down */}
+        <div className="cm-header-mobile">
+          <button onClick={()=>setMobileMenuOpen(true)} style={{background:'none',border:'none',cursor:'pointer',padding:'8px',display:'flex',flexDirection:'column',gap:'5px'}}>
+            <span style={{display:'block',width:'22px',height:'2px',background:'#fff',borderRadius:'2px'}} />
+            <span style={{display:'block',width:'22px',height:'2px',background:'#fff',borderRadius:'2px'}} />
+            <span style={{display:'block',width:'22px',height:'2px',background:'#fff',borderRadius:'2px'}} />
+          </button>
+          <span style={{fontSize:'15px',fontWeight:800,color:'#fff',letterSpacing:'-0.01em'}}>ClienteMarcado</span>
+          <div style={{width:'38px',height:'38px',borderRadius:'50%',background:'#2563EB',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'14px',fontWeight:700,color:'#fff'}}>
+            {(perfil?.nome_negocio||'N').charAt(0).toUpperCase()}
+          </div>
+        </div>
 
         {/* ══ LISTA ══ */}
         {view==='lista'&&(
@@ -455,8 +525,8 @@ export default function Orcamentos() {
               {/* Título + botão */}
               <div style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',gap:'12px',flexWrap:'wrap',marginBottom:'20px'}}>
                 <div>
-                  <h1 style={{fontSize:'24px',fontWeight:800,color:'#fff',letterSpacing:'-0.02em',marginBottom:'4px'}}>Orçamentos e Cobranças</h1>
-                  <p style={{fontSize:'14px',color:'#94A3B8'}}>Crie orçamentos, acompanhe pagamentos e envie tudo pelo WhatsApp.</p>
+                  <h1 style={{fontSize:'24px',fontWeight:800,color:'#fff',letterSpacing:'-0.02em',marginBottom:'4px'}}>Orçamentos</h1>
+                  <p style={{fontSize:'14px',color:'#94A3B8'}}>Crie, acompanhe e envie orçamentos em poucos segundos.</p>
                 </div>
                 <button
                   onClick={()=>{ resetForm(); setView('form') }}
@@ -469,26 +539,7 @@ export default function Orcamentos() {
               {mensagem&&<div style={{padding:'10px 14px',borderRadius:'8px',marginBottom:'16px',background:'rgba(22,163,74,.15)',border:'1px solid rgba(22,163,74,.3)',color:'#4ADE80',fontSize:'13px'}}>{mensagem}</div>}
 
               {/* CARDS ATALHOS — grid 2x2 mobile, 4 colunas desktop */}
-              <div className="cm-atalhos-grid" style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:'12px',marginBottom:'20px'}}>
-                {[
-                  {icon:'📋',label:'Novo orçamento',sub:'Crie em segundos',cor:'#3B82F6',bg:'rgba(59,130,246,.15)',border:'rgba(59,130,246,.3)',fn:()=>{resetForm();setView('form')}},
-                  {icon:'💰',label:'Cobranças',sub:'Envie links',cor:'#7C3AED',bg:'rgba(124,58,237,.15)',border:'rgba(124,58,237,.3)',fn:()=>{}},
-                  {icon:'💳',label:'Pagamentos',sub:'Registre recebidos',cor:'#16A34A',bg:'rgba(22,163,74,.15)',border:'rgba(22,163,74,.3)',fn:()=>{}},
-                  {icon:'👥',label:'Clientes',sub:'Gerencie contatos',cor:'#0891B2',bg:'rgba(8,145,178,.15)',border:'rgba(8,145,178,.3)',fn:()=>{}},
-                ].map(a=>(
-                  <button key={a.label} onClick={a.fn}
-                    style={{background:a.bg,border:`1px solid ${a.border}`,borderRadius:'14px',padding:'16px',textAlign:'left',cursor:'pointer',fontFamily:'inherit',width:'100%',boxSizing:'border-box' as const,position:'relative'}}>
-                    <div style={{width:'36px',height:'36px',borderRadius:'10px',background:a.bg,border:`1px solid ${a.border}`,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'18px',marginBottom:'10px'}}>
-                      {a.icon}
-                    </div>
-                    <p style={{fontSize:'13px',fontWeight:700,color:'#fff',marginBottom:'3px'}}>{a.label}</p>
-                    <p style={{fontSize:'11px',color:'#94A3B8',lineHeight:'1.3'}}>{a.sub}</p>
-                    <span style={{position:'absolute',top:'14px',right:'14px',color:a.cor,fontSize:'16px'}}>→</span>
-                  </button>
-                ))}
-              </div>
-
-              {/* KPIs — grid 2x2 mobile, 4 colunas desktop */}
+                            {/* KPIs — grid 2x2 mobile, 4 colunas desktop */}
               <div className="cm-kpi-grid" style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:'12px',marginBottom:'20px'}}>
                 {[
                   {icon:'📂',label:'Em aberto',valor:totalAberto,fmt:'n',cor:'#3B82F6',bg:'rgba(59,130,246,.12)',border:'rgba(59,130,246,.25)'},
@@ -636,29 +687,6 @@ export default function Orcamentos() {
                   </div>
                 </>
               )}
-
-              {/* AÇÕES RÁPIDAS */}
-              <div style={{marginTop:'20px',marginBottom:'40px',width:'100%',maxWidth:'100%',boxSizing:'border-box' as const}}>
-                <div style={{display:'flex',alignItems:'center',gap:'8px',marginBottom:'14px'}}>
-                  <span style={{fontSize:'16px'}}>⚡</span>
-                  <p style={{fontSize:'14px',fontWeight:700,color:'#fff'}}>Ações rápidas</p>
-                </div>
-                <div className="cm-acoes-grid" style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:'12px',width:'100%',maxWidth:'100%',boxSizing:'border-box' as const}}>
-                  {[
-                    {icon:'📋',label:'Criar orçamento',sub:'Novo personalizado',bg:'rgba(59,130,246,.15)',border:'rgba(59,130,246,.3)',fn:()=>{resetForm();setView('form')}},
-                    {icon:'💳',label:'Registrar pgto.',sub:'Marcar recebido',bg:'rgba(34,197,94,.15)',border:'rgba(34,197,94,.3)',fn:()=>{}},
-                    {icon:'🔗',label:'Enviar link',sub:'Compartilhar',bg:'rgba(124,58,237,.15)',border:'rgba(124,58,237,.3)',fn:()=>{}},
-                    {icon:'📊',label:'Relatórios',sub:'Ver indicadores',bg:'rgba(8,145,178,.15)',border:'rgba(8,145,178,.3)',fn:()=>{}},
-                  ].map(a=>(
-                    <button key={a.label} onClick={a.fn}
-                      style={{background:a.bg,border:`1px solid ${a.border}`,borderRadius:'14px',padding:'16px',textAlign:'left',cursor:'pointer',fontFamily:'inherit',width:'100%',boxSizing:'border-box' as const}}>
-                      <span style={{fontSize:'22px',display:'block',marginBottom:'10px'}}>{a.icon}</span>
-                      <p style={{fontSize:'13px',fontWeight:700,color:'#fff',marginBottom:'4px',lineHeight:'1.2'}}>{a.label}</p>
-                      <p style={{fontSize:'11px',color:'#94A3B8',lineHeight:'1.3'}}>{a.sub}</p>
-                    </button>
-                  ))}
-                </div>
-              </div>
             </div>
           </div>
         )}
@@ -703,7 +731,7 @@ export default function Orcamentos() {
                 <div className="cm-card" style={card}>
                   <div style={{display:'flex',alignItems:'center',gap:'8px',marginBottom:'16px'}}>
                     <span style={{fontSize:'16px'}}>👤</span>
-                    <p style={{fontSize:'15px',fontWeight:700,color:'#0F172A'}}>Cliente</p>
+                    <p style={{fontSize:'15px',fontWeight:700,color:'#F8FAFC'}}>Cliente</p>
                   </div>
                   <div style={{display:'flex',flexDirection:'column',gap:'12px'}}>
                     <div>
@@ -796,7 +824,7 @@ export default function Orcamentos() {
                 <div className="cm-card" style={card}>
                   <div style={{display:'flex',alignItems:'center',gap:'8px',marginBottom:'4px'}}>
                     <span style={{fontSize:'16px'}}>✂️</span>
-                    <p style={{fontSize:'15px',fontWeight:700,color:'#0F172A'}}>Serviços / Procedimentos</p>
+                    <p style={{fontSize:'15px',fontWeight:700,color:'#F8FAFC'}}>Serviços / Procedimentos</p>
                   </div>
                   <p style={{fontSize:'12px',color:'#94A3B8',marginBottom:'16px'}}>Adicione os serviços, procedimentos, produtos ou itens deste orçamento.</p>
 
@@ -808,7 +836,7 @@ export default function Orcamentos() {
                   </div>
 
                   {itens.map((item,idx)=>(
-                    <div key={idx} style={{marginBottom:'12px',padding:'14px',background:'rgba(15,23,42,.88)',borderRadius:'12px',border:'1px solid #DCE3EA',width:'100%',maxWidth:'100%',boxSizing:'border-box'}}>
+                    <div key={idx} style={{marginBottom:'12px',padding:'14px',background:'#F8FAFC',borderRadius:'12px',border:'1px solid #DCE3EA',width:'100%',maxWidth:'100%',boxSizing:'border-box'}}>
                       <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'10px'}}>
                         <span style={{fontSize:'11px',fontWeight:600,color:'#64748B',textTransform:'uppercase',letterSpacing:'.05em'}}>Item {idx+1}</span>
                         {itens.length>1&&(
@@ -886,7 +914,7 @@ export default function Orcamentos() {
                     </div>
                     <div style={{display:'flex',justifyContent:'space-between',fontSize:'13px'}}>
                       <span style={{color:'#667085'}}>Tipo</span>
-                      <span style={{color:'#0F172A'}}>{tipo==='__outro__'?(tipoOutro||'Outro'):tipo}</span>
+                      <span style={{color:'#F8FAFC'}}>{tipo==='__outro__'?(tipoOutro||'Outro'):tipo}</span>
                     </div>
                     <div style={{display:'flex',justifyContent:'space-between',fontSize:'13px'}}>
                       <span style={{color:'#667085'}}>Status</span>
@@ -911,20 +939,9 @@ export default function Orcamentos() {
                 </div>
 
                 {/* Odontograma */}
-                {!mostrarOdontograma&&(
-                    <div style={{marginBottom:12}}>
-                      <button onClick={()=>setUsarOdontograma(true)} style={{display:'flex',alignItems:'center',gap:8,background:'rgba(34,211,238,.08)',border:'1.5px solid rgba(34,211,238,.22)',borderRadius:14,padding:'12px 18px',cursor:'pointer',fontFamily:'inherit',width:'100%'}}>
-                        <span style={{fontSize:18}}>🦷</span>
-                        <div style={{textAlign:'left'}}>
-                          <p style={{fontSize:13,fontWeight:700,color:'#22D3EE',marginBottom:2}}>+ Usar odontograma</p>
-                          <p style={{fontSize:11,color:'#64748B'}}>Selecione dentes e registre procedimentos odontológicos</p>
-                        </div>
-                      </button>
-                    </div>
-                  )}
-                  {mostrarOdontograma&&(
-                    <div className="cm-card" style={card}>
-                    <p style={{fontSize:'15px',fontWeight:700,color:'#0F172A',marginBottom:'12px'}}>🦷 Odontograma</p>
+                {isOdonto&&(
+                  <div className="cm-card" style={card}>
+                    <p style={{fontSize:'15px',fontWeight:700,color:'#F8FAFC',marginBottom:'12px'}}>🦷 Odontograma</p>
                     {[DENTES_SUPERIOR,DENTES_INFERIOR].map((arco,ai)=>(
                       <div key={ai} style={{display:'flex',gap:'4px',flexWrap:'wrap',marginBottom:'8px'}}>
                         {arco.slice(0,arco.length/2).map(n=>(
@@ -997,7 +1014,7 @@ export default function Orcamentos() {
                             style={{width:'36px',height:'20px',borderRadius:'999px',border:'none',cursor:'pointer',position:'relative',background:exigirSinal?'#2563EB':'#D1D5DB'}}>
                             <span style={{position:'absolute',top:'2px',left:exigirSinal?'18px':'2px',width:'16px',height:'16px',borderRadius:'50%',background:'#fff',transition:'left .2s'}} />
                           </button>
-                          <span style={{fontSize:'13px',color:'#0F172A',fontWeight:500,cursor:'pointer'}} onClick={()=>setExigirSinal(!exigirSinal)}>Exigir entrada/sinal?</span>
+                          <span style={{fontSize:'13px',color:'#F8FAFC',fontWeight:500,cursor:'pointer'}} onClick={()=>setExigirSinal(!exigirSinal)}>Exigir entrada/sinal?</span>
                         </div>
                         {exigirSinal&&(
                           <div style={{background:BG,borderRadius:'10px',padding:'14px',border:'1px solid #DCE3EA',display:'flex',flexDirection:'column',gap:'10px'}}>
@@ -1050,7 +1067,7 @@ export default function Orcamentos() {
                       {/* Pagamentos registrados */}
                       <div style={{borderTop:'1px solid #F1F4F8',paddingTop:'14px'}}>
                         <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:'10px'}}>
-                          <p style={{fontSize:'13px',fontWeight:600,color:'#0F172A'}}>Pagamentos registrados</p>
+                          <p style={{fontSize:'13px',fontWeight:600,color:'#F8FAFC'}}>Pagamentos registrados</p>
                           <button onClick={()=>{setShowHpForm(!showHpForm);setEditandoPagIdx(null);setHpValor('');setHpForma('Pix');setHpFormaOutro('');setHpData(new Date().toISOString().split('T')[0]);setHpObs('')}}
                             style={{background:'#EFF6FF',border:'1.5px solid #BFDBFE',borderRadius:'6px',padding:'5px 12px',fontSize:'12px',fontWeight:600,color:'#2563EB',cursor:'pointer',fontFamily:'inherit'}}>
                             + Registrar pagamento
@@ -1245,13 +1262,13 @@ export default function Orcamentos() {
               <div style={{display:'flex',alignItems:'center',gap:'12px',marginBottom:'20px',flexWrap:'wrap'}}>
                 <button onClick={()=>{setView('lista');setShowPagForm(false)}}
                   style={{background:'none',border:'none',cursor:'pointer',fontSize:'13px',color:'#667085',fontFamily:'inherit'}}>← Voltar</button>
-                <h2 style={{fontSize:'20px',fontWeight:800,color:'#0F172A'}}>{orc.tipo} — {orc.cliente_nome}</h2>
+                <h2 style={{fontSize:'20px',fontWeight:800,color:'#F8FAFC'}}>{orc.tipo} — {orc.cliente_nome}</h2>
                 <span style={{fontSize:'11px',fontWeight:700,padding:'3px 10px',borderRadius:'999px',background:cfg.bg,color:cfg.color,border:`1px solid ${cfg.border}`}}>{orc.status}</span>
               </div>
               {mensagem&&<div style={{fontSize:'13px',padding:'10px 14px',borderRadius:'8px',marginBottom:'14px',background:'#F0FDF4',border:'1px solid #BBF7D0',color:'#16A34A'}}>{mensagem}</div>}
 
               <div style={card}>
-                <p style={{fontSize:'14px',fontWeight:700,color:'#0F172A',marginBottom:'14px'}}>📊 Resumo financeiro</p>
+                <p style={{fontSize:'14px',fontWeight:700,color:'#F8FAFC',marginBottom:'14px'}}>📊 Resumo financeiro</p>
                 <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'8px',marginBottom:'14px'}}>
                   {[{l:'Total',v:orc.total,c:'#0F172A'},{l:'Pago',v:orc.valor_pago,c:'#16A34A'},{l:'Saldo',v:orc.saldo_restante,c:orc.saldo_restante>0?'#EA580C':'#16A34A'}].map(f=>(
                     <div key={f.l} style={{background:BG,borderRadius:'8px',padding:'12px',border:'1px solid #DCE3EA'}}>
@@ -1292,33 +1309,33 @@ export default function Orcamentos() {
 
               {(orc.servicos?.length>0)&&(
                 <div className="cm-card" style={card}>
-                  <p style={{fontSize:'14px',fontWeight:700,color:'#0F172A',marginBottom:'12px'}}>🛎 Serviços</p>
+                  <p style={{fontSize:'14px',fontWeight:700,color:'#F8FAFC',marginBottom:'12px'}}>🛎 Serviços</p>
                   {(orc.servicos||[]).map((s:any,i:number)=>(
                     <div key={i} style={{display:'flex',justifyContent:'space-between',padding:'8px 0',borderBottom:'1px solid rgba(255,255,255,.08)'}}>
-                      <div><p style={{fontSize:'13px',color:'#0F172A',fontWeight:600}}>{s.nome}</p><p style={{fontSize:'11px',color:'#9CA3AF'}}>{s.qtd||1}x · R$ {fmtBRL(parseFloat(s.unitario||'0'))}</p></div>
+                      <div><p style={{fontSize:'13px',color:'#F8FAFC',fontWeight:600}}>{s.nome}</p><p style={{fontSize:'11px',color:'#9CA3AF'}}>{s.qtd||1}x · R$ {fmtBRL(parseFloat(s.unitario||'0'))}</p></div>
                       <span style={{fontSize:'14px',fontWeight:700,color:'#059669'}}>R$ {fmtBRL(s.total||0)}</span>
                     </div>
                   ))}
                   <div style={{display:'flex',justifyContent:'space-between',fontSize:'16px',fontWeight:800,paddingTop:'10px',marginTop:'4px'}}>
-                    <span style={{color:'#0F172A'}}>Total</span><span style={{color:'#2563EB'}}>R$ {fmtBRL(orc.total)}</span>
+                    <span style={{color:'#F8FAFC'}}>Total</span><span style={{color:'#2563EB'}}>R$ {fmtBRL(orc.total)}</span>
                   </div>
                 </div>
               )}
 
               <div style={card}>
-                <p style={{fontSize:'14px',fontWeight:700,color:'#0F172A',marginBottom:'12px'}}>📜 Histórico de pagamentos</p>
+                <p style={{fontSize:'14px',fontWeight:700,color:'#F8FAFC',marginBottom:'12px'}}>📜 Histórico de pagamentos</p>
                 {pagamentos.length===0?<p style={{fontSize:'13px',color:'#9CA3AF'}}>Nenhum pagamento registrado.</p>
                 :pagamentos.map((p,i)=>(
                   <div key={i} style={{display:'flex',justifyContent:'space-between',padding:'8px 0',borderBottom:'1px solid rgba(255,255,255,.08)'}}>
-                    <div><p style={{fontSize:'13px',color:'#0F172A',fontWeight:600}}>{p.forma} · {fmtData(p.data)}</p>{p.observacao&&<p style={{fontSize:'11px',color:'#9CA3AF'}}>{p.observacao}</p>}</div>
+                    <div><p style={{fontSize:'13px',color:'#F8FAFC',fontWeight:600}}>{p.forma} · {fmtData(p.data)}</p>{p.observacao&&<p style={{fontSize:'11px',color:'#9CA3AF'}}>{p.observacao}</p>}</div>
                     <span style={{fontSize:'14px',fontWeight:700,color:'#16A34A'}}>R$ {fmtBRL(p.valor)}</span>
                   </div>
                 ))}
               </div>
 
               <div style={card}>
-                <p style={{fontSize:'14px',fontWeight:700,color:'#0F172A',marginBottom:'10px'}}>👤 Cliente</p>
-                <p style={{fontSize:'14px',fontWeight:600,color:'#0F172A',marginBottom:'4px'}}>{orc.cliente_nome}</p>
+                <p style={{fontSize:'14px',fontWeight:700,color:'#F8FAFC',marginBottom:'10px'}}>👤 Cliente</p>
+                <p style={{fontSize:'14px',fontWeight:600,color:'#F8FAFC',marginBottom:'4px'}}>{orc.cliente_nome}</p>
                 {orc.cliente_whatsapp&&<p style={{fontSize:'13px',color:'#667085',marginBottom:'2px'}}>📱 {aplicarMascaraTel(orc.cliente_whatsapp)}</p>}
                 {orc.cliente_email&&<p style={{fontSize:'13px',color:'#667085'}}>✉️ {orc.cliente_email}</p>}
                 {orc.observacoes&&<p style={{fontSize:'13px',color:'#9CA3AF',marginTop:'8px'}}>{orc.observacoes}</p>}
