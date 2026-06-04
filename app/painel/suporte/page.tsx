@@ -287,7 +287,14 @@ export default function Suporte() {
 
             {/* Categorias */}
             <div>
-              <p style={{ fontSize: 11, fontWeight: 700, color: '#475569', textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 14 }}>Explorar por categoria</p>
+              <div style={{ marginBottom: 20 }}>
+                <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'rgba(59,130,246,.10)', border: '1px solid rgba(59,130,246,.25)', borderRadius: 999, padding: '4px 12px', marginBottom: 10 }}>
+                  <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#3B82F6', display: 'inline-block', flexShrink: 0 }} />
+                  <span style={{ fontSize: 11, fontWeight: 700, color: '#60A5FA', letterSpacing: '.06em' }}>Autoatendimento</span>
+                </div>
+                <h2 style={{ fontSize: 'clamp(17px,2.5vw,22px)', fontWeight: 800, color: '#F8FAFC', letterSpacing: '-0.02em', marginBottom: 8, lineHeight: 1.2 }}>Resolva sua dúvida em poucos segundos</h2>
+                <p style={{ fontSize: 'clamp(13px,1.5vw,15px)', color: '#94A3B8', lineHeight: 1.6 }}>Escolha uma categoria abaixo e veja respostas rápidas antes de falar com o suporte.</p>
+              </div>
               <div className="cats-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 10, marginBottom: 20 }}>
                 {CATEGORIAS.map(cat => {
                   const c = CORES_CAT[cat]
@@ -298,8 +305,8 @@ export default function Suporte() {
                       border: `1px solid ${ativa ? c.border : 'rgba(148,163,184,.14)'}`,
                       borderRadius: 12, padding: '14px 12px', cursor: 'pointer', textAlign: 'left', fontFamily: 'inherit', transition: 'all .18s',
                     }}
-                      onMouseEnter={e => { if (!ativa) { e.currentTarget.style.borderColor = c.border; e.currentTarget.style.background = c.bg } }}
-                      onMouseLeave={e => { if (!ativa) { e.currentTarget.style.borderColor = 'rgba(148,163,184,.14)'; e.currentTarget.style.background = 'rgba(15,23,42,.72)' } }}
+                      onMouseEnter={e => { if (!ativa) { e.currentTarget.style.borderColor = c.border; e.currentTarget.style.background = c.bg; e.currentTarget.style.boxShadow = `0 0 24px ${c.border.replace('.25)', '.15)')}` } }}
+                      onMouseLeave={e => { if (!ativa) { e.currentTarget.style.borderColor = 'rgba(148,163,184,.14)'; e.currentTarget.style.background = 'rgba(15,23,42,.72)'; e.currentTarget.style.boxShadow = 'none' } }}
                     >
                       <div style={{ fontSize: 22, marginBottom: 8 }}>{c.icon}</div>
                       <p style={{ fontSize: 12, fontWeight: 700, color: ativa ? c.text : '#CBD5E1', lineHeight: 1.3 }}>{cat}</p>
@@ -331,8 +338,8 @@ export default function Suporte() {
             {/* Falar com suporte */}
             <div style={{ background: 'radial-gradient(circle at top left,rgba(34,197,94,.08),transparent 40%),linear-gradient(145deg,rgba(15,23,42,.97),rgba(8,20,33,.99))', border: '1.5px solid rgba(34,197,94,.18)', borderRadius: 18, padding: '22px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap' }}>
               <div>
-                <p style={{ fontSize: 15, fontWeight: 700, color: '#F8FAFC', marginBottom: 4 }}>Não encontrou o que precisava?</p>
-                <p style={{ fontSize: 13, color: '#64748B' }}>Nossa equipe responde pelo WhatsApp em horário comercial.</p>
+                <p style={{ fontSize: 15, fontWeight: 700, color: '#F8FAFC', marginBottom: 4 }}>Ainda não resolveu?</p>
+                <p style={{ fontSize: 13, color: '#64748B' }}>Se a central de ajuda não responder sua dúvida, fale com o suporte pelo WhatsApp.</p>
               </div>
               <a href={linkWpp()} target="_blank" rel="noreferrer" style={{
                 display: 'inline-flex', alignItems: 'center', gap: 8,
