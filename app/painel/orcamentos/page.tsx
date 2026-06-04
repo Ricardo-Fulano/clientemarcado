@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../../lib/supabase'
 import Link from 'next/link'
+import PainelSidebar from '@/app/components/PainelSidebar'
 
 const STATUS_LIST = ['Todos','Aberto','Aguardando aprovação','Em andamento','Parcialmente pago','Pago','Finalizado','Cancelado']
 const STATUS_COR: Record<string, {bg:string;color:string;border:string}> = {
@@ -24,18 +25,6 @@ function aplicarMascaraTel(v:string){
   if(n.length>0) return `(${n}`
   return ''
 }
-
-const SIDEBAR_ITEMS = [
-  {icon:'⊞',label:'Início',href:'/painel'},
-  {icon:'👥',label:'Clientes',href:'/painel'},
-  {icon:'📋',label:'Orçamentos',href:'/painel/orcamentos',active:true},
-  {icon:'💰',label:'Cobranças',href:'/painel/financeiro'},
-  {icon:'💳',label:'Pagamentos',href:'/painel/financeiro'},
-  {icon:'✂️',label:'Serviços',href:'/painel/servicos'},
-  {icon:'📅',label:'Agenda',href:'/painel/agendamentos'},
-  {icon:'📊',label:'Relatórios',href:'/painel/relatorio'},
-  {icon:'⚙️',label:'Configurações',href:'/painel/perfil'},
-]
 
 const MOBILE_CSS = `
   html, body { overflow-x: hidden; width: 100%; }
@@ -125,14 +114,13 @@ const MOBILE_CSS = `
 
 export default function Orcamentos() {
   const [userId,setUserId]=useState('')
-  const [mobileMenuOpen,setMobileMenuOpen]=useState(false)
   const [perfil,setPerfil]=useState<any>(null)
   const [profissionais,setProfissionais]=useState<any[]>([])
   const [orcamentos,setOrcamentos]=useState<any[]>([])
   const [loading,setLoading]=useState(true)
   const [filtroStatus,setFiltroStatus]=useState('Todos')
   const [filtroCliente,setFiltroCliente]=useState('')
-  const [view,setView]=useState<'lista'|'form'|'detalhe'>('lista')
+  const [view,setView]=useState<'lista'|'form'|'detalhe'|'escolha'>('lista')
   const [editandoId,setEditandoId]=useState<string|null>(null)
   const [detalheId,setDetalheId]=useState<string|null>(null)
   const [pagamentos,setPagamentos]=useState<any[]>([])
@@ -191,6 +179,7 @@ export default function Orcamentos() {
   const [showSinal,setShowSinal]=useState(false)
   const [showLinkPag,setShowLinkPag]=useState(false)
   const [usarOdontograma,setUsarOdontograma]=useState(false)
+  const [tipoOrcamento,setTipoOrcamento]=useState<'simples'|'odontologico'|null>(null)
 
   useEffect(()=>{init()},[])
 
@@ -431,88 +420,21 @@ export default function Orcamentos() {
   const lbl:React.CSSProperties={fontSize:'12px',fontWeight:600,color:'#94A3B8',textTransform:'uppercase' as const,letterSpacing:'.05em',display:'block',marginBottom:'6px'}
   const card:React.CSSProperties={background:'rgba(255,255,255,.06)',borderRadius:'16px',padding:'20px 24px',marginBottom:'12px',border:'1px solid rgba(255,255,255,.1)',boxShadow:'0 4px 20px rgba(0,0,0,.2)'}
 
-  // Sidebar component
-  const Sidebar = () => (
-    <div className="cm-sidebar" style={{width:'220px',minHeight:'100vh',background:SIDEBAR,display:'flex',flexDirection:'column',position:'fixed',top:0,left:0,zIndex:30,flexShrink:0}}>
-      <div style={{padding:'20px 16px 16px',borderBottom:'1px solid rgba(255,255,255,.08)'}}>
-        <span style={{fontSize:'15px',fontWeight:800,color:'#fff',letterSpacing:'-0.02em'}}>ClienteMarcado</span>
-      </div>
-      <nav style={{flex:1,padding:'12px 8px'}}>
-        {SIDEBAR_ITEMS.map(item=>(
-          <Link key={item.label} href={item.href}
-            style={{display:'flex',alignItems:'center',gap:'10px',padding:'9px 12px',borderRadius:'8px',marginBottom:'2px',textDecoration:'none',background:item.active?'#2563EB':'transparent',color:item.active?'#fff':'rgba(255,255,255,.65)',fontSize:'13px',fontWeight:item.active?600:400,transition:'all .15s'}}>
-            <span style={{fontSize:'16px'}}>{item.icon}</span>
-            {item.label}
-          </Link>
-        ))}
-      </nav>
-      <div style={{padding:'12px 16px',borderTop:'1px solid rgba(255,255,255,.08)',display:'flex',alignItems:'center',gap:'10px'}}>
-        <div style={{width:'32px',height:'32px',borderRadius:'50%',background:'#2563EB',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'14px',fontWeight:700,color:'#fff',flexShrink:0}}>
-          {(perfil?.nome_negocio||'N').charAt(0).toUpperCase()}
-        </div>
-        <div>
-          <p style={{fontSize:'12px',fontWeight:600,color:'#fff',lineHeight:1.2}}>{perfil?.nome_negocio||'Meu negócio'}</p>
-          <p style={{fontSize:'11px',color:'rgba(255,255,255,.5)',marginTop:'2px'}}>Ver perfil</p>
-        </div>
-      </div>
-    </div>
-  )
 
-  if(loading) return (
-    <div style={{display:'flex',minHeight:'100vh',background:BG}}>
-      <Sidebar />
-      <div style={{marginLeft:'220px',flex:1,display:'flex',alignItems:'center',justifyContent:'center',background:'#07111F'}}>
-        <p style={{color:'#94A3B8',fontSize:'14px'}}>Carregando...</p>
-      </div>
-    </div>
-  )
+  if(loading) return (<div style={{minHeight:'100vh',background:'#050B16',display:'flex',alignItems:'center',justifyContent:'center',fontFamily:'system-ui'}}><p style={{color:'#64748B',fontSize:'14px'}}>Carregando...</p></div>)
 
   return (
     <div style={{display:'flex',minHeight:'100vh',background:BG,fontFamily:'-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif',overflowX:'hidden',width:'100%',maxWidth:'100%',position:'relative'}}>
       <style dangerouslySetInnerHTML={{__html:MOBILE_CSS}} />
 
+      <PainelSidebar nome={perfil?.nome_negocio||''} tituloMobile='Orçamentos' />
+
       {/* Mobile Overlay */}
-      <div className={`cm-overlay${mobileMenuOpen?' open':''}`} onClick={()=>setMobileMenuOpen(false)} />
 
       {/* Mobile Drawer */}
-      <div className={`cm-drawer${mobileMenuOpen?' open':''}`}>
-        <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'16px 20px',borderBottom:'1px solid rgba(255,255,255,.08)'}}>
-          <span style={{fontSize:'15px',fontWeight:800,color:'#fff'}}>ClienteMarcado</span>
-          <button onClick={()=>setMobileMenuOpen(false)} style={{background:'none',border:'none',color:'rgba(255,255,255,.6)',cursor:'pointer',fontSize:'24px',lineHeight:1}}>×</button>
-        </div>
-        <nav style={{flex:1,padding:'12px 8px',overflowY:'auto'}}>
-          {SIDEBAR_ITEMS.map(item=>(
-            <Link key={item.label} href={item.href} onClick={()=>setMobileMenuOpen(false)}
-              style={{display:'flex',alignItems:'center',gap:'10px',padding:'11px 14px',borderRadius:'8px',marginBottom:'2px',textDecoration:'none',background:item.active?'#2563EB':'transparent',color:item.active?'#fff':'rgba(255,255,255,.7)',fontSize:'14px',fontWeight:item.active?600:400}}>
-              <span style={{fontSize:'18px'}}>{item.icon}</span>{item.label}
-            </Link>
-          ))}
-        </nav>
-        <div style={{padding:'14px 20px',borderTop:'1px solid rgba(255,255,255,.08)',display:'flex',alignItems:'center',gap:'10px'}}>
-          <div style={{width:'34px',height:'34px',borderRadius:'50%',background:'#2563EB',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'14px',fontWeight:700,color:'#fff',flexShrink:0}}>
-            {(perfil?.nome_negocio||'N').charAt(0).toUpperCase()}
-          </div>
-          <div>
-            <p style={{fontSize:'13px',fontWeight:600,color:'#fff'}}>{perfil?.nome_negocio||'Meu negócio'}</p>
-            <p style={{fontSize:'11px',color:'rgba(255,255,255,.5)'}}>Ver perfil</p>
-          </div>
-        </div>
-      </div>
-
-      <Sidebar />
-      <div className="cm-main" style={{flex:1,minWidth:0,minHeight:'100vh',display:'flex',flexDirection:'column'}}>
+      <div className="psb-main" style={{flex:1,minWidth:0,minHeight:'100vh',display:'flex',flexDirection:'column'}}>
 
         {/* Mobile Header — inside cm-main so it pushes content down */}
-        <div className="cm-header-mobile">
-          <button onClick={()=>setMobileMenuOpen(true)} style={{background:'none',border:'none',cursor:'pointer',padding:'8px',display:'flex',flexDirection:'column',gap:'5px'}}>
-            <span style={{display:'block',width:'22px',height:'2px',background:'#fff',borderRadius:'2px'}} />
-            <span style={{display:'block',width:'22px',height:'2px',background:'#fff',borderRadius:'2px'}} />
-            <span style={{display:'block',width:'22px',height:'2px',background:'#fff',borderRadius:'2px'}} />
-          </button>
-          <span style={{fontSize:'15px',fontWeight:800,color:'#fff',letterSpacing:'-0.01em'}}>ClienteMarcado</span>
-          <div style={{width:'38px',height:'38px',borderRadius:'50%',background:'#2563EB',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'14px',fontWeight:700,color:'#fff'}}>
-            {(perfil?.nome_negocio||'N').charAt(0).toUpperCase()}
-          </div>
         </div>
 
         {/* ══ LISTA ══ */}
@@ -529,7 +451,7 @@ export default function Orcamentos() {
                   <p style={{fontSize:'14px',color:'#94A3B8'}}>Crie, acompanhe e envie orçamentos em poucos segundos.</p>
                 </div>
                 <button
-                  onClick={()=>{ resetForm(); setView('form') }}
+                  onClick={()=>{ resetForm(); setTipoOrcamento(null); setView('escolha') }}
                   className="cm-novo-btn-lista"
                   style={{background:'#2563EB',color:'#fff',border:'none',borderRadius:'10px',padding:'11px 22px',fontSize:'14px',fontWeight:700,cursor:'pointer',fontFamily:'inherit',boxShadow:'0 4px 20px rgba(37,99,235,.4)',display:'flex',alignItems:'center',justifyContent:'center',gap:'8px',whiteSpace:'nowrap'}}>
                   <span style={{fontSize:'18px',lineHeight:1}}>+</span> Novo orçamento
@@ -590,7 +512,7 @@ export default function Orcamentos() {
                   </div>
                   <p style={{fontSize:'18px',fontWeight:700,color:'#fff',marginBottom:'8px'}}>Nenhum orçamento criado ainda</p>
                   <p style={{fontSize:'13px',color:'#94A3B8',marginBottom:'24px',lineHeight:'1.5'}}>Crie seu primeiro orçamento, registre pagamentos e envie pelo WhatsApp.</p>
-                  <button onClick={()=>{resetForm();setView('form')}}
+                  <button onClick={()=>{resetForm();setTipoOrcamento(null);setView('escolha')}}
                     style={{background:'#2563EB',color:'#fff',border:'none',borderRadius:'10px',padding:'13px 28px',fontSize:'14px',fontWeight:700,cursor:'pointer',fontFamily:'inherit',boxShadow:'0 4px 20px rgba(37,99,235,.4)',width:'100%',maxWidth:'320px'}}>
                     Criar primeiro orçamento
                   </button>
@@ -691,6 +613,44 @@ export default function Orcamentos() {
           </div>
         )}
 
+        
+        {/* ══ ESCOLHA ══ */}
+        {view==='escolha'&&(
+          <div style={{minHeight:'100vh',background:'#07111F',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',padding:'32px 16px'}}>
+            <button onClick={()=>setView('lista')} style={{background:'none',border:'none',cursor:'pointer',fontSize:'13px',color:'#64748B',fontFamily:'inherit',marginBottom:'32px',alignSelf:'flex-start',paddingLeft:32}}>← Voltar à lista</button>
+            <div style={{maxWidth:640,width:'100%'}}>
+              <h2 style={{fontSize:'22px',fontWeight:800,color:'#F8FAFC',marginBottom:8,textAlign:'center'}}>Que tipo de orçamento deseja criar?</h2>
+              <p style={{fontSize:'14px',color:'#64748B',marginBottom:32,textAlign:'center'}}>Escolha o modelo ideal para este atendimento.</p>
+              <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:16}}>
+                {/* Simples */}
+                <button onClick={()=>{setTipoOrcamento('simples');setView('form')}}
+                  style={{background:'radial-gradient(circle at top left,rgba(59,130,246,.12),transparent 60%),linear-gradient(145deg,rgba(15,23,42,.97),rgba(8,20,33,.99))',border:'1.5px solid rgba(59,130,246,.30)',borderRadius:20,padding:'28px 22px',cursor:'pointer',fontFamily:'inherit',textAlign:'left',transition:'all .18s'}}
+                  onMouseEnter={e=>{e.currentTarget.style.borderColor='rgba(59,130,246,.55)';e.currentTarget.style.transform='translateY(-2px)'}}
+                  onMouseLeave={e=>{e.currentTarget.style.borderColor='rgba(59,130,246,.30)';e.currentTarget.style.transform='translateY(0)'}}>
+                  <div style={{width:48,height:48,borderRadius:14,background:'rgba(59,130,246,.18)',border:'1px solid rgba(59,130,246,.30)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:22,marginBottom:14}}>📋</div>
+                  <p style={{fontSize:16,fontWeight:800,color:'#F8FAFC',marginBottom:8}}>Orçamento simples</p>
+                  <p style={{fontSize:13,color:'#64748B',lineHeight:1.6,marginBottom:20}}>Para barbearia, salão, estética, consultoria, clínicas simples e serviços gerais.</p>
+                  <div style={{display:'inline-flex',alignItems:'center',gap:6,background:'linear-gradient(135deg,#3B82F6,#7C3AED)',color:'#fff',borderRadius:10,padding:'9px 18px',fontSize:13,fontWeight:700,boxShadow:'0 6px 20px rgba(59,130,246,.30)'}}>
+                    Criar orçamento simples →
+                  </div>
+                </button>
+                {/* Odontológico */}
+                <button onClick={()=>{setTipoOrcamento('odontologico');setView('form')}}
+                  style={{background:'radial-gradient(circle at top left,rgba(34,211,238,.10),transparent 60%),linear-gradient(145deg,rgba(15,23,42,.97),rgba(8,20,33,.99))',border:'1.5px solid rgba(34,211,238,.28)',borderRadius:20,padding:'28px 22px',cursor:'pointer',fontFamily:'inherit',textAlign:'left',transition:'all .18s'}}
+                  onMouseEnter={e=>{e.currentTarget.style.borderColor='rgba(34,211,238,.55)';e.currentTarget.style.transform='translateY(-2px)'}}
+                  onMouseLeave={e=>{e.currentTarget.style.borderColor='rgba(34,211,238,.28)';e.currentTarget.style.transform='translateY(0)'}}>
+                  <div style={{width:48,height:48,borderRadius:14,background:'rgba(34,211,238,.14)',border:'1px solid rgba(34,211,238,.28)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:22,marginBottom:14}}>🦷</div>
+                  <p style={{fontSize:16,fontWeight:800,color:'#F8FAFC',marginBottom:8}}>Orçamento odontológico</p>
+                  <p style={{fontSize:13,color:'#64748B',lineHeight:1.6,marginBottom:20}}>Para tratamentos com odontograma, dentes selecionados e procedimentos odontológicos.</p>
+                  <div style={{display:'inline-flex',alignItems:'center',gap:6,background:'rgba(34,211,238,.14)',border:'1px solid rgba(34,211,238,.28)',color:'#22D3EE',borderRadius:10,padding:'9px 18px',fontSize:13,fontWeight:700}}>
+                    Criar orçamento odontológico →
+                  </div>
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* ══ FORMULÁRIO ══ */}
         {view==='form'&&(
           <div style={{minHeight:'100vh',background:'#07111F'}}>
@@ -699,9 +659,9 @@ export default function Orcamentos() {
             {/* Topo */}
             <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:'20px',flexWrap:'wrap',gap:'12px'}}>
               <div>
-                <button onClick={()=>{resetForm();setView('lista')}}
+                <button onClick={()=>{editandoId?setView('lista'):(setView('escolha'))}}
                   style={{background:'none',border:'none',cursor:'pointer',fontSize:'13px',color:'#64748B',fontFamily:'inherit',padding:'0',display:'flex',alignItems:'center',gap:'4px',marginBottom:'8px'}}>
-                  ← Voltar à lista
+                  ← {editandoId?'Voltar à lista':'Voltar à escolha'}
                 </button>
                 <h1 style={{fontSize:'22px',fontWeight:800,color:'#fff',letterSpacing:'-0.02em',marginBottom:'2px'}}>{editandoId?'Editar orçamento':'Novo orçamento'}</h1>
                 <p style={{fontSize:'13px',color:'#94A3B8'}}>Preencha os dados e envie para o cliente.</p>
@@ -939,21 +899,21 @@ export default function Orcamentos() {
                 </div>
 
                 {/* Odontograma */}
-                {isOdonto&&(
+                {tipoOrcamento==='odontologico'&&(
                   <div className="cm-card" style={card}>
                     <p style={{fontSize:'15px',fontWeight:700,color:'#F8FAFC',marginBottom:'12px'}}>🦷 Odontograma</p>
                     {[DENTES_SUPERIOR,DENTES_INFERIOR].map((arco,ai)=>(
                       <div key={ai} style={{display:'flex',gap:'4px',flexWrap:'wrap',marginBottom:'8px'}}>
                         {arco.slice(0,arco.length/2).map(n=>(
                           <button key={n} onClick={()=>toggleDente(n)}
-                            style={{width:'32px',height:'32px',borderRadius:'6px',border:`1.5px solid ${dentesSelec.includes(n)?'#2563EB':'#DCE3EA'}`,background:dentesSelec.includes(n)?'#2563EB':'#F8FAFC',color:dentesSelec.includes(n)?'#fff':'#667085',fontSize:'10px',fontWeight:700,cursor:'pointer',fontFamily:'inherit'}}>
+                            style={{width:'32px',height:'32px',borderRadius:'6px',background:dentesSelec.includes(n)?'rgba(34,211,238,.25)':'rgba(255,255,255,.06)',color:dentesSelec.includes(n)?'#22D3EE':'#94A3B8',border:`1.5px solid ${dentesSelec.includes(n)?'#22D3EE':'rgba(148,163,184,.18)'}`,fontSize:'10px',fontWeight:700,cursor:'pointer',fontFamily:'inherit'}}>
                             {n}
                           </button>
                         ))}
                         <div style={{width:'1px',background:'#DCE3EA',margin:'0 4px'}} />
                         {arco.slice(arco.length/2).map(n=>(
                           <button key={n} onClick={()=>toggleDente(n)}
-                            style={{width:'32px',height:'32px',borderRadius:'6px',border:`1.5px solid ${dentesSelec.includes(n)?'#2563EB':'#DCE3EA'}`,background:dentesSelec.includes(n)?'#2563EB':'#F8FAFC',color:dentesSelec.includes(n)?'#fff':'#667085',fontSize:'10px',fontWeight:700,cursor:'pointer',fontFamily:'inherit'}}>
+                            style={{width:'32px',height:'32px',borderRadius:'6px',background:dentesSelec.includes(n)?'rgba(34,211,238,.25)':'rgba(255,255,255,.06)',color:dentesSelec.includes(n)?'#22D3EE':'#94A3B8',border:`1.5px solid ${dentesSelec.includes(n)?'#22D3EE':'rgba(148,163,184,.18)'}`,fontSize:'10px',fontWeight:700,cursor:'pointer',fontFamily:'inherit'}}>
                             {n}
                           </button>
                         ))}
