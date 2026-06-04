@@ -1014,7 +1014,6 @@ export default function Orcamentos() {
                     </div>
                   </div>
                 )}
-                )}
 
                 {/* ACCORDION: Pagamento */}
                 <div style={{...card,padding:0,overflow:'hidden'}}>
