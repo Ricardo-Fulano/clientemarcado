@@ -447,16 +447,6 @@ export default function Orcamentos() {
       <div className="psb-main" style={{flex:1,minWidth:0,minHeight:'100vh',display:'flex',flexDirection:'column'}}>
 
         {/* Mobile Header — inside cm-main so it pushes content down */}
-        <div className="cm-header-mobile">
-          <button onClick={()=>setMobileMenuOpen(true)} style={{background:'none',border:'none',cursor:'pointer',padding:'8px',display:'flex',flexDirection:'column',gap:'5px'}}>
-            <span style={{display:'block',width:'22px',height:'2px',background:'#fff',borderRadius:'2px'}} />
-            <span style={{display:'block',width:'22px',height:'2px',background:'#fff',borderRadius:'2px'}} />
-            <span style={{display:'block',width:'22px',height:'2px',background:'#fff',borderRadius:'2px'}} />
-          </button>
-          <span style={{fontSize:'15px',fontWeight:800,color:'#fff',letterSpacing:'-0.01em'}}>ClienteMarcado</span>
-          <div style={{width:'38px',height:'38px',borderRadius:'50%',background:'#2563EB',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'14px',fontWeight:700,color:'#fff'}}>
-            {(perfil?.nome_negocio||'N').charAt(0).toUpperCase()}
-          </div>
         </div>
 
         {/* ══ LISTA ══ */}
