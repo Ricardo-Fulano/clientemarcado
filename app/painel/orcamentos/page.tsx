@@ -446,8 +446,6 @@ export default function Orcamentos() {
 
       <div className="psb-main" style={{flex:1,minWidth:0,minHeight:'100vh',display:'flex',flexDirection:'column'}}>
 
-        {/* Mobile Header — inside cm-main so it pushes content down */}
-        </div>
 
         {/* ══ LISTA ══ */}
         {view==='lista'&&(
