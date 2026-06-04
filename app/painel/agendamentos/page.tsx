@@ -2,34 +2,15 @@
 import { useEffect, useState, useRef } from 'react'
 import { supabase } from '../../lib/supabase'
 import Link from 'next/link'
+import PainelSidebar from '@/app/components/PainelSidebar'
 
 const G='linear-gradient(135deg,#3B82F6,#7C3AED)'
 const AV='linear-gradient(135deg,rgba(59,130,246,.95),rgba(124,58,237,.95))'
-const SB_ITEMS=[
-  {h:'/painel',l:'Inicio'},{h:'/painel/agendamentos',l:'Agenda',on:true},
-  {h:'/painel/clientes',l:'Clientes'},{h:'/painel/orcamentos',l:'Orcamentos'},
-  {h:'/painel/cobrancas',l:'Cobrancas'},{h:'/painel/pagamentos',l:'Pagamentos'},
-  {h:'/painel/servicos',l:'Servicos'},{h:'/painel/profissionais',l:'Profissionais'},
-  {h:'/painel/relatorio',l:'Relatorios'},{h:'/painel/perfil',l:'Configuracoes'},
-]
+
 const CSS=`
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html,body{overflow-x:hidden;width:100%;max-width:100%;background:#050B16}
 input,select,textarea{color-scheme:dark}
-.sb{width:240px;min-height:100vh;background:radial-gradient(circle at top left,rgba(124,58,237,.14),transparent 32%),linear-gradient(180deg,#070F1D,#050B16);border-right:1px solid rgba(148,163,184,.14);display:flex;flex-direction:column;position:fixed;top:0;left:0;z-index:30}
-.sb-logo{padding:22px 18px 16px;border-bottom:1px solid rgba(148,163,184,.10);display:flex;align-items:center;gap:10px}
-.sb-ic{width:30px;height:30px;border-radius:8px;background:linear-gradient(135deg,#3B82F6,#7C3AED);display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 0 20px rgba(124,58,237,.5)}
-.sb nav{flex:1;padding:10px 8px;overflow-y:auto}
-.nl{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:10px;margin-bottom:2px;text-decoration:none;font-size:13px;font-weight:500;color:#94A3B8;transition:all .15s;border:1px solid transparent}
-.nl:hover{background:rgba(124,58,237,.10);border-color:rgba(124,58,237,.20);color:#fff}
-.nl.on{background:linear-gradient(135deg,#3B82F6,#7C3AED);color:#fff;font-weight:700;box-shadow:0 0 26px rgba(124,58,237,.34)}
-.sb-foot{padding:12px 10px;border-top:1px solid rgba(148,163,184,.10)}
-.mhdr{display:none;align-items:center;justify-content:space-between;padding:0 16px;height:56px;background:rgba(5,11,22,.96);backdrop-filter:blur(20px);border-bottom:1px solid rgba(148,163,184,.12);position:sticky;top:0;z-index:20;width:100%}
-.drw{position:fixed;top:0;left:0;bottom:0;width:280px;max-width:85vw;background:radial-gradient(circle at top left,rgba(124,58,237,.14),transparent 32%),linear-gradient(180deg,#070F1D,#050B16);z-index:50;transform:translateX(-100%);transition:transform .28s ease;display:flex;flex-direction:column;border-right:1px solid rgba(148,163,184,.14)}
-.drw.open{transform:translateX(0)}
-.ovl{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:49;opacity:0;pointer-events:none;transition:opacity .28s}
-.ovl.open{opacity:1;pointer-events:auto}
-.main{margin-left:240px;flex:1;min-height:100vh;width:calc(100% - 240px)}
 .pg{background:radial-gradient(circle at top left,rgba(124,58,237,.14),transparent 28%),linear-gradient(135deg,#050B16 0%,#07111F 45%,#050B16 100%);min-height:100vh}
 .bdy{max-width:1200px;margin:0 auto;padding:24px 28px 80px}
 .ag-grid{display:grid;grid-template-columns:1fr;gap:16px}
@@ -51,8 +32,7 @@ input,select,textarea{color-scheme:dark}
 .sem-det-item{background:linear-gradient(145deg,rgba(15,23,42,.98),rgba(8,20,33,.99));border:1px solid rgba(148,163,184,.12);border-radius:12px;padding:12px 14px;margin-bottom:6px;display:flex;gap:12px;align-items:flex-start}
 @media(min-width:1100px){.ag-grid{grid-template-columns:1fr 360px}.det-col{display:block}}
 @media(max-width:1023px){
-  .sb{display:none!important}.main{margin-left:0!important;width:100%!important}
-  .mhdr{display:flex!important}.bdy{padding:14px 14px 80px!important}
+  .bdy{padding:14px 14px 80px!important}
   .kpi-g{grid-template-columns:1fr 1fr!important;gap:8px!important}
   .kpi-g>div:last-child{grid-column:1/-1!important}
   .hdr-btns{width:100%;display:grid!important;grid-template-columns:1fr 1fr;gap:7px}
@@ -89,7 +69,6 @@ export default function Agendamentos(){
   const [profs,setProfs]=useState<any[]>([])
   const [ags,setAgs]=useState<any[]>([])
   const [loading,setLoading]=useState(true)
-  const [mob,setMob]=useState(false)
   const [view,setView]=useState<'hoje'|'semana'>('hoje')
   const [fSt,setFSt]=useState('todos')
   const [fPr,setFPr]=useState('todos')
@@ -252,48 +231,11 @@ export default function Agendamentos(){
       <style dangerouslySetInnerHTML={{__html:CSS}}/>
       {msg&&<div style={{position:'fixed',top:16,left:'50%',transform:'translateX(-50%)',background:'rgba(15,23,42,.97)',border:'1px solid rgba(59,130,246,.30)',borderRadius:10,padding:'10px 20px',fontSize:12,fontWeight:600,color:'#F8FAFC',zIndex:200,boxShadow:'0 8px 32px rgba(0,0,0,.5)',pointerEvents:'none',whiteSpace:'nowrap'}}>{msg}</div>}
 
-      {/* Overlay mobile */}
-      <div className={`ovl${mob?' open':''}`} onClick={()=>setMob(false)}/>
-      {/* Drawer mobile */}
-      <div className={`drw${mob?' open':''}`}>
-        <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'16px 18px',borderBottom:'1px solid rgba(148,163,184,.10)'}}>
-          <span style={{fontSize:'14px',fontWeight:800,color:'#F8FAFC'}}>ClienteMarcado</span>
-          <button onClick={()=>setMob(false)} style={{background:'none',border:'none',color:'rgba(255,255,255,.5)',cursor:'pointer',fontSize:'22px',lineHeight:1}}>×</button>
-        </div>
-        <nav style={{flex:1,padding:'10px 8px',overflowY:'auto'}}>
-          {SB_ITEMS.map(it=><Link key={it.l} href={it.h} onClick={()=>setMob(false)} className={'nl'+(it.on?' on':'')}>{it.l}</Link>)}
-        </nav>
-      </div>
+      <PainelSidebar nome={nome} tituloMobile="Agenda" />
 
-      {/* Sidebar desktop */}
-      <aside className="sb">
-        <div className="sb-logo">
-          <div className="sb-ic"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
-          <span style={{fontSize:'14px',fontWeight:800,color:'#F8FAFC',letterSpacing:'-0.02em'}}>ClienteMarcado</span>
-        </div>
-        <nav>{SB_ITEMS.map(it=><Link key={it.l} href={it.h} className={'nl'+(it.on?' on':'')}>{it.l}</Link>)}</nav>
-        <div className="sb-foot">
-          <div style={{display:'flex',alignItems:'center',gap:'10px',background:'rgba(15,23,42,.6)',border:'1px solid rgba(148,163,184,.12)',borderRadius:'10px',padding:'10px 12px'}}>
-            <div style={{width:'32px',height:'32px',borderRadius:'50%',background:AV,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'13px',fontWeight:700,color:'#fff',flexShrink:0}}>{ini}</div>
-            <div style={{minWidth:0}}><p style={{fontSize:'12px',fontWeight:600,color:'#F8FAFC',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{nome}</p><p style={{fontSize:'10px',color:'#64748B'}}>Administrador</p></div>
-          </div>
-        </div>
-      </aside>
-
-      {/* Main content */}
-      <div className="main">
-        {/* Mobile header */}
-        <div className="mhdr">
-          <button onClick={()=>setMob(true)} style={{background:'none',border:'none',cursor:'pointer',padding:'8px',display:'flex',flexDirection:'column',gap:'5px'}}>
-            {[22,22,16].map((w,i)=><span key={i} style={{display:'block',width:`${w}px`,height:'2px',background:'rgba(255,255,255,.8)',borderRadius:'2px'}}/>)}
-          </button>
-          <span style={{fontSize:'14px',fontWeight:800,color:'#F8FAFC'}}>Agenda</span>
-          <div style={{width:'34px',height:'34px',borderRadius:'50%',background:AV,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'13px',fontWeight:700,color:'#fff'}}>{ini}</div>
-        </div>
-
+      <div className="psb-main">
         <div className="pg"><div className="bdy">
 
-          {/* Header */}
           <div style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',gap:14,marginBottom:16,flexWrap:'wrap'}}>
             <div>
               <h1 style={{fontSize:22,fontWeight:800,color:'#F8FAFC',letterSpacing:'-0.03em',marginBottom:2}}>Agenda</h1>
@@ -305,7 +247,6 @@ export default function Agendamentos(){
             </div>
           </div>
 
-          {/* KPIs */}
           <div className="kpi-g">
             {[{l:'Hoje',n:agsHj.length,c:'#60A5FA',bd:'rgba(59,130,246,.22)',ic:'📅'},{l:'Confirmados',n:conf,c:'#4ADE80',bd:'rgba(34,197,94,.20)',ic:'✅'},{l:'Pendentes',n:pend,c:'#FCD34D',bd:'rgba(245,158,11,.20)',ic:'⏳'}].map(({l,n,c,bd,ic})=>(
               <div key={l} style={{background:'radial-gradient(circle at top left,rgba(124,58,237,.08),transparent 60%),linear-gradient(145deg,rgba(15,23,42,.98),rgba(8,20,33,.99))',border:'1px solid '+bd,borderRadius:14,padding:'12px 16px',display:'flex',alignItems:'center',gap:12}}>
@@ -315,7 +256,6 @@ export default function Agendamentos(){
             ))}
           </div>
 
-          {/* Controls */}
           <div className="fil-row">
             {(['hoje','semana'] as const).map(v=>(
               <button key={v} onClick={()=>{setView(v);setDiaSel(null)}} style={{height:32,padding:'0 14px',borderRadius:8,fontSize:12,fontWeight:600,cursor:'pointer',border:'1px solid '+(view===v?'rgba(59,130,246,.35)':'rgba(148,163,184,.15)'),background:view===v?'rgba(59,130,246,.14)':'transparent',color:view===v?'#60A5FA':'#64748B',fontFamily:'inherit',whiteSpace:'nowrap',flexShrink:0}}>
@@ -337,7 +277,6 @@ export default function Agendamentos(){
             </select>
           </div>
 
-          {/* ABA HOJE */}
           {view==='hoje'&&(
             <div className="ag-grid">
               <div>
@@ -388,7 +327,6 @@ export default function Agendamentos(){
             </div>
           )}
 
-          {/* ABA SEMANA — cards resumidos por dia */}
           {view==='semana'&&(
             <div>
               <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:16,flexWrap:'wrap',gap:8}}>
@@ -399,8 +337,6 @@ export default function Agendamentos(){
                   ))}
                 </div>
               </div>
-
-              {/* Grid de cards resumo */}
               <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(200px,1fr))',gap:10,marginBottom:20}}>
                 {dS.map((d,i)=>{
                   const ds=d.toISOString().split('T')[0]
@@ -417,9 +353,7 @@ export default function Agendamentos(){
                     <div key={i} className={'sem-card'+(ehHoje?' hoje-card':'')+(isSel?' sel-card':'')} onClick={()=>setDiaSel(isSel?null:ds)}>
                       <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:8}}>
                         <div>
-                          <p style={{fontSize:11,fontWeight:700,color:ehHoje?'#60A5FA':'#94A3B8',textTransform:'capitalize'}}>
-                            {d.toLocaleDateString('pt-BR',{weekday:'short'})}
-                          </p>
+                          <p style={{fontSize:11,fontWeight:700,color:ehHoje?'#60A5FA':'#94A3B8',textTransform:'capitalize'}}>{d.toLocaleDateString('pt-BR',{weekday:'short'})}</p>
                           <p style={{fontSize:18,fontWeight:800,color:'#F8FAFC'}}>{d.getDate()}/{String(d.getMonth()+1).padStart(2,'0')}</p>
                         </div>
                         {ehHoje&&<span style={{fontSize:9,fontWeight:700,background:'rgba(59,130,246,.20)',color:'#60A5FA',border:'1px solid rgba(59,130,246,.30)',borderRadius:999,padding:'2px 8px'}}>Hoje</span>}
@@ -443,8 +377,6 @@ export default function Agendamentos(){
                   )
                 })}
               </div>
-
-              {/* Detalhes do dia selecionado */}
               {diaSel&&(()=>{
                 const itDia=ags.filter(a=>{
                   const ad=new Date(a.data_hora).toISOString().split('T')[0]
@@ -454,9 +386,7 @@ export default function Agendamentos(){
                 return(
                   <div style={{background:'radial-gradient(circle at top left,rgba(124,58,237,.06),transparent 50%),linear-gradient(145deg,rgba(15,23,42,.98),rgba(8,20,33,.99))',border:'1px solid rgba(59,130,246,.20)',borderRadius:18,padding:20}}>
                     <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:16}}>
-                      <p style={{fontSize:14,fontWeight:700,color:'#F8FAFC'}}>
-                        Agenda de {dObj.toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'2-digit'})}
-                      </p>
+                      <p style={{fontSize:14,fontWeight:700,color:'#F8FAFC'}}>Agenda de {dObj.toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'2-digit'})}</p>
                       <button onClick={()=>setDiaSel(null)} style={{background:'none',border:'none',color:'#475569',cursor:'pointer',fontSize:18,lineHeight:1}}>×</button>
                     </div>
                     {itDia.length===0?(
