@@ -329,15 +329,17 @@ export default function Orcamentos() {
 
   function gerarPDF(orc:any){
     const win=window.open('','_blank'); if(!win) return
-    const linhas=(orc.servicos||[]).map((s:any)=>`<tr><td>${s.nome}</td><td>${s.qtd||1}</td><td>R$ ${fmtBRL(parseFloat(s.unitario||'0'))}</td><td>R$ ${fmtBRL(s.total||0)}</td></tr>`).join('')
-    win.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8"><title>${orc.tipo}</title><style>body{font-family:Arial;max-width:800px;margin:0 auto;padding:32px}table{width:100%;border-collapse:collapse}th,td{padding:8px;border-bottom:1px solid #eee;text-align:left}.footer{margin-top:40px;text-align:center;color:#aaa;font-size:11px}</style></head><body>
-    <h1>${perfil?.nome_negocio||'Negócio'}</h1><p>${orc.tipo} · ${fmtData(orc.data)}</p>
-    <p><strong>${orc.cliente_nome}</strong> · ${orc.cliente_whatsapp||''}</p>
-    <table><thead><tr><th>Serviço</th><th>Qtd</th><th>Unitário</th><th>Total</th></tr></thead><tbody>${linhas}
-    <tr><td colspan="3"><strong>Total</strong></td><td><strong>R$ ${fmtBRL(orc.total)}</strong></td></tr>
-    <tr><td colspan="3">Pago</td><td style="color:green">R$ ${fmtBRL(orc.valor_pago)}</td></tr>
-    <tr><td colspan="3">Saldo</td><td style="color:red">R$ ${fmtBRL(orc.saldo_restante)}</td></tr>
-    </tbody></table><div class="footer">Gerado pelo ClienteMarcado</div></body></html>`)
+    const linhas=(orc.servicos||[]).map((s:any)=>'<tr><td>'+s.nome+'</td><td>'+(s.qtd||1)+'</td><td>R$ '+fmtBRL(parseFloat(s.unitario||'0'))+'</td><td>R$ '+fmtBRL(s.total||0)+'</td></tr>').join('')
+    const html='<!DOCTYPE html><html><head><meta charset="utf-8"><title>'+orc.tipo+'</title>'
+      +'<style>body{font-family:Arial;max-width:800px;margin:0 auto;padding:32px}table{width:100%;border-collapse:collapse}th,td{padding:8px;border-bottom:1px solid #eee;text-align:left}</style></head><body>'
+      +'<h1>'+(perfil?.nome_negocio||'Negócio')+'</h1><p>'+orc.tipo+' · '+fmtData(orc.data)+'</p>'
+      +'<p><strong>'+orc.cliente_nome+'</strong> · '+(orc.cliente_whatsapp||'')+'</p>'
+      +'<table><thead><tr><th>Serviço</th><th>Qtd</th><th>Unitário</th><th>Total</th></tr></thead><tbody>'+linhas
+      +'<tr><td colspan="3"><strong>Total</strong></td><td><strong>R$ '+fmtBRL(orc.total)+'</strong></td></tr>'
+      +'<tr><td colspan="3">Pago</td><td style="color:green">R$ '+fmtBRL(orc.valor_pago)+'</td></tr>'
+      +'<tr><td colspan="3">Saldo</td><td style="color:red">R$ '+fmtBRL(orc.saldo_restante)+'</td></tr>'
+      +'</tbody></table></body></html>'
+    win.document.write(html)
     win.document.close();setTimeout(()=>win.print(),500)
   }
 
