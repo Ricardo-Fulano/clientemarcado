@@ -54,6 +54,8 @@ const MOBILE_CSS = `
     .psb-main,.cm-main{background:#050B16!important;}
     .cm-sidebar { display:none !important; }
     .cm-main,.psb-main { margin-left:0 !important; width:100% !important; max-width:100% !important; overflow-x:hidden !important; box-sizing:border-box !important; }
+    .psb-mhdr { width:100% !important; flex-shrink:0 !important; }
+    .psb-wrapper { flex-direction:column !important; }
     .cm-header-mobile { display:flex !important; }
     .cm-form-grid { grid-template-columns:1fr !important; }
     .cm-form-right { display:block !important; }
@@ -457,7 +459,7 @@ export default function Orcamentos() {
   if(loading) return (<div style={{minHeight:'100vh',background:'#050B16',display:'flex',alignItems:'center',justifyContent:'center',fontFamily:'system-ui'}}><p style={{color:'#64748B',fontSize:'14px'}}>Carregando...</p></div>)
 
   return (
-    <div style={{display:'flex',minHeight:'100vh',background:BG,fontFamily:'-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif',overflowX:'hidden',width:'100%',maxWidth:'100%',position:'relative'}}>
+    <div className="psb-wrapper" style={{display:'flex',minHeight:'100vh',background:BG,fontFamily:'-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif',overflowX:'hidden',width:'100%',maxWidth:'100%',position:'relative'}}>
       <style dangerouslySetInnerHTML={{__html:MOBILE_CSS}} />
 
       <PainelSidebar nome={perfil?.nome_negocio||''} tituloMobile='Orçamentos' />
