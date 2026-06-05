@@ -53,7 +53,7 @@ const MOBILE_CSS = `
     body,html{background:#050B16!important;}
     .psb-main,.cm-main{background:#050B16!important;}
     .cm-sidebar { display:none !important; }
-    .cm-main { margin-left:0 !important; width:100% !important; max-width:100% !important; overflow-x:hidden; }
+    .cm-main,.psb-main { margin-left:0 !important; width:100% !important; max-width:100% !important; overflow-x:hidden; }
     .cm-header-mobile { display:flex !important; }
     .cm-form-grid { grid-template-columns:1fr !important; }
     .cm-form-right { display:block !important; }
@@ -61,7 +61,7 @@ const MOBILE_CSS = `
     .cm-resumo-mobile { display:block !important; }
     .cm-lista-pad { padding:16px 16px 100px !important; }
     .cm-orc-filters { overflow-x:auto !important; flex-wrap:nowrap !important; padding-bottom:4px; -webkit-overflow-scrolling:touch; }
-    .cm-form-pad { padding:0 !important; }
+    .cm-form-pad,.cm-content-pad { padding:0 !important; max-width:100% !important; }
     .cm-form-inner { padding:16px !important; padding-bottom:150px !important; }
     .cm-detalhe-pad { padding:16px 16px 80px !important; }
     .cm-metrics { grid-template-columns:1fr 1fr !important; gap:10px !important; }
@@ -106,11 +106,8 @@ const MOBILE_CSS = `
   }
   .cm-acoes-scroll::-webkit-scrollbar { display:none; }
   .cm-acoes-scroll { scrollbar-width:none; -ms-overflow-style:none; }
-  .cm-tooth { min-width:40px; height:40px; border-radius:12px; display:inline-flex; align-items:center; justify-content:center; font-weight:800; font-size:13px; cursor:pointer; border:none; transition:all .15s; }
-  .cm-tooth-grid { display:flex; flex-wrap:wrap; gap:6px; justify-content:center; width:100%; }
-  @media(max-width:430px){ .cm-tooth { min-width:36px; height:36px; font-size:12px; } }
-  @media(max-width:360px){ .cm-tooth { min-width:32px; height:32px; font-size:11px; } }
-  @media(max-width:340px){ .cm-tooth { min-width:30px; height:30px; font-size:10px; } }
+  .cm-tooth { width:40px; height:40px; border-radius:12px; display:inline-flex; align-items:center; justify-content:center; font-weight:800; font-size:13px; cursor:pointer; border:none; transition:all .15s; flex-shrink:0; }
+  .cm-tooth-grid { display:flex; gap:5px; justify-content:center; }
   .cm-lista-body { overflow-x:hidden; }
   .cm-lista-topo { overflow-x:hidden; }
   @media(max-width:380px){
@@ -961,9 +958,9 @@ export default function Orcamentos() {
                       ))}
                     </div>
                     {([{label:'ARCADA SUPERIOR',dentes:DENTES_SUPERIOR},{label:'ARCADA INFERIOR',dentes:DENTES_INFERIOR}] as {label:string,dentes:number[]}[]).map((arco,ai)=>(
-                      <div key={ai} style={{background:'rgba(5,11,22,.6)',border:'1px solid rgba(6,182,212,.18)',borderRadius:12,padding:'12px 10px',marginBottom:8}}>
+                      <div key={ai} style={{background:'rgba(5,11,22,.6)',border:'1px solid rgba(6,182,212,.18)',borderRadius:12,padding:'12px 10px',marginBottom:8,overflowX:'auto'}}>
                         <p style={{fontSize:10,fontWeight:700,color:'#22D3EE',letterSpacing:'.08em',textTransform:'uppercase',marginBottom:8,textAlign:'center'}}>{arco.label}</p>
-                        <div className="cm-tooth-grid">
+                        <div style={{display:'flex',gap:5,justifyContent:'center',minWidth:'max-content',margin:'0 auto'}}>
                           {arco.dentes.map((n:number)=>(
                             <button key={n} onClick={()=>toggleDente(n)} className="cm-tooth"
                               style={{...corDente(n),fontFamily:'inherit'}}>
