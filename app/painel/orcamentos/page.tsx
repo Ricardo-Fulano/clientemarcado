@@ -1478,6 +1478,8 @@ export default function Orcamentos() {
                   </button>
                 </div>
               </div>
+          </div>  {/* fecha minHeight */}
+
 
               {/* Coluna direita — Resumo sticky */}
               {/* ══ FOOTER FIXO — 4 BOTÕES ══ */}
@@ -1529,8 +1531,6 @@ export default function Orcamentos() {
 
 
             </div>
-          </div>
-          </div>
           </div>
           </>
         )}
