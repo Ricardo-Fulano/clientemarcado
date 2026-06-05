@@ -317,7 +317,7 @@ export default function Orcamentos() {
     setSinalTipo(orc.sinal_tipo||'fixo');setSinalValor(orc.sinal_valor?String(orc.sinal_valor):'')
     setLinkPag(orc.link_pagamento||'');setObsPagamento(orc.obs_pagamento||'');setObservacoes(orc.observacoes||'')
     setHistPags(orc.hist_pagamentos||[]);setDentesSelec(orc.dentes_selecionados||[]);setProcOdonto(orc.procedimentos_odonto||[])
-    setTipoOrcamento(orc.tipo_orcamento||'simples')
+    setTipoOrcamento((orc.procedimentos_odonto&&orc.procedimentos_odonto.length>0)?'odontologico':'simples')
     setShowDetalhes(true)
     setView('form')
   }
@@ -336,7 +336,6 @@ export default function Orcamentos() {
       user_id:userId,cliente_nome:clienteNome.trim(),cliente_whatsapp:clienteWpp.replace(/\D/g,''),
       cliente_email:clienteEmail||null,cliente_obs:clienteObs||null,
       tipo:tipo==='__outro__'?(tipoOutro.trim()||'Outro'):tipo,
-      tipo_orcamento:tipoOrcamento||'simples',
       tipo_descricao:tipo==='__outro__'?(tipoDescricao.trim()||null):null,
       profissional_id:(profId&&profId!=='__outro__')?profId:null,
       profissional_nome:profId==='__outro__'?(profNome.trim()||null):profId?(profissionais.find(p=>p.id===profId)?.nome||null):null,
@@ -375,7 +374,6 @@ export default function Orcamentos() {
       cliente_whatsapp:clienteWpp.replace(/\D/g,'')||null,
       cliente_email:clienteEmail||null,cliente_obs:clienteObs||null,
       tipo:tipo==='__outro__'?(tipoOutro.trim()||'Outro'):tipo,
-      tipo_orcamento:tipoOrcamento||'simples',
       data:dataDoc,status:'Rascunho',
       servicos:itensValidos,subtotal,desconto:descontoNum,total,
       valor_pago:0,saldo_restante:total,
@@ -798,7 +796,7 @@ export default function Orcamentos() {
                             <p style={{fontSize:'11px',color:'#64748B'}}>{orc.cliente_whatsapp?aplicarMascaraTel(orc.cliente_whatsapp):''}</p>
                           </div>
                           <div>
-                            <p style={{fontSize:'13px',color:'#CBD5E1'}}>{orc.tipo}{orc.tipo_orcamento==='odontologico'?' 🦷':''}</p>
+                            <p style={{fontSize:'13px',color:'#CBD5E1'}}>{orc.tipo}{(orc.procedimentos_odonto&&orc.procedimentos_odonto.length>0)?' 🦷':''}</p>
                             <p style={{fontSize:'11px',color:'#64748B'}}>{fmtData(orc.data)}</p>
                           </div>
                           <p style={{fontSize:'14px',fontWeight:700,color:'#fff'}}>R$ {fmtBRL(orc.total)}</p>
@@ -833,7 +831,7 @@ export default function Orcamentos() {
                           <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:'10px'}}>
                             <div style={{flex:1,minWidth:0}}>
                               <p style={{fontSize:'15px',fontWeight:700,color:'#fff',marginBottom:'2px',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap' as const}}>{orc.cliente_nome}</p>
-                              <p style={{fontSize:'12px',color:'#64748B'}}>{orc.tipo}{orc.tipo_orcamento==='odontologico'?' 🦷':''} · {fmtData(orc.data)}</p>
+                              <p style={{fontSize:'12px',color:'#64748B'}}>{orc.tipo}{(orc.procedimentos_odonto&&orc.procedimentos_odonto.length>0)?' 🦷':''} · {fmtData(orc.data)}</p>
                             </div>
                             <span style={{fontSize:'11px',fontWeight:700,padding:'3px 10px',borderRadius:'999px',background:cfg.bg,color:cfg.color,border:'1px solid '+cfg.border,whiteSpace:'nowrap' as const,marginLeft:'8px',flexShrink:0}}>
                               {orc.status}
