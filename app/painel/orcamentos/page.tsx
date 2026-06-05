@@ -56,8 +56,8 @@ const MOBILE_CSS = `
     .cm-main { margin-left:0 !important; width:100% !important; max-width:100% !important; overflow-x:hidden; }
     .cm-header-mobile { display:flex !important; }
     .cm-form-grid { grid-template-columns:1fr !important; }
-    .cm-form-right { display:none !important; }
-    .cm-mobile-footer { display:flex !important; }
+    .cm-form-right { display:block !important; }
+    .cm-mobile-footer { display:none !important; }
     .cm-resumo-mobile { display:block !important; }
     .cm-lista-pad { padding:16px 16px 100px !important; }
     .cm-orc-filters { overflow-x:auto !important; flex-wrap:nowrap !important; padding-bottom:4px; -webkit-overflow-scrolling:touch; }
@@ -106,6 +106,11 @@ const MOBILE_CSS = `
   }
   .cm-acoes-scroll::-webkit-scrollbar { display:none; }
   .cm-acoes-scroll { scrollbar-width:none; -ms-overflow-style:none; }
+  .cm-tooth { min-width:40px; height:40px; border-radius:12px; display:inline-flex; align-items:center; justify-content:center; font-weight:800; font-size:13px; cursor:pointer; border:none; transition:all .15s; }
+  .cm-tooth-grid { display:flex; flex-wrap:wrap; gap:6px; justify-content:center; width:100%; }
+  @media(max-width:430px){ .cm-tooth { min-width:36px; height:36px; font-size:12px; } }
+  @media(max-width:360px){ .cm-tooth { min-width:32px; height:32px; font-size:11px; } }
+  @media(max-width:340px){ .cm-tooth { min-width:30px; height:30px; font-size:10px; } }
   .cm-lista-body { overflow-x:hidden; }
   .cm-lista-topo { overflow-x:hidden; }
   @media(max-width:380px){
@@ -414,10 +419,10 @@ export default function Orcamentos() {
   function corDente(n:number):React.CSSProperties{
     const sel=dentesSelec.includes(n)
     const st=dentesStatus[n]
-    if(st==='realizado') return {background:'rgba(34,197,94,.18)',border:sel?'2px solid #22C55E':'1px solid rgba(34,197,94,.65)',color:'#86EFAC',boxShadow:sel?'0 0 0 3px rgba(34,197,94,.25)':'none'}
-    if(st==='pendente') return {background:'rgba(239,68,68,.18)',border:sel?'2px solid #EF4444':'1px solid rgba(239,68,68,.65)',color:'#FCA5A5',boxShadow:sel?'0 0 0 3px rgba(239,68,68,.25)':'none'}
-    if(sel) return {background:'rgba(34,211,238,.18)',border:'2px solid #22D3EE',color:'#22D3EE',boxShadow:'0 0 0 3px rgba(34,211,238,.25),0 0 18px rgba(34,211,238,.35)'}
-    return {background:'#E5E7EB',border:'1px solid rgba(255,255,255,.15)',color:'#F8FAFC'}
+    if(st==='realizado') return {background:'rgba(34,197,94,.22)',border:'2px solid rgba(34,197,94,.75)',color:'#86EFAC',boxShadow:'0 0 0 2px rgba(34,197,94,.30),0 0 14px rgba(34,197,94,.35)'}
+    if(st==='pendente') return {background:'rgba(239,68,68,.22)',border:'2px solid rgba(239,68,68,.75)',color:'#FCA5A5',boxShadow:'0 0 0 2px rgba(239,68,68,.30),0 0 14px rgba(239,68,68,.35)'}
+    if(sel) return {background:'#083344',border:'2px solid #22D3EE',color:'#E0F9FF',boxShadow:'0 0 0 2px rgba(34,211,238,.35),0 0 16px rgba(34,211,238,.45)'}
+    return {background:'#E5E7EB',border:'1px solid rgba(200,200,200,.25)',color:'#020617'}
   }
   function adicionarProcOdonto(){
     if(!procNome||dentesSelec.length===0) return
@@ -612,7 +617,7 @@ export default function Orcamentos() {
                             {[{l:'Total',v:orc.total,c:'#fff'},{l:'Pago',v:orc.valor_pago,c:'#22C55E'},{l:'Saldo',v:orc.saldo_restante,c:orc.saldo_restante>0?'#F59E0B':'#22C55E'}].map(f=>(
                               <div key={f.l} style={{background:'rgba(255,255,255,.04)',borderRadius:'8px',padding:'8px 10px'}}>
                                 <p style={{fontSize:'10px',color:'#64748B',fontWeight:600,textTransform:'uppercase' as const,letterSpacing:'.04em',marginBottom:'2px'}}>{f.l}</p>
-                                <p style={{fontSize:'13px',fontWeight:700,color:f.c}}>R$ {fmtBRL(f.v)}</p>
+                                <p style={{fontSize:'13px',fontWeight:700,color:(f.c==='#0F172A'?'#F8FAFC':f.c)}}>R$ {fmtBRL(f.v)}</p>
                               </div>
                             ))}
                           </div>
@@ -681,7 +686,7 @@ export default function Orcamentos() {
         {/* ══ FORMULÁRIO ══ */}
         {view==='form'&&(
           <div style={{minHeight:'100vh',background:'#07111F'}}>
-          <div className="cm-form-pad cm-content-pad" style={{padding:'24px 32px 60px',maxWidth:'1100px',margin:'0 auto'}}>
+          <div className="cm-form-pad cm-content-pad" style={{padding:'24px 32px 60px',maxWidth:'820px',margin:'0 auto'}}>
             <div className="cm-form-inner" style={{padding:'24px',width:'100%',maxWidth:'100%',boxSizing:'border-box' as const,overflowX:'hidden'}}>
             {/* Topo */}
             <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:'20px',flexWrap:'wrap',gap:'12px'}}>
@@ -709,7 +714,7 @@ export default function Orcamentos() {
             )}
 
             {/* Layout 2 colunas */}
-            <div className="cm-form-grid" style={{display:'grid',gridTemplateColumns:'1fr 300px',gap:'20px',alignItems:'start'}}>
+            <div className="cm-form-grid" style={{display:'flex',flexDirection:'column',gap:'0px'}}>
 
               {/* Coluna esquerda */}
               <div style={{minWidth:0}}>
@@ -958,10 +963,10 @@ export default function Orcamentos() {
                     {([{label:'ARCADA SUPERIOR',dentes:DENTES_SUPERIOR},{label:'ARCADA INFERIOR',dentes:DENTES_INFERIOR}] as {label:string,dentes:number[]}[]).map((arco,ai)=>(
                       <div key={ai} style={{background:'rgba(5,11,22,.6)',border:'1px solid rgba(6,182,212,.18)',borderRadius:12,padding:'12px 10px',marginBottom:8}}>
                         <p style={{fontSize:10,fontWeight:700,color:'#22D3EE',letterSpacing:'.08em',textTransform:'uppercase',marginBottom:8,textAlign:'center'}}>{arco.label}</p>
-                        <div style={{display:'flex',gap:4,flexWrap:'wrap',justifyContent:'center'}}>
+                        <div className="cm-tooth-grid">
                           {arco.dentes.map((n:number)=>(
-                            <button key={n} onClick={()=>toggleDente(n)}
-                              style={{width:36,height:36,borderRadius:8,fontSize:11,fontWeight:700,cursor:'pointer',fontFamily:'inherit',transition:'all .15s',...corDente(n)}}>
+                            <button key={n} onClick={()=>toggleDente(n)} className="cm-tooth"
+                              style={{...corDente(n),fontFamily:'inherit'}}>
                               {n}
                             </button>
                           ))}
@@ -1067,7 +1072,7 @@ export default function Orcamentos() {
                         {[{l:'Total',v:total,c:'#0F172A'},{l:'Pago',v:valorPagoLocal,c:'#16A34A'},{l:'Saldo',v:saldoLocal,c:saldoLocal>0?'#EA580C':'#16A34A'}].map(f=>(
                           <div key={f.l} style={{background:BG,borderRadius:'8px',padding:'10px',border:'1px solid rgba(255,255,255,.08)'}}>
                             <p style={{fontSize:'10px',fontWeight:600,color:'#667085',textTransform:'uppercase',letterSpacing:'.05em',marginBottom:'3px'}}>{f.l}</p>
-                            <p style={{fontSize:'15px',fontWeight:800,color:f.c}}>R$ {fmtBRL(f.v)}</p>
+                            <p style={{fontSize:'15px',fontWeight:800,color:(f.c==='#0F172A'?'#F8FAFC':f.c)}}>R$ {fmtBRL(f.v)}</p>
                           </div>
                         ))}
                       </div>
@@ -1254,7 +1259,7 @@ export default function Orcamentos() {
               </div>
 
               {/* Coluna direita — Resumo sticky */}
-              <div className="cm-form-right" style={{position:'sticky',top:'24px'}}>
+              <div className="cm-form-right" style={{}}>
                 <div style={{background:'rgba(255,255,255,.06)',borderRadius:'16px',padding:'20px',border:'1px solid rgba(255,255,255,.1)',boxShadow:'0 4px 20px rgba(0,0,0,.3)'}}>
                   <p style={{fontSize:'13px',fontWeight:700,color:'#fff',textTransform:'uppercase',letterSpacing:'.06em',marginBottom:'16px'}}>Resumo</p>
 
@@ -1338,7 +1343,7 @@ export default function Orcamentos() {
                   {[{l:'Total',v:orc.total,c:'#0F172A'},{l:'Pago',v:orc.valor_pago,c:'#16A34A'},{l:'Saldo',v:orc.saldo_restante,c:orc.saldo_restante>0?'#EA580C':'#16A34A'}].map(f=>(
                     <div key={f.l} style={{background:BG,borderRadius:'8px',padding:'12px',border:'1px solid rgba(255,255,255,.08)'}}>
                       <p style={{fontSize:'10px',fontWeight:600,color:'#667085',textTransform:'uppercase',letterSpacing:'.05em',marginBottom:'4px'}}>{f.l}</p>
-                      <p style={{fontSize:'18px',fontWeight:800,color:f.c}}>R$ {fmtBRL(f.v)}</p>
+                      <p style={{fontSize:'18px',fontWeight:800,color:(f.c==='#0F172A'?'#F8FAFC':f.c)}}>R$ {fmtBRL(f.v)}</p>
                     </div>
                   ))}
                 </div>
@@ -1348,12 +1353,12 @@ export default function Orcamentos() {
                     + Registrar pagamento
                   </button>
                   <button onClick={()=>gerarPDF(orc)} style={{background:'rgba(255,255,255,.06)',border:'1px solid rgba(255,255,255,.12)',borderRadius:'8px',padding:'8px 14px',fontSize:'12px',fontWeight:600,color:'#94A3B8',cursor:'pointer',fontFamily:'inherit'}}>PDF</button>
-                  <button onClick={()=>enviarWpp(orc)} style={{background:'#F0FFF4',border:'1.5px solid #86EFAC',borderRadius:'8px',padding:'8px 14px',fontSize:'12px',fontWeight:600,color:'#16A34A',cursor:'pointer',fontFamily:'inherit'}}>WhatsApp</button>
+                  <button onClick={()=>enviarWpp(orc)} style={{background:'rgba(34,197,94,.12)',border:'1px solid rgba(34,197,94,.35)',borderRadius:'8px',padding:'8px 14px',fontSize:'12px',fontWeight:600,color:'#4ADE80',cursor:'pointer',fontFamily:'inherit'}}>WhatsApp</button>
                   {orc.link_pagamento&&<button onClick={()=>navigator.clipboard.writeText(orc.link_pagamento)} style={{background:'rgba(255,255,255,.06)',border:'1px solid rgba(255,255,255,.12)',borderRadius:'8px',padding:'8px 14px',fontSize:'12px',fontWeight:600,color:'#94A3B8',cursor:'pointer',fontFamily:'inherit'}}>Copiar link</button>}
                   <button onClick={()=>abrirEditar(orc)} style={{background:'rgba(255,255,255,.06)',border:'1px solid rgba(255,255,255,.12)',borderRadius:'8px',padding:'8px 14px',fontSize:'12px',fontWeight:600,color:'#94A3B8',cursor:'pointer',fontFamily:'inherit'}}>Editar</button>
                 </div>
                 {showPagForm&&(
-                  <div style={{marginTop:'14px',background:'#F0F9FF',border:'1.5px solid #BAE6FD',borderRadius:'10px',padding:'16px'}}>
+                  <div style={{marginTop:'14px',background:'rgba(7,28,46,.9)',border:'1.5px solid rgba(6,182,212,.30)',borderRadius:'10px',padding:'16px'}}>
                     <p style={{fontSize:'13px',fontWeight:700,color:'#67E8F9',marginBottom:'12px'}}>Registrar pagamento</p>
                     <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'10px',marginBottom:'10px'}}>
                       <div><label style={lbl}>Data</label><input type="date" value={pagData} onChange={e=>setPagData(e.target.value)} style={inp} /></div>
