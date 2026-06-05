@@ -108,6 +108,14 @@ const MOBILE_CSS = `
   }
   .cm-acoes-scroll::-webkit-scrollbar { display:none; }
   .cm-acoes-scroll { scrollbar-width:none; -ms-overflow-style:none; }
+  .cm-table-scroll { overflow-x:auto; -webkit-overflow-scrolling:touch; }
+  .cm-table-scroll::-webkit-scrollbar { height:3px; }
+  .cm-table-scroll::-webkit-scrollbar-track { background:rgba(255,255,255,.04); }
+  .cm-table-scroll::-webkit-scrollbar-thumb { background:rgba(99,102,241,.4); border-radius:999px; }
+  @media(max-width:768px){
+    .cm-add-grid { grid-template-columns:1fr !important; }
+    .cm-add-grid-odonto { grid-template-columns:1fr 1fr !important; }
+  }
   .cm-tooth { width:42px; height:42px; border-radius:12px; display:inline-flex; align-items:center; justify-content:center; font-weight:800; font-size:13px; cursor:pointer; border:none; transition:all .15s; flex-shrink:0; }
   @media(max-width:768px){ .cm-tooth { width:36px; height:36px; font-size:12px; border-radius:10px; } }
   @media(max-width:400px){ .cm-tooth { width:32px; height:32px; font-size:11px; border-radius:8px; } }
@@ -163,6 +171,8 @@ export default function Orcamentos() {
   const [procValor,setProcValor]=useState('')
   const [procStatus,setProcStatus]=useState('A realizar')
   const [procObs,setProcObs]=useState('')
+  const [procDentes,setProcDentes]=useState<number[]>([])
+  const [procQtd,setProcQtd]=useState(1)
 
   // Detalhe pagamento
   const [pagData,setPagData]=useState(new Date().toISOString().split('T')[0])
@@ -215,7 +225,7 @@ export default function Orcamentos() {
     setPagamentos(data||[])
   }
 
-  const subtotal=itens.reduce((a,i)=>a+parseFloat(i.unitario||'0'),0)+procOdonto.reduce((a,p)=>a+parseFloat(p.valor||'0'),0)
+  const subtotal=itens.reduce((a,i)=>a+(parseFloat(i.unitario||'0')*(parseInt(i.qtd||'1')||1)),0)+procOdonto.reduce((a,p)=>a+parseFloat(p.valor||'0'),0)
   const descontoNum=parseFloat(desconto||'0')
   const total=Math.max(0,subtotal-descontoNum)
   const valorPagoLocal=histPags.reduce((a,p)=>a+parseFloat(p.valor||'0'),0)
@@ -337,19 +347,97 @@ export default function Orcamentos() {
   }
 
   function gerarPDF(orc:any){
+    // PDF profissional via HTML em nova janela
     const win=window.open('','_blank'); if(!win) return
-    const linhas=(orc.servicos||[]).map((s:any)=>'<tr><td>'+s.nome+'</td><td>'+(s.qtd||1)+'</td><td>R$ '+fmtBRL(parseFloat(s.unitario||'0'))+'</td><td>R$ '+fmtBRL(s.total||0)+'</td></tr>').join('')
+    const neg=perfil?.nome_negocio||'Negócio'
+    const isOdonto=(orc.procedimentos_odonto?.length>0)
+    const itensLinhas=(orc.servicos||[]).map((s:any)=>
+      '<tr><td style="padding:10px 8px;border-bottom:1px solid #E2E8F0;font-size:13px;color:#0F172A">'+s.nome+'</td>'
+      +'<td style="padding:10px 8px;border-bottom:1px solid #E2E8F0;font-size:13px;text-align:center;color:#475569">'+(s.qtd||1)+'</td>'
+      +'<td style="padding:10px 8px;border-bottom:1px solid #E2E8F0;font-size:13px;text-align:right;color:#475569">R$ '+fmtBRL(parseFloat(s.unitario||'0'))+'</td>'
+      +'<td style="padding:10px 8px;border-bottom:1px solid #E2E8F0;font-size:13px;text-align:right;font-weight:700;color:#0F172A">R$ '+fmtBRL(parseFloat(s.unitario||'0')*(s.qtd||1))+'</td></tr>'
+    ).join('')
+    const procLinhas=(orc.procedimentos_odonto||[]).map((p:any)=>{
+      const dentes=Array.isArray(p.dentes)?p.dentes.join(', '):(p.dente?String(p.dente):'—')
+      const qtd=Array.isArray(p.dentes)?p.dentes.length:(p.qtd||1)
+      const vUnit=parseFloat(p.valorUnit||p.valor||'0')
+      const vTotal=vUnit*qtd
+      return '<tr>'
+        +'<td style="padding:10px 8px;border-bottom:1px solid #E2E8F0;font-size:13px;color:#0F172A">'+p.nome+'</td>'
+        +'<td style="padding:10px 8px;border-bottom:1px solid #E2E8F0;font-size:12px;color:#06B6D4">'+dentes+'</td>'
+        +'<td style="padding:10px 8px;border-bottom:1px solid #E2E8F0;font-size:13px;text-align:center;color:#475569">'+qtd+'</td>'
+        +'<td style="padding:10px 8px;border-bottom:1px solid #E2E8F0;font-size:13px;text-align:right;color:#475569">R$ '+fmtBRL(vUnit)+'</td>'
+        +'<td style="padding:10px 8px;border-bottom:1px solid #E2E8F0;font-size:13px;text-align:right;font-weight:700;color:#0F172A">R$ '+fmtBRL(vTotal)+'</td>'
+      +'</tr>'
+    }).join('')
+    const tabela=isOdonto
+      ?('<table style="width:100%;border-collapse:collapse">'
+        +'<thead><tr style="background:#F1F5F9">'
+        +'<th style="padding:10px 8px;text-align:left;font-size:11px;color:#475569;text-transform:uppercase;letter-spacing:.05em">Procedimento</th>'
+        +'<th style="padding:10px 8px;text-align:left;font-size:11px;color:#475569;text-transform:uppercase;letter-spacing:.05em">Dentes</th>'
+        +'<th style="padding:10px 8px;text-align:center;font-size:11px;color:#475569;text-transform:uppercase;letter-spacing:.05em">Qtd</th>'
+        +'<th style="padding:10px 8px;text-align:right;font-size:11px;color:#475569;text-transform:uppercase;letter-spacing:.05em">Unit.</th>'
+        +'<th style="padding:10px 8px;text-align:right;font-size:11px;color:#475569;text-transform:uppercase;letter-spacing:.05em">Total</th>'
+        +'</tr></thead><tbody>'+procLinhas+'</tbody></table>')
+      :('<table style="width:100%;border-collapse:collapse">'
+        +'<thead><tr style="background:#F1F5F9">'
+        +'<th style="padding:10px 8px;text-align:left;font-size:11px;color:#475569;text-transform:uppercase;letter-spacing:.05em">Serviço / Procedimento</th>'
+        +'<th style="padding:10px 8px;text-align:center;font-size:11px;color:#475569;text-transform:uppercase;letter-spacing:.05em">Qtd</th>'
+        +'<th style="padding:10px 8px;text-align:right;font-size:11px;color:#475569;text-transform:uppercase;letter-spacing:.05em">Valor unit.</th>'
+        +'<th style="padding:10px 8px;text-align:right;font-size:11px;color:#475569;text-transform:uppercase;letter-spacing:.05em">Total</th>'
+        +'</tr></thead><tbody>'+itensLinhas+'</tbody></table>')
+    const statusCor:any={'Aberto':'#2563EB','Pago':'#16A34A','Cancelado':'#DC2626','Finalizado':'#15803D'}
+    const sCor=statusCor[orc.status]||'#7C3AED'
+    const nomeArq='orcamento-'+orc.cliente_nome.toLowerCase().replace(/[^a-z0-9]/g,'-')+'-'+fmtData(orc.data).replace(/\//g,'-')+'.pdf'
     const html='<!DOCTYPE html><html><head><meta charset="utf-8"><title>'+orc.tipo+'</title>'
-      +'<style>body{font-family:Arial;max-width:800px;margin:0 auto;padding:32px}table{width:100%;border-collapse:collapse}th,td{padding:8px;border-bottom:1px solid #eee;text-align:left}</style></head><body>'
-      +'<h1>'+(perfil?.nome_negocio||'Negócio')+'</h1><p>'+orc.tipo+' · '+fmtData(orc.data)+'</p>'
-      +'<p><strong>'+orc.cliente_nome+'</strong> · '+(orc.cliente_whatsapp||'')+'</p>'
-      +'<table><thead><tr><th>Serviço</th><th>Qtd</th><th>Unitário</th><th>Total</th></tr></thead><tbody>'+linhas
-      +'<tr><td colspan="3"><strong>Total</strong></td><td><strong>R$ '+fmtBRL(orc.total)+'</strong></td></tr>'
-      +'<tr><td colspan="3">Pago</td><td style="color:green">R$ '+fmtBRL(orc.valor_pago)+'</td></tr>'
-      +'<tr><td colspan="3">Saldo</td><td style="color:red">R$ '+fmtBRL(orc.saldo_restante)+'</td></tr>'
-      +'</tbody></table></body></html>'
+      +'<style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:Arial,sans-serif;background:#F8FAFC;color:#0F172A;font-size:14px}'
+      +'@media print{body{background:white}.no-print{display:none}@page{margin:20mm}}'
+      +'</style></head><body>'
+      +'<div style="max-width:800px;margin:0 auto;padding:32px">'
+      // Cabeçalho
+      +'<div style="background:linear-gradient(135deg,#07111F,#0B1628);color:white;padding:28px 32px;border-radius:14px;margin-bottom:24px;display:flex;justify-content:space-between;align-items:flex-start">'
+      +'<div><div style="font-size:22px;font-weight:800;letter-spacing:-.02em">'+neg+'</div>'
+      +'<div style="font-size:12px;color:rgba(255,255,255,.6);margin-top:4px">ClienteMarcado</div></div>'
+      +'<div style="text-align:right"><div style="font-size:26px;font-weight:900;letter-spacing:.08em;color:#60A5FA">ORÇAMENTO</div>'
+      +'<div style="font-size:12px;color:rgba(255,255,255,.6);margin-top:4px">'+fmtData(orc.data)+'</div>'
+      +'<span style="display:inline-block;margin-top:8px;padding:3px 12px;border-radius:999px;font-size:11px;font-weight:700;background:'+sCor+'22;color:'+sCor+';border:1px solid '+sCor+'44">'+orc.status+'</span>'
+      +'</div></div>'
+      // Cliente + Negócio
+      +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px">'
+      +'<div style="background:white;border:1px solid #E2E8F0;border-radius:12px;padding:18px">'
+      +'<div style="font-size:10px;font-weight:700;color:#94A3B8;text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px">Cliente</div>'
+      +'<div style="font-size:16px;font-weight:700;color:#0F172A;margin-bottom:4px">'+orc.cliente_nome+'</div>'
+      +(orc.cliente_whatsapp?'<div style="font-size:13px;color:#475569">📱 '+aplicarMascaraTel(orc.cliente_whatsapp)+'</div>':'')
+      +(orc.cliente_email?'<div style="font-size:13px;color:#475569">✉️ '+orc.cliente_email+'</div>':'')
+      +'<div style="font-size:12px;color:#7C3AED;margin-top:8px;font-weight:600">'+orc.tipo+'</div>'
+      +'</div>'
+      +'<div style="background:white;border:1px solid #E2E8F0;border-radius:12px;padding:18px">'
+      +'<div style="font-size:10px;font-weight:700;color:#94A3B8;text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px">Emitido por</div>'
+      +'<div style="font-size:16px;font-weight:700;color:#0F172A;margin-bottom:4px">'+neg+'</div>'
+      +(perfil?.whatsapp?'<div style="font-size:13px;color:#475569">📱 '+aplicarMascaraTel(perfil.whatsapp)+'</div>':'')
+      +'</div></div>'
+      // Tabela
+      +'<div style="background:white;border:1px solid #E2E8F0;border-radius:12px;overflow:hidden;margin-bottom:24px">'
+      +'<div style="padding:14px 18px;border-bottom:1px solid #E2E8F0;font-size:12px;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:.06em">'+(isOdonto?'Procedimentos odontológicos':'Itens do orçamento')+'</div>'
+      +tabela+'</div>'
+      // Resumo financeiro
+      +'<div style="display:grid;grid-template-columns:1fr 280px;gap:16px;margin-bottom:24px">'
+      +(orc.observacoes?'<div style="background:white;border:1px solid #E2E8F0;border-radius:12px;padding:18px"><div style="font-size:10px;font-weight:700;color:#94A3B8;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Observações</div><div style="font-size:13px;color:#475569;line-height:1.6">'+orc.observacoes+'</div></div>':'<div></div>')
+      +'<div style="background:white;border:1px solid #E2E8F0;border-radius:12px;padding:18px">'
+      +'<div style="display:flex;justify-content:space-between;font-size:13px;color:#475569;margin-bottom:8px"><span>Subtotal</span><span style="font-weight:600;color:#0F172A">R$ '+fmtBRL(orc.subtotal||orc.total)+'</span></div>'
+      +(orc.desconto>0?'<div style="display:flex;justify-content:space-between;font-size:13px;color:#475569;margin-bottom:8px"><span>Desconto</span><span style="font-weight:600;color:#EF4444">- R$ '+fmtBRL(orc.desconto)+'</span></div>':'')
+      +'<div style="border-top:1px solid #E2E8F0;padding-top:10px;display:flex;justify-content:space-between;align-items:center"><span style="font-size:14px;font-weight:700;color:#0F172A">Total final</span><span style="font-size:20px;font-weight:900;color:#2563EB">R$ '+fmtBRL(orc.total)+'</span></div>'
+      +(orc.valor_pago>0?'<div style="margin-top:8px;display:flex;justify-content:space-between;font-size:13px"><span style="color:#475569">Pago</span><span style="color:#16A34A;font-weight:700">R$ '+fmtBRL(orc.valor_pago)+'</span></div>':'')
+      +(orc.saldo_restante>0?'<div style="margin-top:4px;display:flex;justify-content:space-between;font-size:13px"><span style="color:#475569">Saldo</span><span style="color:#F59E0B;font-weight:700">R$ '+fmtBRL(orc.saldo_restante)+'</span></div>':'')
+      +'</div></div>'
+      // Rodapé
+      +'<div style="text-align:center;padding:16px;border-top:1px solid #E2E8F0;font-size:11px;color:#94A3B8">'
+      +'Orçamento gerado pelo ClienteMarcado. Este documento não substitui nota fiscal.</div>'
+      +'</div>'
+      +'<script>window.onload=function(){window.print()}<\/script>'
+      +'</body></html>'
     win.document.write(html)
-    win.document.close();setTimeout(()=>win.print(),500)
+    win.document.close()
   }
 
   function gerarMsgCobranca(){
@@ -426,9 +514,13 @@ export default function Orcamentos() {
     return {background:'#E5E7EB',border:'1px solid rgba(200,200,200,.25)',color:'#020617'}
   }
   function adicionarProcOdonto(){
-    if(!procNome||dentesSelec.length===0) return
-    setProcOdonto(prev=>[...prev,...dentesSelec.map(d=>({dente:d,nome:procNome,valor:procValor,status:procStatus,obs:procObs}))])
-    setProcNome('');setProcValor('');setProcObs('');setProcStatus('A realizar');setDentesSelec([])
+    if(!procNome) return
+    const dentesUsados=dentesSelec.length>0?[...dentesSelec]:[]
+    const valorUnit=parseFloat(procValor||'0')
+    const qtdDentes=dentesUsados.length||1
+    const valorTotal=valorUnit*qtdDentes
+    setProcOdonto(prev=>[...prev,{dentes:dentesUsados,nome:procNome,valorUnit,qtd:qtdDentes,valor:String(valorTotal),status:procStatus,obs:procObs}])
+    setProcNome('');setProcValor('');setProcObs('');setProcStatus('A realizar');setDentesSelec([]);setProcQtd(1)
   }
 
   const orcsFiltrados=orcamentos.filter(o=>{
@@ -813,46 +905,32 @@ export default function Orcamentos() {
                   )}
                 </div>
 
-                {/* CARD: Itens */}
+                {/* CARD: Itens — design mockup */}
                 <div className="cm-card" style={card}>
-                  <div style={{display:'flex',alignItems:'center',gap:'8px',marginBottom:'4px'}}>
-                    <span style={{fontSize:'16px'}}>📄</span>
-                    <p style={{fontSize:'15px',fontWeight:700,color:'#F8FAFC'}}>Itens do orçamento</p>
-                  </div>
-                  <p style={{fontSize:'12px',color:'#94A3B8',marginBottom:'16px'}}>Adicione serviços, procedimentos, produtos ou itens deste orçamento.</p>
-
-                  {itens.map((item,idx)=>(
-                    <div key={idx} style={{marginBottom:'12px',padding:'16px',background:'rgba(11,18,32,.95)',borderRadius:'14px',border:'1px solid rgba(148,163,184,.15)',width:'100%',boxSizing:'border-box' as const}}>
-                      <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'12px'}}>
-                        <span style={{fontSize:'11px',fontWeight:700,color:'#64748B',textTransform:'uppercase' as const,letterSpacing:'.06em'}}>Item {idx+1}</span>
-                        {itens.length>1&&(
-                          <button onClick={()=>setItens(prev=>prev.filter((_,i)=>i!==idx))}
-                            style={{background:'rgba(239,68,68,.12)',border:'1px solid rgba(239,68,68,.25)',borderRadius:'6px',color:'#F87171',cursor:'pointer',fontSize:'12px',fontWeight:600,padding:'3px 10px',fontFamily:'inherit'}}>
-                            Remover
-                          </button>
-                        )}
-                      </div>
-                      {/* Descrição com autocomplete */}
-                      <div style={{marginBottom:'10px',position:'relative'}}>
-                        <label style={{fontSize:'12px',fontWeight:600,color:'#CBD5E1',display:'block',marginBottom:'6px'}}>Descrição do item</label>
-                        <textarea
-                          rows={2}
-                          placeholder="Ex: Corte masculino, barba, limpeza de pele, avaliação, manutenção..."
-                          value={item.nome}
+                  {/* Área de adição de item */}
+                  <div style={{marginBottom:16,padding:'16px',background:'rgba(11,18,32,.7)',borderRadius:12,border:'1px solid rgba(148,163,184,.12)'}}>
+                    <p style={{fontSize:14,fontWeight:700,color:'#F8FAFC',marginBottom:12}}>Adicionar item ao orçamento</p>
+                    <div style={{display:'grid',gridTemplateColumns:'1fr 120px 180px auto',gap:8,alignItems:'end'}}>
+                      {/* Serviço com autocomplete */}
+                      <div style={{position:'relative'}}>
+                        <label style={{fontSize:11,fontWeight:600,color:'#94A3B8',display:'block',marginBottom:5,textTransform:'uppercase',letterSpacing:'.05em'}}>Serviço / Procedimento</label>
+                        <input
+                          type="text"
+                          placeholder="Selecione ou digite o serviço..."
+                          value={itens[itens.length-1]?.nome||''}
                           onChange={e=>{
-                            atualizarItem(idx,'nome',e.target.value)
-                            atualizarItem(idx,'showSug',true)
-                            e.target.style.height='auto'
-                            e.target.style.height=e.target.scrollHeight+'px'
+                            const idx2=itens.length-1
+                            atualizarItem(idx2,'nome',e.target.value)
+                            atualizarItem(idx2,'showSug',true)
                           }}
-                          onBlur={()=>setTimeout(()=>atualizarItem(idx,'showSug',false),150)}
-                          style={{...inp,resize:'none' as const,overflow:'hidden',minHeight:'60px',width:'100%'}}
+                          onBlur={()=>setTimeout(()=>{const idx2=itens.length-1;atualizarItem(idx2,'showSug',false)},150)}
+                          style={inp}
                         />
-                        {item.showSug&&item.nome&&(
-                          <div style={{position:'absolute',top:'100%',left:0,right:0,background:'#0B1220',border:'1px solid rgba(59,130,246,.25)',borderRadius:'10px',zIndex:50,maxHeight:'180px',overflowY:'auto' as const,boxShadow:'0 8px 24px rgba(0,0,0,.4)'}}>
-                            {(['Corte masculino','Corte feminino','Corte infantil','Barba','Corte + barba','Sobrancelha','Limpeza de pele','Design de sobrancelhas','Manicure','Pedicure','Avaliacao','Consulta','Procedimento estetico','Manutencao','Servico personalizado'] as string[]).filter((s:string)=>s.toLowerCase().includes(item.nome.toLowerCase())).map((s:string)=>(
-                              <button key={s} onMouseDown={()=>{atualizarItem(idx,'nome',s);atualizarItem(idx,'showSug',false)}}
-                                style={{display:'block',width:'100%',textAlign:'left',padding:'9px 14px',background:'none',border:'none',color:'#CBD5E1',fontSize:'13px',cursor:'pointer',fontFamily:'inherit',borderBottom:'1px solid rgba(255,255,255,.05)'}}
+                        {itens[itens.length-1]?.showSug&&itens[itens.length-1]?.nome&&(
+                          <div style={{position:'absolute',top:'100%',left:0,right:0,background:'#0B1220',border:'1px solid rgba(59,130,246,.25)',borderRadius:10,zIndex:50,maxHeight:180,overflowY:'auto',boxShadow:'0 8px 24px rgba(0,0,0,.4)'}}>
+                            {(SUGESTOES_ARR as string[]).filter((s:string)=>s.toLowerCase().includes((itens[itens.length-1]?.nome||'').toLowerCase())).map((s:string)=>(
+                              <button key={s} onMouseDown={()=>{const idx2=itens.length-1;atualizarItem(idx2,'nome',s);atualizarItem(idx2,'showSug',false)}}
+                                style={{display:'block',width:'100%',textAlign:'left',padding:'9px 14px',background:'none',border:'none',color:'#CBD5E1',fontSize:13,cursor:'pointer',fontFamily:'inherit',borderBottom:'1px solid rgba(255,255,255,.05)'}}
                                 onMouseEnter={e=>(e.currentTarget.style.background='rgba(59,130,246,.12)')}
                                 onMouseLeave={e=>(e.currentTarget.style.background='none')}>
                                 {s}
@@ -861,51 +939,92 @@ export default function Orcamentos() {
                           </div>
                         )}
                       </div>
-                      {/* Valor */}
-                      <div style={{marginBottom:'10px'}}>
-                        <label style={{fontSize:'12px',fontWeight:600,color:'#CBD5E1',display:'block',marginBottom:'6px'}}>Valor</label>
+                      {/* Quantidade */}
+                      <div>
+                        <label style={{fontSize:11,fontWeight:600,color:'#94A3B8',display:'block',marginBottom:5,textTransform:'uppercase',letterSpacing:'.05em'}}>Quantidade</label>
+                        <input type="number" min="1" style={{...inp,textAlign:'center'}}
+                          value={itens[itens.length-1]?.qtd||1}
+                          onChange={e=>atualizarItem(itens.length-1,'qtd',e.target.value)} />
+                      </div>
+                      {/* Valor unitário */}
+                      <div>
+                        <label style={{fontSize:11,fontWeight:600,color:'#94A3B8',display:'block',marginBottom:5,textTransform:'uppercase',letterSpacing:'.05em'}}>Valor unitário (R$)</label>
                         <div style={{position:'relative'}}>
-                          <span style={{position:'absolute',left:'10px',top:'50%',transform:'translateY(-50%)',fontSize:'12px',color:'#64748B',fontWeight:600}}>R$</span>
-                          <input style={{...inp,paddingLeft:'32px',width:'100%',boxSizing:'border-box' as const}} type="number" min="0" step="0.01" placeholder="0,00"
-                            value={item.unitario} onChange={e=>atualizarItem(idx,'unitario',e.target.value)} />
+                          <span style={{position:'absolute',left:8,top:'50%',transform:'translateY(-50%)',fontSize:11,color:'#64748B',fontWeight:600}}>R$</span>
+                          <input type="number" min="0" step="0.01" placeholder="0,00" style={{...inp,paddingLeft:28}}
+                            value={itens[itens.length-1]?.unitario||''}
+                            onChange={e=>atualizarItem(itens.length-1,'unitario',e.target.value)} />
                         </div>
                       </div>
-                      {/* Total do item */}
-                      {parseFloat(item.unitario||'0')>0&&(
-                        <div style={{background:'rgba(34,197,94,.08)',border:'1px solid rgba(34,197,94,.20)',borderRadius:'8px',padding:'8px 12px',display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'8px'}}>
-                          <span style={{fontSize:'12px',color:'#94A3B8',fontWeight:600}}>Valor do item</span>
-                          <span style={{fontSize:'15px',fontWeight:800,color:'#4ADE80'}}>R$ {fmtBRL(parseFloat(item.unitario||'0'))}</span>
-                        </div>
-                      )}
-                      {/* Obs */}
-                      <textarea rows={1} placeholder="Observação opcional"
-                        value={item.obs} onChange={e=>{atualizarItem(idx,'obs',e.target.value);e.target.style.height='auto';e.target.style.height=e.target.scrollHeight+'px'}}
-                        style={{...inp,resize:'none' as const,overflow:'hidden',fontSize:'13px',color:'#94A3B8',width:'100%',minHeight:'38px'}} />
+                      {/* Botão adicionar */}
+                      <button
+                        onClick={()=>{
+                          const last=itens[itens.length-1]
+                          if(!last?.nome?.trim()||!parseFloat(last?.unitario||'0')) return
+                          setItens(prev=>[...prev,{nome:'',qtd:1,unitario:'',total:0,obs:'',showSug:false}])
+                        }}
+                        style={{background:'linear-gradient(135deg,#2563EB,#7C3AED)',color:'#fff',border:'none',borderRadius:10,padding:'10px 18px',fontSize:13,fontWeight:700,cursor:'pointer',fontFamily:'inherit',whiteSpace:'nowrap',height:42,display:'flex',alignItems:'center',gap:6}}>
+                        + Adicionar item
+                      </button>
                     </div>
-                  ))}
+                  </div>
 
-                  <button onClick={()=>setItens(prev=>[...prev,{nome:'',qtd:1,unitario:'',total:0,obs:'',showSug:false}])}
-                    style={{background:'none',border:'1px dashed rgba(59,130,246,.30)',borderRadius:'10px',color:'#3B82F6',fontSize:'13px',fontWeight:600,cursor:'pointer',fontFamily:'inherit',padding:'10px',width:'100%',marginBottom:'4px'}}>
-                    + Adicionar outro item
-                  </button>
+                  {/* Tabela de itens */}
+                  {itens.filter(i=>i.nome?.trim()&&parseFloat(i.unitario||'0')>0).length>0&&(
+                    <div style={{background:'rgba(11,18,32,.7)',borderRadius:12,border:'1px solid rgba(148,163,184,.12)',overflow:'hidden',marginBottom:16}}>
+                      {/* Header tabela */}
+                      <div style={{display:'grid',gridTemplateColumns:'2fr 100px 130px 130px 80px',padding:'10px 16px',borderBottom:'1px solid rgba(255,255,255,.06)',background:'rgba(255,255,255,.03)'}}>
+                        {['Serviço / Procedimento','Quantidade','Valor unitário','Valor total','Ações'].map(h=>(
+                          <p key={h} style={{fontSize:11,fontWeight:600,color:'#64748B',textTransform:'uppercase',letterSpacing:'.06em',textAlign:h==='Ações'?'center':'left'}}>{h}</p>
+                        ))}
+                      </div>
+                      {/* Linhas */}
+                      {itens.map((item,idx)=>{
+                        if(!item.nome?.trim()&&!parseFloat(item.unitario||'0')) return null
+                        const total2=parseFloat(item.unitario||'0')*(parseInt(item.qtd||'1')||1)
+                        return (
+                          <div key={idx} style={{display:'grid',gridTemplateColumns:'2fr 100px 130px 130px 80px',padding:'12px 16px',borderBottom:'1px solid rgba(255,255,255,.04)',alignItems:'center',transition:'background .15s'}}
+                            onMouseEnter={e=>(e.currentTarget.style.background='rgba(255,255,255,.02)')}
+                            onMouseLeave={e=>(e.currentTarget.style.background='transparent')}>
+                            <div style={{display:'flex',alignItems:'center',gap:10}}>
+                              <div style={{width:30,height:30,borderRadius:'50%',background:'linear-gradient(135deg,#2563EB,#7C3AED)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:13,flexShrink:0}}>✂</div>
+                              <div>
+                                <p style={{fontSize:13,fontWeight:600,color:'#F8FAFC'}}>{item.nome}</p>
+                                {item.obs&&<p style={{fontSize:11,color:'#64748B',marginTop:1}}>{item.obs}</p>}
+                              </div>
+                            </div>
+                            <p style={{fontSize:13,color:'#94A3B8',textAlign:'center'}}>{item.qtd||1}</p>
+                            <p style={{fontSize:13,color:'#94A3B8',textAlign:'right'}}>R$ {fmtBRL(parseFloat(item.unitario||'0'))}</p>
+                            <p style={{fontSize:13,fontWeight:700,color:'#F8FAFC',textAlign:'right'}}>R$ {fmtBRL(total2)}</p>
+                            <div style={{display:'flex',gap:6,justifyContent:'center'}}>
+                              <button onClick={()=>setItens(prev=>prev.filter((_,i)=>i!==idx))}
+                                style={{width:28,height:28,borderRadius:6,background:'rgba(239,68,68,.15)',border:'1px solid rgba(239,68,68,.30)',color:'#F87171',cursor:'pointer',fontSize:14,display:'flex',alignItems:'center',justifyContent:'center'}}>
+                                🗑
+                              </button>
+                            </div>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  )}
 
                   {/* Subtotal */}
-                  <div style={{marginTop:'16px',background:'rgba(5,11,22,.8)',borderRadius:'12px',padding:'14px 16px',width:'100%',boxSizing:'border-box' as const,border:'1px solid rgba(255,255,255,.06)'}}>
-                    <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',fontSize:'13px',color:'#94A3B8',marginBottom:'8px'}}>
+                  <div style={{background:'rgba(5,11,22,.8)',borderRadius:12,padding:'14px 16px',width:'100%',boxSizing:'border-box',border:'1px solid rgba(255,255,255,.06)'}}>
+                    <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',fontSize:13,color:'#94A3B8',marginBottom:8}}>
                       <span>Subtotal</span>
                       <span style={{fontWeight:600,color:'#fff'}}>R$ {fmtBRL(subtotal)}</span>
                     </div>
-                    <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',fontSize:'13px',color:'#64748B',marginBottom:'8px',paddingBottom:'8px',borderBottom:'1px solid rgba(255,255,255,.07)'}}>
-                      <span>Desconto</span>
+                    <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',fontSize:13,color:'#64748B',marginBottom:8,paddingBottom:8,borderBottom:'1px solid rgba(255,255,255,.07)'}}>
+                      <span>Desconto (R$)</span>
                       <input type="number" min="0" step="0.01" placeholder="0,00" value={desconto}
                         onChange={e=>setDesconto(e.target.value)}
-                        style={{background:'rgba(255,255,255,.06)',border:'1px solid rgba(255,255,255,.12)',outline:'none',color:'#F87171',fontSize:'13px',fontWeight:600,textAlign:'right' as const,width:'100px',fontFamily:'inherit',borderRadius:'6px',padding:'4px 8px'}} />
+                        style={{background:'rgba(255,255,255,.06)',border:'1px solid rgba(255,255,255,.12)',outline:'none',color:'#F87171',fontSize:13,fontWeight:600,textAlign:'right',width:100,fontFamily:'inherit',borderRadius:6,padding:'4px 8px'}} />
                     </div>
-                    <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
-                      <span style={{fontSize:'14px',fontWeight:700,color:'#fff'}}>Total final</span>
-                      <span style={{fontSize:'18px',fontWeight:800,color:'#3B82F6'}}>R$ {fmtBRL(total)}</span>
+                    <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:descontoNum>0?8:0}}>
+                      <span style={{fontSize:14,fontWeight:700,color:'#fff'}}>Total final</span>
+                      <span style={{fontSize:20,fontWeight:900,color:'#22C55E'}}>R$ {fmtBRL(total)}</span>
                     </div>
-                    {descontoNum>subtotal&&subtotal>0&&<p style={{fontSize:'11px',color:'#F59E0B',marginTop:'4px',textAlign:'right' as const}}>Desconto maior que subtotal.</p>}
+                    {descontoNum>0&&<p style={{fontSize:11,color:'#F59E0B',textAlign:'right'}}>Desconto: R$ {fmtBRL(descontoNum)} aplicado</p>}
                   </div>
                 </div>
 
@@ -998,55 +1117,124 @@ export default function Orcamentos() {
                       </div>
                     )}
                     <div style={{marginTop:16,paddingTop:16,borderTop:'1px solid rgba(255,255,255,.06)'}}>
-                      <p style={{fontSize:13,fontWeight:700,color:'#F8FAFC',marginBottom:4}}>Orçamento do tratamento</p>
-                      <p style={{fontSize:11,color:'#64748B',marginBottom:12}}>Descreva o tratamento, informe o valor e adicione os procedimentos necessários.</p>
-                      {/* Procedimento com autocomplete */}
-                      <div style={{marginBottom:10,position:'relative'}}>
-                        <label style={{fontSize:11,fontWeight:700,color:'#94A3B8',textTransform:'uppercase' as const,letterSpacing:'.06em',display:'block',marginBottom:6}}>PROCEDIMENTO ODONTOLÓGICO *</label>
-                        <textarea rows={2}
-                          placeholder="Ex: canal, extração, restauração, limpeza, avaliação, clareamento, aparelho..."
-                          value={procNome}
-                          onChange={e=>{setProcNome(e.target.value);e.target.style.height='auto';e.target.style.height=e.target.scrollHeight+'px'}}
-                          style={{...inp,resize:'none' as const,overflow:'hidden',minHeight:'56px',width:'100%'}}
-                        />
-                        {procNome&&(
-                          <div style={{position:'absolute',top:'100%',left:0,right:0,background:'#0B1220',border:'1px solid rgba(59,130,246,.25)',borderRadius:'10px',zIndex:50,maxHeight:'160px',overflowY:'auto' as const,boxShadow:'0 8px 24px rgba(0,0,0,.4)'}}>
-                            {(['Avaliacao odontologica','Limpeza','Restauracao','Extracao','Canal','Clareamento','Aparelho','Manutencao de aparelho','Protese','Implante','Tratamento gengival','Radiografia','Retorno','Procedimento personalizado'] as string[]).filter((s:string)=>s.toLowerCase().includes(procNome.toLowerCase())).map((s:string)=>(
-                              <button key={s} onMouseDown={()=>setProcNome(s)}
-                                style={{display:'block',width:'100%',textAlign:'left',padding:'9px 14px',background:'none',border:'none',color:'#CBD5E1',fontSize:'13px',cursor:'pointer',fontFamily:'inherit',borderBottom:'1px solid rgba(255,255,255,.05)'}}
-                                onMouseEnter={e=>(e.currentTarget.style.background='rgba(34,211,238,.10)')}
-                                onMouseLeave={e=>(e.currentTarget.style.background='none')}>
-                                {s}
-                              </button>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                      {/* Valor */}
-                      <div style={{marginBottom:10}}>
-                        <label style={{fontSize:11,fontWeight:600,color:'#94A3B8',display:'block',marginBottom:5}}>VALOR</label>
-                        <div style={{position:'relative'}}><span style={{position:'absolute',left:8,top:'50%',transform:'translateY(-50%)',fontSize:11,color:'#64748B',fontWeight:600}}>R$</span><input style={{...inp,paddingLeft:28}} type="number" min="0" step="0.01" placeholder="0,00" value={procValor} onChange={e=>setProcValor(e.target.value)} /></div>
-                      </div>
-                      {/* Obs */}
-                      <div style={{marginBottom:10}}>
-                        <label style={{fontSize:11,fontWeight:600,color:'#94A3B8',display:'block',marginBottom:5}}>OBSERVAÇÃO</label>
-                        <textarea rows={1} placeholder="Ex: retorno em 15 dias, pagamento parcial, etapa do tratamento..."
-                          value={procObs} onChange={e=>{setProcObs(e.target.value);e.target.style.height='auto';e.target.style.height=e.target.scrollHeight+'px'}}
-                          style={{...inp,resize:'none' as const,overflow:'hidden',fontSize:'13px',width:'100%',minHeight:'36px'}} />
-                      </div>
-                      <button onClick={adicionarProcOdonto} disabled={!procNome||dentesSelec.length===0}
-                        style={{width:'100%',border:'1.5px dashed rgba(34,211,238,.30)',borderRadius:10,padding:10,background:'rgba(34,211,238,.05)',color:'#22D3EE',fontSize:13,fontWeight:700,cursor:(!procNome||dentesSelec.length===0)?'not-allowed':'pointer',fontFamily:'inherit',marginBottom:10,opacity:(!procNome||dentesSelec.length===0)?0.5:1}}>
-                        + Adicionar procedimento
-                      </button>
-                      {procOdonto.map((p:any,i:number)=>(
-                        <div key={i} style={{background:'rgba(255,255,255,.04)',border:'1px solid rgba(255,255,255,.08)',borderRadius:10,padding:'10px 12px',display:'flex',justifyContent:'space-between',marginBottom:6,alignItems:'center'}}>
-                          <span style={{fontSize:13,color:'#CBD5E1'}}>{p.dente?'Dente '+p.dente+' — ':''}{p.nome} · {p.status}</span>
-                          <div style={{display:'flex',gap:8,alignItems:'center'}}>
-                            <span style={{fontSize:13,color:'#22C55E',fontWeight:700}}>R$ {fmtBRL(parseFloat(p.valor||'0'))}</span>
-                            <button onClick={()=>setProcOdonto((prev:any[])=>prev.filter((_:any,j:number)=>j!==i))} style={{background:'none',border:'none',color:'#EF4444',cursor:'pointer',fontSize:16,lineHeight:1}}>x</button>
+                      <p style={{fontSize:14,fontWeight:700,color:'#F8FAFC',marginBottom:12}}>Adicionar procedimento ao orçamento</p>
+                      {/* Formulário de adição */}
+                      <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 100px 140px auto',gap:8,alignItems:'end',marginBottom:16}}>
+                        {/* Procedimento */}
+                        <div style={{position:'relative'}}>
+                          <label style={{fontSize:11,fontWeight:600,color:'#94A3B8',display:'block',marginBottom:5,textTransform:'uppercase',letterSpacing:'.05em'}}>Procedimento odontológico</label>
+                          <input type="text"
+                            placeholder="Digite para buscar um procedimento..."
+                            value={procNome}
+                            onChange={e=>setProcNome(e.target.value)}
+                            style={inp}
+                          />
+                          {procNome&&(
+                            <div style={{position:'absolute',top:'100%',left:0,right:0,background:'#0B1220',border:'1px solid rgba(34,211,238,.25)',borderRadius:10,zIndex:50,maxHeight:160,overflowY:'auto',boxShadow:'0 8px 24px rgba(0,0,0,.4)'}}>
+                              {(['Avaliacao odontologica','Limpeza','Restauracao','Extracao','Canal','Clareamento','Aparelho','Manutencao de aparelho','Protese','Implante','Tratamento gengival','Radiografia','Retorno','Procedimento personalizado'] as string[]).filter((s:string)=>s.toLowerCase().includes(procNome.toLowerCase())).map((s:string)=>(
+                                <button key={s} onMouseDown={()=>setProcNome(s)}
+                                  style={{display:'block',width:'100%',textAlign:'left',padding:'9px 14px',background:'none',border:'none',color:'#CBD5E1',fontSize:13,cursor:'pointer',fontFamily:'inherit',borderBottom:'1px solid rgba(255,255,255,.05)'}}
+                                  onMouseEnter={e=>(e.currentTarget.style.background='rgba(34,211,238,.10)')}
+                                  onMouseLeave={e=>(e.currentTarget.style.background='none')}>
+                                  {s}
+                                </button>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                        {/* Dentes selecionados — display only */}
+                        <div>
+                          <label style={{fontSize:11,fontWeight:600,color:'#94A3B8',display:'block',marginBottom:5,textTransform:'uppercase',letterSpacing:'.05em'}}>Dentes selecionados</label>
+                          <div style={{...inp,display:'flex',gap:4,flexWrap:'wrap',minHeight:42,alignItems:'center'}}>
+                            {dentesSelec.length>0
+                              ?dentesSelec.sort((a,b)=>a-b).map(n=>(
+                                <span key={n} style={{background:'rgba(6,182,212,.18)',border:'1px solid rgba(34,211,238,.45)',color:'#67E8F9',borderRadius:6,padding:'2px 7px',fontSize:11,fontWeight:700}}>{n}</span>
+                              ))
+                              :<span style={{fontSize:12,color:'#475569'}}>Selecione os dentes...</span>
+                            }
                           </div>
                         </div>
-                      ))}
+                        {/* Qtd dentes */}
+                        <div>
+                          <label style={{fontSize:11,fontWeight:600,color:'#94A3B8',display:'block',marginBottom:5,textTransform:'uppercase',letterSpacing:'.05em'}}>Qtd. de dentes</label>
+                          <input type="number" min="0" readOnly style={{...inp,textAlign:'center',color:'#94A3B8'}} value={dentesSelec.length||0} />
+                        </div>
+                        {/* Valor unitário */}
+                        <div>
+                          <label style={{fontSize:11,fontWeight:600,color:'#94A3B8',display:'block',marginBottom:5,textTransform:'uppercase',letterSpacing:'.05em'}}>Valor unitário (R$)</label>
+                          <div style={{position:'relative'}}>
+                            <span style={{position:'absolute',left:8,top:'50%',transform:'translateY(-50%)',fontSize:11,color:'#64748B',fontWeight:600}}>R$</span>
+                            <input type="number" min="0" step="0.01" placeholder="0,00" style={{...inp,paddingLeft:28}} value={procValor} onChange={e=>setProcValor(e.target.value)} />
+                          </div>
+                        </div>
+                        {/* Botão */}
+                        <button onClick={adicionarProcOdonto} disabled={!procNome}
+                          style={{background:'linear-gradient(135deg,#06B6D4,#0891B2)',color:'#fff',border:'none',borderRadius:10,padding:'10px 16px',fontSize:13,fontWeight:700,cursor:!procNome?'not-allowed':'pointer',fontFamily:'inherit',whiteSpace:'nowrap',height:42,display:'flex',alignItems:'center',gap:6,opacity:!procNome?0.5:1}}>
+                          + Adicionar procedimento
+                        </button>
+                      </div>
+
+                      {/* Tabela de procedimentos */}
+                      {procOdonto.length>0&&(
+                        <div style={{background:'rgba(11,18,32,.7)',borderRadius:12,border:'1px solid rgba(148,163,184,.12)',overflow:'hidden'}}>
+                          {/* Header */}
+                          <div style={{display:'grid',gridTemplateColumns:'2fr 1.5fr 80px 120px 120px 80px',padding:'10px 16px',borderBottom:'1px solid rgba(255,255,255,.06)',background:'rgba(255,255,255,.03)'}}>
+                            {['Serviço / Procedimento','Dentes selecionados','Qtd. de dentes','Valor unitário','Valor total','Ações'].map(h=>(
+                              <p key={h} style={{fontSize:11,fontWeight:600,color:'#64748B',textTransform:'uppercase',letterSpacing:'.06em',textAlign:h==='Ações'?'center':'left'}}>{h}</p>
+                            ))}
+                          </div>
+                          {/* Linhas */}
+                          {procOdonto.map((p:any,i:number)=>{
+                            const dentes=Array.isArray(p.dentes)?p.dentes:(p.dente?[p.dente]:[])
+                            const qtd=dentes.length||p.qtd||1
+                            const vUnit=parseFloat(p.valorUnit||p.valor||'0')
+                            const vTotal=vUnit*qtd
+                            return (
+                              <div key={i} style={{display:'grid',gridTemplateColumns:'2fr 1.5fr 80px 120px 120px 80px',padding:'12px 16px',borderBottom:'1px solid rgba(255,255,255,.04)',alignItems:'center'}}
+                                onMouseEnter={e=>(e.currentTarget.style.background='rgba(255,255,255,.02)')}
+                                onMouseLeave={e=>(e.currentTarget.style.background='transparent')}>
+                                <div style={{display:'flex',alignItems:'center',gap:10}}>
+                                  <div style={{width:30,height:30,borderRadius:'50%',background:'linear-gradient(135deg,#06B6D4,#0891B2)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:14,flexShrink:0}}>🦷</div>
+                                  <p style={{fontSize:13,fontWeight:600,color:'#F8FAFC'}}>{p.nome}</p>
+                                </div>
+                                <div style={{display:'flex',gap:4,flexWrap:'wrap'}}>
+                                  {dentes.map((n:number)=>(
+                                    <span key={n} style={{background:'rgba(6,182,212,.18)',border:'1px solid rgba(34,211,238,.35)',color:'#67E8F9',borderRadius:6,padding:'2px 6px',fontSize:11,fontWeight:700}}>{n}</span>
+                                  ))}
+                                </div>
+                                <p style={{fontSize:13,color:'#94A3B8',textAlign:'center'}}>{qtd}</p>
+                                <p style={{fontSize:13,color:'#94A3B8',textAlign:'right'}}>R$ {fmtBRL(vUnit)}</p>
+                                <p style={{fontSize:13,fontWeight:700,color:'#F8FAFC',textAlign:'right'}}>R$ {fmtBRL(vTotal)}</p>
+                                <div style={{display:'flex',gap:6,justifyContent:'center'}}>
+                                  <button onClick={()=>setProcOdonto((prev:any[])=>prev.filter((_:any,j:number)=>j!==i))}
+                                    style={{width:28,height:28,borderRadius:6,background:'rgba(239,68,68,.15)',border:'1px solid rgba(239,68,68,.30)',color:'#F87171',cursor:'pointer',fontSize:14,display:'flex',alignItems:'center',justifyContent:'center'}}>
+                                    🗑
+                                  </button>
+                                </div>
+                              </div>
+                            )
+                          })}
+                          {/* Subtotal odonto */}
+                          <div style={{padding:'12px 16px',background:'rgba(255,255,255,.03)',borderTop:'1px solid rgba(255,255,255,.06)',display:'grid',gridTemplateColumns:'2fr 1.5fr 80px 120px 120px 80px'}}>
+                            <p style={{fontSize:13,fontWeight:700,color:'#F8FAFC',gridColumn:'1/5',textAlign:'right',paddingRight:8}}>Subtotal</p>
+                            <p style={{fontSize:14,fontWeight:800,color:'#22C55E',textAlign:'right'}}>R$ {fmtBRL(subtotal)}</p>
+                            <div/>
+                          </div>
+                          {/* Desconto e Total */}
+                          <div style={{padding:'12px 16px 16px',background:'rgba(255,255,255,.03)'}}>
+                            <div style={{display:'flex',justifyContent:'flex-end',alignItems:'center',gap:12,marginBottom:8}}>
+                              <span style={{fontSize:13,color:'#64748B'}}>Desconto (R$)</span>
+                              <input type="number" min="0" step="0.01" placeholder="0,00" value={desconto}
+                                onChange={e=>setDesconto(e.target.value)}
+                                style={{background:'rgba(255,255,255,.06)',border:'1px solid rgba(255,255,255,.12)',outline:'none',color:'#F87171',fontSize:13,fontWeight:600,textAlign:'right',width:100,fontFamily:'inherit',borderRadius:6,padding:'4px 8px'}} />
+                            </div>
+                            <div style={{display:'flex',justifyContent:'flex-end',alignItems:'center',gap:16}}>
+                              <span style={{fontSize:14,fontWeight:700,color:'#F8FAFC'}}>Total final</span>
+                              <span style={{fontSize:20,fontWeight:900,color:'#22C55E'}}>R$ {fmtBRL(total)}</span>
+                            </div>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
                 )}
@@ -1122,7 +1310,7 @@ export default function Orcamentos() {
                           📋 Copiar mensagem de cobrança
                         </button>
                         <button onClick={enviarCobrancaWpp} disabled={!clienteWpp}
-                          style={{background:'#F0FFF4',border:'1.5px solid #86EFAC',borderRadius:'8px',padding:'8px 14px',fontSize:'12px',fontWeight:600,color:'#16A34A',cursor:clienteWpp?'pointer':'not-allowed',fontFamily:'inherit',opacity:clienteWpp?1:0.5}}>
+                          style={{background:'rgba(34,197,94,.12)',border:'1px solid rgba(34,197,94,.35)',borderRadius:'8px',padding:'8px 14px',fontSize:'12px',fontWeight:600,color:'#4ADE80',cursor:clienteWpp?'pointer':'not-allowed',fontFamily:'inherit',opacity:clienteWpp?1:0.5}}>
                           💬 Enviar pelo WhatsApp
                         </button>
                       </div>
@@ -1296,16 +1484,37 @@ export default function Orcamentos() {
                     </div>
                   </div>
 
+                  {/* Botão principal — Criar orçamento */}
                   <button onClick={handleSalvar}
-                    style={{width:'100%',background:'#2563EB',color:'#fff',border:'none',borderRadius:'8px',padding:'13px',fontSize:'15px',fontWeight:700,cursor:'pointer',fontFamily:'inherit',boxShadow:'0 4px 12px rgba(37,99,235,.3)',marginBottom:'8px',display:'flex',alignItems:'center',justifyContent:'center',gap:'8px'}}>
+                    style={{width:'100%',background:'linear-gradient(135deg,#2563EB,#7C3AED)',color:'#fff',border:'none',borderRadius:12,padding:'14px',fontSize:15,fontWeight:800,cursor:'pointer',fontFamily:'inherit',boxShadow:'0 4px 20px rgba(37,99,235,.4)',marginBottom:8,display:'flex',alignItems:'center',justifyContent:'center',gap:8}}>
                     📄 {editandoId?'Salvar alterações':'Criar orçamento'}
                   </button>
+                  {/* Botão WhatsApp */}
                   <button onClick={enviarCobrancaWpp} disabled={!clienteWpp}
-                    style={{width:'100%',background:'rgba(34,197,94,.15)',color:'#4ADE80',border:'1px solid rgba(34,197,94,.3)',borderRadius:'8px',padding:'11px',fontSize:'14px',fontWeight:600,cursor:clienteWpp?'pointer':'not-allowed',fontFamily:'inherit',marginBottom:'8px',opacity:clienteWpp?1:0.6,display:'flex',alignItems:'center',justifyContent:'center',gap:'6px'}}>
+                    style={{width:'100%',background:'rgba(34,197,94,.15)',color:'#4ADE80',border:'1.5px solid rgba(34,197,94,.35)',borderRadius:12,padding:'12px',fontSize:14,fontWeight:700,cursor:clienteWpp?'pointer':'not-allowed',fontFamily:'inherit',marginBottom:8,opacity:clienteWpp?1:0.5,display:'flex',alignItems:'center',justifyContent:'center',gap:8}}>
                     💬 Enviar no WhatsApp
                   </button>
+                  {/* Botão PDF */}
+                  <button onClick={()=>{
+                    const itensValidos=itens.filter(i=>i.nome?.trim()&&parseFloat(i.unitario||'0')>0)
+                    const temItens=itensValidos.length>0||procOdonto.length>0
+                    if(!clienteNome.trim()||!temItens){setMensagem('Preencha os dados principais antes de gerar o PDF.');return}
+                    const orcTemp={
+                      id:'preview',cliente_nome:clienteNome,cliente_whatsapp:clienteWpp,
+                      cliente_email:clienteEmail,tipo,status,data:dataDoc,
+                      servicos:itensValidos,procedimentos_odonto:procOdonto,
+                      subtotal,desconto:descontoNum,total,
+                      valor_pago:valorPagoLocal,saldo_restante:saldoLocal,
+                      observacoes,obs_pagamento:obsPagamento
+                    }
+                    gerarPDF(orcTemp)
+                  }}
+                    style={{width:'100%',background:'rgba(6,182,212,.12)',color:'#22D3EE',border:'1.5px solid rgba(6,182,212,.30)',borderRadius:12,padding:'12px',fontSize:14,fontWeight:700,cursor:'pointer',fontFamily:'inherit',marginBottom:8,display:'flex',alignItems:'center',justifyContent:'center',gap:8}}>
+                    📥 Baixar PDF
+                  </button>
+                  {/* Rascunho */}
                   <button onClick={()=>{resetForm();setView('lista')}}
-                    style={{width:'100%',background:'rgba(255,255,255,.06)',color:'#94A3B8',border:'1px solid rgba(255,255,255,.12)',borderRadius:'8px',padding:'10px',fontSize:'13px',fontWeight:600,cursor:'pointer',fontFamily:'inherit',display:'flex',alignItems:'center',justifyContent:'center',gap:'6px'}}>
+                    style={{width:'100%',background:'rgba(255,255,255,.06)',color:'#94A3B8',border:'1px solid rgba(255,255,255,.12)',borderRadius:12,padding:'11px',fontSize:13,fontWeight:600,cursor:'pointer',fontFamily:'inherit',display:'flex',alignItems:'center',justifyContent:'center',gap:8}}>
                     📄 Salvar como rascunho
                   </button>
 
