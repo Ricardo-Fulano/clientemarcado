@@ -938,7 +938,7 @@ export default function Orcamentos() {
                         />
                         {itens[itens.length-1]?.showSug&&itens[itens.length-1]?.nome&&(
                           <div style={{position:'absolute',top:'100%',left:0,right:0,background:'#0B1220',border:'1px solid rgba(59,130,246,.25)',borderRadius:10,zIndex:50,maxHeight:180,overflowY:'auto',boxShadow:'0 8px 24px rgba(0,0,0,.4)'}}>
-                            {(SUGESTOES_ARR as string[]).filter((s:string)=>s.toLowerCase().includes((itens[itens.length-1]?.nome||'').toLowerCase())).map((s:string)=>(
+                            {(['Corte masculino','Corte feminino','Corte infantil','Barba','Corte + barba','Sobrancelha','Limpeza de pele','Design de sobrancelhas','Manicure','Pedicure','Avaliacao','Consulta','Procedimento estetico','Manutencao','Hidratacao capilar','Coloracao','Escova','Servico personalizado'] as string[]).filter((s:string)=>s.toLowerCase().includes((itens[itens.length-1]?.nome||'').toLowerCase())).map((s:string)=>(
                               <button key={s} onMouseDown={()=>{const idx2=itens.length-1;atualizarItem(idx2,'nome',s);atualizarItem(idx2,'showSug',false)}}
                                 style={{display:'block',width:'100%',textAlign:'left',padding:'9px 14px',background:'none',border:'none',color:'#CBD5E1',fontSize:13,cursor:'pointer',fontFamily:'inherit',borderBottom:'1px solid rgba(255,255,255,.05)'}}
                                 onMouseEnter={e=>(e.currentTarget.style.background='rgba(59,130,246,.12)')}
