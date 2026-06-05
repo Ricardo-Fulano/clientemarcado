@@ -53,7 +53,7 @@ const MOBILE_CSS = `
     body,html{background:#050B16!important;}
     .psb-main,.cm-main{background:#050B16!important;}
     .cm-sidebar { display:none !important; }
-    .cm-main,.psb-main { margin-left:0 !important; width:100% !important; max-width:100% !important; overflow-x:hidden; }
+    .cm-main,.psb-main { margin-left:0 !important; width:100% !important; max-width:100% !important; overflow-x:hidden !important; box-sizing:border-box !important; }
     .cm-header-mobile { display:flex !important; }
     .cm-form-grid { grid-template-columns:1fr !important; }
     .cm-form-right { display:block !important; }
@@ -61,8 +61,8 @@ const MOBILE_CSS = `
     .cm-resumo-mobile { display:block !important; }
     .cm-lista-pad { padding:16px 16px 100px !important; }
     .cm-orc-filters { overflow-x:auto !important; flex-wrap:nowrap !important; padding-bottom:4px; -webkit-overflow-scrolling:touch; }
-    .cm-form-pad,.cm-content-pad { padding:0 !important; max-width:100% !important; }
-    .cm-form-inner { padding:16px !important; padding-bottom:150px !important; }
+    .cm-form-pad,.cm-content-pad { padding:0 !important; max-width:100% !important; width:100% !important; box-sizing:border-box !important; }
+    .cm-form-inner { padding:12px !important; padding-bottom:80px !important; width:100% !important; box-sizing:border-box !important; overflow-x:hidden !important; }
     .cm-detalhe-pad { padding:16px 16px 80px !important; }
     .cm-metrics { grid-template-columns:1fr 1fr !important; gap:10px !important; }
     .cm-orc-filters { overflow-x:auto !important; flex-wrap:nowrap !important; padding-bottom:4px; -webkit-overflow-scrolling:touch; max-width:100%; }
@@ -106,7 +106,9 @@ const MOBILE_CSS = `
   }
   .cm-acoes-scroll::-webkit-scrollbar { display:none; }
   .cm-acoes-scroll { scrollbar-width:none; -ms-overflow-style:none; }
-  .cm-tooth { width:40px; height:40px; border-radius:12px; display:inline-flex; align-items:center; justify-content:center; font-weight:800; font-size:13px; cursor:pointer; border:none; transition:all .15s; flex-shrink:0; }
+  .cm-tooth { width:42px; height:42px; border-radius:12px; display:inline-flex; align-items:center; justify-content:center; font-weight:800; font-size:13px; cursor:pointer; border:none; transition:all .15s; flex-shrink:0; }
+  @media(max-width:768px){ .cm-tooth { width:36px; height:36px; font-size:12px; border-radius:10px; } }
+  @media(max-width:400px){ .cm-tooth { width:32px; height:32px; font-size:11px; border-radius:8px; } }
   .cm-tooth-grid { display:flex; gap:5px; justify-content:center; }
   .cm-lista-body { overflow-x:hidden; }
   .cm-lista-topo { overflow-x:hidden; }
@@ -683,7 +685,7 @@ export default function Orcamentos() {
         {/* ══ FORMULÁRIO ══ */}
         {view==='form'&&(
           <div style={{minHeight:'100vh',background:'#07111F'}}>
-          <div className="cm-form-pad cm-content-pad" style={{padding:'24px 32px 60px',maxWidth:'820px',margin:'0 auto'}}>
+          <div className="cm-form-pad cm-content-pad" style={{padding:'24px 32px 60px',maxWidth:'1080px',margin:'0 auto'}}>
             <div className="cm-form-inner" style={{padding:'24px',width:'100%',maxWidth:'100%',boxSizing:'border-box' as const,overflowX:'hidden'}}>
             {/* Topo */}
             <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:'20px',flexWrap:'wrap',gap:'12px'}}>
@@ -958,9 +960,9 @@ export default function Orcamentos() {
                       ))}
                     </div>
                     {([{label:'ARCADA SUPERIOR',dentes:DENTES_SUPERIOR},{label:'ARCADA INFERIOR',dentes:DENTES_INFERIOR}] as {label:string,dentes:number[]}[]).map((arco,ai)=>(
-                      <div key={ai} style={{background:'rgba(5,11,22,.6)',border:'1px solid rgba(6,182,212,.18)',borderRadius:12,padding:'12px 10px',marginBottom:8,overflowX:'auto'}}>
+                      <div key={ai} style={{background:'rgba(5,11,22,.6)',border:'1px solid rgba(6,182,212,.18)',borderRadius:12,padding:'12px 10px',marginBottom:8,overflow:'hidden'}}>
                         <p style={{fontSize:10,fontWeight:700,color:'#22D3EE',letterSpacing:'.08em',textTransform:'uppercase',marginBottom:8,textAlign:'center'}}>{arco.label}</p>
-                        <div style={{display:'flex',gap:5,justifyContent:'center',minWidth:'max-content',margin:'0 auto'}}>
+                        <div style={{display:'flex',gap:5,flexWrap:'wrap',justifyContent:'center',width:'100%'}}>
                           {arco.dentes.map((n:number)=>(
                             <button key={n} onClick={()=>toggleDente(n)} className="cm-tooth"
                               style={{...corDente(n),fontFamily:'inherit'}}>
