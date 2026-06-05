@@ -1350,7 +1350,7 @@ export default function Orcamentos() {
                                   <div style={{position:'relative'}}>
                                     <span style={{position:'absolute',left:'10px',top:'50%',transform:'translateY(-50%)',fontSize:'12px',color:'#475569',fontWeight:600}}>R$</span>
                                     <input style={{...inp,paddingLeft:'32px'}} type="text" inputMode="numeric" placeholder="0,00"
-                                      value={hpValor} onChange={e=>{const v=e.target.value.replace(/[^0-9]/g,'');setHpValor(fmtHpValor(v||'0'))}} />
+                                      value={hpValor} onChange={e=>{const v=e.target.value.split('').filter((c:string)=>'0123456789'.includes(c)).join('');setHpValor(fmtHpValor(v||'0'))}} />
                                   </div>
                                 </div>
                                 <div><label style={lbl}>Data *</label><input style={inp} type="date" value={hpData} onChange={e=>setHpData(e.target.value)} /></div>
