@@ -4,7 +4,7 @@ import { supabase } from '../../lib/supabase'
 import Link from 'next/link'
 import PainelSidebar from '@/app/components/PainelSidebar'
 
-const STATUS_LIST = ['Todos','Aberto','Aguardando aprovação','Em andamento','Parcialmente pago','Pago','Finalizado','Cancelado']
+const STATUS_LIST = ['Todos','Rascunho','Aberto','Aguardando aprovação','Aprovado','Em andamento','Parcialmente pago','Pago','Finalizado','Cancelado']
 const STATUS_COR: Record<string, {bg:string;color:string;border:string}> = {
   'Aberto':               {bg:'rgba(59,130,246,.15)',  color:'#60A5FA', border:'rgba(59,130,246,.35)'},
   'Aguardando aprovação': {bg:'rgba(245,158,11,.15)',  color:'#FACC15', border:'rgba(245,158,11,.35)'},
@@ -145,6 +145,9 @@ export default function Orcamentos() {
   const [loading,setLoading]=useState(true)
   const [filtroStatus,setFiltroStatus]=useState('Todos')
   const [filtroCliente,setFiltroCliente]=useState('')
+  const [filtroPeriodo,setFiltroPeriodo]=useState('todos')
+  const [paginaAtual,setPaginaAtual]=useState(1)
+  const ITEMS_POR_PAGINA=20
   const [view,setView]=useState<'lista'|'form'|'detalhe'|'escolha'>('lista')
   const [editandoId,setEditandoId]=useState<string|null>(null)
   const [detalheId,setDetalheId]=useState<string|null>(null)
@@ -586,11 +589,29 @@ export default function Orcamentos() {
     setProcNome('');setProcValor('');setProcObs('');setProcStatus('A realizar');setDentesSelec([])
   }
 
+  const agora=new Date()
   const orcsFiltrados=orcamentos.filter(o=>{
     const passaStatus=filtroStatus==='Todos'||o.status===filtroStatus
-    const passaCliente=!filtroCliente||o.cliente_nome?.toLowerCase().includes(filtroCliente.toLowerCase())
-    return passaStatus&&passaCliente
+    const q=filtroCliente.toLowerCase()
+    const passaBusca=!q||
+      o.cliente_nome?.toLowerCase().includes(q)||
+      (o.cliente_whatsapp||'').includes(q)||
+      (o.tipo||'').toLowerCase().includes(q)||
+      (o.servicos||[]).some((s:any)=>s.nome?.toLowerCase().includes(q))||
+      (o.procedimentos_odonto||[]).some((p:any)=>p.nome?.toLowerCase().includes(q))
+    let passaPeriodo=true
+    if(filtroPeriodo!=='todos'&&o.created_at){
+      const d=new Date(o.created_at)
+      const diffDias=Math.floor((agora.getTime()-d.getTime())*1.16e-8)
+      if(filtroPeriodo==='hoje') passaPeriodo=diffDias<1
+      else if(filtroPeriodo==='semana') passaPeriodo=diffDias<=7
+      else if(filtroPeriodo==='mes') passaPeriodo=d.getMonth()===agora.getMonth()&&d.getFullYear()===agora.getFullYear()
+      else if(filtroPeriodo==='30dias') passaPeriodo=diffDias<=30
+    }
+    return passaStatus&&passaBusca&&passaPeriodo
   })
+  const totalPaginas=Math.ceil(orcsFiltrados.length*1/ITEMS_POR_PAGINA)
+  const orcsPagina=orcsFiltrados.slice(0,paginaAtual*ITEMS_POR_PAGINA)
 
   const totalAberto=orcamentos.filter(o=>['Aberto','Em andamento','Parcialmente pago'].includes(o.status)).length
   const totalAReceber=orcamentos.filter(o=>!['Pago','Finalizado','Cancelado'].includes(o.status)).reduce((a,o)=>a+(o.saldo_restante||0),0)
@@ -633,58 +654,68 @@ export default function Orcamentos() {
             <div className="cm-lista-topo" style={{padding:'28px 32px 0',maxWidth:'1280px',margin:'0 auto'}}>
 
               {/* Título + botão */}
-              <div style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',gap:'12px',flexWrap:'wrap',marginBottom:'20px'}}>
+              <div className="cm-title-row" style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',gap:'12px',flexWrap:'wrap',marginBottom:'20px'}}>
                 <div>
                   <h1 style={{fontSize:'24px',fontWeight:800,color:'#fff',letterSpacing:'-0.02em',marginBottom:'4px'}}>Orçamentos</h1>
-                  <p style={{fontSize:'14px',color:'#94A3B8'}}>Crie, acompanhe e envie orçamentos em poucos segundos.</p>
+                  <p style={{fontSize:'14px',color:'#94A3B8'}}>Crie, encontre e acompanhe orçamentos em poucos segundos.</p>
                 </div>
-                <button
-                  onClick={()=>{ resetForm(); setTipoOrcamento(null); setView('escolha') }}
-                  className="cm-novo-btn-lista"
-                  style={{background:'#2563EB',color:'#fff',border:'none',borderRadius:'10px',padding:'11px 22px',fontSize:'14px',fontWeight:700,cursor:'pointer',fontFamily:'inherit',boxShadow:'0 4px 20px rgba(37,99,235,.4)',display:'flex',alignItems:'center',justifyContent:'center',gap:'8px',whiteSpace:'nowrap'}}>
+                <button className="cm-novo-btn-lista"
+                  onClick={()=>{resetForm();setTipoOrcamento(null);setView('escolha')}}
+                  style={{background:'linear-gradient(135deg,#2563EB,#7C3AED)',color:'#fff',border:'none',borderRadius:'10px',padding:'11px 22px',fontSize:'14px',fontWeight:700,cursor:'pointer',fontFamily:'inherit',boxShadow:'0 4px 20px rgba(37,99,235,.4)',display:'flex',alignItems:'center',justifyContent:'center',gap:'8px',whiteSpace:'nowrap'}}>
                   <span style={{fontSize:'18px',lineHeight:1}}>+</span> Novo orçamento
                 </button>
               </div>
 
               {mensagem&&<div style={{padding:'10px 14px',borderRadius:'8px',marginBottom:'16px',background:'rgba(22,163,74,.15)',border:'1px solid rgba(22,163,74,.3)',color:'#4ADE80',fontSize:'13px'}}>{mensagem}</div>}
 
-              {/* CARDS ATALHOS — grid 2x2 mobile, 4 colunas desktop */}
-                            {/* KPIs — grid 2x2 mobile, 4 colunas desktop */}
+              {/* KPIs */}
               <div className="cm-kpi-grid" style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:'12px',marginBottom:'20px'}}>
                 {[
                   {icon:'📂',label:'Em aberto',valor:totalAberto,fmt:'n',cor:'#3B82F6',bg:'rgba(59,130,246,.12)',border:'rgba(59,130,246,.25)'},
+                  {icon:'✅',label:'Aprovados',valor:orcamentos.filter(o=>['Aprovado','Em andamento'].includes(o.status)).length,fmt:'n',cor:'#22D3EE',bg:'rgba(6,182,212,.12)',border:'rgba(6,182,212,.25)'},
                   {icon:'⏳',label:'A receber',valor:totalAReceber,fmt:'brl',cor:'#F59E0B',bg:'rgba(245,158,11,.12)',border:'rgba(245,158,11,.25)'},
-                  {icon:'✅',label:'Recebido no mês',valor:recebidoMes,fmt:'brl',cor:'#22C55E',bg:'rgba(34,197,94,.12)',border:'rgba(34,197,94,.25)'},
-                  {icon:'🔄',label:'Parciais',valor:parciais,fmt:'n',cor:'#A78BFA',bg:'rgba(167,139,250,.12)',border:'rgba(167,139,250,.25)'},
+                  {icon:'💰',label:'Recebido no mês',valor:recebidoMes,fmt:'brl',cor:'#22C55E',bg:'rgba(34,197,94,.12)',border:'rgba(34,197,94,.25)'},
                 ].map(m=>(
                   <div key={m.label} style={{background:m.bg,border:'1px solid '+m.border,borderRadius:'14px',padding:'16px',boxSizing:'border-box' as const}}>
-                    <div style={{width:'36px',height:'36px',borderRadius:'10px',background:m.bg,border:'1px solid '+m.border,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'18px',marginBottom:'10px'}}>
-                      {m.icon}
-                    </div>
+                    <div style={{fontSize:'22px',marginBottom:'8px'}}>{m.icon}</div>
                     <p style={{fontSize:'11px',fontWeight:600,color:'#94A3B8',textTransform:'uppercase' as const,letterSpacing:'.05em',marginBottom:'4px'}}>{m.label}</p>
-                    <p style={{fontSize:'22px',fontWeight:800,color:m.cor,letterSpacing:'-0.02em',lineHeight:'1.2'}}>
+                    <p style={{fontSize:'22px',fontWeight:800,color:m.cor,letterSpacing:'-0.02em'}}>
                       {m.fmt==='brl'?'R$ '+fmtBRL(m.valor as number):m.valor}
                     </p>
                   </div>
                 ))}
               </div>
 
-              {/* BUSCA + FILTROS */}
-              <div className="cm-busca-filtros" style={{display:'flex',gap:'10px',marginBottom:'16px',alignItems:'center'}}>
-                <div className="cm-busca-input" style={{position:'relative',flex:1}}>
-                  <span style={{position:'absolute',left:'12px',top:'50%',transform:'translateY(-50%)',color:'#64748B',fontSize:'14px'}}>🔍</span>
-                  <input type="text" placeholder="Buscar cliente, contato ou serviço..." value={filtroCliente} onChange={e=>setFiltroCliente(e.target.value)}
-                    style={{width:'100%',border:'1px solid rgba(255,255,255,.12)',borderRadius:'10px',padding:'11px 14px 11px 36px',fontSize:'13px',color:'#fff',outline:'none',fontFamily:'inherit',background:'rgba(255,255,255,.06)',boxSizing:'border-box' as const}} />
-                </div>
+              {/* BUSCA */}
+              <div className="cm-orc-search" style={{position:'relative',marginBottom:'14px'}}>
+                <span style={{position:'absolute',left:'14px',top:'50%',transform:'translateY(-50%)',color:'#64748B',fontSize:'16px',pointerEvents:'none'}}>🔍</span>
+                <input type="text" placeholder="Buscar por cliente, WhatsApp, serviço ou procedimento..."
+                  value={filtroCliente} onChange={e=>{setFiltroCliente(e.target.value);setPaginaAtual(1)}}
+                  style={{width:'100%',border:'1.5px solid rgba(59,130,246,.25)',borderRadius:'12px',padding:'13px 16px 13px 44px',fontSize:'14px',color:'#fff',outline:'none',fontFamily:'inherit',background:'rgba(255,255,255,.05)',boxSizing:'border-box' as const,transition:'border-color .15s'}} />
               </div>
-              <div className="cm-filtros-wrap" style={{display:'flex',gap:'6px',marginBottom:'16px'}}>
+
+              {/* FILTROS STATUS */}
+              <div className="cm-filtros-wrap" style={{display:'flex',gap:'6px',marginBottom:'10px',flexWrap:'wrap'}}>
                 {STATUS_LIST.map(s=>(
-                  <button key={s} onClick={()=>setFiltroStatus(s)}
-                    style={{padding:'7px 14px',borderRadius:'999px',fontSize:'12px',fontWeight:600,cursor:'pointer',border:'1px solid',fontFamily:'inherit',whiteSpace:'nowrap' as const,flexShrink:0,
+                  <button key={s} onClick={()=>{setFiltroStatus(s);setPaginaAtual(1)}}
+                    style={{padding:'6px 14px',borderRadius:'999px',fontSize:'12px',fontWeight:600,cursor:'pointer',border:'1px solid',fontFamily:'inherit',whiteSpace:'nowrap' as const,flexShrink:0,transition:'all .15s',
                       background:filtroStatus===s?'#2563EB':'rgba(255,255,255,.06)',
                       color:filtroStatus===s?'#fff':'#94A3B8',
                       borderColor:filtroStatus===s?'#2563EB':'rgba(255,255,255,.12)'}}>
                     {s}
+                  </button>
+                ))}
+              </div>
+
+              {/* FILTROS PERÍODO */}
+              <div className="cm-filtros-wrap" style={{display:'flex',gap:'6px',marginBottom:'16px',flexWrap:'wrap'}}>
+                {[{k:'todos',l:'Todos os períodos'},{k:'hoje',l:'Hoje'},{k:'semana',l:'Esta semana'},{k:'mes',l:'Este mês'},{k:'30dias',l:'Últimos 30 dias'}].map(p=>(
+                  <button key={p.k} onClick={()=>{setFiltroPeriodo(p.k);setPaginaAtual(1)}}
+                    style={{padding:'6px 14px',borderRadius:'999px',fontSize:'12px',fontWeight:600,cursor:'pointer',border:'1px solid',fontFamily:'inherit',whiteSpace:'nowrap' as const,flexShrink:0,transition:'all .15s',
+                      background:filtroPeriodo===p.k?'rgba(124,58,237,.25)':'rgba(255,255,255,.04)',
+                      color:filtroPeriodo===p.k?'#A78BFA':'#64748B',
+                      borderColor:filtroPeriodo===p.k?'rgba(124,58,237,.5)':'rgba(255,255,255,.08)'}}>
+                    {p.l}
                   </button>
                 ))}
               </div>
@@ -695,35 +726,40 @@ export default function Orcamentos() {
 
               {orcsFiltrados.length===0?(
                 <div style={{background:'rgba(255,255,255,.04)',border:'1px solid rgba(255,255,255,.08)',borderRadius:'20px',padding:'48px 24px',textAlign:'center'}}>
-                  <div style={{width:'64px',height:'64px',borderRadius:'50%',background:'rgba(37,99,235,.2)',border:'1px solid rgba(37,99,235,.3)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'28px',margin:'0 auto 16px'}}>
-                    📋
-                  </div>
-                  <p style={{fontSize:'18px',fontWeight:700,color:'#fff',marginBottom:'8px'}}>Nenhum orçamento criado ainda</p>
-                  <p style={{fontSize:'13px',color:'#94A3B8',marginBottom:'24px',lineHeight:'1.5'}}>Crie seu primeiro orçamento, registre pagamentos e envie pelo WhatsApp.</p>
-                  <button onClick={()=>{resetForm();setTipoOrcamento(null);setView('escolha')}}
-                    style={{background:'#2563EB',color:'#fff',border:'none',borderRadius:'10px',padding:'13px 28px',fontSize:'14px',fontWeight:700,cursor:'pointer',fontFamily:'inherit',boxShadow:'0 4px 20px rgba(37,99,235,.4)',width:'100%',maxWidth:'320px'}}>
-                    Criar primeiro orçamento
-                  </button>
+                  <div style={{fontSize:'48px',marginBottom:'16px'}}>📋</div>
+                  <p style={{fontSize:'18px',fontWeight:700,color:'#fff',marginBottom:'8px'}}>{filtroCliente||filtroStatus!=='Todos'?'Nenhum resultado encontrado':'Nenhum orçamento criado ainda'}</p>
+                  <p style={{fontSize:'13px',color:'#94A3B8',marginBottom:'24px',lineHeight:'1.5'}}>{filtroCliente||filtroStatus!=='Todos'?'Tente buscar por outros termos ou limpar os filtros.':'Crie seu primeiro orçamento e envie pelo WhatsApp.'}</p>
+                  {filtroCliente||filtroStatus!=='Todos'?(
+                    <button onClick={()=>{setFiltroCliente('');setFiltroStatus('Todos');setFiltroPeriodo('todos')}}
+                      style={{background:'rgba(255,255,255,.08)',color:'#94A3B8',border:'1px solid rgba(255,255,255,.12)',borderRadius:'10px',padding:'10px 20px',fontSize:'13px',fontWeight:600,cursor:'pointer',fontFamily:'inherit'}}>
+                      Limpar filtros
+                    </button>
+                  ):(
+                    <button onClick={()=>{resetForm();setTipoOrcamento(null);setView('escolha')}}
+                      style={{background:'#2563EB',color:'#fff',border:'none',borderRadius:'10px',padding:'13px 28px',fontSize:'14px',fontWeight:700,cursor:'pointer',fontFamily:'inherit',boxShadow:'0 4px 20px rgba(37,99,235,.4)',width:'100%',maxWidth:'320px'}}>
+                      Criar primeiro orçamento
+                    </button>
+                  )}
                 </div>
               ):(
                 <>
                   {/* TABELA DESKTOP */}
                   <div className="cm-tabela-desktop" style={{background:'rgba(255,255,255,.04)',border:'1px solid rgba(255,255,255,.08)',borderRadius:'20px',overflow:'hidden',overflowX:'auto'}}>
-                    <div style={{padding:'16px 24px',borderBottom:'1px solid rgba(255,255,255,.08)',display:'flex',alignItems:'center',justifyContent:'space-between'}}>
+                    <div style={{padding:'14px 24px',borderBottom:'1px solid rgba(255,255,255,.08)',display:'flex',alignItems:'center',justifyContent:'space-between'}}>
                       <p style={{fontSize:'14px',fontWeight:700,color:'#fff'}}>Orçamentos recentes</p>
-                      <span style={{fontSize:'12px',color:'#64748B'}}>{orcsFiltrados.length} registro{orcsFiltrados.length!==1?'s':''}</span>
+                      <span style={{fontSize:'12px',color:'#64748B'}}>{orcsFiltrados.length} resultado{orcsFiltrados.length!==1?'s':''}</span>
                     </div>
-                    <div style={{display:'grid',gridTemplateColumns:'minmax(140px,2fr) minmax(100px,1fr) 90px 90px 90px 100px 110px',padding:'10px 24px',borderBottom:'1px solid rgba(255,255,255,.06)'}}>
+                    <div style={{display:'grid',gridTemplateColumns:'minmax(140px,2fr) minmax(100px,1fr) 90px 90px 90px 110px 150px',padding:'10px 24px',borderBottom:'1px solid rgba(255,255,255,.06)'}}>
                       {['Cliente','Tipo / Data','Total','Pago','Saldo','Status','Ações'].map(h=>(
                         <p key={h} style={{fontSize:'11px',fontWeight:600,color:'#64748B',textTransform:'uppercase' as const,letterSpacing:'.06em'}}>{h}</p>
                       ))}
                     </div>
-                    {orcsFiltrados.map((orc,i)=>{
+                    {orcsPagina.map((orc,i)=>{
                       const cfg=STATUS_COR[orc.status]||STATUS_COR['Aberto']
                       return (
                         <div key={orc.id}
-                          style={{display:'grid',gridTemplateColumns:'minmax(140px,2fr) minmax(100px,1fr) 90px 90px 90px 100px 110px',padding:'14px 24px',borderBottom:i<orcsFiltrados.length-1?'1px solid rgba(255,255,255,.05)':'none',alignItems:'center',transition:'background .15s',cursor:'default'}}
-                          onMouseEnter={e=>(e.currentTarget.style.background='rgba(255,255,255,.04)')}
+                          style={{display:'grid',gridTemplateColumns:'minmax(140px,2fr) minmax(100px,1fr) 90px 90px 90px 110px 150px',padding:'14px 24px',borderBottom:i<orcsPagina.length-1?'1px solid rgba(255,255,255,.05)':'none',alignItems:'center',transition:'background .15s'}}
+                          onMouseEnter={e=>(e.currentTarget.style.background='rgba(255,255,255,.03)')}
                           onMouseLeave={e=>(e.currentTarget.style.background='transparent')}>
                           <div>
                             <p style={{fontSize:'14px',fontWeight:600,color:'#fff',marginBottom:'2px'}}>{orc.cliente_nome}</p>
@@ -734,20 +770,22 @@ export default function Orcamentos() {
                             <p style={{fontSize:'11px',color:'#64748B'}}>{fmtData(orc.data)}</p>
                           </div>
                           <p style={{fontSize:'14px',fontWeight:700,color:'#fff'}}>R$ {fmtBRL(orc.total)}</p>
-                          <p style={{fontSize:'14px',fontWeight:600,color:'#22C55E'}}>R$ {fmtBRL(orc.valor_pago)}</p>
-                          <p style={{fontSize:'14px',fontWeight:600,color:orc.saldo_restante>0?'#F59E0B':'#22C55E'}}>R$ {fmtBRL(orc.saldo_restante)}</p>
-                          <span style={{fontSize:'11px',fontWeight:700,padding:'4px 10px',borderRadius:'999px',background:cfg.bg,color:cfg.color,border:'1px solid '+cfg.border,display:'inline-block'}}>
+                          <p style={{fontSize:'13px',fontWeight:600,color:'#22C55E'}}>R$ {fmtBRL(orc.valor_pago)}</p>
+                          <p style={{fontSize:'13px',fontWeight:600,color:orc.saldo_restante>0?'#F59E0B':'#22C55E'}}>R$ {fmtBRL(orc.saldo_restante)}</p>
+                          <span style={{fontSize:'11px',fontWeight:700,padding:'4px 10px',borderRadius:'999px',background:cfg.bg,color:cfg.color,border:'1px solid '+cfg.border,display:'inline-block',whiteSpace:'nowrap' as const}}>
                             {orc.status}
                           </span>
-                          <div style={{display:'flex',gap:'4px',flexWrap:'nowrap' as const,overflow:'hidden'}}>
-                            <button onClick={()=>{setDetalheId(orc.id);carregarPagamentos(orc.id);setView('detalhe')}}
-                              style={{background:'rgba(37,99,235,.2)',border:'1px solid rgba(37,99,235,.3)',borderRadius:'6px',padding:'4px 8px',fontSize:'11px',fontWeight:600,color:'#93C5FD',cursor:'pointer',fontFamily:'inherit',whiteSpace:'nowrap' as const}}>Ver</button>
-                            <button onClick={()=>enviarWpp(orc)}
-                              style={{background:'rgba(22,163,74,.2)',border:'1px solid rgba(22,163,74,.3)',borderRadius:'6px',padding:'5px 8px',fontSize:'13px',cursor:'pointer',fontFamily:'inherit'}}>💬</button>
-                            <button onClick={()=>abrirEditar(orc)}
-                              style={{background:'rgba(255,255,255,.08)',border:'1px solid rgba(255,255,255,.12)',borderRadius:'6px',padding:'5px 8px',fontSize:'13px',cursor:'pointer',fontFamily:'inherit'}}>✏️</button>
-                            <button onClick={()=>handleExcluir(orc.id)}
-                              style={{background:'rgba(220,38,38,.15)',border:'1px solid rgba(220,38,38,.25)',borderRadius:'6px',padding:'5px 8px',fontSize:'13px',cursor:'pointer',fontFamily:'inherit'}}>🗑</button>
+                          <div style={{display:'flex',gap:'4px',flexWrap:'nowrap' as const}}>
+                            <button onClick={()=>{setDetalheId(orc.id);carregarPagamentos(orc.id);setView('detalhe')}} title="Ver detalhes"
+                              style={{background:'rgba(37,99,235,.18)',border:'1px solid rgba(37,99,235,.35)',borderRadius:'6px',padding:'5px 8px',fontSize:'11px',fontWeight:600,color:'#93C5FD',cursor:'pointer',fontFamily:'inherit'}}>Ver</button>
+                            <button onClick={()=>gerarPDF(orc)} title="Baixar PDF"
+                              style={{background:'rgba(6,182,212,.12)',border:'1px solid rgba(6,182,212,.30)',borderRadius:'6px',padding:'5px 7px',fontSize:'12px',cursor:'pointer',color:'#22D3EE',fontWeight:600,fontFamily:'inherit'}}>PDF</button>
+                            <button onClick={()=>enviarWpp(orc)} title="WhatsApp"
+                              style={{background:'rgba(22,163,74,.15)',border:'1px solid rgba(22,163,74,.30)',borderRadius:'6px',padding:'5px 7px',fontSize:'13px',cursor:'pointer',fontFamily:'inherit'}}>💬</button>
+                            <button onClick={()=>abrirEditar(orc)} title="Editar"
+                              style={{background:'rgba(255,255,255,.07)',border:'1px solid rgba(255,255,255,.12)',borderRadius:'6px',padding:'5px 7px',fontSize:'13px',cursor:'pointer',fontFamily:'inherit'}}>✏️</button>
+                            <button onClick={()=>handleExcluir(orc.id)} title="Excluir"
+                              style={{background:'rgba(220,38,38,.12)',border:'1px solid rgba(220,38,38,.25)',borderRadius:'6px',padding:'5px 7px',fontSize:'13px',cursor:'pointer',fontFamily:'inherit'}}>🗑</button>
                           </div>
                         </div>
                       )
@@ -756,16 +794,16 @@ export default function Orcamentos() {
 
                   {/* CARDS MOBILE */}
                   <div className="cm-cards-mobile" style={{display:'none',flexDirection:'column',gap:'10px'}}>
-                    {orcsFiltrados.map(orc=>{
+                    {orcsPagina.map(orc=>{
                       const cfg=STATUS_COR[orc.status]||STATUS_COR['Aberto']
                       return (
                         <div key={orc.id} style={{background:'rgba(255,255,255,.05)',border:'1px solid rgba(255,255,255,.08)',borderRadius:'14px',padding:'16px',boxSizing:'border-box' as const}}>
                           <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:'10px'}}>
-                            <div>
-                              <p style={{fontSize:'15px',fontWeight:700,color:'#fff',marginBottom:'2px'}}>{orc.cliente_nome}</p>
+                            <div style={{flex:1,minWidth:0}}>
+                              <p style={{fontSize:'15px',fontWeight:700,color:'#fff',marginBottom:'2px',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap' as const}}>{orc.cliente_nome}</p>
                               <p style={{fontSize:'12px',color:'#64748B'}}>{orc.tipo} · {fmtData(orc.data)}</p>
                             </div>
-                            <span style={{fontSize:'11px',fontWeight:700,padding:'3px 10px',borderRadius:'999px',background:cfg.bg,color:cfg.color,border:'1px solid '+cfg.border,whiteSpace:'nowrap' as const}}>
+                            <span style={{fontSize:'11px',fontWeight:700,padding:'3px 10px',borderRadius:'999px',background:cfg.bg,color:cfg.color,border:'1px solid '+cfg.border,whiteSpace:'nowrap' as const,marginLeft:'8px',flexShrink:0}}>
                               {orc.status}
                             </span>
                           </div>
@@ -773,35 +811,62 @@ export default function Orcamentos() {
                             {[{l:'Total',v:orc.total,c:'#fff'},{l:'Pago',v:orc.valor_pago,c:'#22C55E'},{l:'Saldo',v:orc.saldo_restante,c:orc.saldo_restante>0?'#F59E0B':'#22C55E'}].map(f=>(
                               <div key={f.l} style={{background:'rgba(255,255,255,.04)',borderRadius:'8px',padding:'8px 10px'}}>
                                 <p style={{fontSize:'10px',color:'#64748B',fontWeight:600,textTransform:'uppercase' as const,letterSpacing:'.04em',marginBottom:'2px'}}>{f.l}</p>
-                                <p style={{fontSize:'13px',fontWeight:700,color:(f.c==='#0F172A'?'#F8FAFC':f.c)}}>R$ {fmtBRL(f.v)}</p>
+                                <p style={{fontSize:'13px',fontWeight:700,color:f.c}}>R$ {fmtBRL(f.v)}</p>
                               </div>
                             ))}
                           </div>
-                          <div style={{display:'flex',gap:'8px'}}>
+                          <div style={{display:'flex',gap:'8px',flexWrap:'wrap'}}>
                             <button onClick={()=>{setDetalheId(orc.id);carregarPagamentos(orc.id);setView('detalhe')}}
-                              style={{flex:2,background:'rgba(37,99,235,.2)',border:'1px solid rgba(37,99,235,.3)',borderRadius:'8px',padding:'9px',fontSize:'12px',fontWeight:600,color:'#93C5FD',cursor:'pointer',fontFamily:'inherit'}}>
-                              Ver detalhes
+                              style={{flex:2,minWidth:80,background:'rgba(37,99,235,.18)',border:'1px solid rgba(37,99,235,.35)',borderRadius:'8px',padding:'9px',fontSize:'12px',fontWeight:600,color:'#93C5FD',cursor:'pointer',fontFamily:'inherit',textAlign:'center' as const}}>
+                              Ver
+                            </button>
+                            <button onClick={()=>gerarPDF(orc)}
+                              style={{flex:1,minWidth:50,background:'rgba(6,182,212,.12)',border:'1px solid rgba(6,182,212,.30)',borderRadius:'8px',padding:'9px',fontSize:'12px',fontWeight:600,color:'#22D3EE',cursor:'pointer',fontFamily:'inherit',textAlign:'center' as const}}>
+                              PDF
                             </button>
                             <button onClick={()=>enviarWpp(orc)}
-                              style={{flex:1,background:'rgba(22,163,74,.2)',border:'1px solid rgba(22,163,74,.3)',borderRadius:'8px',padding:'9px',fontSize:'12px',fontWeight:600,color:'#4ADE80',cursor:'pointer',fontFamily:'inherit'}}>
-                              💬 WApp
+                              style={{flex:1,minWidth:50,background:'rgba(22,163,74,.15)',border:'1px solid rgba(22,163,74,.30)',borderRadius:'8px',padding:'9px',fontSize:'12px',fontWeight:600,color:'#4ADE80',cursor:'pointer',fontFamily:'inherit',textAlign:'center' as const}}>
+                              💬
                             </button>
                             <button onClick={()=>abrirEditar(orc)}
-                              style={{flex:1,background:'rgba(255,255,255,.08)',border:'1px solid rgba(255,255,255,.12)',borderRadius:'8px',padding:'9px',fontSize:'12px',fontWeight:600,color:'#CBD5E1',cursor:'pointer',fontFamily:'inherit'}}>
-                              Editar
+                              style={{flex:1,minWidth:50,background:'rgba(255,255,255,.07)',border:'1px solid rgba(255,255,255,.12)',borderRadius:'8px',padding:'9px',fontSize:'12px',fontWeight:600,color:'#CBD5E1',cursor:'pointer',fontFamily:'inherit',textAlign:'center' as const}}>
+                              ✏️
                             </button>
                           </div>
                         </div>
                       )
                     })}
                   </div>
+
+                  {/* PAGINAÇÃO */}
+                  {orcsFiltrados.length>ITEMS_POR_PAGINA&&(
+                    <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'16px 4px',marginTop:'8px',flexWrap:'wrap',gap:'8px'}}>
+                      <span style={{fontSize:'13px',color:'#64748B'}}>
+                        Mostrando {Math.min(paginaAtual*ITEMS_POR_PAGINA,orcsFiltrados.length)} de {orcsFiltrados.length} orçamentos
+                      </span>
+                      <div style={{display:'flex',gap:'8px',alignItems:'center'}}>
+                        {paginaAtual>1&&(
+                          <button onClick={()=>setPaginaAtual(p=>p-1)}
+                            style={{background:'rgba(255,255,255,.07)',border:'1px solid rgba(255,255,255,.12)',borderRadius:'8px',padding:'8px 16px',fontSize:'13px',fontWeight:600,color:'#CBD5E1',cursor:'pointer',fontFamily:'inherit'}}>
+                            ← Anterior
+                          </button>
+                        )}
+                        <span style={{fontSize:'13px',color:'#94A3B8',padding:'0 8px'}}>Página {paginaAtual} de {totalPaginas}</span>
+                        {paginaAtual<totalPaginas&&(
+                          <button onClick={()=>setPaginaAtual(p=>p+1)}
+                            style={{background:'rgba(37,99,235,.18)',border:'1px solid rgba(37,99,235,.35)',borderRadius:'8px',padding:'8px 16px',fontSize:'13px',fontWeight:600,color:'#93C5FD',cursor:'pointer',fontFamily:'inherit'}}>
+                            Próxima →
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  )}
                 </>
               )}
             </div>
           </div>
         )}
 
-        
         {/* ══ ESCOLHA ══ */}
         {view==='escolha'&&(
           <div style={{minHeight:'100vh',background:'#07111F',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',padding:'32px 16px'}}>
