@@ -230,7 +230,8 @@ export default function Orcamentos() {
 
   async function carregarOrcamentos(uid?:string){
     const id=uid||userId
-    const {data}=await supabase.from('orcamentos').select('*').eq('user_id',id).order('created_at',{ascending:false})
+    const {data,error}=await supabase.from('orcamentos').select('*').eq('user_id',id).order('created_at',{ascending:false})
+    if(error){console.error('Erro ao carregar orçamentos:',error)}
     setOrcamentos(data||[])
   }
 
@@ -316,6 +317,7 @@ export default function Orcamentos() {
     setSinalTipo(orc.sinal_tipo||'fixo');setSinalValor(orc.sinal_valor?String(orc.sinal_valor):'')
     setLinkPag(orc.link_pagamento||'');setObsPagamento(orc.obs_pagamento||'');setObservacoes(orc.observacoes||'')
     setHistPags(orc.hist_pagamentos||[]);setDentesSelec(orc.dentes_selecionados||[]);setProcOdonto(orc.procedimentos_odonto||[])
+    setTipoOrcamento(orc.tipo_orcamento||'simples')
     setShowDetalhes(true)
     setView('form')
   }
@@ -328,12 +330,13 @@ export default function Orcamentos() {
     if(tipo==='__outro__'&&!tipoOutro.trim()) erros.push('Especifique o tipo do documento.')
     if(profId==='__outro__'&&!profNome.trim()) erros.push('Informe o nome do profissional.')
     const itensValidos=itens.filter(i=>i.nome?.trim()&&parseFloat(i.unitario||'0')>0&&parseInt(i.qtd||'1')>0)
-    if(itensValidos.length===0) erros.push('Adicione pelo menos um serviço com nome e valor.')
+    if(itensValidos.length===0&&procOdonto.length===0) erros.push('Adicione pelo menos um serviço ou procedimento.')
     if(erros.length>0){setMensagem(erros.join(' | '));window.scrollTo({top:0,behavior:'smooth'});return}
     const payload={
       user_id:userId,cliente_nome:clienteNome.trim(),cliente_whatsapp:clienteWpp.replace(/\D/g,''),
       cliente_email:clienteEmail||null,cliente_obs:clienteObs||null,
       tipo:tipo==='__outro__'?(tipoOutro.trim()||'Outro'):tipo,
+      tipo_orcamento:tipoOrcamento||'simples',
       tipo_descricao:tipo==='__outro__'?(tipoDescricao.trim()||null):null,
       profissional_id:(profId&&profId!=='__outro__')?profId:null,
       profissional_nome:profId==='__outro__'?(profNome.trim()||null):profId?(profissionais.find(p=>p.id===profId)?.nome||null):null,
@@ -346,10 +349,10 @@ export default function Orcamentos() {
     }
     if(editandoId){
       const {error}=await supabase.from('orcamentos').update(payload).eq('id',editandoId)
-      if(error){setMensagem('Erro ao salvar.');return}
+      if(error){console.error('Supabase update error:',error);setMensagem('Erro ao salvar: '+error.message);return}
     } else {
       const {error}=await supabase.from('orcamentos').insert(payload)
-      if(error){setMensagem('Erro ao criar orçamento.');return}
+      if(error){console.error('Supabase insert error:',error);setMensagem('Erro ao criar orçamento: '+error.message);return}
     }
     if(profId==='__outro__'&&profNome.trim()&&salvarFreelancer){
       await supabase.from('profissionais').insert({user_id:userId,nome:profNome.trim(),especialidade:'Freelancer'})
@@ -359,6 +362,35 @@ export default function Orcamentos() {
     resetForm();setView('lista');await carregarOrcamentos()
     setMensagem(editandoId?'Orçamento atualizado!':'Orçamento criado com sucesso!')
     setTimeout(()=>setMensagem(''),4000)
+  }
+
+  async function handleSalvarRascunho(){
+    if(!clienteNome.trim()&&!clienteWpp&&itens.filter(i=>i.nome).length===0&&procOdonto.length===0){
+      setMensagem('Preencha pelo menos o nome do cliente para salvar como rascunho.')
+      return
+    }
+    const itensValidos=itens.filter(i=>i.nome?.trim())
+    const payload={
+      user_id:userId,cliente_nome:clienteNome.trim()||'(Rascunho)',
+      cliente_whatsapp:clienteWpp.replace(/\D/g,'')||null,
+      cliente_email:clienteEmail||null,cliente_obs:clienteObs||null,
+      tipo:tipo==='__outro__'?(tipoOutro.trim()||'Outro'):tipo,
+      tipo_orcamento:tipoOrcamento||'simples',
+      data:dataDoc,status:'Rascunho',
+      servicos:itensValidos,subtotal,desconto:descontoNum,total,
+      valor_pago:0,saldo_restante:total,
+      hist_pagamentos:[],dentes_selecionados:dentesSelec,procedimentos_odonto:procOdonto,
+      observacoes:observacoes||null,updated_at:new Date().toISOString(),
+    }
+    if(editandoId){
+      const {error}=await supabase.from('orcamentos').update(payload).eq('id',editandoId)
+      if(error){console.error('Rascunho update error:',error);setMensagem('Erro ao salvar rascunho: '+error.message);return}
+    } else {
+      const {error}=await supabase.from('orcamentos').insert(payload)
+      if(error){console.error('Rascunho insert error:',error);setMensagem('Erro ao salvar rascunho: '+error.message);return}
+    }
+    resetForm();setView('lista');await carregarOrcamentos()
+    setMensagem('Rascunho salvo!');setTimeout(()=>setMensagem(''),4000)
   }
 
   async function handleExcluir(id:string){
@@ -766,7 +798,7 @@ export default function Orcamentos() {
                             <p style={{fontSize:'11px',color:'#64748B'}}>{orc.cliente_whatsapp?aplicarMascaraTel(orc.cliente_whatsapp):''}</p>
                           </div>
                           <div>
-                            <p style={{fontSize:'13px',color:'#CBD5E1'}}>{orc.tipo}</p>
+                            <p style={{fontSize:'13px',color:'#CBD5E1'}}>{orc.tipo}{orc.tipo_orcamento==='odontologico'?' 🦷':''}</p>
                             <p style={{fontSize:'11px',color:'#64748B'}}>{fmtData(orc.data)}</p>
                           </div>
                           <p style={{fontSize:'14px',fontWeight:700,color:'#fff'}}>R$ {fmtBRL(orc.total)}</p>
@@ -801,7 +833,7 @@ export default function Orcamentos() {
                           <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:'10px'}}>
                             <div style={{flex:1,minWidth:0}}>
                               <p style={{fontSize:'15px',fontWeight:700,color:'#fff',marginBottom:'2px',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap' as const}}>{orc.cliente_nome}</p>
-                              <p style={{fontSize:'12px',color:'#64748B'}}>{orc.tipo} · {fmtData(orc.data)}</p>
+                              <p style={{fontSize:'12px',color:'#64748B'}}>{orc.tipo}{orc.tipo_orcamento==='odontologico'?' 🦷':''} · {fmtData(orc.data)}</p>
                             </div>
                             <span style={{fontSize:'11px',fontWeight:700,padding:'3px 10px',borderRadius:'999px',background:cfg.bg,color:cfg.color,border:'1px solid '+cfg.border,whiteSpace:'nowrap' as const,marginLeft:'8px',flexShrink:0}}>
                               {orc.status}
@@ -870,7 +902,7 @@ export default function Orcamentos() {
         {/* ══ ESCOLHA ══ */}
         {view==='escolha'&&(
           <div style={{minHeight:'100vh',background:'#07111F',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',padding:'32px 16px'}}>
-            <button onClick={()=>setView('lista')} style={{background:'none',border:'none',cursor:'pointer',fontSize:'13px',color:'#64748B',fontFamily:'inherit',marginBottom:'32px',alignSelf:'flex-start',paddingLeft:32}}>← Voltar à lista</button>
+            <button onClick={()=>setView('lista')} style={{background:'none',border:'none',cursor:'pointer',fontSize:'13px',color:'#64748B',fontFamily:'inherit',marginBottom:'32px',alignSelf:'flex-start',paddingLeft:32,display:'flex',alignItems:'center',gap:'6px'}}>← Voltar aos orçamentos</button>
             <div style={{maxWidth:640,width:'100%'}}>
               <h2 style={{fontSize:'22px',fontWeight:800,color:'#F8FAFC',marginBottom:8,textAlign:'center'}}>Que tipo de orçamento deseja criar?</h2>
               <p style={{fontSize:'14px',color:'#64748B',marginBottom:32,textAlign:'center'}}>Escolha o modelo ideal para este atendimento.</p>
@@ -913,10 +945,33 @@ export default function Orcamentos() {
             {/* Topo */}
             <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:'20px',flexWrap:'wrap',gap:'12px'}}>
               <div>
-                <button onClick={()=>{editandoId?setView('lista'):(setView('escolha'))}}
-                  style={{background:'none',border:'none',cursor:'pointer',fontSize:'13px',color:'#64748B',fontFamily:'inherit',padding:'0',display:'flex',alignItems:'center',gap:'4px',marginBottom:'8px'}}>
-                  ← {editandoId?'Voltar à lista':'Voltar à escolha'}
-                </button>
+                <div style={{display:'flex',gap:'12px',alignItems:'center',marginBottom:'8px'}}>
+                  <button onClick={()=>{
+                    const temDados=clienteNome.trim()||clienteWpp||itens.filter(i=>i.nome).length>0||procOdonto.length>0
+                    if(temDados&&!editandoId){
+                      if(!window.confirm('Você tem dados não salvos. Deseja sair mesmo assim?')) return
+                    }
+                    setView('lista')
+                  }}
+                    style={{background:'none',border:'none',cursor:'pointer',fontSize:'13px',color:'#64748B',fontFamily:'inherit',padding:'0',display:'flex',alignItems:'center',gap:'4px'}}>
+                    ← Voltar aos orçamentos
+                  </button>
+                  {!editandoId&&(
+                    <span style={{color:'rgba(255,255,255,.15)',fontSize:'12px'}}>|</span>
+                  )}
+                  {!editandoId&&(
+                    <button onClick={()=>{
+                      const temDados=clienteNome.trim()||clienteWpp||itens.filter(i=>i.nome).length>0||procOdonto.length>0
+                      if(temDados){
+                        if(!window.confirm('Você tem dados não salvos. Deseja sair mesmo assim?')) return
+                      }
+                      setView('escolha')
+                    }}
+                      style={{background:'none',border:'none',cursor:'pointer',fontSize:'12px',color:'#475569',fontFamily:'inherit',padding:'0',display:'flex',alignItems:'center',gap:'4px'}}>
+                      Mudar tipo de orçamento
+                    </button>
+                  )}
+                </div>
                 <h1 style={{fontSize:'22px',fontWeight:800,color:'#fff',letterSpacing:'-0.02em',marginBottom:'2px'}}>{editandoId?'Editar orçamento':tipoOrcamento==='odontologico'?'Novo orçamento odontológico':'Novo orçamento'}</h1>
                 <p style={{fontSize:'13px',color:'#94A3B8'}}>Preencha os dados e envie para o cliente.</p>
               </div>
@@ -1666,7 +1721,7 @@ export default function Orcamentos() {
                       style={{flex:1,minWidth:120,background:'rgba(255,255,255,.08)',color:'#CBD5E1',border:'1px solid rgba(255,255,255,.15)',borderRadius:12,padding:'13px 16px',fontSize:14,fontWeight:700,cursor:'pointer',fontFamily:'inherit',display:'flex',alignItems:'center',justifyContent:'center',gap:8}}>
                       📥 Baixar PDF
                     </button>
-                    <button onClick={()=>{resetForm();setView('lista')}}
+                    <button onClick={handleSalvarRascunho}
                       style={{flex:1,minWidth:140,background:'rgba(255,255,255,.06)',color:'#94A3B8',border:'1px solid rgba(255,255,255,.10)',borderRadius:12,padding:'13px 16px',fontSize:14,fontWeight:600,cursor:'pointer',fontFamily:'inherit',display:'flex',alignItems:'center',justifyContent:'center',gap:8}}>
                       📄 Salvar como rascunho
                     </button>
