@@ -915,8 +915,8 @@ export default function Orcamentos() {
                   )}
                 </div>
 
-                {/* CARD: Itens — design mockup */}
-                <div className="cm-card" style={card}>
+                {tipoOrcamento!=='odontologico'&&(
+                <div className="cm-card" style={card}>{/* CARD: Itens */}
                   {/* Área de adição de item */}
                   <div style={{marginBottom:16,padding:'16px',background:'rgba(11,18,32,.7)',borderRadius:12,border:'1px solid rgba(148,163,184,.12)'}}>
                     <p style={{fontSize:14,fontWeight:700,color:'#F8FAFC',marginBottom:12}}>Adicionar item ao orçamento</p>
@@ -1038,6 +1038,7 @@ export default function Orcamentos() {
                   </div>
                 </div>
 
+                )}
                 {/* Resumo mobile — só aparece no mobile */}
                 <div className="cm-resumo-mobile" style={{display:'none',background:'rgba(11,18,32,.97)',borderRadius:'14px',padding:'14px 16px',marginBottom:'12px',border:'1px solid rgba(255,255,255,.08)'}}>
                   <p style={{fontSize:'12px',fontWeight:700,color:'#667085',textTransform:'uppercase',letterSpacing:'.06em',marginBottom:'10px'}}>Resumo</p>
