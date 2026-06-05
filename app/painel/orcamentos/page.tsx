@@ -182,6 +182,8 @@ export default function Orcamentos() {
   const [procObs,setProcObs]=useState('')
   const [procDentes,setProcDentes]=useState<number[]>([])
   const [procQtd,setProcQtd]=useState(1)
+  const [editingProcIdx,setEditingProcIdx]=useState<number|null>(null)
+  const [editingItemIdx,setEditingItemIdx]=useState<number|null>(null)
 
   // Detalhe pagamento
   const [pagData,setPagData]=useState(new Date().toISOString().split('T')[0])
@@ -246,6 +248,39 @@ export default function Orcamentos() {
       if(campo==='unitario'||campo==='qtd') n[idx].total=parseFloat(n[idx].unitario||'0')*(parseInt(n[idx].qtd)||1)
       return n
     })
+  }
+  function editarItem(idx:number){
+    const item=itens[idx]
+    setEditingItemIdx(idx)
+    // Preencher o último slot com dados do item a editar
+    setItens(prev=>{
+      const n=prev.filter((_,i)=>i!==idx)
+      return [...n,{...item,showSug:false}]
+    })
+  }
+  function salvarEdicaoItem(){
+    if(editingItemIdx===null) return
+    const last=itens[itens.length-1]
+    if(!last?.nome?.trim()||!parseFloat(last?.unitario||'0')) return
+    const updated={...last,total:parseFloat(last.unitario||'0')*(parseInt(last.qtd||'1')||1),showSug:false}
+    setItens(prev=>{
+      const n=[...prev]
+      n.pop() // remove slot de edição
+      n.splice(editingItemIdx,0,updated) // insere na posição original
+      return n
+    })
+    setEditingItemIdx(null)
+  }
+  function cancelarEdicaoItem(){
+    if(editingItemIdx===null) return
+    const original=itens[itens.length-1]
+    setItens(prev=>{
+      const n=[...prev]
+      n.pop() // remove slot de edição
+      n.splice(editingItemIdx,0,{...original,showSug:false}) // restaura original
+      return n
+    })
+    setEditingItemIdx(null)
   }
 
   function resetForm(){
@@ -528,8 +563,27 @@ export default function Orcamentos() {
     const valorUnit=parseFloat(procValor||'0')
     const qtdDentes=dentesUsados.length||1
     const valorTotal=valorUnit*qtdDentes
-    setProcOdonto(prev=>[...prev,{dentes:dentesUsados,nome:procNome,valorUnit,qtd:qtdDentes,valor:String(valorTotal),status:procStatus,obs:procObs}])
+    const novoProc={dentes:dentesUsados,nome:procNome,valorUnit,qtd:qtdDentes,valor:String(valorTotal),status:procStatus,obs:procObs}
+    if(editingProcIdx!==null){
+      setProcOdonto(prev=>prev.map((p,i)=>i===editingProcIdx?novoProc:p))
+      setEditingProcIdx(null)
+    } else {
+      setProcOdonto(prev=>[...prev,novoProc])
+    }
     setProcNome('');setProcValor('');setProcObs('');setProcStatus('A realizar');setDentesSelec([]);setProcQtd(1)
+  }
+  function editarProcOdonto(idx:number){
+    const p=procOdonto[idx]
+    setProcNome(p.nome||'')
+    setProcValor(String(p.valorUnit||p.valor||''))
+    setProcObs(p.obs||'')
+    setProcStatus(p.status||'A realizar')
+    setDentesSelec(Array.isArray(p.dentes)?p.dentes:(p.dente?[p.dente]:[]))
+    setEditingProcIdx(idx)
+  }
+  function cancelarEdicaoProc(){
+    setEditingProcIdx(null)
+    setProcNome('');setProcValor('');setProcObs('');setProcStatus('A realizar');setDentesSelec([])
   }
 
   const orcsFiltrados=orcamentos.filter(o=>{
@@ -967,15 +1021,24 @@ export default function Orcamentos() {
                         </div>
                       </div>
                       {/* Botão adicionar */}
-                      <button
-                        onClick={()=>{
-                          const last=itens[itens.length-1]
-                          if(!last?.nome?.trim()||!parseFloat(last?.unitario||'0')) return
-                          setItens(prev=>[...prev,{nome:'',qtd:1,unitario:'',total:0,obs:'',showSug:false}])
-                        }}
-                        style={{background:'linear-gradient(135deg,#2563EB,#7C3AED)',color:'#fff',border:'none',borderRadius:10,padding:'10px 18px',fontSize:13,fontWeight:700,cursor:'pointer',fontFamily:'inherit',whiteSpace:'nowrap',height:42,display:'flex',alignItems:'center',gap:6}}>
-                        + Adicionar item
-                      </button>
+                      <div style={{display:'flex',gap:6,flexDirection:'column'}}>
+                        <button
+                          onClick={()=>{
+                            if(editingItemIdx!==null){salvarEdicaoItem();return}
+                            const last=itens[itens.length-1]
+                            if(!last?.nome?.trim()||!parseFloat(last?.unitario||'0')) return
+                            setItens(prev=>[...prev,{nome:'',qtd:1,unitario:'',total:0,obs:'',showSug:false}])
+                          }}
+                          style={{background:editingItemIdx!==null?'linear-gradient(135deg,#2563EB,#7C3AED)':'linear-gradient(135deg,#2563EB,#7C3AED)',color:'#fff',border:'none',borderRadius:10,padding:'10px 18px',fontSize:13,fontWeight:700,cursor:'pointer',fontFamily:'inherit',whiteSpace:'nowrap',height:42,display:'flex',alignItems:'center',gap:6}}>
+                          {editingItemIdx!==null?'✓ Salvar alteração':'+ Adicionar item'}
+                        </button>
+                        {editingItemIdx!==null&&(
+                          <button onClick={cancelarEdicaoItem}
+                            style={{background:'rgba(255,255,255,.06)',border:'1px solid rgba(148,163,184,.25)',borderRadius:10,padding:'8px 18px',fontSize:12,fontWeight:600,color:'#CBD5E1',cursor:'pointer',fontFamily:'inherit',display:'flex',alignItems:'center',justifyContent:'center'}}>
+                            ✕ Cancelar edição
+                          </button>
+                        )}
+                      </div>
                     </div>
                   </div>
 
@@ -1006,8 +1069,12 @@ export default function Orcamentos() {
                             <p style={{fontSize:13,color:'#94A3B8',textAlign:'center'}}>{item.qtd||1}</p>
                             <p style={{fontSize:13,color:'#94A3B8',textAlign:'right'}}>R$ {fmtBRL(parseFloat(item.unitario||'0'))}</p>
                             <p style={{fontSize:13,fontWeight:700,color:'#F8FAFC',textAlign:'right'}}>R$ {fmtBRL(total2)}</p>
-                            <div style={{display:'flex',gap:6,justifyContent:'center'}}>
-                              <button onClick={()=>setItens(prev=>prev.filter((_,i)=>i!==idx))}
+                            <div style={{display:'flex',gap:5,justifyContent:'center'}}>
+                              <button onClick={()=>editarItem(idx)} title="Editar item"
+                                style={{width:28,height:28,borderRadius:6,background:'rgba(59,130,246,.12)',border:'1px solid rgba(59,130,246,.45)',color:'#60A5FA',cursor:'pointer',fontSize:13,display:'flex',alignItems:'center',justifyContent:'center'}}>
+                                ✏
+                              </button>
+                              <button onClick={()=>{if(editingItemIdx===idx)cancelarEdicaoItem();else setItens(prev=>prev.filter((_,i)=>i!==idx))}} title="Excluir item"
                                 style={{width:28,height:28,borderRadius:6,background:'rgba(239,68,68,.15)',border:'1px solid rgba(239,68,68,.30)',color:'#F87171',cursor:'pointer',fontSize:14,display:'flex',alignItems:'center',justifyContent:'center'}}>
                                 🗑
                               </button>
@@ -1177,10 +1244,18 @@ export default function Orcamentos() {
                           </div>
                         </div>
                         {/* Botão */}
-                        <button onClick={adicionarProcOdonto} disabled={!procNome}
-                          style={{background:'linear-gradient(135deg,#06B6D4,#0891B2)',color:'#fff',border:'none',borderRadius:10,padding:'10px 16px',fontSize:13,fontWeight:700,cursor:!procNome?'not-allowed':'pointer',fontFamily:'inherit',whiteSpace:'nowrap',height:42,display:'flex',alignItems:'center',gap:6,opacity:!procNome?0.5:1}}>
-                          + Adicionar procedimento
-                        </button>
+                        <div style={{display:'flex',gap:6,flexDirection:'column'}}>
+                          <button onClick={adicionarProcOdonto} disabled={!procNome}
+                            style={{background:editingProcIdx!==null?'linear-gradient(135deg,#2563EB,#7C3AED)':'linear-gradient(135deg,#06B6D4,#0891B2)',color:'#fff',border:'none',borderRadius:10,padding:'10px 16px',fontSize:13,fontWeight:700,cursor:!procNome?'not-allowed':'pointer',fontFamily:'inherit',whiteSpace:'nowrap',height:42,display:'flex',alignItems:'center',gap:6,opacity:!procNome?0.5:1}}>
+                            {editingProcIdx!==null?'✓ Salvar alteração':'+ Adicionar procedimento'}
+                          </button>
+                          {editingProcIdx!==null&&(
+                            <button onClick={cancelarEdicaoProc}
+                              style={{background:'rgba(255,255,255,.06)',border:'1px solid rgba(148,163,184,.25)',borderRadius:10,padding:'8px 16px',fontSize:12,fontWeight:600,color:'#CBD5E1',cursor:'pointer',fontFamily:'inherit',whiteSpace:'nowrap',display:'flex',alignItems:'center',justifyContent:'center'}}>
+                              ✕ Cancelar edição
+                            </button>
+                          )}
+                        </div>
                       </div>
 
                       {/* Tabela de procedimentos */}
@@ -1214,8 +1289,12 @@ export default function Orcamentos() {
                                 <p style={{fontSize:13,color:'#94A3B8',textAlign:'center'}}>{qtd}</p>
                                 <p style={{fontSize:13,color:'#94A3B8',textAlign:'right'}}>R$ {fmtBRL(vUnit)}</p>
                                 <p style={{fontSize:13,fontWeight:700,color:'#F8FAFC',textAlign:'right'}}>R$ {fmtBRL(vTotal)}</p>
-                                <div style={{display:'flex',gap:6,justifyContent:'center'}}>
-                                  <button onClick={()=>setProcOdonto((prev:any[])=>prev.filter((_:any,j:number)=>j!==i))}
+                                <div style={{display:'flex',gap:5,justifyContent:'center'}}>
+                                  <button onClick={()=>editarProcOdonto(i)} title="Editar procedimento"
+                                    style={{width:28,height:28,borderRadius:6,background:'rgba(59,130,246,.12)',border:'1px solid rgba(59,130,246,.45)',color:'#60A5FA',cursor:'pointer',fontSize:13,display:'flex',alignItems:'center',justifyContent:'center'}}>
+                                    ✏
+                                  </button>
+                                  <button onClick={()=>{setProcOdonto((prev:any[])=>prev.filter((_:any,j:number)=>j!==i));if(editingProcIdx===i)cancelarEdicaoProc()}} title="Excluir procedimento"
                                     style={{width:28,height:28,borderRadius:6,background:'rgba(239,68,68,.15)',border:'1px solid rgba(239,68,68,.30)',color:'#F87171',cursor:'pointer',fontSize:14,display:'flex',alignItems:'center',justifyContent:'center'}}>
                                     🗑
                                   </button>
