@@ -37,7 +37,7 @@ const MOBILE_CSS = `
 
   .cm-header-mobile { display:none; align-items:center; justify-content:space-between; padding:0 16px; height:56px; background:#0B172A; z-index:10; box-shadow:0 1px 4px rgba(0,0,0,.2); width:100%; max-width:100%; flex-shrink:0; overflow:hidden; }
 
-  .cm-mobile-footer { display:none; position:fixed; bottom:0; left:0; right:0; width:100%; max-width:100%; background:#fff; border-top:1px solid #DCE3EA; padding:10px 16px calc(10px + env(safe-area-inset-bottom,0px)); z-index:25; flex-direction:column; gap:6px; box-shadow:0 -2px 12px rgba(0,0,0,.07); box-sizing:border-box; }
+  .cm-mobile-footer { display:none; position:fixed; bottom:0; left:0; right:0; width:100%; max-width:100%; background:#0B172A; border-top:1px solid rgba(255,255,255,0.08); padding:10px 16px calc(10px + env(safe-area-inset-bottom,0px)); z-index:25; flex-direction:column; gap:6px; box-shadow:0 -2px 12px rgba(0,0,0,.07); box-sizing:border-box; }
 
   @media(min-width:1024px){
     .cm-header-mobile { display:none !important; }
@@ -50,7 +50,8 @@ const MOBILE_CSS = `
   }
 
   @media(max-width:1023px){
-    body,html{background:#050B16!important}
+    body,html{background:#050B16!important;}
+    .psb-main,.cm-main{background:#050B16!important;}
     .cm-sidebar { display:none !important; }
     .cm-main { margin-left:0 !important; width:100% !important; max-width:100% !important; overflow-x:hidden; }
     .cm-header-mobile { display:flex !important; }
@@ -208,7 +209,7 @@ export default function Orcamentos() {
     setPagamentos(data||[])
   }
 
-  const subtotal=itens.reduce((a,i)=>a+(parseFloat(i.unitario||'0')*(parseInt(i.qtd)||1)),0)+procOdonto.reduce((a,p)=>a+parseFloat(p.valor||'0'),0)
+  const subtotal=itens.reduce((a,i)=>a+parseFloat(i.unitario||'0'),0)+procOdonto.reduce((a,p)=>a+parseFloat(p.valor||'0'),0)
   const descontoNum=parseFloat(desconto||'0')
   const total=Math.max(0,subtotal-descontoNum)
   const valorPagoLocal=histPags.reduce((a,p)=>a+parseFloat(p.valor||'0'),0)
@@ -227,7 +228,7 @@ export default function Orcamentos() {
     setTipo('Orçamento');setTipoOutro('');setTipoDescricao('')
     setProfId('');setProfNome('');setSalvarFreelancer(false)
     setDataDoc(new Date().toISOString().split('T')[0]);setStatus('Aberto')
-    setItens([{nome:'',qtd:1,unitario:'',total:0,obs:''}])
+    setItens([{nome:'',qtd:1,unitario:'',total:0,obs:'',showSug:false}])
     setDesconto('');setExigirSinal(false);setSinalTipo('fixo');setSinalValor('')
     setLinkPag('');setObsPagamento('');setObservacoes('')
     setHistPags([]);setEditandoPagIdx(null);setHpValor('');setHpForma('Pix');setHpFormaOutro('');setHpObs('')
@@ -247,7 +248,7 @@ export default function Orcamentos() {
     else{setTipo('__outro__');setTipoOutro(tipoSalvo);setTipoDescricao(orc.tipo_descricao||'')}
     setProfId(orc.profissional_id||'');setProfNome(orc.profissional_nome||'');setSalvarFreelancer(false)
     setDataDoc(orc.data||new Date().toISOString().split('T')[0]);setStatus(orc.status||'Aberto')
-    setItens(orc.servicos?.length?orc.servicos:[{nome:'',qtd:1,unitario:'',total:0,obs:''}])
+    setItens(orc.servicos?.length?orc.servicos.map((s:any)=>({...s,showSug:false})):[{nome:'',qtd:1,unitario:'',total:0,obs:'',showSug:false}])
     setDesconto(orc.desconto?String(orc.desconto):'');setExigirSinal(orc.exigir_sinal||false)
     setSinalTipo(orc.sinal_tipo||'fixo');setSinalValor(orc.sinal_valor?String(orc.sinal_valor):'')
     setLinkPag(orc.link_pagamento||'');setObsPagamento(orc.obs_pagamento||'');setObservacoes(orc.observacoes||'')
@@ -416,7 +417,7 @@ export default function Orcamentos() {
     if(st==='realizado') return {background:'rgba(34,197,94,.18)',border:sel?'2px solid #22C55E':'1px solid rgba(34,197,94,.65)',color:'#86EFAC',boxShadow:sel?'0 0 0 3px rgba(34,197,94,.25)':'none'}
     if(st==='pendente') return {background:'rgba(239,68,68,.18)',border:sel?'2px solid #EF4444':'1px solid rgba(239,68,68,.65)',color:'#FCA5A5',boxShadow:sel?'0 0 0 3px rgba(239,68,68,.25)':'none'}
     if(sel) return {background:'rgba(34,211,238,.18)',border:'2px solid #22D3EE',color:'#22D3EE',boxShadow:'0 0 0 3px rgba(34,211,238,.25),0 0 18px rgba(34,211,238,.35)'}
-    return {background:'#E5E7EB',border:'1px solid rgba(255,255,255,.15)',color:'#0F172A'}
+    return {background:'#E5E7EB',border:'1px solid rgba(255,255,255,.15)',color:'#F8FAFC'}
   }
   function adicionarProcOdonto(){
     if(!procNome||dentesSelec.length===0) return
@@ -441,7 +442,7 @@ export default function Orcamentos() {
   const mostrarOdontograma=usarOdontograma||tipo==='Tratamento'||isOdonto
 
   // Style constants
-  const BG='#F1F4F8'
+  const BG='#050B16'
   const SIDEBAR='#0B172A'
   const inp:React.CSSProperties={width:'100%',border:'1.5px solid rgba(255,255,255,.12)',borderRadius:'8px',padding:'10px 14px',fontSize:'15px',color:'#fff',outline:'none',fontFamily:'inherit',background:'rgba(255,255,255,.06)',boxSizing:'border-box' as const}
   const sel:React.CSSProperties={...inp,cursor:'pointer',appearance:'none' as any,color:'#fff'}
@@ -551,7 +552,7 @@ export default function Orcamentos() {
                       <p style={{fontSize:'14px',fontWeight:700,color:'#fff'}}>Orçamentos recentes</p>
                       <span style={{fontSize:'12px',color:'#64748B'}}>{orcsFiltrados.length} registro{orcsFiltrados.length!==1?'s':''}</span>
                     </div>
-                    <div style={{display:'grid',gridTemplateColumns:'2fr 1fr 0.8fr 0.8fr 0.8fr 100px 120px',padding:'10px 24px',borderBottom:'1px solid rgba(255,255,255,.06)'}}>
+                    <div style={{display:'grid',gridTemplateColumns:'minmax(140px,2fr) minmax(100px,1fr) 90px 90px 90px 100px 110px',padding:'10px 24px',borderBottom:'1px solid rgba(255,255,255,.06)'}}>
                       {['Cliente','Tipo / Data','Total','Pago','Saldo','Status','Ações'].map(h=>(
                         <p key={h} style={{fontSize:'11px',fontWeight:600,color:'#64748B',textTransform:'uppercase' as const,letterSpacing:'.06em'}}>{h}</p>
                       ))}
@@ -560,7 +561,7 @@ export default function Orcamentos() {
                       const cfg=STATUS_COR[orc.status]||STATUS_COR['Aberto']
                       return (
                         <div key={orc.id}
-                          style={{display:'grid',gridTemplateColumns:'2fr 1fr 0.8fr 0.8fr 0.8fr 100px 120px',padding:'14px 24px',borderBottom:i<orcsFiltrados.length-1?'1px solid rgba(255,255,255,.05)':'none',alignItems:'center',transition:'background .15s',cursor:'default'}}
+                          style={{display:'grid',gridTemplateColumns:'minmax(140px,2fr) minmax(100px,1fr) 90px 90px 90px 100px 110px',padding:'14px 24px',borderBottom:i<orcsFiltrados.length-1?'1px solid rgba(255,255,255,.05)':'none',alignItems:'center',transition:'background .15s',cursor:'default'}}
                           onMouseEnter={e=>(e.currentTarget.style.background='rgba(255,255,255,.04)')}
                           onMouseLeave={e=>(e.currentTarget.style.background='transparent')}>
                           <div>
@@ -577,9 +578,9 @@ export default function Orcamentos() {
                           <span style={{fontSize:'11px',fontWeight:700,padding:'4px 10px',borderRadius:'999px',background:cfg.bg,color:cfg.color,border:'1px solid '+cfg.border,display:'inline-block'}}>
                             {orc.status}
                           </span>
-                          <div style={{display:'flex',gap:'5px'}}>
+                          <div style={{display:'flex',gap:'4px',flexWrap:'nowrap' as const,overflow:'hidden'}}>
                             <button onClick={()=>{setDetalheId(orc.id);carregarPagamentos(orc.id);setView('detalhe')}}
-                              style={{background:'rgba(37,99,235,.2)',border:'1px solid rgba(37,99,235,.3)',borderRadius:'6px',padding:'5px 10px',fontSize:'11px',fontWeight:600,color:'#93C5FD',cursor:'pointer',fontFamily:'inherit'}}>Ver</button>
+                              style={{background:'rgba(37,99,235,.2)',border:'1px solid rgba(37,99,235,.3)',borderRadius:'6px',padding:'4px 8px',fontSize:'11px',fontWeight:600,color:'#93C5FD',cursor:'pointer',fontFamily:'inherit',whiteSpace:'nowrap' as const}}>Ver</button>
                             <button onClick={()=>enviarWpp(orc)}
                               style={{background:'rgba(22,163,74,.2)',border:'1px solid rgba(22,163,74,.3)',borderRadius:'6px',padding:'5px 8px',fontSize:'13px',cursor:'pointer',fontFamily:'inherit'}}>💬</button>
                             <button onClick={()=>abrirEditar(orc)}
@@ -806,118 +807,130 @@ export default function Orcamentos() {
                   )}
                 </div>
 
-                {/* CARD: Serviços */}
+                {/* CARD: Itens */}
                 <div className="cm-card" style={card}>
                   <div style={{display:'flex',alignItems:'center',gap:'8px',marginBottom:'4px'}}>
                     <span style={{fontSize:'16px'}}>📄</span>
                     <p style={{fontSize:'15px',fontWeight:700,color:'#F8FAFC'}}>Itens do orçamento</p>
                   </div>
-                  <p style={{fontSize:'12px',color:'#94A3B8',marginBottom:'16px'}}>Adicione os serviços, procedimentos, produtos ou itens deste orçamento.</p>
-
-                  {/* Header tabela — oculto no mobile */}
-                  <div style={{display:'grid',gridTemplateColumns:'3fr 80px 120px 110px 32px',gap:'8px',marginBottom:'8px'}} className="cm-hide-mobile">
-                    {['Nome do serviço','Qtd.','Valor unitário','Total',''].map(h=>(
-                      <p key={h} style={{fontSize:'11px',fontWeight:600,color:'#667085',textTransform:'uppercase',letterSpacing:'.05em'}}>{h}</p>
-                    ))}
-                  </div>
+                  <p style={{fontSize:'12px',color:'#94A3B8',marginBottom:'16px'}}>Adicione serviços, procedimentos, produtos ou itens deste orçamento.</p>
 
                   {itens.map((item,idx)=>(
-                    <div key={idx} style={{marginBottom:'12px',padding:'14px',background:'rgba(15,23,42,.88)',borderRadius:'12px',border:'1px solid rgba(148,163,184,.18)',width:'100%',maxWidth:'100%',boxSizing:'border-box'}}>
-                      <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'10px'}}>
-                        <span style={{fontSize:'11px',fontWeight:600,color:'#64748B',textTransform:'uppercase',letterSpacing:'.05em'}}>Item {idx+1}</span>
+                    <div key={idx} style={{marginBottom:'12px',padding:'16px',background:'rgba(11,18,32,.95)',borderRadius:'14px',border:'1px solid rgba(148,163,184,.15)',width:'100%',boxSizing:'border-box' as const}}>
+                      <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'12px'}}>
+                        <span style={{fontSize:'11px',fontWeight:700,color:'#64748B',textTransform:'uppercase' as const,letterSpacing:'.06em'}}>Item {idx+1}</span>
                         {itens.length>1&&(
                           <button onClick={()=>setItens(prev=>prev.filter((_,i)=>i!==idx))}
-                            style={{background:'#FEF2F2',border:'1px solid #FECACA',borderRadius:'6px',color:'#EF4444',cursor:'pointer',fontSize:'13px',padding:'3px 8px'}}>
+                            style={{background:'rgba(239,68,68,.12)',border:'1px solid rgba(239,68,68,.25)',borderRadius:'6px',color:'#F87171',cursor:'pointer',fontSize:'12px',fontWeight:600,padding:'3px 10px',fontFamily:'inherit'}}>
                             Remover
                           </button>
                         )}
                       </div>
-                      {/* Nome */}
-                      <div style={{marginBottom:'8px'}}>
-                        <label style={{fontSize:'12px',fontWeight:600,color:'#CBD5E1',display:'block',marginBottom:'6px',whiteSpace:'normal',lineHeight:'1.3'}}>Nome do serviço *</label>
-                        <input style={{...inp,width:'100%'}} type="text" placeholder="Ex: Corte de cabelo, limpeza de pele..."
-                          value={item.nome} onChange={e=>atualizarItem(idx,'nome',e.target.value)} />
-                      </div>
-                      {/* Qtd + Valor */}
-                      <div className="cm-serv-qtd-val" style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'8px',marginBottom:'8px',width:'100%',maxWidth:'100%'}}>
-                        <div>
-                          <label style={{fontSize:'12px',fontWeight:600,color:'#CBD5E1',display:'block',marginBottom:'6px'}}>Qtd.</label>
-                          <input style={{...inp,textAlign:'center',width:'100%'}} type="number" min="1"
-                            value={item.qtd} onChange={e=>atualizarItem(idx,'qtd',e.target.value)} />
-                        </div>
-                        <div>
-                          <label style={{fontSize:'12px',fontWeight:600,color:'#CBD5E1',display:'block',marginBottom:'6px'}}>Valor</label>
-                          <div style={{position:'relative'}}>
-                            <span style={{position:'absolute',left:'10px',top:'50%',transform:'translateY(-50%)',fontSize:'12px',color:'#475569',fontWeight:600}}>R$</span>
-                            <input style={{...inp,paddingLeft:'32px',width:'100%',maxWidth:'100%',boxSizing:'border-box'}} type="number" min="0" step="0.01" placeholder="0,00"
-                              value={item.unitario} onChange={e=>atualizarItem(idx,'unitario',e.target.value)} />
+                      {/* Descrição com autocomplete */}
+                      <div style={{marginBottom:'10px',position:'relative'}}>
+                        <label style={{fontSize:'12px',fontWeight:600,color:'#CBD5E1',display:'block',marginBottom:'6px'}}>Descrição do item</label>
+                        <textarea
+                          rows={2}
+                          placeholder="Ex: Corte masculino, barba, limpeza de pele, avaliação, manutenção..."
+                          value={item.nome}
+                          onChange={e=>{
+                            atualizarItem(idx,'nome',e.target.value)
+                            atualizarItem(idx,'showSug',true)
+                            e.target.style.height='auto'
+                            e.target.style.height=e.target.scrollHeight+'px'
+                          }}
+                          onBlur={()=>setTimeout(()=>atualizarItem(idx,'showSug',false),150)}
+                          style={{...inp,resize:'none' as const,overflow:'hidden',minHeight:'60px',width:'100%'}}
+                        />
+                        {item.showSug&&item.nome&&(
+                          <div style={{position:'absolute',top:'100%',left:0,right:0,background:'#0B1220',border:'1px solid rgba(59,130,246,.25)',borderRadius:'10px',zIndex:50,maxHeight:'180px',overflowY:'auto' as const,boxShadow:'0 8px 24px rgba(0,0,0,.4)'}}>
+                            {(['Corte masculino','Corte feminino','Corte infantil','Barba','Corte + barba','Sobrancelha','Limpeza de pele','Design de sobrancelhas','Manicure','Pedicure','Avaliacao','Consulta','Procedimento estetico','Manutencao','Servico personalizado'] as string[]).filter((s:string)=>s.toLowerCase().includes(item.nome.toLowerCase())).map((s:string)=>(
+                              <button key={s} onMouseDown={()=>{atualizarItem(idx,'nome',s);atualizarItem(idx,'showSug',false)}}
+                                style={{display:'block',width:'100%',textAlign:'left',padding:'9px 14px',background:'none',border:'none',color:'#CBD5E1',fontSize:'13px',cursor:'pointer',fontFamily:'inherit',borderBottom:'1px solid rgba(255,255,255,.05)'}}
+                                onMouseEnter={e=>(e.currentTarget.style.background='rgba(59,130,246,.12)')}
+                                onMouseLeave={e=>(e.currentTarget.style.background='none')}>
+                                {s}
+                              </button>
+                            ))}
                           </div>
+                        )}
+                      </div>
+                      {/* Valor */}
+                      <div style={{marginBottom:'10px'}}>
+                        <label style={{fontSize:'12px',fontWeight:600,color:'#CBD5E1',display:'block',marginBottom:'6px'}}>Valor</label>
+                        <div style={{position:'relative'}}>
+                          <span style={{position:'absolute',left:'10px',top:'50%',transform:'translateY(-50%)',fontSize:'12px',color:'#64748B',fontWeight:600}}>R$</span>
+                          <input style={{...inp,paddingLeft:'32px',width:'100%',boxSizing:'border-box' as const}} type="number" min="0" step="0.01" placeholder="0,00"
+                            value={item.unitario} onChange={e=>atualizarItem(idx,'unitario',e.target.value)} />
                         </div>
                       </div>
-                      {/* Total */}
-                      <div style={{background:item.total>0?'rgba(34,197,94,.12)':'rgba(255,255,255,.04)',border:(item.total>0?'1.5px solid rgba(34,197,94,.3)':'1.5px solid rgba(255,255,255,.08)'),borderRadius:'8px',padding:'10px 14px',display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'8px'}}>
-                        <span style={{fontSize:'12px',color:'#94A3B8',fontWeight:600}}>Total</span>
-                        <span style={{fontSize:'16px',fontWeight:800,color:item.total>0?'#4ADE80':'#475569'}}>R$ {fmtBRL(item.total||0)}</span>
-                      </div>
+                      {/* Total do item */}
+                      {parseFloat(item.unitario||'0')>0&&(
+                        <div style={{background:'rgba(34,197,94,.08)',border:'1px solid rgba(34,197,94,.20)',borderRadius:'8px',padding:'8px 12px',display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'8px'}}>
+                          <span style={{fontSize:'12px',color:'#94A3B8',fontWeight:600}}>Valor do item</span>
+                          <span style={{fontSize:'15px',fontWeight:800,color:'#4ADE80'}}>R$ {fmtBRL(parseFloat(item.unitario||'0'))}</span>
+                        </div>
+                      )}
                       {/* Obs */}
-                      <input style={{...inp,fontSize:'13px',color:'#94A3B8',width:'100%'}} type="text"
-                        placeholder="Observação opcional" value={item.obs} onChange={e=>atualizarItem(idx,'obs',e.target.value)} />
+                      <textarea rows={1} placeholder="Observação opcional"
+                        value={item.obs} onChange={e=>{atualizarItem(idx,'obs',e.target.value);e.target.style.height='auto';e.target.style.height=e.target.scrollHeight+'px'}}
+                        style={{...inp,resize:'none' as const,overflow:'hidden',fontSize:'13px',color:'#94A3B8',width:'100%',minHeight:'38px'}} />
                     </div>
                   ))}
 
-                  <button onClick={()=>setItens(prev=>[...prev,{nome:'',qtd:1,unitario:'',total:0,obs:''}])}
-                    style={{background:'none',border:'none',color:'#2563EB',fontSize:'13px',fontWeight:600,cursor:'pointer',fontFamily:'inherit',padding:'4px 0',display:'flex',alignItems:'center',gap:'4px'}}>
-                    + Adicionar outro serviço
+                  <button onClick={()=>setItens(prev=>[...prev,{nome:'',qtd:1,unitario:'',total:0,obs:'',showSug:false}])}
+                    style={{background:'none',border:'1px dashed rgba(59,130,246,.30)',borderRadius:'10px',color:'#3B82F6',fontSize:'13px',fontWeight:600,cursor:'pointer',fontFamily:'inherit',padding:'10px',width:'100%',marginBottom:'4px'}}>
+                    + Adicionar outro item
                   </button>
 
                   {/* Subtotal */}
-                  <div style={{marginTop:'16px',background:BG,borderRadius:'10px',padding:'14px 16px',width:'100%',maxWidth:'100%',boxSizing:'border-box'}}>
+                  <div style={{marginTop:'16px',background:'rgba(5,11,22,.8)',borderRadius:'12px',padding:'14px 16px',width:'100%',boxSizing:'border-box' as const,border:'1px solid rgba(255,255,255,.06)'}}>
                     <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',fontSize:'13px',color:'#94A3B8',marginBottom:'8px'}}>
                       <span>Subtotal</span>
                       <span style={{fontWeight:600,color:'#fff'}}>R$ {fmtBRL(subtotal)}</span>
                     </div>
-                    <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',fontSize:'13px',color:'#667085',marginBottom:'8px',paddingBottom:'8px',borderBottom:'1px solid #DCE3EA'}}>
+                    <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',fontSize:'13px',color:'#64748B',marginBottom:'8px',paddingBottom:'8px',borderBottom:'1px solid rgba(255,255,255,.07)'}}>
                       <span>Desconto</span>
-                      <input type="number" min="0" step="0.01" placeholder="R$ 0,00" value={desconto}
+                      <input type="number" min="0" step="0.01" placeholder="0,00" value={desconto}
                         onChange={e=>setDesconto(e.target.value)}
                         style={{background:'rgba(255,255,255,.06)',border:'1px solid rgba(255,255,255,.12)',outline:'none',color:'#F87171',fontSize:'13px',fontWeight:600,textAlign:'right' as const,width:'100px',fontFamily:'inherit',borderRadius:'6px',padding:'4px 8px'}} />
                     </div>
                     <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
                       <span style={{fontSize:'14px',fontWeight:700,color:'#fff'}}>Total final</span>
-                      <span style={{fontSize:'18px',fontWeight:800,color:'#2563EB'}}>R$ {fmtBRL(total)}</span>
+                      <span style={{fontSize:'18px',fontWeight:800,color:'#3B82F6'}}>R$ {fmtBRL(total)}</span>
                     </div>
-                    {descontoNum>subtotal&&subtotal>0&&<p style={{fontSize:'11px',color:'#F59E0B',marginTop:'4px',textAlign:'right'}}>⚠ Desconto maior que o subtotal.</p>}
+                    {descontoNum>subtotal&&subtotal>0&&<p style={{fontSize:'11px',color:'#F59E0B',marginTop:'4px',textAlign:'right' as const}}>Desconto maior que subtotal.</p>}
                   </div>
                 </div>
 
                 {/* Resumo mobile — só aparece no mobile */}
-                <div className="cm-resumo-mobile" style={{display:'none',background:'#fff',borderRadius:'14px',padding:'14px 16px',marginBottom:'12px',border:'1px solid #DCE3EA',boxShadow:'0 1px 3px rgba(0,0,0,.05)'}}>
+                <div className="cm-resumo-mobile" style={{display:'none',background:'rgba(11,18,32,.97)',borderRadius:'14px',padding:'14px 16px',marginBottom:'12px',border:'1px solid rgba(255,255,255,.08)'}}>
                   <p style={{fontSize:'12px',fontWeight:700,color:'#667085',textTransform:'uppercase',letterSpacing:'.06em',marginBottom:'10px'}}>Resumo</p>
                   <div style={{display:'flex',flexDirection:'column',gap:'6px'}}>
                     <div style={{display:'flex',justifyContent:'space-between',fontSize:'13px'}}>
-                      <span style={{color:'#667085'}}>Cliente</span>
+                      <span style={{color:'#94A3B8'}}>Cliente</span>
                       <span style={{fontWeight:600,color:clienteNome?'#fff':'#475569',maxWidth:'60%',textAlign:'right',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{clienteNome||'Não informado'}</span>
                     </div>
                     <div style={{display:'flex',justifyContent:'space-between',fontSize:'13px'}}>
-                      <span style={{color:'#667085'}}>Tipo</span>
+                      <span style={{color:'#94A3B8'}}>Tipo</span>
                       <span style={{color:'#F8FAFC'}}>{tipo==='__outro__'?(tipoOutro||'Outro'):tipo}</span>
                     </div>
                     <div style={{display:'flex',justifyContent:'space-between',fontSize:'13px'}}>
-                      <span style={{color:'#667085'}}>Status</span>
+                      <span style={{color:'#94A3B8'}}>Status</span>
                       <span style={{fontSize:'11px',fontWeight:700,padding:'2px 8px',borderRadius:'999px',background:STATUS_COR[status]?.bg||'#EFF6FF',color:STATUS_COR[status]?.color||'#2563EB',border:'1px solid '+(STATUS_COR[status]?.border||'#BFDBFE')}}>{status}</span>
                     </div>
                     <div style={{height:'1px',background:'rgba(255,255,255,.08)',margin:'2px 0'}} />
                     <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
-                      <span style={{fontSize:'13px',color:'#667085'}}>Total</span>
+                      <span style={{fontSize:'13px',color:'#94A3B8'}}>Total</span>
                       <span style={{fontSize:'18px',fontWeight:800,color:'#2563EB'}}>R$ {fmtBRL(total)}</span>
                     </div>
                     {valorPagoLocal>0&&(<>
                       <div style={{display:'flex',justifyContent:'space-between',fontSize:'13px'}}>
-                        <span style={{color:'#667085'}}>Pago</span>
+                        <span style={{color:'#94A3B8'}}>Pago</span>
                         <span style={{fontWeight:700,color:'#16A34A'}}>R$ {fmtBRL(valorPagoLocal)}</span>
                       </div>
                       <div style={{display:'flex',justifyContent:'space-between',fontSize:'13px'}}>
-                        <span style={{color:'#667085'}}>Saldo</span>
+                        <span style={{color:'#94A3B8'}}>Saldo</span>
                         <span style={{fontWeight:700,color:'#EA580C'}}>R$ {fmtBRL(saldoLocal)}</span>
                       </div>
                     </>)}
@@ -979,24 +992,41 @@ export default function Orcamentos() {
                       </div>
                     )}
                     <div style={{marginTop:16,paddingTop:16,borderTop:'1px solid rgba(255,255,255,.06)'}}>
-                      <p style={{fontSize:13,fontWeight:700,color:'#F8FAFC',marginBottom:10}}>Procedimento do tratamento</p>
-                      <div style={{marginBottom:10}}>
-                        <label style={{fontSize:11,fontWeight:700,color:'#94A3B8',textTransform:'uppercase',letterSpacing:'.06em',display:'block',marginBottom:6}}>PROCEDIMENTO ODONTOLOGICO *</label>
-                        <input style={inp} type="text" placeholder="Ex: canal, extracao, restauracao, limpeza, avaliacao, clareamento..." value={procNome} onChange={e=>setProcNome(e.target.value)} />
+                      <p style={{fontSize:13,fontWeight:700,color:'#F8FAFC',marginBottom:4}}>Orçamento do tratamento</p>
+                      <p style={{fontSize:11,color:'#64748B',marginBottom:12}}>Descreva o tratamento, informe o valor e adicione os procedimentos necessários.</p>
+                      {/* Procedimento com autocomplete */}
+                      <div style={{marginBottom:10,position:'relative'}}>
+                        <label style={{fontSize:11,fontWeight:700,color:'#94A3B8',textTransform:'uppercase' as const,letterSpacing:'.06em',display:'block',marginBottom:6}}>PROCEDIMENTO ODONTOLÓGICO *</label>
+                        <textarea rows={2}
+                          placeholder="Ex: canal, extração, restauração, limpeza, avaliação, clareamento, aparelho..."
+                          value={procNome}
+                          onChange={e=>{setProcNome(e.target.value);e.target.style.height='auto';e.target.style.height=e.target.scrollHeight+'px'}}
+                          style={{...inp,resize:'none' as const,overflow:'hidden',minHeight:'56px',width:'100%'}}
+                        />
+                        {procNome&&(
+                          <div style={{position:'absolute',top:'100%',left:0,right:0,background:'#0B1220',border:'1px solid rgba(59,130,246,.25)',borderRadius:'10px',zIndex:50,maxHeight:'160px',overflowY:'auto' as const,boxShadow:'0 8px 24px rgba(0,0,0,.4)'}}>
+                            {(['Avaliacao odontologica','Limpeza','Restauracao','Extracao','Canal','Clareamento','Aparelho','Manutencao de aparelho','Protese','Implante','Tratamento gengival','Radiografia','Retorno','Procedimento personalizado'] as string[]).filter((s:string)=>s.toLowerCase().includes(procNome.toLowerCase())).map((s:string)=>(
+                              <button key={s} onMouseDown={()=>setProcNome(s)}
+                                style={{display:'block',width:'100%',textAlign:'left',padding:'9px 14px',background:'none',border:'none',color:'#CBD5E1',fontSize:'13px',cursor:'pointer',fontFamily:'inherit',borderBottom:'1px solid rgba(255,255,255,.05)'}}
+                                onMouseEnter={e=>(e.currentTarget.style.background='rgba(34,211,238,.10)')}
+                                onMouseLeave={e=>(e.currentTarget.style.background='none')}>
+                                {s}
+                              </button>
+                            ))}
+                          </div>
+                        )}
                       </div>
-                      <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:8,marginBottom:10}}>
-                        <div>
-                          <label style={{fontSize:11,fontWeight:600,color:'#94A3B8',display:'block',marginBottom:5}}>QTD. / SESSOES</label>
-                          <input style={{...inp,textAlign:'center'}} type="number" min="1" placeholder="1" value={procObs||'1'} onChange={e=>setProcObs(e.target.value)} />
-                        </div>
-                        <div>
-                          <label style={{fontSize:11,fontWeight:600,color:'#94A3B8',display:'block',marginBottom:5}}>VALOR POR SESSAO</label>
-                          <div style={{position:'relative'}}><span style={{position:'absolute',left:8,top:'50%',transform:'translateY(-50%)',fontSize:11,color:'#64748B',fontWeight:600}}>R$</span><input style={{...inp,paddingLeft:28}} type="number" min="0" step="0.01" placeholder="0,00" value={procValor} onChange={e=>setProcValor(e.target.value)} /></div>
-                        </div>
-                        <div>
-                          <label style={{fontSize:11,fontWeight:600,color:'#94A3B8',display:'block',marginBottom:5}}>TOTAL</label>
-                          <div style={{background:'rgba(255,255,255,.04)',border:'1px solid rgba(255,255,255,.08)',borderRadius:8,padding:'10px 12px',textAlign:'right'}}><span style={{fontSize:13,fontWeight:800,color:parseFloat(procValor||'0')>0?'#4ADE80':'#475569'}}>R$ {fmtBRL(parseFloat(procValor||'0')*(parseFloat(procObs||'1')||1))}</span></div>
-                        </div>
+                      {/* Valor */}
+                      <div style={{marginBottom:10}}>
+                        <label style={{fontSize:11,fontWeight:600,color:'#94A3B8',display:'block',marginBottom:5}}>VALOR</label>
+                        <div style={{position:'relative'}}><span style={{position:'absolute',left:8,top:'50%',transform:'translateY(-50%)',fontSize:11,color:'#64748B',fontWeight:600}}>R$</span><input style={{...inp,paddingLeft:28}} type="number" min="0" step="0.01" placeholder="0,00" value={procValor} onChange={e=>setProcValor(e.target.value)} /></div>
+                      </div>
+                      {/* Obs */}
+                      <div style={{marginBottom:10}}>
+                        <label style={{fontSize:11,fontWeight:600,color:'#94A3B8',display:'block',marginBottom:5}}>OBSERVAÇÃO</label>
+                        <textarea rows={1} placeholder="Ex: retorno em 15 dias, pagamento parcial, etapa do tratamento..."
+                          value={procObs} onChange={e=>{setProcObs(e.target.value);e.target.style.height='auto';e.target.style.height=e.target.scrollHeight+'px'}}
+                          style={{...inp,resize:'none' as const,overflow:'hidden',fontSize:'13px',width:'100%',minHeight:'36px'}} />
                       </div>
                       <button onClick={adicionarProcOdonto} disabled={!procNome||dentesSelec.length===0}
                         style={{width:'100%',border:'1.5px dashed rgba(34,211,238,.30)',borderRadius:10,padding:10,background:'rgba(34,211,238,.05)',color:'#22D3EE',fontSize:13,fontWeight:700,cursor:(!procNome||dentesSelec.length===0)?'not-allowed':'pointer',fontFamily:'inherit',marginBottom:10,opacity:(!procNome||dentesSelec.length===0)?0.5:1}}>
@@ -1031,11 +1061,11 @@ export default function Orcamentos() {
                     <span style={{color:'#64748B',fontSize:'18px',transform:showPagSection?'rotate(180deg)':'none',transition:'transform .2s'}}>⌄</span>
                   </div>
                   {showPagSection&&(
-                    <div style={{padding:'0 24px 20px',borderTop:'1px solid #F1F4F8'}}>
+                    <div style={{padding:'0 24px 20px',borderTop:'1px solid rgba(255,255,255,.08)'}}>
                       {/* Cards resumo */}
                       <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'8px',margin:'16px 0'}}>
                         {[{l:'Total',v:total,c:'#0F172A'},{l:'Pago',v:valorPagoLocal,c:'#16A34A'},{l:'Saldo',v:saldoLocal,c:saldoLocal>0?'#EA580C':'#16A34A'}].map(f=>(
-                          <div key={f.l} style={{background:BG,borderRadius:'8px',padding:'10px',border:'1px solid #DCE3EA'}}>
+                          <div key={f.l} style={{background:BG,borderRadius:'8px',padding:'10px',border:'1px solid rgba(255,255,255,.08)'}}>
                             <p style={{fontSize:'10px',fontWeight:600,color:'#667085',textTransform:'uppercase',letterSpacing:'.05em',marginBottom:'3px'}}>{f.l}</p>
                             <p style={{fontSize:'15px',fontWeight:800,color:f.c}}>R$ {fmtBRL(f.v)}</p>
                           </div>
@@ -1052,7 +1082,7 @@ export default function Orcamentos() {
                           <span style={{fontSize:'13px',color:'#F8FAFC',fontWeight:500,cursor:'pointer'}} onClick={()=>setExigirSinal(!exigirSinal)}>Exigir entrada/sinal?</span>
                         </div>
                         {exigirSinal&&(
-                          <div style={{background:BG,borderRadius:'10px',padding:'14px',border:'1px solid #DCE3EA',display:'flex',flexDirection:'column',gap:'10px'}}>
+                          <div style={{background:BG,borderRadius:'10px',padding:'14px',border:'1px solid rgba(255,255,255,.08)',display:'flex',flexDirection:'column',gap:'10px'}}>
                             <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'10px'}}>
                               <div><label style={lbl}>Tipo</label>
                                 <select style={sel} value={sinalTipo} onChange={e=>setSinalTipo(e.target.value)}>
@@ -1100,7 +1130,7 @@ export default function Orcamentos() {
                       </div>
 
                       {/* Pagamentos registrados */}
-                      <div style={{borderTop:'1px solid #F1F4F8',paddingTop:'14px'}}>
+                      <div style={{borderTop:'1px solid rgba(255,255,255,.08)',paddingTop:'14px'}}>
                         <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:'10px'}}>
                           <p style={{fontSize:'13px',fontWeight:600,color:'#F8FAFC'}}>Pagamentos registrados</p>
                           <button onClick={()=>{setShowHpForm(!showHpForm);setEditandoPagIdx(null);setHpValor('');setHpForma('Pix');setHpFormaOutro('');setHpData(new Date().toISOString().split('T')[0]);setHpObs('')}}
@@ -1134,7 +1164,7 @@ export default function Orcamentos() {
                               <div><label style={lbl}>Observação</label><input style={inp} type="text" placeholder="Ex: entrada, parcela 2..." value={hpObs} onChange={e=>setHpObs(e.target.value)} /></div>
                               <div style={{display:'flex',gap:'8px'}}>
                                 <button onClick={()=>{setShowHpForm(false);setEditandoPagIdx(null)}}
-                                  style={{flex:1,background:'#F8FAFC',border:'1.5px solid #DCE3EA',borderRadius:'8px',padding:'10px',fontSize:'13px',fontWeight:600,color:'#667085',cursor:'pointer',fontFamily:'inherit'}}>Cancelar</button>
+                                  style={{flex:1,background:'rgba(255,255,255,.06)',border:'1px solid rgba(255,255,255,.12)',borderRadius:'8px',padding:'10px',fontSize:'13px',fontWeight:600,color:'#94A3B8',cursor:'pointer',fontFamily:'inherit'}}>Cancelar</button>
                                 <button onClick={salvarHpPag}
                                   style={{flex:2,background:'#2563EB',border:'none',borderRadius:'8px',padding:'10px',fontSize:'13px',fontWeight:700,color:'#fff',cursor:'pointer',fontFamily:'inherit'}}>
                                   {editandoPagIdx!==null?'Atualizar':'Salvar pagamento'}
@@ -1156,8 +1186,8 @@ export default function Orcamentos() {
                               {p.obs&&<p style={{fontSize:'12px',color:'#475569'}}>{p.obs}</p>}
                             </div>
                             <div style={{display:'flex',gap:'6px'}}>
-                              <button onClick={()=>editarHpPag(i)} style={{background:'#F8FAFC',border:'1.5px solid #DCE3EA',borderRadius:'6px',padding:'3px 8px',fontSize:'11px',fontWeight:600,color:'#667085',cursor:'pointer',fontFamily:'inherit'}}>Editar</button>
-                              <button onClick={()=>excluirHpPag(i)} style={{background:'#FEF2F2',border:'1.5px solid #FECACA',borderRadius:'6px',padding:'3px 8px',fontSize:'11px',fontWeight:600,color:'#DC2626',cursor:'pointer',fontFamily:'inherit'}}>Excluir</button>
+                              <button onClick={()=>editarHpPag(i)} style={{background:'rgba(255,255,255,.06)',border:'1px solid rgba(255,255,255,.12)',borderRadius:'6px',padding:'3px 8px',fontSize:'11px',fontWeight:600,color:'#94A3B8',cursor:'pointer',fontFamily:'inherit'}}>Editar</button>
+                              <button onClick={()=>excluirHpPag(i)} style={{background:'rgba(239,68,68,.12)',border:'1px solid rgba(239,68,68,.25)',borderRadius:'6px',padding:'3px 8px',fontSize:'11px',fontWeight:600,color:'#F87171',cursor:'pointer',fontFamily:'inherit'}}>Excluir</button>
                             </div>
                           </div>
                         ))}
@@ -1306,7 +1336,7 @@ export default function Orcamentos() {
                 <p style={{fontSize:'14px',fontWeight:700,color:'#F8FAFC',marginBottom:'14px'}}>📊 Resumo financeiro</p>
                 <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'8px',marginBottom:'14px'}}>
                   {[{l:'Total',v:orc.total,c:'#0F172A'},{l:'Pago',v:orc.valor_pago,c:'#16A34A'},{l:'Saldo',v:orc.saldo_restante,c:orc.saldo_restante>0?'#EA580C':'#16A34A'}].map(f=>(
-                    <div key={f.l} style={{background:BG,borderRadius:'8px',padding:'12px',border:'1px solid #DCE3EA'}}>
+                    <div key={f.l} style={{background:BG,borderRadius:'8px',padding:'12px',border:'1px solid rgba(255,255,255,.08)'}}>
                       <p style={{fontSize:'10px',fontWeight:600,color:'#667085',textTransform:'uppercase',letterSpacing:'.05em',marginBottom:'4px'}}>{f.l}</p>
                       <p style={{fontSize:'18px',fontWeight:800,color:f.c}}>R$ {fmtBRL(f.v)}</p>
                     </div>
@@ -1324,7 +1354,7 @@ export default function Orcamentos() {
                 </div>
                 {showPagForm&&(
                   <div style={{marginTop:'14px',background:'#F0F9FF',border:'1.5px solid #BAE6FD',borderRadius:'10px',padding:'16px'}}>
-                    <p style={{fontSize:'13px',fontWeight:700,color:'#93C5FD',marginBottom:'12px'}}>Registrar pagamento</p>
+                    <p style={{fontSize:'13px',fontWeight:700,color:'#67E8F9',marginBottom:'12px'}}>Registrar pagamento</p>
                     <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'10px',marginBottom:'10px'}}>
                       <div><label style={lbl}>Data</label><input type="date" value={pagData} onChange={e=>setPagData(e.target.value)} style={inp} /></div>
                       <div><label style={lbl}>Valor (R$)</label><input type="number" placeholder="0,00" value={pagValor} onChange={e=>setPagValor(e.target.value)} style={inp} /></div>
@@ -1335,7 +1365,7 @@ export default function Orcamentos() {
                       </select></div>
                     <div style={{marginBottom:'12px'}}><label style={lbl}>Observação</label><input type="text" placeholder="Opcional" value={pagObs} onChange={e=>setPagObs(e.target.value)} style={inp} /></div>
                     <div style={{display:'flex',gap:'8px'}}>
-                      <button onClick={()=>setShowPagForm(false)} style={{flex:1,background:'#F8FAFC',border:'1.5px solid #DCE3EA',borderRadius:'8px',padding:'10px',fontSize:'13px',fontWeight:600,color:'#667085',cursor:'pointer',fontFamily:'inherit'}}>Cancelar</button>
+                      <button onClick={()=>setShowPagForm(false)} style={{flex:1,background:'rgba(255,255,255,.06)',border:'1px solid rgba(255,255,255,.12)',borderRadius:'8px',padding:'10px',fontSize:'13px',fontWeight:600,color:'#94A3B8',cursor:'pointer',fontFamily:'inherit'}}>Cancelar</button>
                       <button disabled={savingPag} onClick={()=>handleRegistrarPagamento(orc)} style={{flex:2,background:'#2563EB',border:'none',borderRadius:'8px',padding:'10px',fontSize:'13px',fontWeight:700,color:'#fff',cursor:'pointer',fontFamily:'inherit'}}>{savingPag?'Salvando...':'Confirmar pagamento'}</button>
                     </div>
                   </div>
