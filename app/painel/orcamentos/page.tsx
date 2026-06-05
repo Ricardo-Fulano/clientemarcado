@@ -121,7 +121,7 @@ const MOBILE_CSS = `
     .cm-add-grid { grid-template-columns:1fr !important; }
     .cm-add-grid-odonto { grid-template-columns:1fr 1fr !important; }
   }
-  .cm-tooth { width:46px; height:52px; border-radius:48% 48% 42% 42% / 55% 55% 38% 38%; display:inline-flex; align-items:center; justify-content:center; font-weight:800; font-size:13px; cursor:pointer; border:2px solid rgba(200,200,210,.3); transition:all .18s; flex-shrink:0; background:#F0F4F8; color:#0F172A; box-shadow:0 2px 6px rgba(0,0,0,.18); }
+  .cm-tooth { width:46px; height:52px; border-radius:50% 50% 40% 40%; display:inline-flex; align-items:center; justify-content:center; font-weight:800; font-size:13px; cursor:pointer; border:2px solid rgba(200,200,210,.3); transition:all .18s; flex-shrink:0; background:#F0F4F8; color:#0F172A; box-shadow:0 2px 6px rgba(0,0,0,.18); }
   .cm-tooth:hover { transform:scale(1.08); box-shadow:0 4px 12px rgba(0,0,0,.25); }
   .cm-tooth.selected { background:#083344; border-color:#22D3EE; color:#E0F9FF; box-shadow:0 0 0 2px rgba(34,211,238,.35),0 0 16px rgba(34,211,238,.50); transform:scale(1.06); }
   .cm-tooth.realizado { background:rgba(34,197,94,.22); border-color:rgba(34,197,94,.75); color:#86EFAC; box-shadow:0 0 0 2px rgba(34,197,94,.30); }
