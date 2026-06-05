@@ -54,6 +54,11 @@ const MOBILE_CSS = `
     .psb-main,.cm-main{background:#050B16!important;}
     .cm-sidebar { display:none !important; }
     .cm-main,.psb-main { margin-left:0 !important; width:100% !important; max-width:100% !important; overflow-x:hidden !important; box-sizing:border-box !important; }
+    .cm-footer-fixed { padding:10px 12px !important; }
+    .cm-footer-fixed .cm-footer-btns { flex-direction:column !important; gap:8px !important; }
+    .cm-footer-fixed .cm-footer-btns button { width:100% !important; min-width:unset !important; flex:none !important; }
+    .cm-footer-fixed .cm-footer-resumo { display:none !important; }
+    .cm-obs-resumo-grid { grid-template-columns:1fr !important; }
     .psb-mhdr { width:100% !important; flex-shrink:0 !important; }
     .psb-wrapper { flex-direction:column !important; }
     .cm-header-mobile { display:flex !important; }
@@ -116,9 +121,13 @@ const MOBILE_CSS = `
     .cm-add-grid { grid-template-columns:1fr !important; }
     .cm-add-grid-odonto { grid-template-columns:1fr 1fr !important; }
   }
-  .cm-tooth { width:42px; height:42px; border-radius:12px; display:inline-flex; align-items:center; justify-content:center; font-weight:800; font-size:13px; cursor:pointer; border:none; transition:all .15s; flex-shrink:0; }
-  @media(max-width:768px){ .cm-tooth { width:36px; height:36px; font-size:12px; border-radius:10px; } }
-  @media(max-width:400px){ .cm-tooth { width:32px; height:32px; font-size:11px; border-radius:8px; } }
+  .cm-tooth { width:46px; height:52px; border-radius:48% 48% 42% 42% / 55% 55% 38% 38%; display:inline-flex; align-items:center; justify-content:center; font-weight:800; font-size:13px; cursor:pointer; border:2px solid rgba(200,200,210,.3); transition:all .18s; flex-shrink:0; background:#F0F4F8; color:#0F172A; box-shadow:0 2px 6px rgba(0,0,0,.18); }
+  .cm-tooth:hover { transform:scale(1.08); box-shadow:0 4px 12px rgba(0,0,0,.25); }
+  .cm-tooth.selected { background:#083344; border-color:#22D3EE; color:#E0F9FF; box-shadow:0 0 0 2px rgba(34,211,238,.35),0 0 16px rgba(34,211,238,.50); transform:scale(1.06); }
+  .cm-tooth.realizado { background:rgba(34,197,94,.22); border-color:rgba(34,197,94,.75); color:#86EFAC; box-shadow:0 0 0 2px rgba(34,197,94,.30); }
+  .cm-tooth.pendente { background:rgba(239,68,68,.22); border-color:rgba(239,68,68,.75); color:#FCA5A5; box-shadow:0 0 0 2px rgba(239,68,68,.30); }
+  @media(max-width:768px){ .cm-tooth { width:38px; height:44px; font-size:11px; } }
+  @media(max-width:400px){ .cm-tooth { width:32px; height:38px; font-size:10px; } }
   .cm-tooth-grid { display:flex; gap:5px; justify-content:center; }
   .cm-lista-body { overflow-x:hidden; }
   .cm-lista-topo { overflow-x:hidden; }
@@ -779,7 +788,7 @@ export default function Orcamentos() {
         {/* ══ FORMULÁRIO ══ */}
         {view==='form'&&(
           <div style={{minHeight:'100vh',background:'#07111F'}}>
-          <div className="cm-form-pad cm-content-pad" style={{padding:'24px 32px 60px',maxWidth:'1080px',margin:'0 auto'}}>
+          <div className="cm-form-pad cm-content-pad" style={{padding:'24px 32px 140px',maxWidth:'1080px',margin:'0 auto'}}>
             <div className="cm-form-inner" style={{padding:'24px',width:'100%',maxWidth:'100%',boxSizing:'border-box' as const,overflowX:'hidden'}}>
             {/* Topo */}
             <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:'20px',flexWrap:'wrap',gap:'12px'}}>
@@ -788,7 +797,7 @@ export default function Orcamentos() {
                   style={{background:'none',border:'none',cursor:'pointer',fontSize:'13px',color:'#64748B',fontFamily:'inherit',padding:'0',display:'flex',alignItems:'center',gap:'4px',marginBottom:'8px'}}>
                   ← {editandoId?'Voltar à lista':'Voltar à escolha'}
                 </button>
-                <h1 style={{fontSize:'22px',fontWeight:800,color:'#fff',letterSpacing:'-0.02em',marginBottom:'2px'}}>{editandoId?'Editar orçamento':'Novo orçamento'}</h1>
+                <h1 style={{fontSize:'22px',fontWeight:800,color:'#fff',letterSpacing:'-0.02em',marginBottom:'2px'}}>{editandoId?'Editar orçamento':tipoOrcamento==='odontologico'?'Novo orçamento odontológico':'Novo orçamento'}</h1>
                 <p style={{fontSize:'13px',color:'#94A3B8'}}>Preencha os dados e envie para o cliente.</p>
               </div>
               <div style={{display:'flex',alignItems:'center',gap:'6px',background:'rgba(34,197,94,.15)',border:'1px solid rgba(34,197,94,.25)',borderRadius:'8px',padding:'6px 12px'}}>
@@ -1065,57 +1074,55 @@ export default function Orcamentos() {
                 {/* Odontograma */}
                 {tipoOrcamento==='odontologico'&&(
                   <div style={{background:'rgba(7,28,46,.9)',border:'1px solid rgba(6,182,212,.35)',borderRadius:18,padding:'20px',marginBottom:12}}>
-                    <div style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',marginBottom:12,flexWrap:'wrap',gap:8}}>
+                    {/* Título do odontograma */}
+                    <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:16}}>
+                      <div style={{width:36,height:36,borderRadius:'50%',background:'linear-gradient(135deg,#06B6D4,#0891B2)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:18,flexShrink:0}}>🦷</div>
                       <div>
-                        <p style={{fontSize:15,fontWeight:700,color:'#F8FAFC',marginBottom:3}}>🦷 Odontologia / Tratamento dentário</p>
-                        <p style={{fontSize:12,color:'#64748B'}}>Selecione dentes, registre procedimentos e acompanhe a evolução do tratamento.</p>
+                        <p style={{fontSize:15,fontWeight:700,color:'#F8FAFC',marginBottom:2}}>Odontograma / Seleção de dentes</p>
+                        <p style={{fontSize:12,color:'#64748B'}}>Clique nos dentes para selecionar. Use os botões para marcar procedimentos.</p>
                       </div>
-                      <button onClick={limparTudoDentes} style={{background:'none',border:'1px solid rgba(239,68,68,.35)',borderRadius:8,padding:'5px 12px',fontSize:12,fontWeight:600,color:'#F87171',cursor:'pointer',fontFamily:'inherit',flexShrink:0,whiteSpace:'nowrap'}}>Limpar tudo</button>
-                    </div>
-                    <div style={{display:'flex',gap:14,marginBottom:14,flexWrap:'wrap'}}>
-                      {([{l:'Neutro',bg:'#E5E7EB',c:'#0F172A'},{l:'Pendente',bg:'rgba(239,68,68,.25)',c:'#FCA5A5'},{l:'Realizado',bg:'rgba(34,197,94,.25)',c:'#86EFAC'}] as {l:string,bg:string,c:string}[]).map(leg=>(
-                        <div key={leg.l} style={{display:'flex',alignItems:'center',gap:5}}>
-                          <div style={{width:14,height:14,borderRadius:3,background:leg.bg,border:'1px solid rgba(255,255,255,.15)'}}/>
-                          <span style={{fontSize:11,color:'#94A3B8'}}>{leg.l}</span>
-                        </div>
-                      ))}
                     </div>
                     {([{label:'ARCADA SUPERIOR',dentes:DENTES_SUPERIOR},{label:'ARCADA INFERIOR',dentes:DENTES_INFERIOR}] as {label:string,dentes:number[]}[]).map((arco,ai)=>(
                       <div key={ai} style={{background:'rgba(5,11,22,.6)',border:'1px solid rgba(6,182,212,.18)',borderRadius:12,padding:'12px 10px',marginBottom:8,overflow:'hidden'}}>
                         <p style={{fontSize:10,fontWeight:700,color:'#22D3EE',letterSpacing:'.08em',textTransform:'uppercase',marginBottom:8,textAlign:'center'}}>{arco.label}</p>
                         <div style={{display:'flex',gap:5,flexWrap:'wrap',justifyContent:'center',width:'100%'}}>
                           {arco.dentes.map((n:number)=>(
-                            <button key={n} onClick={()=>toggleDente(n)} className="cm-tooth"
-                              style={{...corDente(n),fontFamily:'inherit'}}>
+                            <button key={n} onClick={()=>toggleDente(n)}
+                              className={'cm-tooth'+(dentesSelec.includes(n)?' selected':'')+(dentesStatus[n]==='realizado'?' realizado':'')+(dentesStatus[n]==='pendente'?' pendente':'')}
+                              style={{fontFamily:'inherit'}}>
                               {n}
                             </button>
                           ))}
                         </div>
                       </div>
                     ))}
-                    {dentesSelec.length>0?(
-                      <div style={{marginTop:10}}>
-                        <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:8,flexWrap:'wrap'}}>
-                          <span style={{fontSize:12,color:'#94A3B8',flexShrink:0}}>{dentesSelec.length} dente{dentesSelec.length>1?'s':''} selecionado{dentesSelec.length>1?'s':''}</span>
-                          <div style={{display:'flex',gap:5,flexWrap:'wrap'}}>
-                            {dentesSelec.sort((a:number,b:number)=>a-b).map((n:number)=>(
-                              <span key={n} onClick={()=>toggleDente(n)} style={{background:'rgba(6,182,212,.18)',border:'1px solid rgba(34,211,238,.45)',color:'#67E8F9',borderRadius:8,padding:'3px 8px',fontSize:11,fontWeight:700,cursor:'pointer',display:'inline-flex',alignItems:'center',gap:3}}>
-                                {n} <span style={{fontSize:9,opacity:.7}}>x</span>
-                              </span>
-                            ))}
-                          </div>
-                        </div>
-                        <div style={{display:'flex',gap:6,flexWrap:'wrap'}}>
-                          <button onClick={()=>setStatusDentes('realizado')} style={{background:'rgba(34,197,94,.14)',border:'1px solid rgba(34,197,94,.35)',borderRadius:8,padding:'6px 14px',fontSize:12,fontWeight:700,color:'#4ADE80',cursor:'pointer',fontFamily:'inherit'}}>Realizado</button>
-                          <button onClick={()=>setStatusDentes('pendente')} style={{background:'rgba(239,68,68,.12)',border:'1px solid rgba(239,68,68,.30)',borderRadius:8,padding:'6px 14px',fontSize:12,fontWeight:700,color:'#F87171',cursor:'pointer',fontFamily:'inherit'}}>Pendente</button>
-                          <button onClick={limparStatusDentes} style={{background:'none',border:'1px solid rgba(148,163,184,.25)',borderRadius:8,padding:'6px 14px',fontSize:12,fontWeight:600,color:'#94A3B8',cursor:'pointer',fontFamily:'inherit'}}>Limpar status</button>
+                    {/* Chips + botões — sempre visível */}
+                    <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',flexWrap:'wrap',gap:8,marginTop:12}}>
+                      <div style={{display:'flex',alignItems:'center',gap:8,flexWrap:'wrap',flex:1}}>
+                        <span style={{fontSize:12,fontWeight:600,color:'#94A3B8',flexShrink:0}}>
+                          {dentesSelec.length>0?'Dentes selecionados:':'Nenhum dente selecionado'}
+                        </span>
+                        <div style={{display:'flex',gap:5,flexWrap:'wrap'}}>
+                          {dentesSelec.sort((a:number,b:number)=>a-b).map((n:number)=>(
+                            <span key={n} onClick={()=>toggleDente(n)}
+                              style={{background:'rgba(6,182,212,.18)',border:'1px solid rgba(34,211,238,.50)',color:'#22D3EE',borderRadius:8,padding:'4px 10px',fontSize:12,fontWeight:800,cursor:'pointer',display:'inline-flex',alignItems:'center',gap:4,letterSpacing:'.02em'}}>
+                              {n}
+                              <span style={{fontSize:10,opacity:.6}}>×</span>
+                            </span>
+                          ))}
                         </div>
                       </div>
-                    ):(
-                      <div style={{textAlign:'center',padding:'10px',color:'#475569',fontSize:12,background:'rgba(255,255,255,.03)',borderRadius:8,marginTop:8}}>
-                        Selecione um dente para definir o status do procedimento.
+                      <div style={{display:'flex',gap:8,flexShrink:0}}>
+                        <button onClick={()=>setDentesSelec([])}
+                          style={{display:'flex',alignItems:'center',gap:6,background:'none',border:'1px solid rgba(148,163,184,.25)',borderRadius:8,padding:'6px 14px',fontSize:12,fontWeight:600,color:'#94A3B8',cursor:'pointer',fontFamily:'inherit'}}>
+                          🗑 Limpar seleção
+                        </button>
+                        <button onClick={limparTudoDentes}
+                          style={{display:'flex',alignItems:'center',gap:6,background:'none',border:'1px solid rgba(239,68,68,.35)',borderRadius:8,padding:'6px 14px',fontSize:12,fontWeight:600,color:'#F87171',cursor:'pointer',fontFamily:'inherit'}}>
+                          🔄 Limpar tudo
+                        </button>
                       </div>
-                    )}
+                    </div>
                     <div style={{marginTop:16,paddingTop:16,borderTop:'1px solid rgba(255,255,255,.06)'}}>
                       <p style={{fontSize:14,fontWeight:700,color:'#F8FAFC',marginBottom:12}}>Adicionar procedimento ao orçamento</p>
                       {/* Formulário de adição */}
@@ -1421,10 +1428,34 @@ export default function Orcamentos() {
                   )}
                 </div>
 
-                {/* Dica */}
-                <div style={{display:'flex',alignItems:'center',gap:'8px',padding:'12px 16px',background:'rgba(59,130,246,.1)',borderRadius:'10px',border:'1px solid rgba(59,130,246,.2)'}}>
-                  <span style={{fontSize:'16px'}}>💡</span>
-                  <p style={{fontSize:'12px',color:'#93C5FD'}}>Dica: você pode adicionar serviços, descontos e pagamentos parciais.</p>
+                {/* Observações + Resumo inline */}
+                <div className="cm-obs-resumo-grid" style={{display:'grid',gridTemplateColumns:'1fr auto',gap:16,marginBottom:8,alignItems:'start'}}>
+                  {/* Observações */}
+                  <div style={{...card,padding:'16px 20px'}}>
+                    <p style={{fontSize:13,fontWeight:700,color:'#F8FAFC',marginBottom:4}}>Observações <span style={{fontWeight:400,color:'#64748B',fontSize:12}}>(opcional)</span></p>
+                    <textarea rows={2} placeholder="Digite observações sobre este orçamento..."
+                      value={observacoes} onChange={e=>{setObservacoes(e.target.value);e.target.style.height='auto';e.target.style.height=e.target.scrollHeight+'px'}}
+                      style={{...inp,resize:'none',overflow:'hidden',fontSize:13,width:'100%',minHeight:52}} />
+                  </div>
+                  {/* Mini resumo */}
+                  <div style={{background:'rgba(11,18,32,.95)',borderRadius:16,padding:'16px 20px',border:'1px solid rgba(148,163,184,.12)',minWidth:320}}>
+                    <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:0,textAlign:'center'}}>
+                      <div style={{borderRight:'1px solid rgba(255,255,255,.07)',padding:'4px 16px'}}>
+                        <p style={{fontSize:11,color:'#94A3B8',fontWeight:600,marginBottom:4,textTransform:'uppercase',letterSpacing:'.05em'}}>Subtotal</p>
+                        <p style={{fontSize:15,fontWeight:700,color:'#F8FAFC'}}>R$ {fmtBRL(subtotal)}</p>
+                      </div>
+                      <div style={{borderRight:'1px solid rgba(255,255,255,.07)',padding:'4px 16px'}}>
+                        <p style={{fontSize:11,color:'#94A3B8',fontWeight:600,marginBottom:4,textTransform:'uppercase',letterSpacing:'.05em'}}>Desconto</p>
+                        <p style={{fontSize:15,fontWeight:700,color:descontoNum>0?'#F87171':'#475569'}}>
+                          {descontoNum>0?'R$ '+fmtBRL(descontoNum):'—'}
+                        </p>
+                      </div>
+                      <div style={{padding:'4px 16px'}}>
+                        <p style={{fontSize:11,color:'#94A3B8',fontWeight:600,marginBottom:4,textTransform:'uppercase',letterSpacing:'.05em'}}>Total final</p>
+                        <p style={{fontSize:17,fontWeight:900,color:'#22C55E'}}>R$ {fmtBRL(total)}</p>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
 
@@ -1448,84 +1479,53 @@ export default function Orcamentos() {
               </div>
 
               {/* Coluna direita — Resumo sticky */}
-              <div className="cm-form-right" style={{}}>
-                <div style={{background:'rgba(255,255,255,.06)',borderRadius:'16px',padding:'20px',border:'1px solid rgba(255,255,255,.1)',boxShadow:'0 4px 20px rgba(0,0,0,.3)'}}>
-                  <p style={{fontSize:'13px',fontWeight:700,color:'#fff',textTransform:'uppercase',letterSpacing:'.06em',marginBottom:'16px'}}>Resumo</p>
-
-                  <div style={{display:'flex',flexDirection:'column',gap:'10px',marginBottom:'16px'}}>
-                    <div>
-                      <p style={{fontSize:'11px',fontWeight:600,color:'#64748B',textTransform:'uppercase',letterSpacing:'.05em',marginBottom:'2px'}}>Cliente</p>
-                      <p style={{fontSize:'14px',fontWeight:600,color:clienteNome?'#fff':'#475569'}}>{clienteNome||'Não informado'}</p>
-                    </div>
-                    <div>
-                      <p style={{fontSize:'11px',fontWeight:600,color:'#64748B',textTransform:'uppercase',letterSpacing:'.05em',marginBottom:'2px'}}>Tipo</p>
-                      <p style={{fontSize:'14px',color:'#CBD5E1'}}>{tipo==='__outro__'?(tipoOutro||'Outro'):tipo}</p>
-                    </div>
-                    <div style={{height:'1px',background:'rgba(255,255,255,.08)'}} />
-                    <div>
-                      <p style={{fontSize:'11px',fontWeight:600,color:'#667085',textTransform:'uppercase',letterSpacing:'.05em',marginBottom:'4px'}}>Total final</p>
-                      <p style={{fontSize:'24px',fontWeight:800,color:'#2563EB',letterSpacing:'-0.02em'}}>R$ {fmtBRL(total)}</p>
-                    </div>
-                    {valorPagoLocal>0&&(
-                      <div>
-                        <p style={{fontSize:'11px',fontWeight:600,color:'#667085',textTransform:'uppercase',letterSpacing:'.05em',marginBottom:'2px'}}>Valor pago</p>
-                        <p style={{fontSize:'16px',fontWeight:700,color:'#16A34A'}}>R$ {fmtBRL(valorPagoLocal)}</p>
+              {/* ══ FOOTER FIXO — 4 BOTÕES ══ */}
+              <div className="cm-footer-fixed" style={{position:'fixed',bottom:0,left:0,right:0,zIndex:40,background:'rgba(7,17,31,.97)',backdropFilter:'blur(20px)',borderTop:'1px solid rgba(148,163,184,.12)',padding:'14px 24px',boxSizing:'border-box'}}>
+                {/* Resumo inline */}
+                <div style={{maxWidth:1080,margin:'0 auto'}}>
+                  {/* Linha de resumo */}
+                  {(subtotal>0||procOdonto.length>0)&&(
+                    <div className="cm-footer-resumo" style={{display:'flex',justifyContent:'flex-end',alignItems:'center',gap:24,marginBottom:12,flexWrap:'wrap'}}>
+                      <div style={{display:'flex',gap:20,alignItems:'center',flexWrap:'wrap'}}>
+                        <span style={{fontSize:13,color:'#94A3B8'}}>Subtotal: <strong style={{color:'#F8FAFC'}}>R$ {fmtBRL(subtotal)}</strong></span>
+                        {descontoNum>0&&<span style={{fontSize:13,color:'#F87171'}}>Desconto: - R$ {fmtBRL(descontoNum)}</span>}
+                        <span style={{fontSize:16,fontWeight:800,color:'#22C55E'}}>Total final: R$ {fmtBRL(total)}</span>
                       </div>
-                    )}
-                    {saldoLocal>0&&(
-                      <div>
-                        <p style={{fontSize:'11px',fontWeight:600,color:'#667085',textTransform:'uppercase',letterSpacing:'.05em',marginBottom:'2px'}}>Saldo restante</p>
-                        <p style={{fontSize:'16px',fontWeight:700,color:'#EA580C'}}>R$ {fmtBRL(saldoLocal)}</p>
-                      </div>
-                    )}
-                    <div>
-                      <p style={{fontSize:'11px',fontWeight:600,color:'#64748B',textTransform:'uppercase',letterSpacing:'.05em',marginBottom:'4px'}}>Status</p>
-                      <span style={{fontSize:'12px',fontWeight:600,padding:'3px 10px',borderRadius:'999px',background:STATUS_COR[status]?.bg||'#EFF6FF',color:STATUS_COR[status]?.color||'#2563EB',border:'1px solid '+(STATUS_COR[status]?.border||'#BFDBFE')}}>{status}</span>
                     </div>
-                  </div>
-
-                  {/* Botão principal — Criar orçamento */}
-                  <button onClick={handleSalvar}
-                    style={{width:'100%',background:'linear-gradient(135deg,#2563EB,#7C3AED)',color:'#fff',border:'none',borderRadius:12,padding:'14px',fontSize:15,fontWeight:800,cursor:'pointer',fontFamily:'inherit',boxShadow:'0 4px 20px rgba(37,99,235,.4)',marginBottom:8,display:'flex',alignItems:'center',justifyContent:'center',gap:8}}>
-                    📄 {editandoId?'Salvar alterações':'Criar orçamento'}
-                  </button>
-                  {/* Botão WhatsApp */}
-                  <button onClick={enviarCobrancaWpp} disabled={!clienteWpp}
-                    style={{width:'100%',background:'rgba(34,197,94,.15)',color:'#4ADE80',border:'1.5px solid rgba(34,197,94,.35)',borderRadius:12,padding:'12px',fontSize:14,fontWeight:700,cursor:clienteWpp?'pointer':'not-allowed',fontFamily:'inherit',marginBottom:8,opacity:clienteWpp?1:0.5,display:'flex',alignItems:'center',justifyContent:'center',gap:8}}>
-                    💬 Enviar no WhatsApp
-                  </button>
-                  {/* Botão PDF */}
-                  <button onClick={()=>{
-                    const itensValidos=itens.filter(i=>i.nome?.trim()&&parseFloat(i.unitario||'0')>0)
-                    const temItens=itensValidos.length>0||procOdonto.length>0
-                    if(!clienteNome.trim()||!temItens){setMensagem('Preencha os dados principais antes de gerar o PDF.');return}
-                    const orcTemp={
-                      id:'preview',cliente_nome:clienteNome,cliente_whatsapp:clienteWpp,
-                      cliente_email:clienteEmail,tipo,status,data:dataDoc,
-                      servicos:itensValidos,procedimentos_odonto:procOdonto,
-                      subtotal,desconto:descontoNum,total,
-                      valor_pago:valorPagoLocal,saldo_restante:saldoLocal,
-                      observacoes,obs_pagamento:obsPagamento
-                    }
-                    gerarPDF(orcTemp)
-                  }}
-                    style={{width:'100%',background:'rgba(6,182,212,.12)',color:'#22D3EE',border:'1.5px solid rgba(6,182,212,.30)',borderRadius:12,padding:'12px',fontSize:14,fontWeight:700,cursor:'pointer',fontFamily:'inherit',marginBottom:8,display:'flex',alignItems:'center',justifyContent:'center',gap:8}}>
-                    📥 Baixar PDF
-                  </button>
-                  {/* Rascunho */}
-                  <button onClick={()=>{resetForm();setView('lista')}}
-                    style={{width:'100%',background:'rgba(255,255,255,.06)',color:'#94A3B8',border:'1px solid rgba(255,255,255,.12)',borderRadius:12,padding:'11px',fontSize:13,fontWeight:600,cursor:'pointer',fontFamily:'inherit',display:'flex',alignItems:'center',justifyContent:'center',gap:8}}>
-                    📄 Salvar como rascunho
-                  </button>
-
-                  <div style={{marginTop:'16px',display:'flex',alignItems:'center',gap:'8px',padding:'10px',background:'rgba(255,255,255,.04)',borderRadius:'8px',border:'1px solid rgba(255,255,255,.08)'}}>
-                    <span style={{fontSize:'18px'}}>🔒</span>
-                    <div>
-                      <p style={{fontSize:'12px',fontWeight:600,color:'#fff'}}>Seus dados estão seguros</p>
-                      <p style={{fontSize:'11px',color:'#64748B'}}>e protegidos com criptografia.</p>
-                    </div>
+                  )}
+                  {/* Botões */}
+                  <div className="cm-footer-btns" style={{display:'flex',gap:10,alignItems:'center',flexWrap:'wrap'}}>
+                    <button onClick={handleSalvar}
+                      style={{flex:2,minWidth:160,background:'linear-gradient(135deg,#2563EB,#7C3AED)',color:'#fff',border:'none',borderRadius:12,padding:'13px 20px',fontSize:14,fontWeight:800,cursor:'pointer',fontFamily:'inherit',display:'flex',alignItems:'center',justifyContent:'center',gap:8,boxShadow:'0 4px 20px rgba(37,99,235,.35)'}}>
+                      📄 {editandoId?'Salvar alterações':'Criar orçamento'}
+                    </button>
+                    <button onClick={enviarCobrancaWpp} disabled={!clienteWpp}
+                      style={{flex:2,minWidth:160,background:'linear-gradient(135deg,#16A34A,#15803D)',color:'#fff',border:'none',borderRadius:12,padding:'13px 20px',fontSize:14,fontWeight:700,cursor:clienteWpp?'pointer':'not-allowed',fontFamily:'inherit',display:'flex',alignItems:'center',justifyContent:'center',gap:8,opacity:clienteWpp?1:0.6}}>
+                      💬 Enviar no WhatsApp
+                    </button>
+                    <button onClick={()=>{
+                      const itensValidos=itens.filter(i=>i.nome?.trim()&&parseFloat(i.unitario||'0')>0)
+                      const temItens=itensValidos.length>0||procOdonto.length>0
+                      if(!clienteNome.trim()||!temItens){setMensagem('Preencha os dados principais antes de gerar o PDF.');return}
+                      const orcTemp={id:'preview',cliente_nome:clienteNome,cliente_whatsapp:clienteWpp,
+                        cliente_email:clienteEmail,tipo,status,data:dataDoc,
+                        servicos:itensValidos,procedimentos_odonto:procOdonto,
+                        subtotal,desconto:descontoNum,total,
+                        valor_pago:valorPagoLocal,saldo_restante:saldoLocal,
+                        observacoes,obs_pagamento:obsPagamento}
+                      gerarPDF(orcTemp)
+                    }}
+                      style={{flex:1,minWidth:120,background:'rgba(255,255,255,.08)',color:'#CBD5E1',border:'1px solid rgba(255,255,255,.15)',borderRadius:12,padding:'13px 16px',fontSize:14,fontWeight:700,cursor:'pointer',fontFamily:'inherit',display:'flex',alignItems:'center',justifyContent:'center',gap:8}}>
+                      📥 Baixar PDF
+                    </button>
+                    <button onClick={()=>{resetForm();setView('lista')}}
+                      style={{flex:1,minWidth:140,background:'rgba(255,255,255,.06)',color:'#94A3B8',border:'1px solid rgba(255,255,255,.10)',borderRadius:12,padding:'13px 16px',fontSize:14,fontWeight:600,cursor:'pointer',fontFamily:'inherit',display:'flex',alignItems:'center',justifyContent:'center',gap:8}}>
+                      📄 Salvar como rascunho
+                    </button>
                   </div>
                 </div>
+              </div>
+
               </div>
 
             </div>
