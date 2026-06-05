@@ -390,7 +390,7 @@ export default function Orcamentos() {
         +'</tr></thead><tbody>'+procLinhas+'</tbody></table>')
       :('<table style="width:100%;border-collapse:collapse">'
         +'<thead><tr style="background:#F1F5F9">'
-        +'<th style="padding:10px 8px;text-align:left;font-size:11px;color:#475569;text-transform:uppercase;letter-spacing:.05em">Serviço / Procedimento</th>'
+        +'<th style="padding:10px 8px;text-align:left;font-size:11px;color:#475569;text-transform:uppercase;letter-spacing:.05em">Serviço e Procedimento</th>'
         +'<th style="padding:10px 8px;text-align:center;font-size:11px;color:#475569;text-transform:uppercase;letter-spacing:.05em">Qtd</th>'
         +'<th style="padding:10px 8px;text-align:right;font-size:11px;color:#475569;text-transform:uppercase;letter-spacing:.05em">Valor unit.</th>'
         +'<th style="padding:10px 8px;text-align:right;font-size:11px;color:#475569;text-transform:uppercase;letter-spacing:.05em">Total</th>'
@@ -466,7 +466,7 @@ export default function Orcamentos() {
 
   function fmtHpValor(raw:string){
     const nums=raw.replace(/\D/g,''); if(!nums) return ''
-    return (parseInt(nums,10)/100).toLocaleString('pt-BR',{minimumFractionDigits:2})
+    return (parseInt(nums,10)*0.01).toLocaleString('pt-BR',{minimumFractionDigits:2})
   }
   function parseHpValor(v:string){return parseFloat(v.replace(/\./g,'').replace(',','.'))||0}
 
@@ -890,7 +890,7 @@ export default function Orcamentos() {
                           <select style={sel} value={profId} onChange={e=>{setProfId(e.target.value);if(e.target.value!=='__outro__'){setProfNome('');setSalvarFreelancer(false)}}}>
                             <option value="">Nenhum</option>
                             {profissionais.map(p=><option key={p.id} value={p.id}>{p.nome}</option>)}
-                            <option value="__outro__">✏️ Outro / Não cadastrado</option>
+                            <option value="__outro__">✏️ Outro (não cadastrado)</option>
                           </select>
                           {profId==='__outro__'&&(
                             <div style={{marginTop:'8px',padding:'12px',background:'rgba(59,130,246,.15)',border:'1px solid rgba(59,130,246,.3)',borderRadius:'8px',display:'flex',flexDirection:'column',gap:'8px'}}>
@@ -922,7 +922,7 @@ export default function Orcamentos() {
                     <div style={{display:'grid',gridTemplateColumns:'1fr 120px 180px auto',gap:8,alignItems:'end'}}>
                       {/* Serviço com autocomplete */}
                       <div style={{position:'relative'}}>
-                        <label style={{fontSize:11,fontWeight:600,color:'#94A3B8',display:'block',marginBottom:5,textTransform:'uppercase',letterSpacing:'.05em'}}>Serviço / Procedimento</label>
+                        <label style={{fontSize:11,fontWeight:600,color:'#94A3B8',display:'block',marginBottom:5,textTransform:'uppercase',letterSpacing:'.05em'}}>Serviço e Procedimento</label>
                         <input
                           type="text"
                           placeholder="Selecione ou digite o serviço..."
@@ -983,7 +983,7 @@ export default function Orcamentos() {
                     <div style={{background:'rgba(11,18,32,.7)',borderRadius:12,border:'1px solid rgba(148,163,184,.12)',overflow:'hidden',marginBottom:16}}>
                       {/* Header tabela */}
                       <div style={{display:'grid',gridTemplateColumns:'2fr 100px 130px 130px 80px',padding:'10px 16px',borderBottom:'1px solid rgba(255,255,255,.06)',background:'rgba(255,255,255,.03)'}}>
-                        {['Serviço / Procedimento','Quantidade','Valor unitário','Valor total','Ações'].map(h=>(
+                        {['Serviço e Procedimento','Quantidade','Valor unitário','Valor total','Ações'].map(h=>(
                           <p key={h} style={{fontSize:11,fontWeight:600,color:'#64748B',textTransform:'uppercase',letterSpacing:'.06em',textAlign:h==='Ações'?'center':'left'}}>{h}</p>
                         ))}
                       </div>
@@ -1078,7 +1078,7 @@ export default function Orcamentos() {
                     <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:16}}>
                       <div style={{width:36,height:36,borderRadius:'50%',background:'linear-gradient(135deg,#06B6D4,#0891B2)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:18,flexShrink:0}}>🦷</div>
                       <div>
-                        <p style={{fontSize:15,fontWeight:700,color:'#F8FAFC',marginBottom:2}}>Odontograma / Seleção de dentes</p>
+                        <p style={{fontSize:15,fontWeight:700,color:'#F8FAFC',marginBottom:2}}>Odontograma — Seleção de dentes</p>
                         <p style={{fontSize:12,color:'#64748B'}}>Clique nos dentes para selecionar. Use os botões para marcar procedimentos.</p>
                       </div>
                     </div>
@@ -1186,7 +1186,7 @@ export default function Orcamentos() {
                         <div style={{background:'rgba(11,18,32,.7)',borderRadius:12,border:'1px solid rgba(148,163,184,.12)',overflow:'hidden'}}>
                           {/* Header */}
                           <div style={{display:'grid',gridTemplateColumns:'2fr 1.5fr 80px 120px 120px 80px',padding:'10px 16px',borderBottom:'1px solid rgba(255,255,255,.06)',background:'rgba(255,255,255,.03)'}}>
-                            {['Serviço / Procedimento','Dentes selecionados','Qtd. de dentes','Valor unitário','Valor total','Ações'].map(h=>(
+                            {['Serviço e Procedimento','Dentes selecionados','Qtd. de dentes','Valor unitário','Valor total','Ações'].map(h=>(
                               <p key={h} style={{fontSize:11,fontWeight:600,color:'#64748B',textTransform:'uppercase',letterSpacing:'.06em',textAlign:h==='Ações'?'center':'left'}}>{h}</p>
                             ))}
                           </div>
@@ -1223,7 +1223,7 @@ export default function Orcamentos() {
                           })}
                           {/* Subtotal odonto */}
                           <div style={{padding:'12px 16px',background:'rgba(255,255,255,.03)',borderTop:'1px solid rgba(255,255,255,.06)',display:'grid',gridTemplateColumns:'2fr 1.5fr 80px 120px 120px 80px'}}>
-                            <p style={{fontSize:13,fontWeight:700,color:'#F8FAFC',gridColumn:'1/5',textAlign:'right',paddingRight:8}}>Subtotal</p>
+                            <p style={{fontSize:13,fontWeight:700,color:'#F8FAFC',gridColumnStart:1,gridColumnEnd:6,textAlign:'right',paddingRight:8}}>Subtotal</p>
                             <p style={{fontSize:14,fontWeight:800,color:'#22C55E',textAlign:'right'}}>R$ {fmtBRL(subtotal)}</p>
                             <div/>
                           </div>
@@ -1273,14 +1273,14 @@ export default function Orcamentos() {
                         ))}
                       </div>
 
-                      {/* Entrada/sinal */}
+                      {/* Entrada sinal */}
                       <div style={{marginBottom:'14px'}}>
                         <div style={{display:'flex',alignItems:'center',gap:'10px',marginBottom:exigirSinal?'12px':'0'}}>
                           <button onClick={()=>setExigirSinal(!exigirSinal)}
                             style={{width:'36px',height:'20px',borderRadius:'999px',border:'none',cursor:'pointer',position:'relative',background:exigirSinal?'#2563EB':'#D1D5DB'}}>
                             <span style={{position:'absolute',top:'2px',left:exigirSinal?'18px':'2px',width:'16px',height:'16px',borderRadius:'50%',background:'#fff',transition:'left .2s'}} />
                           </button>
-                          <span style={{fontSize:'13px',color:'#F8FAFC',fontWeight:500,cursor:'pointer'}} onClick={()=>setExigirSinal(!exigirSinal)}>Exigir entrada/sinal?</span>
+                          <span style={{fontSize:'13px',color:'#F8FAFC',fontWeight:500,cursor:'pointer'}} onClick={()=>setExigirSinal(!exigirSinal)}>Exigir entrada ou sinal?</span>
                         </div>
                         {exigirSinal&&(
                           <div style={{background:BG,borderRadius:'10px',padding:'14px',border:'1px solid rgba(255,255,255,.08)',display:'flex',flexDirection:'column',gap:'10px'}}>
@@ -1295,7 +1295,7 @@ export default function Orcamentos() {
                             </div>
                             {sinalValor&&(
                               <div style={{background:'rgba(34,197,94,.12)',border:'1px solid rgba(34,197,94,.25)',borderRadius:'8px',padding:'10px 14px'}}>
-                                <span style={{fontSize:'13px',color:'#059669',fontWeight:700}}>Entrada: R$ {fmtBRL(sinalTipo==='fixo'?parseFloat(sinalValor||'0'):(total*parseFloat(sinalValor||'0'))/100)}</span>
+                                <span style={{fontSize:'13px',color:'#059669',fontWeight:700}}>Entrada: R$ {fmtBRL(sinalTipo==='fixo'?parseFloat(sinalValor||'0'):(total*parseFloat(sinalValor||'0')*0.01))}</span>
                               </div>
                             )}
                           </div>
