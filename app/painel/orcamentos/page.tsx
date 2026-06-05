@@ -787,6 +787,7 @@ export default function Orcamentos() {
 
         {/* ══ FORMULÁRIO ══ */}
         {view==='form'&&(
+          <>
           <div style={{minHeight:'100vh',background:'#07111F'}}>
           <div className="cm-form-pad cm-content-pad" style={{padding:'24px 32px 140px',maxWidth:'1080px',margin:'0 auto'}}>
             <div className="cm-form-inner" style={{padding:'24px',width:'100%',maxWidth:'100%',boxSizing:'border-box' as const,overflowX:'hidden'}}>
@@ -1531,6 +1532,7 @@ export default function Orcamentos() {
             </div>
           </div>
           </div>
+          </>
         )}
 
         {/* ══ DETALHE ══ */}
