@@ -110,7 +110,6 @@ const MOBILE_CSS = `
 
 export default function Orcamentos() {
   const [userId,setUserId]=useState('')
-  const [mobileMenuOpen,setMobileMenuOpen]=useState(false)
   const [perfil,setPerfil]=useState<any>(null)
   const [profissionais,setProfissionais]=useState<any[]>([])
   const [orcamentos,setOrcamentos]=useState<any[]>([])
@@ -430,33 +429,7 @@ export default function Orcamentos() {
     <div className="psb-wrapper" style={{display:'flex',minHeight:'100vh',background:'#050B16',fontFamily:'-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif',overflowX:'hidden',width:'100%',maxWidth:'100%',position:'relative'}}>
       <style dangerouslySetInnerHTML={{__html:MOBILE_CSS}} />
 
-      {/* Mobile Overlay */}
-      <div className={`cm-overlay${mobileMenuOpen?' open':''}`} onClick={()=>setMobileMenuOpen(false)} />
-
-      {/* Mobile Drawer */}
-      <div className={`cm-drawer${mobileMenuOpen?' open':''}`}>
-        <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'16px 20px',borderBottom:'1px solid rgba(255,255,255,.08)'}}>
-          <span style={{fontSize:'15px',fontWeight:800,color:'#fff'}}>ClienteMarcado</span>
-          <button onClick={()=>setMobileMenuOpen(false)} style={{background:'none',border:'none',color:'rgba(255,255,255,.6)',cursor:'pointer',fontSize:'24px',lineHeight:1}}>Ã—</button>
-        </div>
-        <nav style={{flex:1,padding:'12px 8px',overflowY:'auto'}}>
-          {SIDEBAR_ITEMS.map(item=>(
-            <Link key={item.label} href={item.href} onClick={()=>setMobileMenuOpen(false)}
-              style={{display:'flex',alignItems:'center',gap:'10px',padding:'11px 14px',borderRadius:'8px',marginBottom:'2px',textDecoration:'none',background:item.active?'#2563EB':'transparent',color:item.active?'#fff':'rgba(255,255,255,.7)',fontSize:'14px',fontWeight:item.active?600:400}}>
-              <span style={{fontSize:'18px'}}>{item.icon}</span>{item.label}
-            </Link>
-          ))}
-        </nav>
-        <div style={{padding:'14px 20px',borderTop:'1px solid rgba(255,255,255,.08)',display:'flex',alignItems:'center',gap:'10px'}}>
-          <div style={{width:'34px',height:'34px',borderRadius:'50%',background:'#2563EB',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'14px',fontWeight:700,color:'#fff',flexShrink:0}}>
-            {(perfil?.nome_negocio||'N').charAt(0).toUpperCase()}
-          </div>
-          <div>
-            <p style={{fontSize:'13px',fontWeight:600,color:'#fff'}}>{perfil?.nome_negocio||'Meu negÃ³cio'}</p>
-            <p style={{fontSize:'11px',color:'rgba(255,255,255,.5)'}}>Ver perfil</p>
-          </div>
-        </div>
-      </div>
+            
 
       <PainelSidebar nome={perfil?.nome_negocio||''} tituloMobile='Orçamentos' />
       <div className="psb-main" style={{flex:1,minWidth:0,minHeight:'100vh',display:'flex',flexDirection:'column'}}>
