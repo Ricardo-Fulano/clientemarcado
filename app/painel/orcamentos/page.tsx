@@ -47,6 +47,7 @@ const MOBILE_CSS = `
       overflow-x:hidden !important;
       width:100% !important;
       max-width:100% !important;
+      flex-direction:column !important;
     }
     .psb-main {
       margin-left:0 !important;
