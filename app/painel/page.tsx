@@ -2,17 +2,35 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import Link from 'next/link'
-import PainelSidebar from '@/app/components/PainelSidebar'
 
 const G='linear-gradient(135deg,#3B82F6,#7C3AED)'
 const AV='linear-gradient(135deg,rgba(59,130,246,.95),rgba(124,58,237,.95))'
+const SB=[
+  {h:'/painel',l:'Inicio',on:true},{h:'/painel/agendamentos',l:'Agenda'},
+  {h:'/painel/clientes',l:'Clientes'},{h:'/painel/orcamentos',l:'Orcamentos'},
+  {h:'/painel/cobrancas',l:'Cobrancas'},{h:'/painel/pagamentos',l:'Pagamentos'},
+  {h:'/painel/servicos',l:'Servicos'},{h:'/painel/profissionais',l:'Profissionais'},
+  {h:'/painel/relatorio',l:'Relatorios'},{h:'/painel/suporte',l:'Suporte'},
+  {h:'/painel/perfil',l:'Configuracoes'},
+]
 const CSS=`
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html,body{overflow-x:hidden;width:100%;max-width:100%;background:#050B16}
 input,select,textarea{color-scheme:dark}
+.sb{width:240px;min-height:100vh;background:radial-gradient(circle at top left,rgba(124,58,237,.14),transparent 32%),linear-gradient(180deg,#070F1D,#050B16);border-right:1px solid rgba(148,163,184,.14);display:flex;flex-direction:column;position:fixed;top:0;left:0;z-index:30}
+.sb-logo{padding:22px 18px 16px;border-bottom:1px solid rgba(148,163,184,.10);display:flex;align-items:center;gap:10px}
+.sb-ic{width:30px;height:30px;border-radius:8px;background:linear-gradient(135deg,#3B82F6,#7C3AED);display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 0 20px rgba(124,58,237,.5)}
+.sb nav{flex:1;padding:10px 8px;overflow-y:auto}
 .nl{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:10px;margin-bottom:2px;text-decoration:none;font-size:13px;font-weight:500;color:#94A3B8;transition:all .15s;border:1px solid transparent}
 .nl:hover{background:rgba(124,58,237,.10);border-color:rgba(124,58,237,.20);color:#fff}
 .nl.on{background:linear-gradient(135deg,#3B82F6,#7C3AED);color:#fff;font-weight:700;border-color:rgba(255,255,255,.10);box-shadow:0 0 26px rgba(124,58,237,.34)}
+.sb-foot{padding:12px 10px;border-top:1px solid rgba(148,163,184,.10)}
+.mhdr{display:none;align-items:center;justify-content:space-between;padding:0 16px;height:56px;background:rgba(5,11,22,.96);backdrop-filter:blur(20px);border-bottom:1px solid rgba(148,163,184,.12);position:sticky;top:0;z-index:20;width:100%}
+.drw{position:fixed;top:0;left:0;bottom:0;width:280px;max-width:85vw;background:radial-gradient(circle at top left,rgba(124,58,237,.14),transparent 32%),linear-gradient(180deg,#070F1D,#050B16);z-index:50;transform:translateX(-100%);transition:transform .28s ease;display:flex;flex-direction:column;border-right:1px solid rgba(148,163,184,.14)}
+.drw.open{transform:translateX(0)}
+.ovl{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:49;opacity:0;pointer-events:none;transition:opacity .28s}
+.ovl.open{opacity:1;pointer-events:auto}
+.main{margin-left:240px;flex:1;min-height:100vh;width:calc(100% - 240px)}
 .pg{background:radial-gradient(circle at top left,rgba(124,58,237,.20),transparent 32%),linear-gradient(135deg,#050B16 0%,#07111F 45%,#050B16 100%);min-height:100vh}
 .bdy{max-width:1200px;margin:0 auto;padding:28px 32px 80px;width:100%}
 .crd{background:radial-gradient(circle at top left,rgba(124,58,237,.10),transparent 38%),linear-gradient(145deg,rgba(15,23,42,.97),rgba(8,20,33,.99));border:1.5px solid rgba(148,163,184,.18);border-radius:18px}
@@ -24,6 +42,8 @@ input,select,textarea{color-scheme:dark}
 .atalho:hover{border-color:rgba(124,58,237,.32);transform:translateY(-2px)}
 .ag-item{background:rgba(15,23,42,.72);border:1px solid rgba(148,163,184,.14);border-radius:12px;padding:12px 14px;margin-bottom:6px}
 @media(max-width:1023px){
+  .sb{display:none!important}.main{margin-left:0!important;width:100%!important}
+  .mhdr{display:flex!important}.bdy{padding:14px 16px 80px!important}
   .kpi-grid{grid-template-columns:1fr 1fr!important;gap:8px!important}
   .atalho-grid{grid-template-columns:1fr 1fr!important;gap:8px!important}
 }
@@ -36,6 +56,7 @@ export default function Home(){
   const [orcamentos,setOrcamentos]=useState<any[]>([])
   const [pagamentos,setPagamentos]=useState<any[]>([])
   const [loading,setLoading]=useState(true)
+  const [mob,setMob]=useState(false)
   const [copied,setCopied]=useState(false)
 
   useEffect(()=>{load()},[])
@@ -67,14 +88,40 @@ export default function Home(){
   const fmtHora=(s:string)=>new Date(s).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})
   const fmtData=(s:string)=>new Date(s).toLocaleDateString('pt-BR',{day:'2-digit',month:'short'})
 
-
+  const Sb=()=>(
+    <aside className="sb">
+      <div className="sb-logo">
+        <div className="sb-ic"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
+        <span style={{fontSize:'14px',fontWeight:800,color:'#F8FAFC',letterSpacing:'-0.02em'}}>ClienteMarcado</span>
+      </div>
+      <nav>{SB.map(it=><Link key={it.l} href={it.h} className={'nl'+(it.on?' on':'')}>{it.l}</Link>)}</nav>
+      <div className="sb-foot">
+        <div style={{display:'flex',alignItems:'center',gap:'10px',background:'rgba(15,23,42,.6)',border:'1px solid rgba(148,163,184,.12)',borderRadius:'10px',padding:'10px 12px'}}>
+          <div style={{width:'32px',height:'32px',borderRadius:'50%',background:AV,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'13px',fontWeight:700,color:'#fff',flexShrink:0}}>{ini}</div>
+          <div style={{minWidth:0}}><p style={{fontSize:'12px',fontWeight:600,color:'#F8FAFC',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{nome}</p><p style={{fontSize:'10px',color:'#64748B'}}>Administrador</p></div>
+        </div>
+      </div>
+    </aside>
+  )
 
   if(loading)return(<div style={{minHeight:'100vh',background:'#050B16',display:'flex',alignItems:'center',justifyContent:'center',fontFamily:'system-ui'}}><p style={{color:'#64748B',fontSize:'14px'}}>Carregando...</p></div>)
 
   return(
     <div style={{display:'flex',minHeight:'100vh',background:'#050B16',fontFamily:'-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif',overflowX:'hidden',width:'100%',position:'relative'}}>
-      <style dangerouslySetInnerHTML={{__html:CSS}}/><PainelSidebar nome={nome} tituloMobile='Inicio' />
-      <div className="psb-main"><div className="pg"><div className="bdy">
+      <style dangerouslySetInnerHTML={{__html:CSS}}/>
+      <div className={`ovl${mob?' open':''}`} onClick={()=>setMob(false)}/>
+      <div className={`drw${mob?' open':''}`}>
+        <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'16px 18px',borderBottom:'1px solid rgba(148,163,184,.10)'}}><span style={{fontSize:'14px',fontWeight:800,color:'#F8FAFC'}}>ClienteMarcado</span><button onClick={()=>setMob(false)} style={{background:'none',border:'none',color:'rgba(255,255,255,.5)',cursor:'pointer',fontSize:'22px',lineHeight:1}}>×</button></div>
+        <nav style={{flex:1,padding:'10px 8px',overflowY:'auto'}}>{SB.map(it=><Link key={it.l} href={it.h} onClick={()=>setMob(false)} className={'nl'+(it.on?' on':'')}>{it.l}</Link>)}</nav>
+      </div>
+      <Sb/>
+      <div className="main">
+        <div className="mhdr">
+          <button onClick={()=>setMob(true)} style={{background:'none',border:'none',cursor:'pointer',padding:'8px',display:'flex',flexDirection:'column',gap:'5px'}}>{[22,22,16].map((w,i)=><span key={i} style={{display:'block',width:`${w}px`,height:'2px',background:'rgba(255,255,255,.8)',borderRadius:'2px'}}/>)}</button>
+          <span style={{fontSize:'14px',fontWeight:800,color:'#F8FAFC'}}>Inicio</span>
+          <div style={{width:'34px',height:'34px',borderRadius:'50%',background:AV,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'13px',fontWeight:700,color:'#fff'}}>{ini}</div>
+        </div>
+        <div className="pg"><div className="bdy">
 
           <div style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',gap:'16px',flexWrap:'wrap',marginBottom:'24px'}}>
             <div>
