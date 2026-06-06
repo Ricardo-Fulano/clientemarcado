@@ -322,6 +322,14 @@ export default function Orcamentos() {
     setView('form')
   }
 
+  function voltarParaLista(){
+    const temDados=clienteNome.trim()||clienteWpp||itens.filter(i=>i.nome?.trim()).length>0||procOdonto.length>0||dentesSelec.length>0||total>0
+    if(temDados&&!editandoId){
+      if(!window.confirm('Você tem alterações não salvas. Deseja sair mesmo assim?')) return
+    }
+    resetForm();setView('lista');carregarOrcamentos()
+  }
+
   async function handleSalvar(){
     setMensagem('')
     const erros:string[]=[]
@@ -900,7 +908,7 @@ export default function Orcamentos() {
         {/* ══ ESCOLHA ══ */}
         {view==='escolha'&&(
           <div style={{minHeight:'100vh',background:'#07111F',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',padding:'32px 16px'}}>
-            <button onClick={()=>setView('lista')} style={{background:'none',border:'none',cursor:'pointer',fontSize:'13px',color:'#64748B',fontFamily:'inherit',marginBottom:'32px',alignSelf:'flex-start',paddingLeft:32,display:'flex',alignItems:'center',gap:'6px'}}>← Voltar aos orçamentos</button>
+            <button onClick={voltarParaLista} style={{background:'none',border:'none',cursor:'pointer',fontSize:'13px',color:'#64748B',fontFamily:'inherit',marginBottom:'32px',alignSelf:'flex-start',paddingLeft:32,display:'flex',alignItems:'center',gap:'6px'}}>← Voltar aos orçamentos</button>
             <div style={{maxWidth:640,width:'100%'}}>
               <h2 style={{fontSize:'22px',fontWeight:800,color:'#F8FAFC',marginBottom:8,textAlign:'center'}}>Que tipo de orçamento deseja criar?</h2>
               <p style={{fontSize:'14px',color:'#64748B',marginBottom:32,textAlign:'center'}}>Escolha o modelo ideal para este atendimento.</p>
@@ -944,13 +952,7 @@ export default function Orcamentos() {
             <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:'20px',flexWrap:'wrap',gap:'12px'}}>
               <div>
                 <div style={{display:'flex',gap:'12px',alignItems:'center',marginBottom:'8px'}}>
-                  <button onClick={()=>{
-                    const temDados=clienteNome.trim()||clienteWpp||itens.filter(i=>i.nome).length>0||procOdonto.length>0
-                    if(temDados&&!editandoId){
-                      if(!window.confirm('Você tem dados não salvos. Deseja sair mesmo assim?')) return
-                    }
-                    setView('lista')
-                  }}
+                  <button onClick={voltarParaLista}
                     style={{background:'none',border:'none',cursor:'pointer',fontSize:'13px',color:'#64748B',fontFamily:'inherit',padding:'0',display:'flex',alignItems:'center',gap:'4px'}}>
                     ← Voltar aos orçamentos
                   </button>
@@ -1696,6 +1698,10 @@ export default function Orcamentos() {
                   )}
                   {/* Botões */}
                   <div className="cm-footer-btns" style={{display:'flex',gap:10,alignItems:'center',flexWrap:'wrap'}}>
+                    <button onClick={voltarParaLista}
+                      style={{flex:'0 0 auto',background:'rgba(15,23,42,.88)',color:'#CBD5E1',border:'1px solid rgba(148,163,184,.24)',borderRadius:12,padding:'13px 18px',fontSize:14,fontWeight:700,cursor:'pointer',fontFamily:'inherit',display:'flex',alignItems:'center',justifyContent:'center',gap:6}}>
+                      ← Voltar
+                    </button>
                     <button onClick={handleSalvar}
                       style={{flex:2,minWidth:160,background:'linear-gradient(135deg,#2563EB,#7C3AED)',color:'#fff',border:'none',borderRadius:12,padding:'13px 20px',fontSize:14,fontWeight:800,cursor:'pointer',fontFamily:'inherit',display:'flex',alignItems:'center',justifyContent:'center',gap:8,boxShadow:'0 4px 20px rgba(37,99,235,.35)'}}>
                       📄 {editandoId?'Salvar alterações':'Criar orçamento'}
