@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 import { useEffect, useState, useRef } from 'react'
 import { supabase } from '../../lib/supabase'
 import Link from 'next/link'
@@ -32,7 +32,7 @@ input,select,textarea{color-scheme:dark}
 .sem-det-item{background:linear-gradient(145deg,rgba(15,23,42,.98),rgba(8,20,33,.99));border:1px solid rgba(148,163,184,.12);border-radius:12px;padding:12px 14px;margin-bottom:6px;display:flex;gap:12px;align-items:flex-start}
 @media(min-width:1100px){.ag-grid{grid-template-columns:1fr 360px}.det-col{display:block}}
 @media(max-width:1023px){
-  .bdy{padding:14px 14px 80px!important;max-width:100%!important;width:100%!important;box-sizing:border-box!important}
+  .bdy{padding:14px 14px 80px!important}
   .kpi-g{grid-template-columns:1fr 1fr!important;gap:8px!important}
   .kpi-g>div:last-child{grid-column:1/-1!important}
   .hdr-btns{width:100%;display:grid!important;grid-template-columns:1fr 1fr;gap:7px}
@@ -182,7 +182,7 @@ export default function Agendamentos(){
     const g2:React.CSSProperties={display:'grid',gridTemplateColumns:'1fr 1fr',gap:6,marginTop:6}
     if(!sel)return(
       <div style={{background:'radial-gradient(circle at top left,rgba(124,58,237,.06),transparent 50%),linear-gradient(145deg,rgba(15,23,42,.98),rgba(8,20,33,.99))',border:'1px solid rgba(148,163,184,.12)',borderRadius:16,padding:20,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',minHeight:300,textAlign:'center',gap:10}}>
-        <div style={{fontSize:32,opacity:.2}}>ðŸ“‹</div>
+        <div style={{fontSize:32,opacity:.2}}>📋</div>
         <p style={{fontSize:14,fontWeight:700,color:'#F8FAFC'}}>Selecione um agendamento</p>
         <p style={{fontSize:12,color:'#475569',lineHeight:1.5}}>Clique em um atendimento para ver detalhes.</p>
       </div>
@@ -199,7 +199,7 @@ export default function Agendamentos(){
           <div style={g2}>
             {wW?<a href={wW} target="_blank" rel="noreferrer" style={{...dBtn({background:'rgba(37,211,102,.12)',borderColor:'rgba(37,211,102,.25)',color:'#25D366'}),gridColumn:'1/-1'}}>Abrir WhatsApp</a>
               :<button disabled style={{...dBtn({background:'rgba(255,255,255,.04)',borderColor:'rgba(148,163,184,.10)',color:'#334155',cursor:'not-allowed'}),gridColumn:'1/-1'}}>Sem telefone</button>}
-            <button onClick={()=>copiar(sel)} style={{...dBtn({background:'rgba(255,255,255,.04)',borderColor:'rgba(148,163,184,.14)',color:'#94A3B8'}),gridColumn:'1/-1'}}>ðŸ“‹ Copiar contato</button>
+            <button onClick={()=>copiar(sel)} style={{...dBtn({background:'rgba(255,255,255,.04)',borderColor:'rgba(148,163,184,.14)',color:'#94A3B8'}),gridColumn:'1/-1'}}>📋 Copiar contato</button>
           </div>
         </div>
         <div style={sec}>
@@ -211,13 +211,13 @@ export default function Agendamentos(){
         <div>
           <p style={secT}>Acoes rapidas</p>
           <div style={g2}>
-            {wC&&(sel.status==='pendente'||!sel.status||sel.status==='retorno')&&<a href={wC} target="_blank" rel="noreferrer" style={dBtn({background:'rgba(34,197,94,.12)',borderColor:'rgba(34,197,94,.25)',color:'#22C55E'})}>âœ“ Confirmar</a>}
-            {wL&&<a href={wL} target="_blank" rel="noreferrer" style={dBtn({background:'rgba(245,158,11,.10)',borderColor:'rgba(245,158,11,.22)',color:'#FCD34D'})}>ðŸ”” Lembrete</a>}
-            {sel.status!=='compareceu'&&<button onClick={()=>updSt(sel.id,'compareceu')} style={dBtn({background:'rgba(34,197,94,.10)',borderColor:'rgba(34,197,94,.20)',color:'#4ADE80'})}>âœ“ Compareceu</button>}
-            {sel.status!=='faltou'&&<button onClick={()=>updSt(sel.id,'faltou')} style={dBtn({background:'rgba(239,68,68,.08)',borderColor:'rgba(239,68,68,.18)',color:'#F87171'})}>âœ— Faltou</button>}
-            {sel.status!=='realizado'&&<button onClick={()=>updSt(sel.id,'realizado')} style={dBtn({background:'rgba(34,197,94,.08)',borderColor:'rgba(34,197,94,.16)',color:'#22C55E'})}>â˜… Realizado</button>}
-            {sel.status!=='retorno'&&<button onClick={()=>updSt(sel.id,'retorno')} style={dBtn({background:'rgba(124,58,237,.10)',borderColor:'rgba(124,58,237,.22)',color:'#C4B5FD'})}>â†© Retorno</button>}
-            {sel.status!=='cancelado'&&<button onClick={()=>updSt(sel.id,'cancelado')} style={dBtn({background:'rgba(239,68,68,.06)',borderColor:'rgba(239,68,68,.14)',color:'#F87171'})}>âœ• Cancelar</button>}
+            {wC&&(sel.status==='pendente'||!sel.status||sel.status==='retorno')&&<a href={wC} target="_blank" rel="noreferrer" style={dBtn({background:'rgba(34,197,94,.12)',borderColor:'rgba(34,197,94,.25)',color:'#22C55E'})}>✓ Confirmar</a>}
+            {wL&&<a href={wL} target="_blank" rel="noreferrer" style={dBtn({background:'rgba(245,158,11,.10)',borderColor:'rgba(245,158,11,.22)',color:'#FCD34D'})}>🔔 Lembrete</a>}
+            {sel.status!=='compareceu'&&<button onClick={()=>updSt(sel.id,'compareceu')} style={dBtn({background:'rgba(34,197,94,.10)',borderColor:'rgba(34,197,94,.20)',color:'#4ADE80'})}>✓ Compareceu</button>}
+            {sel.status!=='faltou'&&<button onClick={()=>updSt(sel.id,'faltou')} style={dBtn({background:'rgba(239,68,68,.08)',borderColor:'rgba(239,68,68,.18)',color:'#F87171'})}>✗ Faltou</button>}
+            {sel.status!=='realizado'&&<button onClick={()=>updSt(sel.id,'realizado')} style={dBtn({background:'rgba(34,197,94,.08)',borderColor:'rgba(34,197,94,.16)',color:'#22C55E'})}>★ Realizado</button>}
+            {sel.status!=='retorno'&&<button onClick={()=>updSt(sel.id,'retorno')} style={dBtn({background:'rgba(124,58,237,.10)',borderColor:'rgba(124,58,237,.22)',color:'#C4B5FD'})}>↩ Retorno</button>}
+            {sel.status!=='cancelado'&&<button onClick={()=>updSt(sel.id,'cancelado')} style={dBtn({background:'rgba(239,68,68,.06)',borderColor:'rgba(239,68,68,.14)',color:'#F87171'})}>✕ Cancelar</button>}
           </div>
         </div>
       </div>
@@ -248,7 +248,7 @@ export default function Agendamentos(){
           </div>
 
           <div className="kpi-g">
-            {[{l:'Hoje',n:agsHj.length,c:'#60A5FA',bd:'rgba(59,130,246,.22)',ic:'ðŸ“…'},{l:'Confirmados',n:conf,c:'#4ADE80',bd:'rgba(34,197,94,.20)',ic:'âœ…'},{l:'Pendentes',n:pend,c:'#FCD34D',bd:'rgba(245,158,11,.20)',ic:'â³'}].map(({l,n,c,bd,ic})=>(
+            {[{l:'Hoje',n:agsHj.length,c:'#60A5FA',bd:'rgba(59,130,246,.22)',ic:'📅'},{l:'Confirmados',n:conf,c:'#4ADE80',bd:'rgba(34,197,94,.20)',ic:'✅'},{l:'Pendentes',n:pend,c:'#FCD34D',bd:'rgba(245,158,11,.20)',ic:'⏳'}].map(({l,n,c,bd,ic})=>(
               <div key={l} style={{background:'radial-gradient(circle at top left,rgba(124,58,237,.08),transparent 60%),linear-gradient(145deg,rgba(15,23,42,.98),rgba(8,20,33,.99))',border:'1px solid '+bd,borderRadius:14,padding:'12px 16px',display:'flex',alignItems:'center',gap:12}}>
                 <span style={{fontSize:18,opacity:.8,flexShrink:0}}>{ic}</span>
                 <div><p style={{fontSize:9,fontWeight:700,textTransform:'uppercase',letterSpacing:'.10em',color:'#64748B',marginBottom:3}}>{l}</p><p style={{fontSize:26,fontWeight:900,letterSpacing:'-0.04em',lineHeight:1,color:c}}>{n}</p></div>
@@ -283,7 +283,7 @@ export default function Agendamentos(){
                 <p style={{fontSize:10,fontWeight:700,color:'#475569',textTransform:'uppercase',margin:'0 0 8px',letterSpacing:'.06em'}}>Proximos atendimentos de hoje</p>
                 {agsF.length===0?(
                   <div style={{textAlign:'center',padding:'44px 20px',background:'linear-gradient(145deg,rgba(15,23,42,.97),rgba(8,20,33,.99))',border:'1px solid rgba(148,163,184,.09)',borderRadius:16}}>
-                    <div style={{fontSize:28,marginBottom:10,opacity:.3}}>ðŸ“…</div>
+                    <div style={{fontSize:28,marginBottom:10,opacity:.3}}>📅</div>
                     <h3 style={{fontSize:15,fontWeight:800,color:'#F8FAFC',marginBottom:6}}>Nenhum atendimento para hoje</h3>
                     <p style={{fontSize:12,color:'#64748B',marginBottom:18,lineHeight:1.5}}>Quando seus clientes agendarem, os horarios aparecerao aqui.</p>
                     <Link href="/painel/agendamentos/novo" style={{...btnP,display:'inline-flex'}}>+ Novo agendamento</Link>
@@ -297,22 +297,22 @@ export default function Agendamentos(){
                     <div key={a.id} className={'ag-item'+(isSel?' sel':'')} onClick={()=>setSel(a)}>
                       <div style={{display:'flex',alignItems:'center',gap:7,marginBottom:5,flexWrap:'wrap'}}>
                         <span style={{display:'inline-flex',background:'rgba(59,130,246,.12)',border:'1px solid rgba(59,130,246,.20)',borderRadius:7,padding:'3px 9px',fontSize:13,fontWeight:800,color:'#60A5FA',flexShrink:0}}>{fH(a.data_hora)}</span>
-                        <span style={{fontSize:13,fontWeight:800,color:'#F8FAFC',flex:1,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{a.cliente_nome||'â€”'}</span>
+                        <span style={{fontSize:13,fontWeight:800,color:'#F8FAFC',flex:1,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{a.cliente_nome||'—'}</span>
                         <span style={stBadge(a.status)}>{sc.t}</span>
                       </div>
-                      {tf&&<p style={{fontSize:11,color:'#CBD5E1',marginBottom:3}}>ðŸ“± {tf}</p>}
+                      {tf&&<p style={{fontSize:11,color:'#CBD5E1',marginBottom:3}}>📱 {tf}</p>}
                       <p style={{fontSize:11,color:'#94A3B8',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',marginBottom:8}}>
-                        {a.servicos?.nome||'Servico nao informado'}{a.profissionais?.nome?' Â· Prof. '+a.profissionais.nome:''}
-                        {a.servicos?.preco?<span style={{color:'#22C55E'}}> Â· R$ {a.servicos.preco}</span>:null}
+                        {a.servicos?.nome||'Servico nao informado'}{a.profissionais?.nome?' · Prof. '+a.profissionais.nome:''}
+                        {a.servicos?.preco?<span style={{color:'#22C55E'}}> · R$ {a.servicos.preco}</span>:null}
                       </p>
                       <div style={{display:'flex',gap:5,flexWrap:'wrap'}} onClick={e=>e.stopPropagation()}>
                         {wW&&<a href={wW} target="_blank" rel="noreferrer" style={{borderRadius:7,padding:'4px 9px',fontSize:10,fontWeight:700,cursor:'pointer',border:'1px solid rgba(37,211,102,.22)',background:'rgba(37,211,102,.10)',color:'#25D366',textDecoration:'none',display:'inline-flex',alignItems:'center',gap:3}}>WhatsApp</a>}
-                        {wC&&(a.status==='pendente'||!a.status)&&<a href={wC} target="_blank" rel="noreferrer" style={{borderRadius:7,padding:'4px 9px',fontSize:10,fontWeight:700,cursor:'pointer',border:'1px solid rgba(34,197,94,.22)',background:'rgba(34,197,94,.10)',color:'#22C55E',textDecoration:'none',display:'inline-flex',alignItems:'center',gap:3}}>âœ“ Confirmar</a>}
+                        {wC&&(a.status==='pendente'||!a.status)&&<a href={wC} target="_blank" rel="noreferrer" style={{borderRadius:7,padding:'4px 9px',fontSize:10,fontWeight:700,cursor:'pointer',border:'1px solid rgba(34,197,94,.22)',background:'rgba(34,197,94,.10)',color:'#22C55E',textDecoration:'none',display:'inline-flex',alignItems:'center',gap:3}}>✓ Confirmar</a>}
                         <div style={{position:'relative',display:'inline-block'}} ref={mnu===a.id?mnuRef:undefined}>
                           <button onClick={()=>setMnu(mnu===a.id?null:a.id)} style={{borderRadius:7,padding:'4px 9px',fontSize:10,fontWeight:700,cursor:'pointer',border:'1px solid rgba(148,163,184,.15)',background:'rgba(255,255,255,.04)',color:'#64748B',fontFamily:'inherit'}}>Mais</button>
                           {mnu===a.id&&(
                             <div style={{position:'absolute',top:'calc(100% + 5px)',left:0,background:'rgba(10,15,25,.98)',border:'1px solid rgba(148,163,184,.18)',borderRadius:12,padding:6,minWidth:160,zIndex:50,boxShadow:'0 16px 48px rgba(0,0,0,.6)'}}>
-                              {[{l:'ðŸ“‹ Copiar contato',fn:()=>copiar(a)},{l:'âœ“ Compareceu',fn:()=>updSt(a.id,'compareceu'),skip:a.status==='compareceu'},{l:'âœ— Faltou',fn:()=>updSt(a.id,'faltou'),skip:a.status==='faltou'},{l:'â˜… Realizado',fn:()=>updSt(a.id,'realizado'),skip:a.status==='realizado'},{l:'â†© Retorno',fn:()=>updSt(a.id,'retorno'),skip:a.status==='retorno'},{l:'âœ“ Confirmado',fn:()=>updSt(a.id,'confirmado'),skip:a.status==='confirmado'},{l:'âœ• Cancelar',fn:()=>updSt(a.id,'cancelado'),skip:a.status==='cancelado'}].filter((i:any)=>!i.skip).map(({l,fn}:any)=>(
+                              {[{l:'📋 Copiar contato',fn:()=>copiar(a)},{l:'✓ Compareceu',fn:()=>updSt(a.id,'compareceu'),skip:a.status==='compareceu'},{l:'✗ Faltou',fn:()=>updSt(a.id,'faltou'),skip:a.status==='faltou'},{l:'★ Realizado',fn:()=>updSt(a.id,'realizado'),skip:a.status==='realizado'},{l:'↩ Retorno',fn:()=>updSt(a.id,'retorno'),skip:a.status==='retorno'},{l:'✓ Confirmado',fn:()=>updSt(a.id,'confirmado'),skip:a.status==='confirmado'},{l:'✕ Cancelar',fn:()=>updSt(a.id,'cancelado'),skip:a.status==='cancelado'}].filter((i:any)=>!i.skip).map(({l,fn}:any)=>(
                                 <button key={l} onClick={fn} className="mnu-item">{l}</button>
                               ))}
                             </div>
@@ -363,7 +363,7 @@ export default function Agendamentos(){
                       ):(
                         <>
                           <p style={{fontSize:20,fontWeight:900,color:'#F8FAFC',lineHeight:1,marginBottom:4}}>{it.length}</p>
-                          <p style={{fontSize:10,color:'#64748B',marginBottom:8}}>atendimento{it.length>1?'s':''}{primeiro?' Â· Primeiro: '+primeiro:''}</p>
+                          <p style={{fontSize:10,color:'#64748B',marginBottom:8}}>atendimento{it.length>1?'s':''}{primeiro?' · Primeiro: '+primeiro:''}</p>
                           <div style={{display:'flex',gap:6,marginBottom:10,flexWrap:'wrap'}}>
                             {totalPend>0&&<span style={{fontSize:10,fontWeight:700,padding:'1px 8px',borderRadius:999,background:'rgba(245,158,11,.14)',color:'#FCD34D',border:'1px solid rgba(245,158,11,.25)'}}>{totalPend} Pendente{totalPend>1?'s':''}</span>}
                             {totalConf>0&&<span style={{fontSize:10,fontWeight:700,padding:'1px 8px',borderRadius:999,background:'rgba(34,197,94,.14)',color:'#4ADE80',border:'1px solid rgba(34,197,94,.25)'}}>{totalConf} Confirmado{totalConf>1?'s':''}</span>}
@@ -387,7 +387,7 @@ export default function Agendamentos(){
                   <div style={{background:'radial-gradient(circle at top left,rgba(124,58,237,.06),transparent 50%),linear-gradient(145deg,rgba(15,23,42,.98),rgba(8,20,33,.99))',border:'1px solid rgba(59,130,246,.20)',borderRadius:18,padding:20}}>
                     <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:16}}>
                       <p style={{fontSize:14,fontWeight:700,color:'#F8FAFC'}}>Agenda de {dObj.toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'2-digit'})}</p>
-                      <button onClick={()=>setDiaSel(null)} style={{background:'none',border:'none',color:'#475569',cursor:'pointer',fontSize:18,lineHeight:1}}>Ã—</button>
+                      <button onClick={()=>setDiaSel(null)} style={{background:'none',border:'none',color:'#475569',cursor:'pointer',fontSize:18,lineHeight:1}}>×</button>
                     </div>
                     {itDia.length===0?(
                       <p style={{fontSize:13,color:'#475569',textAlign:'center',padding:'24px 0'}}>Nenhum atendimento neste dia.</p>
@@ -400,11 +400,11 @@ export default function Agendamentos(){
                           <span style={{fontSize:13,fontWeight:800,color:'#60A5FA',flexShrink:0,minWidth:44,paddingTop:1}}>{fH(a.data_hora)}</span>
                           <div style={{minWidth:0,flex:1}}>
                             <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:8,marginBottom:3}}>
-                              <p style={{fontSize:13,fontWeight:700,color:'#F8FAFC',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{a.cliente_nome||'â€”'}</p>
+                              <p style={{fontSize:13,fontWeight:700,color:'#F8FAFC',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{a.cliente_nome||'—'}</p>
                               <span style={stBadge(a.status)}>{sc.t}</span>
                             </div>
-                            <p style={{fontSize:11,color:'#94A3B8',marginBottom:tf?3:0}}>{a.servicos?.nome||''}{a.profissionais?.nome?' Â· Prof. '+a.profissionais.nome:''}</p>
-                            {tf&&<p style={{fontSize:11,color:'#CBD5E1'}}>ðŸ“± {tf}</p>}
+                            <p style={{fontSize:11,color:'#94A3B8',marginBottom:tf?3:0}}>{a.servicos?.nome||''}{a.profissionais?.nome?' · Prof. '+a.profissionais.nome:''}</p>
+                            {tf&&<p style={{fontSize:11,color:'#CBD5E1'}}>📱 {tf}</p>}
                           </div>
                           {wW&&<a href={wW} target="_blank" rel="noreferrer" onClick={e=>e.stopPropagation()} style={{flexShrink:0,width:30,height:30,borderRadius:8,background:'rgba(37,211,102,.10)',border:'1px solid rgba(37,211,102,.22)',color:'#25D366',display:'flex',alignItems:'center',justifyContent:'center',textDecoration:'none'}}>
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
@@ -423,4 +423,3 @@ export default function Agendamentos(){
     </div>
   )
 }
-
