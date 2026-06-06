@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 import { useEffect, useState, useRef } from 'react'
 import { supabase } from '../../lib/supabase'
 import Link from 'next/link'
@@ -32,7 +32,7 @@ input,select,textarea{color-scheme:dark}
 .sem-det-item{background:linear-gradient(145deg,rgba(15,23,42,.98),rgba(8,20,33,.99));border:1px solid rgba(148,163,184,.12);border-radius:12px;padding:12px 14px;margin-bottom:6px;display:flex;gap:12px;align-items:flex-start}
 @media(min-width:1100px){.ag-grid{grid-template-columns:1fr 360px}.det-col{display:block}}
 @media(max-width:1023px){
-  .bdy{padding:14px 14px 80px!important}
+  .bdy{padding:14px 14px 80px!important;max-width:100%!important;width:100%!important;box-sizing:border-box!important}
   .kpi-g{grid-template-columns:1fr 1fr!important;gap:8px!important}
   .kpi-g>div:last-child{grid-column:1/-1!important}
   .hdr-btns{width:100%;display:grid!important;grid-template-columns:1fr 1fr;gap:7px}
