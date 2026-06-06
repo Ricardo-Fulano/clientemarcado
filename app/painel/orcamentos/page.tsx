@@ -134,6 +134,21 @@ const MOBILE_CSS = `
   @media(max-width:380px){
     .cm-metrics { grid-template-columns:1fr !important; }
     .cm-serv-qtd-val { grid-template-columns:1fr !important; }
+    .cm-kpi-grid { grid-template-columns:1fr !important; }
+  }
+  /* Cards mobile — botões nunca cortam */
+  .cm-card-mobile-acoes { display:grid !important; grid-template-columns:1fr 1fr !important; gap:8px !important; width:100% !important; }
+  .cm-card-mobile-acoes button { width:100% !important; min-width:0 !important; flex:none !important; }
+  .cm-card-mobile-valores { display:grid !important; grid-template-columns:1fr 1fr 1fr !important; gap:6px !important; }
+  @media(max-width:320px){
+    .cm-card-mobile-acoes { grid-template-columns:1fr !important; }
+    .cm-card-mobile-valores { grid-template-columns:1fr 1fr !important; }
+    .cm-kpi-grid { grid-template-columns:1fr !important; }
+  }
+  @media(max-width:1023px){
+    .cm-lista-topo { padding:12px 12px 0 !important; }
+    .cm-lista-body { padding:0 12px 80px !important; }
+    .cm-orc-search input { font-size:14px !important; }
   }
 `
 
@@ -835,7 +850,7 @@ export default function Orcamentos() {
                     {orcsPagina.map(orc=>{
                       const cfg=STATUS_COR[orc.status]||STATUS_COR['Aberto']
                       return (
-                        <div key={orc.id} style={{background:'rgba(255,255,255,.05)',border:'1px solid rgba(255,255,255,.08)',borderRadius:'14px',padding:'16px',boxSizing:'border-box' as const}}>
+                        <div key={orc.id} style={{background:'rgba(255,255,255,.05)',border:'1px solid rgba(255,255,255,.08)',borderRadius:'14px',padding:'14px 12px',boxSizing:'border-box' as const,width:'100%',minWidth:0,overflow:'hidden'}}>
                           <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:'10px'}}>
                             <div style={{flex:1,minWidth:0}}>
                               <p style={{fontSize:'15px',fontWeight:700,color:'#fff',marginBottom:'2px',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap' as const}}>{orc.cliente_nome}</p>
@@ -845,7 +860,7 @@ export default function Orcamentos() {
                               {orc.status}
                             </span>
                           </div>
-                          <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:'8px',marginBottom:'12px'}}>
+                          <div className="cm-card-mobile-valores" style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:'8px',marginBottom:'12px'}}>
                             {[{l:'Total',v:orc.total,c:'#fff'},{l:'Pago',v:orc.valor_pago,c:'#22C55E'},{l:'Saldo',v:orc.saldo_restante,c:orc.saldo_restante>0?'#F59E0B':'#22C55E'}].map(f=>(
                               <div key={f.l} style={{background:'rgba(255,255,255,.04)',borderRadius:'8px',padding:'8px 10px'}}>
                                 <p style={{fontSize:'10px',color:'#64748B',fontWeight:600,textTransform:'uppercase' as const,letterSpacing:'.04em',marginBottom:'2px'}}>{f.l}</p>
