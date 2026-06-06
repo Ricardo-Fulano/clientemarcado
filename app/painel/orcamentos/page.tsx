@@ -27,10 +27,10 @@ function aplicarMascaraTel(v:string){
 }
 
 const MOBILE_CSS = `
-  html, body { overflow-x: hidden !important; width: 100%; }
+  html, body { overflow-x: hidden !important; width: 100%; max-width: 100%; }
   *, *::before, *::after { box-sizing: border-box; }
 
-  /* ══ DESKTOP (≥1024px) ══ */
+  /* ══ DESKTOP ≥1024px ══ */
   @media(min-width:1024px){
     .psb-main { margin-left:220px !important; }
     .cm-resumo-mobile { display:none !important; }
@@ -41,16 +41,23 @@ const MOBILE_CSS = `
     .cm-novo-btn-lista { height:auto !important; width:auto !important; }
   }
 
-  /* ══ MOBILE (≤1023px) ══ */
+  /* ══ MOBILE ≤1023px ══ */
   @media(max-width:1023px){
-    /* Layout principal */
-    .psb-wrapper { overflow-x:hidden !important; }
+    .psb-wrapper {
+      overflow-x:hidden !important;
+      width:100% !important;
+      max-width:100% !important;
+    }
     .psb-main {
       margin-left:0 !important;
       width:100% !important;
       max-width:100% !important;
+      min-width:0 !important;
       overflow-x:hidden !important;
       box-sizing:border-box !important;
+      display:block !important;
+      visibility:visible !important;
+      opacity:1 !important;
     }
 
     /* Formulário */
@@ -64,16 +71,24 @@ const MOBILE_CSS = `
     .cm-inprow { grid-template-columns:1fr !important; }
     .cm-title-row { flex-direction:column !important; align-items:flex-start !important; }
 
-    /* Lista topo e body */
+    /* Lista */
     .cm-lista-topo {
-      padding:12px 14px 0 !important;
+      padding:14px 14px 0 !important;
       overflow-x:hidden !important;
       max-width:100% !important;
+      width:100% !important;
+      display:block !important;
+      visibility:visible !important;
+      opacity:1 !important;
     }
     .cm-lista-body {
       padding:0 14px 80px !important;
       overflow-x:hidden !important;
       max-width:100% !important;
+      width:100% !important;
+      display:block !important;
+      visibility:visible !important;
+      opacity:1 !important;
     }
 
     /* Botão novo orçamento */
@@ -85,20 +100,25 @@ const MOBILE_CSS = `
       font-size:15px !important;
       display:flex !important;
       justify-content:center !important;
+      visibility:visible !important;
+      opacity:1 !important;
     }
 
-    /* KPI cards — 2 colunas no mobile */
+    /* KPI cards */
     .cm-kpi-grid {
+      display:grid !important;
       grid-template-columns:1fr 1fr !important;
       gap:10px !important;
+      width:100% !important;
+      max-width:100% !important;
     }
 
     /* Busca */
     .cm-busca-filtros { flex-direction:column !important; gap:10px !important; }
     .cm-busca-input { width:100% !important; max-width:100% !important; }
-    .cm-orc-search { width:100% !important; }
+    .cm-orc-search { width:100% !important; max-width:100% !important; }
 
-    /* ══ FILTROS — quebram linha, sem scroll horizontal ══ */
+    /* Filtros — QUEBRAM LINHA */
     .cm-filtros-wrap {
       display:flex !important;
       flex-wrap:wrap !important;
@@ -111,18 +131,22 @@ const MOBILE_CSS = `
     .cm-filtros-wrap button {
       flex:0 0 auto !important;
       white-space:nowrap !important;
+      font-size:13px !important;
     }
 
-    /* Tabela desktop → cards mobile */
+    /* Tabela → Cards */
     .cm-tabela-desktop { display:none !important; }
     .cm-cards-mobile {
       display:flex !important;
       flex-direction:column !important;
       gap:12px !important;
       width:100% !important;
+      max-width:100% !important;
+      visibility:visible !important;
+      opacity:1 !important;
     }
 
-    /* Botões do card mobile — grid 2 colunas */
+    /* Botões card mobile — grid 2 colunas */
     .cm-card-acoes {
       display:grid !important;
       grid-template-columns:1fr 1fr !important;
@@ -134,27 +158,22 @@ const MOBILE_CSS = `
       min-width:0 !important;
       box-sizing:border-box !important;
       white-space:nowrap !important;
-      overflow:hidden !important;
-      text-overflow:ellipsis !important;
     }
 
-    /* Outros */
     .cm-metrics { grid-template-columns:1fr 1fr !important; gap:10px !important; }
     .cm-card { width:100% !important; max-width:100% !important; box-sizing:border-box !important; }
   }
 
-  /* ══ TELAS MUITO PEQUENAS (≤380px) ══ */
-  @media(max-width:380px){
+  /* ══ TELAS ≤360px ══ */
+  @media(max-width:360px){
     .cm-kpi-grid { grid-template-columns:1fr !important; }
     .cm-metrics { grid-template-columns:1fr !important; }
-    .cm-card-acoes { grid-template-columns:1fr !important; }
     .cm-filtros-wrap button { font-size:12px !important; padding:6px 10px !important; }
   }
 
-  /* ══ TELAS MICRO (≤300px) ══ */
+  /* ══ TELAS ≤300px ══ */
   @media(max-width:300px){
     .cm-card-acoes { grid-template-columns:1fr !important; }
-    .cm-kpi-grid { grid-template-columns:1fr !important; }
     .cm-lista-topo { padding:10px 10px 0 !important; }
     .cm-lista-body { padding:0 10px 80px !important; }
   }
@@ -575,7 +594,7 @@ export default function Orcamentos() {
                       <p style={{fontSize:'14px',fontWeight:700,color:'#fff'}}>Orçamentos recentes</p>
                       <span style={{fontSize:'12px',color:'#64748B'}}>{orcsFiltrados.length} registro{orcsFiltrados.length!==1?'s':''}</span>
                     </div>
-                    <div style={{display:'grid',gridTemplateColumns:'2fr 1.2fr 1fr 1fr 1fr 120px 110px',padding:'10px 24px',borderBottom:'1px solid rgba(255,255,255,.06)'}}>
+                    <div style={{display:'grid',gridTemplateColumns:'2fr 1.2fr 1fr 1fr 1fr 120px 200px',padding:'10px 24px',borderBottom:'1px solid rgba(255,255,255,.06)'}}>
                       {['Cliente','Tipo / Data','Total','Pago','Saldo','Status','Ações'].map(h=>(
                         <p key={h} style={{fontSize:'11px',fontWeight:600,color:'#64748B',textTransform:'uppercase' as const,letterSpacing:'.06em'}}>{h}</p>
                       ))}
@@ -584,7 +603,7 @@ export default function Orcamentos() {
                       const cfg=STATUS_COR[orc.status]||STATUS_COR['Aberto']
                       return (
                         <div key={orc.id}
-                          style={{display:'grid',gridTemplateColumns:'2fr 1.2fr 1fr 1fr 1fr 120px 110px',padding:'14px 24px',borderBottom:i<orcsFiltrados.length-1?'1px solid rgba(255,255,255,.05)':'none',alignItems:'center',transition:'background .15s',cursor:'default'}}
+                          style={{display:'grid',gridTemplateColumns:'2fr 1.2fr 1fr 1fr 1fr 120px 200px',padding:'14px 24px',borderBottom:i<orcsFiltrados.length-1?'1px solid rgba(255,255,255,.05)':'none',alignItems:'center',transition:'background .15s',cursor:'default'}}
                           onMouseEnter={e=>(e.currentTarget.style.background='rgba(255,255,255,.04)')}
                           onMouseLeave={e=>(e.currentTarget.style.background='transparent')}>
                           <div>
@@ -601,15 +620,17 @@ export default function Orcamentos() {
                           <span style={{fontSize:'11px',fontWeight:700,padding:'4px 10px',borderRadius:'999px',background:cfg.bg,color:cfg.color,border:`1px solid ${cfg.border}`,display:'inline-block'}}>
                             {orc.status}
                           </span>
-                          <div style={{display:'flex',gap:'5px'}}>
+                          <div style={{display:'flex',gap:'4px',flexWrap:'nowrap',alignItems:'center'}}>
                             <button onClick={()=>{setDetalheId(orc.id);carregarPagamentos(orc.id);setView('detalhe')}}
-                              style={{background:'rgba(37,99,235,.2)',border:'1px solid rgba(37,99,235,.3)',borderRadius:'6px',padding:'5px 10px',fontSize:'11px',fontWeight:600,color:'#93C5FD',cursor:'pointer',fontFamily:'inherit'}}>Ver</button>
+                              style={{background:'rgba(37,99,235,.2)',border:'1px solid rgba(37,99,235,.3)',borderRadius:'6px',padding:'4px 8px',fontSize:'11px',fontWeight:600,color:'#93C5FD',cursor:'pointer',fontFamily:'inherit',whiteSpace:'nowrap' as const}}>Ver</button>
+                            <button onClick={()=>gerarPDF(orc)}
+                              style={{background:'rgba(6,182,212,.15)',border:'1px solid rgba(6,182,212,.30)',borderRadius:'6px',padding:'4px 6px',fontSize:'11px',fontWeight:600,color:'#22D3EE',cursor:'pointer',fontFamily:'inherit',whiteSpace:'nowrap' as const}}>PDF</button>
                             <button onClick={()=>enviarWpp(orc)}
-                              style={{background:'rgba(22,163,74,.2)',border:'1px solid rgba(22,163,74,.3)',borderRadius:'6px',padding:'5px 8px',fontSize:'13px',cursor:'pointer',fontFamily:'inherit'}}>💬</button>
+                              style={{background:'rgba(22,163,74,.2)',border:'1px solid rgba(22,163,74,.3)',borderRadius:'6px',padding:'4px 6px',fontSize:'12px',cursor:'pointer',fontFamily:'inherit'}}>💬</button>
                             <button onClick={()=>abrirEditar(orc)}
-                              style={{background:'rgba(255,255,255,.08)',border:'1px solid rgba(255,255,255,.12)',borderRadius:'6px',padding:'5px 8px',fontSize:'13px',cursor:'pointer',fontFamily:'inherit'}}>✏️</button>
+                              style={{background:'rgba(255,255,255,.08)',border:'1px solid rgba(255,255,255,.12)',borderRadius:'6px',padding:'4px 6px',fontSize:'12px',cursor:'pointer',fontFamily:'inherit'}}>✏️</button>
                             <button onClick={()=>handleExcluir(orc.id)}
-                              style={{background:'rgba(220,38,38,.15)',border:'1px solid rgba(220,38,38,.25)',borderRadius:'6px',padding:'5px 8px',fontSize:'13px',cursor:'pointer',fontFamily:'inherit'}}>🗑</button>
+                              style={{background:'rgba(220,38,38,.15)',border:'1px solid rgba(220,38,38,.25)',borderRadius:'6px',padding:'4px 6px',fontSize:'12px',cursor:'pointer',fontFamily:'inherit'}}>🗑</button>
                           </div>
                         </div>
                       )
