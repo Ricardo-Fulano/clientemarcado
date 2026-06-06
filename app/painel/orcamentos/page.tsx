@@ -62,7 +62,7 @@ const MOBILE_CSS = `
 
   @media(max-width:1023px){
     .cm-sidebar { display:none !important; }
-    .cm-main { margin-left:0 !important; width:100% !important; max-width:100% !important; overflow-x:hidden; }
+    .cm-main { margin-left:0 !important; width:100% !important; max-width:100vw !important; overflow-x:hidden !important; box-sizing:border-box !important; }
     .cm-header-mobile { display:flex !important; }
     .cm-form-grid { grid-template-columns:1fr !important; }
     .cm-form-right { display:none !important; }
@@ -84,15 +84,17 @@ const MOBILE_CSS = `
   }
 
   @media(max-width:1023px){
-    .cm-lista-topo { padding:16px 16px 0 !important; }
+    .cm-lista-topo { padding:12px 12px 0 !important; }
+    .cm-lista-body { padding:0 12px 80px !important; }
     .cm-lista-body { padding:0 16px 80px !important; }
-    .cm-novo-btn-lista { width:100% !important; margin-top:12px; height:52px !important; border-radius:14px !important; font-size:16px !important; }
+    .cm-novo-btn-lista { width:100% !important; margin-top:10px; height:46px !important; border-radius:12px !important; font-size:15px !important; }
     .cm-atalhos-grid { grid-template-columns:1fr 1fr !important; gap:10px !important; }
     .cm-kpi-grid { grid-template-columns:1fr 1fr !important; gap:10px !important; }
     .cm-busca-filtros { flex-direction:column !important; gap:10px !important; }
     .cm-busca-input { width:100% !important; }
-    .cm-filtros-wrap { overflow-x:auto !important; flex-wrap:nowrap !important; -webkit-overflow-scrolling:touch !important; padding-bottom:4px; scrollbar-width:none; }
+    .cm-filtros-wrap { overflow-x:auto !important; flex-wrap:nowrap !important; -webkit-overflow-scrolling:touch !important; padding-bottom:6px; scrollbar-width:none; max-width:100%; }
     .cm-filtros-wrap::-webkit-scrollbar { display:none; }
+    .cm-busca-filtros { max-width:100% !important; overflow:hidden !important; }
     .cm-acoes-rapidas-wrap { overflow-x:auto !important; flex-wrap:nowrap !important; -webkit-overflow-scrolling:touch !important; scroll-snap-type:x mandatory; padding-bottom:4px; scrollbar-width:none; }
     .cm-acoes-rapidas-wrap::-webkit-scrollbar { display:none; }
     .cm-acao-card { min-width:150px !important; max-width:160px !important; scroll-snap-align:start !important; flex-shrink:0 !important; }
