@@ -22,7 +22,7 @@ html,body{overflow-x:hidden;width:100%;background:#050B16}
 .badge{display:inline-flex;align-items:center;padding:3px 10px;border-radius:999px;font-size:11px;font-weight:700}
 .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:50;display:flex;align-items:center;justify-content:center;padding:20px}
 .modal{background:#0F172A;border:1.5px solid rgba(148,163,184,.18);border-radius:22px;padding:32px;width:100%;max-width:500px;max-height:90vh;overflow-y:auto}
-@media(max-width:1023px){.bdy{padding:14px 14px 80px!important;max-width:100%!important;width:100%!important;box-sizing:border-box!important;overflow-x:hidden!important}.kpi{grid-template-columns:1fr 1fr!important}.btn-p,.btn-s,.btn-g{white-space:normal!important;font-size:11px!important;padding:6px 8px!important}}
+@media(max-width:1023px){.bdy{padding:14px 14px 80px!important;max-width:100%!important;width:100%!important;box-sizing:border-box!important;overflow-x:hidden!important}.kpi{grid-template-columns:1fr 1fr!important}.btn-p,.btn-s,.btn-g{white-space:normal!important;font-size:11px!important;padding:6px 8px!important}.link-row{display:none!important}}
 @media(max-width:480px){.kpi{grid-template-columns:1fr}}
 `
 
@@ -242,7 +242,7 @@ export default function Parceiros() {
                           <button className="btn-s" onClick={() => toggleAtivo(p)} style={{ color: p.ativo ? '#F87171' : '#4ADE80' }}>{p.ativo ? 'Desativar' : 'Ativar'}</button>
                         </div>
                       </div>
-                      <div style={{ padding: '8px 12px', background: 'rgba(255,255,255,.04)', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                      <div style={{ padding: '8px 12px', background: 'rgba(255,255,255,.04)', className: 'link-row', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
                         <span style={{ fontSize: '11px', color: '#475569' }}>Link:</span>
                         <span style={{ fontSize: '11px', color: '#64748B', fontFamily: 'monospace', wordBreak: 'break-all', overflowWrap: 'break-word', maxWidth: '100%' }}>{link}</span>
                       </div>
