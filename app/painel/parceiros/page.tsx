@@ -22,7 +22,7 @@ html,body{overflow-x:hidden;width:100%;background:#050B16}
 .badge{display:inline-flex;align-items:center;padding:3px 10px;border-radius:999px;font-size:11px;font-weight:700}
 .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:50;display:flex;align-items:center;justify-content:center;padding:20px}
 .modal{background:#0F172A;border:1.5px solid rgba(148,163,184,.18);border-radius:22px;padding:32px;width:100%;max-width:500px;max-height:90vh;overflow-y:auto}
-@media(max-width:1023px){.bdy{padding:14px 14px 80px!important;max-width:100%!important;width:100%!important;box-sizing:border-box!important;overflow-x:hidden!important}.kpi{grid-template-columns:1fr 1fr!important}}
+@media(max-width:1023px){.bdy{padding:14px 14px 80px!important;max-width:100%!important;width:100%!important;box-sizing:border-box!important;overflow-x:hidden!important}.kpi{grid-template-columns:1fr 1fr!important;width:100%!important}.card{width:100%!important;box-sizing:border-box!important}}
 @media(max-width:480px){.kpi{grid-template-columns:1fr}}
 `
 
@@ -142,7 +142,7 @@ export default function Parceiros() {
   if (loading) return <div style={{ minHeight: '100vh', background: '#050B16', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><p style={{ color: '#64748B' }}>Carregando...</p></div>
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', background: '#050B16', fontFamily: '-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif' }}>
+    <div style={{ display: 'flex', minHeight: '100vh', background: '#050B16', fontFamily: '-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif', overflowX: 'hidden', width: '100%', position: 'relative' }}>
       <style dangerouslySetInnerHTML={{ __html: CSS }} />
       <PainelSidebar nome={perfil?.nome_negocio || ''} tituloMobile="Parceiros" />
 
