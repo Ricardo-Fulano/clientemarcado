@@ -190,7 +190,7 @@ export default function Parceiros() {
 
             {/* ABA PARCEIROS */}
             {aba === 'parceiros' && (
-              <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
+              <div className="card" style={{ padding: 0, overflowX: 'auto' }}>
                 <div style={{ padding: '16px 20px', borderBottom: '1px solid rgba(255,255,255,.06)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <p style={{ fontSize: '14px', fontWeight: 700, color: '#F8FAFC' }}>Lista de parceiros</p>
                   <span style={{ fontSize: '12px', color: '#64748B' }}>{parceiros.length} parceiro{parceiros.length !== 1 ? 's' : ''}</span>
@@ -254,7 +254,7 @@ export default function Parceiros() {
 
             {/* ABA INDICAÇÕES */}
             {aba === 'indicacoes' && (
-              <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
+              <div className="card" style={{ padding: 0, overflowX: 'auto' }}>
                 <div style={{ padding: '16px 20px', borderBottom: '1px solid rgba(255,255,255,.06)' }}>
                   <p style={{ fontSize: '14px', fontWeight: 700, color: '#F8FAFC' }}>Clientes indicados</p>
                 </div>
