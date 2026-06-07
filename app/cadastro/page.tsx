@@ -5,9 +5,9 @@ import { supabase } from '../lib/supabase'
 const TIPOS_NEGOCIO = [
   'Barbearia',
   'Salão de beleza',
-  'ClÃ­nica estética',
-  'ClÃ­nica odontológica',
-  'ClÃ­nica médica / consultório',
+  'Clínica estética',
+  'Clínica odontológica',
+  'Clínica médica / consultório',
   'Consultoria / atendimento profissional',
   'Outro',
 ]
@@ -15,18 +15,18 @@ const TIPOS_NEGOCIO = [
 const BENEFICIOS = [
   {
     icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>,
-    titulo: 'Página de agendamento pronta',
-    desc: 'Seu negócio online em minutos, com sua cara e seu horário.',
+    titulo: 'PÃ¡gina de agendamento pronta',
+    desc: 'Seu negÃ³cio online em minutos, com sua cara e seu horÃ¡rio.',
   },
   {
     icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>,
     titulo: 'Agenda organizada',
-    desc: 'Receba agendamentos, evite conflitos e nunca mais perca horários.',
+    desc: 'Receba agendamentos, evite conflitos e nunca mais perca horÃ¡rios.',
   },
   {
     icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>,
     titulo: 'Painel simples para acompanhar',
-    desc: 'Veja agendamentos, clientes e resultados de forma clara e prática.',
+    desc: 'Veja agendamentos, clientes e resultados de forma clara e prÃ¡tica.',
   },
 ]
 
@@ -89,9 +89,9 @@ export default function Cadastro() {
       flex-direction: column;
     }
 
-    /* Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
-       BASE = MOBILE  (coluna ÃƒÂºnica)
-    Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â */
+    /* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+       BASE = MOBILE  (coluna Ãºnica)
+    â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 
     /* Esconde lado esquerdo (desktop only) */
     .col-esquerda { display: none; }
@@ -105,7 +105,7 @@ export default function Cadastro() {
       gap: 0;
     }
 
-    /* Ã¢â€â‚¬Ã¢â€â‚¬ Logo mobile Ã¢â€â‚¬Ã¢â€â‚¬ */
+    /* â”€â”€ Logo mobile â”€â”€ */
     .logo-bloco {
       width: 100%;
       max-width: 480px;
@@ -126,7 +126,7 @@ export default function Cadastro() {
       color: #F1F5F9; letter-spacing: -0.02em;
     }
 
-    /* Ã¢â€â‚¬Ã¢â€â‚¬ Headline mobile Ã¢â€â‚¬Ã¢â€â‚¬ */
+    /* â”€â”€ Headline mobile â”€â”€ */
     .headline-bloco {
       width: 100%;
       max-width: 480px;
@@ -142,14 +142,14 @@ export default function Cadastro() {
       font-size: 14px; color: #6B7280; line-height: 1.55;
     }
 
-    /* Ã¢â€â‚¬Ã¢â€â‚¬ FormulÃ¡rio mobile Ã¢â€â‚¬Ã¢â€â‚¬ */
+    /* â”€â”€ FormulÃ¡rio mobile â”€â”€ */
     .form-bloco {
       width: 100%;
       max-width: 480px;
       margin-bottom: 20px;
     }
 
-    /* Ã¢â€â‚¬Ã¢â€â‚¬ BenefÃ­cios mobile (abaixo do form) Ã¢â€â‚¬Ã¢â€â‚¬ */
+    /* â”€â”€ BenefÃ­cios mobile (abaixo do form) â”€â”€ */
     .beneficios-mobile {
       width: 100%;
       max-width: 480px;
@@ -177,9 +177,9 @@ export default function Cadastro() {
       font-size: 13px; font-weight: 600; color: #D1D5DB;
     }
 
-    /* Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
-       DESKTOP (Ã¢â€°Â¥ 900px) Ã¢â‚¬â€ 2 colunas
-    Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â */
+    /* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+       DESKTOP (â‰¥ 900px) â€” 2 colunas
+    â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
     @media (min-width: 900px) {
 
       /* Ativa coluna esquerda */
@@ -204,7 +204,7 @@ export default function Cadastro() {
         gap: 64px;
       }
 
-      /* Coluna direita (FormulÃ¡rio) */
+      /* Coluna direita (formulÃ¡rio) */
       .form-bloco {
         flex: 1;
         max-width: 480px;
@@ -218,7 +218,7 @@ export default function Cadastro() {
       }
     }
 
-    /* Ã¢â€â‚¬Ã¢â€â‚¬ Desktop: logo esquerda Ã¢â€â‚¬Ã¢â€â‚¬ */
+    /* â”€â”€ Desktop: logo esquerda â”€â”€ */
     .desk-logo-row {
       display: flex; align-items: center; gap: 10px;
     }
@@ -256,7 +256,7 @@ export default function Cadastro() {
     .desk-beneficio-titulo { font-size: 14px; font-weight: 700; color: #F1F5F9; margin-bottom: 3px; }
     .desk-beneficio-desc   { font-size: 13px; color: #6B7280; line-height: 1.45; }
 
-    /* Ã¢â€â‚¬Ã¢â€â‚¬ Card FormulÃ¡rio Ã¢â€â‚¬Ã¢â€â‚¬ */
+    /* â”€â”€ Card formulÃ¡rio â”€â”€ */
     .card {
       background: linear-gradient(180deg, rgba(16,20,30,0.98) 0%, rgba(10,12,18,0.98) 100%);
       border: 1px solid rgba(255,255,255,0.09);
@@ -271,7 +271,7 @@ export default function Cadastro() {
     .card-titulo { font-size: 19px; font-weight: 800; color: #F1F5F9; letter-spacing: -0.02em; margin-bottom: 3px; }
     .card-sub    { font-size: 13px; color: #6B7280; margin-bottom: 22px; }
 
-    /* Ã¢â€â‚¬Ã¢â€â‚¬ Campos Ã¢â€â‚¬Ã¢â€â‚¬ */
+    /* â”€â”€ Campos â”€â”€ */
     .campos { display: flex; flex-direction: column; gap: 14px; margin-bottom: 20px; }
     .label {
       display: block; font-size: 11px; font-weight: 600;
@@ -310,7 +310,7 @@ export default function Cadastro() {
     }
     .olho:hover { color: #9CA3AF; }
 
-    /* Ã¢â€â‚¬Ã¢â€â‚¬ BotÃ£o Ã¢â€â‚¬Ã¢â€â‚¬ */
+    /* â”€â”€ BotÃ£o â”€â”€ */
     .btn-criar {
       width: 100%;
       background: #3B82F6; color: #fff;
@@ -327,16 +327,16 @@ export default function Cadastro() {
     .btn-criar:hover   { background: #2563EB; box-shadow: 0 4px 28px rgba(59,130,246,0.5); }
     .btn-criar:disabled { opacity: 0.6; cursor: not-allowed; }
 
-    /* Ã¢â€â‚¬Ã¢â€â‚¬ Link login Ã¢â€â‚¬Ã¢â€â‚¬ */
+    /* â”€â”€ Link login â”€â”€ */
     .link-login { text-align: center; font-size: 13px; color: #4B5563; }
     .link-login a { color: #3B82F6; font-weight: 600; text-decoration: none; }
     .link-login a:hover { text-decoration: underline; }
 
-    /* Ã¢â€â‚¬Ã¢â€â‚¬ Mensagens Ã¢â€â‚¬Ã¢â€â‚¬ */
+    /* â”€â”€ Mensagens â”€â”€ */
     .msg-ok  { background: rgba(34,197,94,0.08); border: 1px solid rgba(34,197,94,0.2); border-radius: 10px; padding: 11px 14px; font-size: 13px; color: #22C55E; margin-bottom: 14px; text-align: center; }
     .msg-err { background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.2); border-radius: 10px; padding: 11px 14px; font-size: 13px; color: #EF4444; margin-bottom: 14px; text-align: center; }
 
-    /* Ã¢â€â‚¬Ã¢â€â‚¬ Footer Ã¢â€â‚¬Ã¢â€â‚¬ */
+    /* â”€â”€ Footer â”€â”€ */
     .footer {
       text-align: center; padding: 16px;
       font-size: 12px; color: #374151;
@@ -350,7 +350,7 @@ export default function Cadastro() {
 
       <div className="pg-body">
 
-        {/* Ã¢â€¢ÂÃ¢â€¢Â COLUNA ESQUERDA Ã¢â‚¬â€ sÃƒÂ³ desktop Ã¢â€¢ÂÃ¢â€¢Â */}
+        {/* â•â• COLUNA ESQUERDA â€” sÃ³ desktop â•â• */}
         <div className="col-esquerda">
           <div className="desk-logo-row">
             <div className="desk-logo-icone"><CalIcon /></div>
@@ -380,7 +380,7 @@ export default function Cadastro() {
           </div>
         </div>
 
-        {/* Ã¢â€¢ÂÃ¢â€¢Â BLOCOS MOBILE (somem no desktop) Ã¢â€¢ÂÃ¢â€¢Â */}
+        {/* â•â• BLOCOS MOBILE (somem no desktop) â•â• */}
 
         {/* 1. Logo */}
         <div className="logo-bloco">
@@ -391,7 +391,7 @@ export default function Cadastro() {
         {/* 2. Headline */}
         <div className="headline-bloco">
           <h1 className="headline-titulo">Crie sua conta grÃ¡tis</h1>
-          <p className="headline-sub">Configure sua Página de agendamento em poucos minutos.</p>
+          <p className="headline-sub">Configure sua pÃ¡gina de agendamento em poucos minutos.</p>
         </div>
 
         {/* 3. FormulÃ¡rio */}
@@ -402,7 +402,7 @@ export default function Cadastro() {
 
             <div className="campos">
               <div>
-                <label className="label">Tipo de negócio</label>
+                <label className="label">Tipo de negÃ³cio</label>
                 {/* Dropdown customizado dark premium */}
                 <div style={{position:'relative',width:'100%'}} onBlur={e=>{if(!e.currentTarget.contains(e.relatedTarget as Node))setDropOpen(false)}}>
                   <button type="button" onClick={()=>setDropOpen(!dropOpen)}
@@ -426,11 +426,11 @@ export default function Cadastro() {
                     </div>
                   )}
                 </div>
-                <p className="hint">Isso ajuda a preparar sua Página de agendamento.</p>
+                <p className="hint">Isso ajuda a preparar sua pÃ¡gina de agendamento.</p>
               </div>
 
               <div>
-                <label className="label">Nome do negócio</label>
+                <label className="label">Nome do negÃ³cio</label>
                 <input type="text" placeholder="Ex: Barbearia do JoÃ£o"
                   value={nomeNegocio} onChange={e => setNomeNegocio(e.target.value)} className="input" />
               </div>
