@@ -38,7 +38,7 @@ const CSS = `
 .psb-main{margin-left:240px;flex:1;min-height:100vh;width:calc(100% - 240px);max-width:calc(100% - 240px)}
 @media(max-width:1023px){
   .psb{display:none!important}
-  .psb-main{margin-left:0!important;width:100%!important;max-width:100%!important;overflow-x:hidden!important;box-sizing:border-box!important;padding-top:56px!important}
+  .psb-main{margin-left:0!important;width:100%!important;max-width:100%!important}
   .psb-mhdr{display:flex!important}
 }
 `
