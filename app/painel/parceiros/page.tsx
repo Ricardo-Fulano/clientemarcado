@@ -142,7 +142,7 @@ export default function Parceiros() {
   if (loading) return <div style={{ minHeight: '100vh', background: '#050B16', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><p style={{ color: '#64748B' }}>Carregando...</p></div>
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', background: '#050B16', fontFamily: '-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif' }}>
+    <div style={{ display:'flex',minHeight:'100vh',background:'#050B16',fontFamily:'-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif',overflowX:'hidden',width:'100%',position:'relative'}}>
       <style dangerouslySetInnerHTML={{ __html: CSS }} />
       <PainelSidebar nome={perfil?.nome_negocio || ''} tituloMobile="Parceiros" />
 
