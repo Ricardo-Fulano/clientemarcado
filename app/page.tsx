@@ -89,7 +89,7 @@ export default function Home() {
             Organize agendamentos, clientes, equipe, cobrancas e atendimentos em um painel simples, moderno e profissional.
           </p>
           <div className="hero-btns" style={{display:'flex',gap:'12px',justifyContent:'center',flexWrap:'wrap'}}>
-            <Link href="/cadastro" className="btn-p">Comecar 7 dias gratis</Link>
+            <Link href="/aceite-plano" className="btn-p">Comecar 7 dias gratis</Link>
             <Link href="/login" className="btn-s">Ja tenho conta</Link>
           </div>
           <p style={{fontSize:'12px',color:'#475569',marginTop:'16px'}}>Teste gratis por 7 dias. Depois R$ 79,90/mes. Sem fidelidade.</p>
@@ -137,7 +137,7 @@ export default function Home() {
                 </div>
               ))}
             </div>
-            <Link href="/cadastro" className="btn-p" style={{width:'100%',justifyContent:'center',height:'52px',fontSize:'15px'}}>
+            <Link href="/aceite-plano" className="btn-p" style={{width:'100%',justifyContent:'center',height:'52px',fontSize:'15px'}}>
               Comecar 7 dias gratis
             </Link>
             <p style={{textAlign:'center',fontSize:'12px',color:'#475569',marginTop:'16px'}}>Teste gratis por 7 dias. Depois R$ 79,90/mes.</p>
@@ -154,7 +154,7 @@ export default function Home() {
             Comece gratis e veja como o ClienteMarcado pode transformar sua agenda, clientes e financeiro.
           </p>
           <div className="cta-btns" style={{display:'flex',gap:'12px',justifyContent:'center',flexWrap:'wrap'}}>
-            <Link href="/cadastro" className="btn-p">Comecar 7 dias gratis</Link>
+            <Link href="/aceite-plano" className="btn-p">Comecar 7 dias gratis</Link>
             <Link href="/login" className="btn-s">Ja tenho conta</Link>
           </div>
           <p style={{fontSize:'13px',color:'#475569',marginTop:'20px'}}>Teste gratis por 7 dias. Depois R$ 79,90/mes. Sem fidelidade.</p>
