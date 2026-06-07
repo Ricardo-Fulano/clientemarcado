@@ -15,18 +15,18 @@ const TIPOS_NEGOCIO = [
 const BENEFICIOS = [
   {
     icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>,
-    titulo: 'PÃ¡gina de agendamento pronta',
-    desc: 'Seu negÃ³cio online em minutos, com sua cara e seu horÃ¡rio.',
+    titulo: 'Página de agendamento pronta',
+    desc: 'Seu negócio online em minutos, com sua cara e seu horário.',
   },
   {
     icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>,
     titulo: 'Agenda organizada',
-    desc: 'Receba agendamentos, evite conflitos e nunca mais perca horÃ¡rios.',
+    desc: 'Receba agendamentos, evite conflitos e nunca mais perca horários.',
   },
   {
     icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>,
     titulo: 'Painel simples para acompanhar',
-    desc: 'Veja agendamentos, clientes e resultados de forma clara e prÃ¡tica.',
+    desc: 'Veja agendamentos, clientes e resultados de forma clara e prática.',
   },
 ]
 
@@ -363,7 +363,7 @@ export default function Cadastro() {
             </h1>
             <p className="desk-hero-sub">
               Seu cliente agenda sozinho.<br />
-              VocÃª controla tudo pelo painel.
+              Você controla tudo pelo painel.
             </p>
           </div>
 
@@ -390,19 +390,19 @@ export default function Cadastro() {
 
         {/* 2. Headline */}
         <div className="headline-bloco">
-          <h1 className="headline-titulo">Crie sua conta grÃ¡tis</h1>
-          <p className="headline-sub">Configure sua pÃ¡gina de agendamento em poucos minutos.</p>
+          <h1 className="headline-titulo">Crie sua conta grátis</h1>
+          <p className="headline-sub">Configure sua Página de agendamento em poucos minutos.</p>
         </div>
 
         {/* 3. FormulÃ¡rio */}
         <div className="form-bloco">
           <div className="card">
-            <p className="card-titulo">Criar conta grÃ¡tis</p>
-            <p className="card-sub">Ã‰ rÃ¡pido, fÃ¡cil e sem compromisso.</p>
+            <p className="card-titulo">Criar conta grátis</p>
+            <p className="card-sub">É rápido, fácil e sem compromisso.</p>
 
             <div className="campos">
               <div>
-                <label className="label">Tipo de negÃ³cio</label>
+                <label className="label">Tipo de negócio</label>
                 {/* Dropdown customizado dark premium */}
                 <div style={{position:'relative',width:'100%'}} onBlur={e=>{if(!e.currentTarget.contains(e.relatedTarget as Node))setDropOpen(false)}}>
                   <button type="button" onClick={()=>setDropOpen(!dropOpen)}
@@ -426,18 +426,18 @@ export default function Cadastro() {
                     </div>
                   )}
                 </div>
-                <p className="hint">Isso ajuda a preparar sua pÃ¡gina de agendamento.</p>
+                <p className="hint">Isso ajuda a preparar sua Página de agendamento.</p>
               </div>
 
               <div>
-                <label className="label">Nome do negÃ³cio</label>
-                <input type="text" placeholder="Ex: Barbearia do JoÃ£o"
+                <label className="label">Nome do negócio</label>
+                <input type="text" placeholder="Ex: Barbearia do João"
                   value={nomeNegocio} onChange={e => setNomeNegocio(e.target.value)} className="input" />
               </div>
 
               <div>
                 <label className="label">Seu nome</label>
-                <input type="text" placeholder="Ex: JoÃ£o Silva"
+                <input type="text" placeholder="Ex: João Silva"
                   value={nomeUsuario} onChange={e => setNomeUsuario(e.target.value)} className="input" />
               </div>
 
@@ -452,7 +452,7 @@ export default function Cadastro() {
                 <div className="senha-wrap">
                   <input
                     type={mostrarSenha ? 'text' : 'password'}
-                    placeholder="MÃ­nimo 6 caracteres"
+                    placeholder="Mínimo 6 caracteres"
                     value={senha} onChange={e => setSenha(e.target.value)}
                     className="input" />
                   <button className="olho" type="button" onClick={() => setMostrarSenha(!mostrarSenha)}>
@@ -480,7 +480,7 @@ export default function Cadastro() {
             </button>
 
             <p className="link-login">
-              JÃ¡ tem conta? <a href="/login">Entrar</a>
+              Já tem conta? <a href="/login">Entrar</a>
             </p>
           </div>
         </div>
@@ -501,7 +501,7 @@ export default function Cadastro() {
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#374151" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
         </svg>
-        Seus dados estÃ£o protegidos com seguranÃ§a de nÃ­vel empresarial.
+        Seus dados estão protegidos com segurança de nível empresarial.
       </div>
     </div>
   )
