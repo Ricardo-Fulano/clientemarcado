@@ -5,9 +5,9 @@ import { supabase } from '../lib/supabase'
 const TIPOS_NEGOCIO = [
   'Barbearia',
   'Salão de beleza',
-  'Clínica estética',
-  'Clínica odontológica',
-  'Clínica médica / consultório',
+  'ClÃ­nica estética',
+  'ClÃ­nica odontológica',
+  'ClÃ­nica médica / consultório',
   'Consultoria / atendimento profissional',
   'Outro',
 ]
@@ -89,9 +89,9 @@ export default function Cadastro() {
       flex-direction: column;
     }
 
-    /* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-       BASE = MOBILE  (coluna Ãºnica)
-    â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+    /* Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
+       BASE = MOBILE  (coluna ÃƒÂºnica)
+    Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â */
 
     /* Esconde lado esquerdo (desktop only) */
     .col-esquerda { display: none; }
@@ -105,7 +105,7 @@ export default function Cadastro() {
       gap: 0;
     }
 
-    /* â”€â”€ Logo mobile â”€â”€ */
+    /* Ã¢â€â‚¬Ã¢â€â‚¬ Logo mobile Ã¢â€â‚¬Ã¢â€â‚¬ */
     .logo-bloco {
       width: 100%;
       max-width: 480px;
@@ -126,7 +126,7 @@ export default function Cadastro() {
       color: #F1F5F9; letter-spacing: -0.02em;
     }
 
-    /* â”€â”€ Headline mobile â”€â”€ */
+    /* Ã¢â€â‚¬Ã¢â€â‚¬ Headline mobile Ã¢â€â‚¬Ã¢â€â‚¬ */
     .headline-bloco {
       width: 100%;
       max-width: 480px;
@@ -142,14 +142,14 @@ export default function Cadastro() {
       font-size: 14px; color: #6B7280; line-height: 1.55;
     }
 
-    /* â”€â”€ Formulário mobile â”€â”€ */
+    /* Ã¢â€â‚¬Ã¢â€â‚¬ FormulÃ¡rio mobile Ã¢â€â‚¬Ã¢â€â‚¬ */
     .form-bloco {
       width: 100%;
       max-width: 480px;
       margin-bottom: 20px;
     }
 
-    /* â”€â”€ Benefícios mobile (abaixo do form) â”€â”€ */
+    /* Ã¢â€â‚¬Ã¢â€â‚¬ BenefÃ­cios mobile (abaixo do form) Ã¢â€â‚¬Ã¢â€â‚¬ */
     .beneficios-mobile {
       width: 100%;
       max-width: 480px;
@@ -177,9 +177,9 @@ export default function Cadastro() {
       font-size: 13px; font-weight: 600; color: #D1D5DB;
     }
 
-    /* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-       DESKTOP (â‰¥ 900px) â€” 2 colunas
-    â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+    /* Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
+       DESKTOP (Ã¢â€°Â¥ 900px) Ã¢â‚¬â€ 2 colunas
+    Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â */
     @media (min-width: 900px) {
 
       /* Ativa coluna esquerda */
@@ -204,7 +204,7 @@ export default function Cadastro() {
         gap: 64px;
       }
 
-      /* Coluna direita (Formulário) */
+      /* Coluna direita (FormulÃ¡rio) */
       .form-bloco {
         flex: 1;
         max-width: 480px;
@@ -218,7 +218,7 @@ export default function Cadastro() {
       }
     }
 
-    /* â”€â”€ Desktop: logo esquerda â”€â”€ */
+    /* Ã¢â€â‚¬Ã¢â€â‚¬ Desktop: logo esquerda Ã¢â€â‚¬Ã¢â€â‚¬ */
     .desk-logo-row {
       display: flex; align-items: center; gap: 10px;
     }
@@ -256,7 +256,7 @@ export default function Cadastro() {
     .desk-beneficio-titulo { font-size: 14px; font-weight: 700; color: #F1F5F9; margin-bottom: 3px; }
     .desk-beneficio-desc   { font-size: 13px; color: #6B7280; line-height: 1.45; }
 
-    /* â”€â”€ Card Formulário â”€â”€ */
+    /* Ã¢â€â‚¬Ã¢â€â‚¬ Card FormulÃ¡rio Ã¢â€â‚¬Ã¢â€â‚¬ */
     .card {
       background: linear-gradient(180deg, rgba(16,20,30,0.98) 0%, rgba(10,12,18,0.98) 100%);
       border: 1px solid rgba(255,255,255,0.09);
@@ -271,7 +271,7 @@ export default function Cadastro() {
     .card-titulo { font-size: 19px; font-weight: 800; color: #F1F5F9; letter-spacing: -0.02em; margin-bottom: 3px; }
     .card-sub    { font-size: 13px; color: #6B7280; margin-bottom: 22px; }
 
-    /* â”€â”€ Campos â”€â”€ */
+    /* Ã¢â€â‚¬Ã¢â€â‚¬ Campos Ã¢â€â‚¬Ã¢â€â‚¬ */
     .campos { display: flex; flex-direction: column; gap: 14px; margin-bottom: 20px; }
     .label {
       display: block; font-size: 11px; font-weight: 600;
@@ -310,7 +310,7 @@ export default function Cadastro() {
     }
     .olho:hover { color: #9CA3AF; }
 
-    /* â”€â”€ Botão â”€â”€ */
+    /* Ã¢â€â‚¬Ã¢â€â‚¬ BotÃ£o Ã¢â€â‚¬Ã¢â€â‚¬ */
     .btn-criar {
       width: 100%;
       background: #3B82F6; color: #fff;
@@ -327,16 +327,16 @@ export default function Cadastro() {
     .btn-criar:hover   { background: #2563EB; box-shadow: 0 4px 28px rgba(59,130,246,0.5); }
     .btn-criar:disabled { opacity: 0.6; cursor: not-allowed; }
 
-    /* â”€â”€ Link login â”€â”€ */
+    /* Ã¢â€â‚¬Ã¢â€â‚¬ Link login Ã¢â€â‚¬Ã¢â€â‚¬ */
     .link-login { text-align: center; font-size: 13px; color: #4B5563; }
     .link-login a { color: #3B82F6; font-weight: 600; text-decoration: none; }
     .link-login a:hover { text-decoration: underline; }
 
-    /* â”€â”€ Mensagens â”€â”€ */
+    /* Ã¢â€â‚¬Ã¢â€â‚¬ Mensagens Ã¢â€â‚¬Ã¢â€â‚¬ */
     .msg-ok  { background: rgba(34,197,94,0.08); border: 1px solid rgba(34,197,94,0.2); border-radius: 10px; padding: 11px 14px; font-size: 13px; color: #22C55E; margin-bottom: 14px; text-align: center; }
     .msg-err { background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.2); border-radius: 10px; padding: 11px 14px; font-size: 13px; color: #EF4444; margin-bottom: 14px; text-align: center; }
 
-    /* â”€â”€ Footer â”€â”€ */
+    /* Ã¢â€â‚¬Ã¢â€â‚¬ Footer Ã¢â€â‚¬Ã¢â€â‚¬ */
     .footer {
       text-align: center; padding: 16px;
       font-size: 12px; color: #374151;
@@ -350,7 +350,7 @@ export default function Cadastro() {
 
       <div className="pg-body">
 
-        {/* â•â• COLUNA ESQUERDA â€” sÃ³ desktop â•â• */}
+        {/* Ã¢â€¢ÂÃ¢â€¢Â COLUNA ESQUERDA Ã¢â‚¬â€ sÃƒÂ³ desktop Ã¢â€¢ÂÃ¢â€¢Â */}
         <div className="col-esquerda">
           <div className="desk-logo-row">
             <div className="desk-logo-icone"><CalIcon /></div>
@@ -363,7 +363,7 @@ export default function Cadastro() {
             </h1>
             <p className="desk-hero-sub">
               Seu cliente agenda sozinho.<br />
-              Você controla tudo pelo painel.
+              VocÃª controla tudo pelo painel.
             </p>
           </div>
 
@@ -380,7 +380,7 @@ export default function Cadastro() {
           </div>
         </div>
 
-        {/* â•â• BLOCOS MOBILE (somem no desktop) â•â• */}
+        {/* Ã¢â€¢ÂÃ¢â€¢Â BLOCOS MOBILE (somem no desktop) Ã¢â€¢ÂÃ¢â€¢Â */}
 
         {/* 1. Logo */}
         <div className="logo-bloco">
@@ -390,15 +390,15 @@ export default function Cadastro() {
 
         {/* 2. Headline */}
         <div className="headline-bloco">
-          <h1 className="headline-titulo">Crie sua conta grátis</h1>
+          <h1 className="headline-titulo">Crie sua conta grÃ¡tis</h1>
           <p className="headline-sub">Configure sua Página de agendamento em poucos minutos.</p>
         </div>
 
-        {/* 3. Formulário */}
+        {/* 3. FormulÃ¡rio */}
         <div className="form-bloco">
           <div className="card">
-            <p className="card-titulo">Criar conta grátis</p>
-            <p className="card-sub">É rápido, fácil e sem compromisso.</p>
+            <p className="card-titulo">Criar conta grÃ¡tis</p>
+            <p className="card-sub">Ã‰ rÃ¡pido, fÃ¡cil e sem compromisso.</p>
 
             <div className="campos">
               <div>
@@ -431,13 +431,13 @@ export default function Cadastro() {
 
               <div>
                 <label className="label">Nome do negócio</label>
-                <input type="text" placeholder="Ex: Barbearia do João"
+                <input type="text" placeholder="Ex: Barbearia do JoÃ£o"
                   value={nomeNegocio} onChange={e => setNomeNegocio(e.target.value)} className="input" />
               </div>
 
               <div>
                 <label className="label">Seu nome</label>
-                <input type="text" placeholder="Ex: João Silva"
+                <input type="text" placeholder="Ex: JoÃ£o Silva"
                   value={nomeUsuario} onChange={e => setNomeUsuario(e.target.value)} className="input" />
               </div>
 
@@ -452,7 +452,7 @@ export default function Cadastro() {
                 <div className="senha-wrap">
                   <input
                     type={mostrarSenha ? 'text' : 'password'}
-                    placeholder="Mínimo 6 caracteres"
+                    placeholder="MÃ­nimo 6 caracteres"
                     value={senha} onChange={e => setSenha(e.target.value)}
                     className="input" />
                   <button className="olho" type="button" onClick={() => setMostrarSenha(!mostrarSenha)}>
@@ -480,12 +480,12 @@ export default function Cadastro() {
             </button>
 
             <p className="link-login">
-              Já tem conta? <a href="/login">Entrar</a>
+              JÃ¡ tem conta? <a href="/login">Entrar</a>
             </p>
           </div>
         </div>
 
-        {/* 4. Benefícios mobile (abaixo do form) */}
+        {/* 4. BenefÃ­cios mobile (abaixo do form) */}
         <div className="beneficios-mobile">
           {BENEFICIOS.map(b => (
             <div key={b.titulo} className="beneficio-mobile-item">
@@ -501,7 +501,7 @@ export default function Cadastro() {
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#374151" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
         </svg>
-        Seus dados estão protegidos com segurança de nível empresarial.
+        Seus dados estÃ£o protegidos com seguranÃ§a de nÃ­vel empresarial.
       </div>
     </div>
   )
