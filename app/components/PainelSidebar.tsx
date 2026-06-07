@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
@@ -37,8 +37,8 @@ const CSS = `
 .psb-main{margin-left:240px;flex:1;min-height:100vh;width:calc(100% - 240px);max-width:calc(100% - 240px)}
 @media(max-width:1023px){
   .psb{display:none!important}
-  .psb-main{margin-left:0!important;width:100%!important;max-width:100%!important;min-width:0!important;overflow-x:hidden!important;box-sizing:border-box!important;padding-top:56px!important}
-  .psb-mhdr{display:flex!important;position:fixed!important;top:0!important;left:0!important;right:0!important;width:100%!important;z-index:20!important}
+  .psb-main{margin-left:0!important;width:100%!important;max-width:100%!important}
+  .psb-mhdr{display:flex!important}
 }
 `
 
