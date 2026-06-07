@@ -64,6 +64,10 @@ export default function Cadastro() {
   const [mensagem, setMensagem] = useState('')
 
   async function handleCadastro() {
+    if (typeof window !== 'undefined' && localStorage.getItem('clienteMarcadoAceitePlano') !== 'true') {
+      setMensagem('Para criar sua conta, aceite primeiro o contrato do plano.')
+      return
+    }
     setLoading(true)
     setMensagem('')
     const { error } = await supabase.auth.signUp({
@@ -79,7 +83,7 @@ export default function Cadastro() {
   const css = `
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-    body { background: #050B16; }
+    body { background: #08080A; }
 
     .pg { min-height: 100vh; background: radial-gradient(circle at 20% 20%,rgba(59,130,246,.12),transparent 30%),radial-gradient(circle at 80% 15%,rgba(124,58,237,.14),transparent 32%),#050B16;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;

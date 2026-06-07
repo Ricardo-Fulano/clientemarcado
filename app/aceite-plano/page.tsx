@@ -3,20 +3,20 @@ import { useState } from 'react'
 import Link from 'next/link'
 
 const CLAUSULAS = [
-  { t: '1. Contratante', c: 'Pessoa fisica ou juridica que realiza o cadastro e utiliza a plataforma ClienteMarcado.' },
-  { t: '2. Contratada', c: 'ClienteMarcado, plataforma digital de gestao para pequenos negocios.' },
-  { t: '3. Objeto', c: 'Disponibilizacao de acesso a plataforma ClienteMarcado para gestao de agenda, clientes, servicos, profissionais, orcamentos, cobrancas, pagamentos, relatorios e pagina publica de agendamento.' },
-  { t: '4. Plano', c: 'Plano ClienteMarcado no valor de R$ 79,90/mes, com 7 dias gratis, sem fidelidade.' },
-  { t: '5. Teste gratis', c: 'O contratante podera utilizar a plataforma por 7 dias gratuitamente. Apos esse periodo, podera ocorrer cobranca da assinatura mensal, caso o cancelamento nao seja realizado.' },
-  { t: '6. Pagamento', c: 'O pagamento da assinatura sera feito conforme a forma de pagamento escolhida no momento da contratacao.' },
-  { t: '7. Cancelamento', c: 'O contratante podera cancelar a assinatura quando desejar, respeitando as regras apresentadas no fluxo de contratacao.' },
-  { t: '8. Uso da plataforma', c: 'O contratante deve utilizar a plataforma de forma licita, correta e responsavel, mantendo seus dados atualizados.' },
-  { t: '9. Dados cadastrados', c: 'O contratante e responsavel pelos dados dos clientes, pacientes, profissionais, servicos, valores, horarios, orcamentos e pagamentos inseridos no sistema.' },
-  { t: '10. Limitacao de responsabilidade', c: 'O ClienteMarcado e uma ferramenta de organizacao e gestao. A plataforma nao substitui consultoria contabil, juridica, fiscal, odontologica, medica ou financeira.' },
-  { t: '11. Suporte', c: 'O suporte sera fornecido conforme os canais disponiveis pela plataforma.' },
-  { t: '12. Aceite eletronico', c: 'O aceite eletronico por checkbox, botao de confirmacao ou continuidade no cadastro tera validade como manifestacao de concordancia com este contrato.' },
-  { t: '13. Atualizacoes', c: 'O ClienteMarcado podera atualizar este contrato, funcionalidades e condicoes da plataforma.' },
-  { t: '14. Foro', c: 'As partes elegem o foro competente conforme a legislacao aplicavel, salvo disposicao legal em contrario.' },
+  { t: '1. Contratante', c: 'Pessoa física ou jurídica que realiza o cadastro e utiliza a plataforma ClienteMarcado.' },
+  { t: '2. Contratada', c: 'ClienteMarcado, plataforma digital de gestão para pequenos negócios.' },
+  { t: '3. Objeto', c: 'Disponibilização de acesso a plataforma ClienteMarcado para gestão de agenda, clientes, servicos, profissionais, orçamentos, cobranças, pagamentos, relatórios e página pública de agendamento.' },
+  { t: '4. Plano', c: 'Plano ClienteMarcado no valor de R$ 79,90/mês, com 7 dias grátis, sem fidelidade.' },
+  { t: '5. Teste grátis', c: 'O contratante poderá utilizar a plataforma por 7 dias gratuitamente. Após esse período, poderá ocorrer cobranca da assinatura mensal, caso o cancelamento não seja realizado.' },
+  { t: '6. Pagamento', c: 'O pagamento da assinatura sera feito conforme a forma de pagamento escolhida no momento da contratação.' },
+  { t: '7. Cancelamento', c: 'O contratante poderá cancelar a assinatura quando desejar, respeitando as regras apresentadas no fluxo de contratação.' },
+  { t: '8. Uso da plataforma', c: 'O contratante deve utilizar a plataforma de forma lícita, correta e responsável, mantendo seus dados atualizados.' },
+  { t: '9. Dados cadastrados', c: 'O contratante e responsável pelos dados dos clientes, pacientes, profissionais, servicos, valores, horários, orçamentos e pagamentos inseridos no sistema.' },
+  { t: '10. Limitacao de responsabilidade', c: 'O ClienteMarcado e uma ferramenta de organização e gestão. A plataforma não substitui consultoria contábil, jurídica, fiscal, odontológica, medica ou financeira.' },
+  { t: '11. Suporte', c: 'O suporte sera fornecido conforme os canais disponíveis pela plataforma.' },
+  { t: '12. Aceite eletronico', c: 'O aceite eletronico por checkbox, botao de confirmacao ou continuidade no cadastro tera validade como manifestação de concordância com este contrato.' },
+  { t: '13. Atualizacoes', c: 'O ClienteMarcado poderá atualizar este contrato, funcionalidades e condições da plataforma.' },
+  { t: '14. Foro', c: 'As partes elegem o foro competente conforme a legislacao aplicável, salvo disposição legal em contrário.' },
 ]
 
 const CSS = `
@@ -64,7 +64,7 @@ export default function AceitePlano() {
     try {
       localStorage.setItem('clienteMarcadoAceitePlano', 'true')
       localStorage.setItem('clienteMarcadoAceiteData', new Date().toISOString())
-      localStorage.setItem('clienteMarcadoAceiteVersao', '1.0')
+      localStorage.setItem('clienteMarcadoAceiteVersão', '1.0')
     } catch (_) {}
     window.location.href = '/cadastro'
   }
@@ -111,22 +111,22 @@ export default function AceitePlano() {
             </div>
           </div>
           <div style={{ borderTop: '1px solid rgba(148,163,184,.10)', paddingTop: '14px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
-            {['Agenda e agendamento online', 'Clientes e profissionais', 'Orcamentos e cobrancas', 'Pagamentos e relatorios', 'Pagina publica de agendamento', 'Suporte por WhatsApp'].map(i => (
+            {['Agenda e agendamento online', 'Clientes e profissionais', 'Orçamentos e cobranças', 'Pagamentos e relatórios', 'Página pública de agendamento', 'Suporte por WhatsApp'].map(i => (
               <div key={i} style={{ display: 'flex', gap: '6px', alignItems: 'center', fontSize: '12px', color: '#94A3B8' }}>
                 <span style={{ color: '#4ADE80', flexShrink: 0 }}>✓</span>{i}
               </div>
             ))}
           </div>
           <div style={{ marginTop: '14px', padding: '10px 14px', background: 'rgba(245,158,11,.08)', border: '1px solid rgba(245,158,11,.22)', borderRadius: '10px', fontSize: '12px', color: '#FCD34D', lineHeight: 1.6 }}>
-            ⚠ Voce podera testar gratuitamente por 7 dias. Apos esse periodo, podera ser cobrado R$ 79,90/mes, caso nao cancele antes.
+            ⚠ Você poderá testar gratuitamente por 7 dias. Após esse período, poderá ser cobrado R$ 79,90/mês, caso não cancele antes.
           </div>
         </div>
 
         {/* Card do contrato */}
         <div className="card">
           <div style={{ marginBottom: '16px' }}>
-            <p style={{ fontSize: '16px', fontWeight: 700, color: '#F8FAFC', marginBottom: '4px' }}>Contrato de Adesao</p>
-            <p style={{ fontSize: '12px', color: '#64748B' }}>Leia os principais termos antes de continuar. · Versao 1.0</p>
+            <p style={{ fontSize: '16px', fontWeight: 700, color: '#F8FAFC', marginBottom: '4px' }}>Contrato de Adesão</p>
+            <p style={{ fontSize: '12px', color: '#64748B' }}>Leia os principais termos antes de continuar. · Versão 1.0</p>
           </div>
           <div className="contrato-scroll">
             {CLAUSULAS.map(c => (
@@ -140,13 +140,13 @@ export default function AceitePlano() {
 
         {/* Card de aceite */}
         <div className="card">
-          <p style={{ fontSize: '15px', fontWeight: 700, color: '#F8FAFC', marginBottom: '16px' }}>Confirmacao de aceite</p>
+          <p style={{ fontSize: '15px', fontWeight: 700, color: '#F8FAFC', marginBottom: '16px' }}>Confirmação de aceite</p>
 
           <div className="chk-row" onClick={() => { setC1(!c1); setErro('') }}>
             <div className={'chk-box' + (c1 ? ' on' : '')}>
               {c1 && <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>}
             </div>
-            <p style={{ fontSize: '13px', color: '#CBD5E1', lineHeight: 1.5 }}>Li e aceito o <Link href="/contrato-de-adesao" target="_blank" onClick={e => e.stopPropagation()} style={{ color: '#7C3AED', fontWeight: 600 }}>Contrato de Adesao</Link> do ClienteMarcado.</p>
+            <p style={{ fontSize: '13px', color: '#CBD5E1', lineHeight: 1.5 }}>Li e aceito o <Link href="/contrato-de-adesao" target="_blank" onClick={e => e.stopPropagation()} style={{ color: '#7C3AED', fontWeight: 600 }}>Contrato de Adesão</Link> do ClienteMarcado.</p>
           </div>
 
           <div className="chk-row" onClick={() => { setC2(!c2); setErro('') }}>
@@ -160,7 +160,7 @@ export default function AceitePlano() {
             <div className={'chk-box' + (c3 ? ' on' : '')}>
               {c3 && <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>}
             </div>
-            <p style={{ fontSize: '13px', color: '#CBD5E1', lineHeight: 1.5 }}>Estou ciente de que o plano possui 7 dias gratis e, apos esse periodo, poderei ser cobrado R$ 79,90/mes, caso nao cancele antes.</p>
+            <p style={{ fontSize: '13px', color: '#CBD5E1', lineHeight: 1.5 }}>Estou ciente de que o plano possui 7 dias grátis e, após esse período, poderei ser cobrado R$ 79,90/mês, caso não cancele antes.</p>
           </div>
 
           {erro && <div className="msg-err">{erro}</div>}
