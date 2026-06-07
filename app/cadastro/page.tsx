@@ -3,8 +3,13 @@ import { useState } from 'react'
 import { supabase } from '../lib/supabase'
 
 const TIPOS_NEGOCIO = [
-  'Barbearia', 'Salão de cabeleireiro', 'Clínica estética',
-  'Clínica odontológica', 'Clínica médica', 'Petshop', 'Outro'
+  'Barbearia',
+  'Salão de beleza',
+  'Clínica estética',
+  'Clínica odontológica',
+  'Clínica médica / consultório',
+  'Consultoria / atendimento profissional',
+  'Outro',
 ]
 
 const BENEFICIOS = [
