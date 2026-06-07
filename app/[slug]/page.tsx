@@ -253,3 +253,4 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
     </main>
   )
 }
+export const revalidate = 0
