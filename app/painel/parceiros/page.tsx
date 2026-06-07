@@ -6,7 +6,7 @@ import PainelSidebar from '@/app/components/PainelSidebar'
 const CSS = `
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html,body{overflow-x:hidden;width:100%;background:#050B16}
-.pg{min-height:100vh;background:radial-gradient(circle at top left,rgba(124,58,237,.12),transparent 32%),#07111F}
+.pg{min-height:100vh;width:100%;max-width:100%;box-sizing:border-box;overflow-x:hidden;background:radial-gradient(circle at top left,rgba(124,58,237,.12),transparent 32%),#07111F}
 .bdy{max-width:1200px;margin:0 auto;padding:28px 28px 80px;width:100%}
 .kpi{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:24px}
 .card{background:linear-gradient(145deg,rgba(15,23,42,.97),rgba(8,20,33,.99));border:1.5px solid rgba(148,163,184,.16);border-radius:18px;padding:20px}
@@ -22,7 +22,7 @@ html,body{overflow-x:hidden;width:100%;background:#050B16}
 .badge{display:inline-flex;align-items:center;padding:3px 10px;border-radius:999px;font-size:11px;font-weight:700}
 .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:50;display:flex;align-items:center;justify-content:center;padding:20px}
 .modal{background:#0F172A;border:1.5px solid rgba(148,163,184,.18);border-radius:22px;padding:32px;width:100%;max-width:500px;max-height:90vh;overflow-y:auto}
-@media(max-width:1023px){.bdy{padding:14px 14px 80px!important;max-width:100%!important;width:100%!important;box-sizing:border-box!important;overflow-x:hidden!important}.kpi{grid-template-columns:1fr 1fr!important}.btn-p,.btn-s,.btn-g{white-space:normal!important;font-size:11px!important;padding:6px 8px!important}.link-row{display:none!important}}
+@media(max-width:1023px){.psb-main{overflow-x:hidden!important;width:100%!important;max-width:100%!important;box-sizing:border-box!important}.pg{width:100%!important;overflow-x:hidden!important}.bdy{padding:14px 14px 80px!important;max-width:100%!important;width:100%!important;box-sizing:border-box!important;overflow-x:hidden!important}.kpi{grid-template-columns:1fr 1fr!important}.btn-p,.btn-s,.btn-g{white-space:normal!important;font-size:11px!important;padding:6px 8px!important}.link-row{display:none!important}}
 @media(max-width:480px){.kpi{grid-template-columns:1fr}}
 `
 
