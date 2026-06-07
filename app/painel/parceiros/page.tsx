@@ -8,7 +8,7 @@ const CSS = `
 html,body{overflow-x:hidden;width:100%;background:#050B16}
 .pg{min-height:100vh;width:100%;box-sizing:border-box;background:radial-gradient(circle at top left,rgba(124,58,237,.12),transparent 32%),#07111F}
 .bdy{max-width:1200px;margin:0 auto;padding:28px 28px 80px;width:100%;box-sizing:border-box;width:100%}
-.kpi{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:24px}
+.kpi{display:grid;grid-template-columns:repeat(5,1fr);min-width:0;overflow:hidden;gap:12px;margin-bottom:24px}
 .card{background:linear-gradient(145deg,rgba(15,23,42,.97),rgba(8,20,33,.99));border:1.5px solid rgba(148,163,184,.16);border-radius:18px;padding:20px}
 .inp{width:100%;background:rgba(15,23,42,.92);border:1.5px solid rgba(148,163,184,.18);border-radius:12px;padding:11px 14px;color:#F8FAFC;font-size:14px;outline:none;font-family:inherit;transition:border-color .2s}
 .inp:focus{border-color:#3B82F6;box-shadow:0 0 0 3px rgba(59,130,246,.14)}
@@ -22,7 +22,7 @@ html,body{overflow-x:hidden;width:100%;background:#050B16}
 .badge{display:inline-flex;align-items:center;padding:3px 10px;border-radius:999px;font-size:11px;font-weight:700}
 .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:50;display:flex;align-items:center;justify-content:center;padding:20px}
 .modal{background:#0F172A;border:1.5px solid rgba(148,163,184,.18);border-radius:22px;padding:32px;width:100%;max-width:500px;max-height:90vh;overflow-y:auto}
-@media(max-width:1023px){.bdy{padding:14px 14px 80px!important;max-width:100%!important;width:100%!important;box-sizing:border-box!important;overflow-x:hidden!important}.kpi{grid-template-columns:1fr 1fr!important;width:100%!important}.card{width:100%!important;box-sizing:border-box!important}}
+@media(max-width:1023px){.pg{overflow-x:hidden!important;width:100%!important}.bdy{padding:14px 14px 80px!important;max-width:100%!important;width:100%!important;box-sizing:border-box!important;overflow-x:hidden!important}.kpi{grid-template-columns:1fr 1fr!important;width:100%!important}.card{width:100%!important;box-sizing:border-box!important}}
 @media(max-width:480px){.kpi{grid-template-columns:1fr}}
 `
 
