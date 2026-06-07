@@ -16,6 +16,7 @@ const LINKS = [
   { h: '/painel/servicos',      l: 'Serviços'      },
   { h: '/painel/profissionais', l: 'Profissionais' },
   { h: '/painel/relatorio',     l: 'Relatórios'    },
+  { h: '/painel/parceiros',     l: 'Parceiros'     },
   { h: '/painel/suporte',       l: 'Suporte'       },
   { h: '/painel/perfil',        l: 'Configurações' },
 ]
