@@ -242,7 +242,7 @@ export default function Parceiros() {
                           <button className="btn-s" onClick={() => toggleAtivo(p)} style={{ color: p.ativo ? '#F87171' : '#4ADE80' }}>{p.ativo ? 'Desativar' : 'Ativar'}</button>
                         </div>
                       </div>
-                      <div style={{ padding: '8px 12px', background: 'rgba(255,255,255,.04)', className: 'link-row', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                      <div style={{ padding: '8px 12px', background: 'rgba(255,255,255,.04)', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
                         <span style={{ fontSize: '11px', color: '#475569' }}>Link:</span>
                         <span style={{ fontSize: '11px', color: '#64748B', fontFamily: 'monospace', wordBreak: 'break-all', overflowWrap: 'break-word', maxWidth: '100%' }}>{link}</span>
                       </div>
