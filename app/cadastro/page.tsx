@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 import { useState } from 'react'
 import { supabase } from '../lib/supabase'
 
@@ -398,7 +398,7 @@ export default function Cadastro() {
         <div className="form-bloco">
           <div className="card">
             <p className="card-titulo">Criar conta grÃ¡tis</p>
-            <p className="card-sub">Ã‰ rÃ¡pido, fÃ¡cil e sem compromisso.</p>
+            <p className="card-sub">É rÃ¡pido, fÃ¡cil e sem compromisso.</p>
 
             <div className="campos">
               <div>
