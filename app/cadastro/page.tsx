@@ -56,12 +56,29 @@ export default function Cadastro() {
   const [nomeNegocio, setNomeNegocio] = useState('')
   const [tipoNegocio, setTipoNegocio] = useState('')
   const [dropOpen, setDropOpen] = useState(false)
+  const [cupom, setCupom] = useState('')
+  const [cupomStatus, setCupomStatus] = useState<'idle'|'ok'|'erro'>('idle')
   const [nomeUsuario, setNomeUsuario] = useState('')
   const [email, setEmail] = useState('')
   const [senha, setSenha] = useState('')
   const [mostrarSenha, setMostrarSenha] = useState(false)
   const [loading, setLoading] = useState(false)
   const [mensagem, setMensagem] = useState('')
+
+    async function validarCupom(c: string) {
+    if (!c) { setCupomStatus('idle'); return }
+    const { data } = await supabase.from('parceiros').select('id').eq('cupom', c).eq('ativo', true).single()
+    setCupomStatus(data ? 'ok' : 'erro')
+  }
+
+  // Preencher cupom da URL
+  if (typeof window !== 'undefined') {
+    const urlCupom = new URLSearchParams(window.location.search).get('cupom')
+    if (urlCupom && !cupom) setTimeout(() => {
+      setCupom(urlCupom.toUpperCase())
+      validarCupom(urlCupom.toUpperCase())
+    }, 0)
+  }
 
   async function handleCadastro() {
     if (typeof window !== 'undefined' && localStorage.getItem('clienteMarcadoAceitePlano') !== 'true') {
@@ -73,7 +90,7 @@ export default function Cadastro() {
     const { error } = await supabase.auth.signUp({
       email,
       password: senha,
-      options: { data: { nome_negocio: nomeNegocio, tipo_negocio: tipoNegocio, nome_usuario: nomeUsuario } }
+      options: { data: { nome_negocio: nomeNegocio, tipo_negocio: tipoNegocio, nome_usuario: nomeUsuario, cupom_indicacao: cupom || null } }
     })
     if (error) setMensagem('Erro: ' + error.message)
     else setMensagem('Conta criada! Verifique seu e-mail para confirmar.')
@@ -471,7 +488,18 @@ export default function Cadastro() {
               </div>
             )}
 
-            <button onClick={handleCadastro} disabled={loading} className="btn-criar">
+            <div style={{marginBottom:'16px'}}>
+            <label style={{display:'block',fontSize:'11px',fontWeight:700,color:'#94A3B8',textTransform:'uppercase' as const,letterSpacing:'.08em',marginBottom:'7px'}}>Cupom de indicação</label>
+            <input type="text" placeholder="Ex: JOAO" value={cupom}
+              onChange={e => { setCupom(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g,'')); setCupomStatus('idle') }}
+              onBlur={() => validarCupom(cupom)}
+              style={{width:'100%',background:'rgba(15,23,42,.92)',border:`1.5px solid ${cupomStatus==='ok'?'rgba(34,197,94,.5)':cupomStatus==='erro'?'rgba(239,68,68,.4)':'rgba(148,163,184,.18)'}`,borderRadius:'14px',padding:'13px 16px',color:'#F8FAFC',fontSize:'15px',outline:'none',fontFamily:'inherit',transition:'border-color .2s',boxSizing:'border-box' as const}} />
+            {cupomStatus==='ok'&&<p style={{fontSize:'11px',color:'#4ADE80',marginTop:'5px'}}>✓ Cupom de indicação aplicado com sucesso.</p>}
+            {cupomStatus==='erro'&&<p style={{fontSize:'11px',color:'#F87171',marginTop:'5px'}}>Cupom não encontrado. Você pode continuar sem cupom.</p>}
+            {cupomStatus==='idle'&&<p style={{fontSize:'11px',color:'#475569',marginTop:'5px'}}>Se recebeu um cupom de um parceiro, informe aqui. Campo opcional.</p>}
+          </div>
+
+          <button onClick={handleCadastro} disabled={loading} className="btn-criar">
               {loading ? 'Criando conta...' : (
                 <>
                   Criar minha conta
