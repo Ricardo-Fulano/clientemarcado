@@ -7,7 +7,7 @@ const CSS = `
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html,body{overflow-x:hidden;width:100%;background:#050B16}
 .pg{min-height:100vh;background:radial-gradient(circle at top left,rgba(124,58,237,.12),transparent 32%),#07111F}
-.bdy{max-width:1200px;margin:0 auto;padding:28px 28px 80px;width:100%}
+.bdy{max-width:1200px;margin:0 auto;padding:28px 28px 80px;width:100%;box-sizing:border-box;width:100%}
 .kpi{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:24px}
 .card{background:linear-gradient(145deg,rgba(15,23,42,.97),rgba(8,20,33,.99));border:1.5px solid rgba(148,163,184,.16);border-radius:18px;padding:20px}
 .inp{width:100%;background:rgba(15,23,42,.92);border:1.5px solid rgba(148,163,184,.18);border-radius:12px;padding:11px 14px;color:#F8FAFC;font-size:14px;outline:none;font-family:inherit;transition:border-color .2s}
