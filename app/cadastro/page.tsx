@@ -15,18 +15,18 @@ const TIPOS_NEGOCIO = [
 const BENEFICIOS = [
   {
     icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>,
-    titulo: 'Página de agendamento pronta',
-    desc: 'Seu negócio online em minutos, com sua cara e seu horário.',
+    titulo: 'PÃ¡gina de agendamento pronta',
+    desc: 'Seu negÃ³cio online em minutos, com sua cara e seu horÃ¡rio.',
   },
   {
     icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>,
     titulo: 'Agenda organizada',
-    desc: 'Receba agendamentos, evite conflitos e nunca mais perca horários.',
+    desc: 'Receba agendamentos, evite conflitos e nunca mais perca horÃ¡rios.',
   },
   {
     icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>,
     titulo: 'Painel simples para acompanhar',
-    desc: 'Veja agendamentos, clientes e resultados de forma clara e prática.',
+    desc: 'Veja agendamentos, clientes e resultados de forma clara e prÃ¡tica.',
   },
 ]
 
@@ -55,6 +55,7 @@ const EyeOffIcon = () => (
 export default function Cadastro() {
   const [nomeNegocio, setNomeNegocio] = useState('')
   const [tipoNegocio, setTipoNegocio] = useState('')
+  const [dropOpen, setDropOpen] = useState(false)
   const [nomeUsuario, setNomeUsuario] = useState('')
   const [email, setEmail] = useState('')
   const [senha, setSenha] = useState('')
@@ -88,9 +89,9 @@ export default function Cadastro() {
       flex-direction: column;
     }
 
-    /* ══════════════════════════════
-       BASE = MOBILE  (coluna única)
-    ══════════════════════════════ */
+    /* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+       BASE = MOBILE  (coluna Ãºnica)
+    â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 
     /* Esconde lado esquerdo (desktop only) */
     .col-esquerda { display: none; }
@@ -104,7 +105,7 @@ export default function Cadastro() {
       gap: 0;
     }
 
-    /* ── Logo mobile ── */
+    /* â”€â”€ Logo mobile â”€â”€ */
     .logo-bloco {
       width: 100%;
       max-width: 480px;
@@ -125,7 +126,7 @@ export default function Cadastro() {
       color: #F1F5F9; letter-spacing: -0.02em;
     }
 
-    /* ── Headline mobile ── */
+    /* â”€â”€ Headline mobile â”€â”€ */
     .headline-bloco {
       width: 100%;
       max-width: 480px;
@@ -141,14 +142,14 @@ export default function Cadastro() {
       font-size: 14px; color: #6B7280; line-height: 1.55;
     }
 
-    /* ── Formulário mobile ── */
+    /* â”€â”€ FormulÃ¡rio mobile â”€â”€ */
     .form-bloco {
       width: 100%;
       max-width: 480px;
       margin-bottom: 20px;
     }
 
-    /* ── Benefícios mobile (abaixo do form) ── */
+    /* â”€â”€ BenefÃ­cios mobile (abaixo do form) â”€â”€ */
     .beneficios-mobile {
       width: 100%;
       max-width: 480px;
@@ -176,9 +177,9 @@ export default function Cadastro() {
       font-size: 13px; font-weight: 600; color: #D1D5DB;
     }
 
-    /* ══════════════════════════════
-       DESKTOP (≥ 900px) — 2 colunas
-    ══════════════════════════════ */
+    /* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+       DESKTOP (â‰¥ 900px) â€” 2 colunas
+    â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
     @media (min-width: 900px) {
 
       /* Ativa coluna esquerda */
@@ -203,7 +204,7 @@ export default function Cadastro() {
         gap: 64px;
       }
 
-      /* Coluna direita (formulário) */
+      /* Coluna direita (formulÃ¡rio) */
       .form-bloco {
         flex: 1;
         max-width: 480px;
@@ -217,7 +218,7 @@ export default function Cadastro() {
       }
     }
 
-    /* ── Desktop: logo esquerda ── */
+    /* â”€â”€ Desktop: logo esquerda â”€â”€ */
     .desk-logo-row {
       display: flex; align-items: center; gap: 10px;
     }
@@ -255,7 +256,7 @@ export default function Cadastro() {
     .desk-beneficio-titulo { font-size: 14px; font-weight: 700; color: #F1F5F9; margin-bottom: 3px; }
     .desk-beneficio-desc   { font-size: 13px; color: #6B7280; line-height: 1.45; }
 
-    /* ── Card formulário ── */
+    /* â”€â”€ Card formulÃ¡rio â”€â”€ */
     .card {
       background: linear-gradient(180deg, rgba(16,20,30,0.98) 0%, rgba(10,12,18,0.98) 100%);
       border: 1px solid rgba(255,255,255,0.09);
@@ -270,7 +271,7 @@ export default function Cadastro() {
     .card-titulo { font-size: 19px; font-weight: 800; color: #F1F5F9; letter-spacing: -0.02em; margin-bottom: 3px; }
     .card-sub    { font-size: 13px; color: #6B7280; margin-bottom: 22px; }
 
-    /* ── Campos ── */
+    /* â”€â”€ Campos â”€â”€ */
     .campos { display: flex; flex-direction: column; gap: 14px; margin-bottom: 20px; }
     .label {
       display: block; font-size: 11px; font-weight: 600;
@@ -309,7 +310,7 @@ export default function Cadastro() {
     }
     .olho:hover { color: #9CA3AF; }
 
-    /* ── Botão ── */
+    /* â”€â”€ BotÃ£o â”€â”€ */
     .btn-criar {
       width: 100%;
       background: #3B82F6; color: #fff;
@@ -326,16 +327,16 @@ export default function Cadastro() {
     .btn-criar:hover   { background: #2563EB; box-shadow: 0 4px 28px rgba(59,130,246,0.5); }
     .btn-criar:disabled { opacity: 0.6; cursor: not-allowed; }
 
-    /* ── Link login ── */
+    /* â”€â”€ Link login â”€â”€ */
     .link-login { text-align: center; font-size: 13px; color: #4B5563; }
     .link-login a { color: #3B82F6; font-weight: 600; text-decoration: none; }
     .link-login a:hover { text-decoration: underline; }
 
-    /* ── Mensagens ── */
+    /* â”€â”€ Mensagens â”€â”€ */
     .msg-ok  { background: rgba(34,197,94,0.08); border: 1px solid rgba(34,197,94,0.2); border-radius: 10px; padding: 11px 14px; font-size: 13px; color: #22C55E; margin-bottom: 14px; text-align: center; }
     .msg-err { background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.2); border-radius: 10px; padding: 11px 14px; font-size: 13px; color: #EF4444; margin-bottom: 14px; text-align: center; }
 
-    /* ── Footer ── */
+    /* â”€â”€ Footer â”€â”€ */
     .footer {
       text-align: center; padding: 16px;
       font-size: 12px; color: #374151;
@@ -349,7 +350,7 @@ export default function Cadastro() {
 
       <div className="pg-body">
 
-        {/* ══ COLUNA ESQUERDA — só desktop ══ */}
+        {/* â•â• COLUNA ESQUERDA â€” sÃ³ desktop â•â• */}
         <div className="col-esquerda">
           <div className="desk-logo-row">
             <div className="desk-logo-icone"><CalIcon /></div>
@@ -362,7 +363,7 @@ export default function Cadastro() {
             </h1>
             <p className="desk-hero-sub">
               Seu cliente agenda sozinho.<br />
-              Você controla tudo pelo painel.
+              VocÃª controla tudo pelo painel.
             </p>
           </div>
 
@@ -379,7 +380,7 @@ export default function Cadastro() {
           </div>
         </div>
 
-        {/* ══ BLOCOS MOBILE (somem no desktop) ══ */}
+        {/* â•â• BLOCOS MOBILE (somem no desktop) â•â• */}
 
         {/* 1. Logo */}
         <div className="logo-bloco">
@@ -389,35 +390,54 @@ export default function Cadastro() {
 
         {/* 2. Headline */}
         <div className="headline-bloco">
-          <h1 className="headline-titulo">Crie sua conta grátis</h1>
-          <p className="headline-sub">Configure sua página de agendamento em poucos minutos.</p>
+          <h1 className="headline-titulo">Crie sua conta grÃ¡tis</h1>
+          <p className="headline-sub">Configure sua pÃ¡gina de agendamento em poucos minutos.</p>
         </div>
 
-        {/* 3. Formulário */}
+        {/* 3. FormulÃ¡rio */}
         <div className="form-bloco">
           <div className="card">
-            <p className="card-titulo">Criar conta grátis</p>
-            <p className="card-sub">É rápido, fácil e sem compromisso.</p>
+            <p className="card-titulo">Criar conta grÃ¡tis</p>
+            <p className="card-sub">Ã‰ rÃ¡pido, fÃ¡cil e sem compromisso.</p>
 
             <div className="campos">
               <div>
-                <label className="label">Tipo de negócio</label>
-                <select value={tipoNegocio} onChange={e => setTipoNegocio(e.target.value)} className="input">
-                  <option value="">Selecione o tipo...</option>
-                  {TIPOS_NEGOCIO.map(t => <option key={t} value={t}>{t}</option>)}
-                </select>
-                <p className="hint">Isso ajuda a preparar sua página de agendamento.</p>
+                <label className="label">Tipo de negÃ³cio</label>
+                {/* Dropdown customizado dark premium */}
+                <div style={{position:'relative',width:'100%'}} onBlur={e=>{if(!e.currentTarget.contains(e.relatedTarget as Node))setDropOpen(false)}}>
+                  <button type="button" onClick={()=>setDropOpen(!dropOpen)}
+                    style={{width:'100%',background:'rgba(15,23,42,.92)',border:`1.5px solid ${dropOpen?'#3B82F6':'rgba(148,163,184,.18)'}`,borderRadius:'14px',padding:'13px 16px',color:tipoNegocio?'#F8FAFC':'#475569',fontSize:'15px',fontFamily:'inherit',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'space-between',gap:'8px',textAlign:'left' as const,transition:'border-color .2s',boxShadow:dropOpen?'0 0 0 3px rgba(59,130,246,.14)':'none'}}>
+                    <span>{tipoNegocio||'Selecione o tipo...'}</span>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{flexShrink:0,transition:'transform .2s',transform:dropOpen?'rotate(180deg)':'none',color:'#64748B'}}>
+                      <polyline points="6 9 12 15 18 9"/>
+                    </svg>
+                  </button>
+                  {dropOpen&&(
+                    <div style={{position:'absolute',top:'calc(100% + 6px)',left:0,right:0,background:'#0F172A',border:'1.5px solid rgba(59,130,246,.35)',borderRadius:'14px',padding:'6px',zIndex:50,boxShadow:'0 16px 40px rgba(0,0,0,.6)',overflow:'hidden'}}>
+                      {TIPOS_NEGOCIO.map(t=>(
+                        <button key={t} type="button" tabIndex={0}
+                          onClick={()=>{setTipoNegocio(t);setDropOpen(false)}}
+                          style={{width:'100%',padding:'10px 14px',background:tipoNegocio===t?'rgba(59,130,246,.22)':'transparent',border:'none',borderRadius:'10px',color:tipoNegocio===t?'#60A5FA':'#F8FAFC',fontSize:'14px',fontFamily:'inherit',cursor:'pointer',textAlign:'left' as const,transition:'background .12s',display:'block',fontWeight:tipoNegocio===t?600:400}}
+                          onMouseEnter={e=>(e.currentTarget.style.background=tipoNegocio===t?'rgba(59,130,246,.28)':'rgba(59,130,246,.10)')}
+                          onMouseLeave={e=>(e.currentTarget.style.background=tipoNegocio===t?'rgba(59,130,246,.22)':'transparent')}>
+                          {t}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                <p className="hint">Isso ajuda a preparar sua pÃ¡gina de agendamento.</p>
               </div>
 
               <div>
-                <label className="label">Nome do negócio</label>
-                <input type="text" placeholder="Ex: Barbearia do João"
+                <label className="label">Nome do negÃ³cio</label>
+                <input type="text" placeholder="Ex: Barbearia do JoÃ£o"
                   value={nomeNegocio} onChange={e => setNomeNegocio(e.target.value)} className="input" />
               </div>
 
               <div>
                 <label className="label">Seu nome</label>
-                <input type="text" placeholder="Ex: João Silva"
+                <input type="text" placeholder="Ex: JoÃ£o Silva"
                   value={nomeUsuario} onChange={e => setNomeUsuario(e.target.value)} className="input" />
               </div>
 
@@ -432,7 +452,7 @@ export default function Cadastro() {
                 <div className="senha-wrap">
                   <input
                     type={mostrarSenha ? 'text' : 'password'}
-                    placeholder="Mínimo 6 caracteres"
+                    placeholder="MÃ­nimo 6 caracteres"
                     value={senha} onChange={e => setSenha(e.target.value)}
                     className="input" />
                   <button className="olho" type="button" onClick={() => setMostrarSenha(!mostrarSenha)}>
@@ -460,12 +480,12 @@ export default function Cadastro() {
             </button>
 
             <p className="link-login">
-              Já tem conta? <a href="/login">Entrar</a>
+              JÃ¡ tem conta? <a href="/login">Entrar</a>
             </p>
           </div>
         </div>
 
-        {/* 4. Benefícios mobile (abaixo do form) */}
+        {/* 4. BenefÃ­cios mobile (abaixo do form) */}
         <div className="beneficios-mobile">
           {BENEFICIOS.map(b => (
             <div key={b.titulo} className="beneficio-mobile-item">
@@ -481,8 +501,9 @@ export default function Cadastro() {
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#374151" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
         </svg>
-        Seus dados estão protegidos com segurança de nível empresarial.
+        Seus dados estÃ£o protegidos com seguranÃ§a de nÃ­vel empresarial.
       </div>
     </div>
   )
 }
+
