@@ -79,18 +79,16 @@ export default function Cadastro() {
   const css = `
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-    body { background: #08080A; }
+    body { background: #050B16; }
 
-    .pg {
-      min-height: 100vh;
-      background: #08080A;
+    .pg { min-height: 100vh; background: radial-gradient(circle at 20% 20%,rgba(59,130,246,.12),transparent 30%),radial-gradient(circle at 80% 15%,rgba(124,58,237,.14),transparent 32%),#050B16;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       display: flex;
       flex-direction: column;
     }
 
     /* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-       BASE = MOBILE  (coluna Ãºnica)
+       BASE = MOBILE  (coluna única)
     â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 
     /* Esconde lado esquerdo (desktop only) */
@@ -142,14 +140,14 @@ export default function Cadastro() {
       font-size: 14px; color: #6B7280; line-height: 1.55;
     }
 
-    /* â”€â”€ FormulÃ¡rio mobile â”€â”€ */
+    /* â”€â”€ Formulário mobile â”€â”€ */
     .form-bloco {
       width: 100%;
       max-width: 480px;
       margin-bottom: 20px;
     }
 
-    /* â”€â”€ BenefÃ­cios mobile (abaixo do form) â”€â”€ */
+    /* â”€â”€ Benefícios mobile (abaixo do form) â”€â”€ */
     .beneficios-mobile {
       width: 100%;
       max-width: 480px;
@@ -204,7 +202,7 @@ export default function Cadastro() {
         gap: 64px;
       }
 
-      /* Coluna direita (formulÃ¡rio) */
+      /* Coluna direita (formulário) */
       .form-bloco {
         flex: 1;
         max-width: 480px;
@@ -256,9 +254,9 @@ export default function Cadastro() {
     .desk-beneficio-titulo { font-size: 14px; font-weight: 700; color: #F1F5F9; margin-bottom: 3px; }
     .desk-beneficio-desc   { font-size: 13px; color: #6B7280; line-height: 1.45; }
 
-    /* â”€â”€ Card formulÃ¡rio â”€â”€ */
+    /* â”€â”€ Card formulário â”€â”€ */
     .card {
-      background: linear-gradient(180deg, rgba(16,20,30,0.98) 0%, rgba(10,12,18,0.98) 100%);
+      background: radial-gradient(circle at top right,rgba(124,58,237,.08),transparent 35%),linear-gradient(180deg, rgba(16,20,30,0.98) 0%, rgba(10,12,18,0.98) 100%);
       border: 1px solid rgba(255,255,255,0.09);
       border-radius: 20px;
       padding: 24px 20px;
@@ -310,10 +308,11 @@ export default function Cadastro() {
     }
     .olho:hover { color: #9CA3AF; }
 
-    /* â”€â”€ BotÃ£o â”€â”€ */
+    /* â”€â”€ Botão â”€â”€ */
     .btn-criar {
       width: 100%;
-      background: #3B82F6; color: #fff;
+      background: linear-gradient(135deg,#3B82F6,#7C3AED); color: #fff;
+      box-shadow: 0 12px 28px rgba(59,130,246,.22); transition: all .18s;
       font-size: 15px; font-weight: 700;
       padding: 15px;
       border: none; border-radius: 12px; cursor: pointer;
@@ -350,7 +349,7 @@ export default function Cadastro() {
 
       <div className="pg-body">
 
-        {/* â•â• COLUNA ESQUERDA â€” sÃ³ desktop â•â• */}
+        {/* â•â• COLUNA ESQUERDA â€” só desktop â•â• */}
         <div className="col-esquerda">
           <div className="desk-logo-row">
             <div className="desk-logo-icone"><CalIcon /></div>
@@ -394,7 +393,7 @@ export default function Cadastro() {
           <p className="headline-sub">Configure sua Página de agendamento em poucos minutos.</p>
         </div>
 
-        {/* 3. FormulÃ¡rio */}
+        {/* 3. Formulário */}
         <div className="form-bloco">
           <div className="card">
             <p className="card-titulo">Criar conta grátis</p>
@@ -485,7 +484,7 @@ export default function Cadastro() {
           </div>
         </div>
 
-        {/* 4. BenefÃ­cios mobile (abaixo do form) */}
+        {/* 4. Benefícios mobile (abaixo do form) */}
         <div className="beneficios-mobile">
           {BENEFICIOS.map(b => (
             <div key={b.titulo} className="beneficio-mobile-item">
