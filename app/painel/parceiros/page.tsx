@@ -22,7 +22,7 @@ html,body{overflow-x:hidden;width:100%;background:#050B16}
 .badge{display:inline-flex;align-items:center;padding:3px 10px;border-radius:999px;font-size:11px;font-weight:700}
 .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:50;display:flex;align-items:center;justify-content:center;padding:20px}
 .modal{background:#0F172A;border:1.5px solid rgba(148,163,184,.18);border-radius:22px;padding:32px;width:100%;max-width:500px;max-height:90vh;overflow-y:auto}
-@media(max-width:1023px){.pg{overflow-x:hidden!important;width:100%!important}.bdy{padding:14px 14px 80px!important;max-width:100%!important;width:100%!important;box-sizing:border-box!important;overflow-x:hidden!important}.kpi{grid-template-columns:1fr 1fr!important;width:100%!important}.card{width:100%!important;box-sizing:border-box!important}}
+@media(max-width:1023px){.pg{overflow-x:hidden!important;width:100%!important}.btn-p,.btn-s,.btn-g{white-space:normal!important;min-width:0!important;font-size:12px!important}.tbl-row{padding:10px 12px!important}.bdy{padding:14px 14px 80px!important;max-width:100%!important;width:100%!important;box-sizing:border-box!important;overflow-x:hidden!important}.kpi{grid-template-columns:1fr 1fr!important;width:100%!important}.card{width:100%!important;box-sizing:border-box!important}}
 @media(max-width:480px){.kpi{grid-template-columns:1fr}}
 `
 
