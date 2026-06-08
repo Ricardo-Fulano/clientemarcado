@@ -172,7 +172,7 @@ export default function Home(){
               {h:'/painel/orcamentos',l:'Orcamentos',ico:'📋',bg:'rgba(245,158,11,.10)'},
               {h:'/painel/cobrancas',l:'Cobrancas',ico:'💳',bg:'rgba(124,58,237,.10)'},
               {h:'/painel/pagamentos',l:'Pagamentos',ico:'💰',bg:'rgba(34,197,94,.10)'},
-              {h:'/painel/servicos',l:'Servicos',ico:'✂',bg:'rgba(6,182,212,.10)'},
+              {h:'/painel/servicos',l:'Servicos',ico:'🏷️',bg:'rgba(6,182,212,.10)'},
               {h:'/painel/profissionais',l:'Profissionais',ico:'👤',bg:'rgba(124,58,237,.10)'},
               {h:'/painel/relatorio',l:'Relatorios',ico:'📊',bg:'rgba(245,158,11,.10)'},
             ].map(a=>(
