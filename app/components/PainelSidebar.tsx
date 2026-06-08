@@ -35,8 +35,8 @@ const CSS = `
 .psb-drw.open{transform:translateX(0)}
 .psb-ovl{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:49;opacity:0;pointer-events:none;transition:opacity .28s}
 .psb-ovl.open{opacity:1;pointer-events:auto}
-.psb-main{margin-left:240px;flex:1;min-height:100vh;width:calc(100% - 240px);max-width:calc(100% - 240px)}
-@media(max-width:1023px){
+.psb-main{margin-left:240px;flex:1;min-height:100vh;width:calc(100% - 240px);max-width:calc(100% - 240px);overflow-x:hidden}
+@media(max-width:1023px){html,body{overflow-x:hidden!important;width:100%!important;max-width:100vw!important}
   .psb{display:none!important}
   .psb-main{margin-left:0!important;width:100%!important;max-width:100%!important}
   .psb-mhdr{display:flex!important}
