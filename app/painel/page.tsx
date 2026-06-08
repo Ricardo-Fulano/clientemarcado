@@ -43,9 +43,9 @@ input,select,textarea{color-scheme:dark}
 .ag-item{background:rgba(15,23,42,.72);border:1px solid rgba(148,163,184,.14);border-radius:12px;padding:12px 14px;margin-bottom:6px}
 @media(max-width:1023px){
   .sb{display:none!important}.main{margin-left:0!important;width:100%!important}
-  .mhdr{display:flex!important}.bdy{padding:14px 14px 80px!important;max-width:100%!important;width:100%!important;box-sizing:border-box!important;display:flex!important;flex-direction:column!important}
+  .mhdr{display:flex!important}.bdy{padding:14px 16px 80px!important}
   .kpi-grid{grid-template-columns:1fr 1fr!important;gap:8px!important}
-  .atalho-grid{grid-template-columns:1fr 1fr!important;gap:8px!important}.blk-saudacao{order:1}.blk-agenda{order:2}.blk-publica{order:3}.blk-atalho{order:4}.blk-kpi{order:5}
+  .atalho-grid{grid-template-columns:1fr 1fr!important;gap:8px!important}
 }
 @media(max-width:480px){.kpi-grid{grid-template-columns:1fr!important}.atalho-grid{grid-template-columns:1fr 1fr!important}}
 `
@@ -123,7 +123,7 @@ export default function Home(){
         </div>
         <div className="pg"><div className="bdy">
 
-          <div style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',gap:'16px',flexWrap:'wrap',marginBottom:'24px'}}><div className="blk-saudacao" style={{display:'contents'}}>
+          <div style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',gap:'16px',flexWrap:'wrap',marginBottom:'24px'}}>
             <div>
               <h1 style={{fontSize:'24px',fontWeight:800,color:'#F8FAFC',letterSpacing:'-0.04em',marginBottom:'5px'}}>Ola, {nome}!</h1>
               <p style={{fontSize:'13px',color:'#64748B',lineHeight:1.5}}>Acompanhe sua agenda, clientes, cobrancas e retornos em um so lugar.</p>
@@ -172,7 +172,7 @@ export default function Home(){
               {h:'/painel/orcamentos',l:'Orcamentos',ico:'📋',bg:'rgba(245,158,11,.10)'},
               {h:'/painel/cobrancas',l:'Cobrancas',ico:'💳',bg:'rgba(124,58,237,.10)'},
               {h:'/painel/pagamentos',l:'Pagamentos',ico:'💰',bg:'rgba(34,197,94,.10)'},
-              {h:'/painel/servicos',l:'Servicos',ico:'✂',bg:'rgba(6,182,212,.10)'},
+              {h:'/painel/servicos',l:'Servicos',ico:'🏷️',bg:'rgba(6,182,212,.10)'},
               {h:'/painel/profissionais',l:'Profissionais',ico:'👤',bg:'rgba(124,58,237,.10)'},
               {h:'/painel/relatorio',l:'Relatorios',ico:'📊',bg:'rgba(245,158,11,.10)'},
             ].map(a=>(
@@ -188,14 +188,14 @@ export default function Home(){
             <Link href="/painel/agendamentos" style={{fontSize:'12px',color:'#64748B',textDecoration:'none'}}>Ver tudo</Link>
           </div>
           {agsHoje.length===0?(
-            <div className="crd" style={{padding:'36px 24px',textAlign:'center',marginBottom:'24px'}}><div className="blk-saudacao" style={{display:'contents'}}>
+            <div className="crd" style={{padding:'36px 24px',textAlign:'center',marginBottom:'24px'}}>
               <p style={{fontSize:'28px',marginBottom:'10px'}}>📅</p>
               <p style={{fontSize:'15px',fontWeight:600,color:'#F8FAFC',marginBottom:'5px'}}>Nenhum atendimento hoje</p>
               <p style={{fontSize:'13px',color:'#64748B',marginBottom:'16px'}}>Quando houver horarios marcados, eles aparecerao aqui.</p>
               <Link href="/painel/agendamentos/novo" className="btn-p" style={{display:'inline-flex'}}>+ Novo agendamento</Link>
             </div>
           ):(
-            <div style={{marginBottom:'24px'}}><div className="blk-saudacao" style={{display:'contents'}}>
+            <div style={{marginBottom:'24px'}}>
               {agsHoje.map(a=>(
                 <div key={a.id} className="ag-item">
                   <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:'8px',flexWrap:'wrap'}}>
