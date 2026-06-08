@@ -97,7 +97,7 @@ export default function Agendamentos(){
       confirmacao_status: status,
       confirmacao_atualizada_em: new Date().toISOString(),
     }).eq('id',id)
-    setAgendamentos(prev=>prev.map(a=>a.id===id?{...a,confirmacao_status:status,confirmacao_atualizada_em:new Date().toISOString()}:a))
+    setAgs(prev=>prev.map(a=>a.id===id?{...a,confirmacao_status:status,confirmacao_atualizada_em:new Date().toISOString()}:a))
     if(sel?.id===id)setSel((s:any)=>s?{...s,confirmacao_status:status}:s)
   }
 
