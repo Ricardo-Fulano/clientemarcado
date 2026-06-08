@@ -5,7 +5,6 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { supabase } from '../lib/supabase'
 
-const G = 'linear-gradient(135deg,#3B82F6,#7C3AED)'
 const AV = 'linear-gradient(135deg,rgba(59,130,246,.95),rgba(124,58,237,.95))'
 
 const LINKS = [
@@ -38,7 +37,8 @@ const CSS = `
 .psb-ovl{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:49;opacity:0;pointer-events:none;transition:opacity .28s}
 .psb-ovl.open{opacity:1;pointer-events:auto}
 .psb-main{margin-left:240px;flex:1;min-height:100vh;width:calc(100% - 240px);max-width:calc(100% - 240px);overflow-x:hidden}
-@media(max-width:1023px){html,body{overflow-x:hidden!important;width:100%!important;max-width:100vw!important}
+@media(max-width:1023px){
+  html,body{overflow-x:hidden!important;width:100%!important;max-width:100vw!important}
   .psb{display:none!important}
   .psb-main{margin-left:0!important;width:100%!important;max-width:100%!important;min-width:0!important;overflow-x:hidden!important;box-sizing:border-box!important;padding-top:56px!important}
   .psb-mhdr{display:flex!important}
@@ -69,24 +69,30 @@ export default function PainelSidebar({ nome = '', tituloMobile = 'Painel' }: Pr
   const NavLinks = ({ onClick }: { onClick?: () => void }) => (
     <>
       {LINKS.map(it => (
-        <Link
-          key={it.h}
-          href={it.h}
-          prefetch={false}
-          onClick={onClick}
-          className={'nl' + (ativo(it.h) ? ' on' : '')}
-        >
+        <Link key={it.h} href={it.h} prefetch={false} onClick={onClick}
+          className={'nl' + (ativo(it.h) ? ' on' : '')}>
           {it.l}
         </Link>
       ))}
     </>
   )
 
+  const BtnSair = ({ onClick }: { onClick?: () => void }) => (
+    <button onClick={onClick || sair}
+      style={{ width: '100%', background: 'rgba(239,68,68,.10)', border: '1px solid rgba(239,68,68,.25)', borderRadius: '10px', padding: '10px 14px', color: '#FCA5A5', fontSize: '13px', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: '8px', transition: 'background .15s' }}
+      onMouseEnter={e => (e.currentTarget.style.background = 'rgba(239,68,68,.18)')}
+      onMouseLeave={e => (e.currentTarget.style.background = 'rgba(239,68,68,.10)')}>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>
+      </svg>
+      Sair
+    </button>
+  )
+
   return (
     <>
       <style dangerouslySetInnerHTML={{ __html: CSS }} />
 
-      {/* Overlay mobile */}
       <div className={`psb-ovl${mob ? ' open' : ''}`} onClick={() => setMob(false)} />
 
       {/* Drawer mobile */}
@@ -98,8 +104,8 @@ export default function PainelSidebar({ nome = '', tituloMobile = 'Painel' }: Pr
         <nav style={{ flex: 1, padding: '10px 8px', overflowY: 'auto' }}>
           <NavLinks onClick={() => setMob(false)} />
         </nav>
-        <div style={{padding:'12px 10px',borderTop:'1px solid rgba(148,163,184,.10)'}}>
-          <button onClick={()=>{setMob(false);sair()}} style={{width:'100%',background:'rgba(239,68,68,.10)',border:'1px solid rgba(239,68,68,.25)',borderRadius:'10px',padding:'11px 14px',color:'#FCA5A5',fontSize:'13px',fontWeight:600,cursor:'pointer',fontFamily:'inherit',display:'flex',alignItems:'center',gap:'8px'}}>↪ Sair</button>
+        <div style={{ padding: '12px 10px', borderTop: '1px solid rgba(148,163,184,.10)' }}>
+          <BtnSair onClick={() => { setMob(false); sair() }} />
         </div>
       </div>
 
@@ -108,24 +114,24 @@ export default function PainelSidebar({ nome = '', tituloMobile = 'Painel' }: Pr
         <div className="psb-logo">
           <div className="psb-ic">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <rect x="3" y="4" width="18" height="18" rx="2" />
-              <line x1="16" y1="2" x2="16" y2="6" />
-              <line x1="8" y1="2" x2="8" y2="6" />
-              <line x1="3" y1="10" x2="21" y2="10" />
+              <rect x="3" y="4" width="18" height="18" rx="2"/>
+              <line x1="16" y1="2" x2="16" y2="6"/>
+              <line x1="8" y1="2" x2="8" y2="6"/>
+              <line x1="3" y1="10" x2="21" y2="10"/>
             </svg>
           </div>
           <span style={{ fontSize: '14px', fontWeight: 800, color: '#F8FAFC', letterSpacing: '-0.02em' }}>ClienteMarcado</span>
         </div>
         <nav><NavLinks /></nav>
         <div className="psb-foot">
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', background: 'rgba(15,23,42,.6)', border: '1px solid rgba(148,163,184,.12)', borderRadius: '10px', padding: '10px 12px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', background: 'rgba(15,23,42,.6)', border: '1px solid rgba(148,163,184,.12)', borderRadius: '10px', padding: '10px 12px', marginBottom: '8px' }}>
             <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: AV, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '13px', fontWeight: 700, color: '#fff', flexShrink: 0 }}>{ini}</div>
             <div style={{ minWidth: 0 }}>
               <p style={{ fontSize: '12px', fontWeight: 600, color: '#F8FAFC', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{nome || 'Meu negócio'}</p>
               <p style={{ fontSize: '10px', color: '#64748B' }}>Administrador</p>
             </div>
           </div>
-          <button onClick={sair} style={{width:'100%',marginTop:'8px',background:'rgba(239,68,68,.10)',border:'1px solid rgba(239,68,68,.25)',borderRadius:'10px',padding:'9px 14px',color:'#FCA5A5',fontSize:'13px',fontWeight:600,cursor:'pointer',fontFamily:'inherit',display:'flex',alignItems:'center',gap:'8px',transition:'background .15s'}} onMouseEnter={e=>(e.currentTarget.style.background='rgba(239,68,68,.18)')} onMouseLeave={e=>(e.currentTarget.style.background='rgba(239,68,68,.10)')}>↪ Sair</button>
+          <BtnSair />
         </div>
       </aside>
 
