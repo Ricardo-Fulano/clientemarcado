@@ -6,13 +6,13 @@ import PainelSidebar from '@/app/components/PainelSidebar'
 
 const STATUS_LIST = ['Todos','Aberto','Aguardando aprovação','Em andamento','Parcialmente pago','Pago','Finalizado','Cancelado']
 const STATUS_COR: Record<string, {bg:string;color:string;border:string}> = {
-  'Aberto':               {bg:'rgba(59,130,246,.15)',  color:'#60A5FA', border:'rgba(59,130,246,.35)'},
-  'Aguardando aprovação': {bg:'rgba(245,158,11,.15)',  color:'#FACC15', border:'rgba(245,158,11,.35)'},
-  'Em andamento':         {bg:'rgba(124,58,237,.15)',  color:'#A78BFA', border:'rgba(124,58,237,.35)'},
-  'Parcialmente pago':    {bg:'rgba(249,115,22,.15)',  color:'#FB923C', border:'rgba(249,115,22,.35)'},
-  'Pago':                 {bg:'rgba(34,197,94,.15)',   color:'#22C55E', border:'rgba(34,197,94,.35)'},
-  'Finalizado':           {bg:'rgba(34,197,94,.12)',   color:'#22C55E', border:'rgba(34,197,94,.28)'},
-  'Cancelado':            {bg:'rgba(239,68,68,.15)',   color:'#F87171', border:'rgba(239,68,68,.35)'},
+  'Aberto':               {bg:'#EFF6FF',color:'#2563EB',border:'#BFDBFE'},
+  'Aguardando aprovação': {bg:'#FFFBEB',color:'#D97706',border:'#FDE68A'},
+  'Em andamento':         {bg:'#F5F3FF',color:'#7C3AED',border:'#DDD6FE'},
+  'Parcialmente pago':    {bg:'#FFF7ED',color:'#EA580C',border:'#FED7AA'},
+  'Pago':                 {bg:'#F0FDF4',color:'#16A34A',border:'#BBF7D0'},
+  'Finalizado':           {bg:'#F0FDF4',color:'#15803D',border:'#86EFAC'},
+  'Cancelado':            {bg:'#FEF2F2',color:'#DC2626',border:'#FECACA'},
 }
 
 function fmtBRL(v:number){return (v||0).toLocaleString('pt-BR',{minimumFractionDigits:2})}
@@ -27,160 +27,27 @@ function aplicarMascaraTel(v:string){
 }
 
 const MOBILE_CSS = `
-  html, body { overflow-x: hidden !important; width: 100%; max-width: 100%; }
-  *, *::before, *::after { box-sizing: border-box; }
-
-  /* ══ DESKTOP ≥1024px ══ */
-  @media(min-width:1024px){
-    .psb-main { margin-left:220px !important; }
-    .cm-resumo-mobile { display:none !important; }
-    .cm-form-right { display:block !important; }
-    .cm-form-grid { grid-template-columns:1fr 300px !important; }
-    .cm-tabela-desktop { display:block !important; }
-    .cm-cards-mobile { display:none !important; }
-    .cm-novo-btn-lista { height:auto !important; width:auto !important; }
-  }
-
-  /* ══ MOBILE ≤1023px ══ */
   @media(max-width:1023px){
-    .psb-wrapper {
-      overflow-x:hidden !important;
-      width:100% !important;
-      max-width:100% !important;
-      flex-direction:column !important;
-    }
-    .psb-main {
-      margin-left:0 !important;
-      width:100% !important;
-      max-width:100% !important;
-      min-width:0 !important;
-      overflow-x:hidden !important;
-      box-sizing:border-box !important;
-      display:block !important;
-      visibility:visible !important;
-      opacity:1 !important;
-    }
-
-    /* Formulário */
-    .cm-form-grid { grid-template-columns:1fr !important; }
-    .cm-form-right { display:none !important; }
-    .cm-resumo-mobile { display:block !important; }
-    .cm-form-pad { padding:0 !important; }
-    .cm-form-inner { padding:14px !important; padding-bottom:140px !important; }
-    .cm-detalhe-pad { padding:14px 14px 80px !important; }
-    .cm-2col { grid-template-columns:1fr !important; }
-    .cm-inprow { grid-template-columns:1fr !important; }
-    .cm-title-row { flex-direction:column !important; align-items:flex-start !important; }
-
-    /* Lista */
-    .cm-lista-topo {
-      padding:14px 14px 0 !important;
-      overflow-x:hidden !important;
-      max-width:100% !important;
-      width:100% !important;
-      display:block !important;
-      visibility:visible !important;
-      opacity:1 !important;
-    }
-    .cm-lista-body {
-      padding:0 14px 80px !important;
-      overflow-x:hidden !important;
-      max-width:100% !important;
-      width:100% !important;
-      display:block !important;
-      visibility:visible !important;
-      opacity:1 !important;
-    }
-
-    /* Botão novo orçamento */
-    .cm-novo-btn-lista {
-      width:100% !important;
-      margin-top:12px !important;
-      height:48px !important;
-      border-radius:12px !important;
-      font-size:15px !important;
-      display:flex !important;
-      justify-content:center !important;
-      visibility:visible !important;
-      opacity:1 !important;
-    }
-
-    /* KPI cards */
-    .cm-kpi-grid {
-      display:grid !important;
-      grid-template-columns:1fr 1fr !important;
-      gap:10px !important;
-      width:100% !important;
-      max-width:100% !important;
-    }
-
-    /* Busca */
-    .cm-busca-filtros { flex-direction:column !important; gap:10px !important; }
-    .cm-busca-input { width:100% !important; max-width:100% !important; }
-    .cm-orc-search { width:100% !important; max-width:100% !important; }
-
-    /* Filtros — QUEBRAM LINHA */
-    .cm-filtros-wrap {
-      display:flex !important;
-      flex-wrap:wrap !important;
-      gap:8px !important;
-      width:100% !important;
-      max-width:100% !important;
-      overflow:visible !important;
-      padding-bottom:4px !important;
-    }
-    .cm-filtros-wrap button {
-      flex:0 0 auto !important;
-      white-space:nowrap !important;
-      font-size:13px !important;
-    }
-
-    /* Tabela → Cards */
-    .cm-tabela-desktop { display:none !important; }
-    .cm-cards-mobile {
-      display:flex !important;
-      flex-direction:column !important;
-      gap:12px !important;
-      width:100% !important;
-      max-width:100% !important;
-      visibility:visible !important;
-      opacity:1 !important;
-    }
-
-    /* Botões card mobile — grid 2 colunas */
-    .cm-card-acoes {
-      display:grid !important;
-      grid-template-columns:1fr 1fr !important;
-      gap:8px !important;
-      width:100% !important;
-    }
-    .cm-card-acoes button {
-      width:100% !important;
-      min-width:0 !important;
-      box-sizing:border-box !important;
-      white-space:nowrap !important;
-    }
-
-    .cm-metrics { grid-template-columns:1fr 1fr !important; gap:10px !important; }
-    .cm-card { width:100% !important; max-width:100% !important; box-sizing:border-box !important; }
+    .cm-form-grid{grid-template-columns:1fr!important}
+    .cm-form-right{display:none!important}
+    .cm-mobile-footer{display:flex!important}
+    .cm-content-pad{padding-bottom:130px!important}
+    .cm-metrics{grid-template-columns:1fr 1fr!important}
+    .cm-orc-filters{overflow-x:auto;flex-wrap:nowrap!important;padding-bottom:4px}
+    .cm-orc-search{width:100%!important;margin-top:8px}
+    .cm-2col{grid-template-columns:1fr!important}
+    .cm-item-grid{grid-template-columns:1fr!important}
+    .cm-lista-pad{padding:16px 16px 60px!important}
+    .cm-form-pad{padding:16px 16px 130px!important}
+    .cm-detalhe-pad{padding:16px 16px 60px!important}
+    .cm-resumo-mobile{display:block!important}
   }
-
-  /* ══ TELAS ≤360px ══ */
-  @media(max-width:360px){
-    .cm-kpi-grid { grid-template-columns:1fr !important; }
-    .cm-metrics { grid-template-columns:1fr !important; }
-    .cm-filtros-wrap button { font-size:12px !important; padding:6px 10px !important; }
+  @media(min-width:1024px){
+    .cm-mobile-footer{display:none!important}
+    .cm-resumo-mobile{display:none!important}
   }
-
-  /* ══ TELAS ≤300px ══ */
-  @media(max-width:300px){
-    .cm-card-acoes { grid-template-columns:1fr !important; }
-    .cm-lista-topo { padding:10px 10px 0 !important; }
-    .cm-lista-body { padding:0 10px 80px !important; }
-  }
-
-  .cm-lista-body { overflow-x:hidden; }
-  .cm-lista-topo { overflow-x:hidden; }
+  .cm-mobile-footer{display:none;position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid #DCE3EA;padding:12px 16px calc(12px + env(safe-area-inset-bottom,0px));z-index:25;flex-direction:column;gap:8px;box-shadow:0 -4px 16px rgba(0,0,0,.08)}
+  *{box-sizing:border-box}
 `
 
 export default function Orcamentos() {
@@ -197,8 +64,6 @@ export default function Orcamentos() {
   const [pagamentos,setPagamentos]=useState<any[]>([])
   const [mensagem,setMensagem]=useState('')
   const [savingPag,setSavingPag]=useState(false)
-
-  // Form
   const [clienteNome,setClienteNome]=useState('')
   const [clienteWpp,setClienteWpp]=useState('')
   const [clienteEmail,setClienteEmail]=useState('')
@@ -225,20 +90,14 @@ export default function Orcamentos() {
   const [procValor,setProcValor]=useState('')
   const [procStatus,setProcStatus]=useState('A realizar')
   const [procObs,setProcObs]=useState('')
-
-  // Detalhe pagamento
   const [pagData,setPagData]=useState(new Date().toISOString().split('T')[0])
   const [pagValor,setPagValor]=useState('')
   const [pagForma,setPagForma]=useState('Pix')
   const [pagObs,setPagObs]=useState('')
   const [showPagForm,setShowPagForm]=useState(false)
-
-  // Accordions
   const [showDetalhes,setShowDetalhes]=useState(false)
   const [showPagSection,setShowPagSection]=useState(false)
   const [showObs,setShowObs]=useState(false)
-
-  // Hist pags
   const [histPags,setHistPags]=useState<any[]>([])
   const [editandoPagIdx,setEditandoPagIdx]=useState<number|null>(null)
   const [hpValor,setHpValor]=useState('')
@@ -249,7 +108,6 @@ export default function Orcamentos() {
   const [showHpForm,setShowHpForm]=useState(false)
   const [showSinal,setShowSinal]=useState(false)
   const [showLinkPag,setShowLinkPag]=useState(false)
-  const [usarOdontograma,setUsarOdontograma]=useState(false)
 
   useEffect(()=>{init()},[])
 
@@ -414,7 +272,7 @@ export default function Orcamentos() {
   function gerarMsgCobranca(){
     const tipoDoc=tipo==='__outro__'?tipoOutro:tipo
     const neg=perfil?.nome_negocio||'nosso negócio'
-    let msg=`Olá, ${clienteNome||'cliente'}! Aqui é d${(neg[0]&&'aeiouAEIOUáéíóúÁÉÍÓÚ'.includes(neg[0])?'a ':'o ')}${neg}.\n\nSeu ${tipoDoc}: R$ ${fmtBRL(total)}.\nPago: R$ ${fmtBRL(valorPagoLocal)}. Saldo: R$ ${fmtBRL(saldoLocal)}.`
+    let msg=`Olá, ${clienteNome||'cliente'}! Aqui é d${neg.match(/^[aeiouAEIOU]/)?'a ':'o '}${neg}.\n\nSeu ${tipoDoc}: R$ ${fmtBRL(total)}.\nPago: R$ ${fmtBRL(valorPagoLocal)}. Saldo: R$ ${fmtBRL(saldoLocal)}.`
     if(linkPag) msg+=`\n\nPagamento:\n${linkPag}`
     msg+=`\n\nApós pagar, envie o comprovante. Obrigado!`
     return msg
@@ -457,6 +315,7 @@ export default function Orcamentos() {
     if(editandoPagIdx===idx){setEditandoPagIdx(null);setShowHpForm(false)}
   }
 
+  const isOdonto=perfil?.tipo_negocio?.toLowerCase().includes('odont')
   const DENTES_SUPERIOR=[18,17,16,15,14,13,12,11,21,22,23,24,25,26,27,28]
   const DENTES_INFERIOR=[48,47,46,45,44,43,42,41,31,32,33,34,35,36,37,38]
   function toggleDente(n:number){setDentesSelec(prev=>prev.includes(n)?prev.filter(d=>d!==n):[...prev,n])}
@@ -479,232 +338,139 @@ export default function Orcamentos() {
   const parciais=orcamentos.filter(o=>o.status==='Parcialmente pago').length
   const orcDetalhe=orcamentos.find(o=>o.id===detalheId)
 
-  const isOdonto=perfil?.tipo_negocio?.toLowerCase().includes('odont')
-  const mostrarOdontograma=usarOdontograma||tipo==='Tratamento'||isOdonto
-
   // Style constants
   const BG='#F1F4F8'
-  const SIDEBAR='#0B172A'
-  const inp:React.CSSProperties={width:'100%',border:'1.5px solid rgba(255,255,255,.12)',borderRadius:'8px',padding:'10px 14px',fontSize:'15px',color:'#fff',outline:'none',fontFamily:'inherit',background:'rgba(255,255,255,.06)',boxSizing:'border-box' as const}
-  const sel:React.CSSProperties={...inp,cursor:'pointer',appearance:'none' as any,color:'#fff'}
-  const lbl:React.CSSProperties={fontSize:'12px',fontWeight:600,color:'#94A3B8',textTransform:'uppercase' as const,letterSpacing:'.05em',display:'block',marginBottom:'6px'}
-  const card:React.CSSProperties={background:'rgba(255,255,255,.06)',borderRadius:'16px',padding:'20px 24px',marginBottom:'12px',border:'1px solid rgba(255,255,255,.1)',boxShadow:'0 4px 20px rgba(0,0,0,.2)'}
+  const inp:React.CSSProperties={width:'100%',border:'1.5px solid #DCE3EA',borderRadius:'8px',padding:'10px 14px',fontSize:'15px',color:'#0F172A',outline:'none',fontFamily:'inherit',background:'#F8FAFC',boxSizing:'border-box' as const}
+  const sel:React.CSSProperties={...inp,cursor:'pointer',appearance:'none' as any}
+  const lbl:React.CSSProperties={fontSize:'12px',fontWeight:600,color:'#667085',textTransform:'uppercase' as const,letterSpacing:'.05em',display:'block',marginBottom:'6px'}
+  const card:React.CSSProperties={background:'#fff',borderRadius:'12px',padding:'20px 24px',marginBottom:'12px',border:'1px solid #DCE3EA',boxShadow:'0 1px 3px rgba(0,0,0,.06)'}
 
-  // Sidebar component
-    if(loading) return (
-    <div style={{display:'flex',minHeight:'100vh',background:BG}}>
-      <PainelSidebar nome={perfil?.nome_negocio||''} tituloMobile='Orçamentos' />
-      <div style={{marginLeft:'220px',flex:1,display:'flex',alignItems:'center',justifyContent:'center',background:'#07111F'}}>
-        <p style={{color:'#94A3B8',fontSize:'14px'}}>Carregando...</p>
-      </div>
-    </div>
-  )
+  if(loading) return (<div style={{minHeight:'100vh',background:BG,display:'flex',alignItems:'center',justifyContent:'center',fontFamily:'system-ui'}}><p style={{color:'#667085',fontSize:'14px'}}>Carregando...</p></div>)
+
 
   return (
-    <div className="psb-wrapper" style={{display:'flex',minHeight:'100vh',background:'#050B16',fontFamily:'-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif',overflowX:'hidden',width:'100%',maxWidth:'100%',position:'relative'}}>
+    <div style={{display:'flex',minHeight:'100vh',background:BG,fontFamily:'-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif'}}>
       <style dangerouslySetInnerHTML={{__html:MOBILE_CSS}} />
 
-      <PainelSidebar nome={perfil?.nome_negocio||''} tituloMobile='Orçamentos' />
-      <div className="psb-main" style={{flex:1,minWidth:0,minHeight:'100vh',display:'flex',flexDirection:'column'}}>
+      <PainelSidebar nome={perfil?.nome_negocio||''} tituloMobile="Orçamentos" />
+      <div className="psb-main" style={{flex:1,minWidth:0}}>
 
         {/* ══ LISTA ══ */}
         {view==='lista'&&(
-          <div style={{minHeight:'100vh',background:'#07111F'}}>
+          <div className="cm-lista-pad" style={{padding:'28px 32px 60px',maxWidth:'1140px'}}>
+            <div style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',marginBottom:'24px',gap:'12px',flexWrap:'wrap'}}>
+              <div>
+                <h1 style={{fontSize:'22px',fontWeight:800,color:'#0F172A',letterSpacing:'-0.02em',marginBottom:'4px'}}>Orçamentos e Cobranças</h1>
+                <p style={{fontSize:'14px',color:'#667085'}}>Crie orçamentos, acompanhe pagamentos e envie pelo WhatsApp.</p>
+              </div>
+              <button onClick={()=>{resetForm();setView('form')}}
+                style={{background:'#2563EB',color:'#fff',border:'none',borderRadius:'8px',padding:'10px 20px',fontSize:'14px',fontWeight:700,cursor:'pointer',fontFamily:'inherit',boxShadow:'0 4px 12px rgba(37,99,235,.3)'}}>
+                + Novo orçamento
+              </button>
+            </div>
 
-            {/* TOPO */}
-            <div className="cm-lista-topo" style={{padding:'28px 32px 0',maxWidth:'1280px',margin:'0 auto'}}>
-
-              {/* Título + botão */}
-              <div style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',gap:'12px',flexWrap:'wrap',marginBottom:'20px'}}>
-                <div>
-                  <h1 style={{fontSize:'24px',fontWeight:800,color:'#fff',letterSpacing:'-0.02em',marginBottom:'4px'}}>Orçamentos</h1>
-                  <p style={{fontSize:'14px',color:'#94A3B8'}}>Crie, acompanhe e envie orçamentos em poucos segundos.</p>
+            <div className="cm-metrics" style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:'12px',marginBottom:'24px'}}>
+              {[
+                {label:'Orçamentos em aberto',valor:totalAberto,cor:'#2563EB',fmt:'n'},
+                {label:'Total a receber',valor:totalAReceber,cor:'#D97706',fmt:'brl'},
+                {label:'Recebido no mês',valor:recebidoMes,cor:'#16A34A',fmt:'brl'},
+                {label:'Pagamentos parciais',valor:parciais,cor:'#EA580C',fmt:'n'},
+              ].map(m=>(
+                <div key={m.label} style={{background:'#fff',borderRadius:'12px',padding:'16px 18px',border:'1px solid #DCE3EA',boxShadow:'0 1px 3px rgba(0,0,0,.05)',position:'relative',overflow:'hidden'}}>
+                  <div style={{position:'absolute',top:0,left:0,right:0,height:'3px',background:m.cor}} />
+                  <p style={{fontSize:'11px',fontWeight:600,color:'#667085',textTransform:'uppercase',letterSpacing:'.05em',marginBottom:'8px'}}>{m.label}</p>
+                  <p style={{fontSize:'22px',fontWeight:800,color:m.cor}}>{m.fmt==='brl'?'R$ '+fmtBRL(m.valor as number):m.valor}</p>
                 </div>
-                <button
-                  onClick={()=>{ resetForm(); setView('form') }}
-                  className="cm-novo-btn-lista"
-                  style={{background:'#2563EB',color:'#fff',border:'none',borderRadius:'10px',padding:'11px 22px',fontSize:'14px',fontWeight:700,cursor:'pointer',fontFamily:'inherit',boxShadow:'0 4px 20px rgba(37,99,235,.4)',display:'flex',alignItems:'center',justifyContent:'center',gap:'8px',whiteSpace:'nowrap'}}>
-                  <span style={{fontSize:'18px',lineHeight:1}}>+</span> Novo orçamento
+              ))}
+            </div>
+
+            <div style={{display:'flex',gap:'6px',flexWrap:'wrap',marginBottom:'14px',alignItems:'center'}}>
+              {STATUS_LIST.map(s=>(
+                <button key={s} onClick={()=>setFiltroStatus(s)}
+                  style={{padding:'6px 14px',borderRadius:'999px',fontSize:'12px',fontWeight:600,cursor:'pointer',border:'1.5px solid',fontFamily:'inherit',transition:'all .15s',
+                    background:filtroStatus===s?'#2563EB':'#fff',color:filtroStatus===s?'#fff':'#667085',borderColor:filtroStatus===s?'#2563EB':'#DCE3EA'}}>
+                  {s}
+                </button>
+              ))}
+              <input type="text" placeholder="Buscar cliente..." value={filtroCliente} onChange={e=>setFiltroCliente(e.target.value)}
+                style={{border:'1.5px solid #DCE3EA',borderRadius:'8px',padding:'7px 14px',fontSize:'13px',color:'#0F172A',outline:'none',fontFamily:'inherit',background:'#fff',width:'280px'}} />
+            </div>
+
+            {mensagem&&<div style={{padding:'10px 14px',borderRadius:'8px',marginBottom:'14px',background:'#F0FDF4',border:'1px solid #BBF7D0',color:'#16A34A',fontSize:'13px'}}>{mensagem}</div>}
+
+            {orcsFiltrados.length===0?(
+              <div style={{background:'#fff',borderRadius:'16px',padding:'56px 24px',textAlign:'center',border:'1px solid #DCE3EA',boxShadow:'0 1px 3px rgba(0,0,0,.05)'}}>
+                <div style={{fontSize:'44px',marginBottom:'12px'}}>📋</div>
+                <p style={{fontSize:'17px',fontWeight:700,color:'#0F172A',marginBottom:'8px'}}>Nenhum orçamento criado ainda</p>
+                <p style={{fontSize:'14px',color:'#667085',marginBottom:'24px'}}>Crie seu primeiro orçamento e acompanhe pagamentos em poucos cliques.</p>
+                <button onClick={()=>{resetForm();setView('form')}}
+                  style={{background:'#2563EB',color:'#fff',border:'none',borderRadius:'8px',padding:'11px 28px',fontSize:'14px',fontWeight:700,cursor:'pointer',fontFamily:'inherit'}}>
+                  Criar orçamento
                 </button>
               </div>
-
-              {mensagem&&<div style={{padding:'10px 14px',borderRadius:'8px',marginBottom:'16px',background:'rgba(22,163,74,.15)',border:'1px solid rgba(22,163,74,.3)',color:'#4ADE80',fontSize:'13px'}}>{mensagem}</div>}
-
-              {/* CARDS ATALHOS — grid 2x2 mobile, 4 colunas desktop */}
-                            {/* KPIs — grid 2x2 mobile, 4 colunas desktop */}
-              <div className="cm-kpi-grid" style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:'12px',marginBottom:'20px'}}>
-                {[
-                  {icon:'📂',label:'Em aberto',valor:totalAberto,fmt:'n',cor:'#3B82F6',bg:'rgba(59,130,246,.12)',border:'rgba(59,130,246,.25)'},
-                  {icon:'⏳',label:'A receber',valor:totalAReceber,fmt:'brl',cor:'#F59E0B',bg:'rgba(245,158,11,.12)',border:'rgba(245,158,11,.25)'},
-                  {icon:'✅',label:'Recebido no mês',valor:recebidoMes,fmt:'brl',cor:'#22C55E',bg:'rgba(34,197,94,.12)',border:'rgba(34,197,94,.25)'},
-                  {icon:'🔄',label:'Parciais',valor:parciais,fmt:'n',cor:'#A78BFA',bg:'rgba(167,139,250,.12)',border:'rgba(167,139,250,.25)'},
-                ].map(m=>(
-                  <div key={m.label} style={{background:m.bg,border:`1px solid ${m.border}`,borderRadius:'14px',padding:'16px',boxSizing:'border-box' as const}}>
-                    <div style={{width:'36px',height:'36px',borderRadius:'10px',background:m.bg,border:`1px solid ${m.border}`,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'18px',marginBottom:'10px'}}>
-                      {m.icon}
-                    </div>
-                    <p style={{fontSize:'11px',fontWeight:600,color:'#94A3B8',textTransform:'uppercase' as const,letterSpacing:'.05em',marginBottom:'4px'}}>{m.label}</p>
-                    <p style={{fontSize:'22px',fontWeight:800,color:m.cor,letterSpacing:'-0.02em',lineHeight:'1.2'}}>
-                      {m.fmt==='brl'?'R$ '+fmtBRL(m.valor as number):m.valor}
-                    </p>
-                  </div>
-                ))}
-              </div>
-
-              {/* BUSCA + FILTROS */}
-              <div className="cm-busca-filtros" style={{display:'flex',gap:'10px',marginBottom:'16px',alignItems:'center'}}>
-                <div className="cm-busca-input" style={{position:'relative',flex:1}}>
-                  <span style={{position:'absolute',left:'12px',top:'50%',transform:'translateY(-50%)',color:'#64748B',fontSize:'14px'}}>🔍</span>
-                  <input type="text" placeholder="Buscar cliente, contato ou serviço..." value={filtroCliente} onChange={e=>setFiltroCliente(e.target.value)}
-                    style={{width:'100%',border:'1px solid rgba(255,255,255,.12)',borderRadius:'10px',padding:'11px 14px 11px 36px',fontSize:'13px',color:'#fff',outline:'none',fontFamily:'inherit',background:'rgba(255,255,255,.06)',boxSizing:'border-box' as const}} />
-                </div>
-              </div>
-              <div className="cm-filtros-wrap" style={{display:'flex',gap:'6px',marginBottom:'16px'}}>
-                {STATUS_LIST.map(s=>(
-                  <button key={s} onClick={()=>setFiltroStatus(s)}
-                    style={{padding:'7px 14px',borderRadius:'999px',fontSize:'12px',fontWeight:600,cursor:'pointer',border:'1px solid',fontFamily:'inherit',whiteSpace:'nowrap' as const,flexShrink:0,
-                      background:filtroStatus===s?'#2563EB':'rgba(255,255,255,.06)',
-                      color:filtroStatus===s?'#fff':'#94A3B8',
-                      borderColor:filtroStatus===s?'#2563EB':'rgba(255,255,255,.12)'}}>
-                    {s}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* BODY */}
-            <div className="cm-lista-body" style={{padding:'0 32px 60px',maxWidth:'1280px',margin:'0 auto'}}>
-
-              {orcsFiltrados.length===0?(
-                <div style={{background:'rgba(255,255,255,.04)',border:'1px solid rgba(255,255,255,.08)',borderRadius:'20px',padding:'48px 24px',textAlign:'center'}}>
-                  <div style={{width:'64px',height:'64px',borderRadius:'50%',background:'rgba(37,99,235,.2)',border:'1px solid rgba(37,99,235,.3)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'28px',margin:'0 auto 16px'}}>
-                    📋
-                  </div>
-                  <p style={{fontSize:'18px',fontWeight:700,color:'#fff',marginBottom:'8px'}}>Nenhum orçamento criado ainda</p>
-                  <p style={{fontSize:'13px',color:'#94A3B8',marginBottom:'24px',lineHeight:'1.5'}}>Crie seu primeiro orçamento, registre pagamentos e envie pelo WhatsApp.</p>
-                  <button onClick={()=>{resetForm();setView('form')}}
-                    style={{background:'#2563EB',color:'#fff',border:'none',borderRadius:'10px',padding:'13px 28px',fontSize:'14px',fontWeight:700,cursor:'pointer',fontFamily:'inherit',boxShadow:'0 4px 20px rgba(37,99,235,.4)',width:'100%',maxWidth:'320px'}}>
-                    Criar primeiro orçamento
-                  </button>
-                </div>
-              ):(
-                <>
-                  {/* TABELA DESKTOP */}
-                  <div className="cm-tabela-desktop" style={{background:'rgba(255,255,255,.04)',border:'1px solid rgba(255,255,255,.08)',borderRadius:'20px',overflow:'hidden'}}>
-                    <div style={{padding:'16px 24px',borderBottom:'1px solid rgba(255,255,255,.08)',display:'flex',alignItems:'center',justifyContent:'space-between'}}>
-                      <p style={{fontSize:'14px',fontWeight:700,color:'#fff'}}>Orçamentos recentes</p>
-                      <span style={{fontSize:'12px',color:'#64748B'}}>{orcsFiltrados.length} registro{orcsFiltrados.length!==1?'s':''}</span>
-                    </div>
-                    <div style={{display:'grid',gridTemplateColumns:'2fr 1.2fr 1fr 1fr 1fr 120px 200px',padding:'10px 24px',borderBottom:'1px solid rgba(255,255,255,.06)'}}>
-                      {['Cliente','Tipo / Data','Total','Pago','Saldo','Status','Ações'].map(h=>(
-                        <p key={h} style={{fontSize:'11px',fontWeight:600,color:'#64748B',textTransform:'uppercase' as const,letterSpacing:'.06em'}}>{h}</p>
-                      ))}
-                    </div>
-                    {orcsFiltrados.map((orc,i)=>{
-                      const cfg=STATUS_COR[orc.status]||STATUS_COR['Aberto']
-                      return (
-                        <div key={orc.id}
-                          style={{display:'grid',gridTemplateColumns:'2fr 1.2fr 1fr 1fr 1fr 120px 200px',padding:'14px 24px',borderBottom:i<orcsFiltrados.length-1?'1px solid rgba(255,255,255,.05)':'none',alignItems:'center',transition:'background .15s',cursor:'default'}}
-                          onMouseEnter={e=>(e.currentTarget.style.background='rgba(255,255,255,.04)')}
-                          onMouseLeave={e=>(e.currentTarget.style.background='transparent')}>
+            ):(
+              <div style={{display:'flex',flexDirection:'column',gap:'10px'}}>
+                {orcsFiltrados.map(orc=>{
+                  const cfg=STATUS_COR[orc.status]||STATUS_COR['Aberto']
+                  return (
+                    <div key={orc.id} style={{background:'#fff',borderRadius:'12px',border:'1px solid #DCE3EA',boxShadow:'0 1px 3px rgba(0,0,0,.05)',overflow:'hidden'}}>
+                      <div style={{height:'3px',background:cfg.color}} />
+                      <div style={{padding:'16px 20px'}}>
+                        <div style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',gap:'12px',flexWrap:'wrap',marginBottom:'10px'}}>
                           <div>
-                            <p style={{fontSize:'14px',fontWeight:600,color:'#fff',marginBottom:'2px'}}>{orc.cliente_nome}</p>
-                            <p style={{fontSize:'11px',color:'#64748B'}}>{orc.cliente_whatsapp?aplicarMascaraTel(orc.cliente_whatsapp):''}</p>
+                            <p style={{fontSize:'15px',fontWeight:700,color:'#0F172A',marginBottom:'3px'}}>{orc.cliente_nome}</p>
+                            <p style={{fontSize:'12px',color:'#667085'}}>{orc.tipo} · {fmtData(orc.data)}{orc.profissional_nome?' · '+orc.profissional_nome:''}</p>
                           </div>
-                          <div>
-                            <p style={{fontSize:'13px',color:'#CBD5E1'}}>{orc.tipo}</p>
-                            <p style={{fontSize:'11px',color:'#64748B'}}>{fmtData(orc.data)}</p>
-                          </div>
-                          <p style={{fontSize:'14px',fontWeight:700,color:'#fff'}}>R$ {fmtBRL(orc.total)}</p>
-                          <p style={{fontSize:'14px',fontWeight:600,color:'#22C55E'}}>R$ {fmtBRL(orc.valor_pago)}</p>
-                          <p style={{fontSize:'14px',fontWeight:600,color:orc.saldo_restante>0?'#F59E0B':'#22C55E'}}>R$ {fmtBRL(orc.saldo_restante)}</p>
-                          <span style={{fontSize:'11px',fontWeight:700,padding:'4px 10px',borderRadius:'999px',background:cfg.bg,color:cfg.color,border:`1px solid ${cfg.border}`,display:'inline-block'}}>
-                            {orc.status}
-                          </span>
-                          <div style={{display:'flex',gap:'4px',flexWrap:'nowrap',alignItems:'center'}}>
-                            <button onClick={()=>{setDetalheId(orc.id);carregarPagamentos(orc.id);setView('detalhe')}}
-                              style={{background:'rgba(37,99,235,.2)',border:'1px solid rgba(37,99,235,.3)',borderRadius:'6px',padding:'4px 8px',fontSize:'11px',fontWeight:600,color:'#93C5FD',cursor:'pointer',fontFamily:'inherit',whiteSpace:'nowrap' as const}}>Ver</button>
-                            <button onClick={()=>gerarPDF(orc)}
-                              style={{background:'rgba(6,182,212,.15)',border:'1px solid rgba(6,182,212,.30)',borderRadius:'6px',padding:'4px 6px',fontSize:'11px',fontWeight:600,color:'#22D3EE',cursor:'pointer',fontFamily:'inherit',whiteSpace:'nowrap' as const}}>PDF</button>
-                            <button onClick={()=>enviarWpp(orc)}
-                              style={{background:'rgba(22,163,74,.2)',border:'1px solid rgba(22,163,74,.3)',borderRadius:'6px',padding:'4px 6px',fontSize:'12px',cursor:'pointer',fontFamily:'inherit'}}>💬</button>
-                            <button onClick={()=>abrirEditar(orc)}
-                              style={{background:'rgba(255,255,255,.08)',border:'1px solid rgba(255,255,255,.12)',borderRadius:'6px',padding:'4px 6px',fontSize:'12px',cursor:'pointer',fontFamily:'inherit'}}>✏️</button>
-                            <button onClick={()=>handleExcluir(orc.id)}
-                              style={{background:'rgba(220,38,38,.15)',border:'1px solid rgba(220,38,38,.25)',borderRadius:'6px',padding:'4px 6px',fontSize:'12px',cursor:'pointer',fontFamily:'inherit'}}>🗑</button>
-                          </div>
+                          <span style={{fontSize:'11px',fontWeight:700,padding:'3px 10px',borderRadius:'999px',background:cfg.bg,color:cfg.color,border:`1px solid ${cfg.border}`,whiteSpace:'nowrap'}}>{orc.status}</span>
                         </div>
-                      )
-                    })}
-                  </div>
-
-                  {/* CARDS MOBILE */}
-                  <div className="cm-cards-mobile" style={{display:'none',flexDirection:'column',gap:'10px'}}>
-                    {orcsFiltrados.map(orc=>{
-                      const cfg=STATUS_COR[orc.status]||STATUS_COR['Aberto']
-                      return (
-                        <div key={orc.id} style={{background:'rgba(255,255,255,.05)',border:'1px solid rgba(255,255,255,.08)',borderRadius:'14px',padding:'14px',boxSizing:'border-box' as const,width:'100%',minWidth:0,overflow:'hidden'}}>
-                          <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:'10px'}}>
-                            <div>
-                              <p style={{fontSize:'15px',fontWeight:700,color:'#fff',marginBottom:'2px'}}>{orc.cliente_nome}</p>
-                              <p style={{fontSize:'12px',color:'#64748B'}}>{orc.tipo} · {fmtData(orc.data)}</p>
+                        <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'8px',marginBottom:'12px'}}>
+                          {[{l:'Total',v:orc.total,c:'#0F172A'},{l:'Pago',v:orc.valor_pago,c:'#16A34A'},{l:'Saldo',v:orc.saldo_restante,c:orc.saldo_restante>0?'#EA580C':'#16A34A'}].map(f=>(
+                            <div key={f.l} style={{background:BG,borderRadius:'8px',padding:'8px 10px'}}>
+                              <p style={{fontSize:'10px',color:'#667085',fontWeight:600,textTransform:'uppercase',letterSpacing:'.05em',marginBottom:'3px'}}>{f.l}</p>
+                              <p style={{fontSize:'13px',fontWeight:700,color:f.c}}>R$ {fmtBRL(f.v)}</p>
                             </div>
-                            <span style={{fontSize:'11px',fontWeight:700,padding:'3px 10px',borderRadius:'999px',background:cfg.bg,color:cfg.color,border:`1px solid ${cfg.border}`,whiteSpace:'nowrap' as const}}>
-                              {orc.status}
-                            </span>
-                          </div>
-                          <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:'8px',marginBottom:'12px'}}>
-                            {[{l:'Total',v:orc.total,c:'#fff'},{l:'Pago',v:orc.valor_pago,c:'#22C55E'},{l:'Saldo',v:orc.saldo_restante,c:orc.saldo_restante>0?'#F59E0B':'#22C55E'}].map(f=>(
-                              <div key={f.l} style={{background:'rgba(255,255,255,.04)',borderRadius:'8px',padding:'8px 10px'}}>
-                                <p style={{fontSize:'10px',color:'#64748B',fontWeight:600,textTransform:'uppercase' as const,letterSpacing:'.04em',marginBottom:'2px'}}>{f.l}</p>
-                                <p style={{fontSize:'13px',fontWeight:700,color:f.c}}>R$ {fmtBRL(f.v)}</p>
-                              </div>
-                            ))}
-                          </div>
-                          <div className="cm-card-acoes" style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'8px',width:'100%'}}>
-                            <button onClick={()=>{setDetalheId(orc.id);carregarPagamentos(orc.id);setView('detalhe')}}
-                              style={{background:'rgba(37,99,235,.2)',border:'1px solid rgba(37,99,235,.3)',borderRadius:'8px',padding:'9px',fontSize:'12px',fontWeight:600,color:'#93C5FD',cursor:'pointer',fontFamily:'inherit',boxSizing:'border-box' as const}}>
-                              Ver detalhes
-                            </button>
-                            <button onClick={()=>gerarPDF(orc)}
-                              style={{background:'rgba(6,182,212,.15)',border:'1px solid rgba(6,182,212,.30)',borderRadius:'8px',padding:'9px',fontSize:'12px',fontWeight:600,color:'#22D3EE',cursor:'pointer',fontFamily:'inherit',boxSizing:'border-box' as const}}>
-                              📥 PDF
-                            </button>
-                            <button onClick={()=>enviarWpp(orc)}
-                              style={{background:'rgba(22,163,74,.2)',border:'1px solid rgba(22,163,74,.3)',borderRadius:'8px',padding:'9px',fontSize:'12px',fontWeight:600,color:'#4ADE80',cursor:'pointer',fontFamily:'inherit',boxSizing:'border-box' as const}}>
-                              💬 WhatsApp
-                            </button>
-                            <button onClick={()=>abrirEditar(orc)}
-                              style={{background:'rgba(255,255,255,.08)',border:'1px solid rgba(255,255,255,.12)',borderRadius:'8px',padding:'9px',fontSize:'12px',fontWeight:600,color:'#CBD5E1',cursor:'pointer',fontFamily:'inherit',boxSizing:'border-box' as const}}>
-                              ✏️ Editar
-                            </button>
-                          </div>
+                          ))}
                         </div>
-                      )
-                    })}
-                  </div>
-                </>
-              )}
-            </div>
+                        <div style={{display:'flex',gap:'6px',flexWrap:'wrap'}}>
+                          {[
+                            {l:'Ver detalhes',fn:()=>{setDetalheId(orc.id);carregarPagamentos(orc.id);setView('detalhe')},primary:true},
+                            {l:'Registrar pgto',fn:()=>{setDetalheId(orc.id);carregarPagamentos(orc.id);setView('detalhe');setShowPagForm(true)},green:true},
+                            {l:'PDF',fn:()=>gerarPDF(orc)},
+                            {l:'WhatsApp',fn:()=>enviarWpp(orc),wpp:true},
+                            {l:'Editar',fn:()=>abrirEditar(orc)},
+                            {l:'Excluir',fn:()=>handleExcluir(orc.id),danger:true},
+                          ].map(b=>(
+                            <button key={b.l} onClick={b.fn}
+                              style={{padding:'6px 12px',borderRadius:'6px',fontSize:'11px',fontWeight:600,cursor:'pointer',fontFamily:'inherit',border:'1.5px solid',
+                                background:(b as any).primary?'#2563EB':(b as any).green?'#F0FDF4':(b as any).wpp?'#F0FFF4':(b as any).danger?'#FEF2F2':'#F8FAFC',
+                                color:(b as any).primary?'#fff':(b as any).green?'#16A34A':(b as any).wpp?'#16A34A':(b as any).danger?'#DC2626':'#667085',
+                                borderColor:(b as any).primary?'#2563EB':(b as any).green?'#BBF7D0':(b as any).wpp?'#86EFAC':(b as any).danger?'#FECACA':'#DCE3EA'}}>
+                              {b.l}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            )}
           </div>
         )}
 
         {/* ══ FORMULÁRIO ══ */}
         {view==='form'&&(
-          <div style={{minHeight:'100vh',background:'#07111F'}}>
-          <div className="cm-form-pad cm-content-pad" style={{padding:'24px 32px 60px',maxWidth:'1100px',margin:'0 auto'}}>
-            <div className="cm-form-inner" style={{padding:'24px',width:'100%',maxWidth:'100%',boxSizing:'border-box' as const,overflowX:'hidden'}}>
-            {/* Topo */}
+          <div className="cm-form-pad" style={{padding:'24px 32px 60px'}}>
             <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:'20px',flexWrap:'wrap',gap:'12px'}}>
               <div>
                 <button onClick={()=>{resetForm();setView('lista')}}
-                  style={{background:'none',border:'none',cursor:'pointer',fontSize:'13px',color:'#64748B',fontFamily:'inherit',padding:'0',display:'flex',alignItems:'center',gap:'4px',marginBottom:'8px'}}>
+                  style={{background:'none',border:'none',cursor:'pointer',fontSize:'13px',color:'#667085',fontFamily:'inherit',padding:'0',display:'flex',alignItems:'center',gap:'4px',marginBottom:'8px'}}>
                   ← Voltar à lista
                 </button>
-                <h1 style={{fontSize:'22px',fontWeight:800,color:'#fff',letterSpacing:'-0.02em',marginBottom:'2px'}}>{editandoId?'Editar orçamento':'Novo orçamento'}</h1>
-                <p style={{fontSize:'13px',color:'#94A3B8'}}>Preencha os dados e envie para o cliente.</p>
+                <h1 style={{fontSize:'22px',fontWeight:800,color:'#0F172A',letterSpacing:'-0.02em',marginBottom:'2px'}}>{editandoId?'Editar orçamento':'Novo orçamento'}</h1>
+                <p style={{fontSize:'13px',color:'#667085'}}>Preencha os dados e envie para o cliente.</p>
               </div>
-              <div style={{display:'flex',alignItems:'center',gap:'6px',background:'rgba(34,197,94,.15)',border:'1px solid rgba(34,197,94,.25)',borderRadius:'8px',padding:'6px 12px'}}>
+              <div style={{display:'flex',alignItems:'center',gap:'6px',background:'#F0FDF4',border:'1px solid #BBF7D0',borderRadius:'8px',padding:'6px 12px'}}>
                 <span style={{fontSize:'13px',color:'#16A34A'}}>✓</span>
                 <span style={{fontSize:'12px',fontWeight:600,color:'#16A34A'}}>Salvo automaticamente</span>
               </div>
@@ -712,24 +478,20 @@ export default function Orcamentos() {
 
             {mensagem&&(
               <div style={{fontSize:'13px',padding:'10px 14px',borderRadius:'8px',marginBottom:'16px',
-                color:mensagem.includes('rro')?'#F87171':'#4ADE80',
-                background:mensagem.includes('rro')?'rgba(220,38,38,.15)':'rgba(34,197,94,.15)',
-                border:`1px solid ${mensagem.includes('rro')?'rgba(220,38,38,.3)':'rgba(34,197,94,.3)'}`}}>
+                color:mensagem.includes('rro')?'#DC2626':'#16A34A',
+                background:mensagem.includes('rro')?'#FEF2F2':'#F0FDF4',
+                border:`1px solid ${mensagem.includes('rro')?'#FECACA':'#BBF7D0'}`}}>
                 {mensagem}
               </div>
             )}
 
-            {/* Layout 2 colunas */}
             <div className="cm-form-grid" style={{display:'grid',gridTemplateColumns:'1fr 300px',gap:'20px',alignItems:'start'}}>
-
-              {/* Coluna esquerda */}
               <div style={{minWidth:0}}>
 
-                {/* CARD: Cliente */}
-                <div className="cm-card" style={card}>
+                <div style={card}>
                   <div style={{display:'flex',alignItems:'center',gap:'8px',marginBottom:'16px'}}>
                     <span style={{fontSize:'16px'}}>👤</span>
-                    <p style={{fontSize:'15px',fontWeight:700,color:'#F8FAFC'}}>Cliente</p>
+                    <p style={{fontSize:'15px',fontWeight:700,color:'#0F172A'}}>Cliente</p>
                   </div>
                   <div style={{display:'flex',flexDirection:'column',gap:'12px'}}>
                     <div>
@@ -752,21 +514,20 @@ export default function Orcamentos() {
                   </div>
                 </div>
 
-                {/* ACCORDION: Detalhes */}
                 <div style={{...card,padding:0,overflow:'hidden'}}>
                   <div onClick={()=>setShowDetalhes(!showDetalhes)}
                     style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'16px 24px',cursor:'pointer',userSelect:'none'}}>
                     <div style={{display:'flex',alignItems:'center',gap:'10px'}}>
                       <span style={{fontSize:'16px'}}>📋</span>
                       <div>
-                        <p style={{fontSize:'14px',fontWeight:700,color:'#fff'}}>Detalhes do documento</p>
-                        <p style={{fontSize:'12px',color:'#64748B',marginTop:'1px'}}>Tipo, status, profissional e data.</p>
+                        <p style={{fontSize:'14px',fontWeight:700,color:'#0F172A'}}>Detalhes do documento</p>
+                        <p style={{fontSize:'12px',color:'#667085',marginTop:'1px'}}>Tipo, status, profissional e data.</p>
                       </div>
                     </div>
-                    <span style={{color:'#64748B',fontSize:'18px',transform:showDetalhes?'rotate(180deg)':'none',transition:'transform .2s'}}>⌄</span>
+                    <span style={{color:'#667085',fontSize:'18px',transform:showDetalhes?'rotate(180deg)':'none',transition:'transform .2s'}}>⌄</span>
                   </div>
                   {showDetalhes&&(
-                    <div style={{padding:'0 24px 20px',borderTop:'1px solid rgba(255,255,255,.08)',display:'flex',flexDirection:'column',gap:'12px'}}>
+                    <div style={{padding:'0 24px 20px',borderTop:'1px solid #F1F4F8',display:'flex',flexDirection:'column',gap:'12px'}}>
                       <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'12px',marginTop:'16px'}}>
                         <div>
                           <label style={lbl}>Tipo</label>
@@ -788,7 +549,7 @@ export default function Orcamentos() {
                           </select>
                         </div>
                       </div>
-                      <div className="cm-inprow" style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'12px'}}>
+                      <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'12px'}}>
                         <div>
                           <label style={lbl}>Profissional</label>
                           <select style={sel} value={profId} onChange={e=>{setProfId(e.target.value);if(e.target.value!=='__outro__'){setProfNome('');setSalvarFreelancer(false)}}}>
@@ -797,14 +558,14 @@ export default function Orcamentos() {
                             <option value="__outro__">✏️ Outro / Não cadastrado</option>
                           </select>
                           {profId==='__outro__'&&(
-                            <div style={{marginTop:'8px',padding:'12px',background:'rgba(59,130,246,.15)',border:'1px solid rgba(59,130,246,.3)',borderRadius:'8px',display:'flex',flexDirection:'column',gap:'8px'}}>
+                            <div style={{marginTop:'8px',padding:'12px',background:'#EFF6FF',border:'1px solid #BFDBFE',borderRadius:'8px',display:'flex',flexDirection:'column',gap:'8px'}}>
                               <input style={inp} type="text" placeholder="Nome do profissional" value={profNome} onChange={e=>setProfNome(e.target.value)} />
                               <div style={{display:'flex',alignItems:'center',gap:'8px'}}>
                                 <button onClick={()=>setSalvarFreelancer(!salvarFreelancer)}
                                   style={{width:'32px',height:'18px',borderRadius:'999px',border:'none',cursor:'pointer',position:'relative',background:salvarFreelancer?'#2563EB':'#D1D5DB',flexShrink:0}}>
                                   <span style={{position:'absolute',top:'2px',left:salvarFreelancer?'14px':'2px',width:'14px',height:'14px',borderRadius:'50%',background:'#fff',transition:'left .2s'}} />
                                 </button>
-                                <span style={{fontSize:'12px',color:'#94A3B8'}}>Salvar na equipe?</span>
+                                <span style={{fontSize:'12px',color:'#667085'}}>Salvar na equipe?</span>
                               </div>
                             </div>
                           )}
@@ -818,128 +579,82 @@ export default function Orcamentos() {
                   )}
                 </div>
 
-                {/* CARD: Serviços */}
-                <div className="cm-card" style={card}>
+                <div style={card}>
                   <div style={{display:'flex',alignItems:'center',gap:'8px',marginBottom:'4px'}}>
                     <span style={{fontSize:'16px'}}>✂️</span>
-                    <p style={{fontSize:'15px',fontWeight:700,color:'#F8FAFC'}}>Serviços / Procedimentos</p>
+                    <p style={{fontSize:'15px',fontWeight:700,color:'#0F172A'}}>Serviços / Procedimentos</p>
                   </div>
-                  <p style={{fontSize:'12px',color:'#94A3B8',marginBottom:'16px'}}>Adicione os serviços, procedimentos, produtos ou itens deste orçamento.</p>
-
-                  {/* Header tabela — oculto no mobile */}
-                  <div style={{display:'grid',gridTemplateColumns:'3fr 80px 120px 110px 32px',gap:'8px',marginBottom:'8px'}} className="cm-hide-mobile">
+                  <p style={{fontSize:'12px',color:'#667085',marginBottom:'16px'}}>Adicione os serviços, procedimentos, produtos ou itens deste orçamento.</p>
+                  <div style={{display:'grid',gridTemplateColumns:'3fr 80px 120px 110px 32px',gap:'8px',marginBottom:'8px'}}>
                     {['Nome do serviço','Qtd.','Valor unitário','Total',''].map(h=>(
                       <p key={h} style={{fontSize:'11px',fontWeight:600,color:'#667085',textTransform:'uppercase',letterSpacing:'.05em'}}>{h}</p>
                     ))}
                   </div>
-
                   {itens.map((item,idx)=>(
-                    <div key={idx} style={{marginBottom:'12px',padding:'14px',background:'#F8FAFC',borderRadius:'12px',border:'1px solid #DCE3EA',width:'100%',maxWidth:'100%',boxSizing:'border-box'}}>
-                      <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'10px'}}>
-                        <span style={{fontSize:'11px',fontWeight:600,color:'#64748B',textTransform:'uppercase',letterSpacing:'.05em'}}>Item {idx+1}</span>
-                        {itens.length>1&&(
-                          <button onClick={()=>setItens(prev=>prev.filter((_,i)=>i!==idx))}
-                            style={{background:'#FEF2F2',border:'1px solid #FECACA',borderRadius:'6px',color:'#EF4444',cursor:'pointer',fontSize:'13px',padding:'3px 8px'}}>
-                            Remover
-                          </button>
-                        )}
+                    <div key={idx} style={{display:'grid',gridTemplateColumns:'3fr 80px 120px 110px 32px',gap:'8px',marginBottom:'8px',alignItems:'start'}}>
+                      <input style={inp} type="text" placeholder="Ex: Corte de cabelo, limpeza..."
+                        value={item.nome} onChange={e=>atualizarItem(idx,'nome',e.target.value)} />
+                      <input style={{...inp,textAlign:'center'}} type="number" min="1"
+                        value={item.qtd} onChange={e=>atualizarItem(idx,'qtd',e.target.value)} />
+                      <div style={{position:'relative'}}>
+                        <span style={{position:'absolute',left:'10px',top:'50%',transform:'translateY(-50%)',fontSize:'12px',color:'#9CA3AF',fontWeight:600}}>R$</span>
+                        <input style={{...inp,paddingLeft:'32px'}} type="number" min="0" step="0.01" placeholder="0,00"
+                          value={item.unitario} onChange={e=>atualizarItem(idx,'unitario',e.target.value)} />
                       </div>
-                      {/* Nome */}
-                      <div style={{marginBottom:'8px'}}>
-                        <label style={{fontSize:'12px',fontWeight:600,color:'#667085',display:'block',marginBottom:'6px',whiteSpace:'normal',lineHeight:'1.3'}}>Nome do serviço *</label>
-                        <input style={{...inp,width:'100%'}} type="text" placeholder="Ex: Corte de cabelo, limpeza de pele..."
-                          value={item.nome} onChange={e=>atualizarItem(idx,'nome',e.target.value)} />
+                      <div style={{background:item.total>0?'#ECFDF5':'#F8FAFC',border:`1.5px solid ${item.total>0?'#A7F3D0':'#DCE3EA'}`,borderRadius:'8px',padding:'10px 12px',textAlign:'right'}}>
+                        <span style={{fontSize:'14px',fontWeight:700,color:item.total>0?'#059669':'#9CA3AF'}}>R$ {fmtBRL(item.total||0)}</span>
                       </div>
-                      {/* Qtd + Valor */}
-                      <div className="cm-serv-qtd-val" style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'8px',marginBottom:'8px',width:'100%',maxWidth:'100%'}}>
-                        <div>
-                          <label style={{fontSize:'12px',fontWeight:600,color:'#667085',display:'block',marginBottom:'6px'}}>Qtd.</label>
-                          <input style={{...inp,textAlign:'center',width:'100%'}} type="number" min="1"
-                            value={item.qtd} onChange={e=>atualizarItem(idx,'qtd',e.target.value)} />
-                        </div>
-                        <div>
-                          <label style={{fontSize:'12px',fontWeight:600,color:'#667085',display:'block',marginBottom:'6px'}}>Valor</label>
-                          <div style={{position:'relative'}}>
-                            <span style={{position:'absolute',left:'10px',top:'50%',transform:'translateY(-50%)',fontSize:'12px',color:'#475569',fontWeight:600}}>R$</span>
-                            <input style={{...inp,paddingLeft:'32px',width:'100%',maxWidth:'100%',boxSizing:'border-box'}} type="number" min="0" step="0.01" placeholder="0,00"
-                              value={item.unitario} onChange={e=>atualizarItem(idx,'unitario',e.target.value)} />
-                          </div>
-                        </div>
+                      {itens.length>1?(
+                        <button onClick={()=>setItens(prev=>prev.filter((_,i)=>i!==idx))}
+                          style={{background:'none',border:'1.5px solid #FECACA',borderRadius:'6px',color:'#EF4444',cursor:'pointer',fontSize:'16px',width:'32px',height:'42px',display:'flex',alignItems:'center',justifyContent:'center'}}>
+                          🗑
+                        </button>
+                      ):<div />}
+                      <div style={{gridColumn:'1/-1',marginBottom:'4px'}}>
+                        <input style={{...inp,fontSize:'13px',color:'#667085',background:'#fff'}} type="text"
+                          placeholder="Observação opcional" value={item.obs} onChange={e=>atualizarItem(idx,'obs',e.target.value)} />
                       </div>
-                      {/* Total */}
-                      <div style={{background:item.total>0?'rgba(34,197,94,.12)':'rgba(255,255,255,.04)',border:`1.5px solid ${item.total>0?'rgba(34,197,94,.3)':'rgba(255,255,255,.08)'}`,borderRadius:'8px',padding:'10px 14px',display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'8px'}}>
-                        <span style={{fontSize:'12px',color:'#94A3B8',fontWeight:600}}>Total</span>
-                        <span style={{fontSize:'16px',fontWeight:800,color:item.total>0?'#4ADE80':'#475569'}}>R$ {fmtBRL(item.total||0)}</span>
-                      </div>
-                      {/* Obs */}
-                      <input style={{...inp,fontSize:'13px',color:'#94A3B8',width:'100%'}} type="text"
-                        placeholder="Observação opcional" value={item.obs} onChange={e=>atualizarItem(idx,'obs',e.target.value)} />
                     </div>
                   ))}
-
                   <button onClick={()=>setItens(prev=>[...prev,{nome:'',qtd:1,unitario:'',total:0,obs:''}])}
                     style={{background:'none',border:'none',color:'#2563EB',fontSize:'13px',fontWeight:600,cursor:'pointer',fontFamily:'inherit',padding:'4px 0',display:'flex',alignItems:'center',gap:'4px'}}>
                     + Adicionar outro serviço
                   </button>
-
-                  {/* Subtotal */}
-                  <div style={{marginTop:'16px',background:BG,borderRadius:'10px',padding:'14px 16px',width:'100%',maxWidth:'100%',boxSizing:'border-box'}}>
-                    <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',fontSize:'13px',color:'#94A3B8',marginBottom:'8px'}}>
+                  <div style={{marginTop:'16px',background:BG,borderRadius:'10px',padding:'14px 16px'}}>
+                    <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',fontSize:'13px',color:'#667085',marginBottom:'8px'}}>
                       <span>Subtotal</span>
-                      <span style={{fontWeight:600,color:'#fff'}}>R$ {fmtBRL(subtotal)}</span>
+                      <span style={{fontWeight:600,color:'#0F172A'}}>R$ {fmtBRL(subtotal)}</span>
                     </div>
                     <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',fontSize:'13px',color:'#667085',marginBottom:'8px',paddingBottom:'8px',borderBottom:'1px solid #DCE3EA'}}>
                       <span>Desconto</span>
                       <input type="number" min="0" step="0.01" placeholder="R$ 0,00" value={desconto}
                         onChange={e=>setDesconto(e.target.value)}
-                        style={{background:'rgba(255,255,255,.06)',border:'1px solid rgba(255,255,255,.12)',outline:'none',color:'#F87171',fontSize:'13px',fontWeight:600,textAlign:'right' as const,width:'100px',fontFamily:'inherit',borderRadius:'6px',padding:'4px 8px'}} />
+                        style={{background:'#fff',border:'1.5px solid #DCE3EA',outline:'none',color:'#EF4444',fontSize:'13px',fontWeight:600,textAlign:'right',width:'100px',fontFamily:'inherit',borderRadius:'6px',padding:'4px 8px'}} />
                     </div>
                     <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
-                      <span style={{fontSize:'14px',fontWeight:700,color:'#fff'}}>Total final</span>
+                      <span style={{fontSize:'14px',fontWeight:700,color:'#0F172A'}}>Total final</span>
                       <span style={{fontSize:'18px',fontWeight:800,color:'#2563EB'}}>R$ {fmtBRL(total)}</span>
                     </div>
                     {descontoNum>subtotal&&subtotal>0&&<p style={{fontSize:'11px',color:'#F59E0B',marginTop:'4px',textAlign:'right'}}>⚠ Desconto maior que o subtotal.</p>}
                   </div>
                 </div>
 
-                {/* Resumo mobile — só aparece no mobile */}
-                <div className="cm-resumo-mobile" style={{display:'none',background:'#fff',borderRadius:'14px',padding:'14px 16px',marginBottom:'12px',border:'1px solid #DCE3EA',boxShadow:'0 1px 3px rgba(0,0,0,.05)'}}>
-                  <p style={{fontSize:'12px',fontWeight:700,color:'#667085',textTransform:'uppercase',letterSpacing:'.06em',marginBottom:'10px'}}>Resumo</p>
-                  <div style={{display:'flex',flexDirection:'column',gap:'6px'}}>
-                    <div style={{display:'flex',justifyContent:'space-between',fontSize:'13px'}}>
-                      <span style={{color:'#667085'}}>Cliente</span>
-                      <span style={{fontWeight:600,color:clienteNome?'#fff':'#475569',maxWidth:'60%',textAlign:'right',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{clienteNome||'Não informado'}</span>
-                    </div>
-                    <div style={{display:'flex',justifyContent:'space-between',fontSize:'13px'}}>
-                      <span style={{color:'#667085'}}>Tipo</span>
-                      <span style={{color:'#F8FAFC'}}>{tipo==='__outro__'?(tipoOutro||'Outro'):tipo}</span>
-                    </div>
-                    <div style={{display:'flex',justifyContent:'space-between',fontSize:'13px'}}>
-                      <span style={{color:'#667085'}}>Status</span>
-                      <span style={{fontSize:'11px',fontWeight:700,padding:'2px 8px',borderRadius:'999px',background:STATUS_COR[status]?.bg||'#EFF6FF',color:STATUS_COR[status]?.color||'#2563EB',border:`1px solid ${STATUS_COR[status]?.border||'#BFDBFE'}`}}>{status}</span>
-                    </div>
-                    <div style={{height:'1px',background:'rgba(255,255,255,.08)',margin:'2px 0'}} />
-                    <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
-                      <span style={{fontSize:'13px',color:'#667085'}}>Total</span>
-                      <span style={{fontSize:'18px',fontWeight:800,color:'#2563EB'}}>R$ {fmtBRL(total)}</span>
-                    </div>
-                    {valorPagoLocal>0&&(<>
-                      <div style={{display:'flex',justifyContent:'space-between',fontSize:'13px'}}>
-                        <span style={{color:'#667085'}}>Pago</span>
-                        <span style={{fontWeight:700,color:'#16A34A'}}>R$ {fmtBRL(valorPagoLocal)}</span>
-                      </div>
-                      <div style={{display:'flex',justifyContent:'space-between',fontSize:'13px'}}>
-                        <span style={{color:'#667085'}}>Saldo</span>
-                        <span style={{fontWeight:700,color:'#EA580C'}}>R$ {fmtBRL(saldoLocal)}</span>
-                      </div>
-                    </>)}
+                <div className="cm-resumo-mobile" style={{display:'none',background:'#fff',borderRadius:'16px',padding:'16px 18px',marginBottom:'12px',border:'1px solid #DCE3EA',boxShadow:'0 1px 3px rgba(0,0,0,.06)'}}>
+                  <p style={{fontSize:'13px',fontWeight:700,color:'#0F172A',marginBottom:'12px'}}>Resumo</p>
+                  <div style={{display:'flex',flexDirection:'column',gap:'8px'}}>
+                    <div style={{display:'flex',justifyContent:'space-between',fontSize:'13px'}}><span style={{color:'#667085'}}>Cliente</span><span style={{fontWeight:600,color:clienteNome?'#0F172A':'#94A3B8'}}>{clienteNome||'Não informado'}</span></div>
+                    <div style={{display:'flex',justifyContent:'space-between',fontSize:'13px'}}><span style={{color:'#667085'}}>Tipo</span><span style={{color:'#0F172A'}}>{tipo==='__outro__'?(tipoOutro||'Outro'):tipo}</span></div>
+                    <div style={{display:'flex',justifyContent:'space-between',fontSize:'13px'}}><span style={{color:'#667085'}}>Status</span><span style={{fontSize:'11px',fontWeight:700,padding:'2px 8px',borderRadius:'999px',background:STATUS_COR[status]?.bg||'#EFF6FF',color:STATUS_COR[status]?.color||'#2563EB',border:`1px solid ${STATUS_COR[status]?.border||'#BFDBFE'}`}}>{status}</span></div>
+                    <div style={{height:'1px',background:'#F1F4F8',margin:'4px 0'}} />
+                    <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}><span style={{fontSize:'13px',color:'#667085'}}>Total final</span><span style={{fontSize:'20px',fontWeight:800,color:'#2563EB'}}>R$ {fmtBRL(total)}</span></div>
+                    {valorPagoLocal>0&&<div style={{display:'flex',justifyContent:'space-between',fontSize:'13px'}}><span style={{color:'#667085'}}>Pago</span><span style={{fontWeight:700,color:'#16A34A'}}>R$ {fmtBRL(valorPagoLocal)}</span></div>}
+                    {saldoLocal>0&&<div style={{display:'flex',justifyContent:'space-between',fontSize:'13px'}}><span style={{color:'#667085'}}>Saldo</span><span style={{fontWeight:700,color:'#EA580C'}}>R$ {fmtBRL(saldoLocal)}</span></div>}
                   </div>
                 </div>
 
-                {/* Odontograma */}
                 {isOdonto&&(
-                  <div className="cm-card" style={card}>
-                    <p style={{fontSize:'15px',fontWeight:700,color:'#F8FAFC',marginBottom:'12px'}}>🦷 Odontograma</p>
+                  <div style={card}>
+                    <p style={{fontSize:'15px',fontWeight:700,color:'#0F172A',marginBottom:'12px'}}>🦷 Odontograma</p>
                     {[DENTES_SUPERIOR,DENTES_INFERIOR].map((arco,ai)=>(
                       <div key={ai} style={{display:'flex',gap:'4px',flexWrap:'wrap',marginBottom:'8px'}}>
                         {arco.slice(0,arco.length/2).map(n=>(
@@ -978,24 +693,22 @@ export default function Orcamentos() {
                   </div>
                 )}
 
-                {/* ACCORDION: Pagamento */}
                 <div style={{...card,padding:0,overflow:'hidden'}}>
                   <div onClick={()=>setShowPagSection(!showPagSection)}
                     style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'16px 24px',cursor:'pointer',userSelect:'none'}}>
                     <div style={{display:'flex',alignItems:'center',gap:'10px'}}>
                       <span style={{fontSize:'16px'}}>💳</span>
                       <div>
-                        <p style={{fontSize:'14px',fontWeight:700,color:'#fff'}}>Pagamento</p>
-                        <p style={{fontSize:'12px',color:'#64748B',marginTop:'1px'}}>
+                        <p style={{fontSize:'14px',fontWeight:700,color:'#0F172A'}}>Pagamento</p>
+                        <p style={{fontSize:'12px',color:'#667085',marginTop:'1px'}}>
                           {valorPagoLocal>0?`Pago: R$ ${fmtBRL(valorPagoLocal)} · Saldo: R$ ${fmtBRL(saldoLocal)}`:'Entrada, pagamentos parciais e link de cobrança.'}
                         </p>
                       </div>
                     </div>
-                    <span style={{color:'#64748B',fontSize:'18px',transform:showPagSection?'rotate(180deg)':'none',transition:'transform .2s'}}>⌄</span>
+                    <span style={{color:'#667085',fontSize:'18px',transform:showPagSection?'rotate(180deg)':'none',transition:'transform .2s'}}>⌄</span>
                   </div>
                   {showPagSection&&(
                     <div style={{padding:'0 24px 20px',borderTop:'1px solid #F1F4F8'}}>
-                      {/* Cards resumo */}
                       <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'8px',margin:'16px 0'}}>
                         {[{l:'Total',v:total,c:'#0F172A'},{l:'Pago',v:valorPagoLocal,c:'#16A34A'},{l:'Saldo',v:saldoLocal,c:saldoLocal>0?'#EA580C':'#16A34A'}].map(f=>(
                           <div key={f.l} style={{background:BG,borderRadius:'8px',padding:'10px',border:'1px solid #DCE3EA'}}>
@@ -1004,119 +717,66 @@ export default function Orcamentos() {
                           </div>
                         ))}
                       </div>
-
-                      {/* Entrada/sinal */}
                       <div style={{marginBottom:'14px'}}>
                         <div style={{display:'flex',alignItems:'center',gap:'10px',marginBottom:exigirSinal?'12px':'0'}}>
                           <button onClick={()=>setExigirSinal(!exigirSinal)}
                             style={{width:'36px',height:'20px',borderRadius:'999px',border:'none',cursor:'pointer',position:'relative',background:exigirSinal?'#2563EB':'#D1D5DB'}}>
                             <span style={{position:'absolute',top:'2px',left:exigirSinal?'18px':'2px',width:'16px',height:'16px',borderRadius:'50%',background:'#fff',transition:'left .2s'}} />
                           </button>
-                          <span style={{fontSize:'13px',color:'#F8FAFC',fontWeight:500,cursor:'pointer'}} onClick={()=>setExigirSinal(!exigirSinal)}>Exigir entrada/sinal?</span>
+                          <span style={{fontSize:'13px',color:'#0F172A',fontWeight:500,cursor:'pointer'}} onClick={()=>setExigirSinal(!exigirSinal)}>Exigir entrada/sinal?</span>
                         </div>
                         {exigirSinal&&(
                           <div style={{background:BG,borderRadius:'10px',padding:'14px',border:'1px solid #DCE3EA',display:'flex',flexDirection:'column',gap:'10px'}}>
                             <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'10px'}}>
-                              <div><label style={lbl}>Tipo</label>
-                                <select style={sel} value={sinalTipo} onChange={e=>setSinalTipo(e.target.value)}>
-                                  <option value="fixo">Valor fixo (R$)</option>
-                                  <option value="percentual">Porcentagem (%)</option>
-                                </select></div>
-                              <div><label style={lbl}>{sinalTipo==='fixo'?'Valor (R$)':'Percentual (%)'}</label>
-                                <input style={inp} type="number" min="0" placeholder={sinalTipo==='fixo'?'0,00':'50'} value={sinalValor} onChange={e=>setSinalValor(e.target.value)} /></div>
+                              <div><label style={lbl}>Tipo</label><select style={sel} value={sinalTipo} onChange={e=>setSinalTipo(e.target.value)}><option value="fixo">Valor fixo (R$)</option><option value="percentual">Porcentagem (%)</option></select></div>
+                              <div><label style={lbl}>{sinalTipo==='fixo'?'Valor (R$)':'Percentual (%)'}</label><input style={inp} type="number" min="0" placeholder={sinalTipo==='fixo'?'0,00':'50'} value={sinalValor} onChange={e=>setSinalValor(e.target.value)} /></div>
                             </div>
-                            {sinalValor&&(
-                              <div style={{background:'rgba(34,197,94,.12)',border:'1px solid rgba(34,197,94,.25)',borderRadius:'8px',padding:'10px 14px'}}>
-                                <span style={{fontSize:'13px',color:'#059669',fontWeight:700}}>Entrada: R$ {fmtBRL(sinalTipo==='fixo'?parseFloat(sinalValor||'0'):(total*parseFloat(sinalValor||'0'))/100)}</span>
-                              </div>
-                            )}
+                            {sinalValor&&(<div style={{background:'#ECFDF5',border:'1px solid #A7F3D0',borderRadius:'8px',padding:'10px 14px'}}><span style={{fontSize:'13px',color:'#059669',fontWeight:700}}>Entrada: R$ {fmtBRL(sinalTipo==='fixo'?parseFloat(sinalValor||'0'):(total*parseFloat(sinalValor||'0'))/100)}</span></div>)}
                           </div>
                         )}
                       </div>
-
-                      {/* Link pag */}
                       <div style={{marginBottom:'14px'}}>
                         <label style={lbl}>Link de pagamento</label>
-                        <input style={inp} type="url" placeholder="Cole aqui o link do Mercado Pago, Asaas, PagSeguro, InfinitePay ou outro"
-                          value={linkPag} onChange={e=>setLinkPag(e.target.value)} />
+                        <input style={inp} type="url" placeholder="Cole aqui o link do Mercado Pago, Asaas, PagSeguro, InfinitePay ou outro" value={linkPag} onChange={e=>setLinkPag(e.target.value)} />
                         <p style={{fontSize:'11px',color:'#9CA3AF',marginTop:'5px'}}>O ClienteMarcado apenas organiza a cobrança. O pagamento será feito pelo link informado pelo seu negócio.</p>
                       </div>
-
-                      {/* Botões */}
                       <div style={{display:'flex',gap:'8px',flexWrap:'wrap',marginBottom:'16px'}}>
-                        <button onClick={()=>navigator.clipboard.writeText(gerarMsgCobranca())}
-                          style={{background:'rgba(255,255,255,.06)',border:'1px solid rgba(255,255,255,.12)',borderRadius:'8px',padding:'8px 14px',fontSize:'12px',fontWeight:600,color:'#94A3B8',cursor:'pointer',fontFamily:'inherit'}}>
-                          📋 Copiar mensagem de cobrança
-                        </button>
-                        <button onClick={enviarCobrancaWpp} disabled={!clienteWpp}
-                          style={{background:'#F0FFF4',border:'1.5px solid #86EFAC',borderRadius:'8px',padding:'8px 14px',fontSize:'12px',fontWeight:600,color:'#16A34A',cursor:clienteWpp?'pointer':'not-allowed',fontFamily:'inherit',opacity:clienteWpp?1:0.5}}>
-                          💬 Enviar pelo WhatsApp
-                        </button>
+                        <button onClick={()=>navigator.clipboard.writeText(gerarMsgCobranca())} style={{background:BG,border:'1.5px solid #DCE3EA',borderRadius:'8px',padding:'8px 14px',fontSize:'12px',fontWeight:600,color:'#667085',cursor:'pointer',fontFamily:'inherit'}}>📋 Copiar mensagem de cobrança</button>
+                        <button onClick={enviarCobrancaWpp} disabled={!clienteWpp} style={{background:'#F0FFF4',border:'1.5px solid #86EFAC',borderRadius:'8px',padding:'8px 14px',fontSize:'12px',fontWeight:600,color:'#16A34A',cursor:clienteWpp?'pointer':'not-allowed',fontFamily:'inherit',opacity:clienteWpp?1:0.5}}>💬 Enviar pelo WhatsApp</button>
                       </div>
                       {!clienteWpp&&<p style={{fontSize:'11px',color:'#9CA3AF',marginBottom:'12px'}}>Informe o WhatsApp do cliente para enviar a cobrança.</p>}
-
-                      {/* Obs pagamento */}
                       <div style={{marginBottom:'16px'}}>
                         <label style={lbl}>Observações de pagamento</label>
-                        <input style={inp} type="text" placeholder="Ex: cliente pagou R$ 100,00 de entrada em dinheiro"
-                          value={obsPagamento} onChange={e=>setObsPagamento(e.target.value)} />
+                        <input style={inp} type="text" placeholder="Ex: cliente pagou R$ 100,00 de entrada em dinheiro" value={obsPagamento} onChange={e=>setObsPagamento(e.target.value)} />
                       </div>
-
-                      {/* Pagamentos registrados */}
                       <div style={{borderTop:'1px solid #F1F4F8',paddingTop:'14px'}}>
                         <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:'10px'}}>
-                          <p style={{fontSize:'13px',fontWeight:600,color:'#F8FAFC'}}>Pagamentos registrados</p>
-                          <button onClick={()=>{setShowHpForm(!showHpForm);setEditandoPagIdx(null);setHpValor('');setHpForma('Pix');setHpFormaOutro('');setHpData(new Date().toISOString().split('T')[0]);setHpObs('')}}
-                            style={{background:'#EFF6FF',border:'1.5px solid #BFDBFE',borderRadius:'6px',padding:'5px 12px',fontSize:'12px',fontWeight:600,color:'#2563EB',cursor:'pointer',fontFamily:'inherit'}}>
-                            + Registrar pagamento
-                          </button>
+                          <p style={{fontSize:'13px',fontWeight:600,color:'#0F172A'}}>Pagamentos registrados</p>
+                          <button onClick={()=>{setShowHpForm(!showHpForm);setEditandoPagIdx(null);setHpValor('');setHpForma('Pix');setHpFormaOutro('');setHpData(new Date().toISOString().split('T')[0]);setHpObs('')}} style={{background:'#EFF6FF',border:'1.5px solid #BFDBFE',borderRadius:'6px',padding:'5px 12px',fontSize:'12px',fontWeight:600,color:'#2563EB',cursor:'pointer',fontFamily:'inherit'}}>+ Registrar pagamento</button>
                         </div>
-
                         {showHpForm&&(
-                          <div style={{background:'rgba(59,130,246,.1)',border:'1px solid rgba(59,130,246,.25)',borderRadius:'10px',padding:'16px',marginBottom:'12px'}}>
-                            <p style={{fontSize:'13px',fontWeight:700,color:'#93C5FD',marginBottom:'12px'}}>{editandoPagIdx!==null?'Editar':'Registrar pagamento'}</p>
+                          <div style={{background:'#F0F9FF',border:'1.5px solid #BAE6FD',borderRadius:'10px',padding:'16px',marginBottom:'12px'}}>
+                            <p style={{fontSize:'13px',fontWeight:700,color:'#0369A1',marginBottom:'12px'}}>{editandoPagIdx!==null?'Editar':'Registrar pagamento'}</p>
                             <div style={{display:'flex',flexDirection:'column',gap:'10px'}}>
                               <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'10px'}}>
-                                <div>
-                                  <label style={lbl}>Valor *</label>
-                                  <div style={{position:'relative'}}>
-                                    <span style={{position:'absolute',left:'10px',top:'50%',transform:'translateY(-50%)',fontSize:'12px',color:'#475569',fontWeight:600}}>R$</span>
-                                    <input style={{...inp,paddingLeft:'32px'}} type="text" inputMode="numeric" placeholder="0,00"
-                                      value={hpValor} onChange={e=>{const v=e.target.value.split('').filter((c:string)=>'0123456789'.includes(c)).join('');setHpValor(fmtHpValor(v||'0'))}} />
-                                  </div>
-                                </div>
+                                <div><label style={lbl}>Valor *</label><div style={{position:'relative'}}><span style={{position:'absolute',left:'10px',top:'50%',transform:'translateY(-50%)',fontSize:'12px',color:'#9CA3AF',fontWeight:600}}>R$</span><input style={{...inp,paddingLeft:'32px'}} type="text" inputMode="numeric" placeholder="0,00" value={hpValor} onChange={e=>{const v=e.target.value.replace(/[^0-9]/g,'');setHpValor(fmtHpValor(v||'0'))}} /></div></div>
                                 <div><label style={lbl}>Data *</label><input style={inp} type="date" value={hpData} onChange={e=>setHpData(e.target.value)} /></div>
                               </div>
-                              <div>
-                                <label style={lbl}>Forma *</label>
-                                <select style={sel} value={hpForma} onChange={e=>{setHpForma(e.target.value);if(e.target.value!=='Outro')setHpFormaOutro('')}}>
-                                  {['Dinheiro','Pix','Cartão de débito','Cartão de crédito','Transferência','Link de pagamento','Outro'].map(f=><option key={f}>{f}</option>)}
-                                </select>
-                                {hpForma==='Outro'&&<input style={{...inp,marginTop:'6px'}} type="text" placeholder="Especifique..." value={hpFormaOutro} onChange={e=>setHpFormaOutro(e.target.value)} />}
-                              </div>
+                              <div><label style={lbl}>Forma *</label><select style={sel} value={hpForma} onChange={e=>{setHpForma(e.target.value);if(e.target.value!=='Outro')setHpFormaOutro('')}}>{['Dinheiro','Pix','Cartão de débito','Cartão de crédito','Transferência','Link de pagamento','Outro'].map(f=><option key={f}>{f}</option>)}</select>{hpForma==='Outro'&&<input style={{...inp,marginTop:'6px'}} type="text" placeholder="Especifique..." value={hpFormaOutro} onChange={e=>setHpFormaOutro(e.target.value)} />}</div>
                               <div><label style={lbl}>Observação</label><input style={inp} type="text" placeholder="Ex: entrada, parcela 2..." value={hpObs} onChange={e=>setHpObs(e.target.value)} /></div>
                               <div style={{display:'flex',gap:'8px'}}>
-                                <button onClick={()=>{setShowHpForm(false);setEditandoPagIdx(null)}}
-                                  style={{flex:1,background:'#F8FAFC',border:'1.5px solid #DCE3EA',borderRadius:'8px',padding:'10px',fontSize:'13px',fontWeight:600,color:'#667085',cursor:'pointer',fontFamily:'inherit'}}>Cancelar</button>
-                                <button onClick={salvarHpPag}
-                                  style={{flex:2,background:'#2563EB',border:'none',borderRadius:'8px',padding:'10px',fontSize:'13px',fontWeight:700,color:'#fff',cursor:'pointer',fontFamily:'inherit'}}>
-                                  {editandoPagIdx!==null?'Atualizar':'Salvar pagamento'}
-                                </button>
+                                <button onClick={()=>{setShowHpForm(false);setEditandoPagIdx(null)}} style={{flex:1,background:'#F8FAFC',border:'1.5px solid #DCE3EA',borderRadius:'8px',padding:'10px',fontSize:'13px',fontWeight:600,color:'#667085',cursor:'pointer',fontFamily:'inherit'}}>Cancelar</button>
+                                <button onClick={salvarHpPag} style={{flex:2,background:'#2563EB',border:'none',borderRadius:'8px',padding:'10px',fontSize:'13px',fontWeight:700,color:'#fff',cursor:'pointer',fontFamily:'inherit'}}>{editandoPagIdx!==null?'Atualizar':'Salvar pagamento'}</button>
                               </div>
                             </div>
                           </div>
                         )}
-
-                        {histPags.length===0&&!showHpForm&&<p style={{fontSize:'12px',color:'#475569'}}>Nenhum pagamento registrado ainda.</p>}
+                        {histPags.length===0&&!showHpForm&&<p style={{fontSize:'12px',color:'#9CA3AF'}}>Nenhum pagamento registrado ainda.</p>}
                         {histPags.map((p,i)=>(
-                          <div key={i} style={{background:'rgba(255,255,255,.04)',border:'1px solid rgba(255,255,255,.08)',borderRadius:'8px',padding:'10px 14px',display:'flex',justifyContent:'space-between',alignItems:'flex-start',gap:'8px',marginBottom:'6px'}}>
+                          <div key={i} style={{background:BG,border:'1px solid #DCE3EA',borderRadius:'8px',padding:'10px 14px',display:'flex',justifyContent:'space-between',alignItems:'flex-start',gap:'8px',marginBottom:'6px'}}>
                             <div>
-                              <div style={{display:'flex',alignItems:'center',gap:'8px',marginBottom:'2px'}}>
-                                <span style={{fontSize:'14px',fontWeight:700,color:'#16A34A'}}>R$ {fmtBRL(p.valor)}</span>
-                                <span style={{fontSize:'11px',color:'#667085'}}>{p.forma}</span>
-                                <span style={{fontSize:'11px',color:'#9CA3AF'}}>· {fmtData(p.data)}</span>
-                              </div>
-                              {p.obs&&<p style={{fontSize:'12px',color:'#475569'}}>{p.obs}</p>}
+                              <div style={{display:'flex',alignItems:'center',gap:'8px',marginBottom:'2px'}}><span style={{fontSize:'14px',fontWeight:700,color:'#16A34A'}}>R$ {fmtBRL(p.valor)}</span><span style={{fontSize:'11px',color:'#667085'}}>{p.forma}</span><span style={{fontSize:'11px',color:'#9CA3AF'}}>· {fmtData(p.data)}</span></div>
+                              {p.obs&&<p style={{fontSize:'12px',color:'#9CA3AF'}}>{p.obs}</p>}
                             </div>
                             <div style={{display:'flex',gap:'6px'}}>
                               <button onClick={()=>editarHpPag(i)} style={{background:'#F8FAFC',border:'1.5px solid #DCE3EA',borderRadius:'6px',padding:'3px 8px',fontSize:'11px',fontWeight:600,color:'#667085',cursor:'pointer',fontFamily:'inherit'}}>Editar</button>
@@ -1125,8 +785,8 @@ export default function Orcamentos() {
                           </div>
                         ))}
                         {histPags.length>0&&(
-                          <div style={{background:'rgba(34,197,94,.12)',border:'1px solid rgba(34,197,94,.25)',borderRadius:'8px',padding:'8px 14px',display:'flex',justifyContent:'space-between',marginTop:'4px'}}>
-                            <span style={{fontSize:'13px',color:'#94A3B8',fontWeight:600}}>Total pago</span>
+                          <div style={{background:'#F0FDF4',border:'1px solid #BBF7D0',borderRadius:'8px',padding:'8px 14px',display:'flex',justifyContent:'space-between',marginTop:'4px'}}>
+                            <span style={{fontSize:'13px',color:'#667085',fontWeight:600}}>Total pago</span>
                             <span style={{fontSize:'14px',fontWeight:800,color:'#16A34A'}}>R$ {fmtBRL(valorPagoLocal)}</span>
                           </div>
                         )}
@@ -1135,119 +795,62 @@ export default function Orcamentos() {
                   )}
                 </div>
 
-                {/* ACCORDION: Observações */}
                 <div style={{...card,padding:0,overflow:'hidden'}}>
-                  <div onClick={()=>setShowObs(!showObs)}
-                    style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'16px 24px',cursor:'pointer',userSelect:'none'}}>
+                  <div onClick={()=>setShowObs(!showObs)} style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'16px 24px',cursor:'pointer',userSelect:'none'}}>
                     <div style={{display:'flex',alignItems:'center',gap:'10px'}}>
                       <span style={{fontSize:'16px'}}>📝</span>
-                      <div>
-                        <p style={{fontSize:'14px',fontWeight:700,color:'#fff'}}>Observações</p>
-                        <p style={{fontSize:'12px',color:'#64748B',marginTop:'1px'}}>Informações extras para o cliente ou para sua equipe.</p>
-                      </div>
+                      <div><p style={{fontSize:'14px',fontWeight:700,color:'#0F172A'}}>Observações</p><p style={{fontSize:'12px',color:'#667085',marginTop:'1px'}}>Informações extras para o cliente ou para sua equipe.</p></div>
                     </div>
-                    <span style={{color:'#64748B',fontSize:'18px',transform:showObs?'rotate(180deg)':'none',transition:'transform .2s'}}>⌄</span>
+                    <span style={{color:'#667085',fontSize:'18px',transform:showObs?'rotate(180deg)':'none',transition:'transform .2s'}}>⌄</span>
                   </div>
                   {showObs&&(
-                    <div style={{padding:'0 18px 18px',borderTop:'1px solid rgba(255,255,255,.08)',display:'flex',flexDirection:'column',gap:'10px',marginTop:'16px',width:'100%',boxSizing:'border-box'}}>
-                      <div><label style={lbl}>Observação do cliente</label>
-                        <textarea rows={2} style={{...inp,resize:'none' as const}} placeholder="Alergias, preferências, histórico..."
-                          value={clienteObs} onChange={e=>setClienteObs(e.target.value)} /></div>
-                      <div><label style={lbl}>Observações do orçamento</label>
-                        <textarea rows={3} style={{...inp,resize:'none' as const}} placeholder="Informações adicionais..."
-                          value={observacoes} onChange={e=>setObservacoes(e.target.value)} /></div>
+                    <div style={{padding:'0 24px 20px',borderTop:'1px solid #F1F4F8',display:'flex',flexDirection:'column',gap:'12px',marginTop:'16px'}}>
+                      <div><label style={lbl}>Observação do cliente</label><textarea rows={2} style={{...inp,resize:'none'}} placeholder="Alergias, preferências, histórico..." value={clienteObs} onChange={e=>setClienteObs(e.target.value)} /></div>
+                      <div><label style={lbl}>Observações do orçamento</label><textarea rows={3} style={{...inp,resize:'none'}} placeholder="Informações adicionais..." value={observacoes} onChange={e=>setObservacoes(e.target.value)} /></div>
                     </div>
                   )}
                 </div>
 
-                {/* Dica */}
-                <div style={{display:'flex',alignItems:'center',gap:'8px',padding:'12px 16px',background:'rgba(59,130,246,.1)',borderRadius:'10px',border:'1px solid rgba(59,130,246,.2)'}}>
+                <div style={{display:'flex',alignItems:'center',gap:'8px',padding:'12px 16px',background:'#EFF6FF',borderRadius:'10px',border:'1px solid #BFDBFE'}}>
                   <span style={{fontSize:'16px'}}>💡</span>
-                  <p style={{fontSize:'12px',color:'#93C5FD'}}>Dica: você pode adicionar serviços, descontos e pagamentos parciais.</p>
+                  <p style={{fontSize:'12px',color:'#2563EB'}}>Dica: você pode adicionar serviços, descontos e pagamentos parciais.</p>
                 </div>
               </div>
 
-            </div>{/* end cm-form-inner */}
-              {/* Mobile Footer fixo */}
               <div className="cm-mobile-footer">
-                <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'8px'}}>
-                  <span style={{fontSize:'12px',color:'#94A3B8',fontWeight:600}}>Total final</span>
+                <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'2px'}}>
+                  <span style={{fontSize:'12px',color:'#667085',fontWeight:600}}>Total final</span>
                   <span style={{fontSize:'18px',fontWeight:800,color:'#2563EB'}}>R$ {fmtBRL(total)}</span>
                 </div>
-                <div style={{display:'grid',gridTemplateColumns:'2fr 3fr',gap:'8px',width:'100%',maxWidth:'100%'}}>
-                  <button onClick={()=>{resetForm();setView('lista')}}
-                    style={{background:'rgba(255,255,255,.08)',color:'#94A3B8',border:'1px solid rgba(255,255,255,.12)',borderRadius:'10px',padding:'12px 0',fontSize:'13px',fontWeight:600,cursor:'pointer',fontFamily:'inherit',width:'100%'}}>
-                    Rascunho
-                  </button>
-                  <button onClick={handleSalvar}
-                    style={{background:'#2563EB',color:'#fff',border:'none',borderRadius:'10px',padding:'12px 0',fontSize:'14px',fontWeight:800,cursor:'pointer',fontFamily:'inherit',width:'100%',boxShadow:'0 4px 12px rgba(37,99,235,.3)'}}>
-                    {editandoId?'Salvar':'Criar orçamento'}
-                  </button>
+                <div style={{display:'flex',gap:'8px'}}>
+                  <button onClick={()=>{resetForm();setView('lista')}} style={{flex:1,background:'#F8FAFC',color:'#667085',border:'1.5px solid #DCE3EA',borderRadius:'10px',padding:'12px',fontSize:'13px',fontWeight:600,cursor:'pointer',fontFamily:'inherit'}}>Rascunho</button>
+                  <button onClick={handleSalvar} style={{flex:2,background:'#2563EB',color:'#fff',border:'none',borderRadius:'10px',padding:'12px',fontSize:'15px',fontWeight:800,cursor:'pointer',fontFamily:'inherit',boxShadow:'0 4px 12px rgba(37,99,235,.3)'}}>{editandoId?'Salvar':'Criar orçamento'}</button>
                 </div>
+                <button onClick={enviarCobrancaWpp} disabled={!clienteWpp} style={{width:'100%',background:'#F0FFF4',color:'#16A34A',border:'1.5px solid #86EFAC',borderRadius:'10px',padding:'11px',fontSize:'13px',fontWeight:600,cursor:clienteWpp?'pointer':'not-allowed',fontFamily:'inherit',opacity:clienteWpp?1:0.6}}>💬 Enviar no WhatsApp</button>
               </div>
 
-              {/* Coluna direita — Resumo sticky */}
               <div className="cm-form-right" style={{position:'sticky',top:'24px'}}>
-                <div style={{background:'rgba(255,255,255,.06)',borderRadius:'16px',padding:'20px',border:'1px solid rgba(255,255,255,.1)',boxShadow:'0 4px 20px rgba(0,0,0,.3)'}}>
-                  <p style={{fontSize:'13px',fontWeight:700,color:'#fff',textTransform:'uppercase',letterSpacing:'.06em',marginBottom:'16px'}}>Resumo</p>
-
+                <div style={{background:'#fff',borderRadius:'12px',padding:'20px',border:'1px solid #DCE3EA',boxShadow:'0 1px 3px rgba(0,0,0,.06)'}}>
+                  <p style={{fontSize:'13px',fontWeight:700,color:'#0F172A',textTransform:'uppercase',letterSpacing:'.06em',marginBottom:'16px'}}>Resumo</p>
                   <div style={{display:'flex',flexDirection:'column',gap:'10px',marginBottom:'16px'}}>
-                    <div>
-                      <p style={{fontSize:'11px',fontWeight:600,color:'#64748B',textTransform:'uppercase',letterSpacing:'.05em',marginBottom:'2px'}}>Cliente</p>
-                      <p style={{fontSize:'14px',fontWeight:600,color:clienteNome?'#fff':'#475569'}}>{clienteNome||'Não informado'}</p>
-                    </div>
-                    <div>
-                      <p style={{fontSize:'11px',fontWeight:600,color:'#64748B',textTransform:'uppercase',letterSpacing:'.05em',marginBottom:'2px'}}>Tipo</p>
-                      <p style={{fontSize:'14px',color:'#CBD5E1'}}>{tipo==='__outro__'?(tipoOutro||'Outro'):tipo}</p>
-                    </div>
-                    <div style={{height:'1px',background:'rgba(255,255,255,.08)'}} />
-                    <div>
-                      <p style={{fontSize:'11px',fontWeight:600,color:'#667085',textTransform:'uppercase',letterSpacing:'.05em',marginBottom:'4px'}}>Total final</p>
-                      <p style={{fontSize:'24px',fontWeight:800,color:'#2563EB',letterSpacing:'-0.02em'}}>R$ {fmtBRL(total)}</p>
-                    </div>
-                    {valorPagoLocal>0&&(
-                      <div>
-                        <p style={{fontSize:'11px',fontWeight:600,color:'#667085',textTransform:'uppercase',letterSpacing:'.05em',marginBottom:'2px'}}>Valor pago</p>
-                        <p style={{fontSize:'16px',fontWeight:700,color:'#16A34A'}}>R$ {fmtBRL(valorPagoLocal)}</p>
-                      </div>
-                    )}
-                    {saldoLocal>0&&(
-                      <div>
-                        <p style={{fontSize:'11px',fontWeight:600,color:'#667085',textTransform:'uppercase',letterSpacing:'.05em',marginBottom:'2px'}}>Saldo restante</p>
-                        <p style={{fontSize:'16px',fontWeight:700,color:'#EA580C'}}>R$ {fmtBRL(saldoLocal)}</p>
-                      </div>
-                    )}
-                    <div>
-                      <p style={{fontSize:'11px',fontWeight:600,color:'#64748B',textTransform:'uppercase',letterSpacing:'.05em',marginBottom:'4px'}}>Status</p>
-                      <span style={{fontSize:'12px',fontWeight:600,padding:'3px 10px',borderRadius:'999px',background:STATUS_COR[status]?.bg||'#EFF6FF',color:STATUS_COR[status]?.color||'#2563EB',border:`1px solid ${STATUS_COR[status]?.border||'#BFDBFE'}`}}>{status}</span>
-                    </div>
+                    <div><p style={{fontSize:'11px',fontWeight:600,color:'#667085',textTransform:'uppercase',letterSpacing:'.05em',marginBottom:'2px'}}>Cliente</p><p style={{fontSize:'14px',fontWeight:600,color:clienteNome?'#0F172A':'#9CA3AF'}}>{clienteNome||'Não informado'}</p></div>
+                    <div><p style={{fontSize:'11px',fontWeight:600,color:'#667085',textTransform:'uppercase',letterSpacing:'.05em',marginBottom:'2px'}}>Tipo</p><p style={{fontSize:'14px',color:'#0F172A'}}>{tipo==='__outro__'?(tipoOutro||'Outro'):tipo}</p></div>
+                    <div style={{height:'1px',background:'#F1F4F8'}} />
+                    <div><p style={{fontSize:'11px',fontWeight:600,color:'#667085',textTransform:'uppercase',letterSpacing:'.05em',marginBottom:'4px'}}>Total final</p><p style={{fontSize:'24px',fontWeight:800,color:'#2563EB',letterSpacing:'-0.02em'}}>R$ {fmtBRL(total)}</p></div>
+                    {valorPagoLocal>0&&<div><p style={{fontSize:'11px',fontWeight:600,color:'#667085',textTransform:'uppercase',letterSpacing:'.05em',marginBottom:'2px'}}>Valor pago</p><p style={{fontSize:'16px',fontWeight:700,color:'#16A34A'}}>R$ {fmtBRL(valorPagoLocal)}</p></div>}
+                    {saldoLocal>0&&<div><p style={{fontSize:'11px',fontWeight:600,color:'#667085',textTransform:'uppercase',letterSpacing:'.05em',marginBottom:'2px'}}>Saldo restante</p><p style={{fontSize:'16px',fontWeight:700,color:'#EA580C'}}>R$ {fmtBRL(saldoLocal)}</p></div>}
+                    <div><p style={{fontSize:'11px',fontWeight:600,color:'#667085',textTransform:'uppercase',letterSpacing:'.05em',marginBottom:'4px'}}>Status</p><span style={{fontSize:'12px',fontWeight:600,padding:'3px 10px',borderRadius:'999px',background:STATUS_COR[status]?.bg||'#EFF6FF',color:STATUS_COR[status]?.color||'#2563EB',border:`1px solid ${STATUS_COR[status]?.border||'#BFDBFE'}`}}>{status}</span></div>
                   </div>
-
-                  <button onClick={handleSalvar}
-                    style={{width:'100%',background:'#2563EB',color:'#fff',border:'none',borderRadius:'8px',padding:'13px',fontSize:'15px',fontWeight:700,cursor:'pointer',fontFamily:'inherit',boxShadow:'0 4px 12px rgba(37,99,235,.3)',marginBottom:'8px',display:'flex',alignItems:'center',justifyContent:'center',gap:'8px'}}>
-                    📄 {editandoId?'Salvar alterações':'Criar orçamento'}
-                  </button>
-                  <button onClick={enviarCobrancaWpp} disabled={!clienteWpp}
-                    style={{width:'100%',background:'rgba(34,197,94,.15)',color:'#4ADE80',border:'1px solid rgba(34,197,94,.3)',borderRadius:'8px',padding:'11px',fontSize:'14px',fontWeight:600,cursor:clienteWpp?'pointer':'not-allowed',fontFamily:'inherit',marginBottom:'8px',opacity:clienteWpp?1:0.6,display:'flex',alignItems:'center',justifyContent:'center',gap:'6px'}}>
-                    💬 Enviar no WhatsApp
-                  </button>
-                  <button onClick={()=>{resetForm();setView('lista')}}
-                    style={{width:'100%',background:'rgba(255,255,255,.06)',color:'#94A3B8',border:'1px solid rgba(255,255,255,.12)',borderRadius:'8px',padding:'10px',fontSize:'13px',fontWeight:600,cursor:'pointer',fontFamily:'inherit',display:'flex',alignItems:'center',justifyContent:'center',gap:'6px'}}>
-                    📄 Salvar como rascunho
-                  </button>
-
-                  <div style={{marginTop:'16px',display:'flex',alignItems:'center',gap:'8px',padding:'10px',background:'rgba(255,255,255,.04)',borderRadius:'8px',border:'1px solid rgba(255,255,255,.08)'}}>
+                  <button onClick={handleSalvar} style={{width:'100%',background:'#2563EB',color:'#fff',border:'none',borderRadius:'8px',padding:'13px',fontSize:'15px',fontWeight:700,cursor:'pointer',fontFamily:'inherit',boxShadow:'0 4px 12px rgba(37,99,235,.3)',marginBottom:'8px',display:'flex',alignItems:'center',justifyContent:'center',gap:'8px'}}>📄 {editandoId?'Salvar alterações':'Criar orçamento'}</button>
+                  <button onClick={enviarCobrancaWpp} disabled={!clienteWpp} style={{width:'100%',background:'#F0FFF4',color:'#16A34A',border:'1.5px solid #86EFAC',borderRadius:'8px',padding:'11px',fontSize:'14px',fontWeight:600,cursor:clienteWpp?'pointer':'not-allowed',fontFamily:'inherit',marginBottom:'8px',opacity:clienteWpp?1:0.6,display:'flex',alignItems:'center',justifyContent:'center',gap:'6px'}}>💬 Enviar no WhatsApp</button>
+                  <button onClick={()=>{resetForm();setView('lista')}} style={{width:'100%',background:'#F8FAFC',color:'#667085',border:'1.5px solid #DCE3EA',borderRadius:'8px',padding:'10px',fontSize:'13px',fontWeight:600,cursor:'pointer',fontFamily:'inherit',display:'flex',alignItems:'center',justifyContent:'center',gap:'6px'}}>📄 Salvar como rascunho</button>
+                  <div style={{marginTop:'16px',display:'flex',alignItems:'center',gap:'8px',padding:'10px',background:'#F8FAFC',borderRadius:'8px',border:'1px solid #DCE3EA'}}>
                     <span style={{fontSize:'18px'}}>🔒</span>
-                    <div>
-                      <p style={{fontSize:'12px',fontWeight:600,color:'#fff'}}>Seus dados estão seguros</p>
-                      <p style={{fontSize:'11px',color:'#64748B'}}>e protegidos com criptografia.</p>
-                    </div>
+                    <div><p style={{fontSize:'12px',fontWeight:600,color:'#0F172A'}}>Seus dados estão seguros</p><p style={{fontSize:'11px',color:'#9CA3AF'}}>e protegidos com criptografia.</p></div>
                   </div>
                 </div>
               </div>
-
             </div>
-          </div>
           </div>
         )}
 
@@ -1258,15 +861,13 @@ export default function Orcamentos() {
           return (
             <div className="cm-detalhe-pad" style={{padding:'28px 32px 60px',maxWidth:'900px'}}>
               <div style={{display:'flex',alignItems:'center',gap:'12px',marginBottom:'20px',flexWrap:'wrap'}}>
-                <button onClick={()=>{setView('lista');setShowPagForm(false)}}
-                  style={{background:'none',border:'none',cursor:'pointer',fontSize:'13px',color:'#667085',fontFamily:'inherit'}}>← Voltar</button>
-                <h2 style={{fontSize:'20px',fontWeight:800,color:'#F8FAFC'}}>{orc.tipo} — {orc.cliente_nome}</h2>
+                <button onClick={()=>{setView('lista');setShowPagForm(false)}} style={{background:'none',border:'none',cursor:'pointer',fontSize:'13px',color:'#667085',fontFamily:'inherit'}}>← Voltar</button>
+                <h2 style={{fontSize:'20px',fontWeight:800,color:'#0F172A'}}>{orc.tipo} — {orc.cliente_nome}</h2>
                 <span style={{fontSize:'11px',fontWeight:700,padding:'3px 10px',borderRadius:'999px',background:cfg.bg,color:cfg.color,border:`1px solid ${cfg.border}`}}>{orc.status}</span>
               </div>
               {mensagem&&<div style={{fontSize:'13px',padding:'10px 14px',borderRadius:'8px',marginBottom:'14px',background:'#F0FDF4',border:'1px solid #BBF7D0',color:'#16A34A'}}>{mensagem}</div>}
-
               <div style={card}>
-                <p style={{fontSize:'14px',fontWeight:700,color:'#F8FAFC',marginBottom:'14px'}}>📊 Resumo financeiro</p>
+                <p style={{fontSize:'14px',fontWeight:700,color:'#0F172A',marginBottom:'14px'}}>📊 Resumo financeiro</p>
                 <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'8px',marginBottom:'14px'}}>
                   {[{l:'Total',v:orc.total,c:'#0F172A'},{l:'Pago',v:orc.valor_pago,c:'#16A34A'},{l:'Saldo',v:orc.saldo_restante,c:orc.saldo_restante>0?'#EA580C':'#16A34A'}].map(f=>(
                     <div key={f.l} style={{background:BG,borderRadius:'8px',padding:'12px',border:'1px solid #DCE3EA'}}>
@@ -1276,26 +877,20 @@ export default function Orcamentos() {
                   ))}
                 </div>
                 <div style={{display:'flex',gap:'8px',flexWrap:'wrap'}}>
-                  <button onClick={()=>setShowPagForm(!showPagForm)}
-                    style={{background:'#2563EB',color:'#fff',border:'none',borderRadius:'8px',padding:'8px 14px',fontSize:'12px',fontWeight:700,cursor:'pointer',fontFamily:'inherit'}}>
-                    + Registrar pagamento
-                  </button>
-                  <button onClick={()=>gerarPDF(orc)} style={{background:'rgba(255,255,255,.06)',border:'1px solid rgba(255,255,255,.12)',borderRadius:'8px',padding:'8px 14px',fontSize:'12px',fontWeight:600,color:'#94A3B8',cursor:'pointer',fontFamily:'inherit'}}>PDF</button>
+                  <button onClick={()=>setShowPagForm(!showPagForm)} style={{background:'#2563EB',color:'#fff',border:'none',borderRadius:'8px',padding:'8px 14px',fontSize:'12px',fontWeight:700,cursor:'pointer',fontFamily:'inherit'}}>+ Registrar pagamento</button>
+                  <button onClick={()=>gerarPDF(orc)} style={{background:BG,border:'1.5px solid #DCE3EA',borderRadius:'8px',padding:'8px 14px',fontSize:'12px',fontWeight:600,color:'#667085',cursor:'pointer',fontFamily:'inherit'}}>PDF</button>
                   <button onClick={()=>enviarWpp(orc)} style={{background:'#F0FFF4',border:'1.5px solid #86EFAC',borderRadius:'8px',padding:'8px 14px',fontSize:'12px',fontWeight:600,color:'#16A34A',cursor:'pointer',fontFamily:'inherit'}}>WhatsApp</button>
-                  {orc.link_pagamento&&<button onClick={()=>navigator.clipboard.writeText(orc.link_pagamento)} style={{background:'rgba(255,255,255,.06)',border:'1px solid rgba(255,255,255,.12)',borderRadius:'8px',padding:'8px 14px',fontSize:'12px',fontWeight:600,color:'#94A3B8',cursor:'pointer',fontFamily:'inherit'}}>Copiar link</button>}
-                  <button onClick={()=>abrirEditar(orc)} style={{background:'rgba(255,255,255,.06)',border:'1px solid rgba(255,255,255,.12)',borderRadius:'8px',padding:'8px 14px',fontSize:'12px',fontWeight:600,color:'#94A3B8',cursor:'pointer',fontFamily:'inherit'}}>Editar</button>
+                  {orc.link_pagamento&&<button onClick={()=>navigator.clipboard.writeText(orc.link_pagamento)} style={{background:BG,border:'1.5px solid #DCE3EA',borderRadius:'8px',padding:'8px 14px',fontSize:'12px',fontWeight:600,color:'#667085',cursor:'pointer',fontFamily:'inherit'}}>Copiar link</button>}
+                  <button onClick={()=>abrirEditar(orc)} style={{background:BG,border:'1.5px solid #DCE3EA',borderRadius:'8px',padding:'8px 14px',fontSize:'12px',fontWeight:600,color:'#667085',cursor:'pointer',fontFamily:'inherit'}}>Editar</button>
                 </div>
                 {showPagForm&&(
                   <div style={{marginTop:'14px',background:'#F0F9FF',border:'1.5px solid #BAE6FD',borderRadius:'10px',padding:'16px'}}>
-                    <p style={{fontSize:'13px',fontWeight:700,color:'#93C5FD',marginBottom:'12px'}}>Registrar pagamento</p>
+                    <p style={{fontSize:'13px',fontWeight:700,color:'#0369A1',marginBottom:'12px'}}>Registrar pagamento</p>
                     <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'10px',marginBottom:'10px'}}>
                       <div><label style={lbl}>Data</label><input type="date" value={pagData} onChange={e=>setPagData(e.target.value)} style={inp} /></div>
                       <div><label style={lbl}>Valor (R$)</label><input type="number" placeholder="0,00" value={pagValor} onChange={e=>setPagValor(e.target.value)} style={inp} /></div>
                     </div>
-                    <div style={{marginBottom:'10px'}}><label style={lbl}>Forma</label>
-                      <select value={pagForma} onChange={e=>setPagForma(e.target.value)} style={sel}>
-                        {['Pix','Dinheiro','Cartão de crédito','Cartão de débito','Transferência','Link de pagamento','Outro'].map(f=><option key={f}>{f}</option>)}
-                      </select></div>
+                    <div style={{marginBottom:'10px'}}><label style={lbl}>Forma</label><select value={pagForma} onChange={e=>setPagForma(e.target.value)} style={sel}>{['Pix','Dinheiro','Cartão de crédito','Cartão de débito','Transferência','Link de pagamento','Outro'].map(f=><option key={f}>{f}</option>)}</select></div>
                     <div style={{marginBottom:'12px'}}><label style={lbl}>Observação</label><input type="text" placeholder="Opcional" value={pagObs} onChange={e=>setPagObs(e.target.value)} style={inp} /></div>
                     <div style={{display:'flex',gap:'8px'}}>
                       <button onClick={()=>setShowPagForm(false)} style={{flex:1,background:'#F8FAFC',border:'1.5px solid #DCE3EA',borderRadius:'8px',padding:'10px',fontSize:'13px',fontWeight:600,color:'#667085',cursor:'pointer',fontFamily:'inherit'}}>Cancelar</button>
@@ -1304,36 +899,31 @@ export default function Orcamentos() {
                   </div>
                 )}
               </div>
-
               {(orc.servicos?.length>0)&&(
-                <div className="cm-card" style={card}>
-                  <p style={{fontSize:'14px',fontWeight:700,color:'#F8FAFC',marginBottom:'12px'}}>🛎 Serviços</p>
+                <div style={card}>
+                  <p style={{fontSize:'14px',fontWeight:700,color:'#0F172A',marginBottom:'12px'}}>🛎 Serviços</p>
                   {(orc.servicos||[]).map((s:any,i:number)=>(
-                    <div key={i} style={{display:'flex',justifyContent:'space-between',padding:'8px 0',borderBottom:'1px solid rgba(255,255,255,.08)'}}>
-                      <div><p style={{fontSize:'13px',color:'#F8FAFC',fontWeight:600}}>{s.nome}</p><p style={{fontSize:'11px',color:'#9CA3AF'}}>{s.qtd||1}x · R$ {fmtBRL(parseFloat(s.unitario||'0'))}</p></div>
+                    <div key={i} style={{display:'flex',justifyContent:'space-between',padding:'8px 0',borderBottom:'1px solid #F1F4F8'}}>
+                      <div><p style={{fontSize:'13px',color:'#0F172A',fontWeight:600}}>{s.nome}</p><p style={{fontSize:'11px',color:'#9CA3AF'}}>{s.qtd||1}x · R$ {fmtBRL(parseFloat(s.unitario||'0'))}</p></div>
                       <span style={{fontSize:'14px',fontWeight:700,color:'#059669'}}>R$ {fmtBRL(s.total||0)}</span>
                     </div>
                   ))}
-                  <div style={{display:'flex',justifyContent:'space-between',fontSize:'16px',fontWeight:800,paddingTop:'10px',marginTop:'4px'}}>
-                    <span style={{color:'#F8FAFC'}}>Total</span><span style={{color:'#2563EB'}}>R$ {fmtBRL(orc.total)}</span>
-                  </div>
+                  <div style={{display:'flex',justifyContent:'space-between',fontSize:'16px',fontWeight:800,paddingTop:'10px',marginTop:'4px'}}><span style={{color:'#0F172A'}}>Total</span><span style={{color:'#2563EB'}}>R$ {fmtBRL(orc.total)}</span></div>
                 </div>
               )}
-
               <div style={card}>
-                <p style={{fontSize:'14px',fontWeight:700,color:'#F8FAFC',marginBottom:'12px'}}>📜 Histórico de pagamentos</p>
+                <p style={{fontSize:'14px',fontWeight:700,color:'#0F172A',marginBottom:'12px'}}>📜 Histórico de pagamentos</p>
                 {pagamentos.length===0?<p style={{fontSize:'13px',color:'#9CA3AF'}}>Nenhum pagamento registrado.</p>
                 :pagamentos.map((p,i)=>(
-                  <div key={i} style={{display:'flex',justifyContent:'space-between',padding:'8px 0',borderBottom:'1px solid rgba(255,255,255,.08)'}}>
-                    <div><p style={{fontSize:'13px',color:'#F8FAFC',fontWeight:600}}>{p.forma} · {fmtData(p.data)}</p>{p.observacao&&<p style={{fontSize:'11px',color:'#9CA3AF'}}>{p.observacao}</p>}</div>
+                  <div key={i} style={{display:'flex',justifyContent:'space-between',padding:'8px 0',borderBottom:'1px solid #F1F4F8'}}>
+                    <div><p style={{fontSize:'13px',color:'#0F172A',fontWeight:600}}>{p.forma} · {fmtData(p.data)}</p>{p.observacao&&<p style={{fontSize:'11px',color:'#9CA3AF'}}>{p.observacao}</p>}</div>
                     <span style={{fontSize:'14px',fontWeight:700,color:'#16A34A'}}>R$ {fmtBRL(p.valor)}</span>
                   </div>
                 ))}
               </div>
-
               <div style={card}>
-                <p style={{fontSize:'14px',fontWeight:700,color:'#F8FAFC',marginBottom:'10px'}}>👤 Cliente</p>
-                <p style={{fontSize:'14px',fontWeight:600,color:'#F8FAFC',marginBottom:'4px'}}>{orc.cliente_nome}</p>
+                <p style={{fontSize:'14px',fontWeight:700,color:'#0F172A',marginBottom:'10px'}}>👤 Cliente</p>
+                <p style={{fontSize:'14px',fontWeight:600,color:'#0F172A',marginBottom:'4px'}}>{orc.cliente_nome}</p>
                 {orc.cliente_whatsapp&&<p style={{fontSize:'13px',color:'#667085',marginBottom:'2px'}}>📱 {aplicarMascaraTel(orc.cliente_whatsapp)}</p>}
                 {orc.cliente_email&&<p style={{fontSize:'13px',color:'#667085'}}>✉️ {orc.cliente_email}</p>}
                 {orc.observacoes&&<p style={{fontSize:'13px',color:'#9CA3AF',marginTop:'8px'}}>{orc.observacoes}</p>}
