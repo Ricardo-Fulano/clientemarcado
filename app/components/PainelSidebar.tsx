@@ -1,7 +1,9 @@
 'use client'
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { supabase } from '../lib/supabase'
 
 const G = 'linear-gradient(135deg,#3B82F6,#7C3AED)'
 const AV = 'linear-gradient(135deg,rgba(59,130,246,.95),rgba(124,58,237,.95))'
@@ -51,7 +53,13 @@ interface Props {
 export default function PainelSidebar({ nome = '', tituloMobile = 'Painel' }: Props) {
   const [mob, setMob] = useState(false)
   const path = usePathname()
+  const router = useRouter()
   const ini = (nome || 'C').charAt(0).toUpperCase()
+
+  async function sair() {
+    await supabase.auth.signOut()
+    router.push('/login')
+  }
 
   function ativo(href: string) {
     if (href === '/painel') return path === '/painel'
@@ -90,6 +98,9 @@ export default function PainelSidebar({ nome = '', tituloMobile = 'Painel' }: Pr
         <nav style={{ flex: 1, padding: '10px 8px', overflowY: 'auto' }}>
           <NavLinks onClick={() => setMob(false)} />
         </nav>
+        <div style={{padding:'12px 10px',borderTop:'1px solid rgba(148,163,184,.10)'}}>
+          <button onClick={()=>{setMob(false);sair()}} style={{width:'100%',background:'rgba(239,68,68,.10)',border:'1px solid rgba(239,68,68,.25)',borderRadius:'10px',padding:'11px 14px',color:'#FCA5A5',fontSize:'13px',fontWeight:600,cursor:'pointer',fontFamily:'inherit',display:'flex',alignItems:'center',gap:'8px'}}>↪ Sair</button>
+        </div>
       </div>
 
       {/* Sidebar desktop */}
@@ -114,6 +125,7 @@ export default function PainelSidebar({ nome = '', tituloMobile = 'Painel' }: Pr
               <p style={{ fontSize: '10px', color: '#64748B' }}>Administrador</p>
             </div>
           </div>
+          <button onClick={sair} style={{width:'100%',marginTop:'8px',background:'rgba(239,68,68,.10)',border:'1px solid rgba(239,68,68,.25)',borderRadius:'10px',padding:'9px 14px',color:'#FCA5A5',fontSize:'13px',fontWeight:600,cursor:'pointer',fontFamily:'inherit',display:'flex',alignItems:'center',gap:'8px',transition:'background .15s'}} onMouseEnter={e=>(e.currentTarget.style.background='rgba(239,68,68,.18)')} onMouseLeave={e=>(e.currentTarget.style.background='rgba(239,68,68,.10)')}>↪ Sair</button>
         </div>
       </aside>
 
