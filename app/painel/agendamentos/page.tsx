@@ -20,7 +20,7 @@ input,select,textarea{color-scheme:dark}
 .fil-row{display:flex;align-items:center;gap:7px;margin-bottom:14px;flex-wrap:wrap}
 .fil-inner{display:flex;gap:5px;flex:1;overflow-x:auto;flex-wrap:nowrap;-webkit-overflow-scrolling:touch}
 .fil-inner::-webkit-scrollbar{display:none}
-.ag-item{background:linear-gradient(145deg,rgba(15,23,42,.98),rgba(8,20,33,.99));border:1px solid rgba(148,163,184,.12);border-radius:14px;padding:12px 14px;margin-bottom:6px;cursor:pointer;transition:all .15s}
+.ag-item{background:linear-gradient(145deg,rgba(11,22,40,.98),rgba(8,16,28,.99));border:1px solid rgba(59,130,246,.18);border-radius:20px;padding:14px 16px;margin-bottom:10px;cursor:pointer;transition:all .15s}.card-btns{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}.card-btn{border-radius:8px;padding:5px 10px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:4px;white-space:nowrap;border:1px solid transparent;transition:all .12s}.fil-scroll{display:flex;gap:5px;overflow-x:auto;flex-wrap:nowrap;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding-bottom:2px}.fil-scroll::-webkit-scrollbar{display:none}.bs-ovl{position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:60;opacity:0;pointer-events:none;transition:opacity .25s}.bs-ovl.open{opacity:1;pointer-events:auto}.bs{position:fixed;bottom:0;left:0;right:0;background:#0B1628;border-top:1px solid rgba(255,255,255,.10);border-radius:22px 22px 0 0;padding:24px 24px 32px;z-index:61;transform:translateY(100%);transition:transform .28s ease;max-height:82vh;overflow-y:auto;box-sizing:border-box}.bs.open{transform:translateY(0)}.bs-handle{width:40px;height:4px;background:rgba(255,255,255,.15);border-radius:2px;margin:0 auto 20px}.bs-item{display:flex;align-items:center;gap:12px;padding:14px 0;border-bottom:1px solid rgba(255,255,255,.06);cursor:pointer;font-size:14px;font-weight:500;background:none;border-left:none;border-right:none;border-top:none;font-family:inherit;width:100%;text-align:left;min-height:48px}.bs-label{font-size:10px;font-weight:700;color:#64748B;text-transform:uppercase;letter-spacing:.08em;margin:14px 0 6px}
 .ag-item:hover{border-color:rgba(148,163,184,.24)}
 .ag-item.sel{border-color:rgba(59,130,246,.48);background:radial-gradient(circle at top left,rgba(59,130,246,.09),transparent 60%),linear-gradient(145deg,rgba(15,23,42,.98),rgba(8,20,33,.99))}
 .mnu-item{display:flex;align-items:center;gap:7px;padding:8px 11px;border-radius:7px;font-size:11px;font-weight:600;cursor:pointer;color:#CBD5E1;border:none;background:none;font-family:inherit;width:100%;text-align:left;white-space:nowrap;transition:background .1s}
@@ -77,6 +77,7 @@ export default function Agendamentos(){
   const [msg,setMsg]=useState('')
   const [sel,setSel]=useState<any>(null)
   const [mnu,setMnu]=useState<string|null>(null)
+  const [bsAg,setBsAg]=useState<any>(null)
   const mnuRef=useRef<HTMLDivElement>(null)
   const hoje=new Date().toISOString().split('T')[0]
 
