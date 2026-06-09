@@ -78,7 +78,7 @@ export default function Agendamentos(){
   const [sel,setSel]=useState<any>(null)
   const [mnu,setMnu]=useState<string|null>(null)
   const [bsAg,setBsAg]=useState<any>(null)
-  const [bsFiltros,setBsFiltros]=useState(False)
+  const [bsFiltros,setBsFiltros]=useState(false)
   const mnuRef=useRef<HTMLDivElement>(null)
   const hoje=new Date().toISOString().split('T')[0]
 
