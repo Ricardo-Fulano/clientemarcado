@@ -12,34 +12,61 @@ const CSS=`
 html,body{overflow-x:hidden;width:100%;max-width:100%;background:#050B16}
 input,select,textarea{color-scheme:dark}
 .pg{background:radial-gradient(circle at top left,rgba(124,58,237,.14),transparent 28%),linear-gradient(135deg,#050B16 0%,#07111F 45%,#050B16 100%);min-height:100vh}
-.bdy{max-width:1200px;margin:0 auto;padding:24px 28px 80px}
+.bdy{max-width:1200px;margin:0 auto;padding:24px 28px 80px;width:100%;box-sizing:border-box}
 .ag-grid{display:grid;grid-template-columns:1fr;gap:16px}
 .det-col{display:none}
 .kpi-g{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px}
 .hdr-btns{display:flex;gap:8px;flex-wrap:wrap;flex-shrink:0}
-.fil-row{display:flex;align-items:center;gap:7px;margin-bottom:14px;flex-wrap:wrap}
-.fil-inner{display:flex;gap:5px;flex:1;overflow-x:auto;flex-wrap:nowrap;-webkit-overflow-scrolling:touch}
-.fil-inner::-webkit-scrollbar{display:none}
-.ag-item{background:linear-gradient(145deg,rgba(15,23,42,.98),rgba(8,20,33,.99));border:1px solid rgba(148,163,184,.12);border-radius:14px;padding:12px 14px;margin-bottom:6px;cursor:pointer;transition:all .15s}
-.ag-item:hover{border-color:rgba(148,163,184,.24)}
-.ag-item.sel{border-color:rgba(59,130,246,.48);background:radial-gradient(circle at top left,rgba(59,130,246,.09),transparent 60%),linear-gradient(145deg,rgba(15,23,42,.98),rgba(8,20,33,.99))}
-.mnu-item{display:flex;align-items:center;gap:7px;padding:8px 11px;border-radius:7px;font-size:11px;font-weight:600;cursor:pointer;color:#CBD5E1;border:none;background:none;font-family:inherit;width:100%;text-align:left;white-space:nowrap;transition:background .1s}
+.fil-scroll{display:flex;align-items:center;gap:6px;margin-bottom:14px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding-bottom:2px}
+.fil-scroll::-webkit-scrollbar{display:none}
+.ag-item{background:linear-gradient(145deg,rgba(11,22,40,.98),rgba(8,16,28,.99));border:1px solid rgba(59,130,246,.18);border-radius:20px;padding:16px;margin-bottom:12px;cursor:pointer;transition:all .15s}
+.ag-item:hover{border-color:rgba(59,130,246,.35)}
+.ag-item.sel{border-color:rgba(59,130,246,.55);background:radial-gradient(circle at top left,rgba(59,130,246,.09),transparent 60%),linear-gradient(145deg,rgba(11,22,40,.98),rgba(8,16,28,.99))}
+.mnu-item{display:flex;align-items:center;gap:8px;padding:10px 12px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;color:#CBD5E1;border:none;background:none;font-family:inherit;width:100%;text-align:left;transition:background .1s}
 .mnu-item:hover{background:rgba(255,255,255,.06)}
+.card-btns{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+.card-btn{border-radius:9px;padding:6px 11px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:4px;white-space:nowrap;border:1px solid transparent;transition:all .12s}
+.conf-area{margin-top:10px;padding-top:10px;border-top:1px solid rgba(148,163,184,.10)}
+.conf-btns{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.conf-btns a,.conf-btns button{border-radius:9px;padding:6px 11px;font-size:11px;font-weight:700;cursor:pointer;border:1px solid transparent;font-family:inherit;display:inline-flex;align-items:center;gap:4px;flex:1;justify-content:center;min-height:38px}
 .sem-card{background:linear-gradient(145deg,rgba(15,23,42,.98),rgba(8,20,33,.99));border:1px solid rgba(148,163,184,.12);border-radius:16px;padding:16px;cursor:pointer;transition:all .15s}
 .sem-card:hover{border-color:rgba(148,163,184,.24)}
-.sem-card.hoje-card{border-color:rgba(59,130,246,.35);background:radial-gradient(circle at top left,rgba(59,130,246,.08),transparent 50%),linear-gradient(145deg,rgba(15,23,42,.98),rgba(8,20,33,.99))}
+.sem-card.hoje-card{border-color:rgba(59,130,246,.35)}
 .sem-card.sel-card{border-color:rgba(59,130,246,.55);box-shadow:0 0 20px rgba(59,130,246,.15)}
 .sem-det-item{background:linear-gradient(145deg,rgba(15,23,42,.98),rgba(8,20,33,.99));border:1px solid rgba(148,163,184,.12);border-radius:12px;padding:12px 14px;margin-bottom:6px;display:flex;gap:12px;align-items:flex-start}
+.bs-ovl{position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:60;opacity:0;pointer-events:none;transition:opacity .25s}
+.bs-ovl.open{opacity:1;pointer-events:auto}
+.bs{position:fixed;bottom:0;left:0;right:0;background:#0B1628;border-top:1px solid rgba(255,255,255,.10);border-radius:22px 22px 0 0;padding:24px 24px 36px;z-index:61;transform:translateY(100%);transition:transform .28s ease;max-height:82vh;overflow-y:auto;box-sizing:border-box}
+.bs.open{transform:translateY(0)}
+.bs-handle{width:40px;height:4px;background:rgba(255,255,255,.15);border-radius:2px;margin:0 auto 20px}
+.bs-item{display:flex;align-items:center;gap:12px;padding:14px 0;border-bottom:1px solid rgba(255,255,255,.06);cursor:pointer;font-size:14px;font-weight:500;background:none;border-left:none;border-right:none;border-top:none;font-family:inherit;width:100%;text-align:left;min-height:48px}
+.bs-item:last-child{border-bottom:none}
+.bs-label{font-size:10px;font-weight:700;color:#64748B;text-transform:uppercase;letter-spacing:.08em;margin:14px 0 6px}
 @media(min-width:1100px){.ag-grid{grid-template-columns:1fr 360px}.det-col{display:block}}
 @media(max-width:1023px){
-  .bdy{padding:14px 14px 80px!important}
-  .kpi-g{grid-template-columns:1fr 1fr!important;gap:8px!important}
-  .kpi-g>div:last-child{grid-column:1/-1!important}
-  .hdr-btns{width:100%;display:grid!important;grid-template-columns:1fr 1fr;gap:7px}
-  .hdr-btns a,.hdr-btns button{width:100%;justify-content:center}
+  .bdy{padding:14px 14px 80px!important;max-width:100%!important;width:100%!important;overflow-x:hidden!important}
+  .kpi-g{grid-template-columns:repeat(3,1fr)!important;gap:6px!important}
+  .hdr-btns{display:grid!important;grid-template-columns:1fr 1fr;gap:8px;width:100%}
+  .hdr-btns a,.hdr-btns button{width:100%;justify-content:center;min-height:48px!important}
+  .ag-item{border-radius:20px!important;padding:16px!important}
+  .card-btns{display:grid!important;grid-template-columns:1fr 1fr!important;gap:6px!important}
+  .card-btn{justify-content:center!important;min-height:40px!important}
+  .conf-btns{display:grid!important;grid-template-columns:1fr 1fr!important}
 }
-@media(max-width:480px){.kpi-g{grid-template-columns:1fr!important}}
+@media(max-width:480px){
+  .kpi-g{grid-template-columns:repeat(3,1fr)!important}
+}
 `
+
+
+const confCfg: Record<string,{t:string,bg:string,c:string}> = {
+  pendente:         {t:'Aguardando confirmacao',bg:'rgba(245,158,11,.12)',c:'#FCD34D'},
+  mensagem_enviada: {t:'Mensagem enviada',      bg:'rgba(59,130,246,.12)', c:'#60A5FA'},
+  confirmado:       {t:'Confirmado',            bg:'rgba(34,197,94,.12)',  c:'#4ADE80'},
+  sem_resposta:     {t:'Sem resposta',          bg:'rgba(245,158,11,.12)',c:'#FCD34D'},
+  nao_comparece:    {t:'Nao vai comparecer',    bg:'rgba(239,68,68,.12)',  c:'#F87171'},
+  remarcado:        {t:'Remarcado',             bg:'rgba(124,58,237,.12)',c:'#C4B5FD'},
+}
 
 const stCfg: Record<string,{t:string,bg:string,c:string,bd:string}> = {
   pendente:      {t:'Pendente',       bg:'rgba(245,158,11,.14)',c:'#FCD34D',bd:'rgba(245,158,11,.30)'},
@@ -77,7 +104,37 @@ export default function Agendamentos(){
   const [msg,setMsg]=useState('')
   const [sel,setSel]=useState<any>(null)
   const [mnu,setMnu]=useState<string|null>(null)
+  const [confMnu,setConfMnu]=useState<string|null>(null)
+  const [bsAg,setBsAg]=useState<any>(null)
+
+  async function updConf(id:string, status:string){
+    await supabase.from('agendamentos').update({
+      confirmacao_status: status,
+      confirmacao_atualizada_em: new Date().toISOString(),
+    }).eq('id',id)
+    setAgs(prev=>prev.map(a=>a.id===id?{...a,confirmacao_status:status,confirmacao_atualizada_em:new Date().toISOString()}:a))
+    if(sel?.id===id)setSel((s:any)=>s?{...s,confirmacao_status:status}:s)
+  }
+
+  function wppConf(a:any){
+    const tel=fTel(a.cliente_whatsapp||a.cliente_telefone||'')
+    if(!tel)return''
+    const hr=fH(a.data_hora)
+    const sv=a.servicos?.nome||'seu atendimento'
+    const pr=a.profissionais?.nome?` com ${a.profissionais.nome}`:''
+    const neg=perfil?.nome_negocio||'nosso negocio'
+    const msg=encodeURIComponent(`Ola, ${a.cliente_nome||''}! Tudo bem? Aqui e da ${neg}. Estou passando para confirmar seu horario de hoje as ${hr} para ${sv}${pr}. Voce confirma sua presenca?`)
+    return`https://wa.me/55${tel.replace(/\D/g,'')}?text=${msg}`
+  }
   const mnuRef=useRef<HTMLDivElement>(null)
+
+  function resgatarCliente(a:any){
+    const tel=gTel(a)
+    if(!tel){toast('Cliente sem WhatsApp cadastrado.');return}
+    const ph=tel.startsWith('55')?tel:'55'+tel
+    const msg=encodeURIComponent('Ola, tudo bem? Faz alguns dias que nao vemos voce por aqui. Quer que eu veja um horario disponivel para continuarmos seu atendimento?')
+    window.open('https://wa.me/'+ph+'?text='+msg,'_blank')
+  }
   const hoje=new Date().toISOString().split('T')[0]
 
   useEffect(()=>{load()},[])
@@ -227,15 +284,18 @@ export default function Agendamentos(){
   if(loading)return(<div style={{minHeight:'100vh',background:'#050B16',display:'flex',alignItems:'center',justifyContent:'center',fontFamily:'system-ui'}}><p style={{color:'#64748B',fontSize:'14px'}}>Carregando...</p></div>)
 
   return(
-    <div style={{display:'flex',minHeight:'100vh',background:'#050B16',fontFamily:'-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif',overflowX:'hidden',position:'relative'}}>
+    <div style={{display:'flex',minHeight:'100vh',background:'#050B16',fontFamily:'-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif',overflowX:'hidden',width:'100%'}}>
       <style dangerouslySetInnerHTML={{__html:CSS}}/>
-      {msg&&<div style={{position:'fixed',top:16,left:'50%',transform:'translateX(-50%)',background:'rgba(15,23,42,.97)',border:'1px solid rgba(59,130,246,.30)',borderRadius:10,padding:'10px 20px',fontSize:12,fontWeight:600,color:'#F8FAFC',zIndex:200,boxShadow:'0 8px 32px rgba(0,0,0,.5)',pointerEvents:'none',whiteSpace:'nowrap'}}>{msg}</div>}
-
-      <PainelSidebar nome={nome} tituloMobile="Agenda" />
-
+      <PainelSidebar nome={perfil?.nome_negocio||''} tituloMobile="Agenda"/>
       <div className="psb-main">
         <div className="pg"><div className="bdy">
 
+          {msg&&<div style={{position:'fixed',top:72,left:'50%',transform:'translateX(-50%)',background:'rgba(15,23,42,.96)',border:'1px solid rgba(59,130,246,.35)',borderRadius:10,padding:'10px 20px',fontSize:13,fontWeight:600,color:'#F8FAFC',zIndex:99,whiteSpace:'nowrap',boxShadow:'0 8px 24px rgba(0,0,0,.5)'}}>{msg}</div>}
+
+          {loading&&<p style={{color:'#475569',fontSize:13,textAlign:'center',padding:'40px 0'}}>Carregando...</p>}
+
+          {!loading&&(
+          <>
           <div style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',gap:14,marginBottom:16,flexWrap:'wrap'}}>
             <div>
               <h1 style={{fontSize:22,fontWeight:800,color:'#F8FAFC',letterSpacing:'-0.03em',marginBottom:2}}>Agenda</h1>
@@ -248,30 +308,34 @@ export default function Agendamentos(){
           </div>
 
           <div className="kpi-g">
-            {[{l:'Hoje',n:agsHj.length,c:'#60A5FA',bd:'rgba(59,130,246,.22)',ic:'📅'},{l:'Confirmados',n:conf,c:'#4ADE80',bd:'rgba(34,197,94,.20)',ic:'✅'},{l:'Pendentes',n:pend,c:'#FCD34D',bd:'rgba(245,158,11,.20)',ic:'⏳'}].map(({l,n,c,bd,ic})=>(
-              <div key={l} style={{background:'radial-gradient(circle at top left,rgba(124,58,237,.08),transparent 60%),linear-gradient(145deg,rgba(15,23,42,.98),rgba(8,20,33,.99))',border:'1px solid '+bd,borderRadius:14,padding:'12px 16px',display:'flex',alignItems:'center',gap:12}}>
-                <span style={{fontSize:18,opacity:.8,flexShrink:0}}>{ic}</span>
-                <div><p style={{fontSize:9,fontWeight:700,textTransform:'uppercase',letterSpacing:'.10em',color:'#64748B',marginBottom:3}}>{l}</p><p style={{fontSize:26,fontWeight:900,letterSpacing:'-0.04em',lineHeight:1,color:c}}>{n}</p></div>
+            {[
+              {l:'Hoje',n:agsHj.length,c:'#60A5FA',bd:'rgba(59,130,246,.28)',bg:'rgba(59,130,246,.08)',ic:'📅'},
+              {l:'Confirmados',n:conf,c:'#4ADE80',bd:'rgba(34,197,94,.28)',bg:'rgba(34,197,94,.08)',ic:'✓'},
+              {l:'Pendentes',n:pend,c:'#FBBF24',bd:'rgba(245,158,11,.28)',bg:'rgba(245,158,11,.08)',ic:'⏳'},
+            ].map(({l,n,c,bd,bg,ic})=>(
+              <div key={l} style={{background:'radial-gradient(circle at top left,'+bg+',transparent 70%),linear-gradient(145deg,rgba(11,22,40,.97),rgba(8,16,28,.99))',border:'1.5px solid '+bd,borderRadius:16,padding:'12px 10px',display:'flex',flexDirection:'column',gap:4,minWidth:0,boxSizing:'border-box'}}>
+                <span style={{fontSize:15}}>{ic}</span>
+                <p style={{fontSize:9,fontWeight:700,textTransform:'uppercase' as const,letterSpacing:'.08em',color:'#64748B'}}>{l}</p>
+                <p style={{fontSize:22,fontWeight:800,color:c,lineHeight:1}}>{n}</p>
               </div>
             ))}
           </div>
 
-          <div className="fil-row">
+          <div className="fil-scroll">
             {(['hoje','semana'] as const).map(v=>(
-              <button key={v} onClick={()=>{setView(v);setDiaSel(null)}} style={{height:32,padding:'0 14px',borderRadius:8,fontSize:12,fontWeight:600,cursor:'pointer',border:'1px solid '+(view===v?'rgba(59,130,246,.35)':'rgba(148,163,184,.15)'),background:view===v?'rgba(59,130,246,.14)':'transparent',color:view===v?'#60A5FA':'#64748B',fontFamily:'inherit',whiteSpace:'nowrap',flexShrink:0}}>
+              <button key={v} onClick={()=>{setView(v);setDiaSel(null)}}
+                style={{height:32,padding:'0 14px',borderRadius:8,fontSize:12,fontWeight:600,cursor:'pointer',border:'1px solid '+(view===v?'rgba(59,130,246,.4)':'rgba(148,163,184,.15)'),background:view===v?'rgba(59,130,246,.15)':'transparent',color:view===v?'#60A5FA':'#64748B',fontFamily:'inherit',whiteSpace:'nowrap',flexShrink:0}}>
                 {v==='hoje'?'Hoje':'Semana'}
               </button>
             ))}
-            {view==='hoje'&&(
-              <div className="fil-inner">
-                {['todos','pendente','confirmado','realizado','cancelado'].map(f=>(
-                  <button key={f} onClick={()=>setFSt(f)} style={{height:30,padding:'0 10px',borderRadius:7,fontSize:11,fontWeight:600,cursor:'pointer',border:'1px solid '+(fSt===f?'rgba(59,130,246,.28)':'rgba(148,163,184,.13)'),background:fSt===f?'rgba(59,130,246,.12)':'transparent',color:fSt===f?'#60A5FA':'#64748B',fontFamily:'inherit',whiteSpace:'nowrap',flexShrink:0}}>
-                    {f==='todos'?'Todos':stCfg[f]?.t||f}
-                  </button>
-                ))}
-              </div>
-            )}
-            <select value={fPr} onChange={e=>setFPr(e.target.value)} style={{background:'rgba(15,23,42,.88)',border:'1px solid rgba(148,163,184,.16)',borderRadius:8,padding:'0 10px',height:30,fontSize:11,color:'#CBD5E1',fontFamily:'inherit',cursor:'pointer',outline:'none',marginLeft:'auto',flexShrink:0}}>
+            {view==='hoje'&&['todos','pendente','confirmado','realizado','cancelado'].map(f=>(
+              <button key={f} onClick={()=>setFSt(f)}
+                style={{height:32,padding:'0 12px',borderRadius:8,fontSize:12,fontWeight:600,cursor:'pointer',border:'1px solid '+(fSt===f?'rgba(59,130,246,.35)':'rgba(148,163,184,.13)'),background:fSt===f?'rgba(59,130,246,.12)':'transparent',color:fSt===f?'#60A5FA':'#64748B',fontFamily:'inherit',whiteSpace:'nowrap',flexShrink:0}}>
+                {f==='todos'?'Todos':stCfg[f]?.t||f}
+              </button>
+            ))}
+            <select value={fPr} onChange={e=>setFPr(e.target.value)}
+              style={{height:32,background:'rgba(15,23,42,.88)',border:'1px solid rgba(148,163,184,.16)',borderRadius:8,padding:'0 10px',fontSize:11,color:'#CBD5E1',fontFamily:'inherit',cursor:'pointer',outline:'none',flexShrink:0}}>
               <option value="todos">Todos profissionais</option>
               {profs.map(p=><option key={p.id} value={p.id}>{p.nome}</option>)}
             </select>
@@ -280,43 +344,59 @@ export default function Agendamentos(){
           {view==='hoje'&&(
             <div className="ag-grid">
               <div>
-                <p style={{fontSize:10,fontWeight:700,color:'#475569',textTransform:'uppercase',margin:'0 0 8px',letterSpacing:'.06em'}}>Proximos atendimentos de hoje</p>
+                <p style={{fontSize:10,fontWeight:700,color:'#475569',textTransform:'uppercase' as const,marginBottom:8,letterSpacing:'.08em'}}>{agsF.length} atendimento{agsF.length!==1?'s':''}</p>
                 {agsF.length===0?(
-                  <div style={{textAlign:'center',padding:'44px 20px',background:'linear-gradient(145deg,rgba(15,23,42,.97),rgba(8,20,33,.99))',border:'1px solid rgba(148,163,184,.09)',borderRadius:16}}>
-                    <div style={{fontSize:28,marginBottom:10,opacity:.3}}>📅</div>
-                    <h3 style={{fontSize:15,fontWeight:800,color:'#F8FAFC',marginBottom:6}}>Nenhum atendimento para hoje</h3>
-                    <p style={{fontSize:12,color:'#64748B',marginBottom:18,lineHeight:1.5}}>Quando seus clientes agendarem, os horarios aparecerao aqui.</p>
+                  <div style={{background:'linear-gradient(145deg,rgba(11,22,40,.98),rgba(8,16,28,.99))',border:'1px solid rgba(148,163,184,.12)',borderRadius:20,padding:32,textAlign:'center'}}>
+                    <p style={{fontSize:28,marginBottom:10}}>📅</p>
+                    <p style={{fontSize:15,fontWeight:600,color:'#F8FAFC',marginBottom:6}}>Nenhum atendimento</p>
+                    <p style={{fontSize:13,color:'#64748B',marginBottom:16}}>Sem agendamentos para o filtro selecionado.</p>
                     <Link href="/painel/agendamentos/novo" style={{...btnP,display:'inline-flex'}}>+ Novo agendamento</Link>
                   </div>
                 ):agsF.map(a=>{
                   const sc=stCfg[a.status]||stCfg.pendente
                   const tf=fTel(a.cliente_whatsapp||a.cliente_telefone||'')
                   const isSel=sel?.id===a.id
-                  const wW=wpp(a,'w'),wC=wpp(a,'c')
+                  const wW=wpp(a,'w')
+                  const wC2=wppConf(a)
+                  const cs=a.confirmacao_status||'pendente'
+                  const cc=confCfg[cs]||confCfg.pendente
                   return(
                     <div key={a.id} className={'ag-item'+(isSel?' sel':'')} onClick={()=>setSel(a)}>
-                      <div style={{display:'flex',alignItems:'center',gap:7,marginBottom:5,flexWrap:'wrap'}}>
-                        <span style={{display:'inline-flex',background:'rgba(59,130,246,.12)',border:'1px solid rgba(59,130,246,.20)',borderRadius:7,padding:'3px 9px',fontSize:13,fontWeight:800,color:'#60A5FA',flexShrink:0}}>{fH(a.data_hora)}</span>
-                        <span style={{fontSize:13,fontWeight:800,color:'#F8FAFC',flex:1,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{a.cliente_nome||'—'}</span>
-                        <span style={stBadge(a.status)}>{sc.t}</span>
+                      <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:6}}>
+                        <span style={{fontSize:12,fontWeight:800,color:'#60A5FA',background:'rgba(59,130,246,.14)',border:'1px solid rgba(59,130,246,.28)',borderRadius:6,padding:'2px 7px',flexShrink:0}}>{fH(a.data_hora)}</span>
+                        <span style={{fontSize:14,fontWeight:700,color:'#F8FAFC',flex:1,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap' as const}}>{a.cliente_nome||'—'}</span>
+                        <span style={{...stBadge(a.status),flexShrink:0}}>{sc.t}</span>
                       </div>
-                      {tf&&<p style={{fontSize:11,color:'#CBD5E1',marginBottom:3}}>📱 {tf}</p>}
-                      <p style={{fontSize:11,color:'#94A3B8',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',marginBottom:8}}>
+                      {tf&&<p style={{fontSize:11,color:'#CBD5E1',marginBottom:2}}>📱 {tf}</p>}
+                      <p style={{fontSize:11,color:'#94A3B8',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap' as const,marginBottom:8}}>
                         {a.servicos?.nome||'Servico nao informado'}{a.profissionais?.nome?' · Prof. '+a.profissionais.nome:''}
                         {a.servicos?.preco?<span style={{color:'#22C55E'}}> · R$ {a.servicos.preco}</span>:null}
                       </p>
-                      <div style={{display:'flex',gap:5,flexWrap:'wrap'}} onClick={e=>e.stopPropagation()}>
-                        {wW&&<a href={wW} target="_blank" rel="noreferrer" style={{borderRadius:7,padding:'4px 9px',fontSize:10,fontWeight:700,cursor:'pointer',border:'1px solid rgba(37,211,102,.22)',background:'rgba(37,211,102,.10)',color:'#25D366',textDecoration:'none',display:'inline-flex',alignItems:'center',gap:3}}>WhatsApp</a>}
-                        {wC&&(a.status==='pendente'||!a.status)&&<a href={wC} target="_blank" rel="noreferrer" style={{borderRadius:7,padding:'4px 9px',fontSize:10,fontWeight:700,cursor:'pointer',border:'1px solid rgba(34,197,94,.22)',background:'rgba(34,197,94,.10)',color:'#22C55E',textDecoration:'none',display:'inline-flex',alignItems:'center',gap:3}}>✓ Confirmar</a>}
-                        <div style={{position:'relative',display:'inline-block'}} ref={mnu===a.id?mnuRef:undefined}>
-                          <button onClick={()=>setMnu(mnu===a.id?null:a.id)} style={{borderRadius:7,padding:'4px 9px',fontSize:10,fontWeight:700,cursor:'pointer',border:'1px solid rgba(148,163,184,.15)',background:'rgba(255,255,255,.04)',color:'#64748B',fontFamily:'inherit'}}>Mais</button>
-                          {mnu===a.id&&(
-                            <div style={{position:'absolute',top:'calc(100% + 5px)',left:0,background:'rgba(10,15,25,.98)',border:'1px solid rgba(148,163,184,.18)',borderRadius:12,padding:6,minWidth:160,zIndex:50,boxShadow:'0 16px 48px rgba(0,0,0,.6)'}}>
-                              {[{l:'📋 Copiar contato',fn:()=>copiar(a)},{l:'✓ Compareceu',fn:()=>updSt(a.id,'compareceu'),skip:a.status==='compareceu'},{l:'✗ Faltou',fn:()=>updSt(a.id,'faltou'),skip:a.status==='faltou'},{l:'★ Realizado',fn:()=>updSt(a.id,'realizado'),skip:a.status==='realizado'},{l:'↩ Retorno',fn:()=>updSt(a.id,'retorno'),skip:a.status==='retorno'},{l:'✓ Confirmado',fn:()=>updSt(a.id,'confirmado'),skip:a.status==='confirmado'},{l:'✕ Cancelar',fn:()=>updSt(a.id,'cancelado'),skip:a.status==='cancelado'}].filter((i:any)=>!i.skip).map(({l,fn}:any)=>(
-                                <button key={l} onClick={fn} className="mnu-item">{l}</button>
-                              ))}
-                            </div>
-                          )}
+                      <div className="card-btns" onClick={e=>e.stopPropagation()}>
+                        {wW&&<a href={wW} target="_blank" rel="noreferrer" className="card-btn"
+                          style={{background:'rgba(34,197,94,.12)',color:'#4ADE80',border:'1px solid rgba(34,197,94,.28)'}}>
+                          📱 WhatsApp
+                        </a>}
+                        {wC2&&<a href={wC2} target="_blank" rel="noreferrer" className="card-btn"
+                          onClick={()=>updConf(a.id,'mensagem_enviada')}
+                          style={{background:'rgba(59,130,246,.12)',color:'#BFDBFE',border:'1px solid rgba(59,130,246,.28)'}}>
+                          Enviar confirmacao
+                        </a>}
+                        {a.confirmacao_status!=='confirmado'&&<button className="card-btn"
+                          onClick={()=>updConf(a.id,'confirmado')}
+                          style={{background:'rgba(34,197,94,.10)',color:'#86EFAC',border:'1px solid rgba(34,197,94,.22)'}}>
+                          ✓ Confirmou
+                        </button>}
+                        <button className="card-btn"
+                          onClick={()=>setBsAg(a)}
+                          style={{background:'rgba(255,255,255,.05)',color:'#94A3B8',border:'1px solid rgba(148,163,184,.16)'}}>
+                          ⋯ Mais
+                        </button>
+                      </div>
+                      <div className="conf-area" onClick={e=>e.stopPropagation()}>
+                        <div style={{display:'flex',alignItems:'center',gap:6}}>
+                          <span style={{fontSize:10,fontWeight:700,color:'#64748B',textTransform:'uppercase' as const,letterSpacing:'.06em'}}>Confirmacao</span>
+                          <span style={{fontSize:10,fontWeight:700,padding:'2px 7px',borderRadius:'999px',background:cc.bg,color:cc.c}}>{cc.t}</span>
                         </div>
                       </div>
                     </div>
@@ -337,7 +417,7 @@ export default function Agendamentos(){
                   ))}
                 </div>
               </div>
-              <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(200px,1fr))',gap:10,marginBottom:20}}>
+              <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(200px,1fr))',gap:10,marginBottom:16}}>
                 {dS.map((d,i)=>{
                   const ds=d.toISOString().split('T')[0]
                   const ehHoje=ds===hoje
@@ -350,27 +430,19 @@ export default function Agendamentos(){
                   const primeiro=it[0]?fH(it[0].data_hora):null
                   const isSel=diaSel===ds
                   return(
-                    <div key={i} className={'sem-card'+(ehHoje?' hoje-card':'')+(isSel?' sel-card':'')} onClick={()=>setDiaSel(isSel?null:ds)}>
-                      <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:8}}>
-                        <div>
-                          <p style={{fontSize:11,fontWeight:700,color:ehHoje?'#60A5FA':'#94A3B8',textTransform:'capitalize'}}>{d.toLocaleDateString('pt-BR',{weekday:'short'})}</p>
-                          <p style={{fontSize:18,fontWeight:800,color:'#F8FAFC'}}>{d.getDate()}/{String(d.getMonth()+1).padStart(2,'0')}</p>
-                        </div>
-                        {ehHoje&&<span style={{fontSize:9,fontWeight:700,background:'rgba(59,130,246,.20)',color:'#60A5FA',border:'1px solid rgba(59,130,246,.30)',borderRadius:999,padding:'2px 8px'}}>Hoje</span>}
+                    <div key={ds} onClick={()=>setDiaSel(isSel?null:ds)}
+                      className={'sem-card'+(ehHoje?' hoje-card':'')+(isSel?' sel-card':'')}>
+                      <div style={{display:'flex',justifyContent:'space-between',marginBottom:6}}>
+                        <p style={{fontSize:11,fontWeight:700,color:ehHoje?'#60A5FA':'#CBD5E1',textTransform:'capitalize' as const}}>{d.toLocaleDateString('pt-BR',{weekday:'short',day:'2-digit',month:'2-digit'})}</p>
+                        {it.length>0&&<span style={{fontSize:10,fontWeight:800,color:'#60A5FA',background:'rgba(59,130,246,.14)',borderRadius:999,padding:'1px 7px'}}>{it.length}</span>}
                       </div>
-                      {it.length===0?(
-                        <p style={{fontSize:11,color:'#334155'}}>Nenhum atendimento</p>
-                      ):(
+                      {it.length===0?<p style={{fontSize:11,color:'#475569'}}>Livre</p>:(
                         <>
-                          <p style={{fontSize:20,fontWeight:900,color:'#F8FAFC',lineHeight:1,marginBottom:4}}>{it.length}</p>
-                          <p style={{fontSize:10,color:'#64748B',marginBottom:8}}>atendimento{it.length>1?'s':''}{primeiro?' · Primeiro: '+primeiro:''}</p>
-                          <div style={{display:'flex',gap:6,marginBottom:10,flexWrap:'wrap'}}>
-                            {totalPend>0&&<span style={{fontSize:10,fontWeight:700,padding:'1px 8px',borderRadius:999,background:'rgba(245,158,11,.14)',color:'#FCD34D',border:'1px solid rgba(245,158,11,.25)'}}>{totalPend} Pendente{totalPend>1?'s':''}</span>}
-                            {totalConf>0&&<span style={{fontSize:10,fontWeight:700,padding:'1px 8px',borderRadius:999,background:'rgba(34,197,94,.14)',color:'#4ADE80',border:'1px solid rgba(34,197,94,.25)'}}>{totalConf} Confirmado{totalConf>1?'s':''}</span>}
+                          {primeiro&&<p style={{fontSize:11,color:'#94A3B8',marginBottom:2}}>A partir das {primeiro}</p>}
+                          <div style={{display:'flex',gap:4,flexWrap:'wrap'}}>
+                            {totalConf>0&&<span style={{fontSize:10,fontWeight:700,color:'#4ADE80',background:'rgba(34,197,94,.12)',borderRadius:999,padding:'1px 6px'}}>{totalConf} conf</span>}
+                            {totalPend>0&&<span style={{fontSize:10,fontWeight:700,color:'#FBBF24',background:'rgba(245,158,11,.12)',borderRadius:999,padding:'1px 6px'}}>{totalPend} pend</span>}
                           </div>
-                          <button onClick={e=>{e.stopPropagation();setDiaSel(isSel?null:ds)}} style={{width:'100%',background:isSel?'rgba(59,130,246,.20)':'rgba(59,130,246,.10)',border:'1px solid rgba(59,130,246,.25)',borderRadius:8,padding:'6px 10px',fontSize:11,fontWeight:700,color:'#60A5FA',cursor:'pointer',fontFamily:'inherit'}}>
-                            {isSel?'Fechar':'Ver agenda do dia'}
-                          </button>
                         </>
                       )}
                     </div>
@@ -378,36 +450,28 @@ export default function Agendamentos(){
                 })}
               </div>
               {diaSel&&(()=>{
-                const itDia=ags.filter(a=>{
-                  const ad=new Date(a.data_hora).toISOString().split('T')[0]
-                  return ad===diaSel&&(fPr==='todos'||a.profissional_id===fPr)
-                })
-                const dObj=new Date(diaSel+'T12:00:00')
+                const itD=ags.filter(a=>new Date(a.data_hora).toISOString().split('T')[0]===diaSel&&(fPr==='todos'||a.profissional_id===fPr)).sort((a,b)=>a.data_hora.localeCompare(b.data_hora))
                 return(
-                  <div style={{background:'radial-gradient(circle at top left,rgba(124,58,237,.06),transparent 50%),linear-gradient(145deg,rgba(15,23,42,.98),rgba(8,20,33,.99))',border:'1px solid rgba(59,130,246,.20)',borderRadius:18,padding:20}}>
-                    <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:16}}>
-                      <p style={{fontSize:14,fontWeight:700,color:'#F8FAFC'}}>Agenda de {dObj.toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'2-digit'})}</p>
-                      <button onClick={()=>setDiaSel(null)} style={{background:'none',border:'none',color:'#475569',cursor:'pointer',fontSize:18,lineHeight:1}}>×</button>
-                    </div>
-                    {itDia.length===0?(
-                      <p style={{fontSize:13,color:'#475569',textAlign:'center',padding:'24px 0'}}>Nenhum atendimento neste dia.</p>
-                    ):itDia.map(a=>{
+                  <div>
+                    <p style={{fontSize:13,fontWeight:700,color:'#CBD5E1',marginBottom:10}}>{new Date(diaSel+'T12:00:00').toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'long'})}</p>
+                    {itD.length===0?<p style={{fontSize:13,color:'#64748B',padding:'20px 0'}}>Nenhum agendamento neste dia.</p>:itD.map(a=>{
                       const sc=stCfg[a.status]||stCfg.pendente
                       const tf=fTel(a.cliente_whatsapp||a.cliente_telefone||'')
                       const wW=wpp(a,'w')
                       return(
                         <div key={a.id} className="sem-det-item">
-                          <span style={{fontSize:13,fontWeight:800,color:'#60A5FA',flexShrink:0,minWidth:44,paddingTop:1}}>{fH(a.data_hora)}</span>
+                          <span style={{fontSize:13,fontWeight:800,color:'#60A5FA',flexShrink:0,minWidth:40}}>{fH(a.data_hora)}</span>
                           <div style={{minWidth:0,flex:1}}>
-                            <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:8,marginBottom:3}}>
-                              <p style={{fontSize:13,fontWeight:700,color:'#F8FAFC',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{a.cliente_nome||'—'}</p>
+                            <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:8,marginBottom:2}}>
+                              <p style={{fontSize:13,fontWeight:700,color:'#F8FAFC',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap' as const}}>{a.cliente_nome||'—'}</p>
                               <span style={stBadge(a.status)}>{sc.t}</span>
                             </div>
-                            <p style={{fontSize:11,color:'#94A3B8',marginBottom:tf?3:0}}>{a.servicos?.nome||''}{a.profissionais?.nome?' · Prof. '+a.profissionais.nome:''}</p>
+                            <p style={{fontSize:11,color:'#94A3B8',marginBottom:tf?3:0}}>{a.servicos?.nome||''}{a.profissionais?.nome?' · '+a.profissionais.nome:''}</p>
                             {tf&&<p style={{fontSize:11,color:'#CBD5E1'}}>📱 {tf}</p>}
                           </div>
-                          {wW&&<a href={wW} target="_blank" rel="noreferrer" onClick={e=>e.stopPropagation()} style={{flexShrink:0,width:30,height:30,borderRadius:8,background:'rgba(37,211,102,.10)',border:'1px solid rgba(37,211,102,.22)',color:'#25D366',display:'flex',alignItems:'center',justifyContent:'center',textDecoration:'none'}}>
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+                          {wW&&<a href={wW} target="_blank" rel="noreferrer" onClick={e=>e.stopPropagation()}
+                            style={{...dBtn({background:'rgba(34,197,94,.12)',color:'#4ADE80',border:'1px solid rgba(34,197,94,.25)'}),padding:'5px 10px',fontSize:11,flexShrink:0}}>
+                            WPP
                           </a>}
                         </div>
                       )
@@ -417,8 +481,37 @@ export default function Agendamentos(){
               })()}
             </div>
           )}
+          </>
+          )}
 
         </div></div>
+      </div>
+
+      <div className={'bs-ovl'+(bsAg?' open':'')} onClick={()=>setBsAg(null)}/>
+      <div className={'bs'+(bsAg?' open':'')}>
+        <div className="bs-handle"/>
+        <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:16}}>
+          <div>
+            <p style={{fontSize:15,fontWeight:700,color:'#F8FAFC'}}>Acoes do atendimento</p>
+            {bsAg&&<p style={{fontSize:12,color:'#64748B'}}>{bsAg.cliente_nome||'—'} · {fH(bsAg.data_hora)}</p>}
+          </div>
+          <button onClick={()=>setBsAg(null)} style={{background:'none',border:'none',color:'#475569',cursor:'pointer',fontSize:22,lineHeight:1}}>×</button>
+        </div>
+        <p className="bs-label">Contato</p>
+        <button className="bs-item" style={{color:'#CBD5E1'}} onClick={()=>{bsAg&&copiar(bsAg);setBsAg(null)}}>📋 Copiar contato</button>
+        <button className="bs-item" style={{color:'#60A5FA'}} onClick={()=>{bsAg&&resgatarCliente(bsAg);setBsAg(null)}}>🔄 Resgatar cliente</button>
+        <p className="bs-label">Status</p>
+        {bsAg&&[
+          {l:'✓ Compareceu',s:'compareceu',c:'#4ADE80'},
+          {l:'★ Realizado',s:'realizado',c:'#67E8F9'},
+          {l:'✗ Faltou',s:'faltou',c:'#F87171'},
+          {l:'✓ Confirmado',s:'confirmado',c:'#4ADE80'},
+          {l:'✕ Cancelar',s:'cancelado',c:'#F87171'},
+        ].filter(i=>bsAg.status!==i.s).map(({l,s,c})=>(
+          <button key={s} className="bs-item" style={{color:c}} onClick={()=>{updSt(bsAg.id,s);setBsAg(null)}}>{l}</button>
+        ))}
+        <p className="bs-label">Continuidade</p>
+        <button className="bs-item" style={{color:'#A78BFA'}} onClick={()=>{bsAg&&updSt(bsAg.id,'retorno');setBsAg(null)}}>↩ Criar retorno</button>
       </div>
     </div>
   )
