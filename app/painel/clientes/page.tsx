@@ -81,16 +81,30 @@ export default function Clientes(){
     setSalvando(true)
     const {data:{user}}=await supabase.auth.getUser()
     if(!user){setSalvando(false);return}
-    const payload:any={user_id:user.id,nome:fNome.trim(),whatsapp:fWpp.replace(/\D/g,'')||null,email:fEmail.trim()||null,tipo:fTipo,observacoes:fObs.trim()||null,ativo:true}
+    const payload:any={
+      user_id:user.id,
+      nome:fNome.trim(),
+      whatsapp:fWpp.replace(/\D/g,'')||null,
+      email:fEmail.trim()||null,
+      tipo:fTipo,
+      observacoes:fObs.trim()||null,
+      ativo:true,
+    }
     const {data:novo,error}=await supabase.from('clientes').insert(payload).select('*').single()
     if(error){
       console.error('Erro ao salvar cliente:',error)
+      // Tentar sem observacoes caso coluna nao exista
       delete payload.observacoes
       const {data:novo2,error:error2}=await supabase.from('clientes').insert(payload).select('*').single()
-      if(error2){console.error('Erro:',error2);setMsg('Nao foi possivel salvar.');setSalvando(false);return}
+      if(error2){
+        console.error('Erro ao salvar cliente (sem obs):',error2)
+        setMsg('Nao foi possivel salvar o cliente. Verifique os dados e tente novamente.')
+        setSalvando(false);return
+      }
       setClientes(prev=>[novo2,...prev].sort((a,b)=>a.nome.localeCompare(b.nome)))
-      setFNome('');setFWpp('');setFEmail('');setFTipo('cliente');setFObs('');setShowForm(false)
-      setMsg('Cliente cadastrado! ✓');setTimeout(()=>setMsg(''),2500);setSalvando(false);return
+      setFNome('');setFWpp('');setFEmail('');setFTipo('cliente');setFObs('')
+      setShowForm(false);setMsg('Cliente cadastrado! ✓')
+      setTimeout(()=>setMsg(''),2500);setSalvando(false);return
     }
     setClientes(prev=>[novo,...prev].sort((a,b)=>a.nome.localeCompare(b.nome)))
     setFNome('');setFWpp('');setFEmail('');setFTipo('cliente');setFObs('')
@@ -137,10 +151,7 @@ export default function Clientes(){
               <p style={{fontSize:'13px',color:'#64748B',lineHeight:1.5}}>Gerencie clientes, pacientes, contatos e histórico em um só lugar.</p>
             </div>
             <div className="hdr-btns" style={{display:'flex',gap:'8px',flexShrink:0,flexWrap:'wrap'}}>
-              <button onClick={()=>setShowForm(!showForm)} className="btn-p">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-                {showForm?'Cancelar':'Novo cliente'}
-              </button>
+{showForm&&<button onClick={()=>setShowForm(false)} style={{background:'rgba(255,255,255,.06)',border:'1px solid rgba(148,163,184,.16)',borderRadius:10,padding:'7px 16px',color:'#94A3B8',fontSize:13,fontWeight:600,cursor:'pointer',fontFamily:'inherit'}}>Cancelar</button>}
             </div>
           </div>
 
