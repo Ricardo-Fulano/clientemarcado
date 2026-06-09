@@ -38,7 +38,7 @@ input,select,textarea{color-scheme:dark}
   .hdr-btns{width:100%;display:grid!important;grid-template-columns:1fr 1fr;gap:7px}
   .hdr-btns a,.hdr-btns button{width:100%;justify-content:center}
 }
-@media(max-width:480px){.kpi-g{grid-template-columns:1fr!important}}
+@media(max-width:480px){.kpi-g{grid-template-columns:1fr 1fr!important}}.bs-ovl{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:60;opacity:0;pointer-events:none;transition:opacity .25s}.bs-ovl.open{opacity:1;pointer-events:auto}.bs{position:fixed;bottom:0;left:0;right:0;background:#0B1628;border-radius:22px 22px 0 0;padding:24px;z-index:61;transform:translateY(100%);transition:transform .28s ease;max-height:80vh;overflow-y:auto;box-sizing:border-box}.bs.open{transform:translateY(0)}.bs-handle{width:40px;height:4px;background:rgba(255,255,255,.15);border-radius:2px;margin:0 auto 20px}.bs-item{display:flex;align-items:center;gap:12px;padding:14px 0;border-bottom:1px solid rgba(255,255,255,.06);cursor:pointer;font-size:14px;font-weight:500;background:none;border-left:none;border-right:none;border-top:none;font-family:inherit;width:100%;text-align:left;min-height:48px}.bs-label{font-size:10px;font-weight:700;color:#64748B;text-transform:uppercase;letter-spacing:.08em;margin:14px 0 6px}.conf-area{margin-top:10px;padding-top:10px;border-top:1px solid rgba(148,163,184,.10)}.conf-btns{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}.conf-btns a,.conf-btns button{border-radius:10px;padding:6px 10px;font-size:11px;font-weight:600;cursor:pointer;border:1px solid transparent;font-family:inherit;display:inline-flex;align-items:center;gap:4px;flex:1;justify-content:center;min-height:40px}@media(max-width:1023px){.bdy{padding:14px 14px 80px!important;max-width:100%!important;width:100%!important;box-sizing:border-box!important;overflow-x:hidden!important}.kpi-g{grid-template-columns:1fr 1fr!important}.hdr-btns{display:grid!important;grid-template-columns:1fr 1fr;gap:7px;width:100%}.hdr-btns a,.hdr-btns button{width:100%;justify-content:center;min-height:48px!important}}
 `
 
 const stCfg: Record<string,{t:string,bg:string,c:string,bd:string}> = {
@@ -77,6 +77,8 @@ export default function Agendamentos(){
   const [msg,setMsg]=useState('')
   const [sel,setSel]=useState<any>(null)
   const [mnu,setMnu]=useState<string|null>(null)
+  const [bsAg,setBsAg]=useState<any>(null)
+  const [bsFiltros,setBsFiltros]=useState(False)
   const [bsAg,setBsAg]=useState<any>(null)
   const mnuRef=useRef<HTMLDivElement>(null)
   const hoje=new Date().toISOString().split('T')[0]
@@ -257,25 +259,19 @@ export default function Agendamentos(){
             ))}
           </div>
 
-          <div className="fil-row">
-            {(['hoje','semana'] as const).map(v=>(
-              <button key={v} onClick={()=>{setView(v);setDiaSel(null)}} style={{height:32,padding:'0 14px',borderRadius:8,fontSize:12,fontWeight:600,cursor:'pointer',border:'1px solid '+(view===v?'rgba(59,130,246,.35)':'rgba(148,163,184,.15)'),background:view===v?'rgba(59,130,246,.14)':'transparent',color:view===v?'#60A5FA':'#64748B',fontFamily:'inherit',whiteSpace:'nowrap',flexShrink:0}}>
-                {v==='hoje'?'Hoje':'Semana'}
-              </button>
-            ))}
-            {view==='hoje'&&(
-              <div className="fil-inner">
-                {['todos','pendente','confirmado','realizado','cancelado'].map(f=>(
-                  <button key={f} onClick={()=>setFSt(f)} style={{height:30,padding:'0 10px',borderRadius:7,fontSize:11,fontWeight:600,cursor:'pointer',border:'1px solid '+(fSt===f?'rgba(59,130,246,.28)':'rgba(148,163,184,.13)'),background:fSt===f?'rgba(59,130,246,.12)':'transparent',color:fSt===f?'#60A5FA':'#64748B',fontFamily:'inherit',whiteSpace:'nowrap',flexShrink:0}}>
-                    {f==='todos'?'Todos':stCfg[f]?.t||f}
-                  </button>
-                ))}
-              </div>
-            )}
-            <select value={fPr} onChange={e=>setFPr(e.target.value)} style={{background:'rgba(15,23,42,.88)',border:'1px solid rgba(148,163,184,.16)',borderRadius:8,padding:'0 10px',height:30,fontSize:11,color:'#CBD5E1',fontFamily:'inherit',cursor:'pointer',outline:'none',marginLeft:'auto',flexShrink:0}}>
-              <option value="todos">Todos profissionais</option>
-              {profs.map(p=><option key={p.id} value={p.id}>{p.nome}</option>)}
-            </select>
+          <div style={{marginBottom:14}}>
+            <div className="fil-scroll">
+              {(['hoje','semana'] as const).map(v=>(
+                <button key={v} onClick={()=>{setView(v);setDiaSel(null)}} style={{height:32,padding:'0 14px',borderRadius:8,fontSize:12,fontWeight:600,cursor:'pointer',border:'1px solid '+(view===v?'rgba(59,130,246,.4)':'rgba(148,163,184,.15)'),background:view===v?'rgba(59,130,246,.15)':'transparent',color:view===v?'#60A5FA':'#64748B',fontFamily:'inherit',whiteSpace:'nowrap',flexShrink:0}}>{v==='hoje'?'Hoje':'Semana'}</button>
+              ))}
+              {view==='hoje'&&['todos','pendente','confirmado','realizado','cancelado'].map(f=>(
+                <button key={f} onClick={()=>setFSt(f)} style={{height:32,padding:'0 12px',borderRadius:8,fontSize:12,fontWeight:600,cursor:'pointer',border:'1px solid '+(fSt===f?'rgba(59,130,246,.35)':'rgba(148,163,184,.13)'),background:fSt===f?'rgba(59,130,246,.12)':'transparent',color:fSt===f?'#60A5FA':'#64748B',fontFamily:'inherit',whiteSpace:'nowrap',flexShrink:0}}>{f==='todos'?'Todos':stCfg[f]?.t||f}</button>
+              ))}
+              <select value={fPr} onChange={e=>setFPr(e.target.value)} style={{height:32,background:'rgba(15,23,42,.88)',border:'1px solid rgba(148,163,184,.16)',borderRadius:8,padding:'0 10px',fontSize:11,color:'#CBD5E1',fontFamily:'inherit',cursor:'pointer',outline:'none',whiteSpace:'nowrap',flexShrink:0}}>
+                <option value="todos">Todos profissionais</option>
+                {profs.map(p=><option key={p.id} value={p.id}>{p.nome}</option>)}
+              </select>
+            </div>
           </div>
 
           {view==='hoje'&&(
@@ -420,6 +416,39 @@ export default function Agendamentos(){
           )}
 
         </div></div>
+      </div>
+    </div>
+
+      <div className={s-ovl} onClick={()=>setBsAg(null)}/>
+      <div className={s}>
+        <div className="bs-handle"/>
+        <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:16}}>
+          <div>
+            <p style={{fontSize:15,fontWeight:700,color:'#F8FAFC'}}>Acoes do atendimento</p>
+            {bsAg&&<p style={{fontSize:12,color:'#64748B'}}>{bsAg.cliente_nome||'—'} · {fH(bsAg.data_hora)}</p>}
+          </div>
+          <button onClick={()=>setBsAg(null)} style={{background:'none',border:'none',color:'#475569',cursor:'pointer',fontSize:22,lineHeight:1}}>×</button>
+        </div>
+        <p className="bs-label">Contato</p>
+        <button className="bs-item" style={{color:'#CBD5E1'}} onClick={()=>{bsAg&&copiar(bsAg);setBsAg(null)}}>📋 Copiar contato</button>
+        <button className="bs-item" style={{color:'#60A5FA'}} onClick={()=>{
+          if(!bsAg)return
+          const tel=gTel(bsAg)
+          if(!tel){alert('Cliente sem WhatsApp.');setBsAg(null);return}
+          const ph=tel.startsWith('55')?tel:'55'+tel
+          const msg=encodeURIComponent('Ola, tudo bem? Faz alguns dias que nao vemos voce por aqui. Quer que eu veja um horario disponivel para continuarmos seu atendimento?')
+          window.open('https://wa.me/'+ph+'?text='+msg,'_blank')
+          setBsAg(null)
+        }}>🔄 Resgatar cliente</button>
+        <p className="bs-label">Status</p>
+        {bsAg&&[
+          {l:'✓ Compareceu',s:'compareceu',c:'#4ADE80'},{l:'★ Realizado',s:'realizado',c:'#67E8F9'},
+          {l:'✗ Faltou',s:'faltou',c:'#F87171'},{l:'✕ Cancelar',s:'cancelado',c:'#F87171'},
+        ].filter(i=>bsAg.status!==i.s).map(({l,s,c})=>(
+          <button key={s} className="bs-item" style={{color:c}} onClick={()=>{updSt(bsAg.id,s);setBsAg(null)}}>{l}</button>
+        ))}
+        <p className="bs-label">Continuidade</p>
+        <button className="bs-item" style={{color:'#A78BFA'}} onClick={()=>{bsAg&&updSt(bsAg.id,'retorno');setBsAg(null)}}>↩ Criar retorno</button>
       </div>
     </div>
   )
