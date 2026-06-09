@@ -38,7 +38,7 @@ input,select,textarea{color-scheme:dark}
   .hdr-btns{width:100%;display:grid!important;grid-template-columns:1fr 1fr;gap:7px}
   .hdr-btns a,.hdr-btns button{width:100%;justify-content:center}
 }
-@media(max-width:480px){.kpi-g{grid-template-columns:1fr!important}}
+@media(max-width:480px){.kpi-g{grid-template-columns:1fr 1fr!important}}.bs-ovl{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:60;opacity:0;pointer-events:none;transition:opacity .25s}.bs-ovl.open{opacity:1;pointer-events:auto}.bs{position:fixed;bottom:0;left:0;right:0;background:#0B1628;border-radius:22px 22px 0 0;padding:24px;z-index:61;transform:translateY(100%);transition:transform .28s ease;max-height:80vh;overflow-y:auto;box-sizing:border-box}.bs.open{transform:translateY(0)}.bs-handle{width:40px;height:4px;background:rgba(255,255,255,.15);border-radius:2px;margin:0 auto 20px}.bs-item{display:flex;align-items:center;gap:12px;padding:14px 0;border-bottom:1px solid rgba(255,255,255,.06);cursor:pointer;font-size:14px;font-weight:500;background:none;border-left:none;border-right:none;border-top:none;font-family:inherit;width:100%;text-align:left;min-height:48px}.bs-label{font-size:10px;font-weight:700;color:#64748B;text-transform:uppercase;letter-spacing:.08em;margin:14px 0 6px}.conf-area{margin-top:10px;padding-top:10px;border-top:1px solid rgba(148,163,184,.10)}.conf-btns{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}.conf-btns a,.conf-btns button{border-radius:10px;padding:6px 10px;font-size:11px;font-weight:600;cursor:pointer;border:1px solid transparent;font-family:inherit;display:inline-flex;align-items:center;gap:4px;flex:1;justify-content:center;min-height:40px}@media(max-width:1023px){.bdy{padding:14px 14px 80px!important;max-width:100%!important;width:100%!important;box-sizing:border-box!important;overflow-x:hidden!important}.kpi-g{grid-template-columns:1fr 1fr!important}.hdr-btns{display:grid!important;grid-template-columns:1fr 1fr;gap:7px;width:100%}.hdr-btns a,.hdr-btns button{width:100%;justify-content:center;min-height:48px!important}}
 `
 
 const stCfg: Record<string,{t:string,bg:string,c:string,bd:string}> = {
@@ -77,6 +77,8 @@ export default function Agendamentos(){
   const [msg,setMsg]=useState('')
   const [sel,setSel]=useState<any>(null)
   const [mnu,setMnu]=useState<string|null>(null)
+  const [bsAg,setBsAg]=useState<any>(null)
+  const [bsFiltros,setBsFiltros]=useState(False)
   const mnuRef=useRef<HTMLDivElement>(null)
   const hoje=new Date().toISOString().split('T')[0]
 
