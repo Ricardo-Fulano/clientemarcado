@@ -42,10 +42,15 @@ input,select,textarea{color-scheme:dark}
 .atalho:hover{border-color:rgba(124,58,237,.32);transform:translateY(-2px)}
 .ag-item{background:rgba(15,23,42,.72);border:1px solid rgba(148,163,184,.14);border-radius:12px;padding:12px 14px;margin-bottom:6px}
 @media(max-width:1023px){
-  .sb{display:none!important}.main{margin-left:0!important;width:100%!important}
-  .mhdr{display:flex!important}.bdy{padding:14px 16px 80px!important}
+  .sb{display:none!important}.main{margin-left:0!important;width:100%!important;overflow-x:hidden!important;box-sizing:border-box!important}
+  .mhdr{display:flex!important}.bdy{padding:14px 14px 80px!important;max-width:100%!important;width:100%!important;box-sizing:border-box!important;overflow-x:hidden!important}
   .kpi-grid{grid-template-columns:1fr 1fr!important;gap:8px!important}
   .atalho-grid{grid-template-columns:1fr 1fr!important;gap:8px!important}
+  .mob-hide{display:none!important}
+  .mob-show{display:block!important}
+}
+@media(min-width:1024px){
+  .mob-show{display:none!important}
 }
 @media(max-width:480px){.kpi-grid{grid-template-columns:1fr!important}.atalho-grid{grid-template-columns:1fr 1fr!important}}
 `
@@ -134,6 +139,33 @@ export default function Home(){
             </div>
           </div>
 
+          {/* Agenda de hoje - versao mobile */}
+          <div className="mob-show">
+            <div style={{marginBottom:'12px',display:'flex',alignItems:'center',justifyContent:'space-between'}}>
+              <p style={{fontSize:'14px',fontWeight:700,color:'#F8FAFC'}}>Agenda de hoje</p>
+              <a href="/painel/agendamentos" style={{fontSize:'12px',color:'#64748B',textDecoration:'none'}}>Ver tudo</a>
+            </div>
+            {agsHoje.length===0?(
+              <div className="crd" style={{padding:'28px 20px',textAlign:'center',marginBottom:'16px'}}>
+                <p style={{fontSize:'24px',marginBottom:'8px'}}>📅</p>
+                <p style={{fontSize:'14px',fontWeight:600,color:'#F8FAFC',marginBottom:'4px'}}>Nenhum atendimento hoje</p>
+                <p style={{fontSize:'12px',color:'#64748B',marginBottom:'14px'}}>Quando houver horarios marcados, aparecao aqui.</p>
+                <a href="/painel/agendamentos/novo" style={{background:'linear-gradient(135deg,#3B82F6,#7C3AED)',color:'#fff',borderRadius:'10px',padding:'8px 16px',fontSize:'13px',fontWeight:700,textDecoration:'none',display:'inline-block'}}>+ Novo agendamento</a>
+              </div>
+            ):(
+              <div style={{marginBottom:'16px'}}>
+                {agsHoje.map(a=>(
+                  <div key={a.id} className="ag-item">
+                    <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:'8px',flexWrap:'wrap'}}> 
+                      <div><p style={{fontSize:'14px',fontWeight:600,color:'#F8FAFC'}}>{a.cliente_nome||'—'}</p><p style={{fontSize:'12px',color:'#94A3B8'}}>{fmtHora(a.data_hora)}</p></div>
+                      <span style={{fontSize:'11px',fontWeight:600,padding:'3px 10px',borderRadius:'999px',background:'rgba(59,130,246,.14)',color:'#93C5FD',border:'1px solid rgba(59,130,246,.28)'}}>{a.status||'pendente'}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
           {slug&&(
             <div className="crd" style={{padding:'16px 20px',marginBottom:'20px',display:'flex',alignItems:'center',justifyContent:'space-between',gap:'12px',flexWrap:'wrap'}}>
               <div style={{display:'flex',alignItems:'center',gap:'10px'}}>
@@ -172,7 +204,7 @@ export default function Home(){
               {h:'/painel/orcamentos',l:'Orcamentos',ico:'📋',bg:'rgba(245,158,11,.10)'},
               {h:'/painel/cobrancas',l:'Cobrancas',ico:'💳',bg:'rgba(124,58,237,.10)'},
               {h:'/painel/pagamentos',l:'Pagamentos',ico:'💰',bg:'rgba(34,197,94,.10)'},
-              {h:'/painel/servicos',l:'Servicos',ico:'✂',bg:'rgba(6,182,212,.10)'},
+              {h:'/painel/servicos',l:'Servicos',ico:'🏷️',bg:'rgba(6,182,212,.10)'},
               {h:'/painel/profissionais',l:'Profissionais',ico:'👤',bg:'rgba(124,58,237,.10)'},
               {h:'/painel/relatorio',l:'Relatorios',ico:'📊',bg:'rgba(245,158,11,.10)'},
             ].map(a=>(
@@ -183,7 +215,7 @@ export default function Home(){
             ))}
           </div>
 
-          <div style={{marginBottom:'16px',display:'flex',alignItems:'center',justifyContent:'space-between'}}>
+          <div className="mob-hide"><div style={{marginBottom:'16px',display:'flex',alignItems:'center',justifyContent:'space-between'}}>
             <p style={{fontSize:'14px',fontWeight:700,color:'#F8FAFC'}}>Agenda de hoje</p>
             <Link href="/painel/agendamentos" style={{fontSize:'12px',color:'#64748B',textDecoration:'none'}}>Ver tudo</Link>
           </div>
@@ -219,7 +251,7 @@ export default function Home(){
                 </div>
               ))}
             </>
-          )}
+          )}</div>
 
         </div></div>
       </div>
