@@ -25,10 +25,6 @@ input,select,textarea{color-scheme:dark}
 .ag-item.sel{border-color:rgba(59,130,246,.48);background:radial-gradient(circle at top left,rgba(59,130,246,.09),transparent 60%),linear-gradient(145deg,rgba(15,23,42,.98),rgba(8,20,33,.99))}
 .mnu-item{display:flex;align-items:center;gap:7px;padding:8px 11px;border-radius:7px;font-size:11px;font-weight:600;cursor:pointer;color:#CBD5E1;border:none;background:none;font-family:inherit;width:100%;text-align:left;white-space:nowrap;transition:background .1s}
 .mnu-item:hover{background:rgba(255,255,255,.06)}
-.conf-area{margin-top:8px;padding-top:8px;border-top:1px solid rgba(148,163,184,.10)}
-.conf-btns{display:flex;gap:5px;flex-wrap:wrap;margin-top:6px}
-.conf-btns a,.conf-btns button{border-radius:7px;padding:4px 9px;font-size:11px;font-weight:600;cursor:pointer;border:1px solid transparent;font-family:inherit;display:inline-flex;align-items:center;gap:4px;white-space:nowrap}
-@media(max-width:600px){.conf-btns{display:grid!important;grid-template-columns:1fr 1fr!important}.conf-btns a,.conf-btns button{justify-content:center!important;padding:6px 8px!important}}
 .sem-card{background:linear-gradient(145deg,rgba(15,23,42,.98),rgba(8,20,33,.99));border:1px solid rgba(148,163,184,.12);border-radius:16px;padding:16px;cursor:pointer;transition:all .15s}
 .sem-card:hover{border-color:rgba(148,163,184,.24)}
 .sem-card.hoje-card{border-color:rgba(59,130,246,.35);background:radial-gradient(circle at top left,rgba(59,130,246,.08),transparent 50%),linear-gradient(145deg,rgba(15,23,42,.98),rgba(8,20,33,.99))}
@@ -36,7 +32,7 @@ input,select,textarea{color-scheme:dark}
 .sem-det-item{background:linear-gradient(145deg,rgba(15,23,42,.98),rgba(8,20,33,.99));border:1px solid rgba(148,163,184,.12);border-radius:12px;padding:12px 14px;margin-bottom:6px;display:flex;gap:12px;align-items:flex-start}
 @media(min-width:1100px){.ag-grid{grid-template-columns:1fr 360px}.det-col{display:block}}
 @media(max-width:1023px){
-  .bdy{padding:14px 14px 80px!important;max-width:100%!important;width:100%!important;box-sizing:border-box!important}
+  .bdy{padding:14px 14px 80px!important}
   .kpi-g{grid-template-columns:1fr 1fr!important;gap:8px!important}
   .kpi-g>div:last-child{grid-column:1/-1!important}
   .hdr-btns{width:100%;display:grid!important;grid-template-columns:1fr 1fr;gap:7px}
@@ -44,15 +40,6 @@ input,select,textarea{color-scheme:dark}
 }
 @media(max-width:480px){.kpi-g{grid-template-columns:1fr!important}}
 `
-
-const confCfg: Record<string,{t:string,bg:string,c:string}> = {
-  pendente:         {t:'Aguardando confirmacao',bg:'rgba(245,158,11,.12)',c:'#FCD34D'},
-  mensagem_enviada: {t:'Mensagem enviada',      bg:'rgba(59,130,246,.12)', c:'#60A5FA'},
-  confirmado:       {t:'Confirmado',            bg:'rgba(34,197,94,.12)',  c:'#4ADE80'},
-  sem_resposta:     {t:'Sem resposta',          bg:'rgba(245,158,11,.12)',c:'#FCD34D'},
-  nao_comparece:    {t:'Nao vai comparecer',    bg:'rgba(239,68,68,.12)',  c:'#F87171'},
-  remarcado:        {t:'Remarcado',             bg:'rgba(124,58,237,.12)',c:'#C4B5FD'},
-}
 
 const stCfg: Record<string,{t:string,bg:string,c:string,bd:string}> = {
   pendente:      {t:'Pendente',       bg:'rgba(245,158,11,.14)',c:'#FCD34D',bd:'rgba(245,158,11,.30)'},
@@ -90,27 +77,6 @@ export default function Agendamentos(){
   const [msg,setMsg]=useState('')
   const [sel,setSel]=useState<any>(null)
   const [mnu,setMnu]=useState<string|null>(null)
-  const [confMnu,setConfMnu]=useState<string|null>(null)
-
-  async function updConf(id:string, status:string){
-    await supabase.from('agendamentos').update({
-      confirmacao_status: status,
-      confirmacao_atualizada_em: new Date().toISOString(),
-    }).eq('id',id)
-    setAgs(prev=>prev.map(a=>a.id===id?{...a,confirmacao_status:status,confirmacao_atualizada_em:new Date().toISOString()}:a))
-    if(sel?.id===id)setSel((s:any)=>s?{...s,confirmacao_status:status}:s)
-  }
-
-  function wppConf(a:any){
-    const tel=fTel(a.cliente_whatsapp||a.cliente_telefone||'')
-    if(!tel)return''
-    const hr=fH(a.data_hora)
-    const sv=a.servicos?.nome||'seu atendimento'
-    const pr=a.profissionais?.nome?` com ${a.profissionais.nome}`:''
-    const neg=perfil?.nome_negocio||'nosso negocio'
-    const msg=encodeURIComponent(`Ola, ${a.cliente_nome||''}! Tudo bem? Aqui e da ${neg}. Estou passando para confirmar seu horario de hoje as ${hr} para ${sv}${pr}. Voce confirma sua presenca?`)
-    return`https://wa.me/55${tel.replace(/\D/g,'')}?text=${msg}`
-  }
   const mnuRef=useRef<HTMLDivElement>(null)
   const hoje=new Date().toISOString().split('T')[0]
 
@@ -352,55 +318,6 @@ export default function Agendamentos(){
                             </div>
                           )}
                         </div>
-                      </div>
-                      {/* Confirmacao de presenca */}
-                      <div className="conf-area" onClick={e=>e.stopPropagation()}>
-                        {(()=>{
-                          const cs=a.confirmacao_status||'pendente'
-                          const cc=confCfg[cs]||confCfg.pendente
-                          const agora=new Date()
-                          const dtAg=new Date(a.data_hora)
-                          const diffMin=(dtAg.getTime()-agora.getTime())/60000
-                          const urgente=dtAg.toDateString()===agora.toDateString()&&diffMin<120&&diffMin>0&&(cs==='pendente'||cs==='mensagem_enviada')
-                          const wC2=wppConf(a)
-                          return(
-                            <>
-                              <div style={{display:'flex',alignItems:'center',gap:6,marginBottom:4}}>
-                                <span style={{fontSize:10,fontWeight:700,color:'#64748B',textTransform:'uppercase',letterSpacing:'.06em'}}>Confirmacao</span>
-                                <span style={{fontSize:10,fontWeight:700,padding:'2px 7px',borderRadius:'999px',background:cc.bg,color:cc.c}}>{cc.t}</span>
-                                {urgente&&<span style={{fontSize:10,fontWeight:700,padding:'2px 7px',borderRadius:'999px',background:'rgba(245,158,11,.22)',color:'#FBBF24',border:'1px solid rgba(245,158,11,.4)'}}>Confirmar agora</span>}
-                              </div>
-                              <div className="conf-btns">
-                                {wC2&&<a href={wC2} target="_blank" rel="noreferrer"
-                                  onClick={()=>updConf(a.id,'mensagem_enviada')}
-                                  style={{background:'rgba(37,211,102,.14)',color:'#4ADE80',border:'1px solid rgba(37,211,102,.28)'}}>
-                                  📱 Enviar confirmacao
-                                </a>}
-                                {cs!=='confirmado'&&<button onClick={()=>updConf(a.id,'confirmado')}
-                                  style={{background:'rgba(34,197,94,.14)',color:'#4ADE80',border:'1px solid rgba(34,197,94,.28)'}}>
-                                  ✓ Confirmou
-                                </button>}
-                                <div style={{position:'relative',display:'inline-block'}} ref={confMnu===a.id?mnuRef:undefined}>
-                                  <button onClick={()=>setConfMnu(confMnu===a.id?null:a.id)}
-                                    style={{background:'rgba(255,255,255,.06)',color:'#94A3B8',border:'1px solid rgba(148,163,184,.18)'}}>
-                                    Mais ▾
-                                  </button>
-                                  {confMnu===a.id&&(
-                                    <div style={{position:'absolute',top:'calc(100% + 4px)',left:0,background:'rgba(10,15,25,.98)',border:'1px solid rgba(148,163,184,.18)',borderRadius:10,padding:4,zIndex:40,minWidth:180,boxShadow:'0 8px 24px rgba(0,0,0,.5)'}}>
-                                      {[
-                                        {l:'Sem resposta',s:'sem_resposta'},
-                                        {l:'Nao vai comparecer',s:'nao_comparece'},
-                                        {l:'Remarcado',s:'remarcado'},
-                                      ].map(({l,s})=>(
-                                        <button key={s} onClick={()=>{updConf(a.id,s);setConfMnu(null)}} className="mnu-item">{l}</button>
-                                      ))}
-                                    </div>
-                                  )}
-                                </div>
-                              </div>
-                            </>
-                          )
-                        })()}
                       </div>
                     </div>
                   )
