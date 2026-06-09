@@ -419,8 +419,8 @@ export default function Agendamentos(){
       </div>
     </div>
 
-      <div className={s-ovl} onClick={()=>setBsAg(null)}/>
-      <div className={s}>
+      <div className={+chr(96)+s-ovl\+chr(96)+} onClick={()=>setBsAg(null)}/>
+      <div className={+chr(96)+s\+chr(96)+}>
         <div className="bs-handle"/>
         <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:16}}>
           <div>
