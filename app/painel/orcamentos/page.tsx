@@ -268,7 +268,7 @@ export default function Orcamentos() {
   async function carregarOrcamentos(uid?:string){
     const id=uid||userId
     const {data}=await supabase.from('orcamentos').select('*').eq('user_id',id).order('created_at',{ascending:false})
-    setOrcamentos(data||[])
+    setOrcamentos((data||[]).filter((o:any)=>o.origem!=='cobranca_manual'))
   }
 
   async function carregarPagamentos(orcId:string){
@@ -347,6 +347,7 @@ export default function Orcamentos() {
       link_pagamento:linkPag||null,obs_pagamento:obsPagamento.trim()||null,
       hist_pagamentos:histPags,dentes_selecionados:dentesSelec,procedimentos_odonto:procOdonto,
       observacoes:observacoes||null,updated_at:new Date().toISOString(),
+      origem:'orcamento',
     }
     if(editandoId){
       const {error}=await supabase.from('orcamentos').update(payload).eq('id',editandoId)
