@@ -153,7 +153,7 @@ if(loading)return(<div style={{minHeight:'100vh',background:'#050B16',display:'f
               <p style={{fontSize:'13px',color:'#64748B'}}>Veja quem ainda precisa pagar e envie cobranças com rapidez.</p>
             </div>
             <div className="topo-btns" style={{display:'flex',gap:'8px',flexShrink:0}}>
-              <button onClick={()=>toast('Cadastro manual de cobranca em breve.')} className="btn-p">+ Nova cobranca</button>
+              <button onClick={()=>toastMsg('Cadastro manual de cobranca em breve.')} className="btn-p">+ Nova cobranca</button>
             </div>
           </div>
 
