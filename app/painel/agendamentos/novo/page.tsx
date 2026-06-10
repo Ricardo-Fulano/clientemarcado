@@ -106,7 +106,7 @@ export default function NovoAgendamento(){
       data_hora:`${data}T${hora}:00`,status,
       observacoes:obs.trim()||null,valor:valor?parseFloat(valor):null,
     })
-    if(error){setErros(['Erro ao salvar. Tente novamente.']);setSalvando(false);return}
+    if(error){console.error('Erro ao salvar agendamento:',error);setErros(['Erro ao salvar. Tente novamente.']);setSalvando(false);return}
     router.push('/painel/agendamentos')
   }
   const sug=busca.trim().length>1?clis.filter(c=>c.nome.toLowerCase().includes(busca.toLowerCase())).slice(0,6):[]
@@ -155,7 +155,7 @@ export default function NovoAgendamento(){
         </div>
         <div className="pg"><div className="bdy">
           <div style={{display:'flex',alignItems:'center',gap:'12px',marginBottom:'24px',flexWrap:'wrap'}}>
-            <Link href="/painel/agendamentos" className="btn-s" style={{height:'38px',padding:'0 14px',fontSize:'12px'}}>← Voltar</Link>
+            <Link href="/painel/agendamentos" className="btn-s" style={{height:'38px',padding:'0 14px',fontSize:'12px'}}>← Voltar</Link>
             <div>
               <h1 style={{fontSize:'20px',fontWeight:800,color:'#F8FAFC',letterSpacing:'-0.03em',marginBottom:'3px'}}>Novo agendamento</h1>
               <p style={{fontSize:'12px',color:'#64748B'}}>Preencha os dados para registrar o horário na agenda.</p>
@@ -252,6 +252,17 @@ export default function NovoAgendamento(){
                 <textarea className="inp" rows={3} placeholder="Informações adicionais sobre o atendimento..." value={obs} onChange={e=>setObs(e.target.value)} style={{height:'auto',padding:'12px 14px',resize:'none',lineHeight:1.6}}/>
               </div>
             </div>
+            {/* Botao salvar mobile */}
+            <div style={{marginBottom:'16px'}} className="mob-save">
+              {erros.length>0&&<div style={{background:'rgba(239,68,68,.10)',border:'1px solid rgba(239,68,68,.25)',borderRadius:10,padding:'10px 14px',marginBottom:'12px'}}>
+                {erros.map((e,i)=><p key={i} style={{fontSize:12,color:'#F87171',fontWeight:500}}>{e}</p>)}
+              </div>}
+              <button onClick={salvar} disabled={salvando} className="btn-p" style={{width:'100%',height:'52px',justifyContent:'center',fontSize:'15px',fontWeight:700,borderRadius:14}}>
+                {salvando?'Salvando...':'Salvar agendamento'}
+              </button>
+              <Link href="/painel/agendamentos" className="btn-s" style={{width:'100%',height:'44px',justifyContent:'center',marginTop:'8px',fontSize:'13px',display:'flex',alignItems:'center',textDecoration:'none',borderRadius:12}}>Cancelar</Link>
+            </div>
+
             {/* Resumo lateral */}
             <div className="aside" style={{width:'300px',flexShrink:0,position:'sticky',top:'24px'}}>
               <div className="crd" style={{padding:'20px'}}>
@@ -272,7 +283,7 @@ export default function NovoAgendamento(){
                 ))}
                 <div style={{display:'flex',flexDirection:'column',gap:'8px',marginTop:'8px'}}>
                   <button onClick={salvar} disabled={salvando} className="btn-p" style={{width:'100%',height:'48px',justifyContent:'center',opacity:salvando?.7:1}}>
-                    {salvando?'Salvando...':'📅 Criar agendamento'}
+                    {salvando?'Salvando...':'Salvar agendamento'}
                   </button>
                   <Link href="/painel/agendamentos" className="btn-s" style={{width:'100%',height:'44px',justifyContent:'center'}}>Cancelar</Link>
                 </div>
