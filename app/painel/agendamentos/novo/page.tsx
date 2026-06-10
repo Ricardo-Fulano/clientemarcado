@@ -99,6 +99,16 @@ export default function NovoAgendamento(){
     if(!data) err.push('Selecione a data.')
     if(!hora) err.push('Selecione o horario.')
     if(err.length){setErros(err);return}
+
+    const agora=new Date()
+    const hojeISO=agora.getFullYear()+'-'+String(agora.getMonth()+1).padStart(2,'0')+'-'+String(agora.getDate()).padStart(2,'0')
+    if(data<hojeISO){setErros(['Nao e possivel agendar em uma data que ja passou.']);return}
+    if(data===hojeISO){
+      const minAgora=agora.getHours()*60+agora.getMinutes()
+      const [hh,mm]=hora.split(':').map(Number)
+      if((hh*60+mm)<=minAgora){setErros(['Nao e possivel agendar em um horario que ja passou.']);return}
+    }
+
     setErros([]);setSalvando(true)
     try{
       const {data:{user}}=await supabase.auth.getUser()
