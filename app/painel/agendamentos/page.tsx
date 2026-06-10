@@ -128,18 +128,22 @@ export default function Agendamentos(){
     if(!bData||!bHoraIni||!bHoraFim){toast('Preencha data e horarios.');return}
     if(bHoraFim<=bHoraIni){toast('Horario final deve ser maior que o inicial.');return}
     setSalvandoBloqueio(true)
-    const{data:{user}}=await supabase.auth.getUser()
-    if(!user){toast('Sessao expirada. Faca login novamente.');setSalvandoBloqueio(false);return}
-    const{error}=await supabase.from('bloqueios_agenda').insert({
-      user_id:user.id,data:bData,horario_inicio:bHoraIni,
-      horario_fim:bHoraFim,profissional_id:bProfId||null,motivo:bMotivo||null
-    })
-    if(error){console.error('Erro ao bloquear horario:',error);toast('Erro ao bloquear horario.');setSalvandoBloqueio(false);return}
-    const{data:bl}=await supabase.from('bloqueios_agenda').select('*').eq('user_id',user.id).order('data',{ascending:true})
-    setBloqueios(bl||[])
-    toast('Horario bloqueado com sucesso.')
-    setShowBloqueio(false);setBData('');setBHoraIni('');setBHoraFim('');setBMotivo('');setBProfId('')
-    setSalvandoBloqueio(false)
+    try{
+      const{data:{user},error:userError}=await supabase.auth.getUser()
+      if(userError||!user){console.error('Erro ao obter usuario:',userError);toast('Sessao expirada. Faca login novamente.');setSalvandoBloqueio(false);return}
+      const dataISO=bData.includes('/')?((d)=>d[2]+'-'+d[1].padStart(2,'0')+'-'+d[0].padStart(2,'0'))(bData.split('/')):bData
+      const profissionalId=(bProfId&&/^[0-9a-fA-F-]{36}$/.test(bProfId))?bProfId:null
+      const payload={user_id:user.id,data:dataISO,horario_inicio:bHoraIni,horario_fim:bHoraFim,profissional_id:profissionalId,motivo:bMotivo?.trim()||null}
+      console.log('Payload bloqueio:',payload)
+      const{error}=await supabase.from('bloqueios_agenda').insert(payload)
+      if(error){console.error('Erro ao bloquear horario:',error);toast('Erro ao bloquear horario.');setSalvandoBloqueio(false);return}
+      const{data:bl,error:loadError}=await supabase.from('bloqueios_agenda').select('*').eq('user_id',user.id).order('data',{ascending:true})
+      if(loadError)console.error('Erro ao recarregar bloqueios:',loadError)
+      setBloqueios(bl||[])
+      toast('Horario bloqueado com sucesso.')
+      setShowBloqueio(false);setBData('');setBHoraIni('');setBHoraFim('');setBMotivo('');setBProfId('')
+    }catch(e){console.error('Erro inesperado ao bloquear horario:',e);toast('Erro ao bloquear horario.')}
+    finally{setSalvandoBloqueio(false)}
   }
 
   async function updConf(id:string, status:string){
