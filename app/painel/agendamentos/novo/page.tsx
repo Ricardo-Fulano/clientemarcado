@@ -1,294 +1,364 @@
-'use client'
-import { useEffect, useState } from 'react'
-import { supabase } from '../../../lib/supabase'
-import Link from 'next/link'
-import { useRouter } from 'next/navigation'
-
-const G='linear-gradient(135deg,#3B82F6,#7C3AED)'
-const AV='linear-gradient(135deg,rgba(59,130,246,.95),rgba(124,58,237,.95))'
-const SB_ITEMS=[
-  {h:'/painel',l:'Início'},{h:'/painel/agendamentos',l:'Agenda',on:true},
-  {h:'/painel/clientes',l:'Clientes'},{h:'/painel/orcamentos',l:'Orçamentos'},
-  {h:'/painel/cobrancas',l:'Cobranças'},{h:'/painel/pagamentos',l:'Pagamentos'},
-  {h:'/painel/servicos',l:'Serviços'},{h:'/painel/profissionais',l:'Profissionais'},
-  {h:'/painel/relatorio',l:'Relatórios'},{h:'/painel/perfil',l:'Configurações'},
-]
-const CSS=`
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-html,body{overflow-x:hidden;width:100%;max-width:100%;background:#050B16}
-input,select,textarea{color-scheme:dark}
-select option{background:#07111F;color:#F8FAFC}
-.sb{width:240px;min-height:100vh;background:radial-gradient(circle at top left,rgba(124,58,237,.14),transparent 32%),linear-gradient(180deg,#070F1D,#050B16);border-right:1px solid rgba(148,163,184,.14);display:flex;flex-direction:column;position:fixed;top:0;left:0;z-index:30}
-.sb-logo{padding:22px 18px 16px;border-bottom:1px solid rgba(148,163,184,.10);display:flex;align-items:center;gap:10px}
-.sb-ic{width:30px;height:30px;border-radius:8px;background:${G};display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 0 20px rgba(124,58,237,.5)}
-.sb nav{flex:1;padding:10px 8px;overflow-y:auto}
-.nl{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:10px;margin-bottom:2px;text-decoration:none;font-size:13px;font-weight:500;color:#94A3B8;transition:all .15s;border:1px solid transparent}
-.nl:hover{background:rgba(124,58,237,.10);border-color:rgba(124,58,237,.20);color:#fff}
-.nl.on{background:${G};color:#fff;font-weight:700;border-color:rgba(255,255,255,.10);box-shadow:0 0 26px rgba(124,58,237,.34)}
-.sb-foot{padding:12px 10px;border-top:1px solid rgba(148,163,184,.10)}
-.mhdr{display:none;align-items:center;justify-content:space-between;padding:0 16px;height:56px;background:rgba(5,11,22,.96);backdrop-filter:blur(20px);border-bottom:1px solid rgba(148,163,184,.12);position:sticky;top:0;z-index:20;width:100%;max-width:100%}
-.drw{position:fixed;top:0;left:0;bottom:0;width:280px;max-width:85vw;background:radial-gradient(circle at top left,rgba(124,58,237,.14),transparent 32%),linear-gradient(180deg,#070F1D,#050B16);z-index:50;transform:translateX(-100%);transition:transform .28s ease;display:flex;flex-direction:column;border-right:1px solid rgba(148,163,184,.14)}
-.drw.open{transform:translateX(0)}
-.ovl{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:49;opacity:0;pointer-events:none;transition:opacity .28s}
-.ovl.open{opacity:1;pointer-events:auto}
-.main{margin-left:240px;flex:1;min-height:100vh;width:calc(100% - 240px);max-width:calc(100% - 240px)}
-.pg{background:radial-gradient(circle at top left,rgba(124,58,237,.20),transparent 32%),radial-gradient(circle at top right,rgba(37,99,235,.14),transparent 28%),linear-gradient(135deg,#050B16 0%,#07111F 45%,#050B16 100%);min-height:100vh;overflow-x:hidden}
-.bdy{max-width:1080px;margin:0 auto;padding:28px 32px 80px;width:100%;box-sizing:border-box}
-.crd{background:radial-gradient(circle at top left,rgba(124,58,237,.10),transparent 38%),linear-gradient(145deg,rgba(15,23,42,.97),rgba(8,20,33,.99));border:1.5px solid rgba(148,163,184,.18);border-radius:18px;box-shadow:0 20px 48px rgba(0,0,0,.34)}
-.inp{width:100%;background:rgba(15,23,42,.88);border:1px solid rgba(148,163,184,.18);border-radius:14px;padding:0 14px;height:48px;font-size:14px;color:#F8FAFC;outline:none;font-family:inherit;transition:border-color .2s,box-shadow .2s;display:block;box-sizing:border-box}
-.inp:focus{border-color:rgba(124,58,237,.55);box-shadow:0 0 0 3px rgba(124,58,237,.14)}
-.lbl{font-size:11px;font-weight:700;color:#94A3B8;text-transform:uppercase;letter-spacing:.08em;display:block;margin-bottom:7px}
-.blk-h{font-size:13px;font-weight:700;color:'#60A5FA';margin-bottom:14px;display:flex;align-items:center;gap:7px}
-.btn-p{background:${G};color:#fff;border:1px solid rgba(255,255,255,.12);border-radius:14px;height:46px;padding:0 20px;font-size:13px;font-weight:700;box-shadow:0 12px 32px rgba(59,130,246,.30),0 0 28px rgba(124,58,237,.26);display:inline-flex;align-items:center;gap:6px;white-space:nowrap;transition:all .18s;font-family:inherit;cursor:pointer;text-decoration:none}
-.btn-p:hover{transform:translateY(-1px)}
-.btn-s{background:rgba(15,23,42,.88);color:#CBD5E1;border:1px solid rgba(148,163,184,.20);border-radius:12px;height:44px;padding:0 16px;font-size:13px;font-weight:600;display:inline-flex;align-items:center;gap:6px;white-space:nowrap;transition:all .18s;font-family:inherit;cursor:pointer;text-decoration:none}
-.btn-s:hover{border-color:rgba(59,130,246,.38);color:#fff}
-.fg2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-@media(max-width:1023px){
-  .sb{display:none!important}
-  .main{margin-left:0!important;width:100%!important;max-width:100%!important}
-  .mhdr{display:flex!important}
-  .bdy{padding:14px 16px 80px!important}
-  .layout{flex-direction:column!important}
-  .aside{width:100%!important;position:static!important}
-  .fg2{grid-template-columns:1fr!important}
-}
-`
-export default function NovoAgendamento(){
-  const router=useRouter()
-  const [perfil,setPerfil]=useState<any>(null)
-  const [servs,setServs]=useState<any[]>([])
-  const [profs,setProfs]=useState<any[]>([])
-  const [clis,setClis]=useState<any[]>([])
-  const [loading,setLoading]=useState(true)
-  const [salvando,setSalvando]=useState(false)
-  const [mob,setMob]=useState(false)
-  const [erros,setErros]=useState<string[]>([])
-  const [cNome,setCNome]=useState('')
-  const [cWpp,setCWpp]=useState('')
-  const [cEmail,setCEmail]=useState('')
-  const [servId,setServId]=useState('')
-  const [profId,setProfId]=useState('')
-  const [data,setData]=useState(new Date().toISOString().split('T')[0])
-  const [hora,setHora]=useState('09:00')
-  const [status,setStatus]=useState('pendente')
-  const [obs,setObs]=useState('')
-  const [valor,setValor]=useState('')
-  const [busca,setBusca]=useState('')
-  const [showSug,setShowSug]=useState(false)
-  useEffect(()=>{init()},[])
-  async function init(){
-    const {data:{user}}=await supabase.auth.getUser()
-    if(!user){router.push('/login');return}
-    const [{data:p},{data:sv},{data:pr},{data:cl}]=await Promise.all([
-      supabase.from('perfis').select('*').eq('user_id',user.id).single(),
-      supabase.from('servicos').select('id,nome,preco').eq('user_id',user.id).order('nome'),
-      supabase.from('profissionais').select('id,nome').eq('user_id',user.id).order('nome'),
-      supabase.from('clientes').select('id,nome,whatsapp,email').eq('user_id',user.id).order('nome').limit(300),
-    ])
-    setPerfil(p);setServs(sv||[]);setProfs(pr||[]);setClis(cl||[]);setLoading(false)
-  }
-  function selCli(c:any){setCNome(c.nome);setCWpp(c.whatsapp||'');setCEmail(c.email||'');setBusca(c.nome);setShowSug(false)}
-  function selServ(id:string){setServId(id);const s=servs.find(s=>s.id===id);if(s?.preco)setValor(parseFloat(s.preco).toFixed(2))}
-  async function salvar(){
-    const err:string[]=[]
-    if(!cNome.trim()) err.push('Informe o nome.')
-    if(!data) err.push('Selecione a data.')
-    if(!hora) err.push('Selecione o horario.')
-    if(err.length){setErros(err);return}
-    setErros([]);setSalvando(true)
-    try{
-      const {data:{user}}=await supabase.auth.getUser()
-      if(!user){setSalvando(false);return}
-      const wpp=cWpp.replace(/[^0-9]/g,"")
-      const {error}=await supabase.from("agendamentos").insert({user_id:user.id,cliente_nome:cNome.trim(),cliente_whatsapp:wpp||null,cliente_email:cEmail||null,servico_id:servId||null,profissional_id:profId||null,data_hora:data+"T"+hora+":00",status:"pendente",observacoes:obs.trim()||null,valor:valor?parseFloat(valor):null})
-      if(error){console.error("Erro:",JSON.stringify(error));setErros(["Erro ao salvar. Tente novamente."]);setSalvando(false);return}
-      router.push("/painel/agendamentos")
-    }catch(e){console.error("Erro inesperado:",e);setErros(["Erro inesperado."]);setSalvando(false)}
-  }
-  const sug=busca.trim().length>1?clis.filter(c=>c.nome.toLowerCase().includes(busca.toLowerCase())).slice(0,6):[]
-  const nome=perfil?.nome_negocio||''
-  const ini=(nome||'A').charAt(0).toUpperCase()
-  const servSel=servs.find(s=>s.id===servId)
-  const profSel=profs.find(p=>p.id===profId)
-  const Sb=()=>(
-    <aside className="sb">
-      <div className="sb-logo">
-        <div className="sb-ic"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
-        <span style={{fontSize:'14px',fontWeight:800,color:'#F8FAFC',letterSpacing:'-0.02em'}}>ClienteMarcado</span>
-      </div>
-      <nav>{SB_ITEMS.map(it=><Link key={it.l} href={it.h} className={'nl'+(it.on?' on':'')}>{it.l}</Link>)}</nav>
-      <div className="sb-foot">
-        <div style={{display:'flex',alignItems:'center',gap:'10px',background:'rgba(15,23,42,.6)',border:'1px solid rgba(148,163,184,.12)',borderRadius:'10px',padding:'10px 12px'}}>
-          <div style={{width:'32px',height:'32px',borderRadius:'50%',background:AV,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'13px',fontWeight:700,color:'#fff',flexShrink:0}}>{ini}</div>
-          <div style={{minWidth:0}}><p style={{fontSize:'12px',fontWeight:600,color:'#F8FAFC',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{nome||'Meu negócio'}</p><p style={{fontSize:'10px',color:'#64748B'}}>Administrador</p></div>
-        </div>
-      </div>
-              <button onClick={sair} style={{width:'100%',marginTop:'8px',background:'rgba(239,68,68,.10)',border:'1px solid rgba(239,68,68,.25)',borderRadius:'10px',padding:'9px 14px',color:'#FCA5A5',fontSize:'13px',fontWeight:600,cursor:'pointer',fontFamily:'inherit',display:'flex',alignItems:'center',gap:'8px'}}>Sair</button>
-    </aside>
-  )
-  async function sair(){await supabase.auth.signOut();window.location.href='/login'}
-
-  if(loading)return(<div style={{minHeight:'100vh',background:'#050B16',display:'flex',alignItems:'center',justifyContent:'center',fontFamily:'system-ui'}}><p style={{color:'#64748B',fontSize:'14px'}}>Carregando...</p></div>)
-  return(
-    <div style={{display:'flex',minHeight:'100vh',background:'#050B16',fontFamily:'-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif',overflowX:'hidden',width:'100%',position:'relative'}}>
-      <style dangerouslySetInnerHTML={{__html:CSS}}/>
-      <div className={`ovl${mob?' open':''}`} onClick={()=>setMob(false)}/>
-      <div className={`drw${mob?' open':''}`}>
-        <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'16px 18px',borderBottom:'1px solid rgba(148,163,184,.10)'}}>
-          <span style={{fontSize:'14px',fontWeight:800,color:'#F8FAFC'}}>ClienteMarcado</span>
-          <button onClick={()=>setMob(false)} style={{background:'none',border:'none',color:'rgba(255,255,255,.5)',cursor:'pointer',fontSize:'22px',lineHeight:1}}>×</button>
-        </div>
-        <nav style={{flex:1,padding:'10px 8px',overflowY:'auto'}}>{SB_ITEMS.map(it=><Link key={it.l} href={it.h} onClick={()=>setMob(false)} className={'nl'+(it.on?' on':'')} style={{fontSize:'14px'}}>{it.l}</Link>)}</nav>
-      </div>
-      <Sb/>
-      <div className="main">
-        <div className="mhdr">
-          <button onClick={()=>setMob(true)} style={{background:'none',border:'none',cursor:'pointer',padding:'8px',display:'flex',flexDirection:'column',gap:'5px'}}>
-            {[22,22,16].map((w,i)=><span key={i} style={{display:'block',width:`${w}px`,height:'2px',background:'rgba(255,255,255,.8)',borderRadius:'2px'}}/>)}
-          </button>
-          <span style={{fontSize:'14px',fontWeight:800,color:'#F8FAFC'}}>Novo agendamento</span>
-          <div style={{width:'34px',height:'34px',borderRadius:'50%',background:AV,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'13px',fontWeight:700,color:'#fff'}}>{ini}</div>
-        </div>
-        <div className="pg"><div className="bdy">
-          <div style={{display:'flex',alignItems:'center',gap:'12px',marginBottom:'24px',flexWrap:'wrap'}}>
-            <Link href="/painel/agendamentos" className="btn-s" style={{height:'38px',padding:'0 14px',fontSize:'12px'}}>← Voltar</Link>
-            <div>
-              <h1 style={{fontSize:'20px',fontWeight:800,color:'#F8FAFC',letterSpacing:'-0.03em',marginBottom:'3px'}}>Novo agendamento</h1>
-              <p style={{fontSize:'12px',color:'#64748B'}}>Preencha os dados para registrar o horário na agenda.</p>
-            </div>
-          </div>
-          {erros.length>0&&(
-            <div style={{background:'rgba(239,68,68,.10)',border:'1px solid rgba(239,68,68,.28)',borderRadius:'12px',padding:'12px 16px',marginBottom:'16px'}}>
-              {erros.map((e,i)=><p key={i} style={{fontSize:'13px',color:'#F87171',marginBottom:i<erros.length-1?'4px':0}}>âš  {e}</p>)}
-            </div>
-          )}
-          <div className="layout" style={{display:'flex',gap:'18px',alignItems:'flex-start'}}>
-            <div style={{flex:1,minWidth:0}}>
-              {/* Bloco 1 */}
-              <div className="crd" style={{padding:'22px',marginBottom:'14px'}}>
-                <p style={{fontSize:'13px',fontWeight:700,color:'#60A5FA',marginBottom:'14px',display:'flex',alignItems:'center',gap:'7px'}}>
-                  <span style={{background:'rgba(59,130,246,.18)',borderRadius:'6px',padding:'2px 9px',fontSize:'11px'}}>1</span>Cliente / Paciente
-                </p>
-                <div style={{position:'relative',marginBottom:'12px'}}>
-                  <label className="lbl">Nome *</label>
-                  <input className="inp" type="text" placeholder="Nome ou busque cliente existente..." value={busca}
-                    onChange={e=>{setBusca(e.target.value);setCNome(e.target.value);setShowSug(true)}}
-                    onFocus={()=>busca.length>1&&setShowSug(true)}
-                    onBlur={()=>setTimeout(()=>setShowSug(false),150)}/>
-                  {showSug&&sug.length>0&&(
-                    <div style={{position:'absolute',top:'calc(100% + 4px)',left:0,right:0,background:'rgba(7,17,31,.98)',border:'1.5px solid rgba(59,130,246,.28)',borderRadius:'12px',zIndex:50,overflow:'hidden',boxShadow:'0 16px 40px rgba(0,0,0,.55)'}}>
-                      {sug.map((c:any)=>(
-                        <div key={c.id} onMouseDown={()=>selCli(c)}
-                          style={{padding:'10px 14px',fontSize:'13px',color:'#CBD5E1',cursor:'pointer',borderBottom:'1px solid rgba(255,255,255,.05)',display:'flex',alignItems:'center',gap:'10px'}}
-                          onMouseEnter={e=>(e.currentTarget.style.background='rgba(59,130,246,.12)')}
-                          onMouseLeave={e=>(e.currentTarget.style.background='transparent')}>
-                          <div style={{width:'28px',height:'28px',borderRadius:'50%',background:AV,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'12px',fontWeight:700,color:'#fff',flexShrink:0}}>{c.nome.charAt(0).toUpperCase()}</div>
-                          <div><p style={{fontWeight:600,color:'#F8FAFC',fontSize:'13px'}}>{c.nome}</p>{c.whatsapp&&<p style={{fontSize:'11px',color:'#64748B'}}>{c.whatsapp}</p>}</div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-                <div className="fg2">
-                  <div><label className="lbl">WhatsApp</label><input className="inp" type="tel" placeholder="(11) 99999-9999" value={cWpp} onChange={e=>setCWpp(e.target.value)}/></div>
-                  <div><label className="lbl">E-mail</label><input className="inp" type="email" placeholder="email@exemplo.com" value={cEmail} onChange={e=>setCEmail(e.target.value)}/></div>
-                </div>
-              </div>
-              {/* Bloco 2 */}
-              <div className="crd" style={{padding:'22px',marginBottom:'14px'}}>
-                <p style={{fontSize:'13px',fontWeight:700,color:'#60A5FA',marginBottom:'14px',display:'flex',alignItems:'center',gap:'7px'}}>
-                  <span style={{background:'rgba(59,130,246,.18)',borderRadius:'6px',padding:'2px 9px',fontSize:'11px'}}>2</span>Serviço e profissional
-                </p>
-                <div className="fg2" style={{marginBottom:'12px'}}>
-                  <div><label className="lbl">Serviço / Procedimento</label>
-                    <select className="inp" value={servId} onChange={e=>selServ(e.target.value)}>
-                      <option value="">Selecionar...</option>
-                      {servs.map((s:any)=><option key={s.id} value={s.id}>{s.nome}</option>)}
-                    </select>
-                  </div>
-                  <div><label className="lbl">Profissional</label>
-                    <select className="inp" value={profId} onChange={e=>setProfId(e.target.value)}>
-                      <option value="">Qualquer profissional</option>
-                      {profs.map((p:any)=><option key={p.id} value={p.id}>{p.nome}</option>)}
-                    </select>
-                  </div>
-                </div>
-                <div style={{maxWidth:'200px'}}>
-                  <label className="lbl">Valor (R$)</label>
-                  <div style={{position:'relative'}}>
-                    <span style={{position:'absolute',left:'14px',top:'50%',transform:'translateY(-50%)',fontSize:'13px',color:'#64748B',fontWeight:600,pointerEvents:'none'}}>R$</span>
-                    <input className="inp" type="number" min="0" step="0.01" placeholder="0,00" value={valor} onChange={e=>setValor(e.target.value)} style={{paddingLeft:'36px'}}/>
-                  </div>
-                </div>
-              </div>
-              {/* Bloco 3 */}
-              <div className="crd" style={{padding:'22px',marginBottom:'14px'}}>
-                <p style={{fontSize:'13px',fontWeight:700,color:'#60A5FA',marginBottom:'14px',display:'flex',alignItems:'center',gap:'7px'}}>
-                  <span style={{background:'rgba(59,130,246,.18)',borderRadius:'6px',padding:'2px 9px',fontSize:'11px'}}>3</span>Data e horário
-                </p>
-                <div className="fg2" style={{marginBottom:'14px'}}>
-                  <div><label className="lbl">Data *</label><input className="inp" type="date" value={data} onChange={e=>setData(e.target.value)}/></div>
-                  <div><label className="lbl">Horário *</label><input className="inp" type="time" value={hora} onChange={e=>setHora(e.target.value)}/></div>
-                </div>
-                <label className="lbl">Status inicial</label>
-                <div style={{display:'flex',gap:'6px',flexWrap:'wrap'}}>
-                  {[{v:'pendente',l:'⏳ Pendente',c:'#FBBF24',bg:'rgba(245,158,11,.12)',bd:'rgba(245,158,11,.35)'},{v:'confirmado',l:'✓ Confirmado',c:'#4ADE80',bg:'rgba(34,197,94,.12)',bd:'rgba(34,197,94,.35)'}].map(s=>(
-                    <button key={s.v} onClick={()=>setStatus(s.v)}
-                      style={{background:status===s.v?s.bg:'rgba(15,23,42,.75)',border:`1px solid ${status===s.v?s.bd:'rgba(148,163,184,.18)'}`,borderRadius:'10px',height:'40px',padding:'0 16px',fontSize:'13px',fontWeight:600,color:status===s.v?s.c:'#94A3B8',cursor:'pointer',fontFamily:'inherit',transition:'all .15s'}}>
-                      {s.l}
-                    </button>
-                  ))}
-                </div>
-              </div>
-              {/* Bloco 4 */}
-              <div className="crd" style={{padding:'22px'}}>
-                <p style={{fontSize:'13px',fontWeight:700,color:'#60A5FA',marginBottom:'14px',display:'flex',alignItems:'center',gap:'7px'}}>
-                  <span style={{background:'rgba(59,130,246,.18)',borderRadius:'6px',padding:'2px 9px',fontSize:'11px'}}>4</span>Observações
-                </p>
-                <textarea className="inp" rows={3} placeholder="Informações adicionais sobre o atendimento..." value={obs} onChange={e=>setObs(e.target.value)} style={{height:'auto',padding:'12px 14px',resize:'none',lineHeight:1.6}}/>
-              </div>
-            </div>
-            {/* Botao salvar mobile */}
-            <div style={{marginBottom:'16px'}} className="mob-save">
-              {erros.length>0&&<div style={{background:'rgba(239,68,68,.10)',border:'1px solid rgba(239,68,68,.25)',borderRadius:10,padding:'10px 14px',marginBottom:'12px'}}>
-                {erros.map((e,i)=><p key={i} style={{fontSize:12,color:'#F87171',fontWeight:500}}>{e}</p>)}
-              </div>}
-              <button onClick={salvar} disabled={salvando} className="btn-p" style={{width:'100%',height:'52px',justifyContent:'center',fontSize:'15px',fontWeight:700,borderRadius:14}}>
-                {salvando?'Salvando...':'Salvar agendamento'}
-              </button>
-              <Link href="/painel/agendamentos" className="btn-s" style={{width:'100%',height:'44px',justifyContent:'center',marginTop:'8px',fontSize:'13px',display:'flex',alignItems:'center',textDecoration:'none',borderRadius:12}}>Cancelar</Link>
-            </div>
-
-            {/* Resumo lateral */}
-            <div className="aside" style={{width:'300px',flexShrink:0,position:'sticky',top:'24px'}}>
-              <div className="crd" style={{padding:'20px'}}>
-                <p style={{fontSize:'13px',fontWeight:700,color:'#60A5FA',marginBottom:'16px'}}>Resumo</p>
-                {[
-                  {l:'Cliente',v:cNome||'"”'},
-                  {l:'Serviço',v:servSel?.nome||'"”'},
-                  {l:'Profissional',v:profSel?.nome||'Qualquer'},
-                  {l:'Data',v:data?new Date(data+'T12:00:00').toLocaleDateString('pt-BR'):'"”'},
-                  {l:'Horário',v:hora||'"”'},
-                  {l:'Status',v:status==='confirmado'?'Confirmado':'Pendente'},
-                  {l:'Valor',v:valor?`R$ ${parseFloat(valor).toLocaleString('pt-BR',{minimumFractionDigits:2})}`:'"”'},
-                ].map(r=>(
-                  <div key={r.l} style={{display:'flex',justifyContent:'space-between',marginBottom:'10px',paddingBottom:'10px',borderBottom:'1px solid rgba(148,163,184,.08)'}}>
-                    <span style={{fontSize:'11px',fontWeight:700,color:'#64748B',textTransform:'uppercase' as const,letterSpacing:'.06em'}}>{r.l}</span>
-                    <span style={{fontSize:'13px',color:'#F8FAFC',fontWeight:600,textAlign:'right' as const,maxWidth:'160px',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{r.v}</span>
-                  </div>
-                ))}
-                <div style={{display:'flex',flexDirection:'column',gap:'8px',marginTop:'8px'}}>
-                  <button onClick={salvar} disabled={salvando} className="btn-p" style={{width:'100%',height:'48px',justifyContent:'center',opacity:salvando?.7:1}}>
-                    {salvando?'Salvando...':'Salvar agendamento'}
-                  </button>
-                  <Link href="/painel/agendamentos" className="btn-s" style={{width:'100%',height:'44px',justifyContent:'center'}}>Cancelar</Link>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div></div>
-      </div>
-    </div>
-  )
-}
+import base64
+parts=[]
+parts.append("J3VzZSBjbGllbnQnCmltcG9ydCB7IHVzZUVmZmVjdCwgdXNlU3RhdGUgfSBmcm9tICdyZWFjdCcKaW1w")
+parts.append("b3J0IHsgc3VwYWJhc2UgfSBmcm9tICcuLi8uLi8uLi9saWIvc3VwYWJhc2UnCmltcG9ydCBMaW5rIGZy")
+parts.append("b20gJ25leHQvbGluaycKaW1wb3J0IHsgdXNlUm91dGVyIH0gZnJvbSAnbmV4dC9uYXZpZ2F0aW9uJwoK")
+parts.append("Y29uc3QgRz0nbGluZWFyLWdyYWRpZW50KDEzNWRlZywjM0I4MkY2LCM3QzNBRUQpJwpjb25zdCBBVj0n")
+parts.append("bGluZWFyLWdyYWRpZW50KDEzNWRlZyxyZ2JhKDU5LDEzMCwyNDYsLjk1KSxyZ2JhKDEyNCw1OCwyMzcs")
+parts.append("Ljk1KSknCmNvbnN0IFNCX0lURU1TPVsKICB7aDonL3BhaW5lbCcsbDonSW7DrWNpbyd9LHtoOicvcGFp")
+parts.append("bmVsL2FnZW5kYW1lbnRvcycsbDonQWdlbmRhJyxvbjp0cnVlfSwKICB7aDonL3BhaW5lbC9jbGllbnRl")
+parts.append("cycsbDonQ2xpZW50ZXMnfSx7aDonL3BhaW5lbC9vcmNhbWVudG9zJyxsOidPcsOnYW1lbnRvcyd9LAog")
+parts.append("IHtoOicvcGFpbmVsL2NvYnJhbmNhcycsbDonQ29icmFuw6dhcyd9LHtoOicvcGFpbmVsL3BhZ2FtZW50")
+parts.append("b3MnLGw6J1BhZ2FtZW50b3MnfSwKICB7aDonL3BhaW5lbC9zZXJ2aWNvcycsbDonU2VydmnDp29zJ30s")
+parts.append("e2g6Jy9wYWluZWwvcHJvZmlzc2lvbmFpcycsbDonUHJvZmlzc2lvbmFpcyd9LAogIHtoOicvcGFpbmVs")
+parts.append("L3JlbGF0b3JpbycsbDonUmVsYXTDs3Jpb3MnfSx7aDonL3BhaW5lbC9wZXJmaWwnLGw6J0NvbmZpZ3Vy")
+parts.append("YcOnw7Vlcyd9LApdCmNvbnN0IENTUz1gCiosKjo6YmVmb3JlLCo6OmFmdGVye2JveC1zaXppbmc6Ym9y")
+parts.append("ZGVyLWJveDttYXJnaW46MDtwYWRkaW5nOjB9Cmh0bWwsYm9keXtvdmVyZmxvdy14OmhpZGRlbjt3aWR0")
+parts.append("aDoxMDAlO21heC13aWR0aDoxMDAlO2JhY2tncm91bmQ6IzA1MEIxNn0KaW5wdXQsc2VsZWN0LHRleHRh")
+parts.append("cmVhe2NvbG9yLXNjaGVtZTpkYXJrfQpzZWxlY3Qgb3B0aW9ue2JhY2tncm91bmQ6IzA3MTExRjtjb2xv")
+parts.append("cjojRjhGQUZDfQouc2J7d2lkdGg6MjQwcHg7bWluLWhlaWdodDoxMDB2aDtiYWNrZ3JvdW5kOnJhZGlh")
+parts.append("bC1ncmFkaWVudChjaXJjbGUgYXQgdG9wIGxlZnQscmdiYSgxMjQsNTgsMjM3LC4xNCksdHJhbnNwYXJl")
+parts.append("bnQgMzIlKSxsaW5lYXItZ3JhZGllbnQoMTgwZGVnLCMwNzBGMUQsIzA1MEIxNik7Ym9yZGVyLXJpZ2h0")
+parts.append("OjFweCBzb2xpZCByZ2JhKDE0OCwxNjMsMTg0LC4xNCk7ZGlzcGxheTpmbGV4O2ZsZXgtZGlyZWN0aW9u")
+parts.append("OmNvbHVtbjtwb3NpdGlvbjpmaXhlZDt0b3A6MDtsZWZ0OjA7ei1pbmRleDozMH0KLnNiLWxvZ297cGFk")
+parts.append("ZGluZzoyMnB4IDE4cHggMTZweDtib3JkZXItYm90dG9tOjFweCBzb2xpZCByZ2JhKDE0OCwxNjMsMTg0")
+parts.append("LC4xMCk7ZGlzcGxheTpmbGV4O2FsaWduLWl0ZW1zOmNlbnRlcjtnYXA6MTBweH0KLnNiLWlje3dpZHRo")
+parts.append("OjMwcHg7aGVpZ2h0OjMwcHg7Ym9yZGVyLXJhZGl1czo4cHg7YmFja2dyb3VuZDoke0d9O2Rpc3BsYXk6")
+parts.append("ZmxleDthbGlnbi1pdGVtczpjZW50ZXI7anVzdGlmeS1jb250ZW50OmNlbnRlcjtmbGV4LXNocmluazow")
+parts.append("O2JveC1zaGFkb3c6MCAwIDIwcHggcmdiYSgxMjQsNTgsMjM3LC41KX0KLnNiIG5hdntmbGV4OjE7cGFk")
+parts.append("ZGluZzoxMHB4IDhweDtvdmVyZmxvdy15OmF1dG99Ci5ubHtkaXNwbGF5OmZsZXg7YWxpZ24taXRlbXM6")
+parts.append("Y2VudGVyO2dhcDoxMHB4O3BhZGRpbmc6MTBweCAxNHB4O2JvcmRlci1yYWRpdXM6MTBweDttYXJnaW4t")
+parts.append("Ym90dG9tOjJweDt0ZXh0LWRlY29yYXRpb246bm9uZTtmb250LXNpemU6MTNweDtmb250LXdlaWdodDo1")
+parts.append("MDA7Y29sb3I6Izk0QTNCODt0cmFuc2l0aW9uOmFsbCAuMTVzO2JvcmRlcjoxcHggc29saWQgdHJhbnNw")
+parts.append("YXJlbnR9Ci5ubDpob3ZlcntiYWNrZ3JvdW5kOnJnYmEoMTI0LDU4LDIzNywuMTApO2JvcmRlci1jb2xv")
+parts.append("cjpyZ2JhKDEyNCw1OCwyMzcsLjIwKTtjb2xvcjojZmZmfQoubmwub257YmFja2dyb3VuZDoke0d9O2Nv")
+parts.append("bG9yOiNmZmY7Zm9udC13ZWlnaHQ6NzAwO2JvcmRlci1jb2xvcjpyZ2JhKDI1NSwyNTUsMjU1LC4xMCk7")
+parts.append("Ym94LXNoYWRvdzowIDAgMjZweCByZ2JhKDEyNCw1OCwyMzcsLjM0KX0KLnNiLWZvb3R7cGFkZGluZzox")
+parts.append("MnB4IDEwcHg7Ym9yZGVyLXRvcDoxcHggc29saWQgcmdiYSgxNDgsMTYzLDE4NCwuMTApfQoubWhkcntk")
+parts.append("aXNwbGF5Om5vbmU7YWxpZ24taXRlbXM6Y2VudGVyO2p1c3RpZnktY29udGVudDpzcGFjZS1iZXR3ZWVu")
+parts.append("O3BhZGRpbmc6MCAxNnB4O2hlaWdodDo1NnB4O2JhY2tncm91bmQ6cmdiYSg1LDExLDIyLC45Nik7YmFj")
+parts.append("a2Ryb3AtZmlsdGVyOmJsdXIoMjBweCk7Ym9yZGVyLWJvdHRvbToxcHggc29saWQgcmdiYSgxNDgsMTYz")
+parts.append("LDE4NCwuMTIpO3Bvc2l0aW9uOnN0aWNreTt0b3A6MDt6LWluZGV4OjIwO3dpZHRoOjEwMCU7bWF4LXdp")
+parts.append("ZHRoOjEwMCV9Ci5kcnd7cG9zaXRpb246Zml4ZWQ7dG9wOjA7bGVmdDowO2JvdHRvbTowO3dpZHRoOjI4")
+parts.append("MHB4O21heC13aWR0aDo4NXZ3O2JhY2tncm91bmQ6cmFkaWFsLWdyYWRpZW50KGNpcmNsZSBhdCB0b3Ag")
+parts.append("bGVmdCxyZ2JhKDEyNCw1OCwyMzcsLjE0KSx0cmFuc3BhcmVudCAzMiUpLGxpbmVhci1ncmFkaWVudCgx")
+parts.append("ODBkZWcsIzA3MEYxRCwjMDUwQjE2KTt6LWluZGV4OjUwO3RyYW5zZm9ybTp0cmFuc2xhdGVYKC0xMDAl")
+parts.append("KTt0cmFuc2l0aW9uOnRyYW5zZm9ybSAuMjhzIGVhc2U7ZGlzcGxheTpmbGV4O2ZsZXgtZGlyZWN0aW9u")
+parts.append("OmNvbHVtbjtib3JkZXItcmlnaHQ6MXB4IHNvbGlkIHJnYmEoMTQ4LDE2MywxODQsLjE0KX0KLmRydy5v")
+parts.append("cGVue3RyYW5zZm9ybTp0cmFuc2xhdGVYKDApfQoub3Zse3Bvc2l0aW9uOmZpeGVkO2luc2V0OjA7YmFj")
+parts.append("a2dyb3VuZDpyZ2JhKDAsMCwwLC43NSk7ei1pbmRleDo0OTtvcGFjaXR5OjA7cG9pbnRlci1ldmVudHM6")
+parts.append("bm9uZTt0cmFuc2l0aW9uOm9wYWNpdHkgLjI4c30KLm92bC5vcGVue29wYWNpdHk6MTtwb2ludGVyLWV2")
+parts.append("ZW50czphdXRvfQoubWFpbnttYXJnaW4tbGVmdDoyNDBweDtmbGV4OjE7bWluLWhlaWdodDoxMDB2aDt3")
+parts.append("aWR0aDpjYWxjKDEwMCUgLSAyNDBweCk7bWF4LXdpZHRoOmNhbGMoMTAwJSAtIDI0MHB4KX0KLnBne2Jh")
+parts.append("Y2tncm91bmQ6cmFkaWFsLWdyYWRpZW50KGNpcmNsZSBhdCB0b3AgbGVmdCxyZ2JhKDEyNCw1OCwyMzcs")
+parts.append("LjIwKSx0cmFuc3BhcmVudCAzMiUpLHJhZGlhbC1ncmFkaWVudChjaXJjbGUgYXQgdG9wIHJpZ2h0LHJn")
+parts.append("YmEoMzcsOTksMjM1LC4xNCksdHJhbnNwYXJlbnQgMjglKSxsaW5lYXItZ3JhZGllbnQoMTM1ZGVnLCMw")
+parts.append("NTBCMTYgMCUsIzA3MTExRiA0NSUsIzA1MEIxNiAxMDAlKTttaW4taGVpZ2h0OjEwMHZoO292ZXJmbG93")
+parts.append("LXg6aGlkZGVufQouYmR5e21heC13aWR0aDoxMDgwcHg7bWFyZ2luOjAgYXV0bztwYWRkaW5nOjI4cHgg")
+parts.append("MzJweCA4MHB4O3dpZHRoOjEwMCU7Ym94LXNpemluZzpib3JkZXItYm94fQouY3Jke2JhY2tncm91bmQ6")
+parts.append("cmFkaWFsLWdyYWRpZW50KGNpcmNsZSBhdCB0b3AgbGVmdCxyZ2JhKDEyNCw1OCwyMzcsLjEwKSx0cmFu")
+parts.append("c3BhcmVudCAzOCUpLGxpbmVhci1ncmFkaWVudCgxNDVkZWcscmdiYSgxNSwyMyw0MiwuOTcpLHJnYmEo")
+parts.append("OCwyMCwzMywuOTkpKTtib3JkZXI6MS41cHggc29saWQgcmdiYSgxNDgsMTYzLDE4NCwuMTgpO2JvcmRl")
+parts.append("ci1yYWRpdXM6MThweDtib3gtc2hhZG93OjAgMjBweCA0OHB4IHJnYmEoMCwwLDAsLjM0KX0KLmlucHt3")
+parts.append("aWR0aDoxMDAlO2JhY2tncm91bmQ6cmdiYSgxNSwyMyw0MiwuODgpO2JvcmRlcjoxcHggc29saWQgcmdi")
+parts.append("YSgxNDgsMTYzLDE4NCwuMTgpO2JvcmRlci1yYWRpdXM6MTRweDtwYWRkaW5nOjAgMTRweDtoZWlnaHQ6")
+parts.append("NDhweDtmb250LXNpemU6MTRweDtjb2xvcjojRjhGQUZDO291dGxpbmU6bm9uZTtmb250LWZhbWlseTpp")
+parts.append("bmhlcml0O3RyYW5zaXRpb246Ym9yZGVyLWNvbG9yIC4ycyxib3gtc2hhZG93IC4ycztkaXNwbGF5OmJs")
+parts.append("b2NrO2JveC1zaXppbmc6Ym9yZGVyLWJveH0KLmlucDpmb2N1c3tib3JkZXItY29sb3I6cmdiYSgxMjQs")
+parts.append("NTgsMjM3LC41NSk7Ym94LXNoYWRvdzowIDAgMCAzcHggcmdiYSgxMjQsNTgsMjM3LC4xNCl9Ci5sYmx7")
+parts.append("Zm9udC1zaXplOjExcHg7Zm9udC13ZWlnaHQ6NzAwO2NvbG9yOiM5NEEzQjg7dGV4dC10cmFuc2Zvcm06")
+parts.append("dXBwZXJjYXNlO2xldHRlci1zcGFjaW5nOi4wOGVtO2Rpc3BsYXk6YmxvY2s7bWFyZ2luLWJvdHRvbTo3")
+parts.append("cHh9Ci5ibGstaHtmb250LXNpemU6MTNweDtmb250LXdlaWdodDo3MDA7Y29sb3I6JyM2MEE1RkEnO21h")
+parts.append("cmdpbi1ib3R0b206MTRweDtkaXNwbGF5OmZsZXg7YWxpZ24taXRlbXM6Y2VudGVyO2dhcDo3cHh9Ci5i")
+parts.append("dG4tcHtiYWNrZ3JvdW5kOiR7R307Y29sb3I6I2ZmZjtib3JkZXI6MXB4IHNvbGlkIHJnYmEoMjU1LDI1")
+parts.append("NSwyNTUsLjEyKTtib3JkZXItcmFkaXVzOjE0cHg7aGVpZ2h0OjQ2cHg7cGFkZGluZzowIDIwcHg7Zm9u")
+parts.append("dC1zaXplOjEzcHg7Zm9udC13ZWlnaHQ6NzAwO2JveC1zaGFkb3c6MCAxMnB4IDMycHggcmdiYSg1OSwx")
+parts.append("MzAsMjQ2LC4zMCksMCAwIDI4cHggcmdiYSgxMjQsNTgsMjM3LC4yNik7ZGlzcGxheTppbmxpbmUtZmxl")
+parts.append("eDthbGlnbi1pdGVtczpjZW50ZXI7Z2FwOjZweDt3aGl0ZS1zcGFjZTpub3dyYXA7dHJhbnNpdGlvbjph")
+parts.append("bGwgLjE4cztmb250LWZhbWlseTppbmhlcml0O2N1cnNvcjpwb2ludGVyO3RleHQtZGVjb3JhdGlvbjpu")
+parts.append("b25lfQouYnRuLXA6aG92ZXJ7dHJhbnNmb3JtOnRyYW5zbGF0ZVkoLTFweCl9Ci5idG4tc3tiYWNrZ3Jv")
+parts.append("dW5kOnJnYmEoMTUsMjMsNDIsLjg4KTtjb2xvcjojQ0JENUUxO2JvcmRlcjoxcHggc29saWQgcmdiYSgx")
+parts.append("NDgsMTYzLDE4NCwuMjApO2JvcmRlci1yYWRpdXM6MTJweDtoZWlnaHQ6NDRweDtwYWRkaW5nOjAgMTZw")
+parts.append("eDtmb250LXNpemU6MTNweDtmb250LXdlaWdodDo2MDA7ZGlzcGxheTppbmxpbmUtZmxleDthbGlnbi1p")
+parts.append("dGVtczpjZW50ZXI7Z2FwOjZweDt3aGl0ZS1zcGFjZTpub3dyYXA7dHJhbnNpdGlvbjphbGwgLjE4cztm")
+parts.append("b250LWZhbWlseTppbmhlcml0O2N1cnNvcjpwb2ludGVyO3RleHQtZGVjb3JhdGlvbjpub25lfQouYnRu")
+parts.append("LXM6aG92ZXJ7Ym9yZGVyLWNvbG9yOnJnYmEoNTksMTMwLDI0NiwuMzgpO2NvbG9yOiNmZmZ9Ci5mZzJ7")
+parts.append("ZGlzcGxheTpncmlkO2dyaWQtdGVtcGxhdGUtY29sdW1uczoxZnIgMWZyO2dhcDoxMnB4fQpAbWVkaWEo")
+parts.append("bWF4LXdpZHRoOjEwMjNweCl7CiAgLnNie2Rpc3BsYXk6bm9uZSFpbXBvcnRhbnR9CiAgLm1haW57bWFy")
+parts.append("Z2luLWxlZnQ6MCFpbXBvcnRhbnQ7d2lkdGg6MTAwJSFpbXBvcnRhbnQ7bWF4LXdpZHRoOjEwMCUhaW1w")
+parts.append("b3J0YW50fQogIC5taGRye2Rpc3BsYXk6ZmxleCFpbXBvcnRhbnR9CiAgLmJkeXtwYWRkaW5nOjE0cHgg")
+parts.append("MTZweCA4MHB4IWltcG9ydGFudH0KICAubGF5b3V0e2ZsZXgtZGlyZWN0aW9uOmNvbHVtbiFpbXBvcnRh")
+parts.append("bnR9CiAgLmFzaWRle3dpZHRoOjEwMCUhaW1wb3J0YW50O3Bvc2l0aW9uOnN0YXRpYyFpbXBvcnRhbnR9")
+parts.append("CiAgLmZnMntncmlkLXRlbXBsYXRlLWNvbHVtbnM6MWZyIWltcG9ydGFudH0KfQpgCmV4cG9ydCBkZWZh")
+parts.append("dWx0IGZ1bmN0aW9uIE5vdm9BZ2VuZGFtZW50bygpewogIGNvbnN0IHJvdXRlcj11c2VSb3V0ZXIoKQog")
+parts.append("IGNvbnN0IFtwZXJmaWwsc2V0UGVyZmlsXT11c2VTdGF0ZTxhbnk+KG51bGwpCiAgY29uc3QgW3NlcnZz")
+parts.append("LHNldFNlcnZzXT11c2VTdGF0ZTxhbnlbXT4oW10pCiAgY29uc3QgW3Byb2ZzLHNldFByb2ZzXT11c2VT")
+parts.append("dGF0ZTxhbnlbXT4oW10pCiAgY29uc3QgW2NsaXMsc2V0Q2xpc109dXNlU3RhdGU8YW55W10+KFtdKQog")
+parts.append("IGNvbnN0IFtsb2FkaW5nLHNldExvYWRpbmddPXVzZVN0YXRlKHRydWUpCiAgY29uc3QgW3NhbHZhbmRv")
+parts.append("LHNldFNhbHZhbmRvXT11c2VTdGF0ZShmYWxzZSkKICBjb25zdCBbbW9iLHNldE1vYl09dXNlU3RhdGUo")
+parts.append("ZmFsc2UpCiAgY29uc3QgW2Vycm9zLHNldEVycm9zXT11c2VTdGF0ZTxzdHJpbmdbXT4oW10pCiAgY29u")
+parts.append("c3QgW2NOb21lLHNldENOb21lXT11c2VTdGF0ZSgnJykKICBjb25zdCBbY1dwcCxzZXRDV3BwXT11c2VT")
+parts.append("dGF0ZSgnJykKICBjb25zdCBbY0VtYWlsLHNldENFbWFpbF09dXNlU3RhdGUoJycpCiAgY29uc3QgW3Nl")
+parts.append("cnZJZCxzZXRTZXJ2SWRdPXVzZVN0YXRlKCcnKQogIGNvbnN0IFtwcm9mSWQsc2V0UHJvZklkXT11c2VT")
+parts.append("dGF0ZSgnJykKICBjb25zdCBbZGF0YSxzZXREYXRhXT11c2VTdGF0ZShuZXcgRGF0ZSgpLnRvSVNPU3Ry")
+parts.append("aW5nKCkuc3BsaXQoJ1QnKVswXSkKICBjb25zdCBbaG9yYSxzZXRIb3JhXT11c2VTdGF0ZSgnMDk6MDAn")
+parts.append("KQogIGNvbnN0IFtzdGF0dXMsc2V0U3RhdHVzXT11c2VTdGF0ZSgncGVuZGVudGUnKQogIGNvbnN0IFtv")
+parts.append("YnMsc2V0T2JzXT11c2VTdGF0ZSgnJykKICBjb25zdCBbdmFsb3Isc2V0VmFsb3JdPXVzZVN0YXRlKCcn")
+parts.append("KQogIGNvbnN0IFtidXNjYSxzZXRCdXNjYV09dXNlU3RhdGUoJycpCiAgY29uc3QgW3Nob3dTdWcsc2V0")
+parts.append("U2hvd1N1Z109dXNlU3RhdGUoZmFsc2UpCiAgdXNlRWZmZWN0KCgpPT57aW5pdCgpfSxbXSkKICBhc3lu")
+parts.append("YyBmdW5jdGlvbiBpbml0KCl7CiAgICBjb25zdCB7ZGF0YTp7dXNlcn19PWF3YWl0IHN1cGFiYXNlLmF1")
+parts.append("dGguZ2V0VXNlcigpCiAgICBpZighdXNlcil7cm91dGVyLnB1c2goJy9sb2dpbicpO3JldHVybn0KICAg")
+parts.append("IGNvbnN0IFt7ZGF0YTpwfSx7ZGF0YTpzdn0se2RhdGE6cHJ9LHtkYXRhOmNsfV09YXdhaXQgUHJvbWlz")
+parts.append("ZS5hbGwoWwogICAgICBzdXBhYmFzZS5mcm9tKCdwZXJmaXMnKS5zZWxlY3QoJyonKS5lcSgndXNlcl9p")
+parts.append("ZCcsdXNlci5pZCkuc2luZ2xlKCksCiAgICAgIHN1cGFiYXNlLmZyb20oJ3NlcnZpY29zJykuc2VsZWN0")
+parts.append("KCdpZCxub21lLHByZWNvJykuZXEoJ3VzZXJfaWQnLHVzZXIuaWQpLm9yZGVyKCdub21lJyksCiAgICAg")
+parts.append("IHN1cGFiYXNlLmZyb20oJ3Byb2Zpc3Npb25haXMnKS5zZWxlY3QoJ2lkLG5vbWUnKS5lcSgndXNlcl9p")
+parts.append("ZCcsdXNlci5pZCkub3JkZXIoJ25vbWUnKSwKICAgICAgc3VwYWJhc2UuZnJvbSgnY2xpZW50ZXMnKS5z")
+parts.append("ZWxlY3QoJ2lkLG5vbWUsd2hhdHNhcHAsZW1haWwnKS5lcSgndXNlcl9pZCcsdXNlci5pZCkub3JkZXIo")
+parts.append("J25vbWUnKS5saW1pdCgzMDApLAogICAgXSkKICAgIHNldFBlcmZpbChwKTtzZXRTZXJ2cyhzdnx8W10p")
+parts.append("O3NldFByb2ZzKHByfHxbXSk7c2V0Q2xpcyhjbHx8W10pO3NldExvYWRpbmcoZmFsc2UpCiAgfQogIGZ1")
+parts.append("bmN0aW9uIHNlbENsaShjOmFueSl7c2V0Q05vbWUoYy5ub21lKTtzZXRDV3BwKGMud2hhdHNhcHB8fCcn")
+parts.append("KTtzZXRDRW1haWwoYy5lbWFpbHx8JycpO3NldEJ1c2NhKGMubm9tZSk7c2V0U2hvd1N1ZyhmYWxzZSl9")
+parts.append("CiAgZnVuY3Rpb24gc2VsU2VydihpZDpzdHJpbmcpe3NldFNlcnZJZChpZCk7Y29uc3Qgcz1zZXJ2cy5m")
+parts.append("aW5kKHM9PnMuaWQ9PT1pZCk7aWYocz8ucHJlY28pc2V0VmFsb3IocGFyc2VGbG9hdChzLnByZWNvKS50")
+parts.append("b0ZpeGVkKDIpKX0KICBhc3luYyBmdW5jdGlvbiBzYWx2YXIoKXsKICAgIGNvbnN0IGVycjpzdHJpbmdb")
+parts.append("XT1bXQogICAgaWYoIWNOb21lLnRyaW0oKSkgZXJyLnB1c2goJ0luZm9ybWUgbyBub21lLicpCiAgICBp")
+parts.append("ZighZGF0YSkgZXJyLnB1c2goJ1NlbGVjaW9uZSBhIGRhdGEuJykKICAgIGlmKCFob3JhKSBlcnIucHVz")
+parts.append("aCgnU2VsZWNpb25lIG8gaG9yYXJpby4nKQogICAgaWYoZXJyLmxlbmd0aCl7c2V0RXJyb3MoZXJyKTty")
+parts.append("ZXR1cm59CiAgICBzZXRFcnJvcyhbXSk7c2V0U2FsdmFuZG8odHJ1ZSkKICAgIHRyeXsKICAgICAgY29u")
+parts.append("c3Qge2RhdGE6e3VzZXJ9fT1hd2FpdCBzdXBhYmFzZS5hdXRoLmdldFVzZXIoKQogICAgICBpZighdXNl")
+parts.append("cil7c2V0U2FsdmFuZG8oZmFsc2UpO3JldHVybn0KICAgICAgY29uc3Qgd3BwPWNXcHAucmVwbGFjZSgv")
+parts.append("W14wLTldL2csIiIpCiAgICAgIGNvbnN0IHtlcnJvcn09YXdhaXQgc3VwYWJhc2UuZnJvbSgiYWdlbmRh")
+parts.append("bWVudG9zIikuaW5zZXJ0KHt1c2VyX2lkOnVzZXIuaWQsY2xpZW50ZV9ub21lOmNOb21lLnRyaW0oKSxj")
+parts.append("bGllbnRlX3doYXRzYXBwOndwcHx8bnVsbCxjbGllbnRlX2VtYWlsOmNFbWFpbHx8bnVsbCxzZXJ2aWNv")
+parts.append("X2lkOnNlcnZJZHx8bnVsbCxwcm9maXNzaW9uYWxfaWQ6cHJvZklkfHxudWxsLGRhdGFfaG9yYTpkYXRh")
+parts.append("KyJUIitob3JhKyI6MDAiLHN0YXR1czoicGVuZGVudGUiLG9ic2VydmFjb2VzOm9icy50cmltKCl8fG51")
+parts.append("bGwsdmFsb3I6dmFsb3I/cGFyc2VGbG9hdCh2YWxvcik6bnVsbH0pCiAgICAgIGlmKGVycm9yKXtjb25z")
+parts.append("b2xlLmVycm9yKCJFcnJvOiIsSlNPTi5zdHJpbmdpZnkoZXJyb3IpKTtzZXRFcnJvcyhbIkVycm8gYW8g")
+parts.append("c2FsdmFyLiBUZW50ZSBub3ZhbWVudGUuIl0pO3NldFNhbHZhbmRvKGZhbHNlKTtyZXR1cm59CiAgICAg")
+parts.append("IHJvdXRlci5wdXNoKCIvcGFpbmVsL2FnZW5kYW1lbnRvcyIpCiAgICB9Y2F0Y2goZSl7Y29uc29sZS5l")
+parts.append("cnJvcigiRXJybyBpbmVzcGVyYWRvOiIsZSk7c2V0RXJyb3MoWyJFcnJvIGluZXNwZXJhZG8uIl0pO3Nl")
+parts.append("dFNhbHZhbmRvKGZhbHNlKX0KICB9CiAgY29uc3Qgc3VnPWJ1c2NhLnRyaW0oKS5sZW5ndGg+MT9jbGlz")
+parts.append("LmZpbHRlcihjPT5jLm5vbWUudG9Mb3dlckNhc2UoKS5pbmNsdWRlcyhidXNjYS50b0xvd2VyQ2FzZSgp")
+parts.append("KSkuc2xpY2UoMCw2KTpbXQogIGNvbnN0IG5vbWU9cGVyZmlsPy5ub21lX25lZ29jaW98fCcnCiAgY29u")
+parts.append("c3QgaW5pPShub21lfHwnQScpLmNoYXJBdCgwKS50b1VwcGVyQ2FzZSgpCiAgY29uc3Qgc2VydlNlbD1z")
+parts.append("ZXJ2cy5maW5kKHM9PnMuaWQ9PT1zZXJ2SWQpCiAgY29uc3QgcHJvZlNlbD1wcm9mcy5maW5kKHA9PnAu")
+parts.append("aWQ9PT1wcm9mSWQpCiAgY29uc3QgU2I9KCk9PigKICAgIDxhc2lkZSBjbGFzc05hbWU9InNiIj4KICAg")
+parts.append("ICAgPGRpdiBjbGFzc05hbWU9InNiLWxvZ28iPgogICAgICAgIDxkaXYgY2xhc3NOYW1lPSJzYi1pYyI+")
+parts.append("PHN2ZyB3aWR0aD0iMTQiIGhlaWdodD0iMTQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIg")
+parts.append("c3Ryb2tlPSIjZmZmIiBzdHJva2VXaWR0aD0iMi41IiBzdHJva2VMaW5lY2FwPSJyb3VuZCIgc3Ryb2tl")
+parts.append("TGluZWpvaW49InJvdW5kIj48cmVjdCB4PSIzIiB5PSI0IiB3aWR0aD0iMTgiIGhlaWdodD0iMTgiIHJ4")
+parts.append("PSIyIi8+PGxpbmUgeDE9IjE2IiB5MT0iMiIgeDI9IjE2IiB5Mj0iNiIvPjxsaW5lIHgxPSI4IiB5MT0i")
+parts.append("MiIgeDI9IjgiIHkyPSI2Ii8+PGxpbmUgeDE9IjMiIHkxPSIxMCIgeDI9IjIxIiB5Mj0iMTAiLz48L3N2")
+parts.append("Zz48L2Rpdj4KICAgICAgICA8c3BhbiBzdHlsZT17e2ZvbnRTaXplOicxNHB4Jyxmb250V2VpZ2h0Ojgw")
+parts.append("MCxjb2xvcjonI0Y4RkFGQycsbGV0dGVyU3BhY2luZzonLTAuMDJlbSd9fT5DbGllbnRlTWFyY2Fkbzwv")
+parts.append("c3Bhbj4KICAgICAgPC9kaXY+CiAgICAgIDxuYXY+e1NCX0lURU1TLm1hcChpdD0+PExpbmsga2V5PXtp")
+parts.append("dC5sfSBocmVmPXtpdC5ofSBjbGFzc05hbWU9eydubCcrKGl0Lm9uPycgb24nOicnKX0+e2l0Lmx9PC9M")
+parts.append("aW5rPil9PC9uYXY+CiAgICAgIDxkaXYgY2xhc3NOYW1lPSJzYi1mb290Ij4KICAgICAgICA8ZGl2IHN0")
+parts.append("eWxlPXt7ZGlzcGxheTonZmxleCcsYWxpZ25JdGVtczonY2VudGVyJyxnYXA6JzEwcHgnLGJhY2tncm91")
+parts.append("bmQ6J3JnYmEoMTUsMjMsNDIsLjYpJyxib3JkZXI6JzFweCBzb2xpZCByZ2JhKDE0OCwxNjMsMTg0LC4x")
+parts.append("MiknLGJvcmRlclJhZGl1czonMTBweCcscGFkZGluZzonMTBweCAxMnB4J319PgogICAgICAgICAgPGRp")
+parts.append("diBzdHlsZT17e3dpZHRoOiczMnB4JyxoZWlnaHQ6JzMycHgnLGJvcmRlclJhZGl1czonNTAlJyxiYWNr")
+parts.append("Z3JvdW5kOkFWLGRpc3BsYXk6J2ZsZXgnLGFsaWduSXRlbXM6J2NlbnRlcicsanVzdGlmeUNvbnRlbnQ6")
+parts.append("J2NlbnRlcicsZm9udFNpemU6JzEzcHgnLGZvbnRXZWlnaHQ6NzAwLGNvbG9yOicjZmZmJyxmbGV4U2hy")
+parts.append("aW5rOjB9fT57aW5pfTwvZGl2PgogICAgICAgICAgPGRpdiBzdHlsZT17e21pbldpZHRoOjB9fT48cCBz")
+parts.append("dHlsZT17e2ZvbnRTaXplOicxMnB4Jyxmb250V2VpZ2h0OjYwMCxjb2xvcjonI0Y4RkFGQycsb3ZlcmZs")
+parts.append("b3c6J2hpZGRlbicsdGV4dE92ZXJmbG93OidlbGxpcHNpcycsd2hpdGVTcGFjZTonbm93cmFwJ319Pntu")
+parts.append("b21lfHwnTWV1IG5lZ8OzY2lvJ308L3A+PHAgc3R5bGU9e3tmb250U2l6ZTonMTBweCcsY29sb3I6JyM2")
+parts.append("NDc0OEInfX0+QWRtaW5pc3RyYWRvcjwvcD48L2Rpdj4KICAgICAgICA8L2Rpdj4KICAgICAgPC9kaXY+")
+parts.append("CiAgICAgICAgICAgICAgPGJ1dHRvbiBvbkNsaWNrPXtzYWlyfSBzdHlsZT17e3dpZHRoOicxMDAlJyxt")
+parts.append("YXJnaW5Ub3A6JzhweCcsYmFja2dyb3VuZDoncmdiYSgyMzksNjgsNjgsLjEwKScsYm9yZGVyOicxcHgg")
+parts.append("c29saWQgcmdiYSgyMzksNjgsNjgsLjI1KScsYm9yZGVyUmFkaXVzOicxMHB4JyxwYWRkaW5nOic5cHgg")
+parts.append("MTRweCcsY29sb3I6JyNGQ0E1QTUnLGZvbnRTaXplOicxM3B4Jyxmb250V2VpZ2h0OjYwMCxjdXJzb3I6")
+parts.append("J3BvaW50ZXInLGZvbnRGYW1pbHk6J2luaGVyaXQnLGRpc3BsYXk6J2ZsZXgnLGFsaWduSXRlbXM6J2Nl")
+parts.append("bnRlcicsZ2FwOic4cHgnfX0+U2FpcjwvYnV0dG9uPgogICAgPC9hc2lkZT4KICApCiAgYXN5bmMgZnVu")
+parts.append("Y3Rpb24gc2Fpcigpe2F3YWl0IHN1cGFiYXNlLmF1dGguc2lnbk91dCgpO3dpbmRvdy5sb2NhdGlvbi5o")
+parts.append("cmVmPScvbG9naW4nfQoKICBpZihsb2FkaW5nKXJldHVybig8ZGl2IHN0eWxlPXt7bWluSGVpZ2h0Oicx")
+parts.append("MDB2aCcsYmFja2dyb3VuZDonIzA1MEIxNicsZGlzcGxheTonZmxleCcsYWxpZ25JdGVtczonY2VudGVy")
+parts.append("JyxqdXN0aWZ5Q29udGVudDonY2VudGVyJyxmb250RmFtaWx5OidzeXN0ZW0tdWknfX0+PHAgc3R5bGU9")
+parts.append("e3tjb2xvcjonIzY0NzQ4QicsZm9udFNpemU6JzE0cHgnfX0+Q2FycmVnYW5kby4uLjwvcD48L2Rpdj4p")
+parts.append("CiAgcmV0dXJuKAogICAgPGRpdiBzdHlsZT17e2Rpc3BsYXk6J2ZsZXgnLG1pbkhlaWdodDonMTAwdmgn")
+parts.append("LGJhY2tncm91bmQ6JyMwNTBCMTYnLGZvbnRGYW1pbHk6Jy1hcHBsZS1zeXN0ZW0sQmxpbmtNYWNTeXN0")
+parts.append("ZW1Gb250LCJTZWdvZSBVSSIsc2Fucy1zZXJpZicsb3ZlcmZsb3dYOidoaWRkZW4nLHdpZHRoOicxMDAl")
+parts.append("Jyxwb3NpdGlvbjoncmVsYXRpdmUnfX0+CiAgICAgIDxzdHlsZSBkYW5nZXJvdXNseVNldElubmVySFRN")
+parts.append("TD17e19faHRtbDpDU1N9fS8+CiAgICAgIDxkaXYgY2xhc3NOYW1lPXtgb3ZsJHttb2I/JyBvcGVuJzon")
+parts.append("J31gfSBvbkNsaWNrPXsoKT0+c2V0TW9iKGZhbHNlKX0vPgogICAgICA8ZGl2IGNsYXNzTmFtZT17YGRy")
+parts.append("dyR7bW9iPycgb3Blbic6Jyd9YH0+CiAgICAgICAgPGRpdiBzdHlsZT17e2Rpc3BsYXk6J2ZsZXgnLGFs")
+parts.append("aWduSXRlbXM6J2NlbnRlcicsanVzdGlmeUNvbnRlbnQ6J3NwYWNlLWJldHdlZW4nLHBhZGRpbmc6JzE2")
+parts.append("cHggMThweCcsYm9yZGVyQm90dG9tOicxcHggc29saWQgcmdiYSgxNDgsMTYzLDE4NCwuMTApJ319Pgog")
+parts.append("ICAgICAgICAgPHNwYW4gc3R5bGU9e3tmb250U2l6ZTonMTRweCcsZm9udFdlaWdodDo4MDAsY29sb3I6")
+parts.append("JyNGOEZBRkMnfX0+Q2xpZW50ZU1hcmNhZG88L3NwYW4+CiAgICAgICAgICA8YnV0dG9uIG9uQ2xpY2s9")
+parts.append("eygpPT5zZXRNb2IoZmFsc2UpfSBzdHlsZT17e2JhY2tncm91bmQ6J25vbmUnLGJvcmRlcjonbm9uZScs")
+parts.append("Y29sb3I6J3JnYmEoMjU1LDI1NSwyNTUsLjUpJyxjdXJzb3I6J3BvaW50ZXInLGZvbnRTaXplOicyMnB4")
+parts.append("JyxsaW5lSGVpZ2h0OjF9fT7DlzwvYnV0dG9uPgogICAgICAgIDwvZGl2PgogICAgICAgIDxuYXYgc3R5")
+parts.append("bGU9e3tmbGV4OjEscGFkZGluZzonMTBweCA4cHgnLG92ZXJmbG93WTonYXV0byd9fT57U0JfSVRFTVMu")
+parts.append("bWFwKGl0PT48TGluayBrZXk9e2l0Lmx9IGhyZWY9e2l0Lmh9IG9uQ2xpY2s9eygpPT5zZXRNb2IoZmFs")
+parts.append("c2UpfSBjbGFzc05hbWU9eydubCcrKGl0Lm9uPycgb24nOicnKX0gc3R5bGU9e3tmb250U2l6ZTonMTRw")
+parts.append("eCd9fT57aXQubH08L0xpbms+KX08L25hdj4KICAgICAgPC9kaXY+CiAgICAgIDxTYi8+CiAgICAgIDxk")
+parts.append("aXYgY2xhc3NOYW1lPSJtYWluIj4KICAgICAgICA8ZGl2IGNsYXNzTmFtZT0ibWhkciI+CiAgICAgICAg")
+parts.append("ICA8YnV0dG9uIG9uQ2xpY2s9eygpPT5zZXRNb2IodHJ1ZSl9IHN0eWxlPXt7YmFja2dyb3VuZDonbm9u")
+parts.append("ZScsYm9yZGVyOidub25lJyxjdXJzb3I6J3BvaW50ZXInLHBhZGRpbmc6JzhweCcsZGlzcGxheTonZmxl")
+parts.append("eCcsZmxleERpcmVjdGlvbjonY29sdW1uJyxnYXA6JzVweCd9fT4KICAgICAgICAgICAge1syMiwyMiwx")
+parts.append("Nl0ubWFwKCh3LGkpPT48c3BhbiBrZXk9e2l9IHN0eWxlPXt7ZGlzcGxheTonYmxvY2snLHdpZHRoOmAk")
+parts.append("e3d9cHhgLGhlaWdodDonMnB4JyxiYWNrZ3JvdW5kOidyZ2JhKDI1NSwyNTUsMjU1LC44KScsYm9yZGVy")
+parts.append("UmFkaXVzOicycHgnfX0vPil9CiAgICAgICAgICA8L2J1dHRvbj4KICAgICAgICAgIDxzcGFuIHN0eWxl")
+parts.append("PXt7Zm9udFNpemU6JzE0cHgnLGZvbnRXZWlnaHQ6ODAwLGNvbG9yOicjRjhGQUZDJ319Pk5vdm8gYWdl")
+parts.append("bmRhbWVudG88L3NwYW4+CiAgICAgICAgICA8ZGl2IHN0eWxlPXt7d2lkdGg6JzM0cHgnLGhlaWdodDon")
+parts.append("MzRweCcsYm9yZGVyUmFkaXVzOic1MCUnLGJhY2tncm91bmQ6QVYsZGlzcGxheTonZmxleCcsYWxpZ25J")
+parts.append("dGVtczonY2VudGVyJyxqdXN0aWZ5Q29udGVudDonY2VudGVyJyxmb250U2l6ZTonMTNweCcsZm9udFdl")
+parts.append("aWdodDo3MDAsY29sb3I6JyNmZmYnfX0+e2luaX08L2Rpdj4KICAgICAgICA8L2Rpdj4KICAgICAgICA8")
+parts.append("ZGl2IGNsYXNzTmFtZT0icGciPjxkaXYgY2xhc3NOYW1lPSJiZHkiPgogICAgICAgICAgPGRpdiBzdHls")
+parts.append("ZT17e2Rpc3BsYXk6J2ZsZXgnLGFsaWduSXRlbXM6J2NlbnRlcicsZ2FwOicxMnB4JyxtYXJnaW5Cb3R0")
+parts.append("b206JzI0cHgnLGZsZXhXcmFwOid3cmFwJ319PgogICAgICAgICAgICA8TGluayBocmVmPSIvcGFpbmVs")
+parts.append("L2FnZW5kYW1lbnRvcyIgY2xhc3NOYW1lPSJidG4tcyIgc3R5bGU9e3toZWlnaHQ6JzM4cHgnLHBhZGRp")
+parts.append("bmc6JzAgMTRweCcsZm9udFNpemU6JzEycHgnfX0+4oaQIFZvbHRhcjwvTGluaz4KICAgICAgICAgICAg")
+parts.append("PGRpdj4KICAgICAgICAgICAgICA8aDEgc3R5bGU9e3tmb250U2l6ZTonMjBweCcsZm9udFdlaWdodDo4")
+parts.append("MDAsY29sb3I6JyNGOEZBRkMnLGxldHRlclNwYWNpbmc6Jy0wLjAzZW0nLG1hcmdpbkJvdHRvbTonM3B4")
+parts.append("J319Pk5vdm8gYWdlbmRhbWVudG88L2gxPgogICAgICAgICAgICAgIDxwIHN0eWxlPXt7Zm9udFNpemU6")
+parts.append("JzEycHgnLGNvbG9yOicjNjQ3NDhCJ319PlByZWVuY2hhIG9zIGRhZG9zIHBhcmEgcmVnaXN0cmFyIG8g")
+parts.append("aG9yw6FyaW8gbmEgYWdlbmRhLjwvcD4KICAgICAgICAgICAgPC9kaXY+CiAgICAgICAgICA8L2Rpdj4K")
+parts.append("ICAgICAgICAgIHtlcnJvcy5sZW5ndGg+MCYmKAogICAgICAgICAgICA8ZGl2IHN0eWxlPXt7YmFja2dy")
+parts.append("b3VuZDoncmdiYSgyMzksNjgsNjgsLjEwKScsYm9yZGVyOicxcHggc29saWQgcmdiYSgyMzksNjgsNjgs")
+parts.append("LjI4KScsYm9yZGVyUmFkaXVzOicxMnB4JyxwYWRkaW5nOicxMnB4IDE2cHgnLG1hcmdpbkJvdHRvbTon")
+parts.append("MTZweCd9fT4KICAgICAgICAgICAgICB7ZXJyb3MubWFwKChlLGkpPT48cCBrZXk9e2l9IHN0eWxlPXt7")
+parts.append("Zm9udFNpemU6JzEzcHgnLGNvbG9yOicjRjg3MTcxJyxtYXJnaW5Cb3R0b206aTxlcnJvcy5sZW5ndGgt")
+parts.append("MT8nNHB4JzowfX0+w6LFocKgIHtlfTwvcD4pfQogICAgICAgICAgICA8L2Rpdj4KICAgICAgICAgICl9")
+parts.append("CiAgICAgICAgICA8ZGl2IHN0eWxlPXt7d2lkdGg6JzEwMCUnLG1heFdpZHRoOic3NjBweCcsbWFyZ2lu")
+parts.append("OicwIGF1dG8nfX0+CiAgICAgICAgICAgIDxkaXYgc3R5bGU9e3t3aWR0aDonMTAwJSd9fT4KICAgICAg")
+parts.append("ICAgICAgICB7LyogQmxvY28gMSAqL30KICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0iY3JkIiBz")
+parts.append("dHlsZT17e3BhZGRpbmc6JzIycHgnLG1hcmdpbkJvdHRvbTonMTRweCd9fT4KICAgICAgICAgICAgICAg")
+parts.append("IDxwIHN0eWxlPXt7Zm9udFNpemU6JzEzcHgnLGZvbnRXZWlnaHQ6NzAwLGNvbG9yOicjNjBBNUZBJyxt")
+parts.append("YXJnaW5Cb3R0b206JzE0cHgnLGRpc3BsYXk6J2ZsZXgnLGFsaWduSXRlbXM6J2NlbnRlcicsZ2FwOic3")
+parts.append("cHgnfX0+CiAgICAgICAgICAgICAgICAgIDxzcGFuIHN0eWxlPXt7YmFja2dyb3VuZDoncmdiYSg1OSwx")
+parts.append("MzAsMjQ2LC4xOCknLGJvcmRlclJhZGl1czonNnB4JyxwYWRkaW5nOicycHggOXB4Jyxmb250U2l6ZTon")
+parts.append("MTFweCd9fT4xPC9zcGFuPkNsaWVudGUgLyBQYWNpZW50ZQogICAgICAgICAgICAgICAgPC9wPgogICAg")
+parts.append("ICAgICAgICAgICAgPGRpdiBzdHlsZT17e3Bvc2l0aW9uOidyZWxhdGl2ZScsbWFyZ2luQm90dG9tOicx")
+parts.append("MnB4J319PgogICAgICAgICAgICAgICAgICA8bGFiZWwgY2xhc3NOYW1lPSJsYmwiPk5vbWUgKjwvbGFi")
+parts.append("ZWw+CiAgICAgICAgICAgICAgICAgIDxpbnB1dCBjbGFzc05hbWU9ImlucCIgdHlwZT0idGV4dCIgcGxh")
+parts.append("Y2Vob2xkZXI9Ik5vbWUgb3UgYnVzcXVlIGNsaWVudGUgZXhpc3RlbnRlLi4uIiB2YWx1ZT17YnVzY2F9")
+parts.append("CiAgICAgICAgICAgICAgICAgICAgb25DaGFuZ2U9e2U9PntzZXRCdXNjYShlLnRhcmdldC52YWx1ZSk7")
+parts.append("c2V0Q05vbWUoZS50YXJnZXQudmFsdWUpO3NldFNob3dTdWcodHJ1ZSl9fQogICAgICAgICAgICAgICAg")
+parts.append("ICAgIG9uRm9jdXM9eygpPT5idXNjYS5sZW5ndGg+MSYmc2V0U2hvd1N1Zyh0cnVlKX0KICAgICAgICAg")
+parts.append("ICAgICAgICAgICBvbkJsdXI9eygpPT5zZXRUaW1lb3V0KCgpPT5zZXRTaG93U3VnKGZhbHNlKSwxNTAp")
+parts.append("fS8+CiAgICAgICAgICAgICAgICAgIHtzaG93U3VnJiZzdWcubGVuZ3RoPjAmJigKICAgICAgICAgICAg")
+parts.append("ICAgICAgICA8ZGl2IHN0eWxlPXt7cG9zaXRpb246J2Fic29sdXRlJyx0b3A6J2NhbGMoMTAwJSArIDRw")
+parts.append("eCknLGxlZnQ6MCxyaWdodDowLGJhY2tncm91bmQ6J3JnYmEoNywxNywzMSwuOTgpJyxib3JkZXI6JzEu")
+parts.append("NXB4IHNvbGlkIHJnYmEoNTksMTMwLDI0NiwuMjgpJyxib3JkZXJSYWRpdXM6JzEycHgnLHpJbmRleDo1")
+parts.append("MCxvdmVyZmxvdzonaGlkZGVuJyxib3hTaGFkb3c6JzAgMTZweCA0MHB4IHJnYmEoMCwwLDAsLjU1KSd9")
+parts.append("fT4KICAgICAgICAgICAgICAgICAgICAgIHtzdWcubWFwKChjOmFueSk9PigKICAgICAgICAgICAgICAg")
+parts.append("ICAgICAgICAgPGRpdiBrZXk9e2MuaWR9IG9uTW91c2VEb3duPXsoKT0+c2VsQ2xpKGMpfQogICAgICAg")
+parts.append("ICAgICAgICAgICAgICAgICAgIHN0eWxlPXt7cGFkZGluZzonMTBweCAxNHB4Jyxmb250U2l6ZTonMTNw")
+parts.append("eCcsY29sb3I6JyNDQkQ1RTEnLGN1cnNvcjoncG9pbnRlcicsYm9yZGVyQm90dG9tOicxcHggc29saWQg")
+parts.append("cmdiYSgyNTUsMjU1LDI1NSwuMDUpJyxkaXNwbGF5OidmbGV4JyxhbGlnbkl0ZW1zOidjZW50ZXInLGdh")
+parts.append("cDonMTBweCd9fQogICAgICAgICAgICAgICAgICAgICAgICAgIG9uTW91c2VFbnRlcj17ZT0+KGUuY3Vy")
+parts.append("cmVudFRhcmdldC5zdHlsZS5iYWNrZ3JvdW5kPSdyZ2JhKDU5LDEzMCwyNDYsLjEyKScpfQogICAgICAg")
+parts.append("ICAgICAgICAgICAgICAgICAgIG9uTW91c2VMZWF2ZT17ZT0+KGUuY3VycmVudFRhcmdldC5zdHlsZS5i")
+parts.append("YWNrZ3JvdW5kPSd0cmFuc3BhcmVudCcpfT4KICAgICAgICAgICAgICAgICAgICAgICAgICA8ZGl2IHN0")
+parts.append("eWxlPXt7d2lkdGg6JzI4cHgnLGhlaWdodDonMjhweCcsYm9yZGVyUmFkaXVzOic1MCUnLGJhY2tncm91")
+parts.append("bmQ6QVYsZGlzcGxheTonZmxleCcsYWxpZ25JdGVtczonY2VudGVyJyxqdXN0aWZ5Q29udGVudDonY2Vu")
+parts.append("dGVyJyxmb250U2l6ZTonMTJweCcsZm9udFdlaWdodDo3MDAsY29sb3I6JyNmZmYnLGZsZXhTaHJpbms6")
+parts.append("MH19PntjLm5vbWUuY2hhckF0KDApLnRvVXBwZXJDYXNlKCl9PC9kaXY+CiAgICAgICAgICAgICAgICAg")
+parts.append("ICAgICAgICAgPGRpdj48cCBzdHlsZT17e2ZvbnRXZWlnaHQ6NjAwLGNvbG9yOicjRjhGQUZDJyxmb250")
+parts.append("U2l6ZTonMTNweCd9fT57Yy5ub21lfTwvcD57Yy53aGF0c2FwcCYmPHAgc3R5bGU9e3tmb250U2l6ZTon")
+parts.append("MTFweCcsY29sb3I6JyM2NDc0OEInfX0+e2Mud2hhdHNhcHB9PC9wPn08L2Rpdj4KICAgICAgICAgICAg")
+parts.append("ICAgICAgICAgICAgPC9kaXY+CiAgICAgICAgICAgICAgICAgICAgICApKX0KICAgICAgICAgICAgICAg")
+parts.append("ICAgICA8L2Rpdj4KICAgICAgICAgICAgICAgICAgKX0KICAgICAgICAgICAgICAgIDwvZGl2PgogICAg")
+parts.append("ICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9ImZnMiI+CiAgICAgICAgICAgICAgICAgIDxkaXY+PGxh")
+parts.append("YmVsIGNsYXNzTmFtZT0ibGJsIj5XaGF0c0FwcDwvbGFiZWw+PGlucHV0IGNsYXNzTmFtZT0iaW5wIiB0")
+parts.append("eXBlPSJ0ZWwiIHBsYWNlaG9sZGVyPSIoMTEpIDk5OTk5LTk5OTkiIHZhbHVlPXtjV3BwfSBvbkNoYW5n")
+parts.append("ZT17ZT0+c2V0Q1dwcChlLnRhcmdldC52YWx1ZSl9Lz48L2Rpdj4KICAgICAgICAgICAgICAgICAgPGRp")
+parts.append("dj48bGFiZWwgY2xhc3NOYW1lPSJsYmwiPkUtbWFpbDwvbGFiZWw+PGlucHV0IGNsYXNzTmFtZT0iaW5w")
+parts.append("IiB0eXBlPSJlbWFpbCIgcGxhY2Vob2xkZXI9ImVtYWlsQGV4ZW1wbG8uY29tIiB2YWx1ZT17Y0VtYWls")
+parts.append("fSBvbkNoYW5nZT17ZT0+c2V0Q0VtYWlsKGUudGFyZ2V0LnZhbHVlKX0vPjwvZGl2PgogICAgICAgICAg")
+parts.append("ICAgICAgPC9kaXY+CiAgICAgICAgICAgICAgPC9kaXY+CiAgICAgICAgICAgICAgey8qIEJsb2NvIDIg")
+parts.append("Ki99CiAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9ImNyZCIgc3R5bGU9e3twYWRkaW5nOicyMnB4")
+parts.append("JyxtYXJnaW5Cb3R0b206JzE0cHgnfX0+CiAgICAgICAgICAgICAgICA8cCBzdHlsZT17e2ZvbnRTaXpl")
+parts.append("OicxM3B4Jyxmb250V2VpZ2h0OjcwMCxjb2xvcjonIzYwQTVGQScsbWFyZ2luQm90dG9tOicxNHB4Jyxk")
+parts.append("aXNwbGF5OidmbGV4JyxhbGlnbkl0ZW1zOidjZW50ZXInLGdhcDonN3B4J319PgogICAgICAgICAgICAg")
+parts.append("ICAgICA8c3BhbiBzdHlsZT17e2JhY2tncm91bmQ6J3JnYmEoNTksMTMwLDI0NiwuMTgpJyxib3JkZXJS")
+parts.append("YWRpdXM6JzZweCcscGFkZGluZzonMnB4IDlweCcsZm9udFNpemU6JzExcHgnfX0+Mjwvc3Bhbj5TZXJ2")
+parts.append("acOnbyBlIHByb2Zpc3Npb25hbAogICAgICAgICAgICAgICAgPC9wPgogICAgICAgICAgICAgICAgPGRp")
+parts.append("diBjbGFzc05hbWU9ImZnMiIgc3R5bGU9e3ttYXJnaW5Cb3R0b206JzEycHgnfX0+CiAgICAgICAgICAg")
+parts.append("ICAgICAgIDxkaXY+PGxhYmVsIGNsYXNzTmFtZT0ibGJsIj5TZXJ2acOnbyAvIFByb2NlZGltZW50bzwv")
+parts.append("bGFiZWw+CiAgICAgICAgICAgICAgICAgICAgPHNlbGVjdCBjbGFzc05hbWU9ImlucCIgdmFsdWU9e3Nl")
+parts.append("cnZJZH0gb25DaGFuZ2U9e2U9PnNlbFNlcnYoZS50YXJnZXQudmFsdWUpfT4KICAgICAgICAgICAgICAg")
+parts.append("ICAgICAgIDxvcHRpb24gdmFsdWU9IiI+U2VsZWNpb25hci4uLjwvb3B0aW9uPgogICAgICAgICAgICAg")
+parts.append("ICAgICAgICAge3NlcnZzLm1hcCgoczphbnkpPT48b3B0aW9uIGtleT17cy5pZH0gdmFsdWU9e3MuaWR9")
+parts.append("PntzLm5vbWV9PC9vcHRpb24+KX0KICAgICAgICAgICAgICAgICAgICA8L3NlbGVjdD4KICAgICAgICAg")
+parts.append("ICAgICAgICAgPC9kaXY+CiAgICAgICAgICAgICAgICAgIDxkaXY+PGxhYmVsIGNsYXNzTmFtZT0ibGJs")
+parts.append("Ij5Qcm9maXNzaW9uYWw8L2xhYmVsPgogICAgICAgICAgICAgICAgICAgIDxzZWxlY3QgY2xhc3NOYW1l")
+parts.append("PSJpbnAiIHZhbHVlPXtwcm9mSWR9IG9uQ2hhbmdlPXtlPT5zZXRQcm9mSWQoZS50YXJnZXQudmFsdWUp")
+parts.append("fT4KICAgICAgICAgICAgICAgICAgICAgIDxvcHRpb24gdmFsdWU9IiI+UXVhbHF1ZXIgcHJvZmlzc2lv")
+parts.append("bmFsPC9vcHRpb24+CiAgICAgICAgICAgICAgICAgICAgICB7cHJvZnMubWFwKChwOmFueSk9PjxvcHRp")
+parts.append("b24ga2V5PXtwLmlkfSB2YWx1ZT17cC5pZH0+e3Aubm9tZX08L29wdGlvbj4pfQogICAgICAgICAgICAg")
+parts.append("ICAgICAgIDwvc2VsZWN0PgogICAgICAgICAgICAgICAgICA8L2Rpdj4KICAgICAgICAgICAgICAgIDwv")
+parts.append("ZGl2PgogICAgICAgICAgICAgICAgPGRpdiBzdHlsZT17e21heFdpZHRoOicyMDBweCd9fT4KICAgICAg")
+parts.append("ICAgICAgICAgICAgPGxhYmVsIGNsYXNzTmFtZT0ibGJsIj5WYWxvciAoUiQpPC9sYWJlbD4KICAgICAg")
+parts.append("ICAgICAgICAgICAgPGRpdiBzdHlsZT17e3Bvc2l0aW9uOidyZWxhdGl2ZSd9fT4KICAgICAgICAgICAg")
+parts.append("ICAgICAgICA8c3BhbiBzdHlsZT17e3Bvc2l0aW9uOidhYnNvbHV0ZScsbGVmdDonMTRweCcsdG9wOic1")
+parts.append("MCUnLHRyYW5zZm9ybTondHJhbnNsYXRlWSgtNTAlKScsZm9udFNpemU6JzEzcHgnLGNvbG9yOicjNjQ3")
+parts.append("NDhCJyxmb250V2VpZ2h0OjYwMCxwb2ludGVyRXZlbnRzOidub25lJ319PlIkPC9zcGFuPgogICAgICAg")
+parts.append("ICAgICAgICAgICAgIDxpbnB1dCBjbGFzc05hbWU9ImlucCIgdHlwZT0ibnVtYmVyIiBtaW49IjAiIHN0")
+parts.append("ZXA9IjAuMDEiIHBsYWNlaG9sZGVyPSIwLDAwIiB2YWx1ZT17dmFsb3J9IG9uQ2hhbmdlPXtlPT5zZXRW")
+parts.append("YWxvcihlLnRhcmdldC52YWx1ZSl9IHN0eWxlPXt7cGFkZGluZ0xlZnQ6JzM2cHgnfX0vPgogICAgICAg")
+parts.append("ICAgICAgICAgICA8L2Rpdj4KICAgICAgICAgICAgICAgIDwvZGl2PgogICAgICAgICAgICAgIDwvZGl2")
+parts.append("PgogICAgICAgICAgICAgIHsvKiBCbG9jbyAzICovfQogICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1l")
+parts.append("PSJjcmQiIHN0eWxlPXt7cGFkZGluZzonMjJweCcsbWFyZ2luQm90dG9tOicxNHB4J319PgogICAgICAg")
+parts.append("ICAgICAgICAgPHAgc3R5bGU9e3tmb250U2l6ZTonMTNweCcsZm9udFdlaWdodDo3MDAsY29sb3I6JyM2")
+parts.append("MEE1RkEnLG1hcmdpbkJvdHRvbTonMTRweCcsZGlzcGxheTonZmxleCcsYWxpZ25JdGVtczonY2VudGVy")
+parts.append("JyxnYXA6JzdweCd9fT4KICAgICAgICAgICAgICAgICAgPHNwYW4gc3R5bGU9e3tiYWNrZ3JvdW5kOidy")
+parts.append("Z2JhKDU5LDEzMCwyNDYsLjE4KScsYm9yZGVyUmFkaXVzOic2cHgnLHBhZGRpbmc6JzJweCA5cHgnLGZv")
+parts.append("bnRTaXplOicxMXB4J319PjM8L3NwYW4+RGF0YSBlIGhvcsOhcmlvCiAgICAgICAgICAgICAgICA8L3A+")
+parts.append("CiAgICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0iZmcyIiBzdHlsZT17e21hcmdpbkJvdHRvbTon")
+parts.append("MTRweCd9fT4KICAgICAgICAgICAgICAgICAgPGRpdj48bGFiZWwgY2xhc3NOYW1lPSJsYmwiPkRhdGEg")
+parts.append("KjwvbGFiZWw+PGlucHV0IGNsYXNzTmFtZT0iaW5wIiB0eXBlPSJkYXRlIiB2YWx1ZT17ZGF0YX0gb25D")
+parts.append("aGFuZ2U9e2U9PnNldERhdGEoZS50YXJnZXQudmFsdWUpfS8+PC9kaXY+CiAgICAgICAgICAgICAgICAg")
+parts.append("IDxkaXY+PGxhYmVsIGNsYXNzTmFtZT0ibGJsIj5Ib3LDoXJpbyAqPC9sYWJlbD48aW5wdXQgY2xhc3NO")
+parts.append("YW1lPSJpbnAiIHR5cGU9InRpbWUiIHZhbHVlPXtob3JhfSBvbkNoYW5nZT17ZT0+c2V0SG9yYShlLnRh")
+parts.append("cmdldC52YWx1ZSl9Lz48L2Rpdj4KICAgICAgICAgICAgICAgIDwvZGl2PgogICAgICAgICAgICAgICAg")
+parts.append("PGxhYmVsIGNsYXNzTmFtZT0ibGJsIj5TdGF0dXMgaW5pY2lhbDwvbGFiZWw+CiAgICAgICAgICAgICAg")
+parts.append("ICA8ZGl2IHN0eWxlPXt7ZGlzcGxheTonZmxleCcsZ2FwOic2cHgnLGZsZXhXcmFwOid3cmFwJ319Pgog")
+parts.append("ICAgICAgICAgICAgICAgICB7W3t2OidwZW5kZW50ZScsbDon4o+zIFBlbmRlbnRlJyxjOicjRkJCRjI0")
+parts.append("JyxiZzoncmdiYSgyNDUsMTU4LDExLC4xMiknLGJkOidyZ2JhKDI0NSwxNTgsMTEsLjM1KSd9LHt2Oidj")
+parts.append("b25maXJtYWRvJyxsOifinJMgQ29uZmlybWFkbycsYzonIzRBREU4MCcsYmc6J3JnYmEoMzQsMTk3LDk0")
+parts.append("LC4xMiknLGJkOidyZ2JhKDM0LDE5Nyw5NCwuMzUpJ31dLm1hcChzPT4oCiAgICAgICAgICAgICAgICAg")
+parts.append("ICAgPGJ1dHRvbiBrZXk9e3Mudn0gb25DbGljaz17KCk9PnNldFN0YXR1cyhzLnYpfQogICAgICAgICAg")
+parts.append("ICAgICAgICAgICAgc3R5bGU9e3tiYWNrZ3JvdW5kOnN0YXR1cz09PXMudj9zLmJnOidyZ2JhKDE1LDIz")
+parts.append("LDQyLC43NSknLGJvcmRlcjpgMXB4IHNvbGlkICR7c3RhdHVzPT09cy52P3MuYmQ6J3JnYmEoMTQ4LDE2")
+parts.append("MywxODQsLjE4KSd9YCxib3JkZXJSYWRpdXM6JzEwcHgnLGhlaWdodDonNDBweCcscGFkZGluZzonMCAx")
+parts.append("NnB4Jyxmb250U2l6ZTonMTNweCcsZm9udFdlaWdodDo2MDAsY29sb3I6c3RhdHVzPT09cy52P3MuYzon")
+parts.append("Izk0QTNCOCcsY3Vyc29yOidwb2ludGVyJyxmb250RmFtaWx5Oidpbmhlcml0Jyx0cmFuc2l0aW9uOidh")
+parts.append("bGwgLjE1cyd9fT4KICAgICAgICAgICAgICAgICAgICAgIHtzLmx9CiAgICAgICAgICAgICAgICAgICAg")
+parts.append("PC9idXR0b24+CiAgICAgICAgICAgICAgICAgICkpfQogICAgICAgICAgICAgICAgPC9kaXY+CiAgICAg")
+parts.append("ICAgICAgICAgPC9kaXY+CiAgICAgICAgICAgICAgey8qIEJsb2NvIDQgKi99CiAgICAgICAgICAgICAg")
+parts.append("PGRpdiBjbGFzc05hbWU9ImNyZCIgc3R5bGU9e3twYWRkaW5nOicyMnB4J319PgogICAgICAgICAgICAg")
+parts.append("ICAgPHAgc3R5bGU9e3tmb250U2l6ZTonMTNweCcsZm9udFdlaWdodDo3MDAsY29sb3I6JyM2MEE1RkEn")
+parts.append("LG1hcmdpbkJvdHRvbTonMTRweCcsZGlzcGxheTonZmxleCcsYWxpZ25JdGVtczonY2VudGVyJyxnYXA6")
+parts.append("JzdweCd9fT4KICAgICAgICAgICAgICAgICAgPHNwYW4gc3R5bGU9e3tiYWNrZ3JvdW5kOidyZ2JhKDU5")
+parts.append("LDEzMCwyNDYsLjE4KScsYm9yZGVyUmFkaXVzOic2cHgnLHBhZGRpbmc6JzJweCA5cHgnLGZvbnRTaXpl")
+parts.append("OicxMXB4J319PjQ8L3NwYW4+T2JzZXJ2YcOnw7VlcwogICAgICAgICAgICAgICAgPC9wPgogICAgICAg")
+parts.append("ICAgICAgICAgPHRleHRhcmVhIGNsYXNzTmFtZT0iaW5wIiByb3dzPXszfSBwbGFjZWhvbGRlcj0iSW5m")
+parts.append("b3JtYcOnw7VlcyBhZGljaW9uYWlzIHNvYnJlIG8gYXRlbmRpbWVudG8uLi4iIHZhbHVlPXtvYnN9IG9u")
+parts.append("Q2hhbmdlPXtlPT5zZXRPYnMoZS50YXJnZXQudmFsdWUpfSBzdHlsZT17e2hlaWdodDonYXV0bycscGFk")
+parts.append("ZGluZzonMTJweCAxNHB4JyxyZXNpemU6J25vbmUnLGxpbmVIZWlnaHQ6MS42fX0vPgogICAgICAgICAg")
+parts.append("ICAgIDwvZGl2PgogICAgICAgICAgICA8L2Rpdj4KICAgICAgICAgICAgey8qIEJvdGFvIHNhbHZhciBt")
+parts.append("b2JpbGUgKi99CiAgICAgICAgICAgIDxkaXYgc3R5bGU9e3ttYXJnaW5Cb3R0b206JzE2cHgnfX0gY2xh")
+parts.append("c3NOYW1lPSJtb2Itc2F2ZSI+CiAgICAgICAgICAgICAge2Vycm9zLmxlbmd0aD4wJiY8ZGl2IHN0eWxl")
+parts.append("PXt7YmFja2dyb3VuZDoncmdiYSgyMzksNjgsNjgsLjEwKScsYm9yZGVyOicxcHggc29saWQgcmdiYSgy")
+parts.append("MzksNjgsNjgsLjI1KScsYm9yZGVyUmFkaXVzOjEwLHBhZGRpbmc6JzEwcHggMTRweCcsbWFyZ2luQm90")
+parts.append("dG9tOicxMnB4J319PgogICAgICAgICAgICAgICAge2Vycm9zLm1hcCgoZSxpKT0+PHAga2V5PXtpfSBz")
+parts.append("dHlsZT17e2ZvbnRTaXplOjEyLGNvbG9yOicjRjg3MTcxJyxmb250V2VpZ2h0OjUwMH19PntlfTwvcD4p")
+parts.append("fQogICAgICAgICAgICAgIDwvZGl2Pn0KICAgICAgICAgICAgICA8YnV0dG9uIG9uQ2xpY2s9e3NhbHZh")
+parts.append("cn0gZGlzYWJsZWQ9e3NhbHZhbmRvfSBjbGFzc05hbWU9ImJ0bi1wIiBzdHlsZT17e3dpZHRoOicxMDAl")
+parts.append("JyxoZWlnaHQ6JzUycHgnLGp1c3RpZnlDb250ZW50OidjZW50ZXInLGZvbnRTaXplOicxNXB4Jyxmb250")
+parts.append("V2VpZ2h0OjcwMCxib3JkZXJSYWRpdXM6MTR9fT4KICAgICAgICAgICAgICAgIHtzYWx2YW5kbz8nU2Fs")
+parts.append("dmFuZG8uLi4nOidTYWx2YXIgYWdlbmRhbWVudG8nfQogICAgICAgICAgICAgIDwvYnV0dG9uPgogICAg")
+parts.append("ICAgICAgICAgIDxMaW5rIGhyZWY9Ii9wYWluZWwvYWdlbmRhbWVudG9zIiBjbGFzc05hbWU9ImJ0bi1z")
+parts.append("IiBzdHlsZT17e3dpZHRoOicxMDAlJyxoZWlnaHQ6JzQ0cHgnLGp1c3RpZnlDb250ZW50OidjZW50ZXIn")
+parts.append("LG1hcmdpblRvcDonOHB4Jyxmb250U2l6ZTonMTNweCcsZGlzcGxheTonZmxleCcsYWxpZ25JdGVtczon")
+parts.append("Y2VudGVyJyx0ZXh0RGVjb3JhdGlvbjonbm9uZScsYm9yZGVyUmFkaXVzOjEyfX0+Q2FuY2VsYXI8L0xp")
+parts.append("bms+CiAgICAgICAgICAgIDwvZGl2PgoKICAgICAgICAgIDwvZGl2PgogICAgICAgIDwvZGl2PjwvZGl2")
+parts.append("PgogICAgICA8L2Rpdj4KICAgIDwvZGl2PgogICkKfQo=")
+data=base64.b64decode("".join(parts))
+open("app/painel/agendamentos/novo/page.tsx","wb").write(data)
+print("OK linhas:",data.decode("utf-8").count(chr(10)))
