@@ -42,6 +42,15 @@ input,select,textarea{color-scheme:dark}
 .bs-item{display:flex;align-items:center;gap:12px;padding:14px 0;border-bottom:1px solid rgba(255,255,255,.06);cursor:pointer;font-size:14px;font-weight:500;background:none;border-left:none;border-right:none;border-top:none;font-family:inherit;width:100%;text-align:left;min-height:48px}
 .bs-item:last-child{border-bottom:none}
 .bs-label{font-size:10px;font-weight:700;color:#64748B;text-transform:uppercase;letter-spacing:.08em;margin:14px 0 6px}
+.bl-ovl{position:fixed;inset:0;background:rgba(0,0,0,.65);backdrop-filter:blur(8px);z-index:80;opacity:0;pointer-events:none;transition:opacity .24s ease}
+.bl-ovl.open{opacity:1;pointer-events:auto}
+.bl-modal{position:fixed;z-index:90;background:linear-gradient(145deg,#0B1628,#101B2D);border:1px solid rgba(59,130,246,.25);box-shadow:0 24px 80px rgba(0,0,0,.55),0 0 40px rgba(59,130,246,.12);color:#F8FAFC;overflow-y:auto;transition:transform .24s ease,opacity .24s ease;pointer-events:none;opacity:0}
+.bl-modal.open{pointer-events:auto;opacity:1}
+.bl-handle{width:40px;height:4px;background:rgba(255,255,255,.15);border-radius:2px;margin:0 auto 20px}
+.bl-grid{display:grid;gap:12px}
+.bl-actions{display:flex;gap:10px;margin-top:4px}
+@media(min-width:768px){.bl-modal{left:50%;top:50%;bottom:auto;width:min(92vw,560px);max-height:86vh;border-radius:28px;padding:26px;transform:translate(-50%,-46%) scale(.96)}.bl-modal.open{transform:translate(-50%,-50%) scale(1)}.bl-grid{grid-template-columns:1fr 1fr}.bl-actions{flex-direction:row}.bl-handle{display:none}}
+@media(max-width:767px){.bl-modal{left:0;right:0;bottom:0;width:100%;max-height:88vh;border-radius:26px 26px 0 0;padding:22px;transform:translateY(105%);opacity:1}.bl-modal.open{transform:translateY(0)}.bl-grid{grid-template-columns:1fr}.bl-actions{flex-direction:column}}
 @media(min-width:1100px){.ag-grid{grid-template-columns:1fr 360px}.det-col{display:block}}
 @media(max-width:1023px){
   .bdy{padding:14px 14px 80px!important;max-width:100%!important;width:100%!important;overflow-x:hidden!important}
@@ -554,50 +563,46 @@ export default function Agendamentos(){
       </div>
 
       {/* Bottom Sheet Bloqueio */}
-      <div className={'bs-ovl'+(showBloqueio?' open':'')} onClick={()=>setShowBloqueio(false)}/>
-      <div className={'bs'+(showBloqueio?' open':'')}>
-        <div className="bs-handle"/>
-        <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:16}}>
+      <div className={'bl-ovl'+(showBloqueio?' open':'')} onClick={()=>setShowBloqueio(false)}/>
+      <div className={'bl-modal'+(showBloqueio?' open':'')} onClick={(e:any)=>e.stopPropagation()}>
+        <div className="bl-handle"/>
+        <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:20}}>
           <div>
-            <p style={{fontSize:15,fontWeight:700,color:'#F8FAFC'}}>Bloquear horario</p>
-            <p style={{fontSize:12,color:'#94A3B8',marginTop:2}}>Reserve um horario indisponivel na agenda.</p>
+            <p style={{fontSize:11,fontWeight:700,color:'#60A5FA',textTransform:'uppercase' as const,letterSpacing:'.08em',marginBottom:4}}>Agenda</p>
+            <p style={{fontSize:16,fontWeight:800,color:'#F8FAFC',letterSpacing:'-0.02em'}}>Bloquear horario</p>
+            <p style={{fontSize:12,color:'#94A3B8',marginTop:2}}>Reserve um periodo indisponivel na agenda.</p>
           </div>
-          <button onClick={()=>setShowBloqueio(false)} style={{background:'none',border:'none',color:'#475569',cursor:'pointer',fontSize:22,lineHeight:1}}>×</button>
+          <button onClick={()=>setShowBloqueio(false)} style={{background:'none',border:'none',color:'#475569',cursor:'pointer',fontSize:22,lineHeight:1,marginTop:2}}>x</button>
         </div>
-        {(['Data *','Horario inicial *','Horario final *'] as const).map((l:any,idx:number)=>{
-          const vals=[bData,bHoraIni,bHoraFim]
-          const sets=[setBData,setBHoraIni,setBHoraFim]
-          const types=['date','time','time']
-          return(
-            <div key={l} style={{marginBottom:12}}>
-              <label style={{fontSize:11,fontWeight:700,color:'#64748B',textTransform:'uppercase' as const,letterSpacing:'.06em',display:'block',marginBottom:4}}>{l}</label>
-              <input type={types[idx]} value={vals[idx]} onChange={(e:any)=>sets[idx](e.target.value)}
-                style={{width:'100%',background:'#111827',border:'1px solid rgba(148,163,184,.18)',borderRadius:10,padding:'10px 14px',color:'#F8FAFC',fontSize:14,fontFamily:'inherit',boxSizing:'border-box' as any,colorScheme:'dark' as any}}/>
-            </div>
-          )
-        })}
-        <div style={{marginBottom:12}}>
+        <div style={{marginBottom:14}}>
+          <label style={{fontSize:11,fontWeight:700,color:'#64748B',textTransform:'uppercase' as const,letterSpacing:'.06em',display:'block',marginBottom:4}}>Data *</label>
+          <input type="date" value={bData} onChange={e=>setBData(e.target.value)} style={{width:'100%',background:'#111827',border:'1px solid rgba(148,163,184,.18)',borderRadius:10,padding:'10px 14px',color:'#F8FAFC',fontSize:14,fontFamily:'inherit',boxSizing:'border-box' as any,colorScheme:'dark' as any}}/>
+        </div>
+        <div className="bl-grid" style={{marginBottom:14}}>
+          <div>
+            <label style={{fontSize:11,fontWeight:700,color:'#64748B',textTransform:'uppercase' as const,letterSpacing:'.06em',display:'block',marginBottom:4}}>Horario inicial *</label>
+            <input type="time" value={bHoraIni} onChange={e=>setBHoraIni(e.target.value)} style={{width:'100%',background:'#111827',border:'1px solid rgba(148,163,184,.18)',borderRadius:10,padding:'10px 14px',color:'#F8FAFC',fontSize:14,fontFamily:'inherit',boxSizing:'border-box' as any,colorScheme:'dark' as any}}/>
+          </div>
+          <div>
+            <label style={{fontSize:11,fontWeight:700,color:'#64748B',textTransform:'uppercase' as const,letterSpacing:'.06em',display:'block',marginBottom:4}}>Horario final *</label>
+            <input type="time" value={bHoraFim} onChange={e=>setBHoraFim(e.target.value)} style={{width:'100%',background:'#111827',border:'1px solid rgba(148,163,184,.18)',borderRadius:10,padding:'10px 14px',color:'#F8FAFC',fontSize:14,fontFamily:'inherit',boxSizing:'border-box' as any,colorScheme:'dark' as any}}/>
+          </div>
+        </div>
+        <div style={{marginBottom:14}}>
           <label style={{fontSize:11,fontWeight:700,color:'#64748B',textTransform:'uppercase' as const,letterSpacing:'.06em',display:'block',marginBottom:4}}>Profissional</label>
-          <select value={bProfId} onChange={e=>setBProfId(e.target.value)}
-            style={{width:'100%',background:'#111827',border:'1px solid rgba(148,163,184,.18)',borderRadius:10,padding:'10px 14px',color:'#F8FAFC',fontSize:14,fontFamily:'inherit',boxSizing:'border-box' as any}}>
+          <select value={bProfId} onChange={e=>setBProfId(e.target.value)} style={{width:'100%',background:'#111827',border:'1px solid rgba(148,163,184,.18)',borderRadius:10,padding:'10px 14px',color:'#F8FAFC',fontSize:14,fontFamily:'inherit',boxSizing:'border-box' as any}}>
             <option value="">Todos os profissionais</option>
             {profs.map(p=><option key={p.id} value={p.id}>{p.nome}</option>)}
           </select>
         </div>
-        <div style={{marginBottom:20}}>
+        <div style={{marginBottom:24}}>
           <label style={{fontSize:11,fontWeight:700,color:'#64748B',textTransform:'uppercase' as const,letterSpacing:'.06em',display:'block',marginBottom:4}}>Motivo</label>
-          <input value={bMotivo} onChange={e=>setBMotivo(e.target.value)}
-            placeholder="Ex: almoco, reuniao, compromisso..."
-            style={{width:'100%',background:'#111827',border:'1px solid rgba(148,163,184,.18)',borderRadius:10,padding:'10px 14px',color:'#F8FAFC',fontSize:14,fontFamily:'inherit',boxSizing:'border-box' as any}}/>
+          <input value={bMotivo} onChange={e=>setBMotivo(e.target.value)} placeholder="Ex: almoco, reuniao, compromisso..." style={{width:'100%',background:'#111827',border:'1px solid rgba(148,163,184,.18)',borderRadius:10,padding:'10px 14px',color:'#F8FAFC',fontSize:14,fontFamily:'inherit',boxSizing:'border-box' as any}}/>
         </div>
-        <button onClick={salvarBloqueio} disabled={salvandoBloqueio}
-          style={{width:'100%',background:'linear-gradient(135deg,#3B82F6,#7C3AED)',border:'none',borderRadius:12,padding:14,color:'#fff',fontSize:14,fontWeight:700,cursor:'pointer',fontFamily:'inherit',marginBottom:10}}>
-          {salvandoBloqueio?'Salvando...':'Salvar bloqueio'}
-        </button>
-        <button onClick={()=>setShowBloqueio(false)}
-          style={{width:'100%',background:'rgba(255,255,255,.06)',border:'1px solid rgba(148,163,184,.18)',borderRadius:12,padding:14,color:'#94A3B8',fontSize:14,fontWeight:600,cursor:'pointer',fontFamily:'inherit'}}>
-          Cancelar
-        </button>
+        <div className="bl-actions">
+          <button onClick={()=>setShowBloqueio(false)} style={{flex:1,background:'rgba(15,23,42,.85)',border:'1px solid rgba(148,163,184,.18)',borderRadius:16,padding:'14px',color:'#CBD5E1',fontSize:14,fontWeight:600,cursor:'pointer',fontFamily:'inherit',height:52}}>Cancelar</button>
+          <button onClick={salvarBloqueio} disabled={salvandoBloqueio} style={{flex:2,background:'linear-gradient(135deg,#3B82F6,#7C3AED)',border:'none',borderRadius:16,padding:'14px',color:'#fff',fontSize:14,fontWeight:700,cursor:'pointer',fontFamily:'inherit',height:52,boxShadow:'0 8px 24px rgba(59,130,246,.25)'}}>{salvandoBloqueio?'Salvando...':'Salvar bloqueio'}</button>
+        </div>
       </div>
     </div>
   )
