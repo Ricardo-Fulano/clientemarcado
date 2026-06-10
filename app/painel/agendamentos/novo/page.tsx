@@ -76,7 +76,10 @@ export default function NovoAgendamento(){
   const [valor,setValor]=useState('')
   const [busca,setBusca]=useState('')
   const [showSug,setShowSug]=useState(false)
+  const [horasOcupadas,setHorasOcupadas]=useState<string[]>([])
+  const [loadHoras,setLoadHoras]=useState(false)
   useEffect(()=>{init()},[])
+  useEffect(()=>{if(data)carregarHoras()},[data,profId])
   async function init(){
     const {data:{user}}=await supabase.auth.getUser()
     if(!user){router.push('/login');return}
@@ -101,11 +104,33 @@ export default function NovoAgendamento(){
       const {data:{user}}=await supabase.auth.getUser()
       if(!user){setSalvando(false);return}
       const wpp=cWpp.replace(/[^0-9]/g,"")
+      let qv=supabase.from('agendamentos').select('id,status').eq('user_id',user.id).gte('data_hora',data+'T'+hora+':00').lte('data_hora',data+'T'+hora+':59')
+      if(profId) qv=qv.eq('profissional_id',profId)
+      const {data:conf,error:confError}=await qv.limit(10)
+      if(confError){console.error('Erro ao validar conflito:',confError);setErros(['Erro ao validar horario. Tente novamente.']);setSalvando(false);return}
+      const conflitoAtivo=(conf||[]).some((a:any)=>a.status?.toLowerCase()!=='cancelado')
+      if(conflitoAtivo){setErros(['Esse horario ja esta ocupado. Escolha outro horario.']);setSalvando(false);return}
       const {error}=await supabase.from("agendamentos").insert({user_id:user.id,cliente_nome:cNome.trim(),cliente_whatsapp:wpp||null,servico_id:servId||null,profissional_id:profId||null,data_hora:data+"T"+hora+":00",status:"pendente",observacoes:obs.trim()||null,valor:valor?parseFloat(valor):null})
       if(error){console.error("Erro:",JSON.stringify(error));setErros(["Erro ao salvar. Tente novamente."]);setSalvando(false);return}
       router.push("/painel/agendamentos")
     }catch(e){console.error("Erro inesperado:",e);setErros(["Erro inesperado."]);setSalvando(false)}
   }
+  async function carregarHoras(){
+    setLoadHoras(true)
+    try{
+      const {data:{user}}=await supabase.auth.getUser()
+      if(!user){setLoadHoras(false);return}
+      let q=supabase.from('agendamentos').select('data_hora,status').eq('user_id',user.id).gte('data_hora',data+'T00:00:00').lte('data_hora',data+'T23:59:59')
+      if(profId) q=q.eq('profissional_id',profId)
+      const {data:ags,error}=await q
+      if(error){console.error('Erro ao carregar horarios ocupados:',error);setHorasOcupadas([]);setLoadHoras(false);return}
+      const ocupadas=(ags||[]).filter((a:any)=>a.status?.toLowerCase()!=='cancelado').map((a:any)=>a.data_hora.slice(11,16))
+      setHorasOcupadas(ocupadas)
+      if(ocupadas.includes(hora)) setHora('')
+    }catch(e){console.error('Erro carregarHoras:',e);setHorasOcupadas([])}
+    setLoadHoras(false)
+  }
+
   const sug=busca.trim().length>1?clis.filter(c=>c.nome.toLowerCase().includes(busca.toLowerCase())).slice(0,6):[]
   const nome=perfil?.nome_negocio||''
   const ini=(nome||'A').charAt(0).toUpperCase()
@@ -229,7 +254,7 @@ export default function NovoAgendamento(){
                 </p>
                 <div className="fg2" style={{marginBottom:'14px'}}>
                   <div><label className="lbl">Data *</label><input className="inp" type="date" value={data} onChange={e=>setData(e.target.value)}/></div>
-                  <div><label className="lbl">Horário *</label><input className="inp" type="time" value={hora} onChange={e=>setHora(e.target.value)}/></div>
+                  <div><label className="lbl">Horário *</label>{loadHoras?<p style={{fontSize:12,color:'#64748B',marginTop:4}}>Carregando horarios...</p>:<div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:8,marginTop:4}}>{(['08:00','08:30','09:00','09:30','10:00','10:30','11:00','11:30','12:00','12:30','13:00','13:30','14:00','14:30','15:00','15:30','16:00','16:30','17:00','17:30','18:00']).map((h:string)=>{const ocup=horasOcupadas.includes(h);const sel=hora===h;return <button key={h} type="button" disabled={ocup} onClick={()=>!ocup&&setHora(h)} style={{padding:'10px 4px',borderRadius:10,fontSize:12,fontWeight:600,cursor:ocup?'not-allowed':'pointer',fontFamily:'inherit',minHeight:40,border:'1px solid '+(sel?'rgba(255,255,255,.12)':ocup?'rgba(148,163,184,.12)':'rgba(59,130,246,.25)'),background:sel?'linear-gradient(135deg,#3B82F6,#7C3AED)':ocup?'rgba(15,23,42,.45)':'rgba(15,23,42,.85)',color:sel?'#fff':ocup?'#64748B':'#CBD5E1',opacity:ocup?.55:1}}>{h}{ocup&&<span style={{display:'block',fontSize:9,color:'#EF4444'}}>ocupado</span>}</button>})}</div>}</div>
                 </div>
                 <label className="lbl">Status inicial</label>
                 <div style={{display:'flex',gap:'6px',flexWrap:'wrap'}}>
