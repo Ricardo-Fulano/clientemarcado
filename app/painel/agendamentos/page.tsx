@@ -106,6 +106,32 @@ export default function Agendamentos(){
   const [mnu,setMnu]=useState<string|null>(null)
   const [confMnu,setConfMnu]=useState<string|null>(null)
   const [bsAg,setBsAg]=useState<any>(null)
+  const [showBloqueio,setShowBloqueio]=useState(false)
+  const [bData,setBData]=useState('')
+  const [bHoraIni,setBHoraIni]=useState('')
+  const [bHoraFim,setBHoraFim]=useState('')
+  const [bProfId,setBProfId]=useState('')
+  const [bMotivo,setBMotivo]=useState('')
+  const [salvandoBloqueio,setSalvandoBloqueio]=useState(false)
+  const [bloqueios,setBloqueios]=useState<any[]>([])
+
+  async function salvarBloqueio(){
+    if(!bData||!bHoraIni||!bHoraFim){toast('Preencha data e horarios.');return}
+    if(bHoraFim<=bHoraIni){toast('Horario final deve ser maior que o inicial.');return}
+    setSalvandoBloqueio(true)
+    const{data:{user}}=await supabase.auth.getUser()
+    if(!user){toast('Sessao expirada. Faca login novamente.');setSalvandoBloqueio(false);return}
+    const{error}=await supabase.from('bloqueios_agenda').insert({
+      user_id:user.id,data:bData,horario_inicio:bHoraIni,
+      horario_fim:bHoraFim,profissional_id:bProfId||null,motivo:bMotivo||null
+    })
+    if(error){console.error('Erro ao bloquear horario:',error);toast('Erro ao bloquear horario.');setSalvandoBloqueio(false);return}
+    const{data:bl}=await supabase.from('bloqueios_agenda').select('*').eq('user_id',user.id).order('data',{ascending:true})
+    setBloqueios(bl||[])
+    toast('Horario bloqueado com sucesso.')
+    setShowBloqueio(false);setBData('');setBHoraIni('');setBHoraFim('');setBMotivo('');setBProfId('')
+    setSalvandoBloqueio(false)
+  }
 
   async function updConf(id:string, status:string){
     await supabase.from('agendamentos').update({
@@ -160,6 +186,8 @@ export default function Agendamentos(){
       .lte('data_hora',fim.toISOString())
       .order('data_hora',{ascending:true})
     setAgs(a||[])
+    const{data:bl}=await supabase.from('bloqueios_agenda').select('*').eq('user_id',user.id).order('data',{ascending:true})
+    setBloqueios(bl||[])
     setLoading(false)
   }
 
@@ -303,7 +331,7 @@ export default function Agendamentos(){
             </div>
             <div className="hdr-btns">
               <Link href="/painel/agendamentos/novo" style={btnP}>+ Novo agendamento</Link>
-              <button style={btnS} onClick={()=>toast('Funcao de bloqueio em breve!')}>Bloquear horario</button>
+              <button style={btnS} onClick={()=>setShowBloqueio(true)}>Bloquear horario</button>
             </div>
           </div>
 
@@ -403,6 +431,17 @@ export default function Agendamentos(){
                   )
                 })}
               </div>
+              {bloqueios.filter(b=>b.data===hoje).map(b=>(
+                <div key={b.id} style={{background:'linear-gradient(145deg,rgba(11,22,40,.98),rgba(8,16,28,.99))',border:'1px solid rgba(239,68,68,.22)',borderRadius:20,padding:16,marginBottom:12}}>
+                  <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:4}}>
+                    <span style={{fontSize:12,fontWeight:800,color:'#F87171',background:'rgba(239,68,68,.14)',border:'1px solid rgba(239,68,68,.28)',borderRadius:6,padding:'2px 7px',flexShrink:0}}>{b.horario_inicio} - {b.horario_fim}</span>
+                    <span style={{fontSize:13,fontWeight:700,color:'#F8FAFC',flex:1}}>Horario bloqueado</span>
+                    <span style={{fontSize:11,fontWeight:700,padding:'2px 8px',borderRadius:999,background:'rgba(239,68,68,.14)',color:'#F87171',border:'1px solid rgba(239,68,68,.28)'}}>Bloqueado</span>
+                  </div>
+                  {b.motivo&&<p style={{fontSize:11,color:'#94A3B8',marginBottom:2}}>Motivo: {b.motivo}</p>}
+                  {b.profissional_id&&<p style={{fontSize:11,color:'#94A3B8'}}>Prof: {profs.find((p:any)=>p.id===b.profissional_id)?.nome||'—'}</p>}
+                </div>
+              ))}
               <div className="det-col"><div style={{position:'sticky',top:16}}><Det/></div></div>
             </div>
           )}
@@ -512,6 +551,53 @@ export default function Agendamentos(){
         ))}
         <p className="bs-label">Continuidade</p>
         <button className="bs-item" style={{color:'#A78BFA'}} onClick={()=>{bsAg&&updSt(bsAg.id,'retorno');setBsAg(null)}}>↩ Criar retorno</button>
+      </div>
+
+      {/* Bottom Sheet Bloqueio */}
+      <div className={'bs-ovl'+(showBloqueio?' open':'')} onClick={()=>setShowBloqueio(false)}/>
+      <div className={'bs'+(showBloqueio?' open':'')}>
+        <div className="bs-handle"/>
+        <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:16}}>
+          <div>
+            <p style={{fontSize:15,fontWeight:700,color:'#F8FAFC'}}>Bloquear horario</p>
+            <p style={{fontSize:12,color:'#94A3B8',marginTop:2}}>Reserve um horario indisponivel na agenda.</p>
+          </div>
+          <button onClick={()=>setShowBloqueio(false)} style={{background:'none',border:'none',color:'#475569',cursor:'pointer',fontSize:22,lineHeight:1}}>×</button>
+        </div>
+        {(['Data *','Horario inicial *','Horario final *'] as const).map((l:any,idx:number)=>{
+          const vals=[bData,bHoraIni,bHoraFim]
+          const sets=[setBData,setBHoraIni,setBHoraFim]
+          const types=['date','time','time']
+          return(
+            <div key={l} style={{marginBottom:12}}>
+              <label style={{fontSize:11,fontWeight:700,color:'#64748B',textTransform:'uppercase' as const,letterSpacing:'.06em',display:'block',marginBottom:4}}>{l}</label>
+              <input type={types[idx]} value={vals[idx]} onChange={(e:any)=>sets[idx](e.target.value)}
+                style={{width:'100%',background:'#111827',border:'1px solid rgba(148,163,184,.18)',borderRadius:10,padding:'10px 14px',color:'#F8FAFC',fontSize:14,fontFamily:'inherit',boxSizing:'border-box' as any,colorScheme:'dark' as any}}/>
+            </div>
+          )
+        })}
+        <div style={{marginBottom:12}}>
+          <label style={{fontSize:11,fontWeight:700,color:'#64748B',textTransform:'uppercase' as const,letterSpacing:'.06em',display:'block',marginBottom:4}}>Profissional</label>
+          <select value={bProfId} onChange={e=>setBProfId(e.target.value)}
+            style={{width:'100%',background:'#111827',border:'1px solid rgba(148,163,184,.18)',borderRadius:10,padding:'10px 14px',color:'#F8FAFC',fontSize:14,fontFamily:'inherit',boxSizing:'border-box' as any}}>
+            <option value="">Todos os profissionais</option>
+            {profs.map(p=><option key={p.id} value={p.id}>{p.nome}</option>)}
+          </select>
+        </div>
+        <div style={{marginBottom:20}}>
+          <label style={{fontSize:11,fontWeight:700,color:'#64748B',textTransform:'uppercase' as const,letterSpacing:'.06em',display:'block',marginBottom:4}}>Motivo</label>
+          <input value={bMotivo} onChange={e=>setBMotivo(e.target.value)}
+            placeholder="Ex: almoco, reuniao, compromisso..."
+            style={{width:'100%',background:'#111827',border:'1px solid rgba(148,163,184,.18)',borderRadius:10,padding:'10px 14px',color:'#F8FAFC',fontSize:14,fontFamily:'inherit',boxSizing:'border-box' as any}}/>
+        </div>
+        <button onClick={salvarBloqueio} disabled={salvandoBloqueio}
+          style={{width:'100%',background:'linear-gradient(135deg,#3B82F6,#7C3AED)',border:'none',borderRadius:12,padding:14,color:'#fff',fontSize:14,fontWeight:700,cursor:'pointer',fontFamily:'inherit',marginBottom:10}}>
+          {salvandoBloqueio?'Salvando...':'Salvar bloqueio'}
+        </button>
+        <button onClick={()=>setShowBloqueio(false)}
+          style={{width:'100%',background:'rgba(255,255,255,.06)',border:'1px solid rgba(148,163,184,.18)',borderRadius:12,padding:14,color:'#94A3B8',fontSize:14,fontWeight:600,cursor:'pointer',fontFamily:'inherit'}}>
+          Cancelar
+        </button>
       </div>
     </div>
   )
