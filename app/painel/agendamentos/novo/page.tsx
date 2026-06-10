@@ -92,22 +92,19 @@ export default function NovoAgendamento(){
   function selServ(id:string){setServId(id);const s=servs.find(s=>s.id===id);if(s?.preco)setValor(parseFloat(s.preco).toFixed(2))}
   async function salvar(){
     const err:string[]=[]
-    if(!cNome.trim()) err.push('Informe o nome do cliente / paciente.')
+    if(!cNome.trim()) err.push('Informe o nome.')
     if(!data) err.push('Selecione a data.')
-    if(!hora) err.push('Selecione o horário.')
+    if(!hora) err.push('Selecione o horario.')
     if(err.length){setErros(err);return}
     setErros([]);setSalvando(true)
-    const {data:{user}}=await supabase.auth.getUser()
-    if(!user){setSalvando(false);return}
-    const {error}=await supabase.from('agendamentos').insert({
-      user_id:user.id,cliente_nome:cNome.trim(),
-      cliente_whatsapp:cWpp.replace(/\D/g,'')||null,cliente_email:cEmail||null,
-      servico_id:servId||null,profissional_id:profId||null,
-      data_hora:`${data}T${hora}:00`,status,
-      observacoes:obs.trim()||null,valor:valor?parseFloat(valor):null,
-    })
-    if(error){console.error('Erro ao salvar agendamento:',error);setErros(['Erro ao salvar. Tente novamente.']);setSalvando(false);return}
-    router.push('/painel/agendamentos')
+    try{
+      const {data:{user}}=await supabase.auth.getUser()
+      if(!user){setSalvando(false);return}
+      const wpp=cWpp.replace(/[^0-9]/g,"")
+      const {error}=await supabase.from("agendamentos").insert({user_id:user.id,cliente_nome:cNome.trim(),cliente_whatsapp:wpp||null,cliente_email:cEmail||null,servico_id:servId||null,profissional_id:profId||null,data_hora:data+"T"+hora+":00",status:"pendente",observacoes:obs.trim()||null,valor:valor?parseFloat(valor):null})
+      if(error){console.error("Erro:",JSON.stringify(error));setErros(["Erro ao salvar. Tente novamente."]);setSalvando(false);return}
+      router.push("/painel/agendamentos")
+    }catch(e){console.error("Erro inesperado:",e);setErros(["Erro inesperado."]);setSalvando(false)}
   }
   const sug=busca.trim().length>1?clis.filter(c=>c.nome.toLowerCase().includes(busca.toLowerCase())).slice(0,6):[]
   const nome=perfil?.nome_negocio||''
