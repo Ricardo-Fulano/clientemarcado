@@ -101,7 +101,7 @@ export default function NovoAgendamento(){
       const {data:{user}}=await supabase.auth.getUser()
       if(!user){setSalvando(false);return}
       const wpp=cWpp.replace(/[^0-9]/g,"")
-      const {error}=await supabase.from("agendamentos").insert({user_id:user.id,cliente_nome:cNome.trim(),cliente_whatsapp:wpp||null,cliente_email:cEmail||null,servico_id:servId||null,profissional_id:profId||null,data_hora:data+"T"+hora+":00",status:"pendente",observacoes:obs.trim()||null,valor:valor?parseFloat(valor):null})
+      const {error}=await supabase.from("agendamentos").insert({user_id:user.id,cliente_nome:cNome.trim(),cliente_whatsapp:wpp||null,servico_id:servId||null,profissional_id:profId||null,data_hora:data+"T"+hora+":00",status:"pendente",observacoes:obs.trim()||null,valor:valor?parseFloat(valor):null})
       if(error){console.error("Erro:",JSON.stringify(error));setErros(["Erro ao salvar. Tente novamente."]);setSalvando(false);return}
       router.push("/painel/agendamentos")
     }catch(e){console.error("Erro inesperado:",e);setErros(["Erro inesperado."]);setSalvando(false)}
