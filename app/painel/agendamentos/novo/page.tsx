@@ -166,8 +166,8 @@ export default function NovoAgendamento(){
               {erros.map((e,i)=><p key={i} style={{fontSize:'13px',color:'#F87171',marginBottom:i<erros.length-1?'4px':0}}>âš  {e}</p>)}
             </div>
           )}
-          <div style={{width:'100%',maxWidth:'760px',margin:'0 auto'}}>
-            <div style={{width:'100%'}}>
+          <div className="layout" style={{display:'flex',gap:'18px',alignItems:'flex-start'}}>
+            <div style={{flex:1,minWidth:0}}>
               {/* Bloco 1 */}
               <div className="crd" style={{padding:'22px',marginBottom:'14px'}}>
                 <p style={{fontSize:'13px',fontWeight:700,color:'#60A5FA',marginBottom:'14px',display:'flex',alignItems:'center',gap:'7px'}}>
@@ -263,6 +263,32 @@ export default function NovoAgendamento(){
               <Link href="/painel/agendamentos" className="btn-s" style={{width:'100%',height:'44px',justifyContent:'center',marginTop:'8px',fontSize:'13px',display:'flex',alignItems:'center',textDecoration:'none',borderRadius:12}}>Cancelar</Link>
             </div>
 
+            {/* Resumo lateral */}
+            <div className="aside" style={{width:'300px',flexShrink:0,position:'sticky',top:'24px'}}>
+              <div className="crd" style={{padding:'20px'}}>
+                <p style={{fontSize:'13px',fontWeight:700,color:'#60A5FA',marginBottom:'16px'}}>Resumo</p>
+                {[
+                  {l:'Cliente',v:cNome||'"”'},
+                  {l:'Serviço',v:servSel?.nome||'"”'},
+                  {l:'Profissional',v:profSel?.nome||'Qualquer'},
+                  {l:'Data',v:data?new Date(data+'T12:00:00').toLocaleDateString('pt-BR'):'"”'},
+                  {l:'Horário',v:hora||'"”'},
+                  {l:'Status',v:status==='confirmado'?'Confirmado':'Pendente'},
+                  {l:'Valor',v:valor?`R$ ${parseFloat(valor).toLocaleString('pt-BR',{minimumFractionDigits:2})}`:'"”'},
+                ].map(r=>(
+                  <div key={r.l} style={{display:'flex',justifyContent:'space-between',marginBottom:'10px',paddingBottom:'10px',borderBottom:'1px solid rgba(148,163,184,.08)'}}>
+                    <span style={{fontSize:'11px',fontWeight:700,color:'#64748B',textTransform:'uppercase' as const,letterSpacing:'.06em'}}>{r.l}</span>
+                    <span style={{fontSize:'13px',color:'#F8FAFC',fontWeight:600,textAlign:'right' as const,maxWidth:'160px',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{r.v}</span>
+                  </div>
+                ))}
+                <div style={{display:'flex',flexDirection:'column',gap:'8px',marginTop:'8px'}}>
+                  <button onClick={salvar} disabled={salvando} className="btn-p" style={{width:'100%',height:'48px',justifyContent:'center',opacity:salvando?.7:1}}>
+                    {salvando?'Salvando...':'Salvar agendamento'}
+                  </button>
+                  <Link href="/painel/agendamentos" className="btn-s" style={{width:'100%',height:'44px',justifyContent:'center'}}>Cancelar</Link>
+                </div>
+              </div>
+            </div>
           </div>
         </div></div>
       </div>
