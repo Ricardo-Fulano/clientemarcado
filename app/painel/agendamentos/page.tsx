@@ -358,7 +358,7 @@ export default function Agendamentos(){
             ))}
           </div>
 
-          <div className="fil-wrap"><div className="fil-scroll">
+          <div className="fil-scroll">
             {(['hoje','semana'] as const).map(v=>(
               <button key={v} onClick={()=>{setView(v);setDiaSel(null)}}
                 style={{height:32,padding:'0 14px',borderRadius:8,fontSize:12,fontWeight:600,cursor:'pointer',border:'1px solid '+(view===v?'rgba(59,130,246,.4)':'rgba(148,163,184,.15)'),background:view===v?'rgba(59,130,246,.15)':'transparent',color:view===v?'#60A5FA':'#64748B',fontFamily:'inherit',whiteSpace:'nowrap',flexShrink:0}}>
