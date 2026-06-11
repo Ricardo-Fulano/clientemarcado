@@ -17,7 +17,7 @@ input,select,textarea{color-scheme:dark}
 .det-col{display:none}
 .kpi-g{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px}
 .hdr-btns{display:flex;gap:8px;flex-wrap:wrap;flex-shrink:0}
-.fil-scroll{display:flex;align-items:center;gap:6px;margin-bottom:14px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding-bottom:2px}
+.fil-scroll{display:flex;align-items:center;gap:8px;margin-bottom:14px;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding:0 0 6px 0;max-width:100%;width:100%}
 .fil-scroll::-webkit-scrollbar{display:none}
 .ag-item{background:linear-gradient(145deg,rgba(11,22,40,.98),rgba(8,16,28,.99));border:1px solid rgba(59,130,246,.18);border-radius:20px;padding:16px;margin-bottom:12px;cursor:pointer;transition:all .15s}
 .ag-item:hover{border-color:rgba(59,130,246,.35)}
@@ -372,7 +372,7 @@ export default function Agendamentos(){
               </button>
             ))}
             <select value={fPr} onChange={e=>setFPr(e.target.value)}
-              style={{height:32,background:'rgba(15,23,42,.88)',border:'1px solid rgba(148,163,184,.16)',borderRadius:8,padding:'0 10px',fontSize:11,color:'#CBD5E1',fontFamily:'inherit',cursor:'pointer',outline:'none',flexShrink:0}}>
+              style={{height:32,background:'rgba(15,23,42,.88)',border:'1px solid rgba(148,163,184,.16)',borderRadius:8,padding:'0 10px',fontSize:11,color:'#CBD5E1',fontFamily:'inherit',cursor:'pointer',outline:'none',flexShrink:0,minWidth:180}}>
               <option value="todos">Todos profissionais</option>
               {profs.map(p=><option key={p.id} value={p.id}>{p.nome}</option>)}
             </select>
