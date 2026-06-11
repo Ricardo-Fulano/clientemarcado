@@ -88,10 +88,9 @@ export default function Servicos(){
       nome:fNome.trim(),
       descricao:fDesc.trim()||null,
       preco:parseFloat(fPreco.replace(',','.'))||null,
-      duracao:fDur,
+      duracao_minutos:parseInt(fDur)||null,duracao:parseInt(fDur)||null,
       categoria:fCat,
       profissional_nome:profNome,
-      profissionais_ids:fProfTipo==='especificos'?fProfIds:null,
     }
     let error:any=null
     if(editId){
