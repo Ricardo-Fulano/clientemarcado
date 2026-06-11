@@ -72,7 +72,7 @@ export default function Servicos(){
   function resetForm(){setFNome('');setFDesc('');setFPreco('');setFDur('30 min');setFCat('Barbearia / Salão');setFProfTipo('todos');setFProfIds([]);setEditId(null)}
   function abrirEditar(s:Servico){
     setEditId(s.id);setFNome(s.nome);setFDesc(s.descricao||'');setFPreco(s.preco?String(s.preco):'')
-    setFDur(s.duracao||'30 min');setFCat(s.categoria||'Barbearia / Salão')
+    const durVal=s.duracao||s.duracao_minutos;setFDur(durVal?String(durVal).includes('min')?String(durVal):String(durVal)+' min':'30 min');setFCat(s.categoria||'Barbearia / Salão')
     if(s.profissionais_ids&&s.profissionais_ids.length>0){setFProfTipo('especificos');setFProfIds(s.profissionais_ids)}
     else{setFProfTipo('todos');setFProfIds([])}
     setShowForm(true);window.scrollTo({top:0,behavior:'smooth'})
