@@ -69,11 +69,11 @@ input,select,textarea{color-scheme:dark}
 
 
 const confCfg: Record<string,{t:string,bg:string,c:string}> = {
-  pendente:         {t:'Aguardando confirmacao',bg:'rgba(245,158,11,.12)',c:'#FCD34D'},
+  pendente:         {t:'Aguardando confirmação',bg:'rgba(245,158,11,.12)',c:'#FCD34D'},
   mensagem_enviada: {t:'Mensagem enviada',      bg:'rgba(59,130,246,.12)', c:'#60A5FA'},
   confirmado:       {t:'Confirmado',            bg:'rgba(34,197,94,.12)',  c:'#4ADE80'},
   sem_resposta:     {t:'Sem resposta',          bg:'rgba(245,158,11,.12)',c:'#FCD34D'},
-  nao_comparece:    {t:'Nao vai comparecer',    bg:'rgba(239,68,68,.12)',  c:'#F87171'},
+  nao_comparece:    {t:'Não vai comparecer',    bg:'rgba(239,68,68,.12)',  c:'#F87171'},
   remarcado:        {t:'Remarcado',             bg:'rgba(124,58,237,.12)',c:'#C4B5FD'},
 }
 
@@ -125,25 +125,21 @@ export default function Agendamentos(){
   const [bloqueios,setBloqueios]=useState<any[]>([])
 
   async function salvarBloqueio(){
-    if(!bData||!bHoraIni||!bHoraFim){toast('Preencha data e horarios.');return}
-    if(bHoraFim<=bHoraIni){toast('Horario final deve ser maior que o inicial.');return}
+    if(!bData||!bHoraIni||!bHoraFim){toast('Preencha data e horários.');return}
+    if(bHoraFim<=bHoraIni){toast('Horário final deve ser maior que o inicial.');return}
     setSalvandoBloqueio(true)
-    try{
-      const{data:{user},error:userError}=await supabase.auth.getUser()
-      if(userError||!user){console.error('Erro ao obter usuario:',userError);toast('Sessao expirada. Faca login novamente.');setSalvandoBloqueio(false);return}
-      const dataISO=bData.includes('/')?((d)=>d[2]+'-'+d[1].padStart(2,'0')+'-'+d[0].padStart(2,'0'))(bData.split('/')):bData
-      const profissionalId=(bProfId&&/^[0-9a-fA-F-]{36}$/.test(bProfId))?bProfId:null
-      const payload={user_id:user.id,data:dataISO,horario_inicio:bHoraIni,horario_fim:bHoraFim,profissional_id:profissionalId,motivo:bMotivo?.trim()||null}
-      console.log('Payload bloqueio:',payload)
-      const{error}=await supabase.from('bloqueios_agenda').insert(payload)
-      if(error){console.error('Erro ao bloquear horario:',error);toast('Erro ao bloquear horario.');setSalvandoBloqueio(false);return}
-      const{data:bl,error:loadError}=await supabase.from('bloqueios_agenda').select('*').eq('user_id',user.id).order('data',{ascending:true})
-      if(loadError)console.error('Erro ao recarregar bloqueios:',loadError)
-      setBloqueios(bl||[])
-      toast('Horario bloqueado com sucesso.')
-      setShowBloqueio(false);setBData('');setBHoraIni('');setBHoraFim('');setBMotivo('');setBProfId('')
-    }catch(e){console.error('Erro inesperado ao bloquear horario:',e);toast('Erro ao bloquear horario.')}
-    finally{setSalvandoBloqueio(false)}
+    const{data:{user}}=await supabase.auth.getUser()
+    if(!user){toast('Sessao expirada. Faca login novamente.');setSalvandoBloqueio(false);return}
+    const{error}=await supabase.from('bloqueios_agenda').insert({
+      user_id:user.id,data:bData,horario_inicio:bHoraIni,
+      horario_fim:bHoraFim,profissional_id:bProfId||null,motivo:bMotivo||null
+    })
+    if(error){console.error('Erro ao bloquear horario:',error);toast('Erro ao bloquear horario.');setSalvandoBloqueio(false);return}
+    const{data:bl}=await supabase.from('bloqueios_agenda').select('*').eq('user_id',user.id).order('data',{ascending:true})
+    setBloqueios(bl||[])
+    toast('Horário bloqueado com sucesso.')
+    setShowBloqueio(false);setBData('');setBHoraIni('');setBHoraFim('');setBMotivo('');setBProfId('')
+    setSalvandoBloqueio(false)
   }
 
   async function updConf(id:string, status:string){
@@ -280,7 +276,7 @@ export default function Agendamentos(){
     const g2:React.CSSProperties={display:'grid',gridTemplateColumns:'1fr 1fr',gap:6,marginTop:6}
     if(!sel)return(
       <div style={{background:'radial-gradient(circle at top left,rgba(124,58,237,.06),transparent 50%),linear-gradient(145deg,rgba(15,23,42,.98),rgba(8,20,33,.99))',border:'1px solid rgba(148,163,184,.12)',borderRadius:16,padding:20,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',minHeight:300,textAlign:'center',gap:10}}>
-        <div style={{fontSize:32,opacity:.2}}>📋</div>
+        <div style={{fontSize:32,opacity:.2,color:"#94A3B8"}}>—</div>
         <p style={{fontSize:14,fontWeight:700,color:'#F8FAFC'}}>Selecione um agendamento</p>
         <p style={{fontSize:12,color:'#475569',lineHeight:1.5}}>Clique em um atendimento para ver detalhes.</p>
       </div>
@@ -297,7 +293,7 @@ export default function Agendamentos(){
           <div style={g2}>
             {wW?<a href={wW} target="_blank" rel="noreferrer" style={{...dBtn({background:'rgba(37,211,102,.12)',borderColor:'rgba(37,211,102,.25)',color:'#25D366'}),gridColumn:'1/-1'}}>Abrir WhatsApp</a>
               :<button disabled style={{...dBtn({background:'rgba(255,255,255,.04)',borderColor:'rgba(148,163,184,.10)',color:'#334155',cursor:'not-allowed'}),gridColumn:'1/-1'}}>Sem telefone</button>}
-            <button onClick={()=>copiar(sel)} style={{...dBtn({background:'rgba(255,255,255,.04)',borderColor:'rgba(148,163,184,.14)',color:'#94A3B8'}),gridColumn:'1/-1'}}>📋 Copiar contato</button>
+            <button onClick={()=>copiar(sel)} style={{...dBtn({background:'rgba(255,255,255,.04)',borderColor:'rgba(148,163,184,.14)',color:'#94A3B8'}),gridColumn:'1/-1'}}>Copiar contato</button>
           </div>
         </div>
         <div style={sec}>
@@ -310,7 +306,7 @@ export default function Agendamentos(){
           <p style={secT}>Acoes rapidas</p>
           <div style={g2}>
             {wC&&(sel.status==='pendente'||!sel.status||sel.status==='retorno')&&<a href={wC} target="_blank" rel="noreferrer" style={dBtn({background:'rgba(34,197,94,.12)',borderColor:'rgba(34,197,94,.25)',color:'#22C55E'})}>✓ Confirmar</a>}
-            {wL&&<a href={wL} target="_blank" rel="noreferrer" style={dBtn({background:'rgba(245,158,11,.10)',borderColor:'rgba(245,158,11,.22)',color:'#FCD34D'})}>🔔 Lembrete</a>}
+            {wL&&<a href={wL} target="_blank" rel="noreferrer" style={dBtn({background:'rgba(245,158,11,.10)',borderColor:'rgba(245,158,11,.22)',color:'#FCD34D'})}>Lembrete</a>}
             {sel.status!=='compareceu'&&<button onClick={()=>updSt(sel.id,'compareceu')} style={dBtn({background:'rgba(34,197,94,.10)',borderColor:'rgba(34,197,94,.20)',color:'#4ADE80'})}>✓ Compareceu</button>}
             {sel.status!=='faltou'&&<button onClick={()=>updSt(sel.id,'faltou')} style={dBtn({background:'rgba(239,68,68,.08)',borderColor:'rgba(239,68,68,.18)',color:'#F87171'})}>✗ Faltou</button>}
             {sel.status!=='realizado'&&<button onClick={()=>updSt(sel.id,'realizado')} style={dBtn({background:'rgba(34,197,94,.08)',borderColor:'rgba(34,197,94,.16)',color:'#22C55E'})}>★ Realizado</button>}
@@ -340,22 +336,22 @@ export default function Agendamentos(){
           <div style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',gap:14,marginBottom:16,flexWrap:'wrap'}}>
             <div>
               <h1 style={{fontSize:22,fontWeight:800,color:'#F8FAFC',letterSpacing:'-0.03em',marginBottom:2}}>Agenda</h1>
-              <p style={{fontSize:13,color:'#94A3B8',lineHeight:1.4}}>Veja seus horarios, confirme clientes e acompanhe os atendimentos do dia.</p>
+              <p style={{fontSize:13,color:'#94A3B8',lineHeight:1.4}}>Veja seus horários, confirme clientes e acompanhe os atendimentos do dia.</p>
             </div>
             <div className="hdr-btns">
               <Link href="/painel/agendamentos/novo" style={btnP}>+ Novo agendamento</Link>
-              <button style={btnS} onClick={()=>setShowBloqueio(true)}>Bloquear horario</button>
+              <button style={btnS} onClick={()=>setShowBloqueio(true)}>Bloquear horário</button>
             </div>
           </div>
 
           <div className="kpi-g">
             {[
-              {l:'Hoje',n:agsHj.length,c:'#60A5FA',bd:'rgba(59,130,246,.28)',bg:'rgba(59,130,246,.08)',ic:'📅'},
-              {l:'Confirmados',n:conf,c:'#4ADE80',bd:'rgba(34,197,94,.28)',bg:'rgba(34,197,94,.08)',ic:'✓'},
-              {l:'Pendentes',n:pend,c:'#FBBF24',bd:'rgba(245,158,11,.28)',bg:'rgba(245,158,11,.08)',ic:'⏳'},
+              {l:'Hoje',n:agsHj.length,c:'#60A5FA',bd:'rgba(59,130,246,.28)',bg:'rgba(59,130,246,.08)',ic:<svg width={15} height={15} viewBox='0 0 24 24' fill='none' stroke='#60A5FA' strokeWidth='2' strokeLinecap='round' strokeLinejoin='round'><rect x='3' y='4' width='18' height='18' rx='2'/><line x1='16' y1='2' x2='16' y2='6'/><line x1='8' y1='2' x2='8' y2='6'/><line x1='3' y1='10' x2='21' y2='10'/></svg>},
+              {l:'Confirmados',n:conf,c:'#4ADE80',bd:'rgba(34,197,94,.28)',bg:'rgba(34,197,94,.08)',ic:<svg width={15} height={15} viewBox='0 0 24 24' fill='none' stroke='#4ADE80' strokeWidth='2.5' strokeLinecap='round' strokeLinejoin='round'><polyline points='20 6 9 17 4 12'/></svg>},
+              {l:'Pendentes',n:pend,c:'#FBBF24',bd:'rgba(245,158,11,.28)',bg:'rgba(245,158,11,.08)',ic:<svg width={15} height={15} viewBox='0 0 24 24' fill='none' stroke='#FBBF24' strokeWidth='2' strokeLinecap='round' strokeLinejoin='round'><circle cx='12' cy='12' r='10'/><polyline points='12 6 12 12 16 14'/></svg>},
             ].map(({l,n,c,bd,bg,ic})=>(
               <div key={l} style={{background:'radial-gradient(circle at top left,'+bg+',transparent 70%),linear-gradient(145deg,rgba(11,22,40,.97),rgba(8,16,28,.99))',border:'1.5px solid '+bd,borderRadius:16,padding:'12px 10px',display:'flex',flexDirection:'column',gap:4,minWidth:0,boxSizing:'border-box'}}>
-                <span style={{fontSize:15}}>{ic}</span>
+                <div style={{display:'flex',alignItems:'center',justifyContent:'center',width:28,height:28}}>{ic}</div>
                 <p style={{fontSize:9,fontWeight:700,textTransform:'uppercase' as const,letterSpacing:'.08em',color:'#64748B'}}>{l}</p>
                 <p style={{fontSize:22,fontWeight:800,color:c,lineHeight:1}}>{n}</p>
               </div>
@@ -388,7 +384,7 @@ export default function Agendamentos(){
                 <p style={{fontSize:10,fontWeight:700,color:'#475569',textTransform:'uppercase' as const,marginBottom:8,letterSpacing:'.08em'}}>{agsF.length} atendimento{agsF.length!==1?'s':''}</p>
                 {agsF.length===0?(
                   <div style={{background:'linear-gradient(145deg,rgba(11,22,40,.98),rgba(8,16,28,.99))',border:'1px solid rgba(148,163,184,.12)',borderRadius:20,padding:32,textAlign:'center'}}>
-                    <p style={{fontSize:28,marginBottom:10}}>📅</p>
+                    <div style={{width:44,height:44,borderRadius:12,background:"rgba(59,130,246,.14)",border:"1px solid rgba(59,130,246,.24)",display:"flex",alignItems:"center",justifyContent:"center",margin:"0 0 10px"}}><svg width={22} height={22} viewBox="0 0 24 24" fill="none" stroke="#60A5FA" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
                     <p style={{fontSize:15,fontWeight:600,color:'#F8FAFC',marginBottom:6}}>Nenhum atendimento</p>
                     <p style={{fontSize:13,color:'#64748B',marginBottom:16}}>Sem agendamentos para o filtro selecionado.</p>
                     <Link href="/painel/agendamentos/novo" style={{...btnP,display:'inline-flex'}}>+ Novo agendamento</Link>
@@ -408,7 +404,7 @@ export default function Agendamentos(){
                         <span style={{fontSize:14,fontWeight:700,color:'#F8FAFC',flex:1,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap' as const}}>{a.cliente_nome||'—'}</span>
                         <span style={{...stBadge(a.status),flexShrink:0}}>{sc.t}</span>
                       </div>
-                      {tf&&<p style={{fontSize:11,color:'#CBD5E1',marginBottom:2}}>📱 {tf}</p>}
+                      {tf&&<p style={{fontSize:11,color:'#CBD5E1',marginBottom:2}}>{tf}</p>}
                       <p style={{fontSize:11,color:'#94A3B8',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap' as const,marginBottom:8}}>
                         {a.servicos?.nome||'Servico nao informado'}{a.profissionais?.nome?' · Prof. '+a.profissionais.nome:''}
                         {a.servicos?.preco?<span style={{color:'#22C55E'}}> · R$ {a.servicos.preco}</span>:null}
@@ -416,12 +412,12 @@ export default function Agendamentos(){
                       <div className="card-btns" onClick={e=>e.stopPropagation()}>
                         {wW&&<a href={wW} target="_blank" rel="noreferrer" className="card-btn"
                           style={{background:'rgba(34,197,94,.12)',color:'#4ADE80',border:'1px solid rgba(34,197,94,.28)'}}>
-                          📱 WhatsApp
+                          WhatsApp
                         </a>}
                         {wC2&&<a href={wC2} target="_blank" rel="noreferrer" className="card-btn"
                           onClick={()=>updConf(a.id,'mensagem_enviada')}
                           style={{background:'rgba(59,130,246,.12)',color:'#BFDBFE',border:'1px solid rgba(59,130,246,.28)'}}>
-                          Enviar confirmacao
+                          Enviar confirmação
                         </a>}
                         {a.confirmacao_status!=='confirmado'&&<button className="card-btn"
                           onClick={()=>updConf(a.id,'confirmado')}
@@ -448,7 +444,7 @@ export default function Agendamentos(){
                 <div key={b.id} style={{background:'linear-gradient(145deg,rgba(11,22,40,.98),rgba(8,16,28,.99))',border:'1px solid rgba(239,68,68,.22)',borderRadius:20,padding:16,marginBottom:12}}>
                   <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:4}}>
                     <span style={{fontSize:12,fontWeight:800,color:'#F87171',background:'rgba(239,68,68,.14)',border:'1px solid rgba(239,68,68,.28)',borderRadius:6,padding:'2px 7px',flexShrink:0}}>{b.horario_inicio} - {b.horario_fim}</span>
-                    <span style={{fontSize:13,fontWeight:700,color:'#F8FAFC',flex:1}}>Horario bloqueado</span>
+                    <span style={{fontSize:13,fontWeight:700,color:'#F8FAFC',flex:1}}>Horário bloqueado</span>
                     <span style={{fontSize:11,fontWeight:700,padding:'2px 8px',borderRadius:999,background:'rgba(239,68,68,.14)',color:'#F87171',border:'1px solid rgba(239,68,68,.28)'}}>Bloqueado</span>
                   </div>
                   {b.motivo&&<p style={{fontSize:11,color:'#94A3B8',marginBottom:2}}>Motivo: {b.motivo}</p>}
@@ -464,7 +460,7 @@ export default function Agendamentos(){
               <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:16,flexWrap:'wrap',gap:8}}>
                 <p style={{fontSize:14,fontWeight:700,color:'#CBD5E1'}}>{fDC(dS[0])} - {fDC(dS[6])} {dS[6].getFullYear()}</p>
                 <div style={{display:'flex',gap:6}}>
-                  {[{l:'Anterior',fn:()=>{setSemOff(s=>s-1);setDiaSel(null)}},{l:'Hoje',fn:()=>{setSemOff(0);setDiaSel(null)}},{l:'Proxima',fn:()=>{setSemOff(s=>s+1);setDiaSel(null)}}].map(({l,fn})=>(
+                  {[{l:'Anterior',fn:()=>{setSemOff(s=>s-1);setDiaSel(null)}},{l:'Hoje',fn:()=>{setSemOff(0);setDiaSel(null)}},{l:'Próxima',fn:()=>{setSemOff(s=>s+1);setDiaSel(null)}}].map(({l,fn})=>(
                     <button key={l} onClick={fn} style={{...btnS,height:30,padding:'0 12px',fontSize:11}}>{l}</button>
                   ))}
                 </div>
@@ -519,7 +515,7 @@ export default function Agendamentos(){
                               <span style={stBadge(a.status)}>{sc.t}</span>
                             </div>
                             <p style={{fontSize:11,color:'#94A3B8',marginBottom:tf?3:0}}>{a.servicos?.nome||''}{a.profissionais?.nome?' · '+a.profissionais.nome:''}</p>
-                            {tf&&<p style={{fontSize:11,color:'#CBD5E1'}}>📱 {tf}</p>}
+                            {tf&&<p style={{fontSize:11,color:'#CBD5E1'}}>{tf}</p>}
                           </div>
                           {wW&&<a href={wW} target="_blank" rel="noreferrer" onClick={e=>e.stopPropagation()}
                             style={{...dBtn({background:'rgba(34,197,94,.12)',color:'#4ADE80',border:'1px solid rgba(34,197,94,.25)'}),padding:'5px 10px',fontSize:11,flexShrink:0}}>
@@ -544,13 +540,13 @@ export default function Agendamentos(){
         <div className="bs-handle"/>
         <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:16}}>
           <div>
-            <p style={{fontSize:15,fontWeight:700,color:'#F8FAFC'}}>Acoes do atendimento</p>
+            <p style={{fontSize:15,fontWeight:700,color:'#F8FAFC'}}>Ações do atendimento</p>
             {bsAg&&<p style={{fontSize:12,color:'#64748B'}}>{bsAg.cliente_nome||'—'} · {fH(bsAg.data_hora)}</p>}
           </div>
           <button onClick={()=>setBsAg(null)} style={{background:'none',border:'none',color:'#475569',cursor:'pointer',fontSize:22,lineHeight:1}}>×</button>
         </div>
         <p className="bs-label">Contato</p>
-        <button className="bs-item" style={{color:'#CBD5E1'}} onClick={()=>{bsAg&&copiar(bsAg);setBsAg(null)}}>📋 Copiar contato</button>
+        <button className="bs-item" style={{color:'#CBD5E1'}} onClick={()=>{bsAg&&copiar(bsAg);setBsAg(null)}}>Copiar contato</button>
         <button className="bs-item" style={{color:'#60A5FA'}} onClick={()=>{bsAg&&resgatarCliente(bsAg);setBsAg(null)}}>🔄 Resgatar cliente</button>
         <p className="bs-label">Status</p>
         {bsAg&&[
@@ -573,8 +569,8 @@ export default function Agendamentos(){
         <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:20}}>
           <div>
             <p style={{fontSize:11,fontWeight:700,color:'#60A5FA',textTransform:'uppercase' as const,letterSpacing:'.08em',marginBottom:4}}>Agenda</p>
-            <p style={{fontSize:16,fontWeight:800,color:'#F8FAFC',letterSpacing:'-0.02em'}}>Bloquear horario</p>
-            <p style={{fontSize:12,color:'#94A3B8',marginTop:2}}>Reserve um periodo indisponivel na agenda.</p>
+            <p style={{fontSize:16,fontWeight:800,color:'#F8FAFC',letterSpacing:'-0.02em'}}>Bloquear horário</p>
+            <p style={{fontSize:12,color:'#94A3B8',marginTop:2}}>Reserve um período indisponível na agenda.</p>
           </div>
           <button onClick={()=>setShowBloqueio(false)} style={{background:'none',border:'none',color:'#475569',cursor:'pointer',fontSize:22,lineHeight:1,marginTop:2}}>x</button>
         </div>
@@ -584,11 +580,11 @@ export default function Agendamentos(){
         </div>
         <div className="bl-grid" style={{marginBottom:14}}>
           <div>
-            <label style={{fontSize:11,fontWeight:700,color:'#64748B',textTransform:'uppercase' as const,letterSpacing:'.06em',display:'block',marginBottom:4}}>Horario inicial *</label>
+            <label style={{fontSize:11,fontWeight:700,color:'#64748B',textTransform:'uppercase' as const,letterSpacing:'.06em',display:'block',marginBottom:4}}>Horário inicial *</label>
             <input type="time" value={bHoraIni} onChange={e=>setBHoraIni(e.target.value)} style={{width:'100%',background:'#111827',border:'1px solid rgba(148,163,184,.18)',borderRadius:10,padding:'10px 14px',color:'#F8FAFC',fontSize:14,fontFamily:'inherit',boxSizing:'border-box' as any,colorScheme:'dark' as any}}/>
           </div>
           <div>
-            <label style={{fontSize:11,fontWeight:700,color:'#64748B',textTransform:'uppercase' as const,letterSpacing:'.06em',display:'block',marginBottom:4}}>Horario final *</label>
+            <label style={{fontSize:11,fontWeight:700,color:'#64748B',textTransform:'uppercase' as const,letterSpacing:'.06em',display:'block',marginBottom:4}}>Horário final *</label>
             <input type="time" value={bHoraFim} onChange={e=>setBHoraFim(e.target.value)} style={{width:'100%',background:'#111827',border:'1px solid rgba(148,163,184,.18)',borderRadius:10,padding:'10px 14px',color:'#F8FAFC',fontSize:14,fontFamily:'inherit',boxSizing:'border-box' as any,colorScheme:'dark' as any}}/>
           </div>
         </div>
