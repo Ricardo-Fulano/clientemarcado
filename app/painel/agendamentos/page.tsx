@@ -17,7 +17,7 @@ input,select,textarea{color-scheme:dark}
 .det-col{display:none}
 .kpi-g{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px}
 .hdr-btns{display:flex;gap:8px;flex-wrap:wrap;flex-shrink:0}
-.fil-scroll{display:flex;align-items:center;gap:8px;margin-bottom:14px;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding:0 0 6px 0;max-width:100%;width:100%}
+.fil-wrap{margin:0 -14px 14px;overflow:hidden}.fil-scroll{display:flex;align-items:center;gap:8px;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding:0 14px 6px;width:100%}.fil-scroll::-webkit-scrollbar{display:none}
 .fil-scroll::-webkit-scrollbar{display:none}
 .ag-item{background:linear-gradient(145deg,rgba(11,22,40,.98),rgba(8,16,28,.99));border:1px solid rgba(59,130,246,.18);border-radius:20px;padding:16px;margin-bottom:12px;cursor:pointer;transition:all .15s}
 .ag-item:hover{border-color:rgba(59,130,246,.35)}
@@ -358,7 +358,7 @@ export default function Agendamentos(){
             ))}
           </div>
 
-          <div className="fil-scroll">
+          <div className="fil-wrap"><div className="fil-scroll">
             {(['hoje','semana'] as const).map(v=>(
               <button key={v} onClick={()=>{setView(v);setDiaSel(null)}}
                 style={{height:32,padding:'0 14px',borderRadius:8,fontSize:12,fontWeight:600,cursor:'pointer',border:'1px solid '+(view===v?'rgba(59,130,246,.4)':'rgba(148,163,184,.15)'),background:view===v?'rgba(59,130,246,.15)':'transparent',color:view===v?'#60A5FA':'#64748B',fontFamily:'inherit',whiteSpace:'nowrap',flexShrink:0}}>
