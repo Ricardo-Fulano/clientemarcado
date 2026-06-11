@@ -38,7 +38,7 @@ select option{background:#07111F;color:#F8FAFC}
 }
 @media(max-width:480px){.kpi-grid{grid-template-columns:1fr!important}}
 `
-type Servico={id:string;nome:string;descricao?:string;preco?:number;duracao?:string;categoria?:string;profissional_nome?:string;profissionais_ids?:string[];ativo:boolean}
+type Servico={id:string;nome:string;descricao?:string;preco?:number;duracao?:number;duracao_minutos?:number;categoria?:string;profissional_nome?:string;profissionais_ids?:string[];ativo:boolean}
 type Profissional={id:string;nome:string}
 export default function Servicos(){
   const [perfil,setPerfil]=useState<any>(null)
