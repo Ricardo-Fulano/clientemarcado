@@ -74,7 +74,7 @@ export default function Relatorios(){
   const [mes,setMes]=useState(new Date().toISOString().slice(0,7))
   const [profSel,setProfSel]=useState<any>(null) // modal individual
 
-  useEffect(()=>{load()},[])
+  useEffect(()=>{load()},[mes])
   async function load(){
     const {data:{user}}=await supabase.auth.getUser()
     if(!user){window.location.href='/login';return}
@@ -82,7 +82,7 @@ export default function Relatorios(){
       supabase.from('perfis').select('*').eq('user_id',user.id).single(),
       supabase.from('profissionais').select('id,nome,cargo,foto_url').eq('user_id',user.id).order('nome'),
       supabase.from('pagamentos').select('valor,data,status').eq('user_id',user.id),
-      supabase.from('despesas').select('valor,data,categoria').eq('user_id',user.id),
+      supabase.from('despesas').select('valor,data,categoria').eq('user_id',user.id).then(r=>{if(r.error)console.error('Despesas:',r.error);return{data:r.data||[]}}),
       supabase.from('agendamentos').select('id,profissional_id,cliente_nome,servicos(nome),data_hora,status,valor').eq('user_id',user.id).order('data_hora',{ascending:false}),
     ])
     setPerfil(p);setProfs(ps||[]);setPagamentos(pags||[]);setDespesas(desp||[]);setAgendamentos(ags||[]);setLoading(false)
@@ -116,7 +116,7 @@ export default function Relatorios(){
   // Melhor profissional — só destacar se rec > 0
   const melhorComRec=profStats.find(p=>p.rec>0)||null
 
-  const nomeMes=new Date(mes+'-02').toLocaleDateString('pt-BR',{month:'long',year:'numeric'})
+  const nomeMes=(()=>{const d=new Date(mes+'-02').toLocaleDateString('pt-BR',{month:'long',year:'numeric'});return d.charAt(0).toUpperCase()+d.slice(1).replace(' De ',' de ').replace(' de ',' de ')})()
   const nome=perfil?.nome_negocio||''
   const ini=(nome||'R').charAt(0).toUpperCase()
 
@@ -129,7 +129,8 @@ export default function Relatorios(){
     </aside>
   )
   async function sair(){await supabase.auth.signOut();window.location.href='/login'}
-if(loading)return(<div style={{minHeight:'100vh',background:'#050B16',display:'flex',alignItems:'center',justifyContent:'center',fontFamily:'system-ui'}}><p style={{color:'#64748B',fontSize:'14px'}}>Carregando relatórios...</p></div>)
+
+if(loading)return(<div style={{minHeight:'100vh',background:'#050B16',display:'flex',alignItems:'center',justifyContent:'center',fontFamily:'system-ui'}}><p style={{color:'#64748B',fontSize:'14px'}}>Carregando relatórios...</p></div>)
 
   return(
     <div style={{display:'flex',minHeight:'100vh',background:'#050B16',fontFamily:'-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif',overflowX:'hidden',width:'100%',position:'relative'}}>
@@ -277,7 +278,7 @@ export default function Relatorios(){
         const pRets=pAgs.filter(a=>a.status==='retorno').length
         const pTicket=pAts>0?pRec/pAts:0
         const ini2=(profSel.nome||'?').charAt(0).toUpperCase()
-        const nomeMesSel=new Date(mes+'-02').toLocaleDateString('pt-BR',{month:'long',year:'numeric'})
+        const nomeMesSel=(()=>{const d=new Date(mes+'-02').toLocaleDateString('pt-BR',{month:'long',year:'numeric'});return d.charAt(0).toUpperCase()+d.slice(1).replace(' De ',' de ')})()
 
         // Dados gráfico semanal
         const semsData=[1,2,3,4].map(s=>{
