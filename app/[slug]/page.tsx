@@ -162,6 +162,7 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
         {servicos && servicos.length > 0 && (
           <div style={{ marginBottom: '32px' }}>
             <p className="sec-title">Serviços</p>
+            <p style={{ fontSize: '12px', color: '#64748B', marginTop: '-8px', marginBottom: '14px' }}>Escolha um serviço para ver os horários disponíveis.</p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
               {servicos.map(s => (
                 <Link key={s.id} href={`/${slug}/agendar?servico=${s.id}`} className="crd svc-card" style={{ border: `1px solid rgba(148,163,184,.14)` }}>
@@ -172,7 +173,7 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
                     <p style={{ fontWeight: 700, fontSize: '14px', color: '#F8FAFC', marginBottom: '3px' }}>{s.nome}</p>
                     {s.descricao && <p style={{ fontSize: '11px', color: '#64748B', marginBottom: '3px', lineHeight: 1.4 }}>{s.descricao}</p>}
                     <p style={{ fontSize: '12px', color: '#94A3B8' }}>
-                      {s.duracao && <span>{s.duracao}</span>}
+                      {s.duracao && <span>{typeof s.duracao==='number'?s.duracao+' min':String(s.duracao).includes('min')?String(s.duracao):String(s.duracao)+' min'}</span>}
                       {s.duracao && s.preco ? <span style={{ margin: '0 5px' }}>·</span> : null}
                       {s.preco && <span style={{ color: tema.accent, fontWeight: 700 }}>{fBRL(parseFloat(s.preco))}</span>}
                     </p>
@@ -231,23 +232,8 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
           </div>
         </div>
 
-        {/* CTA FINAL */}
-        <div style={{ background: `radial-gradient(circle at top left,${tema.soft},transparent 40%),linear-gradient(145deg,rgba(15,23,42,.97),rgba(8,20,33,.99))`, border: `1.5px solid ${tema.border}`, borderRadius: '18px', padding: '28px 28px', boxShadow: `0 0 32px ${tema.glow}` }}>
-          <div className="cta-inner" style={{ display: 'flex', alignItems: 'center', gap: '20px', flexWrap: 'wrap' }}>
-            <div style={{ flex: 1, minWidth: '200px' }}>
-              <p style={{ fontSize: '18px', fontWeight: 800, color: '#F8FAFC', marginBottom: '6px', letterSpacing: '-0.02em' }}>Pronto para escolher seu horário?</p>
-              <p style={{ fontSize: '13px', color: '#64748B', lineHeight: 1.6 }}>Veja os serviços disponíveis e agende em poucos segundos.</p>
-            </div>
-            <div className="cta-btns" style={{ display: 'flex', gap: '10px', flexShrink: 0, flexWrap: 'wrap' }}>
-              <Link href={`/${slug}/agendar`} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: tema.accent, color: tema.btnText, fontWeight: 800, padding: '13px 24px', borderRadius: '12px', textDecoration: 'none', fontSize: '14px', boxShadow: `0 8px 24px ${tema.glow}`, whiteSpace: 'nowrap' }}>
-                Agendar agora →
-              </Link>
-            </div>
-          </div>
-        </div>
-
         <p style={{ textAlign: 'center', fontSize: '11px', color: '#374151', marginTop: '24px' }}>
-          Agendamento via <span style={{ color: '#4B5563' }}>ClienteMarcado</span>
+          Agendamento online via <span style={{ color: '#4B5563' }}>ClienteMarcado</span>
         </p>
       </div>
     </main>
