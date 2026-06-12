@@ -4,7 +4,7 @@ import { supabase } from '../../lib/supabase'
 import { Sparkles, Search, Plus, Pencil, Power, Trash2, Tag } from 'lucide-react'
 import PainelSidebar from '@/app/components/PainelSidebar'
 const G='linear-gradient(135deg,#3B82F6,#7C3AED)'
-const FILTROS=['Todos','Ativos','Inativos','Barbearia / Salão','Estética','Clínica','Odontologia']
+const FILTROS=['Todos','Ativos','Inativos','Barbearia / Salão','Estética','Clínica','Odontologia','Outros']
 const CATEGORIAS=['Barbearia / Salão','Estética','Clínica','Odontologia','Outro']
 const DURACOES=['10 min','15 min','20 min','30 min','45 min','60 min','90 min','120 min','Sem duração']
 const CSS=`
@@ -18,7 +18,7 @@ select option{background:#07111F;color:#F8FAFC}
 .btn-p{background:${G};color:#fff;border:1px solid rgba(255,255,255,.12);border-radius:12px;height:44px;padding:0 20px;font-size:13px;font-weight:700;display:inline-flex;align-items:center;gap:6px;white-space:nowrap;transition:all .18s;font-family:inherit;cursor:pointer;text-decoration:none;box-shadow:0 8px 24px rgba(59,130,246,.28)}
 .btn-p:hover{transform:translateY(-1px)}
 .kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px}
-.pill{padding:7px 14px;border-radius:999px;font-size:12px;font-weight:600;cursor:pointer;border:1.5px solid rgba(148,163,184,.18);background:rgba(15,23,42,.86);color:#94A3B8;white-space:nowrap;flex-shrink:0;transition:all .18s;font-family:inherit}.fil-sv{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px;width:100%}.fil-sv .pill{flex:1 1 calc(33% - 8px);text-align:center;justify-content:center;display:flex;align-items:center}@media(max-width:480px){.fil-sv .pill{flex:1 1 calc(50% - 8px)}}
+.pill{padding:7px 14px;border-radius:999px;font-size:12px;font-weight:600;cursor:pointer;border:1.5px solid rgba(148,163,184,.18);background:rgba(15,23,42,.86);color:#94A3B8;white-space:nowrap;flex-shrink:0;transition:all .18s;font-family:inherit}.fil-sv{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:20px;width:100%}.fil-sv .pill{flex-shrink:0;text-align:center;justify-content:center;display:flex;align-items:center;white-space:normal;font-size:11px;height:36px;padding:0 8px}@media(max-width:767px){.fil-sv{grid-template-columns:repeat(2,1fr)!important}.fil-sv .pill{height:40px!important;font-size:12px!important}}
 .pill:hover{background:rgba(124,58,237,.10);border-color:rgba(124,58,237,.28);color:#fff}
 .pill.on{background:${G};border-color:transparent;color:#fff;box-shadow:0 0 16px rgba(124,58,237,.28)}
 .inp{width:100%;background:rgba(15,23,42,.88);border:1.5px solid rgba(148,163,184,.18);border-radius:12px;padding:0 14px;height:46px;font-size:14px;color:#F8FAFC;outline:none;font-family:inherit;transition:border-color .2s;display:block;box-sizing:border-box}
@@ -128,7 +128,7 @@ export default function Servicos(){
   const comPreco=servicos.filter(s=>s.preco&&s.preco>0)
   const ticketMedio=comPreco.length>0?comPreco.reduce((a,s)=>a+(s.preco||0),0)/comPreco.length:0
   const filtrados=servicos.filter(s=>{
-    const passaF=filtro==='Todos'||(filtro==='Ativos'&&s.ativo)||(filtro==='Inativos'&&!s.ativo)||s.categoria===filtro
+    const CATS_MAIN=['Barbearia / Salão','Estética','Clínica','Odontologia'];const passaF=filtro==='Todos'||(filtro==='Ativos'&&s.ativo)||(filtro==='Inativos'&&!s.ativo)||(filtro==='Outros'&&(!s.categoria||!CATS_MAIN.includes(s.categoria)))||s.categoria===filtro
     const passaB=!busca||[s.nome,s.descricao,s.categoria,s.profissional_nome].some(v=>v?.toLowerCase().includes(busca.toLowerCase()))
     return passaF&&passaB
   })
