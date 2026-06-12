@@ -105,7 +105,7 @@ export default function Agendamentos(){
   const [profs,setProfs]=useState<any[]>([])
   const [ags,setAgs]=useState<any[]>([])
   const [loading,setLoading]=useState(true)
-  const [view,setView]=useState<'hoje'|'semana'>('hoje')
+  const [view,setView]=useState<'hoje'|'semana'|'todos'>('hoje')
   const [fSt,setFSt]=useState('todos')
   const [fPr,setFPr]=useState('todos')
   const [semOff,setSemOff]=useState(0)
@@ -359,16 +359,16 @@ export default function Agendamentos(){
           </div>
 
           <div className="fil-scroll">
-            {(['hoje','semana'] as const).map(v=>(
+            {(['hoje','semana','todos'] as const).map(v=>(
               <button key={v} onClick={()=>{setView(v);setDiaSel(null)}}
                 style={{height:32,padding:'0 14px',borderRadius:8,fontSize:12,fontWeight:600,cursor:'pointer',border:'1px solid '+(view===v?'rgba(59,130,246,.4)':'rgba(148,163,184,.15)'),background:view===v?'rgba(59,130,246,.15)':'transparent',color:view===v?'#60A5FA':'#64748B',fontFamily:'inherit',whiteSpace:'nowrap',flexShrink:0}}>
-                {v==='hoje'?'Hoje':'Semana'}
+                {v==='hoje'?'Hoje':v==='semana'?'Semana':'Todos'}
               </button>
             ))}
-            {view==='hoje'&&['todos','pendente','confirmado','realizado','cancelado'].map(f=>(
+            {(view==='hoje'||view==='todos')&&['todos','pendente','confirmado','realizado','cancelado'].map(f=>(
               <button key={f} onClick={()=>setFSt(f)}
                 style={{height:32,padding:'0 12px',borderRadius:8,fontSize:12,fontWeight:600,cursor:'pointer',border:'1px solid '+(fSt===f?'rgba(59,130,246,.35)':'rgba(148,163,184,.13)'),background:fSt===f?'rgba(59,130,246,.12)':'transparent',color:fSt===f?'#60A5FA':'#64748B',fontFamily:'inherit',whiteSpace:'nowrap',flexShrink:0}}>
-                {f==='todos'?'Todos':stCfg[f]?.t||f}
+                {f==='todos'?'Status':stCfg[f]?.t||f}
               </button>
             ))}
             <select value={fPr} onChange={e=>setFPr(e.target.value)}
@@ -378,7 +378,7 @@ export default function Agendamentos(){
             </select>
           </div>
 
-          {view==='hoje'&&(
+          {(view==='hoje'||view==='todos')&&(
             <div className="ag-grid">
               <div>
                 <p style={{fontSize:10,fontWeight:700,color:'#475569',textTransform:'uppercase' as const,marginBottom:8,letterSpacing:'.08em'}}>{agsF.length} atendimento{agsF.length!==1?'s':''}</p>
