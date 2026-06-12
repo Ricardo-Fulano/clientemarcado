@@ -2,8 +2,8 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../../lib/supabase'
 import Link from 'next/link'
-import { CreditCard, AlertTriangle, Hourglass, CircleDollarSign, Search, Calendar } from 'lucide-react'
-import PainelSidebar from '@/app/components/PainelSidebar'
+import { CreditCard, AlertTriangle, Hourglass, CircleDollarSign, Search, Home, Calendar, Users, ClipboardList, Wallet, Sparkles, User, BarChart3, Settings } from 'lucide-react'
+import PlanoBloqueado from '@/components/PlanoBloqueado'
 
 const G='linear-gradient(135deg,#3B82F6,#7C3AED)'
 const AV='linear-gradient(135deg,rgba(59,130,246,.95),rgba(124,58,237,.95))'
@@ -25,7 +25,7 @@ input,select,textarea{color-scheme:dark}
 .drw.open{transform:translateX(0)}
 .ovl{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:49;opacity:0;pointer-events:none;transition:opacity .28s}
 .ovl.open{opacity:1;pointer-events:auto}
-
+.main{margin-left:220px;flex:1;min-height:100vh;width:calc(100% - 220px);max-width:calc(100% - 220px)}
 .pg{background:radial-gradient(circle at top left,rgba(124,58,237,.20),transparent 32%),radial-gradient(circle at top right,rgba(37,99,235,.14),transparent 28%),linear-gradient(135deg,#050B16 0%,#07111F 45%,#050B16 100%);min-height:100vh;overflow-x:hidden}
 .bdy{max-width:1200px;margin:0 auto;padding:28px 32px 80px;width:100%;box-sizing:border-box}
 .crd{background:radial-gradient(circle at top left,rgba(124,58,237,.10),transparent 38%),linear-gradient(145deg,rgba(15,23,42,.97),rgba(8,20,33,.99));border:1.5px solid rgba(148,163,184,.18);border-radius:18px;box-shadow:0 20px 48px rgba(0,0,0,.34),inset 0 1px 0 rgba(255,255,255,.04)}
@@ -34,11 +34,11 @@ input,select,textarea{color-scheme:dark}
 .btn-s{background:rgba(15,23,42,.88);color:#CBD5E1;border:1px solid rgba(148,163,184,.20);border-radius:10px;height:42px;padding:0 16px;font-size:13px;font-weight:600;display:inline-flex;align-items:center;gap:6px;white-space:nowrap;transition:all .18s;font-family:inherit;cursor:pointer;text-decoration:none}
 .btn-s:hover{border-color:rgba(124,58,237,.38);color:#fff}
 .kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px}
-.pill{padding:7px 14px;border-radius:999px;font-size:12px;font-weight:600;cursor:pointer;border:1.5px solid rgba(148,163,184,.18);background:rgba(15,23,42,.86);color:#94A3B8;white-space:nowrap;transition:all .18s;font-family:inherit}
+.pill{padding:7px 14px;border-radius:999px;font-size:12px;font-weight:600;cursor:pointer;border:1.5px solid rgba(148,163,184,.18);background:rgba(15,23,42,.86);color:#94A3B8;white-space:nowrap;flex-shrink:0;transition:all .18s;font-family:inherit}
 .pill:hover{background:rgba(124,58,237,.10);border-color:rgba(124,58,237,.28);color:#fff}
 .pill.on{background:${G};border-color:transparent;color:#fff;box-shadow:0 0 16px rgba(124,58,237,.28)}
 @media(max-width:1023px){
-
+  .sb{display:none!important}.main{margin-left:0!important;width:100%!important;max-width:100%!important}
   .mob-hdr{display:flex!important}.bdy{padding:14px 16px 80px!important}
   .kpi-grid{grid-template-columns:1fr 1fr!important;gap:10px!important}
   .topo-r{flex-direction:column!important;align-items:stretch!important;gap:10px!important}
@@ -48,6 +48,18 @@ input,select,textarea{color-scheme:dark}
 @media(max-width:480px){.kpi-grid{grid-template-columns:1fr!important}}
 `
 
+const SB_LINKS=[
+  {h:'/painel',l:'Início',I:Home},
+  {h:'/painel/agendamentos',l:'Agenda',I:Calendar},
+  {h:'/painel/clientes',l:'Clientes',I:Users},
+  {h:'/painel/orcamentos',l:'Orçamentos',I:ClipboardList},
+  {h:'/painel/cobrancas',l:'Cobranças',I:Wallet,on:true},
+  {h:'/painel/pagamentos',l:'Pagamentos',I:CreditCard},
+  {h:'/painel/servicos',l:'Serviços',I:Sparkles},
+  {h:'/painel/profissionais',l:'Profissionais',I:User},
+  {h:'/painel/relatorio',l:'Relatórios',I:BarChart3},
+  {h:'/painel/perfil',l:'Configurações',I:Settings},
+]
 
 const FILTROS=['Todas','Em aberto','Vencidas','Parciais','Pagas','Canceladas']
 
@@ -55,6 +67,7 @@ export default function Cobrancas(){
   const [perfil,setPerfil]=useState<any>(null)
   const [cobrancas,setCobrancas]=useState<any[]>([])
   const [loading,setLoading]=useState(true)
+  const [mob,setMob]=useState(false)
   const [busca,setBusca]=useState('')
   const [filtro,setFiltro]=useState('Todas')
 
@@ -95,6 +108,22 @@ export default function Cobrancas(){
     window.open(`https://wa.me/55${tel}?text=${encodeURIComponent(msg)}`,'_blank')
   }
 
+  const SidebarComp=()=>(
+    <aside className="sb">
+      <div className="sb-logo">
+        <div className="sb-ic"><Calendar size={14} color="#fff"/></div>
+        <span style={{fontSize:'14px',fontWeight:800,color:'#F8FAFC',letterSpacing:'-0.02em'}}>ClienteMarcado</span>
+      </div>
+      <nav>{SB_LINKS.map(it=>(<Link key={it.l} href={it.h} className={'nl'+(it.on?' on':'')}><it.I size={16}/><span>{it.l}</span></Link>))}</nav>
+      <div className="sb-foot">
+        <div style={{display:'flex',alignItems:'center',gap:'10px',background:'rgba(15,23,42,.6)',border:'1px solid rgba(148,163,184,.12)',borderRadius:'10px',padding:'10px 12px'}}>
+          <div style={{width:'32px',height:'32px',borderRadius:'50%',background:AV,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'13px',fontWeight:700,color:'#fff',flexShrink:0}}>{ini}</div>
+          <div style={{minWidth:0}}><p style={{fontSize:'12px',fontWeight:600,color:'#F8FAFC',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{nome||'Meu negócio'}</p><p style={{fontSize:'10px',color:'#64748B'}}>Administrador</p></div>
+        </div>
+      </div>
+              <button onClick={sair} style={{width:'100%',marginTop:'8px',background:'rgba(239,68,68,.10)',border:'1px solid rgba(239,68,68,.25)',borderRadius:'10px',padding:'9px 14px',color:'#FCA5A5',fontSize:'13px',fontWeight:600,cursor:'pointer',fontFamily:'inherit',display:'flex',alignItems:'center',gap:'8px'}}>Sair</button>
+    </aside>
+  )
   async function sair(){await supabase.auth.signOut();window.location.href='/login'}
 
 if(loading)return(<div style={{minHeight:'100vh',background:'#050B16',display:'flex',alignItems:'center',justifyContent:'center',fontFamily:'system-ui'}}><p style={{color:'#64748B',fontSize:'14px'}}>Carregando...</p></div>)
@@ -107,8 +136,12 @@ if(loading)return(<div style={{minHeight:'100vh',background:'#050B16',display:'f
         <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'16px 18px',borderBottom:'1px solid rgba(148,163,184,.10)'}}><span style={{fontSize:'14px',fontWeight:800,color:'#F8FAFC'}}>ClienteMarcado</span><button onClick={()=>setMob(false)} style={{background:'none',border:'none',color:'rgba(255,255,255,.5)',cursor:'pointer',fontSize:'22px',lineHeight:1}}>×</button></div>
         <nav style={{flex:1,padding:'10px 8px',overflowY:'auto'}}>{SB_LINKS.map(it=>(<Link key={it.l} href={it.h} onClick={()=>setMob(false)} className={'nl'+(it.on?' on':'')} style={{fontSize:'14px'}}><it.I size={16}/><span>{it.l}</span></Link>))}</nav>
       </div>
-      <PainelSidebar nome={nome} tituloMobile="Cobrancas"/>
-      <div className="psb-main">
+      <SidebarComp/>
+      <div className="main">
+        <div className="mob-hdr">
+          <button onClick={()=>setMob(true)} style={{background:'none',border:'none',cursor:'pointer',padding:'8px',display:'flex',flexDirection:'column',gap:'5px'}}>{[22,22,16].map((w,i)=><span key={i} style={{display:'block',width:`${w}px`,height:'2px',background:'rgba(255,255,255,.8)',borderRadius:'2px'}}/>)}</button>
+          <span style={{fontSize:'14px',fontWeight:800,color:'#F8FAFC'}}>Cobranças</span>
+          <div style={{width:'34px',height:'34px',borderRadius:'50%',background:AV,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'13px',fontWeight:700,color:'#fff'}}>{ini}</div>
         </div>
         <div className="pg"><div className="bdy">
                               
@@ -147,7 +180,7 @@ if(loading)return(<div style={{minHeight:'100vh',background:'#050B16',display:'f
           </div>
 
           {/* Filtros */}
-          <div style={{display:'flex',gap:'6px',flexWrap:'wrap',marginBottom:'20px',width:'100%',maxWidth:'100%'}}>
+          <div style={{display:'flex',gap:'6px',overflowX:'auto',scrollbarWidth:'none',paddingBottom:'4px',marginBottom:'20px'}}>
             {FILTROS.map(f=>(<button key={f} onClick={()=>setFiltro(f)} className={`pill${filtro===f?' on':''}`}>{f}</button>))}
           </div>
 
