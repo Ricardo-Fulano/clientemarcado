@@ -1,6 +1,4 @@
-- setOrcamentos(data||[])
-+ setOrcamentos((data||[]).filter((o:any)=>o.origem!=='cobranca_manual'))observacoes:observacoes||null,updated_at:new Date().toISOString(),
-+       origem:'orcamento','use client'
+'use client'
 import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 
