@@ -990,7 +990,6 @@ export default function Orcamentos() {
           )
         })()}
       </div>
-    </div>
     {modalPagOrc&&(
       <>
         <div onClick={()=>setModalPagOrc(null)}
@@ -1049,5 +1048,6 @@ export default function Orcamentos() {
         </div>
       </>
     )}
+    </div>
   )
 }
