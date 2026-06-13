@@ -48,7 +48,7 @@ const MOBILE_CSS = `
     .cm-tabela-desktop{display:none!important}
     .cm-cards-mobile{display:flex!important;flex-direction:column!important;gap:10px!important}
     .cm-lista-pad,.cm-form-pad,.cm-detalhe-pad{padding:16px 16px 130px!important}
-    .cm-filtros-wrap{overflow-x:auto;flex-wrap:nowrap!important;padding-bottom:4px}
+    .cm-filtros-wrap{display:flex!important;flex-wrap:wrap!important;overflow:visible!important;width:100%!important;max-width:100%!important;gap:8px!important}
   }
   @media(max-width:480px){.cm-metrics{grid-template-columns:1fr!important}}
 `
@@ -356,10 +356,10 @@ export default function Orcamentos() {
                 <input type="text" placeholder="Buscar cliente..." value={filtroCliente} onChange={e=>setFiltroCliente(e.target.value)}
                   style={{width:'100%',border:'1px solid rgba(255,255,255,.12)',borderRadius:'10px',padding:'11px 16px',fontSize:'13px',color:'#fff',outline:'none',fontFamily:'inherit',background:'rgba(255,255,255,.06)',boxSizing:'border-box' as const}}/>
               </div>
-              <div className="cm-filtros-wrap" style={{display:'flex',gap:'6px',marginBottom:'16px',flexWrap:'wrap'}}>
+              <div style={{display:'flex',gap:'8px',marginBottom:'16px',flexWrap:'wrap',width:'100%',maxWidth:'100%',overflow:'visible'}}>
                 {STATUS_LIST.map(s=>(
                   <button key={s} onClick={()=>setFiltroStatus(s)}
-                    style={{padding:'7px 14px',borderRadius:'999px',fontSize:'12px',fontWeight:600,cursor:'pointer',border:'1px solid',fontFamily:'inherit',whiteSpace:'nowrap' as const,
+                    style={{padding:'8px 14px',borderRadius:'999px',fontSize:'12px',fontWeight:600,cursor:'pointer',border:'1px solid',fontFamily:'inherit',minHeight:'36px',
                       background:filtroStatus===s?'linear-gradient(135deg,#3B82F6,#7C3AED)':'rgba(255,255,255,.06)',
                       color:filtroStatus===s?'#fff':'#94A3B8',
                       borderColor:filtroStatus===s?'transparent':'rgba(255,255,255,.12)'}}>
