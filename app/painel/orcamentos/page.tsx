@@ -97,6 +97,12 @@ export default function Orcamentos() {
   const [pagForma,setPagForma]=useState('Pix')
   const [pagObs,setPagObs]=useState('')
   const [showPagForm,setShowPagForm]=useState(false)
+  const [modalPagOrc,setModalPagOrc]=useState<any>(null)
+  const [modalValor,setModalValor]=useState('')
+  const [modalForma,setModalForma]=useState('Pix')
+  const [modalObs,setModalObs]=useState('')
+  const [modalErro,setModalErro]=useState('')
+  const [modalSaving,setModalSaving]=useState(false)
   const [showDetalhes,setShowDetalhes]=useState(false)
   const [showPagSection,setShowPagSection]=useState(false)
   const [showObs,setShowObs]=useState(false)
@@ -239,6 +245,39 @@ export default function Orcamentos() {
     const {data}=await supabase.from('orcamentos').select('*').eq('id',orc.id).single()
     if(data)setOrcamentos(prev=>prev.map(o=>o.id===orc.id?data:o))
     setMensagem('Pagamento registrado!');setTimeout(()=>setMensagem(''),3000)
+  }
+  function abrirModalPag(orc:any){
+    setModalPagOrc(orc)
+    const saldo=orc.saldo_restante||0
+    setModalValor(saldo.toFixed(2).replace('.',','))
+    setModalForma('Pix');setModalObs('');setModalErro('')
+  }
+  async function confirmarPagamentoModal(){
+    if(!modalPagOrc)return
+    const valor=parseFloat((modalValor||'0').replace(/\./g,'').replace(',','.'))||0
+    if(valor<=0){setModalErro('Informe um valor maior que zero.');return}
+    const saldo=modalPagOrc.saldo_restante||0
+    if(valor>saldo+0.01){setModalErro('Valor maior que o saldo restante.');return}
+    setModalSaving(true);setModalErro('')
+    const novoValorPago=(modalPagOrc.valor_pago||0)+valor
+    const novoSaldo=Math.max(0,(modalPagOrc.total||0)-novoValorPago)
+    const novoStatus=novoSaldo<0.01?'Pago':'Parcialmente pago'
+    try{
+      await supabase.from('orcamento_pagamentos').insert({
+        orcamento_id:modalPagOrc.id,user_id:userId,
+        data:new Date().toISOString().split('T')[0],
+        valor,forma:modalForma,observacao:modalObs||null
+      })
+    }catch(e){console.log('orcamento_pagamentos:',e)}
+    const{error}=await supabase.from('orcamentos').update({
+      valor_pago:novoValorPago,saldo_restante:novoSaldo,
+      status:novoStatus,updated_at:new Date().toISOString()
+    }).eq('id',modalPagOrc.id)
+    if(error){setModalErro('Erro ao registrar. Tente novamente.');setModalSaving(false);return}
+    setOrcamentos(prev=>prev.map(o=>o.id===modalPagOrc.id?{...o,valor_pago:novoValorPago,saldo_restante:novoSaldo,status:novoStatus}:o))
+    setModalSaving(false);setModalPagOrc(null)
+    setMensagem(novoStatus==='Pago'?'Pagamento confirmado! Orçamento pago.':'Pagamento parcial registrado!')
+    setTimeout(()=>setMensagem(''),4000)
   }
   function enviarWpp(orc:any){
     const tel=(orc.cliente_whatsapp||'').replace(/\D/g,'');if(!tel)return
@@ -413,6 +452,12 @@ export default function Orcamentos() {
                               style={{background:'rgba(59,130,246,.15)',border:'1px solid rgba(59,130,246,.3)',borderRadius:'6px',padding:'4px 8px',fontSize:'11px',fontWeight:600,color:'#60A5FA',cursor:'pointer',fontFamily:'inherit'}}>Ver</button>
                             <button onClick={()=>gerarPDF(orc)}
                               style={{background:'rgba(6,182,212,.15)',border:'1px solid rgba(6,182,212,.3)',borderRadius:'6px',padding:'4px 6px',fontSize:'11px',fontWeight:600,color:'#22D3EE',cursor:'pointer',fontFamily:'inherit'}}>PDF</button>
+                            {(orc.saldo_restante||0)>0.01&&!['Pago','Finalizado','Cancelado'].includes(orc.status)&&(
+                              <button onClick={()=>abrirModalPag(orc)}
+                                style={{background:'rgba(34,197,94,.15)',border:'1px solid rgba(34,197,94,.3)',borderRadius:'6px',padding:'4px 8px',fontSize:'11px',fontWeight:700,color:'#4ADE80',cursor:'pointer',fontFamily:'inherit',whiteSpace:'nowrap' as const}}>
+                                Pgto
+                              </button>
+                            )}
                             <button onClick={()=>enviarWpp(orc)}
                               style={{background:'rgba(34,197,94,.15)',border:'1px solid rgba(34,197,94,.3)',borderRadius:'6px',padding:'4px 6px',fontSize:'12px',cursor:'pointer',fontFamily:'inherit'}}>💬</button>
                             <button onClick={()=>abrirEditar(orc)}
@@ -449,6 +494,12 @@ export default function Orcamentos() {
                               style={{background:'rgba(59,130,246,.15)',border:'1px solid rgba(59,130,246,.3)',borderRadius:'8px',padding:'9px',fontSize:'12px',fontWeight:600,color:'#60A5FA',cursor:'pointer',fontFamily:'inherit'}}>Ver detalhes</button>
                             <button onClick={()=>enviarWpp(orc)}
                               style={{background:'rgba(34,197,94,.15)',border:'1px solid rgba(34,197,94,.3)',borderRadius:'8px',padding:'9px',fontSize:'12px',fontWeight:600,color:'#4ADE80',cursor:'pointer',fontFamily:'inherit'}}>💬 WhatsApp</button>
+                            {(orc.saldo_restante||0)>0.01&&!['Pago','Finalizado','Cancelado'].includes(orc.status)&&(
+                              <button onClick={()=>abrirModalPag(orc)}
+                                style={{gridColumn:'1/-1',background:'rgba(34,197,94,.12)',border:'1.5px solid rgba(34,197,94,.35)',borderRadius:'8px',padding:'11px',fontSize:'13px',fontWeight:700,color:'#4ADE80',cursor:'pointer',fontFamily:'inherit',display:'flex',alignItems:'center',justifyContent:'center',gap:'6px'}}>
+                                Confirmar pagamento  R$ {fmtBRL(orc.saldo_restante||0)}
+                              </button>
+                            )}
                             <button onClick={()=>gerarPDF(orc)}
                               style={{background:'rgba(6,182,212,.15)',border:'1px solid rgba(6,182,212,.3)',borderRadius:'8px',padding:'9px',fontSize:'12px',fontWeight:600,color:'#22D3EE',cursor:'pointer',fontFamily:'inherit'}}>📥 PDF</button>
                             <button onClick={()=>abrirEditar(orc)}
@@ -940,5 +991,63 @@ export default function Orcamentos() {
         })()}
       </div>
     </div>
+    {modalPagOrc&&(
+      <>
+        <div onClick={()=>setModalPagOrc(null)}
+          style={{position:'fixed',inset:0,background:'rgba(0,0,0,.72)',backdropFilter:'blur(6px)',zIndex:80}}/>
+        <div style={{position:'fixed',zIndex:90,background:'linear-gradient(145deg,#0B1628,#101B2D)',border:'1px solid rgba(34,197,94,.25)',borderRadius:'24px',padding:'28px',boxShadow:'0 24px 80px rgba(0,0,0,.6)',left:'50%',top:'50%',transform:'translate(-50%,-50%)',width:'min(92vw,480px)',maxHeight:'90vh',overflowY:'auto'}}>
+          <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:'20px'}}>
+            <div>
+              <p style={{fontSize:'11px',fontWeight:700,color:'#4ADE80',textTransform:'uppercase' as const,letterSpacing:'.08em',marginBottom:'4px'}}>Orçamento</p>
+              <p style={{fontSize:'18px',fontWeight:800,color:'#F8FAFC',letterSpacing:'-0.02em'}}>Confirmar pagamento</p>
+            </div>
+            <button onClick={()=>setModalPagOrc(null)} style={{background:'none',border:'none',color:'#475569',cursor:'pointer',fontSize:'22px',lineHeight:1}}>x</button>
+          </div>
+          <div style={{background:'rgba(255,255,255,.04)',border:'1px solid rgba(255,255,255,.08)',borderRadius:'14px',padding:'16px',marginBottom:'20px'}}>
+            {[{l:'Cliente',v:modalPagOrc.cliente_nome,c:'#F8FAFC'},{l:'Total do orçamento',v:'R$ '+fmtBRL(modalPagOrc.total),c:'#F8FAFC'},{l:'Já pago',v:'R$ '+fmtBRL(modalPagOrc.valor_pago||0),c:'#4ADE80'},{l:'Saldo restante',v:'R$ '+fmtBRL(modalPagOrc.saldo_restante||0),c:'#FBBF24'}].map(({l,v,c:cor})=>(
+              <div key={l} style={{display:'flex',justifyContent:'space-between',fontSize:'13px',marginBottom:'8px'}}>
+                <span style={{color:'#64748B'}}>{l}</span>
+                <span style={{fontWeight:700,color:cor}}>{v}</span>
+              </div>
+            ))}
+          </div>
+          <div style={{display:'flex',flexDirection:'column',gap:'14px',marginBottom:'20px'}}>
+            <div>
+              <label style={{fontSize:'11px',fontWeight:700,color:'#94A3B8',textTransform:'uppercase' as const,letterSpacing:'.06em',display:'block',marginBottom:'6px'}}>Valor recebido *</label>
+              <div style={{position:'relative'}}>
+                <span style={{position:'absolute',left:'12px',top:'50%',transform:'translateY(-50%)',fontSize:'13px',color:'#64748B',fontWeight:600}}>R$</span>
+                <input type='text' inputMode='decimal' value={modalValor}
+                  onChange={e=>setModalValor(e.target.value.replace(/[^0-9,]/g,''))}
+                  style={{width:'100%',background:'rgba(255,255,255,.06)',border:'1.5px solid rgba(34,197,94,.35)',borderRadius:'10px',padding:'12px 14px 12px 36px',fontSize:'16px',fontWeight:700,color:'#4ADE80',outline:'none',fontFamily:'inherit',boxSizing:'border-box' as const}}/>
+              </div>
+            </div>
+            <div>
+              <label style={{fontSize:'11px',fontWeight:700,color:'#94A3B8',textTransform:'uppercase' as const,letterSpacing:'.06em',display:'block',marginBottom:'6px'}}>Forma de pagamento</label>
+              <select value={modalForma} onChange={e=>setModalForma(e.target.value)}
+                style={{width:'100%',background:'rgba(255,255,255,.06)',border:'1.5px solid rgba(148,163,184,.18)',borderRadius:'10px',padding:'12px 14px',fontSize:'14px',color:'#F8FAFC',outline:'none',fontFamily:'inherit',boxSizing:'border-box' as const,cursor:'pointer'}}>
+                {['Pix','Dinheiro','Cartão de crédito','Cartão de débito','Transferência','Outro'].map(f=><option key={f} style={{background:'#0B1628'}}>{f}</option>)}
+              </select>
+            </div>
+            <div>
+              <label style={{fontSize:'11px',fontWeight:700,color:'#94A3B8',textTransform:'uppercase' as const,letterSpacing:'.06em',display:'block',marginBottom:'6px'}}>Observação (opcional)</label>
+              <input type='text' value={modalObs} onChange={e=>setModalObs(e.target.value)}
+                placeholder='Ex: entrada, parcela final...'
+                style={{width:'100%',background:'rgba(255,255,255,.06)',border:'1.5px solid rgba(148,163,184,.18)',borderRadius:'10px',padding:'12px 14px',fontSize:'14px',color:'#F8FAFC',outline:'none',fontFamily:'inherit',boxSizing:'border-box' as const}}/>
+            </div>
+          </div>
+          {modalErro&&<div style={{background:'rgba(239,68,68,.12)',border:'1px solid rgba(239,68,68,.25)',borderRadius:'8px',padding:'10px 14px',fontSize:'13px',color:'#F87171',marginBottom:'14px'}}>{modalErro}</div>}
+          <div style={{display:'flex',gap:'10px'}}>
+            <button onClick={()=>setModalPagOrc(null)}
+              style={{flex:1,background:'rgba(255,255,255,.06)',border:'1px solid rgba(255,255,255,.12)',borderRadius:'14px',padding:'14px',color:'#94A3B8',fontSize:'14px',fontWeight:600,cursor:'pointer',fontFamily:'inherit'}}>
+              Cancelar
+            </button>
+            <button onClick={confirmarPagamentoModal} disabled={modalSaving}
+              style={{flex:2,background:'linear-gradient(135deg,#22C55E,#16A34A)',border:'none',borderRadius:'14px',padding:'14px',color:'#fff',fontSize:'14px',fontWeight:700,cursor:'pointer',fontFamily:'inherit',opacity:modalSaving?0.7:1}}>
+              {modalSaving?'Registrando...':'Confirmar recebimento'}
+            </button>
+          </div>
+        </div>
+      </>
+    )}
   )
 }
