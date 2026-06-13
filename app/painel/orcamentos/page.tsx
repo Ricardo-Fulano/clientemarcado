@@ -493,7 +493,7 @@ export default function Orcamentos() {
 
   // Sidebar component
     if(loading) return (
-    <div style={{display:'flex',minHeight:'100vh',background:BG}}>
+    <div style={{display:'flex',minHeight:'100vh',background:'#050B16'}}>
       <PainelSidebar nome={perfil?.nome_negocio||''} tituloMobile='Orçamentos' />
       <div style={{marginLeft:'220px',flex:1,display:'flex',alignItems:'center',justifyContent:'center',background:'#07111F'}}>
         <p style={{color:'#94A3B8',fontSize:'14px'}}>Carregando...</p>
@@ -837,10 +837,10 @@ export default function Orcamentos() {
                   {itens.map((item,idx)=>(
                     <div key={idx} style={{marginBottom:'12px',padding:'14px',background:'rgba(255,255,255,.05)',borderRadius:'12px',border:'1px solid rgba(255,255,255,.10)',width:'100%',maxWidth:'100%',boxSizing:'border-box'}}>
                       <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'10px'}}>
-                        <span style={{fontSize:'11px',fontWeight:600,color:'#64748B',textTransform:'uppercase',letterSpacing:'.05em'}}>Item {idx+1}</span>
+                        <span style={{fontSize:'11px',fontWeight:600,color:'#94A3B8',textTransform:'uppercase',letterSpacing:'.05em'}}>Item {idx+1}</span>
                         {itens.length>1&&(
                           <button onClick={()=>setItens(prev=>prev.filter((_,i)=>i!==idx))}
-                            style={{background:'#FEF2F2',border:'1px solid #FECACA',borderRadius:'6px',color:'#EF4444',cursor:'pointer',fontSize:'13px',padding:'3px 8px'}}>
+                            style={{background:'rgba(239,68,68,.12)',border:'1px solid rgba(239,68,68,.28)',borderRadius:'6px',color:'#F87171',cursor:'pointer',fontSize:'13px',padding:'3px 8px'}}>
                             Remover
                           </button>
                         )}
@@ -889,7 +889,7 @@ export default function Orcamentos() {
                       <span>Subtotal</span>
                       <span style={{fontWeight:600,color:'#fff'}}>R$ {fmtBRL(subtotal)}</span>
                     </div>
-                    <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',fontSize:'13px',color:'#667085',marginBottom:'8px',paddingBottom:'8px',borderBottom:'1px solid #DCE3EA'}}>
+                    <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',fontSize:'13px',color:'#667085',marginBottom:'8px',paddingBottom:'8px',borderBottom:'1px solid rgba(255,255,255,.10)'}}>
                       <span>Desconto</span>
                       <input type="number" min="0" step="0.01" placeholder="R$ 0,00" value={desconto}
                         onChange={e=>setDesconto(e.target.value)}
@@ -905,7 +905,7 @@ export default function Orcamentos() {
 
                 {/* Resumo mobile — só aparece no mobile */}
                 <div className="cm-resumo-mobile" style={{display:'none',background:'rgba(255,255,255,.06)',borderRadius:'14px',padding:'14px 16px',marginBottom:'12px',border:'1px solid rgba(255,255,255,.10)'}}>
-                  <p style={{fontSize:'12px',fontWeight:700,color:'#667085',textTransform:'uppercase',letterSpacing:'.06em',marginBottom:'10px'}}>Resumo</p>
+                  <p style={{fontSize:'12px',fontWeight:700,color:'#94A3B8',textTransform:'uppercase',letterSpacing:'.06em',marginBottom:'10px'}}>Resumo</p>
                   <div style={{display:'flex',flexDirection:'column',gap:'6px'}}>
                     <div style={{display:'flex',justifyContent:'space-between',fontSize:'13px'}}>
                       <span style={{color:'#667085'}}>Cliente</span>
@@ -1016,7 +1016,7 @@ export default function Orcamentos() {
                           <span style={{fontSize:'13px',color:'#F8FAFC',fontWeight:500,cursor:'pointer'}} onClick={()=>setExigirSinal(!exigirSinal)}>Exigir entrada/sinal?</span>
                         </div>
                         {exigirSinal&&(
-                          <div style={{background:BG,borderRadius:'10px',padding:'14px',border:'1px solid #DCE3EA',display:'flex',flexDirection:'column',gap:'10px'}}>
+                          <div style={{background:'rgba(255,255,255,.06)',borderRadius:'10px',padding:'14px',border:'1px solid rgba(255,255,255,.10)',display:'flex',flexDirection:'column',gap:'10px'}}>
                             <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'10px'}}>
                               <div><label style={lbl}>Tipo</label>
                                 <select style={sel} value={sinalTipo} onChange={e=>setSinalTipo(e.target.value)}>
@@ -1050,7 +1050,7 @@ export default function Orcamentos() {
                           📋 Copiar mensagem de cobrança
                         </button>
                         <button onClick={enviarCobrancaWpp} disabled={!clienteWpp}
-                          style={{background:'#F0FFF4',border:'1.5px solid #86EFAC',borderRadius:'8px',padding:'8px 14px',fontSize:'12px',fontWeight:600,color:'#16A34A',cursor:clienteWpp?'pointer':'not-allowed',fontFamily:'inherit',opacity:clienteWpp?1:0.5}}>
+                          style={{background:'rgba(34,197,94,.15)',border:'1px solid rgba(34,197,94,.28)',borderRadius:'8px',padding:'8px 14px',fontSize:'12px',fontWeight:600,color:'#4ADE80',cursor:clienteWpp?'pointer':'not-allowed',fontFamily:'inherit',opacity:clienteWpp?1:0.5}}>
                           💬 Enviar pelo WhatsApp
                         </button>
                       </div>
@@ -1068,7 +1068,7 @@ export default function Orcamentos() {
                         <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:'10px'}}>
                           <p style={{fontSize:'13px',fontWeight:600,color:'#F8FAFC'}}>Pagamentos registrados</p>
                           <button onClick={()=>{setShowHpForm(!showHpForm);setEditandoPagIdx(null);setHpValor('');setHpForma('Pix');setHpFormaOutro('');setHpData(new Date().toISOString().split('T')[0]);setHpObs('')}}
-                            style={{background:'#EFF6FF',border:'1.5px solid #BFDBFE',borderRadius:'6px',padding:'5px 12px',fontSize:'12px',fontWeight:600,color:'#2563EB',cursor:'pointer',fontFamily:'inherit'}}>
+                            style={{background:'rgba(59,130,246,.15)',border:'1px solid rgba(59,130,246,.30)',borderRadius:'6px',padding:'5px 12px',fontSize:'12px',fontWeight:600,color:'#93C5FD',cursor:'pointer',fontFamily:'inherit'}}>
                             + Registrar pagamento
                           </button>
                         </div>
@@ -1120,8 +1120,8 @@ export default function Orcamentos() {
                               {p.obs&&<p style={{fontSize:'12px',color:'#475569'}}>{p.obs}</p>}
                             </div>
                             <div style={{display:'flex',gap:'6px'}}>
-                              <button onClick={()=>editarHpPag(i)} style={{background:'#F8FAFC',border:'1.5px solid #DCE3EA',borderRadius:'6px',padding:'3px 8px',fontSize:'11px',fontWeight:600,color:'#667085',cursor:'pointer',fontFamily:'inherit'}}>Editar</button>
-                              <button onClick={()=>excluirHpPag(i)} style={{background:'#FEF2F2',border:'1.5px solid #FECACA',borderRadius:'6px',padding:'3px 8px',fontSize:'11px',fontWeight:600,color:'#DC2626',cursor:'pointer',fontFamily:'inherit'}}>Excluir</button>
+                              <button onClick={()=>editarHpPag(i)} style={{background:'rgba(255,255,255,.06)',border:'1px solid rgba(255,255,255,.12)',borderRadius:'6px',padding:'3px 8px',fontSize:'11px',fontWeight:600,color:'#94A3B8',cursor:'pointer',fontFamily:'inherit'}}>Editar</button>
+                              <button onClick={()=>excluirHpPag(i)} style={{background:'rgba(239,68,68,.10)',border:'1px solid rgba(239,68,68,.24)',borderRadius:'6px',padding:'3px 8px',fontSize:'11px',fontWeight:600,color:'#F87171',cursor:'pointer',fontFamily:'inherit'}}>Excluir</button>
                             </div>
                           </div>
                         ))}
@@ -1264,7 +1264,7 @@ export default function Orcamentos() {
                 <h2 style={{fontSize:'20px',fontWeight:800,color:'#F8FAFC'}}>{orc.tipo} — {orc.cliente_nome}</h2>
                 <span style={{fontSize:'11px',fontWeight:700,padding:'3px 10px',borderRadius:'999px',background:cfg.bg,color:cfg.color,border:`1px solid ${cfg.border}`}}>{orc.status}</span>
               </div>
-              {mensagem&&<div style={{fontSize:'13px',padding:'10px 14px',borderRadius:'8px',marginBottom:'14px',background:'#F0FDF4',border:'1px solid #BBF7D0',color:'#16A34A'}}>{mensagem}</div>}
+              {mensagem&&<div style={{fontSize:'13px',padding:'10px 14px',borderRadius:'8px',marginBottom:'14px',background:'rgba(34,197,94,.15)',border:'1px solid rgba(34,197,94,.30)',color:'#4ADE80'}}>{mensagem}</div>}
 
               <div style={card}>
                 <p style={{fontSize:'14px',fontWeight:700,color:'#F8FAFC',marginBottom:'14px'}}>📊 Resumo financeiro</p>
@@ -1282,7 +1282,7 @@ export default function Orcamentos() {
                     + Registrar pagamento
                   </button>
                   <button onClick={()=>gerarPDF(orc)} style={{background:'rgba(255,255,255,.06)',border:'1px solid rgba(255,255,255,.12)',borderRadius:'8px',padding:'8px 14px',fontSize:'12px',fontWeight:600,color:'#94A3B8',cursor:'pointer',fontFamily:'inherit'}}>PDF</button>
-                  <button onClick={()=>enviarWpp(orc)} style={{background:'#F0FFF4',border:'1.5px solid #86EFAC',borderRadius:'8px',padding:'8px 14px',fontSize:'12px',fontWeight:600,color:'#16A34A',cursor:'pointer',fontFamily:'inherit'}}>WhatsApp</button>
+                  <button onClick={()=>enviarWpp(orc)} style={{background:'rgba(34,197,94,.15)',border:'1px solid rgba(34,197,94,.28)',borderRadius:'8px',padding:'8px 14px',fontSize:'12px',fontWeight:600,color:'#4ADE80',cursor:'pointer',fontFamily:'inherit'}}>WhatsApp</button>
                   {orc.link_pagamento&&<button onClick={()=>navigator.clipboard.writeText(orc.link_pagamento)} style={{background:'rgba(255,255,255,.06)',border:'1px solid rgba(255,255,255,.12)',borderRadius:'8px',padding:'8px 14px',fontSize:'12px',fontWeight:600,color:'#94A3B8',cursor:'pointer',fontFamily:'inherit'}}>Copiar link</button>}
                   <button onClick={()=>abrirEditar(orc)} style={{background:'rgba(255,255,255,.06)',border:'1px solid rgba(255,255,255,.12)',borderRadius:'8px',padding:'8px 14px',fontSize:'12px',fontWeight:600,color:'#94A3B8',cursor:'pointer',fontFamily:'inherit'}}>Editar</button>
                 </div>
