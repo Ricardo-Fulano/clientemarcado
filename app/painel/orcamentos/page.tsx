@@ -1,5 +1,6 @@
 'use client'
 import { useEffect, useState } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { supabase } from '../../lib/supabase'
 import PainelSidebar from '@/app/components/PainelSidebar'
 const STATUS_LIST = ['Todos','Aberto','Aguardando aprovação','Em andamento','Parcialmente pago','Pago','Finalizado','Cancelado']
@@ -109,7 +110,11 @@ export default function Orcamentos() {
   const [showHpForm,setShowHpForm]=useState(false)
   const [showSinal,setShowSinal]=useState(false)
   const [showLinkPag,setShowLinkPag]=useState(false)
+  const searchParams = useSearchParams()
   useEffect(()=>{init()},[])
+  useEffect(()=>{
+    if(searchParams.get('novo')==='1'){resetForm();setView('form')}
+  },[searchParams])
   async function init(){
     const {data:{user}}=await supabase.auth.getUser()
     if(!user){window.location.href='/login';return}
