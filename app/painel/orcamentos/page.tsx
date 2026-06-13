@@ -484,7 +484,7 @@ export default function Orcamentos() {
   const mostrarOdontograma=usarOdontograma||tipo==='Tratamento'||isOdonto
 
   // Style constants
-  const BG='#F1F4F8'
+  const BG='rgba(15,23,42,.88)'
   const SIDEBAR='#0B172A'
   const inp:React.CSSProperties={width:'100%',border:'1.5px solid rgba(255,255,255,.12)',borderRadius:'8px',padding:'10px 14px',fontSize:'15px',color:'#fff',outline:'none',fontFamily:'inherit',background:'rgba(255,255,255,.06)',boxSizing:'border-box' as const}
   const sel:React.CSSProperties={...inp,cursor:'pointer',appearance:'none' as any,color:'#fff'}
@@ -835,7 +835,7 @@ export default function Orcamentos() {
                   </div>
 
                   {itens.map((item,idx)=>(
-                    <div key={idx} style={{marginBottom:'12px',padding:'14px',background:'#F8FAFC',borderRadius:'12px',border:'1px solid #DCE3EA',width:'100%',maxWidth:'100%',boxSizing:'border-box'}}>
+                    <div key={idx} style={{marginBottom:'12px',padding:'14px',background:'rgba(255,255,255,.05)',borderRadius:'12px',border:'1px solid rgba(255,255,255,.10)',width:'100%',maxWidth:'100%',boxSizing:'border-box'}}>
                       <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'10px'}}>
                         <span style={{fontSize:'11px',fontWeight:600,color:'#64748B',textTransform:'uppercase',letterSpacing:'.05em'}}>Item {idx+1}</span>
                         {itens.length>1&&(
@@ -847,19 +847,19 @@ export default function Orcamentos() {
                       </div>
                       {/* Nome */}
                       <div style={{marginBottom:'8px'}}>
-                        <label style={{fontSize:'12px',fontWeight:600,color:'#667085',display:'block',marginBottom:'6px',whiteSpace:'normal',lineHeight:'1.3'}}>Nome do serviço *</label>
+                        <label style={{fontSize:'12px',fontWeight:600,color:'#94A3B8',display:'block',marginBottom:'6px',whiteSpace:'normal',lineHeight:'1.3'}}>Nome do serviço *</label>
                         <input style={{...inp,width:'100%'}} type="text" placeholder="Ex: Corte de cabelo, limpeza de pele..."
                           value={item.nome} onChange={e=>atualizarItem(idx,'nome',e.target.value)} />
                       </div>
                       {/* Qtd + Valor */}
                       <div className="cm-serv-qtd-val" style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'8px',marginBottom:'8px',width:'100%',maxWidth:'100%'}}>
                         <div>
-                          <label style={{fontSize:'12px',fontWeight:600,color:'#667085',display:'block',marginBottom:'6px'}}>Qtd.</label>
+                          <label style={{fontSize:'12px',fontWeight:600,color:'#94A3B8',display:'block',marginBottom:'6px'}}>Qtd.</label>
                           <input style={{...inp,textAlign:'center',width:'100%'}} type="number" min="1"
                             value={item.qtd} onChange={e=>atualizarItem(idx,'qtd',e.target.value)} />
                         </div>
                         <div>
-                          <label style={{fontSize:'12px',fontWeight:600,color:'#667085',display:'block',marginBottom:'6px'}}>Valor</label>
+                          <label style={{fontSize:'12px',fontWeight:600,color:'#94A3B8',display:'block',marginBottom:'6px'}}>Valor</label>
                           <div style={{position:'relative'}}>
                             <span style={{position:'absolute',left:'10px',top:'50%',transform:'translateY(-50%)',fontSize:'12px',color:'#475569',fontWeight:600}}>R$</span>
                             <input style={{...inp,paddingLeft:'32px',width:'100%',maxWidth:'100%',boxSizing:'border-box'}} type="number" min="0" step="0.01" placeholder="0,00"
@@ -884,7 +884,7 @@ export default function Orcamentos() {
                   </button>
 
                   {/* Subtotal */}
-                  <div style={{marginTop:'16px',background:BG,borderRadius:'10px',padding:'14px 16px',width:'100%',maxWidth:'100%',boxSizing:'border-box'}}>
+                  <div style={{marginTop:'16px',background:'rgba(255,255,255,.06)',borderRadius:'10px',padding:'14px 16px',width:'100%',maxWidth:'100%',boxSizing:'border-box',border:'1px solid rgba(255,255,255,.10)'}}>
                     <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',fontSize:'13px',color:'#94A3B8',marginBottom:'8px'}}>
                       <span>Subtotal</span>
                       <span style={{fontWeight:600,color:'#fff'}}>R$ {fmtBRL(subtotal)}</span>
@@ -893,7 +893,7 @@ export default function Orcamentos() {
                       <span>Desconto</span>
                       <input type="number" min="0" step="0.01" placeholder="R$ 0,00" value={desconto}
                         onChange={e=>setDesconto(e.target.value)}
-                        style={{background:'rgba(255,255,255,.06)',border:'1px solid rgba(255,255,255,.12)',outline:'none',color:'#F87171',fontSize:'13px',fontWeight:600,textAlign:'right' as const,width:'100px',fontFamily:'inherit',borderRadius:'6px',padding:'4px 8px'}} />
+                        style={{background:'rgba(15,23,42,.88)',border:'1px solid rgba(255,255,255,.12)',outline:'none',color:'#F87171',fontSize:'13px',fontWeight:600,textAlign:'right' as const,width:'100px',fontFamily:'inherit',borderRadius:'6px',padding:'4px 8px'}} />
                     </div>
                     <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
                       <span style={{fontSize:'14px',fontWeight:700,color:'#fff'}}>Total final</span>
@@ -904,12 +904,12 @@ export default function Orcamentos() {
                 </div>
 
                 {/* Resumo mobile — só aparece no mobile */}
-                <div className="cm-resumo-mobile" style={{display:'none',background:'#fff',borderRadius:'14px',padding:'14px 16px',marginBottom:'12px',border:'1px solid #DCE3EA',boxShadow:'0 1px 3px rgba(0,0,0,.05)'}}>
+                <div className="cm-resumo-mobile" style={{display:'none',background:'rgba(255,255,255,.06)',borderRadius:'14px',padding:'14px 16px',marginBottom:'12px',border:'1px solid rgba(255,255,255,.10)'}}>
                   <p style={{fontSize:'12px',fontWeight:700,color:'#667085',textTransform:'uppercase',letterSpacing:'.06em',marginBottom:'10px'}}>Resumo</p>
                   <div style={{display:'flex',flexDirection:'column',gap:'6px'}}>
                     <div style={{display:'flex',justifyContent:'space-between',fontSize:'13px'}}>
                       <span style={{color:'#667085'}}>Cliente</span>
-                      <span style={{fontWeight:600,color:clienteNome?'#fff':'#475569',maxWidth:'60%',textAlign:'right',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{clienteNome||'Não informado'}</span>
+                      <span style={{fontWeight:600,color:clienteNome?'#F8FAFC':'#475569',maxWidth:'60%',textAlign:'right',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{clienteNome||'Não informado'}</span>
                     </div>
                     <div style={{display:'flex',justifyContent:'space-between',fontSize:'13px'}}>
                       <span style={{color:'#667085'}}>Tipo</span>
@@ -995,11 +995,11 @@ export default function Orcamentos() {
                     <span style={{color:'#64748B',fontSize:'18px',transform:showPagSection?'rotate(180deg)':'none',transition:'transform .2s'}}>⌄</span>
                   </div>
                   {showPagSection&&(
-                    <div style={{padding:'0 24px 20px',borderTop:'1px solid #F1F4F8'}}>
+                    <div style={{padding:'0 24px 20px',borderTop:'1px solid rgba(255,255,255,.08)'}}>
                       {/* Cards resumo */}
                       <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'8px',margin:'16px 0'}}>
-                        {[{l:'Total',v:total,c:'#0F172A'},{l:'Pago',v:valorPagoLocal,c:'#16A34A'},{l:'Saldo',v:saldoLocal,c:saldoLocal>0?'#EA580C':'#16A34A'}].map(f=>(
-                          <div key={f.l} style={{background:BG,borderRadius:'8px',padding:'10px',border:'1px solid #DCE3EA'}}>
+                        {[{l:'Total',v:total,c:'#F8FAFC'},{l:'Pago',v:valorPagoLocal,c:'#4ADE80'},{l:'Saldo',v:saldoLocal,c:saldoLocal>0?'#FBBF24':'#4ADE80'}].map(f=>(
+                          <div key={f.l} style={{background:'rgba(255,255,255,.06)',borderRadius:'8px',padding:'10px',border:'1px solid rgba(255,255,255,.10)'}}>
                             <p style={{fontSize:'10px',fontWeight:600,color:'#667085',textTransform:'uppercase',letterSpacing:'.05em',marginBottom:'3px'}}>{f.l}</p>
                             <p style={{fontSize:'15px',fontWeight:800,color:f.c}}>R$ {fmtBRL(f.v)}</p>
                           </div>
@@ -1098,7 +1098,7 @@ export default function Orcamentos() {
                               <div><label style={lbl}>Observação</label><input style={inp} type="text" placeholder="Ex: entrada, parcela 2..." value={hpObs} onChange={e=>setHpObs(e.target.value)} /></div>
                               <div style={{display:'flex',gap:'8px'}}>
                                 <button onClick={()=>{setShowHpForm(false);setEditandoPagIdx(null)}}
-                                  style={{flex:1,background:'#F8FAFC',border:'1.5px solid #DCE3EA',borderRadius:'8px',padding:'10px',fontSize:'13px',fontWeight:600,color:'#667085',cursor:'pointer',fontFamily:'inherit'}}>Cancelar</button>
+                                  style={{flex:1,background:'rgba(255,255,255,.06)',border:'1px solid rgba(255,255,255,.12)',borderRadius:'8px',padding:'10px',fontSize:'13px',fontWeight:600,color:'#94A3B8',cursor:'pointer',fontFamily:'inherit'}}>Cancelar</button>
                                 <button onClick={salvarHpPag}
                                   style={{flex:2,background:'#2563EB',border:'none',borderRadius:'8px',padding:'10px',fontSize:'13px',fontWeight:700,color:'#fff',cursor:'pointer',fontFamily:'inherit'}}>
                                   {editandoPagIdx!==null?'Atualizar':'Salvar pagamento'}
@@ -1195,7 +1195,7 @@ export default function Orcamentos() {
                   <div style={{display:'flex',flexDirection:'column',gap:'10px',marginBottom:'16px'}}>
                     <div>
                       <p style={{fontSize:'11px',fontWeight:600,color:'#64748B',textTransform:'uppercase',letterSpacing:'.05em',marginBottom:'2px'}}>Cliente</p>
-                      <p style={{fontSize:'14px',fontWeight:600,color:clienteNome?'#fff':'#475569'}}>{clienteNome||'Não informado'}</p>
+                      <p style={{fontSize:'14px',fontWeight:600,color:clienteNome?'#F8FAFC':'#475569'}}>{clienteNome||'Não informado'}</p>
                     </div>
                     <div>
                       <p style={{fontSize:'11px',fontWeight:600,color:'#64748B',textTransform:'uppercase',letterSpacing:'.05em',marginBottom:'2px'}}>Tipo</p>
@@ -1269,8 +1269,8 @@ export default function Orcamentos() {
               <div style={card}>
                 <p style={{fontSize:'14px',fontWeight:700,color:'#F8FAFC',marginBottom:'14px'}}>📊 Resumo financeiro</p>
                 <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'8px',marginBottom:'14px'}}>
-                  {[{l:'Total',v:orc.total,c:'#0F172A'},{l:'Pago',v:orc.valor_pago,c:'#16A34A'},{l:'Saldo',v:orc.saldo_restante,c:orc.saldo_restante>0?'#EA580C':'#16A34A'}].map(f=>(
-                    <div key={f.l} style={{background:BG,borderRadius:'8px',padding:'12px',border:'1px solid #DCE3EA'}}>
+                  {[{l:'Total',v:orc.total,c:'#F8FAFC'},{l:'Pago',v:orc.valor_pago,c:'#4ADE80'},{l:'Saldo',v:orc.saldo_restante,c:orc.saldo_restante>0?'#FBBF24':'#4ADE80'}].map(f=>(
+                    <div key={f.l} style={{background:'rgba(255,255,255,.06)',borderRadius:'8px',padding:'12px',border:'1px solid rgba(255,255,255,.10)'}}>
                       <p style={{fontSize:'10px',fontWeight:600,color:'#667085',textTransform:'uppercase',letterSpacing:'.05em',marginBottom:'4px'}}>{f.l}</p>
                       <p style={{fontSize:'18px',fontWeight:800,color:f.c}}>R$ {fmtBRL(f.v)}</p>
                     </div>
@@ -1287,7 +1287,7 @@ export default function Orcamentos() {
                   <button onClick={()=>abrirEditar(orc)} style={{background:'rgba(255,255,255,.06)',border:'1px solid rgba(255,255,255,.12)',borderRadius:'8px',padding:'8px 14px',fontSize:'12px',fontWeight:600,color:'#94A3B8',cursor:'pointer',fontFamily:'inherit'}}>Editar</button>
                 </div>
                 {showPagForm&&(
-                  <div style={{marginTop:'14px',background:'#F0F9FF',border:'1.5px solid #BAE6FD',borderRadius:'10px',padding:'16px'}}>
+                  <div style={{marginTop:'14px',background:'rgba(59,130,246,.12)',border:'1.5px solid rgba(59,130,246,.28)',borderRadius:'10px',padding:'16px'}}>
                     <p style={{fontSize:'13px',fontWeight:700,color:'#93C5FD',marginBottom:'12px'}}>Registrar pagamento</p>
                     <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'10px',marginBottom:'10px'}}>
                       <div><label style={lbl}>Data</label><input type="date" value={pagData} onChange={e=>setPagData(e.target.value)} style={inp} /></div>
@@ -1299,7 +1299,7 @@ export default function Orcamentos() {
                       </select></div>
                     <div style={{marginBottom:'12px'}}><label style={lbl}>Observação</label><input type="text" placeholder="Opcional" value={pagObs} onChange={e=>setPagObs(e.target.value)} style={inp} /></div>
                     <div style={{display:'flex',gap:'8px'}}>
-                      <button onClick={()=>setShowPagForm(false)} style={{flex:1,background:'#F8FAFC',border:'1.5px solid #DCE3EA',borderRadius:'8px',padding:'10px',fontSize:'13px',fontWeight:600,color:'#667085',cursor:'pointer',fontFamily:'inherit'}}>Cancelar</button>
+                      <button onClick={()=>setShowPagForm(false)} style={{flex:1,background:'rgba(255,255,255,.06)',border:'1px solid rgba(255,255,255,.12)',borderRadius:'8px',padding:'10px',fontSize:'13px',fontWeight:600,color:'#94A3B8',cursor:'pointer',fontFamily:'inherit'}}>Cancelar</button>
                       <button disabled={savingPag} onClick={()=>handleRegistrarPagamento(orc)} style={{flex:2,background:'#2563EB',border:'none',borderRadius:'8px',padding:'10px',fontSize:'13px',fontWeight:700,color:'#fff',cursor:'pointer',fontFamily:'inherit'}}>{savingPag?'Salvando...':'Confirmar pagamento'}</button>
                     </div>
                   </div>
