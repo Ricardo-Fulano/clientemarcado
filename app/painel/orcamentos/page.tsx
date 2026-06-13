@@ -288,7 +288,8 @@ export default function Orcamentos() {
     setHistPags(prev=>prev.filter((_,i)=>i!==idx))
     if(editandoPagIdx===idx){setEditandoPagIdx(null);setShowHpForm(false)}
   }
-  const isOdonto=perfil?.tipo_negocio?.toLowerCase().includes('odont')
+  const [usarOdontograma,setUsarOdontograma]=useState(false)
+  const isOdonto=usarOdontograma
   const DENTES_SUPERIOR=[18,17,16,15,14,13,12,11,21,22,23,24,25,26,27,28]
   const DENTES_INFERIOR=[48,47,46,45,44,43,42,41,31,32,33,34,35,36,37,38]
   function toggleDente(n:number){setDentesSelec(prev=>prev.includes(n)?prev.filter(d=>d!==n):[...prev,n])}
@@ -611,6 +612,14 @@ export default function Orcamentos() {
                           <span style={{fontSize:'18px',fontWeight:800,color:'#60A5FA'}}>R$ {fmtBRL(total)}</span>
                         </div>
                       </div>
+                    </div>
+                    <div style={{marginBottom:'12px'}}>
+                      <button onClick={()=>setUsarOdontograma(!usarOdontograma)}
+                        style={{display:'flex',alignItems:'center',gap:'8px',background:'rgba(255,255,255,.04)',border:'1px solid rgba(148,163,184,.14)',borderRadius:'10px',padding:'10px 16px',cursor:'pointer',fontFamily:'inherit',width:'100%'}}>
+                        <span style={{fontSize:'16px'}}>🦷</span>
+                        <span style={{fontSize:'13px',fontWeight:600,color:'#F8FAFC',flex:1,textAlign:'left'}}>Orçamento odontológico</span>
+                        <span style={{fontSize:'12px',color:usarOdontograma?'#4ADE80':'#64748B',fontWeight:600}}>{usarOdontograma?'Ativado ✓':'Adicionar odontograma'}</span>
+                      </button>
                     </div>
                     {isOdonto&&(
                       <div style={card}>
