@@ -448,7 +448,6 @@ export default function Financeiro() {
 
         </div></div>
       </div>
-    </div>
     {pagSel&&(
       <>
         <div onClick={()=>setPagSel(null)} style={{position:'fixed',inset:0,background:'rgba(0,0,0,.7)',backdropFilter:'blur(6px)',zIndex:80}}/>
@@ -497,5 +496,6 @@ export default function Financeiro() {
         </div>
       </>
     )}
+    </div>
   )
 }
