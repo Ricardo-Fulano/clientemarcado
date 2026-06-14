@@ -60,7 +60,8 @@ export default function Orcamentos() {
   const [loading,setLoading]=useState(true)
   const [filtroStatus,setFiltroStatus]=useState('Todos')
   const [filtroCliente,setFiltroCliente]=useState('')
-  const [view,setView]=useState<'lista'|'form'|'detalhe'>('lista')
+  const [view,setView]=useState<'lista'|'escolha'|'form'|'detalhe'>('lista')
+  const [tipoOrc,setTipoOrc]=useState<'comum'|'odonto'>('comum')
   const [editandoId,setEditandoId]=useState<string|null>(null)
   const [detalheId,setDetalheId]=useState<string|null>(null)
   const [pagamentos,setPagamentos]=useState<any[]>([])
@@ -119,7 +120,7 @@ export default function Orcamentos() {
   const searchParams = useSearchParams()
   useEffect(()=>{init()},[])
   useEffect(()=>{
-    if(searchParams.get('novo')==='1'){resetForm();setView('form')}
+    if(searchParams.get('novo')==='1'){resetForm();setView('escolha')}
   },[searchParams])
   async function init(){
     const {data:{user}}=await supabase.auth.getUser()
@@ -387,7 +388,7 @@ export default function Orcamentos() {
                   <h1 style={{fontSize:'24px',fontWeight:800,color:'#fff',letterSpacing:'-0.02em',marginBottom:'4px'}}>Orçamentos</h1>
                   <p style={{fontSize:'14px',color:'#94A3B8'}}>Crie, acompanhe e envie orçamentos em poucos segundos.</p>
                 </div>
-                <button onClick={()=>{resetForm();setView('form')}}
+                <button onClick={()=>{resetForm();setView('escolha')}}
                   style={{background:'linear-gradient(135deg,#3B82F6,#7C3AED)',color:'#fff',border:'none',borderRadius:'10px',padding:'11px 22px',fontSize:'14px',fontWeight:700,cursor:'pointer',fontFamily:'inherit',boxShadow:'0 4px 20px rgba(59,130,246,.3)',display:'flex',alignItems:'center',gap:'8px',whiteSpace:'nowrap'}}>
                   + Novo orçamento
                 </button>
@@ -529,18 +530,69 @@ export default function Orcamentos() {
             </div>
           </div>
         )}
+        {view==='escolha'&&(
+          <div style={{minHeight:'100vh',background:'#07111F'}}>
+            <div style={{padding:'28px 32px 60px',maxWidth:'760px',margin:'0 auto'}}>
+              <button onClick={()=>setView('lista')}
+                style={{background:'none',border:'none',cursor:'pointer',fontSize:'13px',color:'#64748B',fontFamily:'inherit',padding:'0',display:'flex',alignItems:'center',gap:'4px',marginBottom:'24px'}}>
+                ← Voltar à lista
+              </button>
+              <h1 style={{fontSize:'24px',fontWeight:800,color:'#fff',letterSpacing:'-0.02em',marginBottom:'6px'}}>Novo orçamento</h1>
+              <p style={{fontSize:'14px',color:'#94A3B8',marginBottom:'32px'}}>Escolha o tipo de orçamento que deseja criar.</p>
+              <style dangerouslySetInnerHTML={{__html:'@media(max-width:600px){.orc-grid{grid-template-columns:1fr!important}}'}}/>
+              <div className="orc-grid" style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'16px'}}>
+                <button onClick={()=>{resetForm();setTipoOrc('comum');setView('form')}}
+                  style={{background:'radial-gradient(circle at top left,rgba(59,130,246,.10),transparent 50%),linear-gradient(145deg,rgba(15,23,42,.97),rgba(8,20,33,.99))',border:'1.5px solid rgba(59,130,246,.22)',borderRadius:'20px',padding:'28px 24px',textAlign:'left',cursor:'pointer',fontFamily:'inherit',display:'flex',flexDirection:'column',gap:'14px',transition:'all .18s'}}
+                  onMouseEnter={e=>{(e.currentTarget as HTMLButtonElement).style.borderColor='rgba(59,130,246,.55)';(e.currentTarget as HTMLButtonElement).style.boxShadow='0 0 32px rgba(59,130,246,.15)'}}
+                  onMouseLeave={e=>{(e.currentTarget as HTMLButtonElement).style.borderColor='rgba(59,130,246,.22)';(e.currentTarget as HTMLButtonElement).style.boxShadow='none'}}>
+                  <div style={{width:'52px',height:'52px',borderRadius:'14px',background:'rgba(59,130,246,.15)',border:'1px solid rgba(59,130,246,.3)',display:'flex',alignItems:'center',justifyContent:'center'}}>
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#60A5FA" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                  </div>
+                  <div>
+                    <p style={{fontSize:'17px',fontWeight:800,color:'#F8FAFC',marginBottom:'6px'}}>Orçamento comum</p>
+                    <p style={{fontSize:'13px',color:'#94A3B8',lineHeight:'1.5'}}>Crie orçamentos simples para serviços, procedimentos e atendimentos em geral.</p>
+                  </div>
+                  <div style={{display:'flex',alignItems:'center',gap:'6px'}}>
+                    <span style={{fontSize:'13px',fontWeight:700,color:'#60A5FA'}}>Criar orçamento comum</span>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#60A5FA" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+                  </div>
+                </button>
+                <button onClick={()=>{resetForm();setTipoOrc('odonto');setUsarOdontograma(true);setView('form')}}
+                  style={{background:'radial-gradient(circle at top left,rgba(124,58,237,.12),transparent 50%),linear-gradient(145deg,rgba(15,23,42,.97),rgba(8,20,33,.99))',border:'1.5px solid rgba(124,58,237,.28)',borderRadius:'20px',padding:'28px 24px',textAlign:'left',cursor:'pointer',fontFamily:'inherit',display:'flex',flexDirection:'column',gap:'14px',position:'relative',transition:'all .18s'}}
+                  onMouseEnter={e=>{(e.currentTarget as HTMLButtonElement).style.borderColor='rgba(124,58,237,.60)';(e.currentTarget as HTMLButtonElement).style.boxShadow='0 0 32px rgba(124,58,237,.18)'}}
+                  onMouseLeave={e=>{(e.currentTarget as HTMLButtonElement).style.borderColor='rgba(124,58,237,.28)';(e.currentTarget as HTMLButtonElement).style.boxShadow='none'}}>
+                  <div style={{position:'absolute',top:'16px',right:'16px',background:'rgba(124,58,237,.18)',border:'1px solid rgba(124,58,237,.35)',borderRadius:'999px',padding:'3px 10px',fontSize:'10px',fontWeight:700,color:'#C4B5FD',letterSpacing:'.06em'}}>ODONTOLÓGICO</div>
+                  <div style={{width:'52px',height:'52px',borderRadius:'14px',background:'rgba(124,58,237,.15)',border:'1px solid rgba(124,58,237,.3)',display:'flex',alignItems:'center',justifyContent:'center'}}>
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#C4B5FD" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2C8 2 4 5 4 9c0 2.5 1 4.5 2 6 1 1.5 2 3 2 5 0 1 .5 2 1.5 2h5c1 0 1.5-1 1.5-2 0-2 1-3.5 2-5 1-1.5 2-3.5 2-6 0-4-4-7-8-7z"/></svg>
+                  </div>
+                  <div>
+                    <p style={{fontSize:'17px',fontWeight:800,color:'#F8FAFC',marginBottom:'6px'}}>Orçamento odontológico</p>
+                    <p style={{fontSize:'13px',color:'#94A3B8',lineHeight:'1.5'}}>Monte tratamentos por dente com odontograma interativo, acompanhe pagamentos e gere PDF para o paciente.</p>
+                  </div>
+                  <div style={{display:'flex',alignItems:'center',gap:'6px'}}>
+                    <span style={{fontSize:'13px',fontWeight:700,color:'#C4B5FD'}}>Criar orçamento odontológico</span>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#C4B5FD" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+                  </div>
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
         {view==='form'&&(
           <div style={{minHeight:'100vh',background:'#07111F'}}>
             <div style={{padding:'24px 32px 60px',maxWidth:'1100px',margin:'0 auto'}}>
               <div style={{padding:'24px',width:'100%',boxSizing:'border-box' as const}}>
                 <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:'20px',flexWrap:'wrap',gap:'12px'}}>
                   <div>
-                    <button onClick={()=>{resetForm();setView('lista')}}
+                    <button onClick={()=>{resetForm();setView(editandoId?'lista':'escolha')}}
                       style={{background:'none',border:'none',cursor:'pointer',fontSize:'13px',color:'#64748B',fontFamily:'inherit',padding:'0',display:'flex',alignItems:'center',gap:'4px',marginBottom:'8px'}}>
-                      ← Voltar à lista
+                      ← {editandoId?'Voltar à lista':'Voltar'}
                     </button>
-                    <h1 style={{fontSize:'22px',fontWeight:800,color:'#fff',letterSpacing:'-0.02em',marginBottom:'2px'}}>{editandoId?'Editar orçamento':'Novo orçamento'}</h1>
-                    <p style={{fontSize:'13px',color:'#94A3B8'}}>Preencha os dados e envie para o cliente.</p>
+                    <div style={{display:'flex',alignItems:'center',gap:'10px',marginBottom:'2px'}}>
+                      <h1 style={{fontSize:'22px',fontWeight:800,color:'#fff',letterSpacing:'-0.02em'}}>{editandoId?'Editar orçamento':tipoOrc==='odonto'?'Orçamento odontológico':'Novo orçamento'}</h1>
+                      {tipoOrc==='odonto'&&!editandoId&&<span style={{fontSize:'11px',fontWeight:700,background:'rgba(124,58,237,.18)',border:'1px solid rgba(124,58,237,.35)',borderRadius:'999px',padding:'3px 10px',color:'#C4B5FD'}}>Odontológico</span>}
+                    </div>
+                    <p style={{fontSize:'13px',color:'#94A3B8'}}>{tipoOrc==='odonto'?'Odontograma interativo com procedimentos por dente.':'Preencha os dados e envie para o cliente.'}</p>
                   </div>
                 </div>
                 {mensagem&&<div style={{fontSize:'13px',padding:'10px 14px',borderRadius:'8px',marginBottom:'16px',color:mensagem.includes('rro')?'#F87171':'#4ADE80',background:mensagem.includes('rro')?'rgba(220,38,38,.15)':'rgba(34,197,94,.15)',border:`1px solid ${mensagem.includes('rro')?'rgba(220,38,38,.3)':'rgba(34,197,94,.3)'}`}}>{mensagem}</div>}
@@ -684,14 +736,14 @@ export default function Orcamentos() {
                         </div>
                       </div>
                     </div>
-                    <div style={{marginBottom:'12px'}}>
+                    {tipoOrc!=='odonto'&&<div style={{marginBottom:'12px'}}>
                       <button onClick={()=>setUsarOdontograma(!usarOdontograma)}
                         style={{display:'flex',alignItems:'center',gap:'8px',background:'rgba(255,255,255,.04)',border:'1px solid rgba(148,163,184,.14)',borderRadius:'10px',padding:'10px 16px',cursor:'pointer',fontFamily:'inherit',width:'100%'}}>
                         <span style={{fontSize:'16px'}}>🦷</span>
                         <span style={{fontSize:'13px',fontWeight:600,color:'#F8FAFC',flex:1,textAlign:'left'}}>Orçamento odontológico</span>
                         <span style={{fontSize:'12px',color:usarOdontograma?'#4ADE80':'#64748B',fontWeight:600}}>{usarOdontograma?'Ativado ✓':'Adicionar odontograma'}</span>
                       </button>
-                    </div>
+                    </div>}
                     {isOdonto&&(
                       <div style={card}>
                         <p style={{fontSize:'15px',fontWeight:700,color:'#F8FAFC',marginBottom:'4px'}}>🦷 Odontograma</p>
