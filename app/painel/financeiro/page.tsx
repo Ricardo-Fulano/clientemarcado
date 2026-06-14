@@ -233,7 +233,7 @@ export default function Financeiro() {
                       <p style={{ fontSize: '14px', fontWeight: 700, color: '#4ADE80' }}>{fmtBRL(p.valor)}</p>
                     </div>
                   ))}
-                  {pagMes.length > 5 && <p style={{ fontSize: '12px', color: '#64748B', marginTop: '8px', cursor: 'pointer', color: '#60A5FA' }} onClick={() => setAba('pagamentos')}>Ver todos ({pagMes.length})</p>}
+                  {pagMes.length > 5 && <p style={{ fontSize: '12px', marginTop: '8px', cursor: 'pointer', color: '#60A5FA' }} onClick={() => setAba('pagamentos')}>Ver todos ({pagMes.length})</p>}
                 </div>
                 {/* Últimas despesas */}
                 <div className="crd" style={{ padding: '20px' }}>
