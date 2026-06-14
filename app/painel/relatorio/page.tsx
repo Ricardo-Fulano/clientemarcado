@@ -117,10 +117,12 @@ export default function Relatorios(){
   const melhorComRec=profStats.find(p=>p.rec>0)||null
 
   // Resumo por servico - baseado nos agendamentos do mes
-  const agsRealizados=agsMes.filter(a=>a.status==='realizado'||a.status==='compareceu')
+  const STATUS_OK=['realizado','Realizado','compareceu','concluido','concluido','finalizado','confirmado']
+  console.log('agsMes total:',agsMes.length,'status valores:',agsMes.map(a=>a.status))
+  const agsRealizados=agsMes.filter(a=>STATUS_OK.includes(a.status||''))
   const servicosMap:Record<string,{nome:string,qtd:number,receita:number,profs:Record<string,number>}>={}
   agsRealizados.forEach(a=>{
-    const nomeSv=a.servicos?.nome||'Serviço não informado'
+    const nomeSv=a.servicos?.nome||a.servico_nome||a.servico||'Serviço não informado'
     if(!servicosMap[nomeSv])servicosMap[nomeSv]={nome:nomeSv,qtd:0,receita:0,profs:{}}
     servicosMap[nomeSv].qtd+=1
     servicosMap[nomeSv].receita+=(a.valor||a.valor_total||a.servicos?.preco||0)
