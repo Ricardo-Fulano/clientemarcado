@@ -47,9 +47,11 @@ const MOBILE_CSS = `
     .cm-kpi-grid{grid-template-columns:1fr 1fr!important;gap:10px!important}
     .cm-tabela-desktop{display:none!important}
     .cm-cards-mobile{display:flex!important;flex-direction:column!important;gap:10px!important}
-    .cm-lista-pad,.cm-form-pad,.cm-detalhe-pad{padding:8px 8px 130px!important}
+    .cm-lista-pad,.cm-form-pad,.cm-detalhe-pad{padding:8px 8px 140px!important}
     .cm-filtros-wrap{display:flex!important;flex-wrap:wrap!important;overflow:visible!important;width:100%!important;max-width:100%!important;gap:8px!important}
-    .cm-form-inner{padding:12px!important}
+    .cm-form-inner{padding:0!important}
+    .cm-form-topo{margin-bottom:12px!important}
+    .cm-form-titulo{font-size:20px!important;margin-bottom:2px!important}
   }
   @media(max-width:480px){.cm-metrics{grid-template-columns:1fr!important}}
 `
@@ -374,7 +376,7 @@ export default function Orcamentos() {
   const inp:React.CSSProperties={width:'100%',border:'1.5px solid rgba(255,255,255,.12)',borderRadius:'8px',padding:'10px 14px',fontSize:'15px',color:'#fff',outline:'none',fontFamily:'inherit',background:'rgba(255,255,255,.06)',boxSizing:'border-box' as const}
   const sel:React.CSSProperties={...inp,cursor:'pointer',appearance:'none' as any,color:'#fff'}
   const lbl:React.CSSProperties={fontSize:'12px',fontWeight:600,color:'#94A3B8',textTransform:'uppercase' as const,letterSpacing:'.05em',display:'block',marginBottom:'6px'}
-  const card:React.CSSProperties={background:'radial-gradient(circle at top left,rgba(124,58,237,.06),transparent 40%),linear-gradient(145deg,rgba(15,23,42,.97),rgba(8,20,33,.99))',borderRadius:'16px',padding:'20px 24px',marginBottom:'12px',border:'1px solid rgba(148,163,184,.14)',boxShadow:'0 4px 20px rgba(0,0,0,.3)'}
+  const card:React.CSSProperties={background:'radial-gradient(circle at top left,rgba(124,58,237,.06),transparent 40%),linear-gradient(145deg,rgba(15,23,42,.97),rgba(8,20,33,.99))',borderRadius:'16px',padding:'16px',marginBottom:'10px',border:'1px solid rgba(148,163,184,.14)',boxShadow:'0 4px 20px rgba(0,0,0,.3)'}
   if(loading)return(<div style={{minHeight:'100vh',background:'#050B16',display:'flex',alignItems:'center',justifyContent:'center',fontFamily:'system-ui'}}><p style={{color:'#64748B',fontSize:'14px'}}>Carregando...</p></div>)
   return(
     <div style={{display:'flex',minHeight:'100vh',background:'#050B16',fontFamily:'-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif',overflowX:'hidden',width:'100%'}}>
@@ -581,9 +583,9 @@ export default function Orcamentos() {
         )}
         {view==='form'&&(
           <div style={{minHeight:'100vh',background:'#07111F'}}>
-            <div style={{padding:'16px 20px 60px',maxWidth:'1100px',margin:'0 auto'}}>
+            <div style={{padding:'12px 12px 60px',maxWidth:'1100px',margin:'0 auto'}}>
               <div style={{padding:'0px',width:'100%',boxSizing:'border-box' as const}}>
-                <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:'20px',flexWrap:'wrap',gap:'12px'}}>
+                <div className="cm-form-topo" style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:'14px',flexWrap:'wrap',gap:'8px'}}>
                   <div>
                     <button onClick={()=>{resetForm();setView(editandoId?'lista':'escolha')}}
                       style={{background:'none',border:'none',cursor:'pointer',fontSize:'13px',color:'#64748B',fontFamily:'inherit',padding:'0',display:'flex',alignItems:'center',gap:'4px',marginBottom:'8px'}}>
@@ -673,7 +675,7 @@ export default function Orcamentos() {
                       </div>
                       <p style={{fontSize:'12px',color:'#94A3B8',marginBottom:'16px'}}>Adicione serviços, procedimentos ou itens deste orçamento.</p>
                       {itens.map((item,idx)=>(
-                        <div key={idx} style={{marginBottom:'12px',padding:'14px',background:'rgba(255,255,255,.04)',borderRadius:'12px',border:'1px solid rgba(148,163,184,.12)',width:'100%',boxSizing:'border-box'}}>
+                        <div key={idx} style={{marginBottom:'10px',padding:'12px 10px',background:'rgba(255,255,255,.04)',borderRadius:'12px',border:'1px solid rgba(148,163,184,.12)',width:'100%',boxSizing:'border-box'}}>
                           <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'10px'}}>
                             <span style={{fontSize:'11px',fontWeight:600,color:'#64748B',textTransform:'uppercase',letterSpacing:'.05em'}}>Item {idx+1}</span>
                             {itens.length>1&&<button onClick={()=>setItens(prev=>prev.filter((_,i)=>i!==idx))}
