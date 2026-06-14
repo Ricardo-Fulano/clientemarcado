@@ -13,7 +13,7 @@ const LINKS = [
   { h: '/painel/clientes',      l: 'Clientes'      },
   { h: '/painel/orcamentos',    l: 'Orçamentos'    },
   { h: '/painel/cobrancas',     l: 'Cobranças'     },
-  { h: '/painel/pagamentos',    l: 'Pagamentos'    },
+  { h: '/painel/financeiro',    l: 'Financeiro'    },
   { h: '/painel/servicos',      l: 'Serviços'      },
   { h: '/painel/profissionais', l: 'Profissionais' },
   { h: '/painel/relatorio',     l: 'Relatórios'    },
