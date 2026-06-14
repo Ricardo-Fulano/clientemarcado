@@ -35,6 +35,12 @@ select option{background:#07111F;color:#F8FAFC}
   .kpi-grid{grid-template-columns:1fr 1fr!important}
   .tabs-row .tab-btn{flex:1 1 calc(33% - 6px);font-size:12px;padding:8px 10px}
 }
+@media(max-width:1023px){
+  .resumo-grid{grid-template-columns:1fr!important}
+  .periodo-input{font-size:12px!important;padding:6px 10px!important;min-width:0!important;width:100%!important}
+  .periodo-wrap{width:100%!important}
+  .header-fin{flex-direction:column!important;align-items:stretch!important}
+}
 `
 
 function fmtBRL(v: number) { return `R$ ${(v || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` }
@@ -176,16 +182,16 @@ export default function Financeiro() {
           {msg && <div style={{ position: 'fixed', top: '72px', left: '50%', transform: 'translateX(-50%)', background: 'rgba(15,23,42,.96)', border: '1px solid rgba(59,130,246,.35)', borderRadius: '10px', padding: '10px 20px', fontSize: '13px', fontWeight: 600, color: '#F8FAFC', zIndex: 99, whiteSpace: 'nowrap', boxShadow: '0 8px 24px rgba(0,0,0,.5)' }}>{msg}</div>}
 
           {/* Header */}
-          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '16px', flexWrap: 'wrap', marginBottom: '24px' }}>
+          <div className="header-fin" style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '16px', flexWrap: 'wrap', marginBottom: '24px' }}>
             <div>
               <h1 style={{ fontSize: '22px', fontWeight: 800, color: '#F8FAFC', letterSpacing: '-0.04em', marginBottom: '5px' }}>Financeiro</h1>
               <p style={{ fontSize: '13px', color: '#64748B' }}>Acompanhe recebimentos, despesas e o resultado do seu negócio.</p>
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
-              <div>
+            <div className="periodo-wrap" style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+              <div style={{ width: '100%' }}>
                 <p style={{ fontSize: '10px', fontWeight: 700, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: '4px' }}>Período</p>
-                <input type="month" value={mes} onChange={e => setMes(e.target.value)}
-                  style={{ background: 'rgba(15,23,42,.88)', border: '1.5px solid rgba(148,163,184,.18)', borderRadius: '10px', padding: '8px 12px', fontSize: '13px', color: '#F8FAFC', outline: 'none', fontFamily: 'inherit' }} />
+                <input type="month" value={mes} onChange={e => setMes(e.target.value)} className="periodo-input"
+                  style={{ background: 'rgba(15,23,42,.88)', border: '1.5px solid rgba(148,163,184,.18)', borderRadius: '10px', padding: '8px 12px', fontSize: '13px', color: '#F8FAFC', outline: 'none', fontFamily: 'inherit', width: '100%', boxSizing: 'border-box' as any }} />
               </div>
             </div>
           </div>
@@ -218,7 +224,7 @@ export default function Financeiro() {
           {/* ABA RESUMO */}
           {aba === 'resumo' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+              <div className="resumo-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                 {/* Pagamentos recentes */}
                 <div className="crd" style={{ padding: '20px' }}>
                   <p style={{ fontSize: '14px', fontWeight: 700, color: '#F8FAFC', marginBottom: '14px' }}>Pagamentos recentes</p>
