@@ -1,7 +1,7 @@
 'use client'
 import { useState } from 'react'
 import Link from 'next/link'
-import { Search, ChevronRight, MessageCircle, X, CalendarDays, Users, Scissors, ClipboardList, CreditCard, CircleDollarSign, Globe, Settings } from 'lucide-react'
+import { Search, ChevronRight, MessageCircle, X, CalendarDays, Users, Star, ClipboardList, CreditCard, CircleDollarSign, Globe, Settings } from 'lucide-react'
 import PainelSidebar from '@/app/components/PainelSidebar'
 import { supabase } from '../../lib/supabase'
 import { useEffect } from 'react'
@@ -54,7 +54,7 @@ const CORES_CAT: Record<string, { bg: string; border: string; text: string; icon
 const CAT_ICONS: Record<string, React.ReactNode> = {
   'Agenda':              <CalendarDays  size={24} />,
   'Clientes':            <Users         size={24} />,
-  'Serviços':            <Scissors      size={24} />,
+  'Serviços':            <Star          size={24} />,
   'Orçamentos':          <ClipboardList size={24} />,
   'Cobranças':           <CreditCard    size={24} />,
   'Pagamentos':          <CircleDollarSign size={24} />,
