@@ -47,8 +47,9 @@ const MOBILE_CSS = `
     .cm-kpi-grid{grid-template-columns:1fr 1fr!important;gap:10px!important}
     .cm-tabela-desktop{display:none!important}
     .cm-cards-mobile{display:flex!important;flex-direction:column!important;gap:10px!important}
-    .cm-lista-pad,.cm-form-pad,.cm-detalhe-pad{padding:16px 16px 130px!important}
+    .cm-lista-pad,.cm-form-pad,.cm-detalhe-pad{padding:12px 12px 130px!important}
     .cm-filtros-wrap{display:flex!important;flex-wrap:wrap!important;overflow:visible!important;width:100%!important;max-width:100%!important;gap:8px!important}
+    .cm-form-inner{padding:12px!important}
   }
   @media(max-width:480px){.cm-metrics{grid-template-columns:1fr!important}}
 `
@@ -600,7 +601,7 @@ export default function Orcamentos() {
                   <div style={{minWidth:0}}>
                     <div style={card}>
                       <div style={{display:'flex',alignItems:'center',gap:'8px',marginBottom:'16px'}}>
-                        <span style={{fontSize:'16px'}}>👤</span>
+                        <div style={{width:'28px',height:'28px',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#60A5FA" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
                         <p style={{fontSize:'15px',fontWeight:700,color:'#F8FAFC'}}>Cliente</p>
                       </div>
                       <div style={{display:'flex',flexDirection:'column',gap:'12px'}}>
@@ -614,7 +615,7 @@ export default function Orcamentos() {
                     <div style={{...card,padding:0,overflow:'hidden'}}>
                       <div onClick={()=>setShowDetalhes(!showDetalhes)} style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'16px 24px',cursor:'pointer',userSelect:'none'}}>
                         <div style={{display:'flex',alignItems:'center',gap:'10px'}}>
-                          <span style={{fontSize:'16px'}}>📋</span>
+                          <div style={{width:'26px',height:'26px',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></div>
                           <div>
                             <p style={{fontSize:'14px',fontWeight:700,color:'#fff'}}>Detalhes do documento</p>
                             <p style={{fontSize:'12px',color:'#64748B',marginTop:'1px'}}>Tipo, status, profissional e data.</p>
@@ -667,7 +668,7 @@ export default function Orcamentos() {
                     </div>
                     <div style={card}>
                       <div style={{display:'flex',alignItems:'center',gap:'8px',marginBottom:'4px'}}>
-                        <span style={{fontSize:'16px'}}>✂️</span>
+                        <div style={{width:'28px',height:'28px',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#A78BFA" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg></div>
                         <p style={{fontSize:'15px',fontWeight:700,color:'#F8FAFC'}}>Serviços / Procedimentos</p>
                       </div>
                       <p style={{fontSize:'12px',color:'#94A3B8',marginBottom:'16px'}}>Adicione serviços, procedimentos ou itens deste orçamento.</p>
@@ -798,7 +799,7 @@ export default function Orcamentos() {
                         )}
                       </div>
                     )}
-                    <div style={{...card,padding:0,overflow:'hidden'}}>
+                    {tipoOrc!=='comum'&&<div style={{...card,padding:0,overflow:'hidden'}}>
                       <div onClick={()=>setShowPagSection(!showPagSection)} style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'16px 24px',cursor:'pointer',userSelect:'none'}}>
                         <div style={{display:'flex',alignItems:'center',gap:'10px'}}>
                           <span style={{fontSize:'16px'}}>💳</span>
@@ -914,8 +915,8 @@ export default function Orcamentos() {
                           </div>
                         </div>
                       )}
-                    </div>
-                    <div style={{...card,padding:0,overflow:'hidden'}}>
+                    </div>}
+                    {tipoOrc!=='comum'&&<div style={{...card,padding:0,overflow:'hidden'}}>
                       <div onClick={()=>setShowObs(!showObs)} style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'16px 24px',cursor:'pointer',userSelect:'none'}}>
                         <div style={{display:'flex',alignItems:'center',gap:'10px'}}>
                           <span style={{fontSize:'16px'}}>📝</span>
@@ -930,9 +931,15 @@ export default function Orcamentos() {
                         <div><label style={lbl}>Observação do cliente</label><textarea rows={2} style={{...inp,resize:'none' as const}} placeholder="Alergias, preferências..." value={clienteObs} onChange={e=>setClienteObs(e.target.value)}/></div>
                         <div><label style={lbl}>Observações do orçamento</label><textarea rows={3} style={{...inp,resize:'none' as const}} placeholder="Informações adicionais..." value={observacoes} onChange={e=>setObservacoes(e.target.value)}/></div>
                       </div>}
-                    </div>
+                    </div>}
+                    {tipoOrc==='comum'&&(
+                      <div style={{marginTop:'4px',marginBottom:'12px'}}>
+                        <label style={lbl}>Observações (opcional)</label>
+                        <textarea rows={2} style={{...inp,resize:'none' as const}} placeholder="Ex: cliente preferiu parcelar, combinado via Pix..." value={observacoes} onChange={e=>setObservacoes(e.target.value)}/>
+                      </div>
+                    )}
                     <div style={{display:'flex',alignItems:'center',gap:'8px',padding:'12px 16px',background:'rgba(59,130,246,.08)',borderRadius:'10px',border:'1px solid rgba(59,130,246,.18)'}}>
-                      <span style={{fontSize:'16px'}}>💡</span>
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#93C5FD" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{flexShrink:0}}><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
                       <p style={{fontSize:'12px',color:'#93C5FD'}}>Dica: você pode adicionar serviços, descontos e pagamentos parciais.</p>
                     </div>
                   </div>
@@ -949,7 +956,7 @@ export default function Orcamentos() {
                         <div><p style={{fontSize:'11px',fontWeight:600,color:'#64748B',textTransform:'uppercase',letterSpacing:'.05em',marginBottom:'4px'}}>Status</p><span style={{fontSize:'12px',fontWeight:600,padding:'3px 10px',borderRadius:'999px',background:STATUS_COR[status]?.bg,color:STATUS_COR[status]?.color,border:`1px solid ${STATUS_COR[status]?.border}`}}>{status}</span></div>
                       </div>
                       <button onClick={handleSalvar} style={{width:'100%',background:'linear-gradient(135deg,#3B82F6,#7C3AED)',color:'#fff',border:'none',borderRadius:'8px',padding:'13px',fontSize:'15px',fontWeight:700,cursor:'pointer',fontFamily:'inherit',marginBottom:'8px'}}>
-                        📄 {editandoId?'Salvar alterações':'Criar orçamento'}
+                        {editandoId?'Salvar alterações':'Criar orçamento'}
                       </button>
                       <button onClick={enviarCobrancaWpp} disabled={!clienteWpp} style={{width:'100%',background:'rgba(34,197,94,.12)',color:'#4ADE80',border:'1px solid rgba(34,197,94,.25)',borderRadius:'8px',padding:'11px',fontSize:'14px',fontWeight:600,cursor:clienteWpp?'pointer':'not-allowed',fontFamily:'inherit',marginBottom:'8px',opacity:clienteWpp?1:0.6}}>
                         💬 Enviar no WhatsApp
