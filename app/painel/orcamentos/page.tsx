@@ -47,7 +47,7 @@ const MOBILE_CSS = `
     .cm-kpi-grid{grid-template-columns:1fr 1fr!important;gap:10px!important}
     .cm-tabela-desktop{display:none!important}
     .cm-cards-mobile{display:flex!important;flex-direction:column!important;gap:10px!important}
-    .cm-lista-pad,.cm-form-pad,.cm-detalhe-pad{padding:12px 12px 130px!important}
+    .cm-lista-pad,.cm-form-pad,.cm-detalhe-pad{padding:8px 8px 130px!important}
     .cm-filtros-wrap{display:flex!important;flex-wrap:wrap!important;overflow:visible!important;width:100%!important;max-width:100%!important;gap:8px!important}
     .cm-form-inner{padding:12px!important}
   }
@@ -581,8 +581,8 @@ export default function Orcamentos() {
         )}
         {view==='form'&&(
           <div style={{minHeight:'100vh',background:'#07111F'}}>
-            <div style={{padding:'24px 32px 60px',maxWidth:'1100px',margin:'0 auto'}}>
-              <div style={{padding:'24px',width:'100%',boxSizing:'border-box' as const}}>
+            <div style={{padding:'16px 20px 60px',maxWidth:'1100px',margin:'0 auto'}}>
+              <div style={{padding:'0px',width:'100%',boxSizing:'border-box' as const}}>
                 <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:'20px',flexWrap:'wrap',gap:'12px'}}>
                   <div>
                     <button onClick={()=>{resetForm();setView(editandoId?'lista':'escolha')}}
