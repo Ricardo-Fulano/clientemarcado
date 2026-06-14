@@ -269,20 +269,21 @@ export default function Orcamentos() {
         valor,forma:modalForma,observacao:modalObs||null
       })
     }catch(e){console.log('orcamento_pagamentos:',e)}
-    try{
-      await supabase.from('pagamentos').insert({
+    {
+      const pagPayload:any={
         user_id:userId,
         valor,
         data:new Date().toISOString().split('T')[0],
-        forma_pagamento:modalForma,
         status:'confirmado',
-        descricao:'Orçamento — '+(modalPagOrc.cliente_nome||''),
-        cliente_nome:modalPagOrc.cliente_nome||null,
-        observacao:modalObs||null,
-        origem:'orcamento',
-        orcamento_id:modalPagOrc.id
-      })
-    }catch(e){console.error('Erro ao inserir em pagamentos:',e)}
+      }
+      const {error:epag}=await supabase.from('pagamentos').insert(pagPayload)
+      if(epag){
+        console.error('Erro pagamentos insert:',epag)
+        // Tentar com menos campos
+        const {error:epag2}=await supabase.from('pagamentos').insert({user_id:userId,valor,data:new Date().toISOString().split('T')[0]})
+        if(epag2)console.error('Erro pagamentos insert minimo:',epag2)
+      }
+    }
     const{error}=await supabase.from('orcamentos').update({
       valor_pago:novoValorPago,saldo_restante:novoSaldo,
       status:novoStatus,updated_at:new Date().toISOString()
