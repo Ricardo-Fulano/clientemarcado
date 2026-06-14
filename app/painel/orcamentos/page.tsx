@@ -737,68 +737,6 @@ export default function Orcamentos() {
                         </div>
                       </div>
                     </div>
-                    {tipoOrc!=='odonto'&&<div style={{marginBottom:'12px'}}>
-                      <button onClick={()=>setUsarOdontograma(!usarOdontograma)}
-                        style={{display:'flex',alignItems:'center',gap:'8px',background:'rgba(255,255,255,.04)',border:'1px solid rgba(148,163,184,.14)',borderRadius:'10px',padding:'10px 16px',cursor:'pointer',fontFamily:'inherit',width:'100%'}}>
-                        <span style={{fontSize:'16px'}}>🦷</span>
-                        <span style={{fontSize:'13px',fontWeight:600,color:'#F8FAFC',flex:1,textAlign:'left'}}>Orçamento odontológico</span>
-                        <span style={{fontSize:'12px',color:usarOdontograma?'#4ADE80':'#64748B',fontWeight:600}}>{usarOdontograma?'Ativado ✓':'Adicionar odontograma'}</span>
-                      </button>
-                    </div>}
-                    {isOdonto&&(
-                      <div style={card}>
-                        <p style={{fontSize:'15px',fontWeight:700,color:'#F8FAFC',marginBottom:'4px'}}>🦷 Odontograma</p>
-                        <p style={{fontSize:'12px',color:'#94A3B8',marginBottom:'14px'}}>Selecione os dentes e adicione procedimentos.</p>
-                        {[DENTES_SUPERIOR,DENTES_INFERIOR].map((arco,ai)=>(
-                          <div key={ai} style={{display:'flex',gap:'4px',flexWrap:'wrap',marginBottom:'10px',justifyContent:'center'}}>
-                            {arco.slice(0,arco.length/2).map(n=>(
-                              <button key={n} onClick={()=>toggleDente(n)}
-                                style={{width:'32px',height:'32px',borderRadius:'6px',border:`1.5px solid ${dentesSelec.includes(n)?'#3B82F6':'rgba(148,163,184,.2)'}`,background:dentesSelec.includes(n)?'linear-gradient(135deg,#3B82F6,#7C3AED)':'rgba(255,255,255,.04)',color:dentesSelec.includes(n)?'#fff':'#94A3B8',fontSize:'10px',fontWeight:700,cursor:'pointer',fontFamily:'inherit'}}>
-                                {n}
-                              </button>
-                            ))}
-                            <div style={{width:'2px',background:'rgba(148,163,184,.2)',margin:'0 4px',borderRadius:'1px'}}/>
-                            {arco.slice(arco.length/2).map(n=>(
-                              <button key={n} onClick={()=>toggleDente(n)}
-                                style={{width:'32px',height:'32px',borderRadius:'6px',border:`1.5px solid ${dentesSelec.includes(n)?'#3B82F6':'rgba(148,163,184,.2)'}`,background:dentesSelec.includes(n)?'linear-gradient(135deg,#3B82F6,#7C3AED)':'rgba(255,255,255,.04)',color:dentesSelec.includes(n)?'#fff':'#94A3B8',fontSize:'10px',fontWeight:700,cursor:'pointer',fontFamily:'inherit'}}>
-                                {n}
-                              </button>
-                            ))}
-                          </div>
-                        ))}
-                        {dentesSelec.length>0&&<p style={{fontSize:'12px',color:'#60A5FA',marginBottom:'12px',textAlign:'center'}}>Selecionados: {dentesSelec.sort((a,b)=>a-b).join(', ')}</p>}
-                        <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'10px',marginBottom:'10px'}}>
-                          <div><label style={lbl}>Procedimento</label><input style={inp} type="text" placeholder="Ex: Restauração" value={procNome} onChange={e=>setProcNome(e.target.value)}/></div>
-                          <div><label style={lbl}>Valor (R$)</label><input style={inp} type="number" placeholder="0,00" value={procValor} onChange={e=>setProcValor(e.target.value)}/></div>
-                        </div>
-                        <div style={{marginBottom:'10px'}}>
-                          <label style={lbl}>Status</label>
-                          <select style={sel} value={procStatus} onChange={e=>setProcStatus(e.target.value)}>
-                            {['A realizar','Em andamento','Realizado','Cancelado'].map(s=><option key={s}>{s}</option>)}
-                          </select>
-                        </div>
-                        <button onClick={adicionarProcOdonto} disabled={!procNome||dentesSelec.length===0}
-                          style={{border:'1.5px dashed rgba(59,130,246,.3)',borderRadius:'8px',padding:'10px',background:'rgba(59,130,246,.06)',color:'#60A5FA',fontSize:'13px',fontWeight:600,cursor:'pointer',fontFamily:'inherit',width:'100%',marginBottom:'12px',opacity:(!procNome||dentesSelec.length===0)?0.5:1}}>
-                          + Adicionar procedimento nos dentes selecionados
-                        </button>
-                        {procOdonto.length>0&&(
-                          <div style={{display:'flex',flexDirection:'column',gap:'6px'}}>
-                            {procOdonto.map((p,i)=>(
-                              <div key={i} style={{background:'rgba(255,255,255,.04)',border:'1px solid rgba(148,163,184,.12)',borderRadius:'8px',padding:'10px 12px',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
-                                <div>
-                                  <p style={{fontSize:'13px',color:'#F8FAFC',fontWeight:600}}>Dente {p.dente} — {p.nome}</p>
-                                  <p style={{fontSize:'11px',color:'#64748B'}}>{p.status}</p>
-                                </div>
-                                <div style={{display:'flex',alignItems:'center',gap:'10px'}}>
-                                  <span style={{fontSize:'13px',color:'#4ADE80',fontWeight:700}}>R$ {fmtBRL(parseFloat(p.valor||'0'))}</span>
-                                  <button onClick={()=>setProcOdonto(prev=>prev.filter((_,j)=>j!==i))} style={{background:'none',border:'none',color:'#F87171',cursor:'pointer',fontSize:'16px'}}>×</button>
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    )}
                     {tipoOrc!=='comum'&&<div style={{...card,padding:0,overflow:'hidden'}}>
                       <div onClick={()=>setShowPagSection(!showPagSection)} style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'16px 24px',cursor:'pointer',userSelect:'none'}}>
                         <div style={{display:'flex',alignItems:'center',gap:'10px'}}>
