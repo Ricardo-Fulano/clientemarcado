@@ -83,7 +83,7 @@ export default function Relatorios(){
       supabase.from('profissionais').select('id,nome,cargo,foto_url').eq('user_id',user.id).order('nome'),
       supabase.from('pagamentos').select('valor,data,status').eq('user_id',user.id),
       supabase.from('despesas').select('valor,data,categoria').eq('user_id',user.id).then(r=>{if(r.error)console.error('Despesas:',r.error);return{data:r.data||[]}}),
-      supabase.from('agendamentos').select('id,profissional_id,cliente_nome,servico_id,servicos(id,nome,preco),data_hora,status,valor,valor_total').eq('user_id',user.id).order('data_hora',{ascending:false}),
+      supabase.from('agendamentos').select('id,profissional_id,cliente_nome,servicos(id,nome,preco),data_hora,status,valor').eq('user_id',user.id).order('data_hora',{ascending:false}),
     ])
     setPerfil(p);setProfs(ps||[]);setPagamentos(pags||[]);setDespesas(desp||[]);setAgendamentos(ags||[]);setLoading(false)
   }
