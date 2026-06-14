@@ -83,7 +83,7 @@ export default function Relatorios(){
       supabase.from('profissionais').select('id,nome,cargo,foto_url').eq('user_id',user.id).order('nome'),
       supabase.from('pagamentos').select('valor,data,status').eq('user_id',user.id),
       supabase.from('despesas').select('valor,data,categoria').eq('user_id',user.id).then(r=>{if(r.error)console.error('Despesas:',r.error);return{data:r.data||[]}}),
-      supabase.from('agendamentos').select('id,profissional_id,cliente_nome,servicos(nome),data_hora,status,valor').eq('user_id',user.id).order('data_hora',{ascending:false}),
+      supabase.from('agendamentos').select('id,profissional_id,cliente_nome,servico_id,servicos(id,nome,preco),data_hora,status,valor,valor_total').eq('user_id',user.id).order('data_hora',{ascending:false}),
     ])
     setPerfil(p);setProfs(ps||[]);setPagamentos(pags||[]);setDespesas(desp||[]);setAgendamentos(ags||[]);setLoading(false)
   }
@@ -123,7 +123,7 @@ export default function Relatorios(){
     const nomeSv=a.servicos?.nome||'Serviço não informado'
     if(!servicosMap[nomeSv])servicosMap[nomeSv]={nome:nomeSv,qtd:0,receita:0,profs:{}}
     servicosMap[nomeSv].qtd+=1
-    servicosMap[nomeSv].receita+=(a.valor||0)
+    servicosMap[nomeSv].receita+=(a.valor||a.valor_total||a.servicos?.preco||0)
     if(a.profissional_id){
       const pid=a.profissional_id
       servicosMap[nomeSv].profs[pid]=(servicosMap[nomeSv].profs[pid]||0)+1
