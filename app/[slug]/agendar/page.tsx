@@ -4,7 +4,6 @@ import { supabase } from '../../lib/supabase'
 import { useParams, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { Sun, Clock, Moon } from 'lucide-react'
-
 export default function Agendar() {
   const params = useParams()
   const searchParams = useSearchParams()
@@ -25,7 +24,6 @@ export default function Agendar() {
   const [mesAtual, setMesAtual] = useState(new Date())
   const [horariosDisponiveis, setHorariosDisponiveis] = useState<string[]>([])
   const [carregandoHorarios, setCarregandoHorarios] = useState(false)
-
   useEffect(() => {
     async function carregar() {
       const { data: p } = await supabase.from('perfis').select('*').eq('slug', slug).single()
@@ -41,11 +39,9 @@ export default function Agendar() {
     }
     carregar()
   }, [slug])
-
   useEffect(() => {
     if (dataSelecionada && profissionalId && servicoId) carregarHorarios()
   }, [dataSelecionada, profissionalId, servicoId])
-
   async function carregarHorarios() {
     setCarregandoHorarios(true); setHorarioSelecionado('')
     const servico = servicos.find(s => s.id === servicoId)
@@ -82,7 +78,6 @@ export default function Agendar() {
     })
     setHorariosDisponiveis(finais); setCarregandoHorarios(false)
   }
-
   function aplicarMascaraTelefone(valor: string) {
     const nums = valor.replace(/\D/g, '').slice(0, 11)
     if (nums.length > 10) return '(' + nums.slice(0,2) + ') ' + nums.slice(2,7) + '-' + nums.slice(7)
@@ -91,7 +86,6 @@ export default function Agendar() {
     if (nums.length > 0) return '(' + nums
     return ''
   }
-
   async function handleAgendar() {
     setErro('')
     if (!clienteNome) { setErro('Informe seu nome.'); return }
@@ -106,7 +100,6 @@ export default function Agendar() {
     if (error) setErro('Erro ao agendar. Tente novamente.')
     else setSucesso(true)
   }
-
   function baixarAgendaICS() {
     const inicio = new Date(dataSelecionada + 'T' + horarioSelecionado + ':00')
     const fim = new Date(inicio.getTime() + (servicoSelecionado?.duracao_minutos || 30) * 60000)
@@ -120,7 +113,6 @@ export default function Agendar() {
     const a = document.createElement('a'); a.href=url; a.download='agendamento.ics'; a.click()
     URL.revokeObjectURL(url)
   }
-
   function baixarConfirmacaoTxt() {
     const nomeArq = 'confirmacao-agendamento-' + (perfil?.nome_negocio||'clientemarcado').toLowerCase().replace(/\s+/g,'-').replace(/[^a-z0-9-]/g,'') + '.txt'
     const texto = [
@@ -148,7 +140,6 @@ export default function Agendar() {
     document.body.removeChild(a)
     URL.revokeObjectURL(url)
   }
-
   const G = 'linear-gradient(135deg,#3B82F6,#7C3AED)'
   const cor = perfil?.cor_tema || '#3B82F6'
   const servicoSelecionado = servicos.find(s => s.id === servicoId)
@@ -173,8 +164,7 @@ export default function Agendar() {
   const horariosManha = horariosDisponiveis.filter(h => parseInt(h) < 12)
   const horariosTarde = horariosDisponiveis.filter(h => parseInt(h) >= 12 && parseInt(h) < 18)
   const horariosNoite = horariosDisponiveis.filter(h => parseInt(h) >= 18)
-  const nomeEtapas = ['Serviço','Profissional','Data e hora','Seus dados']
-
+  const nomeEtapas = ['Atendimento','Profissional','Data e hora','Seus dados']
   const css = `
     *{box-sizing:border-box;margin:0;padding:0}
     html,body{overflow-x:hidden;width:100%;max-width:100%}
@@ -198,17 +188,20 @@ export default function Agendar() {
     .step-label{font-size:10px;letter-spacing:.02em}
     .section-title{font-size:22px;font-weight:800;color:#F8FAFC;letter-spacing:-0.03em;margin-bottom:6px}
     .section-sub{font-size:14px;color:#64748B;margin-bottom:24px;line-height:1.5}
-    .servico-list{display:flex;flex-direction:column;gap:12px}
-    .servico-card{display:flex;align-items:center;gap:16px;background:radial-gradient(circle at top left,rgba(124,58,237,.06),transparent 60%),linear-gradient(145deg,rgba(15,23,42,.97),rgba(8,20,33,.99));border:1px solid rgba(148,163,184,.12);border-radius:18px;padding:18px 16px;cursor:pointer;text-align:left;width:100%;position:relative;overflow:hidden;transition:all .18s;-webkit-tap-highlight-color:transparent}
-    .servico-card:hover{border-color:rgba(59,130,246,.40);box-shadow:0 8px 32px rgba(0,0,0,.25);transform:translateY(-1px)}
-    .servico-card.sel{border-color:rgba(59,130,246,.70);box-shadow:0 0 0 1px rgba(59,130,246,.25),0 8px 32px rgba(59,130,246,.15);background:radial-gradient(circle at top left,rgba(59,130,246,.12),transparent 60%),linear-gradient(145deg,rgba(15,23,42,.97),rgba(8,20,33,.99))}
+    .servico-list{display:flex;flex-direction:column;gap:10px}
+    .servico-card{display:flex;align-items:center;gap:16px;background:radial-gradient(circle at top left,rgba(59,130,246,.05),transparent 55%),linear-gradient(145deg,rgba(15,23,42,.97),rgba(8,20,33,.99));border:1.5px solid rgba(148,163,184,.12);border-radius:16px;padding:18px 16px 18px 20px;cursor:pointer;text-align:left;width:100%;position:relative;overflow:hidden;transition:all .18s;-webkit-tap-highlight-color:transparent}
+    .servico-card:hover{border-color:rgba(59,130,246,.45);box-shadow:0 8px 32px rgba(0,0,0,.28),0 0 0 1px rgba(59,130,246,.12);transform:translateY(-1px)}
+    .servico-card.sel{border-color:rgba(59,130,246,.65);box-shadow:0 0 0 1px rgba(59,130,246,.22),0 10px 36px rgba(59,130,246,.14);background:radial-gradient(circle at top left,rgba(59,130,246,.10),transparent 55%),linear-gradient(145deg,rgba(15,23,42,.97),rgba(8,20,33,.99))}
     .servico-accent{position:absolute;top:0;left:0;bottom:0;width:3px;background:${G};border-radius:0 2px 2px 0}
-    .servico-icon{width:48px;height:48px;border-radius:14px;background:rgba(59,130,246,.10);border:1px solid rgba(59,130,246,.20);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:20px}
-    .servico-nome{font-weight:700;font-size:15px;color:#F8FAFC;margin-bottom:4px}
-    .servico-desc{font-size:12px;color:#64748B;margin-bottom:6px;line-height:1.5}
-    .servico-meta{font-size:13px;color:#64748B}
-    .servico-preco{color:#22C55E;font-weight:700}
-    .servico-arrow{font-size:22px;color:rgba(59,130,246,.60);flex-shrink:0}
+    .servico-icon{width:46px;height:46px;border-radius:13px;background:rgba(59,130,246,.10);border:1px solid rgba(59,130,246,.18);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+    .servico-nome{font-weight:700;font-size:15px;color:#F8FAFC;margin-bottom:3px;line-height:1.3}
+    .servico-desc{font-size:12px;color:#64748B;margin-bottom:7px;line-height:1.5}
+    .servico-meta{display:flex;align-items:center;gap:8px;font-size:12px;color:#64748B}
+    .servico-meta-sep{width:3px;height:3px;border-radius:50%;background:#334155;flex-shrink:0}
+    .servico-preco{color:#22C55E;font-weight:700;font-size:13px}
+    .servico-dur{display:flex;align-items:center;gap:3px;color:#64748B}
+    .servico-arrow{width:28px;height:28px;border-radius:8px;background:rgba(59,130,246,.08);border:1px solid rgba(59,130,246,.15);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:#3B82F6;font-size:16px;transition:all .15s}
+    .servico-card:hover .servico-arrow{background:rgba(59,130,246,.16);border-color:rgba(59,130,246,.30)}
     .prof-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:24px}
     @media(min-width:480px){.prof-grid{grid-template-columns:repeat(3,1fr)}}
     @media(min-width:768px){.prof-grid{grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:14px}}
@@ -279,9 +272,7 @@ export default function Agendar() {
     .horarios-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:140px;gap:8px}
     .horarios-placeholder{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:160px;gap:10px}
   `
-
   const [copiado, setCopiado] = useState(false)
-
   function copiarConfirmacao() {
     const texto = [
       'Agendamento confirmado!',
@@ -310,7 +301,63 @@ export default function Agendar() {
         } catch(e) { console.error('Erro ao copiar:', e) }
       })
   }
-
+  // Ícone SVG por tipo de atendimento — universal e premium
+  function getServicoIcone(nome: string) {
+    const n = nome.toLowerCase()
+    // Odontologia
+    if (n.includes('dent') || n.includes('restaur') || n.includes('canal') || n.includes('limpeza') || n.includes('implant') || n.includes('prótese') || n.includes('protese') || n.includes('ortod') || n.includes('clarea') || n.includes('extração') || n.includes('extracao')) {
+      return (
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M12 2C8 2 4 5 4 9c0 2.5 1 4.5 2 6 1 1.5 2 3 2 5 0 1 .5 2 1.5 2h5c1 0 1.5-1 1.5-2 0-2 1-3.5 2-5 1-1.5 2-3.5 2-6 0-4-4-7-8-7z"/>
+        </svg>
+      )
+    }
+    // Avaliação / Consulta / Orçamento / Retorno
+    if (n.includes('avalia') || n.includes('consul') || n.includes('orçamento') || n.includes('orcamento') || n.includes('retorno') || n.includes('acompan')) {
+      return (
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+          <rect x="8" y="2" width="8" height="4" rx="1"/>
+          <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>
+          <path d="m9 14 2 2 4-4"/>
+        </svg>
+      )
+    }
+    // Estética / Beleza / Pele / Facial / Botox
+    if (n.includes('estet') || n.includes('pele') || n.includes('facial') || n.includes('botox') || n.includes('peeling') || n.includes('hidrat') || n.includes('massag')) {
+      return (
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M12 3c-4.97 0-9 3.185-9 7.115 0 3.929 3.03 7.115 9 7.115s9-3.186 9-7.115C21 6.185 16.97 3 12 3z"/>
+          <path d="M12 17v4"/>
+          <path d="M8 21h8"/>
+          <path d="M9 10c.55 0 1-.449 1-1s-.45-1-1-1-1 .449-1 1 .45 1 1 1z" fill="currentColor"/>
+          <path d="M15 10c.55 0 1-.449 1-1s-.45-1-1-1-1 .449-1 1 .45 1 1 1z" fill="currentColor"/>
+          <path d="M9 13s1 2 3 2 3-2 3-2"/>
+        </svg>
+      )
+    }
+    // Corte / Barba / Salão / Cabelo / Coloração
+    if (n.includes('corte') || n.includes('barba') || n.includes('cabelo') || n.includes('salão') || n.includes('salao') || n.includes('color') || n.includes('escov') || n.includes('alisam') || n.includes('mechas') || n.includes('progressiva') || n.includes('platina')) {
+      return (
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+          <circle cx="6" cy="6" r="3"/>
+          <circle cx="6" cy="18" r="3"/>
+          <line x1="20" y1="4" x2="8.12" y2="15.88"/>
+          <line x1="14.47" y1="14.48" x2="20" y2="20"/>
+          <line x1="8.12" y1="8.12" x2="12" y2="12"/>
+        </svg>
+      )
+    }
+    // Fallback genérico elegante — calendário com check
+    return (
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+        <rect x="3" y="4" width="18" height="18" rx="2"/>
+        <line x1="16" y1="2" x2="16" y2="6"/>
+        <line x1="8" y1="2" x2="8" y2="6"/>
+        <line x1="3" y1="10" x2="21" y2="10"/>
+        <path d="m9 16 2 2 4-4"/>
+      </svg>
+    )
+  }
   if (sucesso) return (
     <div className="sucesso-wrap">
       <style>{css}</style>
@@ -321,7 +368,7 @@ export default function Agendar() {
         <div className="resumo-card">
           <p className="resumo-card-title">Resumo do agendamento</p>
           {[
-            {label:'Serviço',valor:servicoSelecionado?.nome,cor:'#F8FAFC'},
+            {label:'Atendimento',valor:servicoSelecionado?.nome,cor:'#F8FAFC'},
             {label:'Profissional',valor:profissionalSelecionado?.nome,cor:'#F8FAFC'},
             {label:'Data',valor:formatarData(dataSelecionada),cor:'#F8FAFC'},
             {label:'Horário',valor:horarioSelecionado,cor:'#60A5FA'},
@@ -341,13 +388,12 @@ export default function Agendar() {
           <button onClick={copiarConfirmacao} className="btn-ics" style={{background:copiado?'rgba(34,197,94,.12)':undefined,borderColor:copiado?'rgba(34,197,94,.30)':undefined,color:copiado?'#22C55E':undefined}}>
             {copiado?'✓ Confirmação copiada!':'📋 Copiar confirmação'}
           </button>
-                    <button onClick={baixarConfirmacaoTxt} className="btn-ics">⬇️ Baixar confirmação</button>
+          <button onClick={baixarConfirmacaoTxt} className="btn-ics">⬇️ Baixar confirmação</button>
           <Link href={'/'+slug} className="btn-inicio">Voltar ao início</Link>
         </div>
       </div>
     </div>
   )
-
   const Steps = () => (
     <div className="steps-wrap">
       <div className="steps-track">
@@ -367,7 +413,6 @@ export default function Agendar() {
       </div>
     </div>
   )
-
   return (
     <main className="page">
       <style>{css}</style>
@@ -376,33 +421,36 @@ export default function Agendar() {
         <p className="header-title">{perfil?.nome_negocio}</p>
         <div className="header-spacer"/>
       </div>
-
       {etapa===1&&(
         <div className="container">
           <Steps/>
-          <h2 className="section-title">Escolha o serviço</h2>
-          <p className="section-sub">Selecione o serviço que deseja agendar</p>
+          <h2 className="section-title">Selecione o atendimento</h2>
+          <p className="section-sub">Escolha um serviço, procedimento ou consulta para continuar.</p>
           <div className="servico-list">
             {servicos.map(s=>(
               <button key={s.id} onClick={()=>{setServicoId(s.id);setEtapa(2)}} className={'servico-card'+(servicoId===s.id?' sel':'')}>
                 <div className="servico-accent"/>
-                <div className="servico-icon">✂️</div>
+                <div className="servico-icon" style={{color:'#60A5FA'}}>{getServicoIcone(s.nome)}</div>
                 <div style={{flex:1,minWidth:0}}>
                   <p className="servico-nome">{s.nome}</p>
-                  <p className="servico-desc">{s.descricao||'Atendimento com horário marcado'}</p>
-                  <p className="servico-meta">
-                    {s.duracao_minutos?s.duracao_minutos+' min':''}
-                    {s.duracao_minutos&&s.preco?' · ':''}
-                    {s.preco?<span className="servico-preco">R$ {s.preco}</span>:null}
-                  </p>
+                  <p className="servico-desc">{s.descricao||'Selecione para ver profissionais e horários disponíveis'}</p>
+                  <div className="servico-meta">
+                    {s.duracao_minutos&&(
+                      <span className="servico-dur">
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                        {s.duracao_minutos} min
+                      </span>
+                    )}
+                    {s.duracao_minutos&&s.preco&&<span className="servico-meta-sep"/>}
+                    {s.preco&&<span className="servico-preco">R$ {s.preco}</span>}
+                  </div>
                 </div>
-                <span className="servico-arrow">›</span>
+                <div className="servico-arrow">›</div>
               </button>
             ))}
           </div>
         </div>
       )}
-
       {etapa===2&&(
         <div className="container">
           <Steps/>
@@ -422,7 +470,6 @@ export default function Agendar() {
           <button onClick={()=>setEtapa(1)} className="btn-link-voltar">← Voltar</button>
         </div>
       )}
-
       {etapa===3&&(
         <div className="container-wide">
           <Steps/>
@@ -430,7 +477,7 @@ export default function Agendar() {
           <p className="section-sub">Escolha o melhor horário disponível</p>
           <div className="resumo-strip">
             {[
-              {label:'Serviço',valor:servicoSelecionado?.nome,cor:'#F8FAFC'},
+              {label:'Atendimento',valor:servicoSelecionado?.nome,cor:'#F8FAFC'},
               {label:'Profissional',valor:profissionalSelecionado?.nome,cor:'#F8FAFC'},
               {label:'Duração',valor:(servicoSelecionado?.duracao_minutos||30)+' min',cor:'#F8FAFC'},
               {label:'Valor',valor:'R$ '+servicoSelecionado?.preco,cor:'#22C55E'},
@@ -499,7 +546,6 @@ export default function Agendar() {
           {erro&&<p className="erro-msg">{erro}</p>}
         </div>
       )}
-
       {etapa===4&&(
         <div className="container">
           <Steps/>
@@ -508,7 +554,7 @@ export default function Agendar() {
           <div className="resumo-card">
             <p className="resumo-card-title">Resumo do agendamento</p>
             {[
-              {label:'Serviço',valor:servicoSelecionado?.nome,cor:'#F8FAFC'},
+              {label:'Atendimento',valor:servicoSelecionado?.nome,cor:'#F8FAFC'},
               {label:'Profissional',valor:profissionalSelecionado?.nome,cor:'#F8FAFC'},
               {label:'Data',valor:formatarData(dataSelecionada),cor:'#F8FAFC'},
               {label:'Horário',valor:horarioSelecionado,cor:'#60A5FA'},
@@ -529,7 +575,7 @@ export default function Agendar() {
               <label className="input-label">WhatsApp *</label>
               <input type="tel" placeholder="(11) 99999-9999" value={clienteTelefone} onChange={e=>setClienteTelefone(aplicarMascaraTelefone(e.target.value))} className="input-field"/>
               <p style={{fontSize:'12px',color:'#475569',marginTop:'6px'}}>Usado apenas para contato sobre seu agendamento.</p>
-            <p style={{fontSize:'12px',color:'#334155',marginTop:'12px',textAlign:'center',lineHeight:1.6}}>🔒 Seus dados serão usados apenas para confirmar este agendamento.</p>
+              <p style={{fontSize:'12px',color:'#334155',marginTop:'12px',textAlign:'center',lineHeight:1.6}}>🔒 Seus dados serão usados apenas para confirmar este agendamento.</p>
             </div>
           </div>
           {erro&&<p className="erro-msg" style={{marginBottom:'12px'}}>{erro}</p>}
