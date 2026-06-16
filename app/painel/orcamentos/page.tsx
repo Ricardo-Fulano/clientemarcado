@@ -108,7 +108,7 @@ export default function Orcamentos(){
   const [odEmail,setOdEmail]=useState('')
   const [odProfId,setOdProfId]=useState('')
   const [odData,setOdData]=useState(new Date().toISOString().split('T')[0])
-  const [odStatus,setOdStatus]=useState('Em andamento')
+  const [odStatus,setOdStatus]=useState('Aberto')
   const [odObs,setOdObs]=useState('')
   const [odDetOpen,setOdDetOpen]=useState(false)
   const [odPagOpen,setOdPagOpen]=useState(false)
@@ -159,7 +159,7 @@ export default function Orcamentos(){
     setItens([{nome:'',qtd:1,unitario:'',total:0,obs:''}]);setDesconto('');setObservacoes('')
     setShowDetalhes(false);setEditandoId(null)
     setOdNome('');setOdWpp('');setOdEmail('');setOdProfId('');setOdObs('')
-    setOdData(new Date().toISOString().split('T')[0]);setOdStatus('Em andamento')
+    setOdData(new Date().toISOString().split('T')[0]);setOdStatus('Aberto')
     setDentesSelec([]);setLinhas([]);setAddProc('');setAddValor('');setAddQtdManual(1)
     setOdDesconto('');setOdHistPags([]);setOdPagValor('');setOdPagForma('Pix');setOdPagObs('')
     setOdDetOpen(false);setOdPagOpen(false);setShowPagForm(false)
@@ -801,7 +801,7 @@ export default function Orcamentos(){
                   {/* Campo procedimento full width */}
                   <div>
                     <label style={lbl}>Procedimento odontológico *</label>
-                    <input style={inp} type="text" placeholder="Digite o procedimento (ex: restauração, canal, extração...)" value={addProc} onChange={e=>setAddProc(e.target.value)}
+                    <input style={inp} type="text" placeholder="Ex: restauração, canal, extração..." value={addProc} onChange={e=>setAddProc(e.target.value)}
                       onKeyDown={e=>{if(e.key==='Enter')adicionarLinha()}}/>
                   </div>
                   {/* Linha: dentes + qtd + valor */}
@@ -838,10 +838,13 @@ export default function Orcamentos(){
                     </div>
                   )}
                   <button onClick={adicionarLinha} disabled={!addProc.trim()||!addValor||parseFloat(addValor)<=0}
-                    style={{background:'linear-gradient(135deg,#7C3AED,#4F46E5)',color:'#fff',border:'none',borderRadius:'10px',padding:'12px',fontSize:'13px',fontWeight:700,cursor:'pointer',fontFamily:'inherit',opacity:(!addProc.trim()||!addValor||parseFloat(addValor)<=0)?0.4:1,display:'flex',alignItems:'center',justifyContent:'center',gap:'6px'}}>
+                    style={{background:'linear-gradient(135deg,#7C3AED,#4F46E5)',color:'#fff',border:'none',borderRadius:'10px',padding:'12px',fontSize:'13px',fontWeight:700,cursor:'pointer',fontFamily:'inherit',opacity:(!addProc.trim()||!addValor||parseFloat(addValor)<=0)?'rgba(124,58,237,.25)':'linear-gradient(135deg,#7C3AED,#4F46E5)',color:'#fff',border:'none',borderRadius:'10px',padding:'12px 16px',fontSize:'13px',fontWeight:700,cursor:(!addProc.trim()||!addValor||parseFloat(addValor)<=0)?'not-allowed':'pointer',fontFamily:'inherit',display:'flex',alignItems:'center',justifyContent:'center',gap:'6px'}}>
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                     + Adicionar procedimento
                   </button>
+                  {(!addProc.trim()||!addValor||parseFloat(addValor)<=0)&&(
+                    <p style={{fontSize:'11px',color:'#475569',textAlign:'center' as const,marginTop:'4px'}}>Preencha o procedimento e o valor para adicionar</p>
+                  )}
                 </div>
               </div>
 
@@ -995,7 +998,7 @@ export default function Orcamentos(){
                 <span style={{fontSize:'18px',fontWeight:800,color:'#C4B5FD'}}>R$ {fmtBRL(odTotal)}</span>
               </div>
               <div style={{display:'grid',gridTemplateColumns:'2fr 3fr',gap:'8px'}}>
-                <button onClick={()=>{resetAll();setView('lista')}} style={{background:'rgba(255,255,255,.08)',color:'#94A3B8',border:'1px solid rgba(255,255,255,.12)',borderRadius:'10px',padding:'12px 0',fontSize:'13px',fontWeight:600,cursor:'pointer',fontFamily:'inherit'}}>Rascunho</button>
+                <button onClick={async()=>{if(!odNome.trim())return setMensagem('Informe o nome do paciente para salvar rascunho.');const p={user_id:userId,cliente_nome:odNome.trim()||'Rascunho',cliente_whatsapp:odWpp.replace(/\D/g,'')||'00000000000',cliente_email:odEmail||null,tipo:'Orçamento Odontológico',profissional_id:odProfId||null,data:odData,status:'Rascunho',servicos:[],subtotal:odSubtotal,desconto:odDescontoNum,total:odTotal,valor_pago:odPago,saldo_restante:odSaldo,procedimentos_odonto:linhas,hist_pagamentos:odHistPags,observacoes:odObs||null,updated_at:new Date().toISOString()};if(editandoId){await supabase.from('orcamentos').update(p).eq('id',editandoId)}else{await supabase.from('orcamentos').insert(p)};resetAll();setView('lista');await carregarOrcamentos();setMensagem('Rascunho salvo!');setTimeout(()=>setMensagem(''),3000)}} style={{background:'rgba(255,255,255,.08)',color:'#94A3B8',border:'1px solid rgba(255,255,255,.12)',borderRadius:'10px',padding:'12px 0',fontSize:'13px',fontWeight:600,cursor:'pointer',fontFamily:'inherit'}}>Rascunho</button>
                 <button onClick={handleSalvarOdonto} style={{background:'linear-gradient(135deg,#7C3AED,#4F46E5)',color:'#fff',border:'none',borderRadius:'10px',padding:'12px 0',fontSize:'13px',fontWeight:800,cursor:'pointer',fontFamily:'inherit'}}>{editandoId?'Salvar':'Criar orçamento'}</button>
               </div>
             </div>
