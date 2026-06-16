@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useParams, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
-import { Sun, Clock, Moon } from 'lucide-react'
+import { Sun, Clock, Moon, Scissors, Sparkles, ClipboardList, ClipboardCheck, CalendarCheck, FileText, HeartPulse, ShieldPlus, Stethoscope } from 'lucide-react'
 export default function Agendar() {
   const params = useParams()
   const searchParams = useSearchParams()
@@ -301,62 +301,42 @@ export default function Agendar() {
         } catch(e) { console.error('Erro ao copiar:', e) }
       })
   }
-  // Ícone SVG por tipo de atendimento — universal e premium
-  function getServicoIcone(nome: string) {
-    const n = nome.toLowerCase()
-    // Odontologia
-    if (n.includes('dent') || n.includes('restaur') || n.includes('canal') || n.includes('limpeza') || n.includes('implant') || n.includes('prótese') || n.includes('protese') || n.includes('ortod') || n.includes('clarea') || n.includes('extração') || n.includes('extracao')) {
-      return (
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M12 2C8 2 4 5 4 9c0 2.5 1 4.5 2 6 1 1.5 2 3 2 5 0 1 .5 2 1.5 2h5c1 0 1.5-1 1.5-2 0-2 1-3.5 2-5 1-1.5 2-3.5 2-6 0-4-4-7-8-7z"/>
-        </svg>
-      )
-    }
-    // Avaliação / Consulta / Orçamento / Retorno
-    if (n.includes('avalia') || n.includes('consul') || n.includes('orçamento') || n.includes('orcamento') || n.includes('retorno') || n.includes('acompan')) {
-      return (
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-          <rect x="8" y="2" width="8" height="4" rx="1"/>
-          <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>
-          <path d="m9 14 2 2 4-4"/>
-        </svg>
-      )
-    }
-    // Estética / Beleza / Pele / Facial / Botox
-    if (n.includes('estet') || n.includes('pele') || n.includes('facial') || n.includes('botox') || n.includes('peeling') || n.includes('hidrat') || n.includes('massag')) {
-      return (
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M12 3c-4.97 0-9 3.185-9 7.115 0 3.929 3.03 7.115 9 7.115s9-3.186 9-7.115C21 6.185 16.97 3 12 3z"/>
-          <path d="M12 17v4"/>
-          <path d="M8 21h8"/>
-          <path d="M9 10c.55 0 1-.449 1-1s-.45-1-1-1-1 .449-1 1 .45 1 1 1z" fill="currentColor"/>
-          <path d="M15 10c.55 0 1-.449 1-1s-.45-1-1-1-1 .449-1 1 .45 1 1 1z" fill="currentColor"/>
-          <path d="M9 13s1 2 3 2 3-2 3-2"/>
-        </svg>
-      )
-    }
-    // Corte / Barba / Salão / Cabelo / Coloração
-    if (n.includes('corte') || n.includes('barba') || n.includes('cabelo') || n.includes('salão') || n.includes('salao') || n.includes('color') || n.includes('escov') || n.includes('alisam') || n.includes('mechas') || n.includes('progressiva') || n.includes('platina')) {
-      return (
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-          <circle cx="6" cy="6" r="3"/>
-          <circle cx="6" cy="18" r="3"/>
-          <line x1="20" y1="4" x2="8.12" y2="15.88"/>
-          <line x1="14.47" y1="14.48" x2="20" y2="20"/>
-          <line x1="8.12" y1="8.12" x2="12" y2="12"/>
-        </svg>
-      )
-    }
-    // Fallback genérico elegante — calendário com check
-    return (
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-        <rect x="3" y="4" width="18" height="18" rx="2"/>
-        <line x1="16" y1="2" x2="16" y2="6"/>
-        <line x1="8" y1="2" x2="8" y2="6"/>
-        <line x1="3" y1="10" x2="21" y2="10"/>
-        <path d="m9 16 2 2 4-4"/>
-      </svg>
-    )
+  // Ícone lucide-react por tipo de atendimento
+  function getServicoIcone(s: {nome:string,categoria?:string,descricao?:string}) {
+    const txt = [s.nome, s.categoria||'', s.descricao||''].join(' ').toLowerCase()
+    const sz = 20
+    // Barbearia / cabelo
+    if (/corte|barba|cabelo|barbearia|cabeleirei|platina|mecha|progressiva|alisam|relaxam/.test(txt))
+      return <Scissors size={sz}/>
+    // Coloração / brilho / estética leve
+    if (/colora|escova|hidrataç|hidratac|mechas|luzes|reflexo|tinta/.test(txt))
+      return <Sparkles size={sz}/>
+    // Retorno / agendamento de continuidade
+    if (/retorno|reavalia|acompan|revisão|revisao|follow/.test(txt))
+      return <CalendarCheck size={sz}/>
+    // Avaliação / consulta / orçamento
+    if (/avalia|consul|diagnos|triagem|primeira.*vez|anamese|anamnese/.test(txt))
+      return <ClipboardCheck size={sz}/>
+    // Orçamento (geral)
+    if (/orçamento|orcamento|proposta|plano.*trat|plano.*paga/.test(txt))
+      return <FileText size={sz}/>
+    // Limpeza / clareamento / estética
+    if (/limpeza|clarea|branquea|peeling|esfoliação|esfoliacao|profilax/.test(txt))
+      return <Sparkles size={sz}/>
+    // Procedimento de saúde / restauração / canal / cirurgia / implante
+    if (/restaur|obtura|canal|endodon|cirur|extração|extracao|implant|enxerto/.test(txt))
+      return <ShieldPlus size={sz}/>
+    // Prótese / reabilitação
+    if (/prótese|protese|reabilit|coroa|faceta|lente|inlay|onlay/.test(txt))
+      return <Stethoscope size={sz}/>
+    // Estética facial / corporal / botox / harmonização
+    if (/estet|facial|botox|harmoniz|preench|massag|drenag|corporal|sobrancelha|depilaç|depilac/.test(txt))
+      return <HeartPulse size={sz}/>
+    // Orçamento odontológico (nome longo com odonto)
+    if (/odonto|dent|bucal|oral/.test(txt))
+      return <ClipboardList size={sz}/>
+    // Fallback neutro
+    return <CalendarCheck size={sz}/>
   }
   if (sucesso) return (
     <div className="sucesso-wrap">
@@ -430,7 +410,7 @@ export default function Agendar() {
             {servicos.map(s=>(
               <button key={s.id} onClick={()=>{setServicoId(s.id);setEtapa(2)}} className={'servico-card'+(servicoId===s.id?' sel':'')}>
                 <div className="servico-accent"/>
-                <div className="servico-icon" style={{color:'#60A5FA'}}>{getServicoIcone(s.nome)}</div>
+                <div className="servico-icon" style={{color:'#60A5FA'}}>{getServicoIcone(s)}</div>
                 <div style={{flex:1,minWidth:0}}>
                   <p className="servico-nome">{s.nome}</p>
                   <p className="servico-desc">{s.descricao||'Selecione para ver profissionais e horários disponíveis'}</p>
