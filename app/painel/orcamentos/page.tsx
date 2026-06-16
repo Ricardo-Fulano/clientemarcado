@@ -838,7 +838,7 @@ export default function Orcamentos(){
                     </div>
                   )}
                   <button onClick={adicionarLinha} disabled={!addProc.trim()||!addValor||parseFloat(addValor)<=0}
-                    style={{background:'linear-gradient(135deg,#7C3AED,#4F46E5)',color:'#fff',border:'none',borderRadius:'10px',padding:'12px',fontSize:'13px',fontWeight:700,cursor:'pointer',fontFamily:'inherit',opacity:(!addProc.trim()||!addValor||parseFloat(addValor)<=0)?'rgba(124,58,237,.25)':'linear-gradient(135deg,#7C3AED,#4F46E5)',color:'#fff',border:'none',borderRadius:'10px',padding:'12px 16px',fontSize:'13px',fontWeight:700,cursor:(!addProc.trim()||!addValor||parseFloat(addValor)<=0)?'not-allowed':'pointer',fontFamily:'inherit',display:'flex',alignItems:'center',justifyContent:'center',gap:'6px'}}>
+                    style={{background:(!addProc.trim()||!addValor||parseFloat(addValor)<=0)?'rgba(124,58,237,.25)':'linear-gradient(135deg,#7C3AED,#4F46E5)',color:'#fff',border:'none',borderRadius:'10px',padding:'12px 16px',fontSize:'13px',fontWeight:700,cursor:(!addProc.trim()||!addValor||parseFloat(addValor)<=0)?'not-allowed':'pointer',fontFamily:'inherit',display:'flex',alignItems:'center',justifyContent:'center',gap:'6px'}}>
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                     + Adicionar procedimento
                   </button>
