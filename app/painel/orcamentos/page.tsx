@@ -253,12 +253,13 @@ export default function Orcamentos(){
     if(!odNome.trim()){setMensagem('Informe o nome do paciente.');window.scrollTo({top:0,behavior:'smooth'});return}
     if(!odWpp||odWpp.replace(/\D/g,'').length<10){setMensagem('Informe o WhatsApp.');window.scrollTo({top:0,behavior:'smooth'});return}
     if(linhas.length===0){setMensagem('Adicione pelo menos um procedimento.');window.scrollTo({top:0,behavior:'smooth'});return}
+    if(odTotal<=0){setMensagem('O total do orçamento precisa ser maior que zero.');window.scrollTo({top:0,behavior:'smooth'});return}
     const payload={
       user_id:userId,cliente_nome:odNome.trim(),cliente_whatsapp:odWpp.replace(/\D/g,''),
       cliente_email:odEmail||null,tipo:'Orçamento Odontológico',
       profissional_id:odProfId||null,
       profissional_nome:odProfId?(profissionais.find(p=>p.id===odProfId)?.nome||null):null,
-      data:odData,status:odStatus,servicos:[],subtotal:odSubtotal,desconto:odDescontoNum,total:odTotal,
+      data:odData,status:odPago>=odTotal&&odTotal>0?'Pago':odPago>0?'Parcialmente pago':odStatus,servicos:[],subtotal:odSubtotal,desconto:odDescontoNum,total:odTotal,
       valor_pago:odPago,saldo_restante:odSaldo,
       procedimentos_odonto:linhas,hist_pagamentos:odHistPags,
       observacoes:odObs||null,updated_at:new Date().toISOString(),
@@ -266,7 +267,7 @@ export default function Orcamentos(){
     if(editandoId){await supabase.from('orcamentos').update(payload).eq('id',editandoId)}
     else{await supabase.from('orcamentos').insert(payload)}
     resetAll();setView('lista');await carregarOrcamentos()
-    setMensagem(editandoId?'Atualizado!':'Orçamento odontológico criado!');setTimeout(()=>setMensagem(''),4000)
+    setMensagem(editandoId?'Orçamento atualizado com sucesso!':'Orçamento odontológico salvo com sucesso!');setTimeout(()=>setMensagem(''),5000)
   }
 
   function abrirEditar(orc:any){
@@ -701,11 +702,11 @@ export default function Orcamentos(){
                   )}
                 </div>
                 <p style={{fontSize:'12px',color:'#94A3B8',marginBottom:'6px'}}>Toque nos dentes para selecionar. Os dentes selecionados irão automaticamente para o campo de procedimento.</p>
-                <p className="od-hint" style={{fontSize:'11px',color:'#475569',marginBottom:'12px',display:'flex',alignItems:'center',gap:'5px'}}>
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#475569" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
-                  Deslize para ver todos os dentes
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#475569" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
-                </p>
+                <div className="od-hint" style={{display:'flex',alignItems:'center',justifyContent:'center',gap:'6px',marginBottom:'12px',background:'rgba(99,102,241,.12)',border:'1px solid rgba(99,102,241,.3)',borderRadius:'999px',padding:'5px 14px',width:'fit-content',boxShadow:'0 0 8px rgba(99,102,241,.2)'}}>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#a5b4fc" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+                  <span style={{fontSize:'11px',fontWeight:700,color:'#a5b4fc',letterSpacing:'.02em'}}>Deslize para ver todos os dentes</span>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#a5b4fc" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+                </div>
                 <svg width="0" height="0" style={{position:'absolute',overflow:'visible'}}>
                   <defs>
                     <linearGradient id="gFree" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#f5f9fd"/><stop offset="50%" stopColor="#e2eef8"/><stop offset="100%" stopColor="#ccdff0"/></linearGradient>
@@ -999,7 +1000,7 @@ export default function Orcamentos(){
               </div>
               <div style={{display:'grid',gridTemplateColumns:'2fr 3fr',gap:'8px'}}>
                 <button onClick={async()=>{if(!odNome.trim())return setMensagem('Informe o nome do paciente para salvar rascunho.');const p={user_id:userId,cliente_nome:odNome.trim()||'Rascunho',cliente_whatsapp:odWpp.replace(/\D/g,'')||'00000000000',cliente_email:odEmail||null,tipo:'Orçamento Odontológico',profissional_id:odProfId||null,data:odData,status:'Rascunho',servicos:[],subtotal:odSubtotal,desconto:odDescontoNum,total:odTotal,valor_pago:odPago,saldo_restante:odSaldo,procedimentos_odonto:linhas,hist_pagamentos:odHistPags,observacoes:odObs||null,updated_at:new Date().toISOString()};if(editandoId){await supabase.from('orcamentos').update(p).eq('id',editandoId)}else{await supabase.from('orcamentos').insert(p)};resetAll();setView('lista');await carregarOrcamentos();setMensagem('Rascunho salvo!');setTimeout(()=>setMensagem(''),3000)}} style={{background:'rgba(255,255,255,.08)',color:'#94A3B8',border:'1px solid rgba(255,255,255,.12)',borderRadius:'10px',padding:'12px 0',fontSize:'13px',fontWeight:600,cursor:'pointer',fontFamily:'inherit'}}>Rascunho</button>
-                <button onClick={handleSalvarOdonto} style={{background:'linear-gradient(135deg,#7C3AED,#4F46E5)',color:'#fff',border:'none',borderRadius:'10px',padding:'12px 0',fontSize:'13px',fontWeight:800,cursor:'pointer',fontFamily:'inherit'}}>{editandoId?'Salvar':'Criar orçamento'}</button>
+                <button onClick={handleSalvarOdonto} style={{background:'linear-gradient(135deg,#7C3AED,#4F46E5)',color:'#fff',border:'none',borderRadius:'10px',padding:'12px 0',fontSize:'13px',fontWeight:800,cursor:'pointer',fontFamily:'inherit'}}>{editandoId?'Salvar alterações':'Salvar orçamento'}</button>
               </div>
             </div>
           </div>
@@ -1167,4 +1168,3 @@ export default function Orcamentos(){
     </div>
   )
 }
- 
