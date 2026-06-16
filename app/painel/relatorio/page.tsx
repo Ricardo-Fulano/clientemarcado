@@ -65,6 +65,7 @@ c = c.replace(old_load, new_load, 1)
 
 # Adicionar estado orcProcsData
 old_state = "  const [profSel,setProfSel]=useState<any>(null) // modal individual
+  const [orcProcsData,setOrcProcsData]=useState<any[]>([])
   const [orcProcsData,setOrcProcsData]=useState<any[]>([])"
 new_state = "  const [profSel,setProfSel]=useState<any>(null) // modal individual\n  const [orcProcsData,setOrcProcsData]=useState<any[]>([])"
 print('state:', old_state in c)
@@ -85,6 +86,41 @@ c = c.replace(old_sv_mais, new_sv_mais, 1)
 # Adicionar procedimentos odontológicos no resumo por serviço
 # Inserir antes do fechamento do bloco de resumoServicos
 old_resumo_end = "          {/* Procedimentos odontológicos no período */}
+          {(()=>{
+            const procsMes=orcProcsData.filter((_:any)=>true) // todos os procs de orçamentos
+            if(procsMes.length===0)return null
+            const procsMap:Record<string,{nome:string,qtd:number,total:number,dentes:number}>={}
+            procsMes.forEach((p:any)=>{
+              const nome=p.proc||p.nome||p.procedimento||'Procedimento'
+              if(!procsMap[nome])procsMap[nome]={nome,qtd:0,total:0,dentes:0}
+              procsMap[nome].qtd+=(p.qtd||1)
+              procsMap[nome].total+=(p.total||0)
+              procsMap[nome].dentes+=(p.dentes?.length||0)
+            })
+            const procs=Object.values(procsMap).sort((a,b)=>b.total-a.total)
+            if(procs.length===0)return null
+            return(
+              <div style={{marginBottom:'22px'}}>
+                <div style={{marginBottom:'16px'}}>
+                  <p style={{fontSize:'16px',fontWeight:700,color:'#F8FAFC',marginBottom:'4px'}}>Procedimentos odontológicos</p>
+                  <p style={{fontSize:'13px',color:'#64748B'}}>Procedimentos de orçamentos odontológicos cadastrados.</p>
+                </div>
+                <div style={{background:'radial-gradient(circle at top left,rgba(124,58,237,.06),transparent 40%),linear-gradient(145deg,rgba(15,23,42,.97),rgba(8,20,33,.99))',border:'1.5px solid rgba(148,163,184,.14)',borderRadius:'16px',overflow:'hidden'}}>
+                  {procs.map((sv,i)=>(
+                    <div key={sv.nome} style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:'12px',padding:'13px 18px',borderBottom:i<procs.length-1?'1px solid rgba(255,255,255,.05)':'none'}}>
+                      <div style={{minWidth:0,flex:1}}>
+                        <p style={{fontSize:'14px',fontWeight:600,color:'#F8FAFC',marginBottom:'2px'}}>{sv.nome}</p>
+                        <p style={{fontSize:'12px',color:'#64748B'}}>{sv.qtd} procedimento{sv.qtd!==1?'s':''}{sv.dentes>0?` · ${sv.dentes} dente${sv.dentes!==1?'s':''}`:''}
+                        </p>
+                      </div>
+                      <p style={{fontSize:'15px',fontWeight:800,color:'#C4B5FD',flexShrink:0}}>{fBRL(sv.total)}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )
+          })()}
+          {/* Procedimentos odontológicos no período */}
           {(()=>{
             const procsMes=orcProcsData.filter((_:any)=>true) // todos os procs de orçamentos
             if(procsMes.length===0)return null
