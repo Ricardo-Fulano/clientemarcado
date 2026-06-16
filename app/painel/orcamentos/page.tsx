@@ -328,10 +328,233 @@ export default function Orcamentos(){
   function gerarPDF(orc:any){
     const win=window.open('','_blank');if(!win)return
     const isOd=orc.tipo==='Orçamento Odontológico'||(orc.procedimentos_odonto?.length>0)
-    const linhas_=isOd?(orc.procedimentos_odonto||[]).map((l:any)=>`<tr><td>${l.proc||l.nome||''}</td><td>${(l.dentes||[]).join(', ')||'Geral'}</td><td>${l.qtd||1}</td><td>R$ ${fmtBRL(l.valorUnit||0)}</td><td>R$ ${fmtBRL(l.total||0)}</td></tr>`).join('')
-      :(orc.servicos||[]).map((s:any)=>`<tr><td>${s.nome}</td><td>-</td><td>${s.qtd||1}</td><td>R$ ${fmtBRL(parseFloat(s.unitario||'0'))}</td><td>R$ ${fmtBRL(s.total||0)}</td></tr>`).join('')
-    win.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8"><title>${orc.tipo}</title><style>body{font-family:Arial;max-width:800px;margin:0 auto;padding:32px}table{width:100%;border-collapse:collapse}th,td{padding:8px;border-bottom:1px solid #eee;text-align:left}.footer{margin-top:40px;text-align:center;color:#aaa;font-size:11px}</style></head><body><h1>${perfil?.nome_negocio||'Negócio'}</h1><p>${orc.tipo} · ${fmtData(orc.data)}</p><p><strong>${orc.cliente_nome}</strong></p><table><thead><tr><th>Procedimento</th><th>Dentes</th><th>Qtd</th><th>Unit.</th><th>Total</th></tr></thead><tbody>${linhas_}<tr><td colspan="4"><strong>Total</strong></td><td><strong>R$ ${fmtBRL(orc.total)}</strong></td></tr></tbody></table><div class="footer">Gerado pelo ClienteMarcado</div></body></html>`)
-    win.document.close();setTimeout(()=>win.print(),500)
+    const neg=perfil?.nome_negocio||'Negócio'
+    const fmtMoeda=(v:number)=>`R$\u00a0${fmtBRL(v)}`
+    // Status badge
+    const statusCores:Record<string,{bg:string,color:string}>={
+      'Aberto':           {bg:'#EFF6FF',color:'#1D4ED8'},
+      'Aguardando aprovação':{bg:'#FFFBEB',color:'#B45309'},
+      'Em andamento':     {bg:'#F5F3FF',color:'#6D28D9'},
+      'Parcialmente pago':{bg:'#FFF7ED',color:'#C2410C'},
+      'Pago':             {bg:'#F0FDF4',color:'#15803D'},
+      'Finalizado':       {bg:'#F0FDF4',color:'#15803D'},
+      'Cancelado':        {bg:'#FEF2F2',color:'#B91C1C'},
+      'Rascunho':         {bg:'#F8FAFC',color:'#64748B'},
+    }
+    const stCor=statusCores[orc.status]||{bg:'#F8FAFC',color:'#475569'}
+    // Linhas da tabela
+    const linhasComum=(orc.servicos||[]).filter((s:any)=>s.nome).map((s:any,i:number)=>`
+      <tr style="background:${i%2===0?'#fff':'#F8FAFC'}">
+        <td style="padding:10px 14px;font-size:13px;color:#1E293B;font-weight:500">${s.nome}</td>
+        <td style="padding:10px 14px;font-size:13px;color:#475569;text-align:center">${s.qtd||1}</td>
+        <td style="padding:10px 14px;font-size:13px;color:#475569;text-align:right">${fmtMoeda(parseFloat(s.unitario||'0'))}</td>
+        <td style="padding:10px 14px;font-size:13px;color:#1E293B;font-weight:700;text-align:right">${fmtMoeda(s.total||0)}</td>
+      </tr>
+      ${s.obs?`<tr style="background:${i%2===0?'#fff':'#F8FAFC'}"><td colspan="4" style="padding:2px 14px 8px;font-size:11px;color:#94A3B8;font-style:italic">${s.obs}</td></tr>`:''}
+    `).join('')
+    const linhasOdonto=(orc.procedimentos_odonto||[]).map((l:any,i:number)=>`
+      <tr style="background:${i%2===0?'#fff':'#F8FAFC'}">
+        <td style="padding:10px 14px;font-size:13px;color:#1E293B;font-weight:500">${l.proc||l.nome||''}</td>
+        <td style="padding:10px 14px;font-size:12px;color:#6D28D9">${(l.dentes||[]).length>0?(l.dentes||[]).sort((a:number,b:number)=>a-b).join(', '):'Geral'}</td>
+        <td style="padding:10px 14px;font-size:13px;color:#475569;text-align:center">${l.qtd||1}</td>
+        <td style="padding:10px 14px;font-size:13px;color:#475569;text-align:right">${fmtMoeda(l.valorUnit||0)}</td>
+        <td style="padding:10px 14px;font-size:13px;color:#1E293B;font-weight:700;text-align:right">${fmtMoeda(l.total||0)}</td>
+      </tr>
+    `).join('')
+    const agora=new Date().toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'})
+    const html=`<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>${isOd?'Orçamento Odontológico':'Orçamento'} - ${neg}</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;background:#fff;color:#1E293B;font-size:14px;line-height:1.5}
+  @media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
+  .page{max-width:800px;margin:0 auto;padding:0}
+  /* Cabeçalho */
+  .hdr{background:linear-gradient(135deg,#1E3A5F 0%,#2D1B69 100%);padding:32px 40px;position:relative;overflow:hidden}
+  .hdr::after{content:'';position:absolute;top:-60px;right:-60px;width:200px;height:200px;border-radius:50%;background:rgba(255,255,255,.05)}
+  .hdr::before{content:'';position:absolute;bottom:-40px;left:40px;width:120px;height:120px;border-radius:50%;background:rgba(255,255,255,.04)}
+  .hdr-inner{position:relative;z-index:1;display:flex;justify-content:space-between;align-items:flex-start;gap:20px}
+  .hdr-left h1{font-size:26px;font-weight:800;color:#fff;letter-spacing:-0.03em;margin-bottom:3px}
+  .hdr-left .doc-type{font-size:13px;color:rgba(255,255,255,.65);font-weight:500;margin-bottom:12px}
+  .hdr-left .contact-row{font-size:11px;color:rgba(255,255,255,.55);margin-top:3px}
+  .hdr-right{text-align:right;flex-shrink:0}
+  .hdr-right .doc-label{font-size:10px;font-weight:700;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px}
+  .hdr-right .doc-date{font-size:14px;font-weight:700;color:#fff}
+  .status-badge{display:inline-block;padding:5px 12px;border-radius:999px;font-size:11px;font-weight:700;letter-spacing:.04em;margin-top:10px;background:${stCor.bg};color:${stCor.color}}
+  /* Seções */
+  .body{padding:0 40px 40px}
+  .section{margin-top:28px}
+  .section-title{font-size:10px;font-weight:700;color:#94A3B8;text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px;padding-bottom:6px;border-bottom:1.5px solid #E2E8F0}
+  /* Cards de info */
+  .info-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .info-box{background:#F8FAFC;border:1px solid #E2E8F0;border-radius:10px;padding:14px}
+  .info-box h3{font-size:10px;font-weight:700;color:#94A3B8;text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px}
+  .info-row{display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px}
+  .info-row .label{color:#64748B}
+  .info-row .value{color:#1E293B;font-weight:600;text-align:right;max-width:65%}
+  /* Tabela */
+  .tbl-wrap{border:1px solid #E2E8F0;border-radius:12px;overflow:hidden;margin-top:4px}
+  .tbl-hdr{display:grid;padding:10px 14px;background:linear-gradient(135deg,#1E3A5F,#2D1B69)}
+  .tbl-hdr span{font-size:10px;font-weight:700;color:rgba(255,255,255,.8);text-transform:uppercase;letter-spacing:.07em}
+  table{width:100%;border-collapse:collapse}
+  /* Financeiro */
+  .fin-box{background:#F8FAFC;border:1px solid #E2E8F0;border-radius:12px;padding:18px;margin-top:4px}
+  .fin-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;font-size:13px;border-bottom:1px solid #F1F5F9}
+  .fin-row:last-child{border-bottom:none}
+  .fin-row .fl{color:#64748B}
+  .fin-row .fv{color:#1E293B;font-weight:600}
+  .fin-total{display:flex;justify-content:space-between;align-items:center;margin-top:12px;padding:14px 18px;background:linear-gradient(135deg,#1E3A5F,#2D1B69);border-radius:10px}
+  .fin-total .ft-label{font-size:13px;font-weight:700;color:rgba(255,255,255,.8)}
+  .fin-total .ft-value{font-size:22px;font-weight:800;color:#fff;letter-spacing:-0.02em}
+  .fin-pago{display:flex;justify-content:space-between;align-items:center;margin-top:8px;padding:12px 16px;background:#F0FDF4;border:1px solid #BBF7D0;border-radius:10px}
+  .fin-saldo{display:flex;justify-content:space-between;align-items:center;margin-top:6px;padding:12px 16px;background:#FFF7ED;border:1px solid #FED7AA;border-radius:10px}
+  /* Obs */
+  .obs-box{background:#F8FAFC;border:1px solid #E2E8F0;border-radius:10px;padding:14px;margin-top:4px;font-size:12px;color:#475569;line-height:1.7}
+  /* Footer */
+  .footer{margin-top:32px;padding:16px 40px;background:#F8FAFC;border-top:1.5px solid #E2E8F0;display:flex;justify-content:space-between;align-items:center}
+  .footer .fl{font-size:11px;color:#94A3B8}
+  .footer .fr{font-size:11px;color:#94A3B8;text-align:right}
+  .footer strong{color:#475569}
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- CABEÇALHO -->
+  <div class="hdr">
+    <div class="hdr-inner">
+      <div class="hdr-left">
+        <h1>${neg}</h1>
+        <div class="doc-type">${isOd?'Orçamento Odontológico':'Orçamento comercial'}</div>
+        ${perfil?.telefone?`<div class="contact-row">📞 ${perfil.telefone}</div>`:''}
+        ${perfil?.email?`<div class="contact-row">✉ ${perfil.email}</div>`:''}
+        <span class="status-badge">${orc.status||'Aberto'}</span>
+      </div>
+      <div class="hdr-right">
+        <div class="doc-label">Data do orçamento</div>
+        <div class="doc-date">${fmtData(orc.data)}</div>
+        ${orc.id?`<div class="contact-row" style="color:rgba(255,255,255,.45);font-size:10px;margin-top:6px">#${orc.id.substring(0,8).toUpperCase()}</div>`:''}
+      </div>
+    </div>
+  </div>
+
+  <div class="body">
+
+    <!-- DADOS -->
+    <div class="section">
+      <div class="section-title">${isOd?'Dados do paciente e tratamento':'Dados do cliente e orçamento'}</div>
+      <div class="info-grid">
+        <div class="info-box">
+          <h3>${isOd?'Paciente':'Cliente'}</h3>
+          <div class="info-row"><span class="label">Nome</span><span class="value">${orc.cliente_nome}</span></div>
+          ${orc.cliente_whatsapp?`<div class="info-row"><span class="label">WhatsApp</span><span class="value">${aplicarMascaraTel(orc.cliente_whatsapp)}</span></div>`:''}
+          ${orc.cliente_email?`<div class="info-row"><span class="label">E-mail</span><span class="value">${orc.cliente_email}</span></div>`:''}
+        </div>
+        <div class="info-box">
+          <h3>${isOd?'Tratamento':'Orçamento'}</h3>
+          <div class="info-row"><span class="label">Tipo</span><span class="value">${orc.tipo}</span></div>
+          <div class="info-row"><span class="label">Data</span><span class="value">${fmtData(orc.data)}</span></div>
+          ${orc.profissional_nome?`<div class="info-row"><span class="label">Profissional</span><span class="value">${orc.profissional_nome}</span></div>`:''}
+          <div class="info-row"><span class="label">Status</span><span class="value" style="color:${stCor.color};font-weight:700">${orc.status||'Aberto'}</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TABELA -->
+    <div class="section">
+      <div class="section-title">${isOd?'Procedimentos do tratamento':'Serviços e itens'}</div>
+      <div class="tbl-wrap">
+        ${isOd?`
+        <table>
+          <thead>
+            <tr style="background:linear-gradient(135deg,#1E3A5F,#2D1B69)">
+              <th style="padding:11px 14px;text-align:left;font-size:10px;font-weight:700;color:rgba(255,255,255,.8);text-transform:uppercase;letter-spacing:.07em">Procedimento</th>
+              <th style="padding:11px 14px;text-align:left;font-size:10px;font-weight:700;color:rgba(255,255,255,.8);text-transform:uppercase;letter-spacing:.07em">Dentes</th>
+              <th style="padding:11px 14px;text-align:center;font-size:10px;font-weight:700;color:rgba(255,255,255,.8);text-transform:uppercase;letter-spacing:.07em">Qtd.</th>
+              <th style="padding:11px 14px;text-align:right;font-size:10px;font-weight:700;color:rgba(255,255,255,.8);text-transform:uppercase;letter-spacing:.07em">Unit.</th>
+              <th style="padding:11px 14px;text-align:right;font-size:10px;font-weight:700;color:rgba(255,255,255,.8);text-transform:uppercase;letter-spacing:.07em">Total</th>
+            </tr>
+          </thead>
+          <tbody>${linhasOdonto}</tbody>
+        </table>`:`
+        <table>
+          <thead>
+            <tr style="background:linear-gradient(135deg,#1E3A5F,#2D1B69)">
+              <th style="padding:11px 14px;text-align:left;font-size:10px;font-weight:700;color:rgba(255,255,255,.8);text-transform:uppercase;letter-spacing:.07em">Serviço / Item</th>
+              <th style="padding:11px 14px;text-align:center;font-size:10px;font-weight:700;color:rgba(255,255,255,.8);text-transform:uppercase;letter-spacing:.07em">Qtd.</th>
+              <th style="padding:11px 14px;text-align:right;font-size:10px;font-weight:700;color:rgba(255,255,255,.8);text-transform:uppercase;letter-spacing:.07em">Unit.</th>
+              <th style="padding:11px 14px;text-align:right;font-size:10px;font-weight:700;color:rgba(255,255,255,.8);text-transform:uppercase;letter-spacing:.07em">Total</th>
+            </tr>
+          </thead>
+          <tbody>${linhasComum}</tbody>
+        </table>`}
+      </div>
+    </div>
+
+    <!-- FINANCEIRO -->
+    <div class="section">
+      <div class="section-title">Resumo financeiro</div>
+      <div class="fin-box">
+        ${orc.subtotal&&orc.desconto>0?`<div class="fin-row"><span class="fl">Subtotal</span><span class="fv">${fmtMoeda(orc.subtotal)}</span></div>`:''}
+        ${orc.desconto>0?`<div class="fin-row"><span class="fl">Desconto</span><span class="fv" style="color:#EF4444">− ${fmtMoeda(orc.desconto)}</span></div>`:''}
+      </div>
+      <div class="fin-total">
+        <span class="ft-label">Total do ${isOd?'tratamento':'orçamento'}</span>
+        <span class="ft-value">${fmtMoeda(orc.total)}</span>
+      </div>
+      ${(orc.valor_pago||0)>0?`
+      <div class="fin-pago">
+        <span style="font-size:13px;font-weight:600;color:#15803D">✓ Valor pago</span>
+        <span style="font-size:15px;font-weight:800;color:#15803D">${fmtMoeda(orc.valor_pago)}</span>
+      </div>
+      <div class="fin-saldo">
+        <span style="font-size:13px;font-weight:600;color:#C2410C">Saldo restante</span>
+        <span style="font-size:15px;font-weight:800;color:#C2410C">${fmtMoeda(orc.saldo_restante||0)}</span>
+      </div>`:''}
+    </div>
+
+    ${orc.observacoes?`
+    <div class="section">
+      <div class="section-title">Observações</div>
+      <div class="obs-box">${orc.observacoes}</div>
+    </div>`:''}
+
+    <!-- Espaço para assinatura -->
+    <div class="section" style="margin-top:40px">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:40px">
+        <div>
+          <div style="border-top:1.5px solid #CBD5E1;padding-top:8px">
+            <div style="font-size:11px;color:#94A3B8">${neg}</div>
+            <div style="font-size:10px;color:#CBD5E1;margin-top:2px">Assinatura / Carimbo</div>
+          </div>
+        </div>
+        <div>
+          <div style="border-top:1.5px solid #CBD5E1;padding-top:8px">
+            <div style="font-size:11px;color:#94A3B8">${orc.cliente_nome}</div>
+            <div style="font-size:10px;color:#CBD5E1;margin-top:2px">${isOd?'Assinatura do paciente':'Assinatura do cliente'}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- RODAPÉ -->
+  <div class="footer">
+    <div class="fl"><strong>ClienteMarcado</strong> · Gerado em ${agora}</div>
+    <div class="fr">Documento não possui validade jurídica sem assinatura</div>
+  </div>
+
+</div>
+</body>
+</html>`
+    win.document.write(html)
+    win.document.close()
+    setTimeout(()=>win.print(),600)
   }
 
   const orcsFiltrados=orcamentos.filter(o=>{
