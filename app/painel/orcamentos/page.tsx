@@ -47,6 +47,13 @@ const CSS = `
     .od-bdy{padding:12px 12px 140px!important}
     .od-tbl-desk{display:none!important}
     .od-tbl-mob{display:flex!important;flex-direction:column!important;gap:6px!important}
+  .od-scroll-wrap{position:relative}
+  .od-scroll-wrap::before,.od-scroll-wrap::after{content:'';position:absolute;top:0;bottom:8px;width:24px;z-index:3;pointer-events:none}
+  .od-scroll-wrap::before{left:0;background:linear-gradient(to right,rgba(8,20,33,.9),transparent)}
+  .od-scroll-wrap::after{right:0;background:linear-gradient(to left,rgba(8,20,33,.9),transparent)}
+  .od-scroll{-webkit-overflow-scrolling:touch;scrollbar-width:none}
+  .od-scroll::-webkit-scrollbar{display:none}
+  @media(min-width:1024px){.od-hint{display:none!important}.od-scroll-wrap::before,.od-scroll-wrap::after{display:none!important}}
     .od-kpi{grid-template-columns:1fr 1fr!important}
     .od-add-grid{grid-template-columns:1fr 1fr!important}
   }
@@ -693,7 +700,12 @@ export default function Orcamentos(){
                     <button onClick={()=>setDentesSelec([])} style={{background:'none',border:'none',color:'#64748B',cursor:'pointer',fontSize:'12px',fontFamily:'inherit',fontWeight:600}}>Limpar seleção</button>
                   )}
                 </div>
-                <p style={{fontSize:'12px',color:'#94A3B8',marginBottom:'14px'}}>Toque nos dentes para selecionar. Os dentes selecionados irão automaticamente para o campo de procedimento.</p>
+                <p style={{fontSize:'12px',color:'#94A3B8',marginBottom:'6px'}}>Toque nos dentes para selecionar. Os dentes selecionados irão automaticamente para o campo de procedimento.</p>
+                <p className="od-hint" style={{fontSize:'11px',color:'#475569',marginBottom:'12px',display:'flex',alignItems:'center',gap:'5px'}}>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#475569" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+                  Deslize para ver todos os dentes
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#475569" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+                </p>
                 <svg width="0" height="0" style={{position:'absolute',overflow:'visible'}}>
                   <defs>
                     <linearGradient id="gFree" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#f5f9fd"/><stop offset="50%" stopColor="#e2eef8"/><stop offset="100%" stopColor="#ccdff0"/></linearGradient>
@@ -706,7 +718,7 @@ export default function Orcamentos(){
                 {[{label:'Arcada superior',arr:DENTES_SUP},{label:'Arcada inferior',arr:DENTES_INF}].map(({label,arr},ai)=>(
                   <div key={label} style={{marginBottom:ai===0?'6px':'0'}}>
                     <p style={{fontSize:'10px',fontWeight:700,color:'#475569',textTransform:'uppercase' as const,letterSpacing:'.1em',marginBottom:'7px',textAlign:'center'}}>{label}</p>
-                    <div style={{display:'flex',justifyContent:'center',gap:'2px',overflowX:'auto',paddingBottom:'4px'}}>
+                    <div className="od-scroll-wrap"><div className="od-scroll" style={{display:'flex',justifyContent:'center',gap:'3px',overflowX:'auto',paddingBottom:'6px',paddingLeft:'10px',paddingRight:'10px'}}>
                       {arr.slice(0,arr.length/2).map(n=>{
                         const isSel=dentesSelec.includes(n)
                         const hasPd=linhas.some(l=>l.dentes?.includes(n))
@@ -714,7 +726,7 @@ export default function Orcamentos(){
                         const fill=isSel?'url(#gSel)':hasPd?'url(#gUsado)':'url(#gFree)'
                         const numFill=isSel||hasPd?'#fff':'#1e3a5f'
                         return(
-                          <button key={n} className={cls} onClick={()=>setDentesSelec(prev=>prev.includes(n)?prev.filter(d=>d!==n):[...prev,n])}>
+                          <button key={n} className={cls} onClick={()=>setDentesSelec(prev=>prev.includes(n)?prev.filter(d=>d!==n):[...prev,n])} style={{touchAction:'manipulation'}}>
                             <svg viewBox="0 0 32 44" width="30" height="42" xmlns="http://www.w3.org/2000/svg" style={{display:'block',filter:isSel?'drop-shadow(0 0 5px rgba(99,102,241,.8))':hasPd?'drop-shadow(0 0 4px rgba(168,85,247,.55))':'none'}}>
                               <path fill={fill} stroke="rgba(150,185,215,.5)" strokeWidth="1.2"
                                 d="M16,3 C11.5,3 6,7 6,13.5 C6,18.5 7,22.5 8,27 C9,31.5 9,36.5 11,40.5 C11.8,42.2 12.8,43 14.5,43 C15.3,43 15.8,42.3 16,41.5 C16.2,42.3 16.7,43 17.5,43 C19.2,43 20.2,42.2 21,40.5 C23,36.5 23,31.5 24,27 C25,22.5 26,18.5 26,13.5 C26,7 20.5,3 16,3 Z"/>
@@ -727,7 +739,7 @@ export default function Orcamentos(){
                           </button>
                         )
                       })}
-                      <div style={{width:'1px',background:'rgba(148,163,184,.25)',margin:'0 4px',alignSelf:'stretch',flexShrink:0}}/>
+                      <div style={{width:'2px',background:'rgba(148,163,184,.28)',margin:'0 6px',alignSelf:'stretch',flexShrink:0,borderRadius:'1px'}}/>
                       {arr.slice(arr.length/2).map(n=>{
                         const isSel=dentesSelec.includes(n)
                         const hasPd=linhas.some(l=>l.dentes?.includes(n))
@@ -735,7 +747,7 @@ export default function Orcamentos(){
                         const fill=isSel?'url(#gSel)':hasPd?'url(#gUsado)':'url(#gFree)'
                         const numFill=isSel||hasPd?'#fff':'#1e3a5f'
                         return(
-                          <button key={n} className={cls} onClick={()=>setDentesSelec(prev=>prev.includes(n)?prev.filter(d=>d!==n):[...prev,n])}>
+                          <button key={n} className={cls} onClick={()=>setDentesSelec(prev=>prev.includes(n)?prev.filter(d=>d!==n):[...prev,n])} style={{touchAction:'manipulation'}}>
                             <svg viewBox="0 0 32 44" width="30" height="42" xmlns="http://www.w3.org/2000/svg" style={{display:'block',filter:isSel?'drop-shadow(0 0 5px rgba(99,102,241,.8))':hasPd?'drop-shadow(0 0 4px rgba(168,85,247,.55))':'none'}}>
                               <path fill={fill} stroke="rgba(150,185,215,.5)" strokeWidth="1.2"
                                 d="M16,3 C11.5,3 6,7 6,13.5 C6,18.5 7,22.5 8,27 C9,31.5 9,36.5 11,40.5 C11.8,42.2 12.8,43 14.5,43 C15.3,43 15.8,42.3 16,41.5 C16.2,42.3 16.7,43 17.5,43 C19.2,43 20.2,42.2 21,40.5 C23,36.5 23,31.5 24,27 C25,22.5 26,18.5 26,13.5 C26,7 20.5,3 16,3 Z"/>
@@ -748,7 +760,7 @@ export default function Orcamentos(){
                           </button>
                         )
                       })}
-                    </div>
+                    </div></div>
                     {ai===0&&<div style={{height:'6px'}}/>}
                   </div>
                 ))}
