@@ -136,6 +136,35 @@ export default function Relatorios(){
     })
     .sort((a,b)=>b.qtd-a.qtd)
   const svMaisRealizado=resumoServicos[0]||null
+  // Cálculos diários
+  const hoje=new Date().toISOString().split('T')[0]
+  const receitaHoje=pagamentos.filter(p=>p.data===hoje).reduce((a,p)=>a+(p.valor||0),0)
+  // Agrupar pagamentos do mês por dia
+  const porDia:Record<string,number>={}
+  pagMes.forEach(p=>{if(p.data)porDia[p.data]=(porDia[p.data]||0)+(p.valor||0)})
+  const diasComMovimento=Object.entries(porDia).filter(([,v])=>v>0)
+  const melhorDia=diasComMovimento.length>0?diasComMovimento.reduce((a,b)=>b[1]>a[1]?b:a):null
+  const diaFraco=diasComMovimento.length>0?diasComMovimento.reduce((a,b)=>b[1]<a[1]?b:a):null
+  const diasDoMes=new Date(parseInt(mes.split('-')[0]),parseInt(mes.split('-')[1]),0).getDate()
+  const diasAteHoje=mes===new Date().toISOString().slice(0,7)?new Date().getDate():diasDoMes
+  const mediaDiaria=diasAteHoje>0?receita/diasAteHoje:0
+  // Dados gráfico por dia
+  const chartDiario=Array.from({length:diasDoMes},(_,i)=>{
+    const d=`${mes}-${String(i+1).padStart(2,'0')}`
+    return{name:String(i+1).padStart(2,'0'),valor:porDia[d]||0,fill:'#22C55E'}
+  })
+  // Agrupamento por dia da semana
+  const diasSemana=['Dom','Seg','Ter','Qua','Qui','Sex','Sáb']
+  const porSemana:number[]=[0,0,0,0,0,0,0]
+  pagMes.forEach(p=>{
+    if(!p.data)return
+    const dow=new Date(p.data+'T12:00:00').getDay()
+    porSemana[dow]+=(p.valor||0)
+  })
+  const chartSemana=diasSemana.map((n,i)=>({name:n,valor:porSemana[i],fill:'#3B82F6'}))
+  const melhorSemana=chartSemana.reduce((a,b)=>b.valor>a.valor?b:a)
+  const fracoSemana=chartSemana.filter(d=>d.valor>0).reduce((a,b)=>b.valor<a.valor?b:a,chartSemana.find(d=>d.valor>0)||chartSemana[0])
+  const fmtDia=(d:string)=>{if(!d)return '';const[a,m,di]=d.split('-');return `${di}/${m}`}
   const nomeMes=(()=>{const d=new Date(mes+'-02').toLocaleDateString('pt-BR',{month:'long',year:'numeric'});return d.charAt(0).toUpperCase()+d.slice(1).replace(' De ',' de ').replace(' de ',' de ')})()
   const nome=perfil?.nome_negocio||''
   const ini=(nome||'R').charAt(0).toUpperCase()
@@ -190,6 +219,94 @@ export default function Relatorios(){
                 <p style={{fontSize:'20px',fontWeight:800,color:k.c,lineHeight:1,letterSpacing:'-0.02em',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{k.v}</p>
               </div>
             ))}
+          </div>
+
+          {/* Seção Desempenho Diário */}
+          <div style={{marginBottom:'22px'}}>
+            <div style={{marginBottom:'16px'}}>
+              <div style={{display:'inline-flex',alignItems:'center',gap:'6px',background:'rgba(34,197,94,.10)',border:'1px solid rgba(34,197,94,.22)',borderRadius:'999px',padding:'4px 12px',marginBottom:'10px'}}>
+                <span style={{width:'6px',height:'6px',borderRadius:'50%',background:'#22C55E',display:'inline-block'}}/>
+                <span style={{fontSize:'11px',fontWeight:700,color:'#4ADE80',letterSpacing:'.06em'}}>ANÁLISE DIÁRIA</span>
+              </div>
+              <p style={{fontSize:'20px',fontWeight:800,color:'#F8FAFC',letterSpacing:'-0.02em',marginBottom:'5px'}}>Desempenho diário</p>
+              <p style={{fontSize:'13px',color:'#64748B'}}>Veja quais dias do mês geraram mais receita no período selecionado.</p>
+            </div>
+            {/* Cards diários */}
+            <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:'12px',marginBottom:'20px'}} className="kpi-grid">
+              {[
+                {l:'Hoje',d:new Date().toLocaleDateString('pt-BR',{day:'2-digit',month:'short'}),v:fBRL(receitaHoje),c:'#4ADE80',bg:'rgba(34,197,94,.10)',bd:'rgba(34,197,94,.26)',ico:<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>},
+                {l:'Melhor dia do mês',d:melhorDia?fmtDia(melhorDia[0]):'Sem dados',v:melhorDia?fBRL(melhorDia[1]):'—',c:'#FBBF24',bg:'rgba(245,158,11,.10)',bd:'rgba(245,158,11,.26)',ico:<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>},
+                {l:'Dia mais fraco',d:diaFraco?fmtDia(diaFraco[0]):'Sem dados',v:diaFraco?fBRL(diaFraco[1]):'—',c:'#F87171',bg:'rgba(239,68,68,.10)',bd:'rgba(239,68,68,.26)',ico:<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="22 17 13.5 8.5 8.5 13.5 2 7"/><polyline points="16 17 22 17 22 11"/></svg>},
+                {l:'Média diária',d:`Base: ${diasAteHoje} dias`,v:fBRL(mediaDiaria),c:'#60A5FA',bg:'rgba(59,130,246,.10)',bd:'rgba(59,130,246,.26)',ico:<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>},
+              ].map(k=>(
+                <div key={k.l} style={{background:`radial-gradient(circle at top left,${k.bg},transparent 60%),linear-gradient(145deg,rgba(15,23,42,.97),rgba(8,20,33,.99))`,border:`1.5px solid ${k.bd}`,borderRadius:'16px',padding:'16px',boxSizing:'border-box' as const}}>
+                  <div style={{width:'36px',height:'36px',borderRadius:'10px',background:k.bg,border:`1px solid ${k.bd}`,display:'flex',alignItems:'center',justifyContent:'center',marginBottom:'10px',color:k.c}}>{k.ico}</div>
+                  <p style={{fontSize:'10px',fontWeight:700,color:'#94A3B8',textTransform:'uppercase' as const,letterSpacing:'.08em',marginBottom:'2px'}}>{k.l}</p>
+                  <p style={{fontSize:'11px',color:'#64748B',marginBottom:'5px'}}>{k.d}</p>
+                  <p style={{fontSize:'18px',fontWeight:800,color:k.c,lineHeight:1,letterSpacing:'-0.02em'}}>{k.v}</p>
+                </div>
+              ))}
+            </div>
+            {/* Gráfico Receita por Dia */}
+            <div style={{background:'radial-gradient(circle at top left,rgba(34,197,94,.06),transparent 35%),linear-gradient(145deg,rgba(15,23,42,.97),rgba(8,20,33,.99))',border:'1.5px solid rgba(148,163,184,.16)',borderRadius:'18px',padding:'20px',marginBottom:'16px'}}>
+              <p style={{fontSize:'15px',fontWeight:700,color:'#F8FAFC',marginBottom:'3px'}}>Receita por dia</p>
+              <p style={{fontSize:'12px',color:'#64748B',marginBottom:'16px'}}>Cada barra representa o total recebido naquele dia do mês.</p>
+              {receita===0?(
+                <div style={{height:'140px',display:'flex',alignItems:'center',justifyContent:'center',flexDirection:'column',gap:'6px'}}>
+                  <p style={{fontSize:'13px',color:'#64748B'}}>Nenhuma receita confirmada neste período.</p>
+                </div>
+              ):(
+                <div style={{overflowX:'auto',WebkitOverflowScrolling:'touch' as any}}>
+                  <div style={{minWidth:`${diasDoMes*28}px`,height:'180px'}}>
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={chartDiario} margin={{top:5,right:4,left:0,bottom:0}} barSize={14}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(148,163,184,.08)" vertical={false}/>
+                        <XAxis dataKey="name" tick={{fill:'#64748B',fontSize:9}} axisLine={false} tickLine={false} interval={1}/>
+                        <YAxis tickFormatter={v=>v>0?`${(v/1000).toFixed(0)}k`:'0'} tick={{fill:'#64748B',fontSize:9}} axisLine={false} tickLine={false} width={28}/>
+                        <Tooltip content={<CustomTooltip/>} cursor={{fill:'rgba(148,163,184,.06)'}}/>
+                        <Bar dataKey="valor" fill="#22C55E" radius={[3,3,0,0]} fillOpacity={0.85}/>
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+              )}
+            </div>
+            {/* Melhores dias da semana */}
+            <div style={{background:'radial-gradient(circle at top left,rgba(59,130,246,.06),transparent 35%),linear-gradient(145deg,rgba(15,23,42,.97),rgba(8,20,33,.99))',border:'1.5px solid rgba(148,163,184,.16)',borderRadius:'18px',padding:'20px'}}>
+              <div style={{marginBottom:'14px'}}>
+                <p style={{fontSize:'15px',fontWeight:700,color:'#F8FAFC',marginBottom:'3px'}}>Melhores dias da semana</p>
+                <p style={{fontSize:'12px',color:'#64748B'}}>Entenda quais dias costumam movimentar mais o seu negócio.</p>
+              </div>
+              {receita===0?(
+                <p style={{fontSize:'13px',color:'#64748B'}}>Nenhuma receita confirmada neste período.</p>
+              ):(
+                <>
+                  <div style={{display:'flex',gap:'8px',marginBottom:'14px',flexWrap:'wrap'}}>
+                    {melhorSemana.valor>0&&<div style={{display:'flex',alignItems:'center',gap:'6px',background:'rgba(34,197,94,.10)',border:'1px solid rgba(34,197,94,.22)',borderRadius:'8px',padding:'5px 10px'}}>
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#4ADE80" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/></svg>
+                      <span style={{fontSize:'11px',fontWeight:700,color:'#4ADE80'}}>Mais forte: {melhorSemana.name}</span>
+                    </div>}
+                    {fracoSemana&&fracoSemana.valor>0&&melhorSemana.name!==fracoSemana.name&&<div style={{display:'flex',alignItems:'center',gap:'6px',background:'rgba(239,68,68,.08)',border:'1px solid rgba(239,68,68,.20)',borderRadius:'8px',padding:'5px 10px'}}>
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#F87171" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="22 17 13.5 8.5 8.5 13.5 2 7"/></svg>
+                      <span style={{fontSize:'11px',fontWeight:700,color:'#F87171'}}>Mais fraco: {fracoSemana.name}</span>
+                    </div>}
+                  </div>
+                  <div style={{height:'160px'}}>
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={chartSemana} margin={{top:5,right:5,left:0,bottom:0}} barSize={28}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(148,163,184,.08)" vertical={false}/>
+                        <XAxis dataKey="name" tick={{fill:'#94A3B8',fontSize:11,fontWeight:600}} axisLine={false} tickLine={false}/>
+                        <YAxis tickFormatter={v=>v>0?`${(v/1000).toFixed(0)}k`:'0'} tick={{fill:'#64748B',fontSize:10}} axisLine={false} tickLine={false} width={32}/>
+                        <Tooltip content={<CustomTooltip/>} cursor={{fill:'rgba(148,163,184,.06)'}}/>
+                        <Bar dataKey="valor" radius={[5,5,0,0]} fillOpacity={0.88}>
+                          {chartSemana.map((d,i)=><Cell key={i} fill={d.name===melhorSemana.name&&d.valor>0?'#22C55E':'#3B82F6'}/>)}
+                        </Bar>
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                </>
+              )}
+            </div>
           </div>
           <div style={{background:'radial-gradient(circle at top left,rgba(34,211,238,.08),transparent 35%),linear-gradient(145deg,rgba(15,23,42,.97),rgba(8,20,33,.99))',border:'1.5px solid rgba(148,163,184,.18)',borderRadius:'20px',padding:'24px',marginBottom:'22px',boxShadow:'0 20px 48px rgba(0,0,0,.28)'}}>
             <div style={{marginBottom:'18px'}}>
