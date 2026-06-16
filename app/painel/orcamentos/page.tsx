@@ -313,7 +313,7 @@ export default function Orcamentos(){
     const ns=Math.max(0,(modalPagOrc.total||0)-nv)
     const nst=ns<0.01?'Pago':'Parcialmente pago'
     try{await supabase.from('orcamento_pagamentos').insert({orcamento_id:modalPagOrc.id,user_id:userId,data:new Date().toISOString().split('T')[0],valor,forma:modalForma,observacao:modalObs||null})}catch(e){}
-    try{await supabase.from('pagamentos').insert({user_id:userId,valor,data:new Date().toISOString().split('T')[0],status:'confirmado'})}catch(e){}
+    // Não inserir em 'pagamentos' - orcamento_pagamentos é a fonte única para o relatório
     await supabase.from('orcamentos').update({valor_pago:nv,saldo_restante:ns,status:nst,updated_at:new Date().toISOString()}).eq('id',modalPagOrc.id)
     setOrcamentos(prev=>prev.map(o=>o.id===modalPagOrc.id?{...o,valor_pago:nv,saldo_restante:ns,status:nst}:o))
     setModalSaving(false);setModalPagOrc(null)
