@@ -40,7 +40,7 @@ const CSS = `
   input,select,textarea{color-scheme:dark}
   select option{background:#07111F;color:#F8FAFC}
   .od-footer{display:none;position:fixed;bottom:0;left:0;right:0;background:rgba(5,11,22,.97);border-top:1px solid rgba(148,163,184,.12);padding:10px 16px calc(10px + env(safe-area-inset-bottom,0px));z-index:25;flex-direction:column;gap:6px;backdrop-filter:blur(20px)}
-  @media(min-width:1024px){.od-footer{display:none!important}.od-resumo-mob{display:none!important}.od-tbl-mob{display:none!important}}
+  @media(min-width:1024px){.od-footer{display:none!important}.od-resumo-mob{display:none!important}.od-tbl-mob{display:none!important}.od-add-linha{display:grid!important;grid-template-columns:2fr 1.5fr 70px 1.2fr!important;gap:10px!important;align-items:end!important}}
   @media(max-width:1023px){
     .od-footer{display:flex!important}
     .od-2col{grid-template-columns:1fr!important}
@@ -50,13 +50,13 @@ const CSS = `
     .od-kpi{grid-template-columns:1fr 1fr!important}
     .od-add-grid{grid-template-columns:1fr 1fr!important}
   }
-  .dt{position:relative;width:30px;height:40px;border-radius:5px 5px 10px 10px;border:1.5px solid rgba(180,195,215,.35);background:linear-gradient(175deg,#e8f0f8 0%,#d0e0ef 50%,#bdd0e8 100%);cursor:pointer;font-size:9px;font-weight:800;color:#1a2d42;display:flex;align-items:center;justify-content:center;transition:all .14s;box-shadow:0 2px 6px rgba(0,0,0,.25),inset 0 1px 0 rgba(255,255,255,.7);flex-shrink:0;font-family:inherit;padding:0}
-  .dt:hover{transform:translateY(-3px);box-shadow:0 6px 18px rgba(99,102,241,.4);border-color:rgba(99,102,241,.6)}
-  .dt.s{background:linear-gradient(175deg,#818cf8 0%,#6366f1 50%,#4f46e5 100%);border-color:#818cf8;color:#fff;box-shadow:0 0 0 2px rgba(99,102,241,.4),0 4px 16px rgba(99,102,241,.6);transform:translateY(-3px)}
-  .dt.usado{background:linear-gradient(175deg,#c4b5fd 0%,#a78bfa 50%,#7c3aed 100%);border-color:#a78bfa;color:#fff;box-shadow:0 0 8px rgba(124,58,237,.4)}
-  .dt.andamento{background:linear-gradient(175deg,#fdba74 0%,#f97316 50%,#ea580c 100%);border-color:#f97316;color:#fff;box-shadow:0 0 8px rgba(234,88,12,.4)}
-  .dt.concluido{background:linear-gradient(175deg,#86efac 0%,#4ade80 50%,#16a34a 100%);border-color:#4ade80;color:#fff;box-shadow:0 0 8px rgba(34,197,94,.4)}
-  .dt .dot{position:absolute;top:2px;right:2px;width:5px;height:5px;border-radius:50%;background:rgba(255,255,255,.85)}
+  .dt{position:relative;width:28px;height:38px;border-radius:6px 6px 9px 9px;border:1.5px solid rgba(190,210,230,.45);background:linear-gradient(170deg,#f2f7fc 0%,#ddeaf6 45%,#ccdff0 100%);cursor:pointer;font-size:9px;font-weight:800;color:#1a3050;display:flex;align-items:center;justify-content:center;transition:all .13s;box-shadow:0 3px 6px rgba(0,0,0,.3),inset 0 1.5px 0 rgba(255,255,255,.85),inset 0 -1.5px 0 rgba(0,0,0,.1);flex-shrink:0;font-family:inherit;padding:0}
+  .dt:hover{transform:translateY(-3px) scale(1.1);box-shadow:0 6px 16px rgba(99,102,241,.45),0 0 0 2px rgba(99,102,241,.3);border-color:rgba(99,102,241,.55)}
+  .dt.s{background:linear-gradient(170deg,#a5b4fc 0%,#6366f1 50%,#4338ca 100%);border-color:#6366f1;color:#fff;box-shadow:0 0 0 2.5px rgba(99,102,241,.55),0 4px 18px rgba(99,102,241,.7);transform:translateY(-3px) scale(1.1)}
+  .dt.usado{background:linear-gradient(170deg,#e9d5ff 0%,#a855f7 50%,#7e22ce 100%);border-color:#a855f7;color:#fff;box-shadow:0 0 0 2px rgba(168,85,247,.45),0 3px 10px rgba(126,34,206,.45)}
+  .dt.andamento{background:linear-gradient(170deg,#fed7aa 0%,#f97316 50%,#c2410c 100%);border-color:#f97316;color:#fff;box-shadow:0 0 0 2px rgba(249,115,22,.45),0 3px 10px rgba(194,65,12,.45)}
+  .dt.concluido{background:linear-gradient(170deg,#bbf7d0 0%,#22c55e 50%,#15803d 100%);border-color:#22c55e;color:#fff;box-shadow:0 0 0 2px rgba(34,197,94,.45),0 3px 10px rgba(21,128,61,.45)}
+  .dt .dot{position:absolute;top:2px;right:2px;width:5px;height:5px;border-radius:50%;background:rgba(255,255,255,.9);box-shadow:0 0 3px rgba(255,255,255,.7)}
 `
 
 export default function Orcamentos(){
@@ -693,9 +693,14 @@ export default function Orcamentos(){
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#C4B5FD" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2C8 2 4 5 4 9c0 2.5 1 4.5 2 6 1 1.5 2 3 2 5 0 1 .5 2 1.5 2h5c1 0 1.5-1 1.5-2 0-2 1-3.5 2-5 1-1.5 2-3.5 2-6 0-4-4-7-8-7z"/></svg>
                     <p style={{fontSize:'14px',fontWeight:700,color:'#F8FAFC'}}>Odontograma</p>
                   </div>
-                  {dentesSelec.length>0&&(
-                    <button onClick={()=>setDentesSelec([])} style={{background:'none',border:'none',color:'#64748B',cursor:'pointer',fontSize:'12px',fontFamily:'inherit',fontWeight:600}}>Limpar seleção</button>
-                  )}
+                  <div style={{display:'flex',gap:'6px',flexWrap:'wrap'}}>
+                    {dentesSelec.length>0&&(
+                      <button onClick={()=>setDentesSelec([])} style={{background:'rgba(255,255,255,.06)',border:'1px solid rgba(255,255,255,.12)',borderRadius:'6px',color:'#94A3B8',cursor:'pointer',fontSize:'11px',fontFamily:'inherit',fontWeight:600,padding:'3px 9px'}}>Limpar seleção</button>
+                    )}
+                    {linhas.length>0&&(
+                      <button onClick={()=>{setDentesSelec([]);setLinhas([]);setAddProc('');setAddValor('');setAddQtdManual(1);setOdDesconto('');setOdHistPags([])}} style={{background:'rgba(239,68,68,.08)',border:'1px solid rgba(239,68,68,.22)',borderRadius:'6px',color:'#F87171',cursor:'pointer',fontSize:'11px',fontFamily:'inherit',fontWeight:600,padding:'3px 9px'}}>Limpar tudo</button>
+                    )}
+                  </div>
                 </div>
                 <p style={{fontSize:'12px',color:'#94A3B8',marginBottom:'14px'}}>Toque nos dentes para selecionar. Os dentes selecionados irão automaticamente para o campo de procedimento.</p>
                 {[{label:'Arcada superior',arr:DENTES_SUP},{label:'Arcada inferior',arr:DENTES_INF}].map(({label,arr},ai)=>(
@@ -722,14 +727,14 @@ export default function Orcamentos(){
                 {/* Selecionados */}
                 <div style={{marginTop:'10px',minHeight:'28px',display:'flex',alignItems:'center',gap:'6px',flexWrap:'wrap'}}>
                   {dentesSelec.length===0?(
-                    <span style={{fontSize:'12px',color:'#475569'}}>Nenhum dente selecionado</span>
+                    <span style={{fontSize:'12px',color:'#475569',fontStyle:'italic'}}>Toque nos dentes para selecionar</span>
                   ):(
                     <>
-                      <span style={{fontSize:'12px',color:'#94A3B8',fontWeight:600}}>Selecionados:</span>
+                      <span style={{fontSize:'11px',color:'#64748B',fontWeight:700,textTransform:'uppercase' as const,letterSpacing:'.06em',flexShrink:0}}>Sel.:</span>
                       {[...dentesSelec].sort((a,b)=>a-b).map(d=>(
                         <button key={d} onClick={()=>setDentesSelec(prev=>prev.filter(x=>x!==d))}
-                          style={{fontSize:'11px',fontWeight:700,background:'rgba(99,102,241,.2)',border:'1px solid rgba(99,102,241,.45)',borderRadius:'999px',padding:'2px 8px',color:'#a5b4fc',cursor:'pointer',fontFamily:'inherit'}}>
-                          {d} ×
+                          style={{fontSize:'11px',fontWeight:700,background:'rgba(99,102,241,.22)',border:'1px solid rgba(99,102,241,.5)',borderRadius:'999px',padding:'2px 9px 2px 9px',color:'#c7d2fe',cursor:'pointer',fontFamily:'inherit',display:'flex',alignItems:'center',gap:'3px'}}>
+                          {d} <span style={{fontSize:'10px',opacity:.7}}>×</span>
                         </button>
                       ))}
                     </>
