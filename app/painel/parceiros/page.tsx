@@ -63,9 +63,9 @@ export default function Parceiros() {
   }
 
   async function carregarIndicacoes() {
-    const { data } = await supabase.from('perfis')
-      .select('*, parceiros(nome,cupom)')
-      .not('cupom_indicacao', 'is', null)
+    const { data } = await supabase
+      .from('indicacoes_parceiros')
+      .select('*, parceiros(nome,cupom,comissao_fixa)')
       .order('created_at', { ascending: false })
     setIndicacoes(data || [])
   }
@@ -127,14 +127,14 @@ export default function Parceiros() {
 
   const totalAtivos = parceiros.filter(p => p.ativo).length
   const totalCupons = indicacoes.length
-  const totalConvertidos = indicacoes.filter(i => i.indicacao_status === 'convertido').length
-  const totalPendente = indicacoes.filter(i => i.comissao_status === 'pendente').reduce((a, i) => {
-    const par = parceiros.find(p => p.cupom === i.cupom_indicacao)
-    return a + (par?.comissao_fixa || 0)
+  const totalConvertidos = indicacoes.filter(i => i.is_pagante === true || i.status === 'pagante').length
+  const totalPendente = indicacoes.filter(i => i.is_pagante === true && i.comissao_status !== 'paga').reduce((a, i) => {
+    const com = i.parceiros?.comissao_fixa || parceiros.find(p => p.cupom === i.cupom_codigo)?.comissao_fixa || 0
+    return a + com
   }, 0)
   const totalPaga = indicacoes.filter(i => i.comissao_status === 'paga').reduce((a, i) => {
-    const par = parceiros.find(p => p.cupom === i.cupom_indicacao)
-    return a + (par?.comissao_fixa || 0)
+    const com = i.parceiros?.comissao_fixa || parceiros.find(p => p.cupom === i.cupom_codigo)?.comissao_fixa || 0
+    return a + com
   }, 0)
 
   const fBRL = (v: number) => `R$ ${v.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`
@@ -202,10 +202,10 @@ export default function Parceiros() {
                   </div>
                 ) : parceiros.map((p, i) => {
                   const link = `${typeof window !== 'undefined' ? window.location.origin : ''}/cadastro?cupom=${p.cupom}`
-                  const clientes = indicacoes.filter(ind => ind.cupom_indicacao === p.cupom).length
-                  const pagantes = indicacoes.filter(ind => ind.cupom_indicacao === p.cupom && ind.primeiro_pagamento_confirmado).length
-                  const pendente = indicacoes.filter(ind => ind.cupom_indicacao === p.cupom && ind.comissao_status === 'pendente').length * (p.comissao_fixa || 0)
-                  const paga = indicacoes.filter(ind => ind.cupom_indicacao === p.cupom && ind.comissao_status === 'paga').length * (p.comissao_fixa || 0)
+                  const clientes = indicacoes.filter(ind => ind.cupom_codigo === p.cupom).length
+                  const pagantes = indicacoes.filter(ind => ind.cupom_codigo === p.cupom && ind.is_pagante === true).length
+                  const pendente = indicacoes.filter(ind => ind.cupom_codigo === p.cupom && ind.is_pagante === true && ind.comissao_status !== 'paga').length * (p.comissao_fixa || 0)
+                  const paga = indicacoes.filter(ind => ind.cupom_codigo === p.cupom && ind.comissao_status === 'paga').length * (p.comissao_fixa || 0)
                   return (
                     <div key={p.id} className="tbl-row" style={{ gridTemplateColumns: '1fr', gap: '10px' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px', alignItems: 'center' }}>
@@ -271,20 +271,21 @@ export default function Parceiros() {
                       <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px', alignItems: 'center' }}>
                         <div>
                           <p style={{ fontSize: '14px', fontWeight: 600, color: '#F8FAFC', marginBottom: '2px' }}>{ind.nome_negocio || '—'}</p>
+                          <p style={{ fontSize: '12px', color: '#94A3B8', marginBottom: '1px' }}>{ind.nome_responsavel || ''}</p>
                           <p style={{ fontSize: '12px', color: '#64748B', marginBottom: '4px' }}>{ind.email}</p>
                           <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-                            <span style={{ fontSize: '11px', fontWeight: 800, color: '#7C3AED', background: 'rgba(124,58,237,.15)', border: '1px solid rgba(124,58,237,.28)', padding: '2px 8px', borderRadius: '6px' }}>{ind.cupom_indicacao}</span>
-                            {par && <span style={{ fontSize: '11px', color: '#94A3B8' }}>→ {par.nome}</span>}
-                            <span className="badge" style={{ background: 'rgba(34,197,94,.12)', border: '1px solid rgba(34,197,94,.24)', color: statusCor[ind.indicacao_status] || '#64748B' }}>{ind.indicacao_status}</span>
-                            <span className="badge" style={{ background: 'rgba(245,158,11,.10)', border: '1px solid rgba(245,158,11,.22)', color: comCor[ind.comissao_status] || '#64748B' }}>Comissão: {ind.comissao_status}</span>
+                            <span style={{ fontSize: '11px', fontWeight: 800, color: '#7C3AED', background: 'rgba(124,58,237,.15)', border: '1px solid rgba(124,58,237,.28)', padding: '2px 8px', borderRadius: '6px' }}>{ind.cupom_codigo}</span>
+                            {ind.parceiros && <span style={{ fontSize: '11px', color: '#94A3B8' }}>→ {ind.parceiros.nome}</span>}
+                            <span className="badge" style={{ background: 'rgba(34,197,94,.12)', border: '1px solid rgba(34,197,94,.24)', color: ind.status === 'pagante' ? '#4ADE80' : ind.status === 'cadastrado' ? '#60A5FA' : '#64748B' }}>{ind.status || 'cadastrado'}</span>
+                            <span className="badge" style={{ background: ind.is_pagante ? 'rgba(34,197,94,.10)' : 'rgba(148,163,184,.08)', border: '1px solid rgba(148,163,184,.16)', color: ind.is_pagante ? '#4ADE80' : '#64748B' }}>Pagante: {ind.is_pagante ? 'Sim' : 'Não'}</span>
                           </div>
                         </div>
                         <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-                          {!ind.primeiro_pagamento_confirmado && (
+                          {!ind.is_pagante && (
                             <button className="btn-s" onClick={() => marcarPagante(ind)}>✅ Marcar pagante</button>
                           )}
-                          {ind.comissao_status === 'pendente' && (
-                            <button className="btn-g" onClick={() => marcarPago(ind)}>💰 Marcar pago</button>
+                          {ind.is_pagante && ind.comissao_status !== 'paga' && (
+                            <button className="btn-g" onClick={() => marcarPago(ind)}>💰 Marcar comissão paga</button>
                           )}
                         </div>
                       </div>
