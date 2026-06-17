@@ -22,7 +22,7 @@ html,body{overflow-x:hidden;width:100%;background:#050B16}
 .badge{display:inline-flex;align-items:center;padding:3px 10px;border-radius:999px;font-size:11px;font-weight:700}
 .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:50;display:flex;align-items:center;justify-content:center;padding:20px}
 .modal{background:#0F172A;border:1.5px solid rgba(148,163,184,.18);border-radius:22px;padding:32px;width:100%;max-width:500px;max-height:90vh;overflow-y:auto}
-@media(max-width:1023px){.psb-main{overflow-x:hidden!important;width:100%!important;max-width:100%!important;box-sizing:border-box!important}.pg{width:100%!important;overflow-x:hidden!important}.bdy{padding:14px 14px 80px!important;max-width:100%!important;width:100%!important;box-sizing:border-box!important;overflow-x:hidden!important}.kpi{grid-template-columns:1fr 1fr!important}.btn-p,.btn-s,.btn-g{white-space:normal!important;font-size:11px!important;padding:6px 8px!important}.link-row{display:none!important}}
+@media(max-width:1023px){.psb-main{overflow-x:hidden!important;width:100%!important;max-width:100%!important;box-sizing:border-box!important}.pg{width:100%!important;max-width:100%!important;overflow-x:hidden!important}.bdy{padding:14px 14px 80px!important;max-width:100%!important;width:100%!important;box-sizing:border-box!important;overflow-x:hidden!important}.kpi{grid-template-columns:1fr 1fr!important}.btn-p,.btn-s,.btn-g{white-space:normal!important;font-size:11px!important;padding:6px 8px!important}.link-row{display:none!important}}
 @media(max-width:480px){.kpi{grid-template-columns:1fr}}
 `
 
@@ -103,17 +103,19 @@ export default function Parceiros() {
 
   async function marcarPago(ind: any) {
     if (!window.confirm('Deseja marcar esta comissão como paga?')) return
-    await supabase.from('perfis').update({ comissao_status: 'paga' }).eq('id', ind.id)
+    await supabase.from('indicacoes_parceiros').update({ comissao_status: 'paga' }).eq('id', ind.id)
     await carregarIndicacoes()
   }
 
   async function marcarPagante(ind: any) {
     if (!window.confirm('Marcar como cliente pagante?')) return
-    await supabase.from('perfis').update({
-      primeiro_pagamento_confirmado: true,
-      data_primeiro_pagamento: new Date().toISOString(),
-      indicacao_status: 'convertido',
+    const par = parceiros.find((pc:any) => pc.cupom === ind.cupom_codigo)
+    await supabase.from('indicacoes_parceiros').update({
+      is_pagante: true,
+      status: 'pagante',
       comissao_status: 'pendente',
+      comissao_valor: par?.comissao_fixa || 0,
+      data_pagamento: new Date().toISOString().split('T')[0],
     }).eq('id', ind.id)
     await carregarIndicacoes()
   }
@@ -127,14 +129,12 @@ export default function Parceiros() {
 
   const totalAtivos = parceiros.filter(p => p.ativo).length
   const totalCupons = indicacoes.length
-  const totalConvertidos = indicacoes.filter(i => i.is_pagante === true || i.status === 'pagante').length
-  const totalPendente = indicacoes.filter(i => i.is_pagante === true && i.comissao_status !== 'paga').reduce((a, i) => {
-    const com = i.parceiros?.comissao_fixa || parceiros.find(p => p.cupom === i.cupom_codigo)?.comissao_fixa || 0
-    return a + com
+  const totalConvertidos = indicacoes.filter(i => i.is_pagante === true).length
+  const totalPendente = indicacoes.filter(i => i.comissao_status === 'pendente').reduce((a, i) => {
+    return a + (i.comissao_valor || i.parceiros?.comissao_fixa || 0)
   }, 0)
   const totalPaga = indicacoes.filter(i => i.comissao_status === 'paga').reduce((a, i) => {
-    const com = i.parceiros?.comissao_fixa || parceiros.find(p => p.cupom === i.cupom_codigo)?.comissao_fixa || 0
-    return a + com
+    return a + (i.comissao_valor || i.parceiros?.comissao_fixa || 0)
   }, 0)
 
   const fBRL = (v: number) => `R$ ${v.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`
@@ -204,8 +204,8 @@ export default function Parceiros() {
                   const link = `${typeof window !== 'undefined' ? window.location.origin : ''}/cadastro?cupom=${p.cupom}`
                   const clientes = indicacoes.filter(ind => ind.cupom_codigo === p.cupom).length
                   const pagantes = indicacoes.filter(ind => ind.cupom_codigo === p.cupom && ind.is_pagante === true).length
-                  const pendente = indicacoes.filter(ind => ind.cupom_codigo === p.cupom && ind.is_pagante === true && ind.comissao_status !== 'paga').length * (p.comissao_fixa || 0)
-                  const paga = indicacoes.filter(ind => ind.cupom_codigo === p.cupom && ind.comissao_status === 'paga').length * (p.comissao_fixa || 0)
+                  const pendente = indicacoes.filter(ind => ind.cupom_codigo === p.cupom && ind.comissao_status === 'pendente').reduce((a:number,ind:any)=>a+(ind.comissao_valor||p.comissao_fixa||0),0)
+                  const paga = indicacoes.filter(ind => ind.cupom_codigo === p.cupom && ind.comissao_status === 'paga').reduce((a:number,ind:any)=>a+(ind.comissao_valor||p.comissao_fixa||0),0)
                   return (
                     <div key={p.id} className="tbl-row" style={{ gridTemplateColumns: '1fr', gap: '10px' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px', alignItems: 'center' }}>
@@ -263,29 +263,27 @@ export default function Parceiros() {
                     <p style={{ fontSize: '14px', color: '#64748B' }}>Nenhuma indicação registrada ainda.</p>
                   </div>
                 ) : indicacoes.map(ind => {
-                  const par = parceiros.find(p => p.cupom === ind.cupom_indicacao)
-                  const statusCor: Record<string, string> = { convertido: '#4ADE80', pendente: '#FBBF24', sem_cupom: '#64748B' }
-                  const comCor: Record<string, string> = { paga: '#4ADE80', pendente: '#FBBF24', nao_aplicavel: '#64748B' }
+
                   return (
                     <div key={ind.id} className="tbl-row" style={{ gridTemplateColumns: '1fr' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px', alignItems: 'center' }}>
                         <div>
                           <p style={{ fontSize: '14px', fontWeight: 600, color: '#F8FAFC', marginBottom: '2px' }}>{ind.nome_negocio || '—'}</p>
-                          <p style={{ fontSize: '12px', color: '#94A3B8', marginBottom: '1px' }}>{ind.nome_responsavel || ''}</p>
+                          {ind.nome_responsavel&&<p style={{ fontSize: '12px', color: '#94A3B8', marginBottom: '1px' }}>{ind.nome_responsavel}</p>}
                           <p style={{ fontSize: '12px', color: '#64748B', marginBottom: '4px' }}>{ind.email}</p>
                           <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
                             <span style={{ fontSize: '11px', fontWeight: 800, color: '#7C3AED', background: 'rgba(124,58,237,.15)', border: '1px solid rgba(124,58,237,.28)', padding: '2px 8px', borderRadius: '6px' }}>{ind.cupom_codigo}</span>
-                            {ind.parceiros && <span style={{ fontSize: '11px', color: '#94A3B8' }}>→ {ind.parceiros.nome}</span>}
-                            <span className="badge" style={{ background: 'rgba(34,197,94,.12)', border: '1px solid rgba(34,197,94,.24)', color: ind.status === 'pagante' ? '#4ADE80' : ind.status === 'cadastrado' ? '#60A5FA' : '#64748B' }}>{ind.status || 'cadastrado'}</span>
-                            <span className="badge" style={{ background: ind.is_pagante ? 'rgba(34,197,94,.10)' : 'rgba(148,163,184,.08)', border: '1px solid rgba(148,163,184,.16)', color: ind.is_pagante ? '#4ADE80' : '#64748B' }}>Pagante: {ind.is_pagante ? 'Sim' : 'Não'}</span>
+                            {ind.parceiros&&<span style={{ fontSize: '11px', color: '#94A3B8' }}>→ {ind.parceiros.nome}</span>}
+                            <span className="badge" style={{ background: ind.status==='pagante'?'rgba(34,197,94,.12)':'rgba(59,130,246,.12)', border: `1px solid ${ind.status==='pagante'?'rgba(34,197,94,.24)':'rgba(59,130,246,.24)'}`, color: ind.status==='pagante'?'#4ADE80':'#60A5FA' }}>{ind.status||'cadastrado'}</span>
+                            <span className="badge" style={{ background: ind.is_pagante?'rgba(34,197,94,.10)':'rgba(148,163,184,.08)', border: '1px solid rgba(148,163,184,.14)', color: ind.is_pagante?'#4ADE80':'#64748B' }}>Pagante: {ind.is_pagante?'Sim':'Não'}</span>
                           </div>
                         </div>
                         <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
                           {!ind.is_pagante && (
-                            <button className="btn-s" onClick={() => marcarPagante(ind)}>✅ Marcar pagante</button>
+                            <button className="btn-s" onClick={() => marcarPagante(ind)}>Marcar pagante</button>
                           )}
                           {ind.is_pagante && ind.comissao_status !== 'paga' && (
-                            <button className="btn-g" onClick={() => marcarPago(ind)}>💰 Marcar comissão paga</button>
+                            <button className="btn-g" onClick={() => marcarPago(ind)}>Comissão paga</button>
                           )}
                         </div>
                       </div>

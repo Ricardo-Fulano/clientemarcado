@@ -90,41 +90,36 @@ export default function Cadastro() {
     })
     if (error) {
       setMensagem('Erro: ' + error.message)
-    } else {
-      // Salvar indicação no banco se cupom foi usado
-      if (cupom) {
-        try {
-          // Buscar parceiro pelo cupom
-          const { data: parceiro } = await supabase
-            .from('parceiros')
-            .select('id,cupom,ativo')
-            .eq('cupom', cupom.toUpperCase())
-            .eq('ativo', true)
-            .single()
-          if (parceiro) {
-            // Verificar se já existe indicação para este email+cupom
-            const { data: existente } = await supabase
-              .from('indicacoes_parceiros')
-              .select('id')
-              .eq('email', email)
-              .eq('cupom_codigo', cupom.toUpperCase())
-              .single()
-            if (!existente) {
-              await supabase.from('indicacoes_parceiros').insert({
-                parceiro_id: parceiro.id,
-                cupom_codigo: cupom.toUpperCase(),
-                nome_negocio: nomeNegocio || null,
-                nome_responsavel: nomeUsuario || null,
-                email: email,
-                status: 'cadastrado',
-                is_pagante: false,
-              })
-            }
-          }
-        } catch(e) { console.log('Indicacao nao salva:', e) }
-      }
-      setMensagem('Conta criada! Verifique seu e-mail para confirmar.')
+      setLoading(false)
+      return
     }
+    // Salvar indicação no banco imediatamente se cupom foi usado
+    if (cupom && cupom.trim()) {
+      const cupomFmt = cupom.trim().toUpperCase()
+      try {
+        const { data: parceiro } = await supabase
+          .from('parceiros')
+          .select('id,comissao_fixa')
+          .eq('cupom', cupomFmt)
+          .eq('ativo', true)
+          .single()
+        if (parceiro) {
+          // Upsert evita duplicidade por email+cupom
+          await supabase.from('indicacoes_parceiros').upsert({
+            parceiro_id: parceiro.id,
+            cupom_codigo: cupomFmt,
+            nome_negocio: nomeNegocio || null,
+            nome_responsavel: nomeUsuario || null,
+            email: email.toLowerCase().trim(),
+            status: 'cadastrado',
+            is_pagante: false,
+            comissao_status: 'nenhuma',
+            comissao_valor: 0,
+          }, { onConflict: 'email,cupom_codigo', ignoreDuplicates: true })
+        }
+      } catch(e) { console.warn('Indicacao parceiro:', e) }
+    }
+    setMensagem('Conta criada! Verifique seu e-mail para confirmar.')
     setLoading(false)
   }
   const css = `
