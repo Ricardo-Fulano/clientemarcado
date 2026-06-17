@@ -71,6 +71,9 @@ export default function Relatorios(){
   const [mob,setMob]=useState(false)
   const [mes,setMes]=useState(new Date().toISOString().slice(0,7))
   const [profSel,setProfSel]=useState<any>(null)
+  const [dataSel,setDataSel]=useState('')
+  const [modalCal,setModalCal]=useState(false)
+  const [calMes,setCalMes]=useState(new Date().toISOString().slice(0,7))
   useEffect(()=>{load()},[mes])
   async function load(){
     const {data:{user}}=await supabase.auth.getUser()
@@ -308,6 +311,198 @@ export default function Relatorios(){
               )}
             </div>
           </div>
+
+          {/* ─── CONSULTAR POR DATA ─── */}
+          {(()=>{
+            const fmtDataCompleta=(d:string)=>{
+              if(!d)return ''
+              const dt=new Date(d+'T12:00:00')
+              return dt.toLocaleDateString('pt-BR',{weekday:'long',day:'numeric',month:'long',year:'numeric'})
+            }
+            const fmtDataCurta=(d:string)=>{
+              if(!d)return ''
+              const [a,m,di]=d.split('-')
+              return `${di}/${m}/${a}`
+            }
+            // Dados do dia selecionado
+            const recDia=pagamentos.filter(p=>p.data===dataSel).reduce((a,p)=>a+(p.valor||0),0)
+            const despDia=despesas.filter(d=>d.data===dataSel).reduce((a,d)=>a+(d.valor||0),0)
+            const lucroDia=recDia-despDia
+            const agsDia=agendamentos.filter(a=>a.data_hora?.startsWith(dataSel))
+            const ticketDia=agsDia.length>0?recDia/agsDia.length:0
+            // Calendário premium
+            const [calAno,calMesN]=calMes.split('-').map(Number)
+            const diasNoCalMes=new Date(calAno,calMesN,0).getDate()
+            const primeiroDiaCalMes=new Date(calAno,calMesN-1,1).getDay()
+            const nomeMesCal=new Date(calAno,calMesN-1,1).toLocaleDateString('pt-BR',{month:'long',year:'numeric'})
+            const todayStr2=new Date().toISOString().split('T')[0]
+            const ontemStr=(()=>{const d=new Date();d.setDate(d.getDate()-1);return d.toISOString().split('T')[0]})()
+            // Dias com receita no mês do calendário
+            const recCalMes:Record<string,number>={}
+            pagamentos.filter(p=>p.data?.startsWith(calMes)).forEach(p=>{
+              if(p.data)recCalMes[p.data]=(recCalMes[p.data]||0)+(p.valor||0)
+            })
+            const melhorDiaCal=Object.entries(recCalMes).length>0?Object.entries(recCalMes).reduce((a,b)=>b[1]>a[1]?b:a):null
+            return(
+              <div style={{marginBottom:'22px'}}>
+                <div style={{marginBottom:'14px'}}>
+                  <div style={{display:'inline-flex',alignItems:'center',gap:'6px',background:'rgba(6,182,212,.10)',border:'1px solid rgba(6,182,212,.22)',borderRadius:'999px',padding:'4px 12px',marginBottom:'10px'}}>
+                    <span style={{width:'6px',height:'6px',borderRadius:'50%',background:'#22D3EE',display:'inline-block'}}/>
+                    <span style={{fontSize:'11px',fontWeight:700,color:'#22D3EE',letterSpacing:'.06em'}}>CONSULTA DIÁRIA</span>
+                  </div>
+                  <p style={{fontSize:'20px',fontWeight:800,color:'#F8FAFC',letterSpacing:'-0.02em',marginBottom:'5px'}}>Consultar por data</p>
+                  <p style={{fontSize:'13px',color:'#64748B'}}>Escolha um dia específico para visualizar receita, despesas e atendimentos.</p>
+                </div>
+                {/* Campo seletor premium */}
+                <button onClick={()=>setModalCal(true)}
+                  style={{width:'100%',display:'flex',alignItems:'center',gap:'12px',background:'linear-gradient(145deg,rgba(15,23,42,.97),rgba(8,20,33,.99))',border:'1.5px solid rgba(6,182,212,.28)',borderRadius:'16px',padding:'14px 18px',cursor:'pointer',fontFamily:'inherit',transition:'all .18s',boxShadow:dataSel?'0 0 0 1px rgba(6,182,212,.15),0 4px 20px rgba(6,182,212,.08)':'none'}}
+                  onMouseEnter={e=>{(e.currentTarget as HTMLButtonElement).style.borderColor='rgba(6,182,212,.55)';(e.currentTarget as HTMLButtonElement).style.boxShadow='0 0 0 2px rgba(6,182,212,.12),0 6px 24px rgba(6,182,212,.12)'}}
+                  onMouseLeave={e=>{(e.currentTarget as HTMLButtonElement).style.borderColor='rgba(6,182,212,.28)';(e.currentTarget as HTMLButtonElement).style.boxShadow=dataSel?'0 0 0 1px rgba(6,182,212,.15),0 4px 20px rgba(6,182,212,.08)':'none'}}>
+                  <div style={{width:'40px',height:'40px',borderRadius:'12px',background:'rgba(6,182,212,.12)',border:'1px solid rgba(6,182,212,.22)',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#22D3EE" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                  </div>
+                  <div style={{flex:1,textAlign:'left'}}>
+                    {dataSel
+                      ?<><p style={{fontSize:'14px',fontWeight:700,color:'#F8FAFC',textTransform:'capitalize'}}>{fmtDataCompleta(dataSel)}</p><p style={{fontSize:'12px',color:'#22D3EE',marginTop:'1px'}}>Receita: {fBRL(recDia)}</p></>
+                      :<><p style={{fontSize:'14px',fontWeight:600,color:'#94A3B8'}}>Selecionar data</p><p style={{fontSize:'12px',color:'#475569',marginTop:'1px'}}>Toque para abrir o calendário</p></>
+                    }
+                  </div>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#475569" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+                </button>
+                {/* Resumo do dia */}
+                {dataSel&&(
+                  <div style={{marginTop:'14px',background:'radial-gradient(circle at top left,rgba(6,182,212,.08),transparent 40%),linear-gradient(145deg,rgba(15,23,42,.97),rgba(8,20,33,.99))',border:'1.5px solid rgba(6,182,212,.20)',borderRadius:'18px',padding:'20px'}}>
+                    <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:'16px',flexWrap:'wrap',gap:'8px'}}>
+                      <div>
+                        <p style={{fontSize:'13px',fontWeight:700,color:'#22D3EE',textTransform:'capitalize',marginBottom:'2px'}}>{fmtDataCompleta(dataSel)}</p>
+                        <p style={{fontSize:'11px',color:'#475569'}}>Resumo do dia</p>
+                      </div>
+                      <button onClick={()=>setDataSel('')} style={{background:'none',border:'none',color:'#475569',cursor:'pointer',fontSize:'18px',lineHeight:1,padding:'4px'}}>×</button>
+                    </div>
+                    <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'10px',marginBottom:'14px'}}>
+                      {[
+                        {l:'Receita',v:fBRL(recDia),c:'#4ADE80',bg:'rgba(34,197,94,.10)',bd:'rgba(34,197,94,.22)'},
+                        {l:'Despesas',v:fBRL(despDia),c:'#F87171',bg:'rgba(239,68,68,.10)',bd:'rgba(239,68,68,.22)'},
+                        {l:'Lucro',v:fBRL(lucroDia),c:lucroDia>=0?'#4ADE80':'#F87171',bg:lucroDia>=0?'rgba(34,197,94,.10)':'rgba(239,68,68,.10)',bd:lucroDia>=0?'rgba(34,197,94,.22)':'rgba(239,68,68,.22)'},
+                      ].map(k=>(
+                        <div key={k.l} style={{background:k.bg,border:`1px solid ${k.bd}`,borderRadius:'12px',padding:'12px 10px'}}>
+                          <p style={{fontSize:'10px',fontWeight:700,color:'#94A3B8',textTransform:'uppercase' as const,letterSpacing:'.07em',marginBottom:'4px'}}>{k.l}</p>
+                          <p style={{fontSize:'16px',fontWeight:800,color:k.c,lineHeight:1}}>{k.v}</p>
+                        </div>
+                      ))}
+                    </div>
+                    <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'10px',marginBottom:agsDia.length>0?'14px':'0'}}>
+                      {[
+                        {l:'Atendimentos',v:agsDia.length,c:'#60A5FA'},
+                        {l:'Ticket médio',v:fBRL(ticketDia),c:'#C4B5FD'},
+                      ].map(k=>(
+                        <div key={k.l} style={{background:'rgba(255,255,255,.04)',border:'1px solid rgba(148,163,184,.10)',borderRadius:'10px',padding:'10px 12px'}}>
+                          <p style={{fontSize:'10px',fontWeight:700,color:'#94A3B8',textTransform:'uppercase' as const,letterSpacing:'.07em',marginBottom:'3px'}}>{k.l}</p>
+                          <p style={{fontSize:'16px',fontWeight:800,color:k.c}}>{k.v}</p>
+                        </div>
+                      ))}
+                    </div>
+                    {agsDia.length>0&&(
+                      <div>
+                        <p style={{fontSize:'12px',fontWeight:700,color:'#94A3B8',textTransform:'uppercase',letterSpacing:'.07em',marginBottom:'8px'}}>Atendimentos do dia</p>
+                        {agsDia.map((a:any)=>{
+                          const stC:Record<string,string>={realizado:'#4ADE80',confirmado:'#93C5FD',pendente:'#FBBF24',cancelado:'#F87171',retorno:'#C4B5FD'}
+                          const cor=stC[a.status]||'#94A3B8'
+                          const hora=new Date(a.data_hora).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})
+                          return(
+                            <div key={a.id} style={{background:'rgba(15,23,42,.72)',border:'1px solid rgba(148,163,184,.10)',borderRadius:'10px',padding:'10px 14px',marginBottom:'6px',display:'flex',justifyContent:'space-between',alignItems:'center',gap:'8px',flexWrap:'wrap'}}>
+                              <div style={{minWidth:0}}>
+                                <p style={{fontSize:'13px',fontWeight:600,color:'#F8FAFC',marginBottom:'1px'}}>{a.cliente_nome||'—'}</p>
+                                <p style={{fontSize:'11px',color:'#64748B'}}>{a.servicos?.nome||'Serviço'} · {hora}</p>
+                              </div>
+                              <div style={{display:'flex',alignItems:'center',gap:'8px',flexShrink:0}}>
+                                <span style={{fontSize:'10px',fontWeight:600,padding:'2px 7px',borderRadius:'999px',background:`rgba(${cor==='#4ADE80'?'34,197,94':'59,130,246'},.12)`,color:cor,border:`1px solid ${cor}40`}}>{a.status}</span>
+                                {a.valor>0&&<span style={{fontSize:'13px',fontWeight:700,color:'#4ADE80'}}>{fBRL(a.valor)}</span>}
+                              </div>
+                            </div>
+                          )
+                        })}
+                      </div>
+                    )}
+                    {agsDia.length===0&&recDia===0&&despDia===0&&(
+                      <p style={{fontSize:'13px',color:'#475569',textAlign:'center',padding:'12px 0'}}>Nenhuma movimentação registrada neste dia.</p>
+                    )}
+                  </div>
+                )}
+                {/* Modal calendário premium */}
+                {modalCal&&(
+                  <>
+                    <div onClick={()=>setModalCal(false)} style={{position:'fixed',inset:0,background:'rgba(0,0,0,.72)',backdropFilter:'blur(6px)',zIndex:80}}/>
+                    <div style={{position:'fixed',bottom:0,left:0,right:0,zIndex:90,background:'linear-gradient(180deg,#0B1628,#090F1E)',borderRadius:'24px 24px 0 0',border:'1.5px solid rgba(6,182,212,.22)',boxShadow:'0 -24px 60px rgba(0,0,0,.6)',maxHeight:'92vh',overflowY:'auto',fontFamily:'inherit'}}>
+                      {/* Handle */}
+                      <div style={{display:'flex',justifyContent:'center',padding:'10px 0 0'}}>
+                        <div style={{width:'40px',height:'4px',borderRadius:'2px',background:'rgba(148,163,184,.25)'}}/>
+                      </div>
+                      {/* Header modal */}
+                      <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'14px 20px 10px'}}>
+                        <div>
+                          <p style={{fontSize:'16px',fontWeight:800,color:'#F8FAFC',letterSpacing:'-0.02em'}}>Selecionar data</p>
+                          <p style={{fontSize:'12px',color:'#475569',marginTop:'2px'}}>Consulte a receita de um dia específico</p>
+                        </div>
+                        <button onClick={()=>setModalCal(false)} style={{background:'rgba(15,23,42,.8)',border:'1px solid rgba(148,163,184,.18)',borderRadius:'10px',width:'34px',height:'34px',display:'flex',alignItems:'center',justifyContent:'center',color:'#94A3B8',cursor:'pointer',fontSize:'18px',lineHeight:1}}>×</button>
+                      </div>
+                      {/* Chips rápidos */}
+                      <div style={{padding:'0 16px 12px',display:'flex',gap:'8px',overflowX:'auto',WebkitOverflowScrolling:'touch' as any}}>
+                        {[
+                          {l:'Hoje',d:todayStr2},
+                          {l:'Ontem',d:ontemStr},
+                          ...(melhorDiaCal?[{l:'Melhor dia',d:melhorDiaCal[0]}]:[]),
+                        ].map(chip=>(
+                          <button key={chip.l} onClick={()=>{setDataSel(chip.d);setModalCal(false)}}
+                            style={{flexShrink:0,padding:'7px 14px',borderRadius:'999px',fontSize:'12px',fontWeight:700,cursor:'pointer',border:`1.5px solid ${dataSel===chip.d?'rgba(6,182,212,.6)':'rgba(148,163,184,.18)'}`,background:dataSel===chip.d?'rgba(6,182,212,.15)':'rgba(15,23,42,.88)',color:dataSel===chip.d?'#22D3EE':'#94A3B8',fontFamily:'inherit',whiteSpace:'nowrap'}}>
+                            {chip.l}
+                          </button>
+                        ))}
+                      </div>
+                      {/* Navegação mês */}
+                      <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'4px 16px 12px'}}>
+                        <button onClick={()=>{const[a,m]=calMes.split('-').map(Number);const p=new Date(a,m-2,1);setCalMes(p.toISOString().slice(0,7))}}
+                          style={{width:'36px',height:'36px',borderRadius:'10px',background:'rgba(15,23,42,.88)',border:'1px solid rgba(148,163,184,.16)',display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',color:'#94A3B8',fontSize:'18px',lineHeight:1}}>‹</button>
+                        <p style={{fontSize:'14px',fontWeight:700,color:'#F8FAFC',textTransform:'capitalize'}}>{nomeMesCal}</p>
+                        <button onClick={()=>{const[a,m]=calMes.split('-').map(Number);const p=new Date(a,m,1);setCalMes(p.toISOString().slice(0,7))}}
+                          style={{width:'36px',height:'36px',borderRadius:'10px',background:'rgba(15,23,42,.88)',border:'1px solid rgba(148,163,184,.16)',display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',color:'#94A3B8',fontSize:'18px',lineHeight:1}}>›</button>
+                      </div>
+                      {/* Grade calendário */}
+                      <div style={{padding:'0 12px 28px'}}>
+                        <div style={{display:'grid',gridTemplateColumns:'repeat(7,1fr)',gap:'3px',marginBottom:'6px'}}>
+                          {['D','S','T','Q','Q','S','S'].map((d,i)=>(
+                            <div key={i} style={{textAlign:'center',fontSize:'11px',fontWeight:700,color:'#334155',padding:'4px 0'}}>{d}</div>
+                          ))}
+                        </div>
+                        <div style={{display:'grid',gridTemplateColumns:'repeat(7,1fr)',gap:'3px'}}>
+                          {Array.from({length:primeiroDiaCalMes}).map((_,i)=><div key={'e'+i}/>)}
+                          {Array.from({length:diasNoCalMes}).map((_,i)=>{
+                            const dia=i+1
+                            const dStr=`${calAno}-${String(calMesN).padStart(2,'0')}-${String(dia).padStart(2,'0')}`
+                            const isSel=dataSel===dStr
+                            const isHoje=dStr===todayStr2
+                            const temRec=(recCalMes[dStr]||0)>0
+                            return(
+                              <button key={dia} onClick={()=>{setDataSel(dStr);setModalCal(false)}}
+                                style={{padding:'10px 2px',borderRadius:'10px',fontSize:'13px',fontWeight:isSel||isHoje?700:500,cursor:'pointer',border:'1.5px solid',textAlign:'center',fontFamily:'inherit',position:'relative',transition:'all .13s',
+                                  background:isSel?'linear-gradient(135deg,#06B6D4,#3B82F6)':isHoje?'rgba(6,182,212,.10)':'rgba(255,255,255,.03)',
+                                  color:isSel?'#fff':isHoje?'#22D3EE':'#CBD5E1',
+                                  borderColor:isSel?'transparent':isHoje?'rgba(6,182,212,.45)':'rgba(148,163,184,.08)',
+                                  boxShadow:isSel?'0 4px 14px rgba(6,182,212,.35)':'none',
+                                }}>
+                                {dia}
+                                {temRec&&!isSel&&<span style={{position:'absolute',bottom:'3px',left:'50%',transform:'translateX(-50%)',width:'4px',height:'4px',borderRadius:'50%',background:'#22C55E',display:'block'}}/>}
+                              </button>
+                            )
+                          })}
+                        </div>
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
+            )
+          })()}
           <div style={{background:'radial-gradient(circle at top left,rgba(34,211,238,.08),transparent 35%),linear-gradient(145deg,rgba(15,23,42,.97),rgba(8,20,33,.99))',border:'1.5px solid rgba(148,163,184,.18)',borderRadius:'20px',padding:'24px',marginBottom:'22px',boxShadow:'0 20px 48px rgba(0,0,0,.28)'}}>
             <div style={{marginBottom:'18px'}}>
               <p style={{fontSize:'16px',fontWeight:700,color:'#F8FAFC',marginBottom:'4px'}}>Desempenho financeiro</p>
