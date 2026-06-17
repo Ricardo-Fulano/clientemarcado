@@ -74,6 +74,7 @@ export default function Relatorios(){
   const [dataSel,setDataSel]=useState('')
   const [modalCal,setModalCal]=useState(false)
   const [calMes,setCalMes]=useState(new Date().toISOString().slice(0,7))
+  const [expandida,setExpandida]=useState<string|null>(null)
   useEffect(()=>{load()},[mes])
   async function load(){
     const {data:{user}}=await supabase.auth.getUser()
@@ -638,7 +639,6 @@ export default function Relatorios(){
             })
             const cats=Object.values(catMap).sort((a,b)=>b.total-a.total)
             const maiorCat=cats[0]
-            const [expandida,setExpandida]=useState<string|null>(null)
             return(
               <div style={{marginBottom:'22px'}}>
                 <div style={{marginBottom:'16px'}}>
