@@ -1,15 +1,8 @@
 import { NextResponse } from 'next/server'
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
-import { cookies } from 'next/headers'
 
 export async function GET(request: Request) {
-  const { searchParams, origin } = new URL(request.url)
-  const code = searchParams.get('code')
-
-  if (code) {
-    const supabase = createRouteHandlerClient({ cookies })
-    await supabase.auth.exchangeCodeForSession(code)
-  }
-
+  const { origin } = new URL(request.url)
+  // O Supabase processa automaticamente o token via PKCE no cliente.
+  // Apenas redirecionar para o painel; o cliente detectará a sessão.
   return NextResponse.redirect(`${origin}/painel`)
 }

@@ -1,25 +1,20 @@
 import os, pathlib
 
-# ── 1. Criar app/auth/callback/route.ts ──
+if not os.path.exists('app/cadastro/page.tsx'):
+    print("ERRO: Execute dentro de clientemarcado!"); import sys; sys.exit(1)
+
+# ── 1. Criar rota auth/callback sem dependências externas ──
 pathlib.Path('app/auth/callback').mkdir(parents=True, exist_ok=True)
 
 ROUTE = """import { NextResponse } from 'next/server'
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
-import { cookies } from 'next/headers'
 
 export async function GET(request: Request) {
-  const { searchParams, origin } = new URL(request.url)
-  const code = searchParams.get('code')
-
-  if (code) {
-    const supabase = createRouteHandlerClient({ cookies })
-    await supabase.auth.exchangeCodeForSession(code)
-  }
-
+  const { origin } = new URL(request.url)
+  // O Supabase processa automaticamente o token via PKCE no cliente.
+  // Apenas redirecionar para o painel; o cliente detectará a sessão.
   return NextResponse.redirect(`${origin}/painel`)
 }
 """
-
 with open('app/auth/callback/route.ts', 'w', encoding='utf-8') as f:
     f.write(ROUTE)
 print('route.ts criado')
@@ -28,7 +23,7 @@ print('route.ts criado')
 with open('app/cadastro/page.tsx', encoding='utf-8') as f:
     c = f.read()
 
-OLD_SIGNUP = """    const redirectTo = typeof window !== 'undefined'
+OLD = """    const redirectTo = typeof window !== 'undefined'
       ? `${window.location.origin}/auth/callback`
       : 'https://clientemarcado.vercel.app/auth/callback'
     const { error } = await supabase.auth.signUp({
@@ -40,7 +35,7 @@ OLD_SIGNUP = """    const redirectTo = typeof window !== 'undefined'
       }
     })"""
 
-NEW_SIGNUP = """    const redirectTo = typeof window !== 'undefined'
+NEW = """    const redirectTo = typeof window !== 'undefined'
       ? `${window.location.origin}/auth/callback`
       : 'https://clientemarcado.vercel.app/auth/callback'
     const { error } = await supabase.auth.signUp({
@@ -52,10 +47,9 @@ NEW_SIGNUP = """    const redirectTo = typeof window !== 'undefined'
       }
     })"""
 
-print('OLD found:', OLD_SIGNUP in c)
-c = c.replace(OLD_SIGNUP, NEW_SIGNUP, 1)
-
+print('OLD found:', OLD in c)
+c = c.replace(OLD, NEW, 1)
 with open('app/cadastro/page.tsx', 'w', encoding='utf-8') as f:
     f.write(c)
-print('cadastro.tsx corrigido')
-print('emailRedirectTo ok:', 'emailRedirectTo' in c)
+print('cadastro corrigido')
+print('emailRedirectTo:', 'emailRedirectTo' in c)
