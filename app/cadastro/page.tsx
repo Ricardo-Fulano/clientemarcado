@@ -88,8 +88,43 @@ export default function Cadastro() {
         data: { nome_negocio: nomeNegocio, tipo_negocio: tipoNegocio, nome_usuario: nomeUsuario, cupom_indicacao: cupom || null }
       }
     })
-    if (error) setMensagem('Erro: ' + error.message)
-    else setMensagem('Conta criada! Verifique seu e-mail para confirmar.')
+    if (error) {
+      setMensagem('Erro: ' + error.message)
+    } else {
+      // Salvar indicação no banco se cupom foi usado
+      if (cupom) {
+        try {
+          // Buscar parceiro pelo cupom
+          const { data: parceiro } = await supabase
+            .from('parceiros')
+            .select('id,cupom,ativo')
+            .eq('cupom', cupom.toUpperCase())
+            .eq('ativo', true)
+            .single()
+          if (parceiro) {
+            // Verificar se já existe indicação para este email+cupom
+            const { data: existente } = await supabase
+              .from('indicacoes_parceiros')
+              .select('id')
+              .eq('email', email)
+              .eq('cupom_codigo', cupom.toUpperCase())
+              .single()
+            if (!existente) {
+              await supabase.from('indicacoes_parceiros').insert({
+                parceiro_id: parceiro.id,
+                cupom_codigo: cupom.toUpperCase(),
+                nome_negocio: nomeNegocio || null,
+                nome_responsavel: nomeUsuario || null,
+                email: email,
+                status: 'cadastrado',
+                is_pagante: false,
+              })
+            }
+          }
+        } catch(e) { console.log('Indicacao nao salva:', e) }
+      }
+      setMensagem('Conta criada! Verifique seu e-mail para confirmar.')
+    }
     setLoading(false)
   }
   const css = `
