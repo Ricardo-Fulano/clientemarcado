@@ -103,7 +103,7 @@ export default function Cadastro() {
           .eq('cupom', cupomFmt)
           .eq('ativo', true)
           .single()
-        if (parceiro) {
+        console.log("PARCEIRO ENCONTRADO:", parceiro); if (parceiro) {
           // Upsert evita duplicidade por email+cupom
           await supabase.from('indicacoes_parceiros').upsert({
             parceiro_id: parceiro.id,
