@@ -51,7 +51,6 @@ export default function Parceiros() {
   async function init() {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) { window.location.href = '/login'; return }
-    console.log('DEBUG URL SUPABASE:', process.env.NEXT_PUBLIC_SUPABASE_URL)
     const { data: p } = await supabase.from('perfis').select('*').eq('user_id', user.id).single()
     setPerfil(p)
     await Promise.all([carregarParceiros(), carregarIndicacoes()])
@@ -60,7 +59,6 @@ export default function Parceiros() {
 
   async function carregarParceiros() {
     const { data, error } = await supabase.from('parceiros').select('*').order('created_at', { ascending: false })
-    console.log('DEBUG PARCEIROS data:', data, 'error:', error)
     setParceiros(data || [])
   }
 
@@ -69,7 +67,6 @@ export default function Parceiros() {
       .from('indicacoes_parceiros')
       .select('*')
       .order('created_at', { ascending: false })
-    console.log('DEBUG INDICACOES data:', data, 'error:', error)
     setIndicacoes(data || [])
   }
 
