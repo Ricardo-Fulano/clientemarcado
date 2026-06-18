@@ -48,7 +48,7 @@ select option{background:#07111F;color:#F8FAFC}
 @media(max-width:480px){.kpi-grid{grid-template-columns:1fr!important}}
 `
 
-type Prof={id:string;nome:string;cargo:string;whatsapp:string;email:string;foto_url:string|null;ativo:boolean;servicos_nomes:string|null;created_at:string}
+type Prof={id:string;nome:string;cargo:string;whatsapp:string;email:string;foto_url:string|null;ativo:boolean;perfil_id:string|null;user_id:string;servicos_nomes:string|null;created_at:string}
 
 export default function Profissionais(){
   const [perfil,setPerfil]=useState<any>(null)
@@ -74,11 +74,31 @@ export default function Profissionais(){
   async function load(){
     const {data:{user}}=await supabase.auth.getUser()
     if(!user){window.location.href='/login';return}
-    const [{data:p},{data:ps}]=await Promise.all([
-      supabase.from('perfis').select('*').eq('user_id',user.id).single(),
-      supabase.from('profissionais').select('*').eq('user_id',user.id).order('nome'),
-    ])
-    setPerfil(p);setProfs(ps||[]);setLoading(false)
+
+    // ✅ CORRIGIDO: .maybeSingle() para evitar erro 406
+    const {data:p,error:perfilError}=await supabase.from('perfis').select('*').eq('user_id',user.id).maybeSingle()
+    if(perfilError){console.error('Erro ao carregar perfil:',perfilError)}
+
+    if(!p){
+      console.warn('Perfil não encontrado para user_id:',user.id)
+      setPerfil(null);setProfs([]);setLoading(false)
+      setMsg('Complete o perfil do negócio antes de cadastrar profissionais.')
+      return
+    }
+
+    setPerfil(p)
+
+    // ✅ CORRIGIDO: busca por perfil_id (não user_id)
+    const {data:ps,error:profsError}=await supabase
+      .from('profissionais')
+      .select('*')
+      .eq('perfil_id',p.id)
+      .order('nome')
+
+    if(profsError){console.error('Erro ao carregar profissionais:',profsError)}
+    console.log('DEBUG - perfil_id usado:',p.id,'profissionais encontrados:',ps?.length)
+
+    setProfs(ps||[]);setLoading(false)
   }
 
   function resetForm(){
@@ -105,30 +125,58 @@ export default function Profissionais(){
 
   async function salvar(){
     if(!fNome.trim()){setMsg('⚠ Informe o nome.');return}
+    if(!perfil?.id){setMsg('⚠ Perfil do negócio não encontrado. Salve o perfil primeiro.');return}
+
     setSalvando(true)
     const {data:{user}}=await supabase.auth.getUser()
     if(!user){setSalvando(false);return}
+
     let foto_url:string|null=null
     if(fFoto){
       const ext=fFoto.name.split('.').pop()
       const path=`profissionais/${user.id}/${Date.now()}.${ext}`
-      const {error:upErr}=await supabase.storage.from('fotos').upload(path,fFoto,{upsert:true})
+      const {error:upErr}=await supabase.storage.from('fotos').upload(path,fFoto,{upsert:true,contentType:fFoto.type})
       if(!upErr){
         const {data:pub}=supabase.storage.from('fotos').getPublicUrl(path)
         foto_url=pub.publicUrl
       }
     }
-    const payload:any={user_id:user.id,nome:fNome.trim(),cargo:fCargo.trim()||null,whatsapp:fWpp.replace(/\D/g,'')||null,email:fEmail.trim()||null,ativo:fAtivo}
+
+    // ✅ CORRIGIDO: payload inclui perfil_id obrigatoriamente
+    const payload:any={
+      perfil_id: perfil.id,
+      user_id: user.id,
+      nome: fNome.trim(),
+      cargo: fCargo.trim()||null,
+      whatsapp: fWpp.replace(/\D/g,'')||null,
+      email: fEmail.trim()||null,
+      ativo: fAtivo,
+      aparece_na_agenda: fAtivo,
+    }
     if(foto_url) payload.foto_url=foto_url
+
+    console.log('DEBUG - payload salvar profissional:',payload)
+
     if(editId){
-      await supabase.from('profissionais').update(payload).eq('id',editId)
+      const {error:updateError}=await supabase.from('profissionais').update(payload).eq('id',editId)
+      if(updateError){
+        console.error('Erro ao atualizar profissional:',updateError)
+        setMsg('Erro ao atualizar: '+updateError.message)
+        setSalvando(false);return
+      }
       setProfs(prev=>prev.map(p=>p.id===editId?{...p,...payload,id:editId}:p).sort((a,b)=>a.nome.localeCompare(b.nome)))
       setMsg('Profissional atualizado! ✓')
     } else {
-      const {data:novo}=await supabase.from('profissionais').insert(payload).select('*').single()
+      const {data:novo,error:insertError}=await supabase.from('profissionais').insert(payload).select('*').single()
+      if(insertError){
+        console.error('Erro ao cadastrar profissional:',insertError)
+        setMsg('Erro ao cadastrar: '+insertError.message)
+        setSalvando(false);return
+      }
       if(novo) setProfs(prev=>[...prev,novo].sort((a,b)=>a.nome.localeCompare(b.nome)))
       setMsg('Profissional cadastrado! ✓')
     }
+
     resetForm();setShowForm(false)
     setTimeout(()=>setMsg(''),2500);setSalvando(false)
   }
@@ -141,7 +189,7 @@ export default function Profissionais(){
   }
 
   async function toggleAtivo(p:Prof){
-    await supabase.from('profissionais').update({ativo:!p.ativo}).eq('id',p.id)
+    await supabase.from('profissionais').update({ativo:!p.ativo,aparece_na_agenda:!p.ativo}).eq('id',p.id)
     setProfs(prev=>prev.map(x=>x.id===p.id?{...x,ativo:!p.ativo}:x))
     setMsg(p.ativo?'Profissional desativado.':'Profissional ativado.');setTimeout(()=>setMsg(''),2000)
   }
