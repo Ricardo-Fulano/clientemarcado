@@ -51,6 +51,7 @@ export default function Parceiros() {
   async function init() {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) { window.location.href = '/login'; return }
+    console.log('DEBUG URL SUPABASE:', process.env.NEXT_PUBLIC_SUPABASE_URL)
     const { data: p } = await supabase.from('perfis').select('*').eq('user_id', user.id).single()
     setPerfil(p)
     await Promise.all([carregarParceiros(), carregarIndicacoes()])
@@ -58,15 +59,17 @@ export default function Parceiros() {
   }
 
   async function carregarParceiros() {
-    const { data } = await supabase.from('parceiros').select('*').order('created_at', { ascending: false })
+    const { data, error } = await supabase.from('parceiros').select('*').order('created_at', { ascending: false })
+    console.log('DEBUG PARCEIROS data:', data, 'error:', error)
     setParceiros(data || [])
   }
 
   async function carregarIndicacoes() {
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('indicacoes_parceiros')
-      .select('*, parceiros(nome,cupom,comissao_fixa)')
+      .select('*')
       .order('created_at', { ascending: false })
+    console.log('DEBUG INDICACOES data:', data, 'error:', error)
     setIndicacoes(data || [])
   }
 
@@ -129,13 +132,9 @@ export default function Parceiros() {
 
   const totalAtivos = parceiros.filter(p => p.ativo).length
   const totalCupons = indicacoes.length
-  const totalConvertidos = indicacoes.filter(i => i.is_pagante === true).length
-  const totalPendente = indicacoes.filter(i => i.comissao_status === 'pendente').reduce((a, i) => {
-    return a + (i.comissao_valor || i.parceiros?.comissao_fixa || 0)
-  }, 0)
-  const totalPaga = indicacoes.filter(i => i.comissao_status === 'paga').reduce((a, i) => {
-    return a + (i.comissao_valor || i.parceiros?.comissao_fixa || 0)
-  }, 0)
+  const totalConvertidos = indicacoes.filter((i:any) => i.is_pagante === true || i.status === 'pagante').length
+  const totalPendente = indicacoes.filter((i:any) => i.comissao_status === 'pendente').reduce((a:number, i:any) => a + Number(i.comissao_valor || 0), 0)
+  const totalPaga = indicacoes.filter((i:any) => i.comissao_status === 'paga').reduce((a:number, i:any) => a + Number(i.comissao_valor || 0), 0)
 
   const fBRL = (v: number) => `R$ ${v.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`
 
@@ -202,10 +201,11 @@ export default function Parceiros() {
                   </div>
                 ) : parceiros.map((p, i) => {
                   const link = `${typeof window !== 'undefined' ? window.location.origin : ''}/cadastro?cupom=${p.cupom}`
-                  const clientes = indicacoes.filter(ind => ind.cupom_codigo === p.cupom).length
-                  const pagantes = indicacoes.filter(ind => ind.cupom_codigo === p.cupom && ind.is_pagante === true).length
-                  const pendente = indicacoes.filter(ind => ind.cupom_codigo === p.cupom && ind.comissao_status === 'pendente').reduce((a:number,ind:any)=>a+(ind.comissao_valor||p.comissao_fixa||0),0)
-                  const paga = indicacoes.filter(ind => ind.cupom_codigo === p.cupom && ind.comissao_status === 'paga').reduce((a:number,ind:any)=>a+(ind.comissao_valor||p.comissao_fixa||0),0)
+                  const indP = indicacoes.filter((ind:any) => ind.parceiro_id === p.id)
+                  const clientes = indP.length
+                  const pagantes = indP.filter((ind:any) => ind.is_pagante === true || ind.status === 'pagante').length
+                  const pendente = indP.filter((ind:any) => ind.comissao_status === 'pendente').reduce((a:number,ind:any)=>a+Number(ind.comissao_valor||0),0)
+                  const paga = indP.filter((ind:any) => ind.comissao_status === 'paga').reduce((a:number,ind:any)=>a+Number(ind.comissao_valor||0),0)
                   return (
                     <div key={p.id} className="tbl-row" style={{ gridTemplateColumns: '1fr', gap: '10px' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px', alignItems: 'center' }}>
@@ -273,7 +273,7 @@ export default function Parceiros() {
                           <p style={{ fontSize: '12px', color: '#64748B', marginBottom: '4px' }}>{ind.email}</p>
                           <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
                             <span style={{ fontSize: '11px', fontWeight: 800, color: '#7C3AED', background: 'rgba(124,58,237,.15)', border: '1px solid rgba(124,58,237,.28)', padding: '2px 8px', borderRadius: '6px' }}>{ind.cupom_codigo}</span>
-                            {ind.parceiros&&<span style={{ fontSize: '11px', color: '#94A3B8' }}>→ {ind.parceiros.nome}</span>}
+                            {(()=>{const par=parceiros.find((pc:any)=>pc.id===ind.parceiro_id);return par?<span style={{ fontSize: '11px', color: '#94A3B8' }}>→ {par.nome}</span>:null})()}
                             <span className="badge" style={{ background: ind.status==='pagante'?'rgba(34,197,94,.12)':'rgba(59,130,246,.12)', border: `1px solid ${ind.status==='pagante'?'rgba(34,197,94,.24)':'rgba(59,130,246,.24)'}`, color: ind.status==='pagante'?'#4ADE80':'#60A5FA' }}>{ind.status||'cadastrado'}</span>
                             <span className="badge" style={{ background: ind.is_pagante?'rgba(34,197,94,.10)':'rgba(148,163,184,.08)', border: '1px solid rgba(148,163,184,.14)', color: ind.is_pagante?'#4ADE80':'#64748B' }}>Pagante: {ind.is_pagante?'Sim':'Não'}</span>
                           </div>
