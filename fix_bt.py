@@ -1,6 +1,0 @@
-﻿c = open('app/painel/agendamentos/page.tsx', encoding='utf-8').read()
-bt = chr(96)
-c = c.replace('{\x08s-ovl}', '{' + bt + 'bs-ovl' + bt + '}')
-c = c.replace('{\x08s}', '{' + bt + 'bs' + bt + '}')
-open('app/painel/agendamentos/page.tsx', 'w', encoding='utf-8').write(c)
-print('OK', 'bs-ovl' in c)

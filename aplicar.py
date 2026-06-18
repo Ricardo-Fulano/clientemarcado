@@ -1,6 +1,0 @@
-﻿src = open(r'C:\Users\proft\Downloads\agendamentos-page.tsx', encoding='utf-8').read()
-print('Linhas:', src.count(chr(10)))
-print('bsAg:', 'bsAg' in src)
-print('fil-scroll:', 'fil-scroll' in src)
-open('app/painel/agendamentos/page.tsx', 'w', encoding='utf-8').write(src)
-print('OK')
