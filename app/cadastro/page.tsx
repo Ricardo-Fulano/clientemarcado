@@ -256,7 +256,7 @@ export default function Cadastro() {
               </div>
               <div>
                 <label className="label">Nome do negócio</label>
-                <input type="text" placeholder="Ex: Barbearia do João" value={nomeNegocio} onChange={e => setNomeNegocio(e.target.value)} className="input" />
+                <input type="text" placeholder="Ex: Nome do seu negócio" value={nomeNegocio} onChange={e => setNomeNegocio(e.target.value)} className="input" />
               </div>
               <div>
                 <label className="label">Seu nome</label>

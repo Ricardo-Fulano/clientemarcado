@@ -301,7 +301,7 @@ export default function Perfil(){
             <p style={{fontSize:'12px',color:'#64748B',marginBottom:'18px'}}>Dados principais que identificam seu negócio.</p>
             <div style={{marginBottom:'14px'}}>
               <label className="lbl">Nome do negócio *</label>
-              <input className="inp" type="text" placeholder="Ex: Barbearia da Cabeça" value={nome} onChange={e=>setNome(e.target.value)}/>
+              <input className="inp" type="text" placeholder="Ex: Nome do seu negócio" value={nome} onChange={e=>setNome(e.target.value)}/>
             </div>
             <div style={{marginBottom:'14px'}}>
               <label className="lbl">Link personalizado *</label>
