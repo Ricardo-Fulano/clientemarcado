@@ -116,7 +116,6 @@ export default function Perfil(){
   const [antecedencia,setAntecedencia]=useState('Sem restrição')
   const [publicTheme,setPublicTheme]=useState('padrao')
 
-  // Cores do tema ativo — usadas na prévia da promoção e no container da seção
   const tc = TEMA_CORES[publicTheme] ?? TEMA_CORES.padrao
 
   useEffect(()=>{load()},[])
@@ -125,8 +124,10 @@ export default function Perfil(){
     const {data:{user}}=await supabase.auth.getUser()
     if(!user){window.location.href='/login';return}
     setUserId(user.id)
-    const {data:p,error}=await supabase.from('perfis').select('*').eq('user_id',user.id).single()
-    if(error&&error.code!=='PGRST116'){console.error('Erro ao carregar perfil:',error)}
+
+    // ✅ CORRIGIDO: trocado .single() por .maybeSingle() para evitar erro 406
+    const {data:p,error}=await supabase.from('perfis').select('*').eq('user_id',user.id).maybeSingle()
+    if(error){console.error('Erro ao carregar perfil:',error)}
     if(p){
       setNome(p.nome_negocio||'')
       setSlug(p.slug||'')
@@ -143,7 +144,6 @@ export default function Perfil(){
       if(p.fechamento_geral) setFechamento(p.fechamento_geral)
       if(p.antecedencia||p.antecedencia_minima) setAntecedencia(p.antecedencia||p.antecedencia_minima||'Sem restrição')
       if(p.public_theme||p.tema_publico||p.tema_cor) setPublicTheme(p.public_theme||p.tema_publico||p.tema_cor||'padrao')
-      // Promoção
       if(p.promocao_ativa!==undefined&&p.promocao_ativa!==null) setPromoAtiva(p.promocao_ativa)
       if(p.promocao_titulo) setPromoTitulo(p.promocao_titulo)
       if(p.promocao_descricao) setPromoDesc(p.promocao_descricao)
@@ -173,7 +173,6 @@ export default function Perfil(){
     if(desc!==undefined) payloadSeguro.descricao=desc.trim()||null
     if(capUrl!==undefined) payloadSeguro.capa_url=capUrl||null
 
-    // Campos de promoção
     payloadSeguro.promocao_ativa=promoAtiva
     payloadSeguro.promocao_titulo=promoTitulo.trim()||null
     payloadSeguro.promocao_descricao=promoDesc.trim()||null
@@ -195,7 +194,8 @@ export default function Perfil(){
 
     console.log('PAYLOAD enviado:', payloadSeguro)
 
-    const {data:existente}=await supabase.from('perfis').select('id').eq('user_id',userId).single()
+    // ✅ CORRIGIDO: também usando maybeSingle() aqui
+    const {data:existente}=await supabase.from('perfis').select('id').eq('user_id',userId).maybeSingle()
 
     let saveError:any=null
     if(existente){
@@ -219,14 +219,55 @@ export default function Perfil(){
     setTimeout(()=>setMsg(''),3000)
   }
 
+  // ✅ CORRIGIDO: uploadCapa com validações, contentType e salvamento no perfil
   async function uploadCapa(e:React.ChangeEvent<HTMLInputElement>){
     const file=e.target.files?.[0];if(!file)return
-    const ext=file.name.split('.').pop()
-    const path=`capas/${userId}.${ext}`
-    const {error}=await supabase.storage.from('fotos').upload(path,file,{upsert:true})
-    if(error){setMsg('Erro no upload da imagem.');return}
+
+    const allowedTypes=['image/jpeg','image/jpg','image/png','image/webp']
+    if(!allowedTypes.includes(file.type)){
+      setMsg('Envie uma imagem JPG, PNG ou WEBP.')
+      return
+    }
+    if(file.size>5*1024*1024){
+      setMsg('A imagem deve ter no máximo 5MB.')
+      return
+    }
+
+    const {data:userData}=await supabase.auth.getUser()
+    if(!userData?.user){
+      setMsg('Sua sessão expirou. Faça login novamente.')
+      return
+    }
+
+    const ext=file.name.split('.').pop()?.toLowerCase()||'png'
+    const path=`capas/${userId}-${Date.now()}.${ext}`
+
+    const {error:uploadError}=await supabase.storage.from('fotos').upload(path,file,{
+      upsert:true,
+      contentType:file.type,
+      cacheControl:'3600',
+    })
+
+    if(uploadError){
+      console.error('Erro no upload:',uploadError)
+      setMsg('Erro no upload: '+uploadError.message)
+      return
+    }
+
     const {data}=supabase.storage.from('fotos').getPublicUrl(path)
-    setCapUrl(data.publicUrl)
+    const imageUrl=data.publicUrl
+    setCapUrl(imageUrl)
+
+    // ✅ Salva a URL da capa direto no perfil após o upload
+    const {error:updateError}=await supabase.from('perfis').update({capa_url:imageUrl}).eq('user_id',userId)
+    if(updateError){
+      console.error('Erro ao salvar capa no perfil:',updateError)
+      setMsg('Imagem enviada, mas erro ao salvar no perfil: '+updateError.message)
+      return
+    }
+
+    setMsg('Imagem de capa salva com sucesso!')
+    setTimeout(()=>setMsg(''),3000)
   }
 
   function toggleDia(i:number){setDiasAtivos(prev=>prev.map((v,j)=>j===i?!v:v))}
@@ -268,7 +309,6 @@ export default function Perfil(){
             </div>
           )}
 
-          {/* Header */}
           <div className="topo-r" style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',gap:'12px',flexWrap:'wrap',marginBottom:'24px'}}>
             <div>
               <h1 style={{fontSize:'22px',fontWeight:800,color:'#F8FAFC',letterSpacing:'-0.04em',marginBottom:'5px'}}>Perfil do negócio</h1>
@@ -277,7 +317,6 @@ export default function Perfil(){
             <Link href="/painel" prefetch={false} style={{fontSize:'13px',color:'#64748B',textDecoration:'none',display:'flex',alignItems:'center',gap:'4px',flexShrink:0,padding:'8px 12px',background:'rgba(15,23,42,.72)',border:'1px solid rgba(148,163,184,.14)',borderRadius:'8px'}}>← Voltar ao painel</Link>
           </div>
 
-          {/* Link publico */}
           {slug&&(
             <div className="crd" style={{border:'1.5px solid rgba(34,211,238,.24)',background:'radial-gradient(circle at top left,rgba(6,182,212,.10),transparent 40%),linear-gradient(145deg,rgba(15,23,42,.97),rgba(8,20,33,.99))'}}>
               <p style={{fontSize:'15px',fontWeight:700,color:'#F8FAFC',marginBottom:'4px'}}>Seu link de agendamento</p>
@@ -295,7 +334,6 @@ export default function Perfil(){
             </div>
           )}
 
-          {/* Informacoes do negocio */}
           <div className="crd">
             <p style={{fontSize:'15px',fontWeight:700,color:'#F8FAFC',marginBottom:'4px'}}>Informações do negócio</p>
             <p style={{fontSize:'12px',color:'#64748B',marginBottom:'18px'}}>Dados principais que identificam seu negócio.</p>
@@ -316,7 +354,6 @@ export default function Perfil(){
             </div>
           </div>
 
-          {/* Dados publicos */}
           <div className="crd">
             <p style={{fontSize:'15px',fontWeight:700,color:'#F8FAFC',marginBottom:'4px'}}>Dados públicos do negócio</p>
             <p style={{fontSize:'12px',color:'#64748B',marginBottom:'18px'}}>Informações que aparecem na sua página de agendamento.</p>
@@ -335,7 +372,6 @@ export default function Perfil(){
             </div>
           </div>
 
-          {/* Funcionamento */}
           <div className="crd">
             <p style={{fontSize:'15px',fontWeight:700,color:'#F8FAFC',marginBottom:'4px'}}>Funcionamento do negócio</p>
             <p style={{fontSize:'12px',color:'#64748B',marginBottom:'18px'}}>Defina os dias e horários em que seus clientes podem agendar.</p>
@@ -357,7 +393,6 @@ export default function Perfil(){
             })}
           </div>
 
-          {/* Config agenda */}
           <div className="crd">
             <p style={{fontSize:'15px',fontWeight:700,color:'#F8FAFC',marginBottom:'4px'}}>Configurações da agenda</p>
             <p style={{fontSize:'12px',color:'#64748B',marginBottom:'18px'}}>Controle como o agendamento público funciona.</p>
@@ -371,7 +406,6 @@ export default function Perfil(){
             </div>
           </div>
 
-          {/* Aparencia */}
           <div className="crd">
             <p style={{fontSize:'15px',fontWeight:700,color:'#F8FAFC',marginBottom:'4px'}}>Aparência da página pública</p>
             <p style={{fontSize:'12px',color:'#64748B',marginBottom:'18px'}}>Personalize a página que seus clientes acessam para agendar.</p>
@@ -415,7 +449,6 @@ export default function Perfil(){
             </div>
           </div>
 
-          {/* SECAO PROMOCAO — borda e fundo refletem o tema ativo */}
           <div style={{
             marginTop:32,
             background:`radial-gradient(circle at top right,${tc.bg},transparent 40%),linear-gradient(145deg,rgba(15,23,42,.98),rgba(8,20,33,.99))`,
@@ -466,7 +499,6 @@ export default function Perfil(){
               </div>
             </div>
 
-            {/* PRÉVIA — cores 100% vinculadas ao tema ativo */}
             {promoAtiva&&promoTitulo&&(
               <div>
                 <p style={{fontSize:11,fontWeight:700,color:'#475569',textTransform:'uppercase' as const,letterSpacing:'.08em',marginBottom:12}}>Prévia na página pública</p>
@@ -508,7 +540,6 @@ export default function Perfil(){
             )}
           </div>
 
-          {/* Salvar */}
           <button onClick={salvar} disabled={salvando} style={{width:'100%',marginTop:24,background:G,color:'#fff',border:'1px solid rgba(255,255,255,.12)',borderRadius:'14px',height:'52px',fontSize:'15px',fontWeight:800,cursor:salvando?'not-allowed':'pointer',fontFamily:'inherit',boxShadow:'0 12px 32px rgba(59,130,246,.30),0 0 28px rgba(124,58,237,.22)',opacity:salvando?.7:1,transition:'all .18s'}}>
             {salvando?'Salvando...':'Salvar perfil'}
           </button>
