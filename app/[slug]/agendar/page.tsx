@@ -301,15 +301,25 @@ export default function Agendar() {
 </body>
 </html>`
 
-    // Codifica em base64 para evitar bloqueio de popup em mobile
-    const encoded = 'data:text/html;charset=utf-8,' + encodeURIComponent(html)
-    const a = document.createElement('a')
-    a.href = encoded
-    a.target = '_blank'
-    a.rel = 'noopener noreferrer'
-    document.body.appendChild(a)
-    a.click()
-    document.body.removeChild(a)
+    const iframe = document.createElement('iframe')
+    iframe.style.position = 'fixed'
+    iframe.style.right = '0'
+    iframe.style.bottom = '0'
+    iframe.style.width = '0'
+    iframe.style.height = '0'
+    iframe.style.border = '0'
+    iframe.style.opacity = '0'
+    document.body.appendChild(iframe)
+    const doc = iframe.contentDocument || iframe.contentWindow?.document
+    if (!doc) { document.body.removeChild(iframe); return }
+    doc.open()
+    doc.write(html)
+    doc.close()
+    setTimeout(() => {
+      iframe.contentWindow?.focus()
+      iframe.contentWindow?.print()
+      setTimeout(() => { if (document.body.contains(iframe)) document.body.removeChild(iframe) }, 2000)
+    }, 600)
   }
 
 
@@ -534,7 +544,7 @@ export default function Agendar() {
             {copiado ? '✓ Confirmação copiada!' : '📋 Copiar confirmação'}
           </button>
           <button onClick={baixarConfirmacaoPDF} className="btn-pdf">
-            📄 Baixar confirmação (PDF)
+            📄 Baixar comprovante
           </button>
           <Link href={'/'+slug} className="btn-inicio">Voltar ao início</Link>
         </div>
