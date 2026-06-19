@@ -121,144 +121,194 @@ export default function Agendar() {
     URL.revokeObjectURL(url)
   }
 
-// ✅ NOVO: Gera PDF premium via iframe invisível
+// ✅ Gera PDF premium via window.open (mesma estratégia do PDF de orçamento)
   function baixarConfirmacaoPDF() {
     const nomeCliente = clienteNome || 'cliente'
     const dataFormatada = formatarData(dataSelecionada)
     const dataEmissao = new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' })
     const horaEmissao = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+    const agora = new Date().toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })
     const nomeNegocio = perfil?.nome_negocio || 'Estabelecimento'
     const endereco = perfil?.endereco || ''
-    const whatsapp = perfil?.whatsapp ? '('+perfil.whatsapp.replace(/\D/g,'').slice(0,2)+') '+perfil.whatsapp.replace(/\D/g,'').slice(2,7)+'-'+perfil.whatsapp.replace(/\D/g,'').slice(7) : ''
+    const wppRaw = (perfil?.whatsapp || '').replace(/\D/g, '')
+    const whatsapp = wppRaw ? `(${wppRaw.slice(0,2)}) ${wppRaw.slice(2,7)}-${wppRaw.slice(7)}` : ''
     const servNome = servicoSelecionado?.nome || ''
     const profNome = profissionalSelecionado?.nome || ''
-    const valor = servicoSelecionado?.preco ? 'R$ ' + Number(servicoSelecionado.preco).toLocaleString('pt-BR', { minimumFractionDigits: 2 }) : ''
+    const precoRaw = servicoSelecionado?.preco
+    const valor = precoRaw ? 'R$\u00a0' + Number(precoRaw).toLocaleString('pt-BR', { minimumFractionDigits: 2 }) : ''
+    const nomeArquivo = 'confirmacao-agendamento-' + nomeCliente.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,'-').replace(/[^a-z0-9-]/g,'') + '-' + dataSelecionada
 
     const html = `<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8"/>
-<title>Comprovante de Agendamento</title>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Comprovante de Agendamento - ${nomeNegocio}</title>
 <style>
-*{box-sizing:border-box;margin:0;padding:0}
-body{font-family:Arial,sans-serif;background:#fff;color:#0F172A;-webkit-print-color-adjust:exact;print-color-adjust:exact}
-.page{max-width:620px;margin:0 auto}
-.header{background:#1e3a8a;padding:32px 36px 28px}
-.badge{display:inline-block;background:#dcfce7;border:1px solid #86efac;border-radius:999px;padding:4px 14px;margin-bottom:14px;font-size:11px;font-weight:700;color:#16a34a;text-transform:uppercase;letter-spacing:.06em}
-.h-title{font-size:22px;font-weight:900;color:#fff;margin-bottom:3px}
-.h-sub{font-size:12px;color:#93c5fd}
-.h-date{font-size:11px;color:#60a5fa;margin-top:10px}
-.body{padding:28px 36px}
-.highlight{background:#eff6ff;border:1.5px solid #bfdbfe;border-radius:12px;padding:18px 22px;margin-bottom:22px;display:flex;justify-content:space-between;align-items:center}
-.hl-label{font-size:10px;font-weight:700;color:#1d4ed8;text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px}
-.hl-value{font-size:20px;font-weight:900;color:#1e293b}
-.hl-sub{font-size:12px;color:#64748b;margin-top:2px}
-.valor-label{font-size:10px;font-weight:700;color:#15803d;text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px;text-align:right}
-.valor-value{font-size:20px;font-weight:900;color:#15803d;text-align:right}
-.sec-title{font-size:10px;font-weight:700;color:#4f46e5;text-transform:uppercase;letter-spacing:.10em;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid #e2e8f0}
-.sec{margin-bottom:20px}
-.grid{border:1px solid #e2e8f0;border-radius:12px;overflow:hidden}
-.row{display:flex;border-bottom:1px solid #f1f5f9}
-.row:last-child{border-bottom:none}
-.cell{flex:1;padding:12px 16px;border-right:1px solid #f1f5f9}
-.cell:last-child{border-right:none}
-.cell-label{font-size:10px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px}
-.cell-value{font-size:13px;font-weight:700;color:#0f172a}
-.cell-value.purple{color:#4f46e5}
-.cell-value.blue{color:#1d4ed8}
-.estab{background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:16px 20px;margin-bottom:20px}
-.estab-nome{font-size:14px;font-weight:800;color:#0f172a;margin-bottom:8px}
-.estab-row{font-size:12px;color:#475569;margin-bottom:4px}
-.obs{background:#fefce8;border:1px solid #fde047;border-radius:10px;padding:12px 16px;margin-bottom:20px}
-.obs-text{font-size:12px;color:#854d0e;line-height:1.5}
-.footer{background:#f8fafc;border-top:1px solid #e2e8f0;padding:14px 36px;display:flex;justify-content:space-between;align-items:center}
-.footer-brand{font-size:12px;font-weight:700;color:#4f46e5}
-.footer-date{font-size:11px;color:#cbd5e1}
-@media print{
-  body{margin:0;padding:0}
-  .page{max-width:100%;margin:0}
-  @page{margin:8mm;size:A4}
-}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;background:#fff;color:#1E293B;font-size:14px;line-height:1.5}
+  @media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
+  .page{max-width:800px;margin:0 auto;padding:0}
+  .hdr{background:linear-gradient(135deg,#1E3A5F 0%,#2D1B69 100%);padding:32px 40px;position:relative;overflow:hidden}
+  .hdr::after{content:'';position:absolute;top:-60px;right:-60px;width:200px;height:200px;border-radius:50%;background:rgba(255,255,255,.05)}
+  .hdr::before{content:'';position:absolute;bottom:-40px;left:40px;width:120px;height:120px;border-radius:50%;background:rgba(255,255,255,.04)}
+  .hdr-inner{position:relative;z-index:1;display:flex;justify-content:space-between;align-items:flex-start;gap:20px}
+  .hdr-left h1{font-size:26px;font-weight:800;color:#fff;letter-spacing:-0.03em;margin-bottom:3px}
+  .hdr-left .doc-type{font-size:13px;color:rgba(255,255,255,.65);font-weight:500;margin-bottom:12px}
+  .hdr-right{text-align:right;flex-shrink:0}
+  .hdr-right .doc-label{font-size:10px;font-weight:700;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px}
+  .hdr-right .doc-date{font-size:14px;font-weight:700;color:#fff}
+  .hdr-right .doc-time{font-size:11px;color:rgba(255,255,255,.5);margin-top:2px}
+  .status-badge{display:inline-flex;align-items:center;gap:6px;padding:5px 14px;border-radius:999px;font-size:11px;font-weight:700;letter-spacing:.04em;margin-top:10px;background:rgba(34,197,94,.18);color:#4ADE80;border:1px solid rgba(34,197,94,.35)}
+  .status-dot{width:6px;height:6px;border-radius:50%;background:#4ADE80;flex-shrink:0}
+  .body{padding:0 40px 40px}
+  .section{margin-top:28px}
+  .section-title{font-size:10px;font-weight:700;color:#94A3B8;text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px;padding-bottom:6px;border-bottom:1.5px solid #E2E8F0}
+  .highlight-box{background:linear-gradient(135deg,#EFF6FF,#F5F3FF);border:1.5px solid #BFDBFE;border-radius:14px;padding:20px 24px;display:flex;justify-content:space-between;align-items:center;gap:16px}
+  .hl-label{font-size:10px;font-weight:700;color:#1D4ED8;text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px}
+  .hl-value{font-size:22px;font-weight:900;color:#1E293B;letter-spacing:-0.02em}
+  .hl-sub{font-size:12px;color:#6366F1;margin-top:3px;font-weight:600}
+  .valor-label{font-size:10px;font-weight:700;color:#15803D;text-transform:uppercase;letter-spacing:.08em;margin-bottom:2px;text-align:right}
+  .valor-value{font-size:22px;font-weight:900;color:#15803D;text-align:right}
+  .info-grid{display:grid;grid-template-columns:1fr 1fr;gap:0;border:1px solid #E2E8F0;border-radius:12px;overflow:hidden}
+  .info-cell{padding:14px 18px;border-bottom:1px solid #F1F5F9}
+  .info-cell:nth-last-child(-n+2){border-bottom:none}
+  .info-cell:nth-child(odd){border-right:1px solid #F1F5F9}
+  .info-label{font-size:10px;font-weight:700;color:#94A3B8;text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px}
+  .info-value{font-size:14px;font-weight:700;color:#1E293B}
+  .info-value.purple{color:#6366F1}
+  .info-value.blue{color:#1D4ED8}
+  .info-value.green{color:#15803D}
+  .estab-box{background:#F8FAFC;border:1px solid #E2E8F0;border-radius:12px;padding:18px 20px}
+  .estab-nome{font-size:15px;font-weight:800;color:#1E293B;margin-bottom:10px}
+  .estab-row{font-size:12px;color:#475569;margin-bottom:5px;display:flex;align-items:flex-start;gap:6px}
+  .obs-box{background:#FFFBEB;border:1px solid #FDE68A;border-radius:10px;padding:14px 18px}
+  .obs-text{font-size:12px;color:#92400E;line-height:1.6}
+  .footer{margin-top:32px;padding:16px 40px;background:#F8FAFC;border-top:1.5px solid #E2E8F0;display:flex;justify-content:space-between;align-items:center}
+  .footer-brand{font-size:12px;font-weight:700;color:#6366F1}
+  .footer-right{font-size:11px;color:#94A3B8;text-align:right}
+  @media print{
+    body{margin:0}
+    .page{max-width:100%}
+    @page{margin:10mm;size:A4}
+  }
 </style>
 </head>
 <body>
 <div class="page">
-  <div class="header">
-    <div class="badge">✓ Agendamento confirmado</div>
-    <div class="h-title">${nomeNegocio}</div>
-    <div class="h-sub">Comprovante de agendamento</div>
-    <div class="h-date">Emitido em ${dataEmissao} às ${horaEmissao}</div>
+  <div class="hdr">
+    <div class="hdr-inner">
+      <div class="hdr-left">
+        <h1>${nomeNegocio}</h1>
+        <div class="doc-type">Comprovante de agendamento</div>
+        <span class="status-badge"><span class="status-dot"></span>Agendamento confirmado</span>
+      </div>
+      <div class="hdr-right">
+        <div class="doc-label">Emitido em</div>
+        <div class="doc-date">${dataEmissao}</div>
+        <div class="doc-time">${horaEmissao}</div>
+      </div>
+    </div>
   </div>
+
   <div class="body">
-    <div class="highlight">
-      <div>
-        <div class="hl-label">Data e horário</div>
-        <div class="hl-value">${dataFormatada} · ${horarioSelecionado}</div>
-        <div class="hl-sub">${servNome}</div>
-      </div>
-      ${valor ? `<div><div class="valor-label">Valor</div><div class="valor-value">${valor}</div></div>` : ''}
-    </div>
-    <div class="sec">
-      <div class="sec-title">Informações do agendamento</div>
-      <div class="grid">
-        <div class="row">
-          <div class="cell"><div class="cell-label">Cliente</div><div class="cell-value">${nomeCliente}</div></div>
-          <div class="cell"><div class="cell-label">WhatsApp</div><div class="cell-value">${clienteTelefone || '—'}</div></div>
+
+    <div class="section">
+      <div class="section-title">Data e hor\u00e1rio do atendimento</div>
+      <div class="highlight-box">
+        <div>
+          <div class="hl-label">Data e hor\u00e1rio</div>
+          <div class="hl-value">${dataFormatada} \u00b7 ${horarioSelecionado}</div>
+          <div class="hl-sub">${servNome}</div>
         </div>
-        <div class="row">
-          <div class="cell"><div class="cell-label">Serviço</div><div class="cell-value purple">${servNome}</div></div>
-          <div class="cell"><div class="cell-label">Profissional</div><div class="cell-value">${profNome || '—'}</div></div>
-        </div>
-        <div class="row">
-          <div class="cell"><div class="cell-label">Data</div><div class="cell-value blue">${dataFormatada}</div></div>
-          <div class="cell"><div class="cell-label">Horário</div><div class="cell-value blue">${horarioSelecionado}</div></div>
-        </div>
+        ${valor ? `<div><div class="valor-label">Valor</div><div class="valor-value">${valor}</div></div>` : ''}
       </div>
     </div>
-    <div class="sec">
-      <div class="sec-title">Estabelecimento</div>
-      <div class="estab">
+
+    <div class="section">
+      <div class="section-title">Informa\u00e7\u00f5es do agendamento</div>
+      <div class="info-grid">
+        <div class="info-cell">
+          <div class="info-label">Cliente</div>
+          <div class="info-value">${nomeCliente}</div>
+        </div>
+        <div class="info-cell">
+          <div class="info-label">WhatsApp</div>
+          <div class="info-value">${clienteTelefone || '\u2014'}</div>
+        </div>
+        <div class="info-cell">
+          <div class="info-label">Servi\u00e7o</div>
+          <div class="info-value purple">${servNome}</div>
+        </div>
+        <div class="info-cell">
+          <div class="info-label">Profissional</div>
+          <div class="info-value">${profNome || '\u2014'}</div>
+        </div>
+        <div class="info-cell">
+          <div class="info-label">Data</div>
+          <div class="info-value blue">${dataFormatada}</div>
+        </div>
+        <div class="info-cell">
+          <div class="info-label">Hor\u00e1rio</div>
+          <div class="info-value blue">${horarioSelecionado}</div>
+        </div>
+        ${valor ? `<div class="info-cell" style="grid-column:1/-1">
+          <div class="info-label">Valor do servi\u00e7o</div>
+          <div class="info-value green">${valor}</div>
+        </div>` : ''}
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Estabelecimento</div>
+      <div class="estab-box">
         <div class="estab-nome">${nomeNegocio}</div>
-        ${endereco ? `<div class="estab-row">📍 ${endereco}</div>` : ''}
-        ${whatsapp ? `<div class="estab-row">📱 ${whatsapp}</div>` : ''}
+        ${endereco ? `<div class="estab-row"><span>\ud83d\udccd</span><span>${endereco}</span></div>` : ''}
+        ${whatsapp ? `<div class="estab-row"><span>\ud83d\udcf1</span><span>${whatsapp}</span></div>` : ''}
       </div>
     </div>
-    <div class="obs">
-      <div class="obs-text">ℹ️ Em caso de dúvidas ou necessidade de remarcação, entre em contato com o estabelecimento com antecedência.</div>
+
+    <div class="section">
+      <div class="obs-box">
+        <div class="obs-text">\u2139\ufe0f Em caso de d\u00favidas ou necessidade de remarcar\u00e7\u00e3o, entre em contato com o estabelecimento com anteced\u00eancia.</div>
+      </div>
     </div>
+
+    <div class="section" style="margin-top:36px">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:40px">
+        <div>
+          <div style="border-top:1.5px solid #CBD5E1;padding-top:8px">
+            <div style="font-size:11px;color:#94A3B8">${nomeNegocio}</div>
+            <div style="font-size:10px;color:#CBD5E1;margin-top:2px">Assinatura / Carimbo</div>
+          </div>
+        </div>
+        <div>
+          <div style="border-top:1.5px solid #CBD5E1;padding-top:8px">
+            <div style="font-size:11px;color:#94A3B8">${nomeCliente}</div>
+            <div style="font-size:10px;color:#CBD5E1;margin-top:2px">Assinatura do cliente</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
   </div>
+
   <div class="footer">
-    <div class="footer-brand">ClienteMarcado</div>
-    <div class="footer-date">${dataEmissao}</div>
+    <div class="footer-brand">ClienteMarcado \u00b7 Gerado em ${agora}</div>
+    <div class="footer-right">Documento n\u00e3o possui validade jur\u00eddica sem assinatura</div>
   </div>
 </div>
 </body>
 </html>`
 
-    // Cria iframe invisível e faz print dentro dele
-    const iframe = document.createElement('iframe')
-    iframe.style.position = 'fixed'
-    iframe.style.top = '-9999px'
-    iframe.style.left = '-9999px'
-    iframe.style.width = '0'
-    iframe.style.height = '0'
-    iframe.style.border = 'none'
-    document.body.appendChild(iframe)
-
-    const doc = iframe.contentDocument || iframe.contentWindow?.document
-    if (!doc) return
-
-    doc.open()
-    doc.write(html)
-    doc.close()
-
-    iframe.contentWindow?.addEventListener('load', () => {
-      setTimeout(() => {
-        iframe.contentWindow?.print()
-        setTimeout(() => document.body.removeChild(iframe), 2000)
-      }, 300)
-    })
+    const win = window.open('', '_blank')
+    if (!win) return
+    win.document.write(html)
+    win.document.close()
+    win.document.title = nomeArquivo
+    setTimeout(() => win.print(), 600)
   }
+
 
   const G = 'linear-gradient(135deg,#3B82F6,#7C3AED)'
   const cor = perfil?.cor_tema || '#3B82F6'
