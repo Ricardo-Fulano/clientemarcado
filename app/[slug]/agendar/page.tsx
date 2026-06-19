@@ -121,8 +121,8 @@ export default function Agendar() {
     URL.revokeObjectURL(url)
   }
 
-  // ✅ NOVO: Gera PDF premium via HTML + print
-  async function baixarConfirmacaoPDF() {
+// ✅ NOVO: Gera PDF premium via iframe invisível
+  function baixarConfirmacaoPDF() {
     const nomeCliente = clienteNome || 'cliente'
     const dataFormatada = formatarData(dataSelecionada)
     const dataEmissao = new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' })
@@ -133,176 +133,131 @@ export default function Agendar() {
     const servNome = servicoSelecionado?.nome || ''
     const profNome = profissionalSelecionado?.nome || ''
     const valor = servicoSelecionado?.preco ? 'R$ ' + Number(servicoSelecionado.preco).toLocaleString('pt-BR', { minimumFractionDigits: 2 }) : ''
-    const nomeArquivo = 'confirmacao-agendamento-' + nomeCliente.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,'-').replace(/[^a-z0-9-]/g,'') + '-' + dataSelecionada + '.pdf'
 
     const html = `<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>Confirmação de Agendamento</title>
+<title>Comprovante de Agendamento</title>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
-  *{box-sizing:border-box;margin:0;padding:0}
-  body{font-family:'Inter',system-ui,sans-serif;background:#fff;color:#0F172A;-webkit-print-color-adjust:exact;print-color-adjust:exact}
-  .page{max-width:600px;margin:0 auto;padding:0}
-  .header{background:linear-gradient(135deg,#1E3A5F 0%,#2D1B69 50%,#1a1040 100%);padding:36px 40px 32px;position:relative;overflow:hidden}
-  .header::before{content:'';position:absolute;top:-60px;right:-60px;width:200px;height:200px;border-radius:50%;background:rgba(99,102,241,.18);pointer-events:none}
-  .header::after{content:'';position:absolute;bottom:-40px;left:-30px;width:140px;height:140px;border-radius:50%;background:rgba(59,130,246,.12);pointer-events:none}
-  .header-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(34,197,94,.15);border:1px solid rgba(34,197,94,.30);border-radius:999px;padding:5px 14px;margin-bottom:16px}
-  .header-badge-dot{width:7px;height:7px;border-radius:50%;background:#22C55E}
-  .header-badge-text{font-size:11px;font-weight:700;color:#22C55E;letter-spacing:.06em;text-transform:uppercase}
-  .header-title{font-size:26px;font-weight:900;color:#fff;letter-spacing:-0.03em;margin-bottom:4px;line-height:1.1}
-  .header-subtitle{font-size:13px;color:rgba(255,255,255,.55);font-weight:500}
-  .header-date{position:absolute;top:36px;right:40px;text-align:right}
-  .header-date-label{font-size:10px;color:rgba(255,255,255,.40);text-transform:uppercase;letter-spacing:.08em;margin-bottom:2px}
-  .header-date-val{font-size:12px;color:rgba(255,255,255,.65);font-weight:600}
-  .body{padding:32px 40px}
-  .section{margin-bottom:24px}
-  .section-title{font-size:10px;font-weight:700;color:#6366F1;text-transform:uppercase;letter-spacing:.10em;margin-bottom:12px;display:flex;align-items:center;gap:8px}
-  .section-title::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,rgba(99,102,241,.20),transparent)}
-  .info-grid{display:grid;grid-template-columns:1fr 1fr;gap:0;border:1px solid #E2E8F0;border-radius:14px;overflow:hidden}
-  .info-cell{padding:14px 18px;border-bottom:1px solid #F1F5F9}
-  .info-cell:nth-last-child(-n+2){border-bottom:none}
-  .info-cell:nth-child(odd){border-right:1px solid #F1F5F9}
-  .info-label{font-size:10px;font-weight:700;color:#94A3B8;text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px}
-  .info-value{font-size:14px;font-weight:700;color:#0F172A;line-height:1.3}
-  .info-value.accent{color:#6366F1}
-  .info-value.green{color:#16A34A}
-  .info-value.blue{color:#2563EB}
-  .highlight-box{background:linear-gradient(135deg,rgba(99,102,241,.06),rgba(59,130,246,.04));border:1.5px solid rgba(99,102,241,.18);border-radius:14px;padding:18px 20px;display:flex;align-items:center;justify-content:space-between;gap:16px}
-  .highlight-left{}
-  .highlight-label{font-size:10px;font-weight:700;color:#6366F1;text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px}
-  .highlight-value{font-size:22px;font-weight:900;color:#0F172A;letter-spacing:-0.02em}
-  .highlight-sub{font-size:12px;color:#64748B;margin-top:2px}
-  .highlight-right{text-align:right}
-  .valor-label{font-size:10px;font-weight:700;color:#16A34A;text-transform:uppercase;letter-spacing:.08em;margin-bottom:2px}
-  .valor-value{font-size:22px;font-weight:900;color:#16A34A}
-  .estabelecimento-box{background:#F8FAFC;border:1px solid #E2E8F0;border-radius:14px;padding:18px 20px}
-  .estab-nome{font-size:15px;font-weight:800;color:#0F172A;margin-bottom:10px}
-  .estab-row{display:flex;align-items:flex-start;gap:8px;margin-bottom:6px}
-  .estab-icon{font-size:13px;margin-top:1px;flex-shrink:0}
-  .estab-text{font-size:12px;color:#475569;line-height:1.5}
-  .obs-box{background:#FFFBEB;border:1px solid #FDE68A;border-radius:10px;padding:12px 16px;display:flex;gap:8px;align-items:flex-start}
-  .obs-icon{font-size:14px;flex-shrink:0;margin-top:1px}
-  .obs-text{font-size:12px;color:#92400E;line-height:1.5}
-  .footer{background:#F8FAFC;border-top:1px solid #E2E8F0;padding:18px 40px;display:flex;align-items:center;justify-content:space-between}
-  .footer-brand{font-size:12px;font-weight:700;color:#6366F1}
-  .footer-brand span{font-weight:400;color:#94A3B8}
-  .footer-right{font-size:11px;color:#CBD5E1}
-  .divider{height:1px;background:#F1F5F9;margin:20px 0}
-  @media print{
-    body{margin:0}
-    .page{max-width:100%}
-    .no-print{display:none!important}
-  }
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Arial,sans-serif;background:#fff;color:#0F172A;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.page{max-width:620px;margin:0 auto}
+.header{background:#1e3a8a;padding:32px 36px 28px}
+.badge{display:inline-block;background:#dcfce7;border:1px solid #86efac;border-radius:999px;padding:4px 14px;margin-bottom:14px;font-size:11px;font-weight:700;color:#16a34a;text-transform:uppercase;letter-spacing:.06em}
+.h-title{font-size:22px;font-weight:900;color:#fff;margin-bottom:3px}
+.h-sub{font-size:12px;color:#93c5fd}
+.h-date{font-size:11px;color:#60a5fa;margin-top:10px}
+.body{padding:28px 36px}
+.highlight{background:#eff6ff;border:1.5px solid #bfdbfe;border-radius:12px;padding:18px 22px;margin-bottom:22px;display:flex;justify-content:space-between;align-items:center}
+.hl-label{font-size:10px;font-weight:700;color:#1d4ed8;text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px}
+.hl-value{font-size:20px;font-weight:900;color:#1e293b}
+.hl-sub{font-size:12px;color:#64748b;margin-top:2px}
+.valor-label{font-size:10px;font-weight:700;color:#15803d;text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px;text-align:right}
+.valor-value{font-size:20px;font-weight:900;color:#15803d;text-align:right}
+.sec-title{font-size:10px;font-weight:700;color:#4f46e5;text-transform:uppercase;letter-spacing:.10em;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid #e2e8f0}
+.sec{margin-bottom:20px}
+.grid{border:1px solid #e2e8f0;border-radius:12px;overflow:hidden}
+.row{display:flex;border-bottom:1px solid #f1f5f9}
+.row:last-child{border-bottom:none}
+.cell{flex:1;padding:12px 16px;border-right:1px solid #f1f5f9}
+.cell:last-child{border-right:none}
+.cell-label{font-size:10px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px}
+.cell-value{font-size:13px;font-weight:700;color:#0f172a}
+.cell-value.purple{color:#4f46e5}
+.cell-value.blue{color:#1d4ed8}
+.estab{background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:16px 20px;margin-bottom:20px}
+.estab-nome{font-size:14px;font-weight:800;color:#0f172a;margin-bottom:8px}
+.estab-row{font-size:12px;color:#475569;margin-bottom:4px}
+.obs{background:#fefce8;border:1px solid #fde047;border-radius:10px;padding:12px 16px;margin-bottom:20px}
+.obs-text{font-size:12px;color:#854d0e;line-height:1.5}
+.footer{background:#f8fafc;border-top:1px solid #e2e8f0;padding:14px 36px;display:flex;justify-content:space-between;align-items:center}
+.footer-brand{font-size:12px;font-weight:700;color:#4f46e5}
+.footer-date{font-size:11px;color:#cbd5e1}
+@media print{
+  body{margin:0;padding:0}
+  .page{max-width:100%;margin:0}
+  @page{margin:8mm;size:A4}
+}
 </style>
 </head>
 <body>
 <div class="page">
   <div class="header">
-    <div class="header-date">
-      <div class="header-date-label">Emitido em</div>
-      <div class="header-date-val">${dataEmissao} às ${horaEmissao}</div>
-    </div>
-    <div class="header-badge">
-      <div class="header-badge-dot"></div>
-      <span class="header-badge-text">Agendamento confirmado</span>
-    </div>
-    <h1 class="header-title">${nomeNegocio}</h1>
-    <p class="header-subtitle">Comprovante de agendamento</p>
+    <div class="badge">✓ Agendamento confirmado</div>
+    <div class="h-title">${nomeNegocio}</div>
+    <div class="h-sub">Comprovante de agendamento</div>
+    <div class="h-date">Emitido em ${dataEmissao} às ${horaEmissao}</div>
   </div>
-
   <div class="body">
-
-    <div class="section">
-      <div class="section-title">Dados do agendamento</div>
-      <div class="highlight-box">
-        <div class="highlight-left">
-          <div class="highlight-label">Data e horário</div>
-          <div class="highlight-value">${dataFormatada} · ${horarioSelecionado}</div>
-          <div class="highlight-sub">${servNome}</div>
-        </div>
-        ${valor ? `<div class="highlight-right">
-          <div class="valor-label">Valor</div>
-          <div class="valor-value">${valor}</div>
-        </div>` : ''}
+    <div class="highlight">
+      <div>
+        <div class="hl-label">Data e horário</div>
+        <div class="hl-value">${dataFormatada} · ${horarioSelecionado}</div>
+        <div class="hl-sub">${servNome}</div>
       </div>
+      ${valor ? `<div><div class="valor-label">Valor</div><div class="valor-value">${valor}</div></div>` : ''}
     </div>
-
-    <div class="section">
-      <div class="section-title">Informações</div>
-      <div class="info-grid">
-        <div class="info-cell">
-          <div class="info-label">Cliente</div>
-          <div class="info-value">${clienteNome}</div>
+    <div class="sec">
+      <div class="sec-title">Informações do agendamento</div>
+      <div class="grid">
+        <div class="row">
+          <div class="cell"><div class="cell-label">Cliente</div><div class="cell-value">${nomeCliente}</div></div>
+          <div class="cell"><div class="cell-label">WhatsApp</div><div class="cell-value">${clienteTelefone || '—'}</div></div>
         </div>
-        <div class="info-cell">
-          <div class="info-label">WhatsApp</div>
-          <div class="info-value">${clienteTelefone || '—'}</div>
+        <div class="row">
+          <div class="cell"><div class="cell-label">Serviço</div><div class="cell-value purple">${servNome}</div></div>
+          <div class="cell"><div class="cell-label">Profissional</div><div class="cell-value">${profNome || '—'}</div></div>
         </div>
-        <div class="info-cell">
-          <div class="info-label">Serviço</div>
-          <div class="info-value accent">${servNome}</div>
-        </div>
-        <div class="info-cell">
-          <div class="info-label">Profissional</div>
-          <div class="info-value">${profNome || '—'}</div>
-        </div>
-        <div class="info-cell">
-          <div class="info-label">Data</div>
-          <div class="info-value blue">${dataFormatada}</div>
-        </div>
-        <div class="info-cell">
-          <div class="info-label">Horário</div>
-          <div class="info-value blue">${horarioSelecionado}</div>
+        <div class="row">
+          <div class="cell"><div class="cell-label">Data</div><div class="cell-value blue">${dataFormatada}</div></div>
+          <div class="cell"><div class="cell-label">Horário</div><div class="cell-value blue">${horarioSelecionado}</div></div>
         </div>
       </div>
     </div>
-
-    <div class="section">
-      <div class="section-title">Estabelecimento</div>
-      <div class="estabelecimento-box">
+    <div class="sec">
+      <div class="sec-title">Estabelecimento</div>
+      <div class="estab">
         <div class="estab-nome">${nomeNegocio}</div>
-        ${endereco ? `<div class="estab-row"><span class="estab-icon">📍</span><span class="estab-text">${endereco}</span></div>` : ''}
-        ${whatsapp ? `<div class="estab-row"><span class="estab-icon">📱</span><span class="estab-text">${whatsapp}</span></div>` : ''}
+        ${endereco ? `<div class="estab-row">📍 ${endereco}</div>` : ''}
+        ${whatsapp ? `<div class="estab-row">📱 ${whatsapp}</div>` : ''}
       </div>
     </div>
-
-    <div class="obs-box">
-      <span class="obs-icon">ℹ️</span>
-      <span class="obs-text">Em caso de dúvidas ou necessidade de remarcação, entre em contato diretamente com o estabelecimento com antecedência.</span>
+    <div class="obs">
+      <div class="obs-text">ℹ️ Em caso de dúvidas ou necessidade de remarcação, entre em contato com o estabelecimento com antecedência.</div>
     </div>
-
   </div>
-
   <div class="footer">
-    <div class="footer-brand">ClienteMarcado <span>· Plataforma de agendamentos</span></div>
-    <div class="footer-right">${dataEmissao}</div>
+    <div class="footer-brand">ClienteMarcado</div>
+    <div class="footer-date">${dataEmissao}</div>
   </div>
 </div>
-
-<script>
-window.onload = function() {
-  document.title = '${nomeArquivo.replace('.pdf','')}';
-  window.print();
-  window.onafterprint = function() { window.close(); };
-};
-<\/script>
 </body>
 </html>`
 
-    const blob = new Blob([html], { type: 'text/html;charset=utf-8' })
-    const url = URL.createObjectURL(blob)
-    const w = window.open(url, '_blank')
-    if (!w) {
-      // fallback: download direto
-      const a = document.createElement('a')
-      a.href = url; a.download = nomeArquivo.replace('.pdf', '.html')
-      document.body.appendChild(a); a.click()
-      document.body.removeChild(a)
-    }
-    setTimeout(() => URL.revokeObjectURL(url), 10000)
+    // Cria iframe invisível e faz print dentro dele
+    const iframe = document.createElement('iframe')
+    iframe.style.position = 'fixed'
+    iframe.style.top = '-9999px'
+    iframe.style.left = '-9999px'
+    iframe.style.width = '0'
+    iframe.style.height = '0'
+    iframe.style.border = 'none'
+    document.body.appendChild(iframe)
+
+    const doc = iframe.contentDocument || iframe.contentWindow?.document
+    if (!doc) return
+
+    doc.open()
+    doc.write(html)
+    doc.close()
+
+    iframe.contentWindow?.addEventListener('load', () => {
+      setTimeout(() => {
+        iframe.contentWindow?.print()
+        setTimeout(() => document.body.removeChild(iframe), 2000)
+      }, 300)
+    })
   }
 
   const G = 'linear-gradient(135deg,#3B82F6,#7C3AED)'
