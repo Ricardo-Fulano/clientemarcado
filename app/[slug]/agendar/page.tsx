@@ -301,12 +301,15 @@ export default function Agendar() {
 </body>
 </html>`
 
-    const win = window.open('', '_blank')
-    if (!win) return
-    win.document.write(html)
-    win.document.close()
-    win.document.title = nomeArquivo
-    setTimeout(() => win.print(), 600)
+    // Codifica em base64 para evitar bloqueio de popup em mobile
+    const encoded = 'data:text/html;charset=utf-8,' + encodeURIComponent(html)
+    const a = document.createElement('a')
+    a.href = encoded
+    a.target = '_blank'
+    a.rel = 'noopener noreferrer'
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
   }
 
 
