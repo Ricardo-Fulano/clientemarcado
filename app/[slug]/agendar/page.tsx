@@ -4,6 +4,7 @@ import { supabase } from '../../lib/supabase'
 import { useParams, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { Sun, Clock, Moon, Scissors, Sparkles, ClipboardList, ClipboardCheck, CalendarCheck, FileText, HeartPulse, ShieldPlus, Stethoscope } from 'lucide-react'
+
 export default function Agendar() {
   const params = useParams()
   const searchParams = useSearchParams()
@@ -24,6 +25,7 @@ export default function Agendar() {
   const [mesAtual, setMesAtual] = useState(new Date())
   const [horariosDisponiveis, setHorariosDisponiveis] = useState<string[]>([])
   const [carregandoHorarios, setCarregandoHorarios] = useState(false)
+
   useEffect(() => {
     async function carregar() {
       const { data: p } = await supabase.from('perfis').select('*').eq('slug', slug).single()
@@ -39,9 +41,11 @@ export default function Agendar() {
     }
     carregar()
   }, [slug])
+
   useEffect(() => {
     if (dataSelecionada && profissionalId && servicoId) carregarHorarios()
   }, [dataSelecionada, profissionalId, servicoId])
+
   async function carregarHorarios() {
     setCarregandoHorarios(true); setHorarioSelecionado('')
     const servico = servicos.find(s => s.id === servicoId)
@@ -78,6 +82,7 @@ export default function Agendar() {
     })
     setHorariosDisponiveis(finais); setCarregandoHorarios(false)
   }
+
   function aplicarMascaraTelefone(valor: string) {
     const nums = valor.replace(/\D/g, '').slice(0, 11)
     if (nums.length > 10) return '(' + nums.slice(0,2) + ') ' + nums.slice(2,7) + '-' + nums.slice(7)
@@ -86,6 +91,7 @@ export default function Agendar() {
     if (nums.length > 0) return '(' + nums
     return ''
   }
+
   async function handleAgendar() {
     setErro('')
     if (!clienteNome) { setErro('Informe seu nome.'); return }
@@ -100,6 +106,7 @@ export default function Agendar() {
     if (error) setErro('Erro ao agendar. Tente novamente.')
     else setSucesso(true)
   }
+
   function baixarAgendaICS() {
     const inicio = new Date(dataSelecionada + 'T' + horarioSelecionado + ':00')
     const fim = new Date(inicio.getTime() + (servicoSelecionado?.duracao_minutos || 30) * 60000)
@@ -113,33 +120,191 @@ export default function Agendar() {
     const a = document.createElement('a'); a.href=url; a.download='agendamento.ics'; a.click()
     URL.revokeObjectURL(url)
   }
-  function baixarConfirmacaoTxt() {
-    const nomeArq = 'confirmacao-agendamento-' + (perfil?.nome_negocio||'clientemarcado').toLowerCase().replace(/\s+/g,'-').replace(/[^a-z0-9-]/g,'') + '.txt'
-    const texto = [
-      'Agendamento confirmado!',
-      '',
-      'Nome: ' + clienteNome,
-      'Servico: ' + (servicoSelecionado?.nome||''),
-      'Profissional: ' + (profissionalSelecionado?.nome||''),
-      'Data: ' + formatarData(dataSelecionada),
-      'Horario: ' + horarioSelecionado,
-      servicoSelecionado?.preco ? 'Valor: R$ ' + servicoSelecionado.preco : '',
-      '',
-      perfil?.nome_negocio || '',
-      perfil?.endereco ? perfil.endereco : '',
-      '',
-      'Agendamento feito pelo ClienteMarcado.',
-      '',
-      'Se precisar remarcar ou tirar duvidas, fale com o estabelecimento pelo WhatsApp.',
-    ].filter(Boolean).join('\r\n')
-    const blob = new Blob([texto], { type: 'text/plain;charset=utf-8' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url; a.download = nomeArq
-    document.body.appendChild(a); a.click()
-    document.body.removeChild(a)
-    URL.revokeObjectURL(url)
+
+  // ✅ NOVO: Gera PDF premium via HTML + print
+  async function baixarConfirmacaoPDF() {
+    const nomeCliente = clienteNome || 'cliente'
+    const dataFormatada = formatarData(dataSelecionada)
+    const dataEmissao = new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' })
+    const horaEmissao = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+    const nomeNegocio = perfil?.nome_negocio || 'Estabelecimento'
+    const endereco = perfil?.endereco || ''
+    const whatsapp = perfil?.whatsapp ? '('+perfil.whatsapp.replace(/\D/g,'').slice(0,2)+') '+perfil.whatsapp.replace(/\D/g,'').slice(2,7)+'-'+perfil.whatsapp.replace(/\D/g,'').slice(7) : ''
+    const servNome = servicoSelecionado?.nome || ''
+    const profNome = profissionalSelecionado?.nome || ''
+    const valor = servicoSelecionado?.preco ? 'R$ ' + Number(servicoSelecionado.preco).toLocaleString('pt-BR', { minimumFractionDigits: 2 }) : ''
+    const nomeArquivo = 'confirmacao-agendamento-' + nomeCliente.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,'-').replace(/[^a-z0-9-]/g,'') + '-' + dataSelecionada + '.pdf'
+
+    const html = `<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Confirmação de Agendamento</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Inter',system-ui,sans-serif;background:#fff;color:#0F172A;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .page{max-width:600px;margin:0 auto;padding:0}
+  .header{background:linear-gradient(135deg,#1E3A5F 0%,#2D1B69 50%,#1a1040 100%);padding:36px 40px 32px;position:relative;overflow:hidden}
+  .header::before{content:'';position:absolute;top:-60px;right:-60px;width:200px;height:200px;border-radius:50%;background:rgba(99,102,241,.18);pointer-events:none}
+  .header::after{content:'';position:absolute;bottom:-40px;left:-30px;width:140px;height:140px;border-radius:50%;background:rgba(59,130,246,.12);pointer-events:none}
+  .header-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(34,197,94,.15);border:1px solid rgba(34,197,94,.30);border-radius:999px;padding:5px 14px;margin-bottom:16px}
+  .header-badge-dot{width:7px;height:7px;border-radius:50%;background:#22C55E}
+  .header-badge-text{font-size:11px;font-weight:700;color:#22C55E;letter-spacing:.06em;text-transform:uppercase}
+  .header-title{font-size:26px;font-weight:900;color:#fff;letter-spacing:-0.03em;margin-bottom:4px;line-height:1.1}
+  .header-subtitle{font-size:13px;color:rgba(255,255,255,.55);font-weight:500}
+  .header-date{position:absolute;top:36px;right:40px;text-align:right}
+  .header-date-label{font-size:10px;color:rgba(255,255,255,.40);text-transform:uppercase;letter-spacing:.08em;margin-bottom:2px}
+  .header-date-val{font-size:12px;color:rgba(255,255,255,.65);font-weight:600}
+  .body{padding:32px 40px}
+  .section{margin-bottom:24px}
+  .section-title{font-size:10px;font-weight:700;color:#6366F1;text-transform:uppercase;letter-spacing:.10em;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+  .section-title::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,rgba(99,102,241,.20),transparent)}
+  .info-grid{display:grid;grid-template-columns:1fr 1fr;gap:0;border:1px solid #E2E8F0;border-radius:14px;overflow:hidden}
+  .info-cell{padding:14px 18px;border-bottom:1px solid #F1F5F9}
+  .info-cell:nth-last-child(-n+2){border-bottom:none}
+  .info-cell:nth-child(odd){border-right:1px solid #F1F5F9}
+  .info-label{font-size:10px;font-weight:700;color:#94A3B8;text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px}
+  .info-value{font-size:14px;font-weight:700;color:#0F172A;line-height:1.3}
+  .info-value.accent{color:#6366F1}
+  .info-value.green{color:#16A34A}
+  .info-value.blue{color:#2563EB}
+  .highlight-box{background:linear-gradient(135deg,rgba(99,102,241,.06),rgba(59,130,246,.04));border:1.5px solid rgba(99,102,241,.18);border-radius:14px;padding:18px 20px;display:flex;align-items:center;justify-content:space-between;gap:16px}
+  .highlight-left{}
+  .highlight-label{font-size:10px;font-weight:700;color:#6366F1;text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px}
+  .highlight-value{font-size:22px;font-weight:900;color:#0F172A;letter-spacing:-0.02em}
+  .highlight-sub{font-size:12px;color:#64748B;margin-top:2px}
+  .highlight-right{text-align:right}
+  .valor-label{font-size:10px;font-weight:700;color:#16A34A;text-transform:uppercase;letter-spacing:.08em;margin-bottom:2px}
+  .valor-value{font-size:22px;font-weight:900;color:#16A34A}
+  .estabelecimento-box{background:#F8FAFC;border:1px solid #E2E8F0;border-radius:14px;padding:18px 20px}
+  .estab-nome{font-size:15px;font-weight:800;color:#0F172A;margin-bottom:10px}
+  .estab-row{display:flex;align-items:flex-start;gap:8px;margin-bottom:6px}
+  .estab-icon{font-size:13px;margin-top:1px;flex-shrink:0}
+  .estab-text{font-size:12px;color:#475569;line-height:1.5}
+  .obs-box{background:#FFFBEB;border:1px solid #FDE68A;border-radius:10px;padding:12px 16px;display:flex;gap:8px;align-items:flex-start}
+  .obs-icon{font-size:14px;flex-shrink:0;margin-top:1px}
+  .obs-text{font-size:12px;color:#92400E;line-height:1.5}
+  .footer{background:#F8FAFC;border-top:1px solid #E2E8F0;padding:18px 40px;display:flex;align-items:center;justify-content:space-between}
+  .footer-brand{font-size:12px;font-weight:700;color:#6366F1}
+  .footer-brand span{font-weight:400;color:#94A3B8}
+  .footer-right{font-size:11px;color:#CBD5E1}
+  .divider{height:1px;background:#F1F5F9;margin:20px 0}
+  @media print{
+    body{margin:0}
+    .page{max-width:100%}
+    .no-print{display:none!important}
   }
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="header">
+    <div class="header-date">
+      <div class="header-date-label">Emitido em</div>
+      <div class="header-date-val">${dataEmissao} às ${horaEmissao}</div>
+    </div>
+    <div class="header-badge">
+      <div class="header-badge-dot"></div>
+      <span class="header-badge-text">Agendamento confirmado</span>
+    </div>
+    <h1 class="header-title">${nomeNegocio}</h1>
+    <p class="header-subtitle">Comprovante de agendamento</p>
+  </div>
+
+  <div class="body">
+
+    <div class="section">
+      <div class="section-title">Dados do agendamento</div>
+      <div class="highlight-box">
+        <div class="highlight-left">
+          <div class="highlight-label">Data e horário</div>
+          <div class="highlight-value">${dataFormatada} · ${horarioSelecionado}</div>
+          <div class="highlight-sub">${servNome}</div>
+        </div>
+        ${valor ? `<div class="highlight-right">
+          <div class="valor-label">Valor</div>
+          <div class="valor-value">${valor}</div>
+        </div>` : ''}
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Informações</div>
+      <div class="info-grid">
+        <div class="info-cell">
+          <div class="info-label">Cliente</div>
+          <div class="info-value">${clienteNome}</div>
+        </div>
+        <div class="info-cell">
+          <div class="info-label">WhatsApp</div>
+          <div class="info-value">${clienteTelefone || '—'}</div>
+        </div>
+        <div class="info-cell">
+          <div class="info-label">Serviço</div>
+          <div class="info-value accent">${servNome}</div>
+        </div>
+        <div class="info-cell">
+          <div class="info-label">Profissional</div>
+          <div class="info-value">${profNome || '—'}</div>
+        </div>
+        <div class="info-cell">
+          <div class="info-label">Data</div>
+          <div class="info-value blue">${dataFormatada}</div>
+        </div>
+        <div class="info-cell">
+          <div class="info-label">Horário</div>
+          <div class="info-value blue">${horarioSelecionado}</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Estabelecimento</div>
+      <div class="estabelecimento-box">
+        <div class="estab-nome">${nomeNegocio}</div>
+        ${endereco ? `<div class="estab-row"><span class="estab-icon">📍</span><span class="estab-text">${endereco}</span></div>` : ''}
+        ${whatsapp ? `<div class="estab-row"><span class="estab-icon">📱</span><span class="estab-text">${whatsapp}</span></div>` : ''}
+      </div>
+    </div>
+
+    <div class="obs-box">
+      <span class="obs-icon">ℹ️</span>
+      <span class="obs-text">Em caso de dúvidas ou necessidade de remarcação, entre em contato diretamente com o estabelecimento com antecedência.</span>
+    </div>
+
+  </div>
+
+  <div class="footer">
+    <div class="footer-brand">ClienteMarcado <span>· Plataforma de agendamentos</span></div>
+    <div class="footer-right">${dataEmissao}</div>
+  </div>
+</div>
+
+<script>
+window.onload = function() {
+  document.title = '${nomeArquivo.replace('.pdf','')}';
+  window.print();
+  window.onafterprint = function() { window.close(); };
+};
+<\/script>
+</body>
+</html>`
+
+    const blob = new Blob([html], { type: 'text/html;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    const w = window.open(url, '_blank')
+    if (!w) {
+      // fallback: download direto
+      const a = document.createElement('a')
+      a.href = url; a.download = nomeArquivo.replace('.pdf', '.html')
+      document.body.appendChild(a); a.click()
+      document.body.removeChild(a)
+    }
+    setTimeout(() => URL.revokeObjectURL(url), 10000)
+  }
+
   const G = 'linear-gradient(135deg,#3B82F6,#7C3AED)'
   const cor = perfil?.cor_tema || '#3B82F6'
   const servicoSelecionado = servicos.find(s => s.id === servicoId)
@@ -152,6 +317,7 @@ export default function Agendar() {
   const diasNoMes = new Date(mesAtual.getFullYear(), mesAtual.getMonth()+1, 0).getDate()
   const primeiroDiaMes = new Date(mesAtual.getFullYear(), mesAtual.getMonth(), 1).getDay()
   const diasFunc: number[] = perfil?.dias_funcionamento || [1,2,3,4,5,6]
+
   function isDiaDisponivel(dia: number) {
     const data = new Date(mesAtual.getFullYear(), mesAtual.getMonth(), dia)
     return data >= hoje && diasFunc.includes(data.getDay())
@@ -161,10 +327,12 @@ export default function Agendar() {
     const [ano,mes,dia]=dataStr.split('-')
     return new Date(parseInt(ano),parseInt(mes)-1,parseInt(dia)).toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'long'})
   }
+
   const horariosManha = horariosDisponiveis.filter(h => parseInt(h) < 12)
   const horariosTarde = horariosDisponiveis.filter(h => parseInt(h) >= 12 && parseInt(h) < 18)
   const horariosNoite = horariosDisponiveis.filter(h => parseInt(h) >= 18)
   const nomeEtapas = ['Atendimento','Profissional','Data e hora','Seus dados']
+
   const css = `
     *{box-sizing:border-box;margin:0;padding:0}
     html,body{overflow-x:hidden;width:100%;max-width:100%}
@@ -267,12 +435,16 @@ export default function Agendar() {
     .sucesso-actions{display:flex;flex-direction:column;gap:10px}
     .btn-wpp{display:inline-flex;align-items:center;justify-content:center;gap:8px;background:#25D366;color:#fff;font-weight:700;padding:14px 28px;border-radius:14px;text-decoration:none;font-size:14px;transition:opacity .15s}
     .btn-ics{display:inline-flex;align-items:center;justify-content:center;gap:8px;background:rgba(15,23,42,.88);color:#CBD5E1;font-weight:600;padding:14px 28px;border-radius:14px;font-size:14px;border:1px solid rgba(148,163,184,.15);cursor:pointer;font-family:inherit}
+    .btn-pdf{display:inline-flex;align-items:center;justify-content:center;gap:8px;background:linear-gradient(135deg,rgba(99,102,241,.18),rgba(59,130,246,.12));color:#818CF8;font-weight:700;padding:14px 28px;border-radius:14px;font-size:14px;border:1px solid rgba(99,102,241,.28);cursor:pointer;font-family:inherit;transition:all .18s}
+    .btn-pdf:hover{background:linear-gradient(135deg,rgba(99,102,241,.28),rgba(59,130,246,.20));border-color:rgba(99,102,241,.45)}
     .btn-inicio{display:inline-flex;align-items:center;justify-content:center;background:${G};color:#fff;font-weight:700;padding:14px 28px;border-radius:14px;text-decoration:none;font-size:14px;box-shadow:0 8px 24px rgba(59,130,246,.25)}
     .erro-msg{font-size:13px;color:#EF4444;margin-top:10px}
     .horarios-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:140px;gap:8px}
     .horarios-placeholder{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:160px;gap:10px}
   `
+
   const [copiado, setCopiado] = useState(false)
+
   function copiarConfirmacao() {
     const texto = [
       'Agendamento confirmado!',
@@ -301,50 +473,30 @@ export default function Agendar() {
         } catch(e) { console.error('Erro ao copiar:', e) }
       })
   }
-  // Ícone lucide-react por tipo de atendimento
+
   function getServicoIcone(s: {nome:string,categoria?:string,descricao?:string}) {
     const txt = [s.nome, s.categoria||'', s.descricao||''].join(' ').toLowerCase()
     const sz = 20
-    // Barbearia / cabelo
-    if (/corte|barba|cabelo|barbearia|cabeleirei|platina|mecha|progressiva|alisam|relaxam/.test(txt))
-      return <Scissors size={sz}/>
-    // Coloração / brilho / estética leve
-    if (/colora|escova|hidrataç|hidratac|mechas|luzes|reflexo|tinta/.test(txt))
-      return <Sparkles size={sz}/>
-    // Retorno / agendamento de continuidade
-    if (/retorno|reavalia|acompan|revisão|revisao|follow/.test(txt))
-      return <CalendarCheck size={sz}/>
-    // Avaliação / consulta / orçamento
-    if (/avalia|consul|diagnos|triagem|primeira.*vez|anamese|anamnese/.test(txt))
-      return <ClipboardCheck size={sz}/>
-    // Orçamento (geral)
-    if (/orçamento|orcamento|proposta|plano.*trat|plano.*paga/.test(txt))
-      return <FileText size={sz}/>
-    // Limpeza / clareamento / estética
-    if (/limpeza|clarea|branquea|peeling|esfoliação|esfoliacao|profilax/.test(txt))
-      return <Sparkles size={sz}/>
-    // Procedimento de saúde / restauração / canal / cirurgia / implante
-    if (/restaur|obtura|canal|endodon|cirur|extração|extracao|implant|enxerto/.test(txt))
-      return <ShieldPlus size={sz}/>
-    // Prótese / reabilitação
-    if (/prótese|protese|reabilit|coroa|faceta|lente|inlay|onlay/.test(txt))
-      return <Stethoscope size={sz}/>
-    // Estética facial / corporal / botox / harmonização
-    if (/estet|facial|botox|harmoniz|preench|massag|drenag|corporal|sobrancelha|depilaç|depilac/.test(txt))
-      return <HeartPulse size={sz}/>
-    // Orçamento odontológico (nome longo com odonto)
-    if (/odonto|dent|bucal|oral/.test(txt))
-      return <ClipboardList size={sz}/>
-    // Fallback neutro
+    if (/corte|barba|cabelo|barbearia|cabeleirei|platina|mecha|progressiva|alisam|relaxam/.test(txt)) return <Scissors size={sz}/>
+    if (/colora|escova|hidrataç|hidratac|mechas|luzes|reflexo|tinta/.test(txt)) return <Sparkles size={sz}/>
+    if (/retorno|reavalia|acompan|revisão|revisao|follow/.test(txt)) return <CalendarCheck size={sz}/>
+    if (/avalia|consul|diagnos|triagem|primeira.*vez|anamese|anamnese/.test(txt)) return <ClipboardCheck size={sz}/>
+    if (/orçamento|orcamento|proposta|plano.*trat|plano.*paga/.test(txt)) return <FileText size={sz}/>
+    if (/limpeza|clarea|branquea|peeling|esfoliação|esfoliacao|profilax/.test(txt)) return <Sparkles size={sz}/>
+    if (/restaur|obtura|canal|endodon|cirur|extração|extracao|implant|enxerto/.test(txt)) return <ShieldPlus size={sz}/>
+    if (/prótese|protese|reabilit|coroa|faceta|lente|inlay|onlay/.test(txt)) return <Stethoscope size={sz}/>
+    if (/estet|facial|botox|harmoniz|preench|massag|drenag|corporal|sobrancelha|depilaç|depilac/.test(txt)) return <HeartPulse size={sz}/>
+    if (/odonto|dent|bucal|oral/.test(txt)) return <ClipboardList size={sz}/>
     return <CalendarCheck size={sz}/>
   }
+
   if (sucesso) return (
     <div className="sucesso-wrap">
       <style>{css}</style>
       <div className="sucesso-inner">
         <div className="sucesso-icon">✅</div>
         <h1 className="sucesso-title">Agendamento confirmado!</h1>
-        <p className="sucesso-sub">{clienteNome?<>Obrigado, <strong style={{color:'#F8FAFC'}}>{clienteNome}</strong>! Seu horário foi registrado com sucesso. Você pode falar com o estabelecimento ou salvar sua confirmação.</>:<>Seu horário foi registrado com sucesso. Você pode falar com o estabelecimento ou salvar sua confirmação.</>}</p>
+        <p className="sucesso-sub">{clienteNome ? <>Obrigado, <strong style={{color:'#F8FAFC'}}>{clienteNome}</strong>! Seu horário foi registrado com sucesso.</> : <>Seu horário foi registrado com sucesso.</>}</p>
         <div className="resumo-card">
           <p className="resumo-card-title">Resumo do agendamento</p>
           {[
@@ -364,16 +516,24 @@ export default function Agendar() {
           ))}
         </div>
         <div className="sucesso-actions">
-          {linkWppEstabelecimento&&<a href={linkWppEstabelecimento} target="_blank" rel="noopener noreferrer" className="btn-wpp"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>Falar com o estabelecimento</a>}
+          {linkWppEstabelecimento && (
+            <a href={linkWppEstabelecimento} target="_blank" rel="noopener noreferrer" className="btn-wpp">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+              Falar com o estabelecimento
+            </a>
+          )}
           <button onClick={copiarConfirmacao} className="btn-ics" style={{background:copiado?'rgba(34,197,94,.12)':undefined,borderColor:copiado?'rgba(34,197,94,.30)':undefined,color:copiado?'#22C55E':undefined}}>
-            {copiado?'✓ Confirmação copiada!':'📋 Copiar confirmação'}
+            {copiado ? '✓ Confirmação copiada!' : '📋 Copiar confirmação'}
           </button>
-          <button onClick={baixarConfirmacaoTxt} className="btn-ics">⬇️ Baixar confirmação</button>
+          <button onClick={baixarConfirmacaoPDF} className="btn-pdf">
+            📄 Baixar confirmação (PDF)
+          </button>
           <Link href={'/'+slug} className="btn-inicio">Voltar ao início</Link>
         </div>
       </div>
     </div>
   )
+
   const Steps = () => (
     <div className="steps-wrap">
       <div className="steps-track">
@@ -393,6 +553,7 @@ export default function Agendar() {
       </div>
     </div>
   )
+
   return (
     <main className="page">
       <style>{css}</style>
@@ -415,12 +576,7 @@ export default function Agendar() {
                   <p className="servico-nome">{s.nome}</p>
                   <p className="servico-desc">{s.descricao||'Selecione para ver profissionais e horários disponíveis'}</p>
                   <div className="servico-meta">
-                    {s.duracao_minutos&&(
-                      <span className="servico-dur">
-                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                        {s.duracao_minutos} min
-                      </span>
-                    )}
+                    {s.duracao_minutos&&(<span className="servico-dur"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>{s.duracao_minutos} min</span>)}
                     {s.duracao_minutos&&s.preco&&<span className="servico-meta-sep"/>}
                     {s.preco&&<span className="servico-preco">R$ {s.preco}</span>}
                   </div>
@@ -561,7 +717,7 @@ export default function Agendar() {
           {erro&&<p className="erro-msg" style={{marginBottom:'12px'}}>{erro}</p>}
           <div className="nav-row">
             <button onClick={()=>setEtapa(3)} className="btn-voltar">← Voltar</button>
-            <button onClick={handleAgendar} disabled={loading} className="btn-confirmar" style={{opacity:loading?.7:1}}>{loading?'Confirmando...':'✓ Confirmar agendamento'}</button>
+            <button onClick={handleAgendar} disabled={loading} className="btn-confirmar" style={{opacity:loading ? 0.7 : 1}}>{loading?'Confirmando...':'✓ Confirmar agendamento'}</button>
           </div>
         </div>
       )}
