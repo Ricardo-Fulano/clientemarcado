@@ -59,10 +59,28 @@
       "namedRegex": "^/_not\\-found(?:/)?$"
     },
     {
+      "page": "/aceite-plano",
+      "regex": "^/aceite\\-plano(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/aceite\\-plano(?:/)?$"
+    },
+    {
+      "page": "/auth/callback",
+      "regex": "^/auth/callback(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/auth/callback(?:/)?$"
+    },
+    {
       "page": "/cadastro",
       "regex": "^/cadastro(?:/)?$",
       "routeKeys": {},
       "namedRegex": "^/cadastro(?:/)?$"
+    },
+    {
+      "page": "/contrato-de-adesao",
+      "regex": "^/contrato\\-de\\-adesao(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/contrato\\-de\\-adesao(?:/)?$"
     },
     {
       "page": "/favicon.ico",
@@ -119,6 +137,12 @@
       "namedRegex": "^/painel/cobrancas(?:/)?$"
     },
     {
+      "page": "/painel/financeiro",
+      "regex": "^/painel/financeiro(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/painel/financeiro(?:/)?$"
+    },
+    {
       "page": "/painel/orcamentos",
       "regex": "^/painel/orcamentos(?:/)?$",
       "routeKeys": {},
@@ -135,6 +159,12 @@
       "regex": "^/painel/pagamentos(?:/)?$",
       "routeKeys": {},
       "namedRegex": "^/painel/pagamentos(?:/)?$"
+    },
+    {
+      "page": "/painel/parceiros",
+      "regex": "^/painel/parceiros(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/painel/parceiros(?:/)?$"
     },
     {
       "page": "/painel/perfil",
@@ -159,6 +189,24 @@
       "regex": "^/painel/servicos(?:/)?$",
       "routeKeys": {},
       "namedRegex": "^/painel/servicos(?:/)?$"
+    },
+    {
+      "page": "/painel/suporte",
+      "regex": "^/painel/suporte(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/painel/suporte(?:/)?$"
+    },
+    {
+      "page": "/politica-de-privacidade",
+      "regex": "^/politica\\-de\\-privacidade(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/politica\\-de\\-privacidade(?:/)?$"
+    },
+    {
+      "page": "/termos-de-uso",
+      "regex": "^/termos\\-de\\-uso(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/termos\\-de\\-uso(?:/)?$"
     }
   ],
   "dataRoutes": [],

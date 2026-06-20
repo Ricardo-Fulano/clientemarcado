@@ -716,7 +716,6 @@ export default function Orcamentos(){
                   </button>
                 </div>
               ):(
-                <>
                 <div style={{display:'flex',flexDirection:'column',gap:'8px'}}>
                   {orcamentos.map(orc=>{
                     const cfg=STATUS_COR[orc.status]||STATUS_COR['Aberto']
@@ -1492,6 +1491,7 @@ export default function Orcamentos(){
     </div>
   )
 }
+
 
 
 

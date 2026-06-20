@@ -74,6 +74,30 @@
         "x-next-revalidate-tag-token"
       ]
     },
+    "/aceite-plano": {
+      "experimentalBypassFor": [
+        {
+          "type": "header",
+          "key": "next-action"
+        },
+        {
+          "type": "header",
+          "key": "content-type",
+          "value": "multipart/form-data;.*"
+        }
+      ],
+      "initialRevalidateSeconds": false,
+      "srcRoute": "/aceite-plano",
+      "dataRoute": "/aceite-plano.rsc",
+      "allowHeader": [
+        "host",
+        "x-matched-path",
+        "x-prerender-revalidate",
+        "x-prerender-revalidate-if-generated",
+        "x-next-revalidated-tags",
+        "x-next-revalidate-tag-token"
+      ]
+    },
     "/cadastro": {
       "experimentalBypassFor": [
         {
@@ -89,6 +113,30 @@
       "initialRevalidateSeconds": false,
       "srcRoute": "/cadastro",
       "dataRoute": "/cadastro.rsc",
+      "allowHeader": [
+        "host",
+        "x-matched-path",
+        "x-prerender-revalidate",
+        "x-prerender-revalidate-if-generated",
+        "x-next-revalidated-tags",
+        "x-next-revalidate-tag-token"
+      ]
+    },
+    "/contrato-de-adesao": {
+      "experimentalBypassFor": [
+        {
+          "type": "header",
+          "key": "next-action"
+        },
+        {
+          "type": "header",
+          "key": "content-type",
+          "value": "multipart/form-data;.*"
+        }
+      ],
+      "initialRevalidateSeconds": false,
+      "srcRoute": "/contrato-de-adesao",
+      "dataRoute": "/contrato-de-adesao.rsc",
       "allowHeader": [
         "host",
         "x-matched-path",
@@ -319,6 +367,30 @@
         "x-next-revalidate-tag-token"
       ]
     },
+    "/painel/financeiro": {
+      "experimentalBypassFor": [
+        {
+          "type": "header",
+          "key": "next-action"
+        },
+        {
+          "type": "header",
+          "key": "content-type",
+          "value": "multipart/form-data;.*"
+        }
+      ],
+      "initialRevalidateSeconds": false,
+      "srcRoute": "/painel/financeiro",
+      "dataRoute": "/painel/financeiro.rsc",
+      "allowHeader": [
+        "host",
+        "x-matched-path",
+        "x-prerender-revalidate",
+        "x-prerender-revalidate-if-generated",
+        "x-next-revalidated-tags",
+        "x-next-revalidate-tag-token"
+      ]
+    },
     "/painel/orcamentos": {
       "experimentalBypassFor": [
         {
@@ -382,6 +454,30 @@
       "initialRevalidateSeconds": false,
       "srcRoute": "/painel/pagamentos",
       "dataRoute": "/painel/pagamentos.rsc",
+      "allowHeader": [
+        "host",
+        "x-matched-path",
+        "x-prerender-revalidate",
+        "x-prerender-revalidate-if-generated",
+        "x-next-revalidated-tags",
+        "x-next-revalidate-tag-token"
+      ]
+    },
+    "/painel/parceiros": {
+      "experimentalBypassFor": [
+        {
+          "type": "header",
+          "key": "next-action"
+        },
+        {
+          "type": "header",
+          "key": "content-type",
+          "value": "multipart/form-data;.*"
+        }
+      ],
+      "initialRevalidateSeconds": false,
+      "srcRoute": "/painel/parceiros",
+      "dataRoute": "/painel/parceiros.rsc",
       "allowHeader": [
         "host",
         "x-matched-path",
@@ -486,13 +582,85 @@
         "x-next-revalidated-tags",
         "x-next-revalidate-tag-token"
       ]
+    },
+    "/painel/suporte": {
+      "experimentalBypassFor": [
+        {
+          "type": "header",
+          "key": "next-action"
+        },
+        {
+          "type": "header",
+          "key": "content-type",
+          "value": "multipart/form-data;.*"
+        }
+      ],
+      "initialRevalidateSeconds": false,
+      "srcRoute": "/painel/suporte",
+      "dataRoute": "/painel/suporte.rsc",
+      "allowHeader": [
+        "host",
+        "x-matched-path",
+        "x-prerender-revalidate",
+        "x-prerender-revalidate-if-generated",
+        "x-next-revalidated-tags",
+        "x-next-revalidate-tag-token"
+      ]
+    },
+    "/politica-de-privacidade": {
+      "experimentalBypassFor": [
+        {
+          "type": "header",
+          "key": "next-action"
+        },
+        {
+          "type": "header",
+          "key": "content-type",
+          "value": "multipart/form-data;.*"
+        }
+      ],
+      "initialRevalidateSeconds": false,
+      "srcRoute": "/politica-de-privacidade",
+      "dataRoute": "/politica-de-privacidade.rsc",
+      "allowHeader": [
+        "host",
+        "x-matched-path",
+        "x-prerender-revalidate",
+        "x-prerender-revalidate-if-generated",
+        "x-next-revalidated-tags",
+        "x-next-revalidate-tag-token"
+      ]
+    },
+    "/termos-de-uso": {
+      "experimentalBypassFor": [
+        {
+          "type": "header",
+          "key": "next-action"
+        },
+        {
+          "type": "header",
+          "key": "content-type",
+          "value": "multipart/form-data;.*"
+        }
+      ],
+      "initialRevalidateSeconds": false,
+      "srcRoute": "/termos-de-uso",
+      "dataRoute": "/termos-de-uso.rsc",
+      "allowHeader": [
+        "host",
+        "x-matched-path",
+        "x-prerender-revalidate",
+        "x-prerender-revalidate-if-generated",
+        "x-next-revalidated-tags",
+        "x-next-revalidate-tag-token"
+      ]
     }
   },
   "dynamicRoutes": {},
   "notFoundRoutes": [],
   "preview": {
-    "previewModeId": "393baa14123f4ab7752c1a9d018ccbb3",
-    "previewModeSigningKey": "eb0db5bfcf06bfb14cb768b2e352f4616fcf00658af0df486ce1da4a442a2145",
-    "previewModeEncryptionKey": "96403425c641294817dc2d6a4ba5e1f489a8fbc20663976500c2096f283bd28a"
+    "previewModeId": "beb414d0e567183874b97d79badac56f",
+    "previewModeSigningKey": "e58fc5c2cd32d57e720b5669d514f28c3d41e0205965ffc416d567a09ed03d79",
+    "previewModeEncryptionKey": "07e9f7e265742c1a1da41f1f329a93df2e2123f037eee623c33144487f5fc8bc"
   }
 }
