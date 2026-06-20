@@ -67,11 +67,11 @@ input,select,textarea{color-scheme:dark}
 }
 `
 
-
+// ✅ confCfg — status de confirmação enviada ao cliente (não muda)
 const confCfg: Record<string,{t:string,bg:string,c:string}> = {
   pendente:         {t:'Aguardando confirmação',bg:'rgba(245,158,11,.12)',c:'#FCD34D'},
   mensagem_enviada: {t:'Mensagem enviada',      bg:'rgba(59,130,246,.12)', c:'#60A5FA'},
-  confirmado:       {t:'Confirmado',            bg:'rgba(34,197,94,.12)',  c:'#4ADE80'},
+  confirmado:       {t:'Cliente confirmou',     bg:'rgba(34,197,94,.12)',  c:'#4ADE80'},
   sem_resposta:     {t:'Sem resposta',          bg:'rgba(245,158,11,.12)',c:'#FCD34D'},
   nao_comparece:    {t:'Não vai comparecer',    bg:'rgba(239,68,68,.12)',  c:'#F87171'},
   remarcado:        {t:'Remarcado',             bg:'rgba(124,58,237,.12)',c:'#C4B5FD'},
@@ -129,12 +129,12 @@ export default function Agendamentos(){
     if(bHoraFim<=bHoraIni){toast('Horário final deve ser maior que o inicial.');return}
     setSalvandoBloqueio(true)
     const{data:{user}}=await supabase.auth.getUser()
-    if(!user){toast('Sessao expirada. Faca login novamente.');setSalvandoBloqueio(false);return}
+    if(!user){toast('Sessão expirada.');setSalvandoBloqueio(false);return}
     const{error}=await supabase.from('bloqueios_agenda').insert({
       user_id:user.id,data:bData,horario_inicio:bHoraIni,
       horario_fim:bHoraFim,profissional_id:bProfId||null,motivo:bMotivo||null
     })
-    if(error){console.error('Erro ao bloquear horario:',error);toast('Erro ao bloquear horario.');setSalvandoBloqueio(false);return}
+    if(error){toast('Erro ao bloquear horário.');setSalvandoBloqueio(false);return}
     const{data:bl}=await supabase.from('bloqueios_agenda').select('*').eq('user_id',user.id).order('data',{ascending:true})
     setBloqueios(bl||[])
     toast('Horário bloqueado com sucesso.')
@@ -142,6 +142,7 @@ export default function Agendamentos(){
     setSalvandoBloqueio(false)
   }
 
+  // ✅ updConf — apenas para confirmação de presença do cliente (campo separado)
   async function updConf(id:string, status:string){
     await supabase.from('agendamentos').update({
       confirmacao_status: status,
@@ -157,8 +158,8 @@ export default function Agendamentos(){
     const hr=fH(a.data_hora)
     const sv=a.servicos?.nome||'seu atendimento'
     const pr=a.profissionais?.nome?` com ${a.profissionais.nome}`:''
-    const neg=perfil?.nome_negocio||'nosso negocio'
-    const msg=encodeURIComponent(`Ola, ${a.cliente_nome||''}! Tudo bem? Aqui e da ${neg}. Estou passando para confirmar seu horario de hoje as ${hr} para ${sv}${pr}. Voce confirma sua presenca?`)
+    const neg=perfil?.nome_negocio||'nosso negócio'
+    const msg=encodeURIComponent(`Olá, ${a.cliente_nome||''}! Tudo bem? Aqui é da ${neg}. Estou passando para confirmar seu horário de hoje às ${hr} para ${sv}${pr}. Você confirma sua presença?`)
     return`https://wa.me/55${tel.replace(/\D/g,'')}?text=${msg}`
   }
   const mnuRef=useRef<HTMLDivElement>(null)
@@ -167,7 +168,7 @@ export default function Agendamentos(){
     const tel=gTel(a)
     if(!tel){toast('Cliente sem WhatsApp cadastrado.');return}
     const ph=tel.startsWith('55')?tel:'55'+tel
-    const msg=encodeURIComponent('Ola, tudo bem? Faz alguns dias que nao vemos voce por aqui. Quer que eu veja um horario disponivel para continuarmos seu atendimento?')
+    const msg=encodeURIComponent('Olá, tudo bem? Faz alguns dias que não vemos você por aqui. Quer que eu veja um horário disponível para continuarmos seu atendimento?')
     window.open('https://wa.me/'+ph+'?text='+msg,'_blank')
   }
   const hoje=new Date().toISOString().split('T')[0]
@@ -215,17 +216,17 @@ export default function Agendamentos(){
     const dt=d.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric'})
     const hr=d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})
     let t=''
-    if(tipo==='c')t='Ola, '+a.cliente_nome+'! Seu agendamento foi confirmado.\n\nServico: '+(a.servicos?.nome||'')+'\nProfissional: '+(a.profissionais?.nome||'')+'\nData: '+dt+'\nHorario: '+hr+'\n\n'+(perfil?.nome_negocio||'')
-    else if(tipo==='l')t='Ola, '+a.cliente_nome+'! Passando para lembrar do seu agendamento.\n\nServico: '+(a.servicos?.nome||'')+'\nData: '+dt+'\nHorario: '+hr+'\n\nTe esperamos!\n'+(perfil?.nome_negocio||'')
-    else t='Ola, '+a.cliente_nome+'!'
+    if(tipo==='c')t='Olá, '+a.cliente_nome+'! Seu agendamento foi confirmado.\n\nServiço: '+(a.servicos?.nome||'')+'\nProfissional: '+(a.profissionais?.nome||'')+'\nData: '+dt+'\nHorário: '+hr+'\n\n'+(perfil?.nome_negocio||'')
+    else if(tipo==='l')t='Olá, '+a.cliente_nome+'! Passando para lembrar do seu agendamento.\n\nServiço: '+(a.servicos?.nome||'')+'\nData: '+dt+'\nHorário: '+hr+'\n\nTe esperamos!\n'+(perfil?.nome_negocio||'')
+    else t='Olá, '+a.cliente_nome+'!'
     return 'https://wa.me/55'+tel+'?text='+encodeURIComponent(t)
   }
 
   async function copiar(a:any){
     const tel=a.cliente_whatsapp||a.cliente_telefone||''
-    if(!tel){toast('Telefone nao informado');return}
+    if(!tel){toast('Telefone não informado');return}
     try{await navigator.clipboard.writeText(tel);toast('Contato copiado!')}
-    catch{toast('Nao foi possivel copiar')}
+    catch{toast('Não foi possível copiar')}
     setMnu(null)
   }
 
@@ -261,8 +262,7 @@ export default function Agendamentos(){
   const btnP:React.CSSProperties={background:G,color:'#fff',border:'none',borderRadius:10,padding:'0 16px',height:36,fontSize:12,fontWeight:700,cursor:'pointer',fontFamily:'inherit',textDecoration:'none',display:'inline-flex',alignItems:'center',gap:5,whiteSpace:'nowrap',boxShadow:'0 4px 14px rgba(59,130,246,.25)'}
   const btnS:React.CSSProperties={background:'rgba(15,23,42,.88)',color:'#CBD5E1',border:'1px solid rgba(148,163,184,.20)',borderRadius:10,padding:'0 14px',height:36,fontSize:12,fontWeight:600,cursor:'pointer',fontFamily:'inherit',whiteSpace:'nowrap',display:'inline-flex',alignItems:'center'}
 
-  const nome=perfil?.nome_negocio||'Negocio'
-  const ini=(nome||'N').charAt(0).toUpperCase()
+  const nome=perfil?.nome_negocio||'Negócio'
 
   function Det(){
     const sc=stCfg[sel?.status]||stCfg.pendente
@@ -276,7 +276,6 @@ export default function Agendamentos(){
     const g2:React.CSSProperties={display:'grid',gridTemplateColumns:'1fr 1fr',gap:6,marginTop:6}
     if(!sel)return(
       <div style={{background:'radial-gradient(circle at top left,rgba(124,58,237,.06),transparent 50%),linear-gradient(145deg,rgba(15,23,42,.98),rgba(8,20,33,.99))',border:'1px solid rgba(148,163,184,.12)',borderRadius:16,padding:20,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',minHeight:300,textAlign:'center',gap:10}}>
-        <div style={{fontSize:32,opacity:.2,color:"#94A3B8"}}>—</div>
         <p style={{fontSize:14,fontWeight:700,color:'#F8FAFC'}}>Selecione um agendamento</p>
         <p style={{fontSize:12,color:'#475569',lineHeight:1.5}}>Clique em um atendimento para ver detalhes.</p>
       </div>
@@ -289,7 +288,7 @@ export default function Agendamentos(){
         <div style={{textAlign:'center',marginBottom:12}}><span style={stBadge(sel.status)}>{sc.t}</span></div>
         <div style={sec}>
           <p style={secT}>Contato</p>
-          <div style={row}><span style={{fontSize:11,color:'#64748B'}}>WhatsApp</span><span style={{fontSize:11,fontWeight:700,color:'#CBD5E1'}}>{tf||'Nao informado'}</span></div>
+          <div style={row}><span style={{fontSize:11,color:'#64748B'}}>WhatsApp</span><span style={{fontSize:11,fontWeight:700,color:'#CBD5E1'}}>{tf||'Não informado'}</span></div>
           <div style={g2}>
             {wW?<a href={wW} target="_blank" rel="noreferrer" style={{...dBtn({background:'rgba(37,211,102,.12)',borderColor:'rgba(37,211,102,.25)',color:'#25D366'}),gridColumn:'1/-1'}}>Abrir WhatsApp</a>
               :<button disabled style={{...dBtn({background:'rgba(255,255,255,.04)',borderColor:'rgba(148,163,184,.10)',color:'#334155',cursor:'not-allowed'}),gridColumn:'1/-1'}}>Sem telefone</button>}
@@ -298,18 +297,17 @@ export default function Agendamentos(){
         </div>
         <div style={sec}>
           <p style={secT}>Atendimento</p>
-          {[{l:'Servico',v:sel.servicos?.nome||'Nao informado',c:'#F8FAFC'},{l:'Profissional',v:sel.profissionais?.nome||'Nao informado',c:'#F8FAFC'},{l:'Data',v:fDF(sel.data_hora),c:'#CBD5E1',fs:10},{l:'Horario',v:fH(sel.data_hora),c:'#60A5FA'},...(sel.servicos?.preco?[{l:'Valor',v:'R$ '+sel.servicos.preco,c:'#22C55E'}]:[])].map(({l,v,c,fs}:any)=>(
+          {[{l:'Serviço',v:sel.servicos?.nome||'Não informado',c:'#F8FAFC'},{l:'Profissional',v:sel.profissionais?.nome||'Não informado',c:'#F8FAFC'},{l:'Data',v:fDF(sel.data_hora),c:'#CBD5E1',fs:10},{l:'Horário',v:fH(sel.data_hora),c:'#60A5FA'},...(sel.servicos?.preco?[{l:'Valor',v:'R$ '+sel.servicos.preco,c:'#22C55E'}]:[])].map(({l,v,c,fs}:any)=>(
             <div key={l} style={row}><span style={{fontSize:11,color:'#64748B'}}>{l}</span><span style={{fontSize:fs||11,fontWeight:700,color:c,textAlign:'right' as const,maxWidth:'58%'}}>{v}</span></div>
           ))}
         </div>
         <div>
-          <p style={secT}>Acoes rapidas</p>
+          <p style={secT}>Ações rápidas</p>
           <div style={g2}>
             {wC&&(sel.status==='pendente'||!sel.status||sel.status==='retorno')&&<a href={wC} target="_blank" rel="noreferrer" style={dBtn({background:'rgba(34,197,94,.12)',borderColor:'rgba(34,197,94,.25)',color:'#22C55E'})}>✓ Confirmar</a>}
             {wL&&<a href={wL} target="_blank" rel="noreferrer" style={dBtn({background:'rgba(245,158,11,.10)',borderColor:'rgba(245,158,11,.22)',color:'#FCD34D'})}>Lembrete</a>}
-            {sel.status!=='compareceu'&&<button onClick={()=>updSt(sel.id,'compareceu')} style={dBtn({background:'rgba(34,197,94,.10)',borderColor:'rgba(34,197,94,.20)',color:'#4ADE80'})}>✓ Compareceu</button>}
+            {sel.status!=='realizado'&&<button onClick={()=>updSt(sel.id,'realizado')} style={dBtn({background:'rgba(34,197,94,.10)',borderColor:'rgba(34,197,94,.20)',color:'#4ADE80'})}>✓ Realizado</button>}
             {sel.status!=='faltou'&&<button onClick={()=>updSt(sel.id,'faltou')} style={dBtn({background:'rgba(239,68,68,.08)',borderColor:'rgba(239,68,68,.18)',color:'#F87171'})}>✗ Faltou</button>}
-            {sel.status!=='realizado'&&<button onClick={()=>updSt(sel.id,'realizado')} style={dBtn({background:'rgba(34,197,94,.08)',borderColor:'rgba(34,197,94,.16)',color:'#22C55E'})}>★ Realizado</button>}
             {sel.status!=='retorno'&&<button onClick={()=>updSt(sel.id,'retorno')} style={dBtn({background:'rgba(124,58,237,.10)',borderColor:'rgba(124,58,237,.22)',color:'#C4B5FD'})}>↩ Retorno</button>}
             {sel.status!=='cancelado'&&<button onClick={()=>updSt(sel.id,'cancelado')} style={dBtn({background:'rgba(239,68,68,.06)',borderColor:'rgba(239,68,68,.14)',color:'#F87171'})}>✕ Cancelar</button>}
           </div>
@@ -329,10 +327,6 @@ export default function Agendamentos(){
 
           {msg&&<div style={{position:'fixed',top:72,left:'50%',transform:'translateX(-50%)',background:'rgba(15,23,42,.96)',border:'1px solid rgba(59,130,246,.35)',borderRadius:10,padding:'10px 20px',fontSize:13,fontWeight:600,color:'#F8FAFC',zIndex:99,whiteSpace:'nowrap',boxShadow:'0 8px 24px rgba(0,0,0,.5)'}}>{msg}</div>}
 
-          {loading&&<p style={{color:'#475569',fontSize:13,textAlign:'center',padding:'40px 0'}}>Carregando...</p>}
-
-          {!loading&&(
-          <>
           <div style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',gap:14,marginBottom:16,flexWrap:'wrap'}}>
             <div>
               <h1 style={{fontSize:22,fontWeight:800,color:'#F8FAFC',letterSpacing:'-0.03em',marginBottom:2}}>Agenda</h1>
@@ -384,7 +378,6 @@ export default function Agendamentos(){
                 <p style={{fontSize:10,fontWeight:700,color:'#475569',textTransform:'uppercase' as const,marginBottom:8,letterSpacing:'.08em'}}>{agsF.length} atendimento{agsF.length!==1?'s':''}</p>
                 {agsF.length===0?(
                   <div style={{background:'linear-gradient(145deg,rgba(11,22,40,.98),rgba(8,16,28,.99))',border:'1px solid rgba(148,163,184,.12)',borderRadius:20,padding:32,textAlign:'center'}}>
-                    <div style={{width:44,height:44,borderRadius:12,background:"rgba(59,130,246,.14)",border:"1px solid rgba(59,130,246,.24)",display:"flex",alignItems:"center",justifyContent:"center",margin:"0 0 10px"}}><svg width={22} height={22} viewBox="0 0 24 24" fill="none" stroke="#60A5FA" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
                     <p style={{fontSize:15,fontWeight:600,color:'#F8FAFC',marginBottom:6}}>Nenhum atendimento</p>
                     <p style={{fontSize:13,color:'#64748B',marginBottom:16}}>Sem agendamentos para o filtro selecionado.</p>
                     <Link href="/painel/agendamentos/novo" style={{...btnP,display:'inline-flex'}}>+ Novo agendamento</Link>
@@ -397,6 +390,8 @@ export default function Agendamentos(){
                   const wC2=wppConf(a)
                   const cs=a.confirmacao_status||'pendente'
                   const cc=confCfg[cs]||confCfg.pendente
+                  // ✅ Status já realizado
+                  const jaRealizado=a.status==='realizado'||a.status==='compareceu'||a.status==='concluido'||a.status==='concluído'
                   return(
                     <div key={a.id} className={'ag-item'+(isSel?' sel':'')} onClick={()=>setSel(a)}>
                       <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:6}}>
@@ -406,7 +401,7 @@ export default function Agendamentos(){
                       </div>
                       {tf&&<p style={{fontSize:11,color:'#CBD5E1',marginBottom:2}}>{tf}</p>}
                       <p style={{fontSize:11,color:'#94A3B8',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap' as const,marginBottom:8}}>
-                        {a.servicos?.nome||'Servico nao informado'}{a.profissionais?.nome?' · Prof. '+a.profissionais.nome:''}
+                        {a.servicos?.nome||'Serviço não informado'}{a.profissionais?.nome?' · Prof. '+a.profissionais.nome:''}
                         {a.servicos?.preco?<span style={{color:'#22C55E'}}> · R$ {a.servicos.preco}</span>:null}
                       </p>
                       <div className="card-btns" onClick={e=>e.stopPropagation()}>
@@ -414,23 +409,29 @@ export default function Agendamentos(){
                           style={{background:'rgba(34,197,94,.12)',color:'#4ADE80',border:'1px solid rgba(34,197,94,.28)'}}>
                           WhatsApp
                         </a>}
-                        {wC2&&<a href={wC2} target="_blank" rel="noreferrer" className="card-btn"
+                        {/* ✅ Enviar confirmação — apenas envia mensagem, não muda status do atendimento */}
+                        {wC2&&!jaRealizado&&<a href={wC2} target="_blank" rel="noreferrer" className="card-btn"
                           onClick={()=>updConf(a.id,'mensagem_enviada')}
                           style={{background:'rgba(59,130,246,.12)',color:'#BFDBFE',border:'1px solid rgba(59,130,246,.28)'}}>
                           Enviar confirmação
                         </a>}
-                        {a.confirmacao_status!=='confirmado'&&<button className="card-btn"
-                          onClick={()=>updConf(a.id,'confirmado')}
-                          style={{background:'rgba(34,197,94,.10)',color:'#86EFAC',border:'1px solid rgba(34,197,94,.22)'}}>
-                          ✓ Confirmou
-                        </button>}
+                        {/* ✅ Botão Realizado — marca o atendimento como realizado para o relatório */}
+                        {!jaRealizado&&a.status!=='cancelado'&&a.status!=='faltou'&&(
+                          <button className="card-btn"
+                            onClick={()=>updSt(a.id,'realizado')}
+                            style={{background:'rgba(34,197,94,.10)',color:'#86EFAC',border:'1px solid rgba(34,197,94,.22)'}}>
+                            ✓ Realizado
+                          </button>
+                        )}
+                        {/* ✅ Quando já realizado, mostra badge no lugar do botão */}
                         <button className="card-btn"
                           onClick={()=>setBsAg(a)}
                           style={{background:'rgba(255,255,255,.05)',color:'#94A3B8',border:'1px solid rgba(148,163,184,.16)'}}>
                           ⋯ Mais
                         </button>
                       </div>
-                      {!['realizado','faltou','cancelado'].includes(a.status)&&(
+                      {/* ✅ Área de confirmação do cliente — separado do status de realizado */}
+                      {!jaRealizado&&a.status!=='faltou'&&a.status!=='cancelado'&&(
                         <div className="conf-area" onClick={e=>e.stopPropagation()}>
                           <div style={{display:'flex',alignItems:'center',gap:6}}>
                             <span style={{fontSize:10,fontWeight:700,color:'#64748B',textTransform:'uppercase' as const,letterSpacing:'.06em'}}>Confirmação</span>
@@ -438,9 +439,9 @@ export default function Agendamentos(){
                           </div>
                         </div>
                       )}
-                      {a.status==='realizado'&&(
+                      {jaRealizado&&(
                         <div className="conf-area">
-                          <span style={{fontSize:10,fontWeight:700,padding:'2px 9px',borderRadius:'999px',background:'rgba(34,197,94,.12)',color:'#4ADE80',border:'1px solid rgba(34,197,94,.22)'}}>Atendimento realizado</span>
+                          <span style={{fontSize:10,fontWeight:700,padding:'2px 9px',borderRadius:'999px',background:'rgba(34,197,94,.12)',color:'#4ADE80',border:'1px solid rgba(34,197,94,.22)'}}>✓ Atendimento realizado</span>
                         </div>
                       )}
                       {a.status==='faltou'&&(
@@ -546,12 +547,11 @@ export default function Agendamentos(){
               })()}
             </div>
           )}
-          </>
-          )}
 
         </div></div>
       </div>
 
+      {/* Bottom Sheet Ações */}
       <div className={'bs-ovl'+(bsAg?' open':'')} onClick={()=>setBsAg(null)}/>
       <div className={'bs'+(bsAg?' open':'')}>
         <div className="bs-handle"/>
@@ -578,6 +578,7 @@ export default function Agendamentos(){
           const jaFaltou=st==='faltou'
           const jaCancelado=st==='cancelado'
           return(<>
+            {/* ✅ Realizado */}
             {jaRealizado?(
               <div style={{padding:'12px 0',borderBottom:'1px solid rgba(255,255,255,.06)',display:'flex',alignItems:'center',gap:10}}>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#4ADE80" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
@@ -586,9 +587,10 @@ export default function Agendamentos(){
             ):jaCancelado?null:(
               <button className="bs-item" style={{color:'#4ADE80'}} onClick={()=>{updSt(bsAg.id,'realizado');setBsAg(null)}}>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                Marcar como realizado
+                ✓ Marcar como realizado
               </button>
             )}
+            {/* Faltou */}
             {jaFaltou?(
               <div style={{padding:'12px 0',borderBottom:'1px solid rgba(255,255,255,.06)',display:'flex',alignItems:'center',gap:10}}>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#F87171" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
@@ -600,6 +602,7 @@ export default function Agendamentos(){
                 Marcar como faltou
               </button>
             )}
+            {/* Cancelar */}
             {jaCancelado?(
               <div style={{padding:'12px 0',borderBottom:'1px solid rgba(255,255,255,.06)',display:'flex',alignItems:'center',gap:10}}>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
@@ -630,7 +633,7 @@ export default function Agendamentos(){
             <p style={{fontSize:16,fontWeight:800,color:'#F8FAFC',letterSpacing:'-0.02em'}}>Bloquear horário</p>
             <p style={{fontSize:12,color:'#94A3B8',marginTop:2}}>Reserve um período indisponível na agenda.</p>
           </div>
-          <button onClick={()=>setShowBloqueio(false)} style={{background:'none',border:'none',color:'#475569',cursor:'pointer',fontSize:22,lineHeight:1,marginTop:2}}>x</button>
+          <button onClick={()=>setShowBloqueio(false)} style={{background:'none',border:'none',color:'#475569',cursor:'pointer',fontSize:22,lineHeight:1,marginTop:2}}>×</button>
         </div>
         <div style={{marginBottom:14}}>
           <label style={{fontSize:11,fontWeight:700,color:'#64748B',textTransform:'uppercase' as const,letterSpacing:'.06em',display:'block',marginBottom:4}}>Data *</label>
@@ -655,7 +658,7 @@ export default function Agendamentos(){
         </div>
         <div style={{marginBottom:24}}>
           <label style={{fontSize:11,fontWeight:700,color:'#64748B',textTransform:'uppercase' as const,letterSpacing:'.06em',display:'block',marginBottom:4}}>Motivo</label>
-          <input value={bMotivo} onChange={e=>setBMotivo(e.target.value)} placeholder="Ex: almoco, reuniao, compromisso..." style={{width:'100%',background:'#111827',border:'1px solid rgba(148,163,184,.18)',borderRadius:10,padding:'10px 14px',color:'#F8FAFC',fontSize:14,fontFamily:'inherit',boxSizing:'border-box' as any}}/>
+          <input value={bMotivo} onChange={e=>setBMotivo(e.target.value)} placeholder="Ex: almoço, reunião, compromisso..." style={{width:'100%',background:'#111827',border:'1px solid rgba(148,163,184,.18)',borderRadius:10,padding:'10px 14px',color:'#F8FAFC',fontSize:14,fontFamily:'inherit',boxSizing:'border-box' as any}}/>
         </div>
         <div className="bl-actions">
           <button onClick={()=>setShowBloqueio(false)} style={{flex:1,background:'rgba(15,23,42,.85)',border:'1px solid rgba(148,163,184,.18)',borderRadius:16,padding:'14px',color:'#CBD5E1',fontSize:14,fontWeight:600,cursor:'pointer',fontFamily:'inherit',height:52}}>Cancelar</button>
