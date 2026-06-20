@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 import { useEffect, useState } from 'react'
 import { supabase } from '../../lib/supabase'
 import { Wallet, TrendingUp, TrendingDown, Clock, Search, Plus, Pencil, Trash2 } from 'lucide-react'
@@ -499,3 +499,4 @@ export default function Financeiro() {
     </div>
   )
 }
+
