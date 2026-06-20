@@ -1,5 +1,5 @@
 ﻿'use client'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { supabase } from '../../lib/supabase'
 import PainelSidebar from '@/app/components/PainelSidebar'
@@ -22,6 +22,37 @@ const PROC_STATUS_COR: Record<string,{bg:string;color:string;border:string}> = {
 }
 const DENTES_SUP = [18,17,16,15,14,13,12,11,21,22,23,24,25,26,27,28]
 const DENTES_INF = [48,47,46,45,44,43,42,41,31,32,33,34,35,36,37,38]
+const PAGE_SIZE = 20
+
+function getMesesDisponiveis(){
+  const meses=[]
+  const agora=new Date()
+  for(let i=0;i<24;i++){
+    const d=new Date(agora.getFullYear(),agora.getMonth()-i,1)
+    const fim=new Date(d.getFullYear(),d.getMonth()+1,0).getDate()
+    meses.push({
+      label:d.toLocaleDateString('pt-BR',{month:'long',year:'numeric'}),
+      key:`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`,
+      ini:`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-01T00:00:00`,
+      fim:`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(fim).padStart(2,'0')}T23:59:59`,
+    })
+  }
+  return meses
+}
+
+function getPeriodo(tipo:string, mesKey:string){
+  const agora=new Date()
+  if(tipo==='mes'){
+    const [ano,mes]=mesKey.split('-').map(Number)
+    const fim=new Date(ano,mes,0).getDate()
+    return{ini:`${mesKey}-01T00:00:00`,fim:`${mesKey}-${String(fim).padStart(2,'0')}T23:59:59`}
+  }
+  if(tipo==='7d'){const d=new Date(agora);d.setDate(d.getDate()-7);return{ini:d.toISOString(),fim:agora.toISOString()}}
+  if(tipo==='30d'){const d=new Date(agora);d.setDate(d.getDate()-30);return{ini:d.toISOString(),fim:agora.toISOString()}}
+  if(tipo==='ano'){return{ini:`${agora.getFullYear()}-01-01T00:00:00`,fim:`${agora.getFullYear()}-12-31T23:59:59`}}
+  return null
+}
+
 
 function fmtBRL(v:number){return (v||0).toLocaleString('pt-BR',{minimumFractionDigits:2})}
 function fmtData(d:string){if(!d)return '';const[a,m,di]=d.split('-');return `${di}/${m}/${a}`}
@@ -60,6 +91,7 @@ const CSS = `
   .dt{position:relative;width:32px;height:44px;cursor:pointer;flex-shrink:0;font-family:inherit;padding:0;background:none;border:none;transition:transform .13s;display:flex;align-items:center;justify-content:center;outline:none}
   .dt:hover{transform:translateY(-3px) scale(1.1)}
   .dt.s{transform:translateY(-4px) scale(1.14)}
+  .pchip{padding:7px 14px;border-radius:999px;font-size:12px;font-weight:600;cursor:pointer;border:1px solid;font-family:inherit;white-space:nowrap;transition:all .15s}
 `
 
 export default function Orcamentos(){
@@ -68,6 +100,13 @@ export default function Orcamentos(){
   const [profissionais,setProfissionais]=useState<any[]>([])
   const [orcamentos,setOrcamentos]=useState<any[]>([])
   const [loading,setLoading]=useState(true)
+  const [loadingMore,setLoadingMore]=useState(false)
+  const [page,setPage]=useState(0)
+  const [hasMore,setHasMore]=useState(false)
+  const [kpis,setKpis]=useState({aberto:0,aReceber:0,recebido:0,parciais:0})
+  const mesesOpcoes=getMesesDisponiveis()
+  const [periodoTipo,setPeriodoTipo]=useState<'mes'|'7d'|'30d'|'ano'|'todo'>('mes')
+  const [mesKey,setMesKey]=useState(mesesOpcoes[0].key)
   const [filtroStatus,setFiltroStatus]=useState('Todos')
   const [filtroCliente,setFiltroCliente]=useState('')
   const [view,setView]=useState<'lista'|'escolha'|'form'|'odonto'|'detalhe'>('lista')
@@ -131,6 +170,7 @@ export default function Orcamentos(){
   const searchParams=useSearchParams()
   useEffect(()=>{init()},[])
   useEffect(()=>{if(searchParams.get('novo')==='1'){resetAll();setView('escolha')}},[searchParams])
+  useEffect(()=>{if(userId&&view==='lista'){setPage(0);carregarOrcamentos(userId,0,true)}},[periodoTipo,mesKey,filtroStatus,filtroCliente,userId])
 
   async function init(){
     const{data:{user}}=await supabase.auth.getUser()
@@ -143,10 +183,32 @@ export default function Orcamentos(){
     await carregarOrcamentos(user.id)
     setLoading(false)
   }
-  async function carregarOrcamentos(uid?:string){
-    const id=uid||userId
-    const{data}=await supabase.from('orcamentos').select('*').eq('user_id',id).order('created_at',{ascending:false})
-    setOrcamentos(data||[])
+  const buildQuery=useCallback((uid:string)=>{
+    let q=supabase.from('orcamentos').select('*',{count:'exact'}).eq('user_id',uid)
+    const periodo=getPeriodo(periodoTipo,mesKey)
+    if(periodo){q=q.gte('created_at',periodo.ini).lte('created_at',periodo.fim)}
+    if(filtroStatus!=='Todos')q=q.eq('status',filtroStatus)
+    if(filtroCliente.trim())q=q.ilike('cliente_nome',`%${filtroCliente.trim()}%`)
+    return q.order('created_at',{ascending:false})
+  },[periodoTipo,mesKey,filtroStatus,filtroCliente])
+
+  async function carregarOrcamentos(uid?:string,pg=0,reset=false){
+    const id=uid||userId;if(!id)return
+    if(pg===0)setLoading(true);else setLoadingMore(true)
+    const from=pg*PAGE_SIZE,to=from+PAGE_SIZE-1
+    const{data,count}=await buildQuery(id).range(from,to)
+    const lista=data||[]
+    if(reset||pg===0){setOrcamentos(lista)}else{setOrcamentos(prev=>[...prev,...lista])}
+    setHasMore((count||0)>from+lista.length);setPage(pg)
+    const{data:ap}=await buildQuery(id).select('status,saldo_restante,valor_pago')
+    const apd=ap||[]
+    setKpis({
+      aberto:apd.filter((o:any)=>['Aberto','Em andamento','Parcialmente pago'].includes(o.status)).length,
+      aReceber:apd.filter((o:any)=>!['Pago','Finalizado','Cancelado'].includes(o.status)).reduce((a:number,o:any)=>a+(o.saldo_restante||0),0),
+      recebido:apd.filter((o:any)=>(o.valor_pago||0)>0).reduce((a:number,o:any)=>a+(o.valor_pago||0),0),
+      parciais:apd.filter((o:any)=>o.status==='Parcialmente pago').length,
+    })
+    if(pg===0)setLoading(false);else setLoadingMore(false)
   }
   async function carregarPagamentos(orcId:string){
     const{data}=await supabase.from('orcamento_pagamentos').select('*').eq('orcamento_id',orcId).order('data',{ascending:false})
@@ -244,7 +306,7 @@ export default function Orcamentos(){
     }
     if(editandoId){await supabase.from('orcamentos').update(payload).eq('id',editandoId)}
     else{await supabase.from('orcamentos').insert(payload)}
-    resetAll();setView('lista');await carregarOrcamentos()
+    resetAll();setView('lista');await carregarOrcamentos(userId,0,true)
     setMensagem(editandoId?'Orçamento atualizado com sucesso!':'Orçamento salvo com sucesso!');setTimeout(()=>setMensagem(''),4000)
   }
 
@@ -266,7 +328,7 @@ export default function Orcamentos(){
     }
     if(editandoId){await supabase.from('orcamentos').update(payload).eq('id',editandoId)}
     else{await supabase.from('orcamentos').insert(payload)}
-    resetAll();setView('lista');await carregarOrcamentos()
+    resetAll();setView('lista');await carregarOrcamentos(userId,0,true)
     setMensagem(editandoId?'Orçamento atualizado com sucesso!':'Orçamento odontológico salvo com sucesso!');setTimeout(()=>setMensagem(''),5000)
   }
 
@@ -296,7 +358,7 @@ export default function Orcamentos(){
   async function handleExcluir(id:string){
     if(!window.confirm('Excluir este orçamento?'))return
     await supabase.from('orcamentos').delete().eq('id',id)
-    await carregarOrcamentos()
+    await carregarOrcamentos(userId,0,true)
   }
   function abrirModalPag(orc:any){
     setModalPagOrc(orc);setModalValor((orc.saldo_restante||0).toFixed(2).replace('.',','))
@@ -597,12 +659,32 @@ export default function Orcamentos(){
                 </button>
               </div>
               {mensagem&&<div style={{padding:'10px 14px',borderRadius:'8px',marginBottom:'12px',background:'rgba(22,163,74,.15)',border:'1px solid rgba(22,163,74,.3)',color:'#4ADE80',fontSize:'13px'}}>{mensagem}</div>}
+              {/* Filtro período */}
+              <div style={{background:'linear-gradient(145deg,rgba(15,23,42,.97),rgba(8,20,33,.99))',border:'1.5px solid rgba(99,102,241,.22)',borderRadius:'14px',padding:'14px 16px',marginBottom:'14px'}}>
+                <p style={{fontSize:'10px',fontWeight:700,color:'#818CF8',textTransform:'uppercase' as const,letterSpacing:'.08em',marginBottom:'10px'}}>Período</p>
+                <div style={{display:'flex',gap:'6px',marginBottom:'10px',flexWrap:'wrap'}}>
+                  {([['mes','Mês'],['7d','7 dias'],['30d','30 dias'],['ano','Este ano'],['todo','Tudo']] as const).map(([val,label])=>(
+                    <button key={val} className="pchip"
+                      style={{background:periodoTipo===val?'linear-gradient(135deg,#3B82F6,#7C3AED)':'rgba(255,255,255,.06)',color:periodoTipo===val?'#fff':'#94A3B8',borderColor:periodoTipo===val?'transparent':'rgba(255,255,255,.12)'}}
+                      onClick={()=>setPeriodoTipo(val as any)}>
+                      {label}
+                    </button>
+                  ))}
+                </div>
+                {periodoTipo==='mes'&&(
+                  <select value={mesKey} onChange={e=>setMesKey(e.target.value)}
+                    style={{background:'rgba(15,23,42,.92)',border:'1.5px solid rgba(99,102,241,.35)',borderRadius:'10px',padding:'8px 14px',color:'#F8FAFC',fontSize:'13px',fontWeight:600,outline:'none',fontFamily:'inherit',cursor:'pointer'}}>
+                    {mesesOpcoes.map(m=><option key={m.key} value={m.key}>{m.label.charAt(0).toUpperCase()+m.label.slice(1)}</option>)}
+                  </select>
+                )}
+                {periodoTipo!=='mes'&&<p style={{fontSize:'12px',color:'#64748B'}}>Período: <span style={{color:'#A5B4FC',fontWeight:600}}>{periodoTipo==='7d'?'Últimos 7 dias':periodoTipo==='30d'?'Últimos 30 dias':periodoTipo==='ano'?'Este ano':'Todo o período'}</span></p>}
+              </div>
               <div className="od-kpi" style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:'10px',marginBottom:'14px'}}>
                 {[
-                  {label:'Em aberto',valor:totalAberto,fmt:'n',cor:'#3B82F6',bg:'rgba(59,130,246,.12)',border:'rgba(59,130,246,.25)'},
-                  {label:'A receber',valor:totalAReceber,fmt:'brl',cor:'#F59E0B',bg:'rgba(245,158,11,.12)',border:'rgba(245,158,11,.25)'},
-                  {label:'Recebido no mês',valor:recebidoMes,fmt:'brl',cor:'#22C55E',bg:'rgba(34,197,94,.12)',border:'rgba(34,197,94,.25)'},
-                  {label:'Parciais',valor:parciais,fmt:'n',cor:'#A78BFA',bg:'rgba(167,139,250,.12)',border:'rgba(167,139,250,.25)'},
+                  {label:'Em aberto',valor:kpis.aberto,fmt:'n',cor:'#3B82F6',bg:'rgba(59,130,246,.12)',border:'rgba(59,130,246,.25)'},
+                  {label:'A receber',valor:kpis.aReceber,fmt:'brl',cor:'#F59E0B',bg:'rgba(245,158,11,.12)',border:'rgba(245,158,11,.25)'},
+                  {label:periodoTipo==='mes'?'Recebido no mês':'Recebido no período',valor:kpis.recebido,fmt:'brl',cor:'#22C55E',bg:'rgba(34,197,94,.12)',border:'rgba(34,197,94,.25)'},
+                  {label:'Parciais',valor:kpis.parciais,fmt:'n',cor:'#A78BFA',bg:'rgba(167,139,250,.12)',border:'rgba(167,139,250,.25)'},
                 ].map(m=>(
                   <div key={m.label} style={{background:m.bg,border:`1px solid ${m.border}`,borderRadius:'12px',padding:'12px',boxSizing:'border-box' as const}}>
                     <p style={{fontSize:'10px',fontWeight:700,color:'#94A3B8',textTransform:'uppercase' as const,letterSpacing:'.05em',marginBottom:'4px'}}>{m.label}</p>
@@ -624,7 +706,7 @@ export default function Orcamentos(){
               </div>
             </div>
             <div style={{padding:'0 20px 60px',maxWidth:'1280px',margin:'0 auto'}}>
-              {orcsFiltrados.length===0?(
+              {orcamentos.length===0?(
                 <div style={{background:'rgba(255,255,255,.04)',border:'1px solid rgba(255,255,255,.08)',borderRadius:'16px',padding:'40px 20px',textAlign:'center'}}>
                   <p style={{fontSize:'16px',fontWeight:700,color:'#fff',marginBottom:'8px'}}>Nenhum orçamento criado ainda</p>
                   <p style={{fontSize:'13px',color:'#94A3B8',marginBottom:'20px'}}>Crie seu primeiro orçamento e envie pelo WhatsApp.</p>
@@ -634,8 +716,9 @@ export default function Orcamentos(){
                   </button>
                 </div>
               ):(
+                <>
                 <div style={{display:'flex',flexDirection:'column',gap:'8px'}}>
-                  {orcsFiltrados.map(orc=>{
+                  {orcamentos.map(orc=>{
                     const cfg=STATUS_COR[orc.status]||STATUS_COR['Aberto']
                     const isOd=orc.tipo==='Orçamento Odontológico'||(orc.procedimentos_odonto?.length>0)
                     return(
@@ -841,6 +924,10 @@ export default function Orcamentos(){
                 style={{width:'100%',background:'linear-gradient(135deg,#3B82F6,#7C3AED)',color:'#fff',border:'none',borderRadius:'12px',padding:'16px',fontSize:'15px',fontWeight:800,cursor:'pointer',fontFamily:'inherit',marginBottom:'14px',boxShadow:'0 8px 24px rgba(59,130,246,.3)'}}>
                 Salvar orçamento
               </button>              <button onClick={handleSalvarComum}
+                style={{width:'100%',background:'linear-gradient(135deg,#3B82F6,#7C3AED)',color:'#fff',border:'none',borderRadius:'12px',padding:'16px',fontSize:'15px',fontWeight:800,cursor:'pointer',fontFamily:'inherit',marginBottom:'14px',boxShadow:'0 8px 24px rgba(59,130,246,.3)'}}>
+                Salvar orçamento
+              </button>
+              <button onClick={handleSalvarComum}
                 style={{width:'100%',background:'linear-gradient(135deg,#3B82F6,#7C3AED)',color:'#fff',border:'none',borderRadius:'12px',padding:'16px',fontSize:'15px',fontWeight:800,cursor:'pointer',fontFamily:'inherit',marginBottom:'14px',boxShadow:'0 8px 24px rgba(59,130,246,.3)'}}>
                 Salvar orçamento
               </button>
@@ -1220,6 +1307,10 @@ export default function Orcamentos(){
                 style={{width:'100%',background:'linear-gradient(135deg,#7C3AED,#4F46E5)',color:'#fff',border:'none',borderRadius:'12px',padding:'16px',fontSize:'15px',fontWeight:800,cursor:'pointer',fontFamily:'inherit',marginBottom:'14px',boxShadow:'0 8px 24px rgba(124,58,237,.3)'}}>
                 Salvar orçamento
               </button>
+              <button onClick={handleSalvarOdonto}
+                style={{width:'100%',background:'linear-gradient(135deg,#7C3AED,#4F46E5)',color:'#fff',border:'none',borderRadius:'12px',padding:'16px',fontSize:'15px',fontWeight:800,cursor:'pointer',fontFamily:'inherit',marginBottom:'14px',boxShadow:'0 8px 24px rgba(124,58,237,.3)'}}>
+                Salvar orçamento
+              </button>
               <div style={{marginBottom:'10px'}}>
                 <label style={lbl}>Observações gerais do tratamento</label>
                 <textarea rows={2} style={{...inp,resize:'none' as const}} placeholder="Ex: tratamento dividido em etapas, retorno em 15 dias..." value={odObs} onChange={e=>setOdObs(e.target.value)}/>
@@ -1232,7 +1323,7 @@ export default function Orcamentos(){
                 <span style={{fontSize:'18px',fontWeight:800,color:'#C4B5FD'}}>R$ {fmtBRL(odTotal)}</span>
               </div>
               <div style={{display:'grid',gridTemplateColumns:'2fr 3fr',gap:'8px'}}>
-                <button onClick={async()=>{if(!odNome.trim())return setMensagem('Informe o nome do paciente para salvar rascunho.');const p={user_id:userId,cliente_nome:odNome.trim()||'Rascunho',cliente_whatsapp:odWpp.replace(/\D/g,'')||'00000000000',cliente_email:odEmail||null,tipo:'Orçamento Odontológico',profissional_id:odProfId||null,data:odData,status:'Rascunho',servicos:[],subtotal:odSubtotal,desconto:odDescontoNum,total:odTotal,valor_pago:odPago,saldo_restante:odSaldo,procedimentos_odonto:linhas,hist_pagamentos:odHistPags,observacoes:odObs||null,updated_at:new Date().toISOString()};if(editandoId){await supabase.from('orcamentos').update(p).eq('id',editandoId)}else{await supabase.from('orcamentos').insert(p)};resetAll();setView('lista');await carregarOrcamentos();setMensagem('Rascunho salvo!');setTimeout(()=>setMensagem(''),3000)}} style={{background:'rgba(255,255,255,.08)',color:'#94A3B8',border:'1px solid rgba(255,255,255,.12)',borderRadius:'10px',padding:'12px 0',fontSize:'13px',fontWeight:600,cursor:'pointer',fontFamily:'inherit'}}>Rascunho</button>
+                <button onClick={async()=>{if(!odNome.trim())return setMensagem('Informe o nome do paciente para salvar rascunho.');const p={user_id:userId,cliente_nome:odNome.trim()||'Rascunho',cliente_whatsapp:odWpp.replace(/\D/g,'')||'00000000000',cliente_email:odEmail||null,tipo:'Orçamento Odontológico',profissional_id:odProfId||null,data:odData,status:'Rascunho',servicos:[],subtotal:odSubtotal,desconto:odDescontoNum,total:odTotal,valor_pago:odPago,saldo_restante:odSaldo,procedimentos_odonto:linhas,hist_pagamentos:odHistPags,observacoes:odObs||null,updated_at:new Date().toISOString()};if(editandoId){await supabase.from('orcamentos').update(p).eq('id',editandoId)}else{await supabase.from('orcamentos').insert(p)};resetAll();setView('lista');await carregarOrcamentos(userId,0,true);setMensagem('Rascunho salvo!');setTimeout(()=>setMensagem(''),3000)}} style={{background:'rgba(255,255,255,.08)',color:'#94A3B8',border:'1px solid rgba(255,255,255,.12)',borderRadius:'10px',padding:'12px 0',fontSize:'13px',fontWeight:600,cursor:'pointer',fontFamily:'inherit'}}>Rascunho</button>
                 <button onClick={handleSalvarOdonto} style={{background:'linear-gradient(135deg,#7C3AED,#4F46E5)',color:'#fff',border:'none',borderRadius:'10px',padding:'12px 0',fontSize:'13px',fontWeight:800,cursor:'pointer',fontFamily:'inherit'}}>{editandoId?'Salvar alterações':'Salvar orçamento'}</button>
               </div>
             </div>
@@ -1292,7 +1383,7 @@ export default function Orcamentos(){
                         const nst=nv>=(orc.total||0)?'Pago':nv>0?'Parcialmente pago':orc.status
                         await supabase.from('orcamentos').update({valor_pago:nv,saldo_restante:ns,status:nst,updated_at:new Date().toISOString()}).eq('id',orc.id)
                         setSavingPag(false);setShowPagForm(false);setPagValor('');setPagObs('')
-                        await carregarOrcamentos();await carregarPagamentos(orc.id)
+                        await carregarOrcamentos(userId,0,true);await carregarPagamentos(orc.id)
                         setMensagem('Pagamento registrado!');setTimeout(()=>setMensagem(''),3000)
                       }} style={{flex:2,background:'linear-gradient(135deg,#3B82F6,#7C3AED)',border:'none',borderRadius:'8px',padding:'10px',fontSize:'13px',fontWeight:700,color:'#fff',cursor:'pointer',fontFamily:'inherit'}}>{savingPag?'Salvando...':'Confirmar'}</button>
                     </div>
@@ -1401,5 +1492,6 @@ export default function Orcamentos(){
     </div>
   )
 }
+
 
 
