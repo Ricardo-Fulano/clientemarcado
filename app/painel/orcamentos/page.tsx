@@ -840,6 +840,9 @@ export default function Orcamentos(){
               <button onClick={handleSalvarComum}
                 style={{width:'100%',background:'linear-gradient(135deg,#3B82F6,#7C3AED)',color:'#fff',border:'none',borderRadius:'12px',padding:'16px',fontSize:'15px',fontWeight:800,cursor:'pointer',fontFamily:'inherit',marginBottom:'14px',boxShadow:'0 8px 24px rgba(59,130,246,.3)'}}>
                 Salvar orçamento
+              </button>              <button onClick={handleSalvarComum}
+                style={{width:'100%',background:'linear-gradient(135deg,#3B82F6,#7C3AED)',color:'#fff',border:'none',borderRadius:'12px',padding:'16px',fontSize:'15px',fontWeight:800,cursor:'pointer',fontFamily:'inherit',marginBottom:'14px',boxShadow:'0 8px 24px rgba(59,130,246,.3)'}}>
+                Salvar orçamento
               </button>
               <div style={{marginBottom:'10px'}}>
                 <label style={lbl}>Observações (opcional)</label>
@@ -1213,7 +1216,10 @@ export default function Orcamentos(){
                 )}
               </div>
 
-              {/* Observacoes */}
+              {/* Observacoes */}              <button onClick={handleSalvarOdonto}
+                style={{width:'100%',background:'linear-gradient(135deg,#7C3AED,#4F46E5)',color:'#fff',border:'none',borderRadius:'12px',padding:'16px',fontSize:'15px',fontWeight:800,cursor:'pointer',fontFamily:'inherit',marginBottom:'14px',boxShadow:'0 8px 24px rgba(124,58,237,.3)'}}>
+                Salvar orçamento
+              </button>
               <div style={{marginBottom:'10px'}}>
                 <label style={lbl}>Observações gerais do tratamento</label>
                 <textarea rows={2} style={{...inp,resize:'none' as const}} placeholder="Ex: tratamento dividido em etapas, retorno em 15 dias..." value={odObs} onChange={e=>setOdObs(e.target.value)}/>
@@ -1395,4 +1401,5 @@ export default function Orcamentos(){
     </div>
   )
 }
+
 
