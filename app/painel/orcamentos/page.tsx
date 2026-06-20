@@ -1,5 +1,5 @@
 ﻿'use client'
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { supabase } from '../../lib/supabase'
 import PainelSidebar from '@/app/components/PainelSidebar'
@@ -171,7 +171,7 @@ export default function Orcamentos(){
   const searchParams=useSearchParams()
   useEffect(()=>{init()},[])
   useEffect(()=>{if(searchParams.get('novo')==='1'){resetAll();setView('escolha')}},[searchParams])
-  useEffect(()=>{if(userId&&view==='lista'){setPage(0);carregarOrcamentos(userId,0,true)}},[periodoTipo,mesKey,filtroStatus,filtroCliente,userId])
+  useEffect(()=>{if(userId&&view==='lista'){setPage(0);carregarOrcamentos(userId,0,true,periodoTipo,mesKey,filtroStatus,filtroCliente)}},[periodoTipo,mesKey,filtroStatus,filtroCliente,userId])
 
   async function init(){
     const{data:{user}}=await supabase.auth.getUser()
@@ -184,24 +184,25 @@ export default function Orcamentos(){
     await carregarOrcamentos(user.id)
     setLoading(false)
   }
-  const buildQuery=useCallback((uid:string)=>{
-    let q=supabase.from('orcamentos').select('*',{count:'exact'}).eq('user_id',uid)
-    const periodo=getPeriodo(periodoTipo,mesKey)
-    if(periodo){q=q.gte('created_at',periodo.ini).lte('created_at',periodo.fim)}
-    if(filtroStatus!=='Todos')q=q.eq('status',filtroStatus)
-    if(filtroCliente.trim())q=q.ilike('cliente_nome',`%${filtroCliente.trim()}%`)
-    return q.order('created_at',{ascending:false})
-  },[periodoTipo,mesKey,filtroStatus,filtroCliente])
-
-  async function carregarOrcamentos(uid?:string,pg=0,reset=false){
+  async function carregarOrcamentos(uid?:string,pg=0,reset=false,ptipo?:string,pmesKey?:string,pstatus?:string,pcliente?:string){
     const id=uid||userId;if(!id)return
+    const pt=ptipo??periodoTipo,pmk=pmesKey??mesKey,ps=pstatus??filtroStatus,pc=pcliente??filtroCliente
     if(pg===0)setLoading(true);else setLoadingMore(true)
     const from=pg*PAGE_SIZE,to=from+PAGE_SIZE-1
-    const{data,count}=await buildQuery(id).range(from,to)
+    let q=supabase.from('orcamentos').select('*',{count:'exact'}).eq('user_id',id)
+    const periodo=getPeriodo(pt,pmk)
+    if(periodo){q=q.gte('created_at',periodo.ini).lte('created_at',periodo.fim)}
+    if(ps!=='Todos')q=q.eq('status',ps)
+    if(pc.trim())q=q.ilike('cliente_nome',`%${pc.trim()}%`)
+    q=q.order('created_at',{ascending:false})
+    const{data,count}=await q.range(from,to)
     const lista=data||[]
     if(reset||pg===0){setOrcamentos(lista)}else{setOrcamentos(prev=>[...prev,...lista])}
-    setHasMore((count||0)>from+lista.length);setPage(pg)
-    const{data:ap}=await buildQuery(id).select('status,saldo_restante,valor_pago')
+    setHasMore((count||0)>from+lista.length);setPage(pg);setOrcTotal(count||0)
+    // KPIs
+    let q2=supabase.from('orcamentos').select('status,saldo_restante,valor_pago').eq('user_id',id)
+    if(periodo){q2=q2.gte('created_at',periodo.ini).lte('created_at',periodo.fim)}
+    const{data:ap}=await q2
     const apd=ap||[]
     setKpis({
       aberto:apd.filter((o:any)=>['Aberto','Em andamento','Parcialmente pago'].includes(o.status)).length,
@@ -1494,6 +1495,7 @@ export default function Orcamentos(){
     </div>
   )
 }
+
 
 
 
