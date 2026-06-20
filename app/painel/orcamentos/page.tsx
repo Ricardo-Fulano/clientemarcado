@@ -621,10 +621,7 @@ export default function Orcamentos(){
     setTimeout(()=>win.print(),600)
   }
 
-    const ps=filtroStatus==='Todos'||o.status===filtroStatus
-    const pc=!filtroCliente||o.cliente_nome?.toLowerCase().includes(filtroCliente.toLowerCase())
-    return ps&&pc
-  })
+
   const orcDetalhe=orcamentos.find(o=>o.id===detalheId)
 
   const inp:React.CSSProperties={width:'100%',border:'1.5px solid rgba(255,255,255,.12)',borderRadius:'8px',padding:'10px 12px',fontSize:'14px',color:'#fff',outline:'none',fontFamily:'inherit',background:'rgba(255,255,255,.06)',boxSizing:'border-box' as const}
@@ -1478,6 +1475,7 @@ export default function Orcamentos(){
     </div>
   )
 }
+
 
 
 
