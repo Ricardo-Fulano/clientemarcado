@@ -663,7 +663,7 @@ export default function Orcamentos(){
               <div style={{background:'linear-gradient(145deg,rgba(15,23,42,.97),rgba(8,20,33,.99))',border:'1.5px solid rgba(99,102,241,.22)',borderRadius:'14px',padding:'14px 16px',marginBottom:'14px'}}>
                 <p style={{fontSize:'10px',fontWeight:700,color:'#818CF8',textTransform:'uppercase' as const,letterSpacing:'.08em',marginBottom:'10px'}}>Período</p>
                 <div style={{display:'flex',gap:'6px',marginBottom:'10px',flexWrap:'wrap'}}>
-                  {([['mes','Mês'],['7d','7 dias'],['30d','30 dias'],['ano','Este ano'],['todo','Tudo']] as const).map(([val,label])=>(
+                  {([['mes','Mês'],['7d','7 dias'],['30d','30 dias'],['ano','Este ano'],['todo','Todo período']] as const).map(([val,label])=>(
                     <button key={val} className="pchip"
                       style={{background:periodoTipo===val?'linear-gradient(135deg,#3B82F6,#7C3AED)':'rgba(255,255,255,.06)',color:periodoTipo===val?'#fff':'#94A3B8',borderColor:periodoTipo===val?'transparent':'rgba(255,255,255,.12)'}}
                       onClick={()=>setPeriodoTipo(val as any)}>
@@ -706,7 +706,9 @@ export default function Orcamentos(){
               </div>
             </div>
             <div style={{padding:'0 20px 60px',maxWidth:'1280px',margin:'0 auto'}}>
-              {orcamentos.length===0?(
+              <p style={{fontSize:'12px',color:'#64748B',marginBottom:'10px',fontWeight:500}}>
+                {orcTotal===0?'Nenhum orçamento encontrado':`${orcTotal} orçamento${orcTotal!==1?'s':''} encontrado${orcTotal!==1?'s':''} ${periodoTipo==='mes'?`em ${mesesOpcoes.find(m=>m.key===mesKey)?.label||''}`:periodoTipo==='7d'?'nos últimos 7 dias':periodoTipo==='30d'?'nos últimos 30 dias':periodoTipo==='ano'?'neste ano':'em todo o período'}`}
+              </p>              {orcamentos.length===0?(
                 <div style={{background:'rgba(255,255,255,.04)',border:'1px solid rgba(255,255,255,.08)',borderRadius:'16px',padding:'40px 20px',textAlign:'center'}}>
                   <p style={{fontSize:'16px',fontWeight:700,color:'#fff',marginBottom:'8px'}}>Nenhum orçamento criado ainda</p>
                   <p style={{fontSize:'13px',color:'#94A3B8',marginBottom:'20px'}}>Crie seu primeiro orçamento e envie pelo WhatsApp.</p>
@@ -1491,6 +1493,7 @@ export default function Orcamentos(){
     </div>
   )
 }
+
 
 
 
