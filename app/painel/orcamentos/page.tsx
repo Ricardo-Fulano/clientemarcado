@@ -621,16 +621,10 @@ export default function Orcamentos(){
     setTimeout(()=>win.print(),600)
   }
 
-  const orcsFiltrados=orcamentos.filter(o=>{
     const ps=filtroStatus==='Todos'||o.status===filtroStatus
     const pc=!filtroCliente||o.cliente_nome?.toLowerCase().includes(filtroCliente.toLowerCase())
     return ps&&pc
   })
-  const totalAberto=orcamentos.filter(o=>['Aberto','Em andamento','Parcialmente pago'].includes(o.status)).length
-  const totalAReceber=orcamentos.filter(o=>!['Pago','Finalizado','Cancelado'].includes(o.status)).reduce((a,o)=>a+(o.saldo_restante||0),0)
-  const mes=new Date().toISOString().slice(0,7)
-  const recebidoMes=orcamentos.filter(o=>o.updated_at?.slice(0,7)===mes&&o.valor_pago>0).reduce((a,o)=>a+(o.valor_pago||0),0)
-  const parciais=orcamentos.filter(o=>o.status==='Parcialmente pago').length
   const orcDetalhe=orcamentos.find(o=>o.id===detalheId)
 
   const inp:React.CSSProperties={width:'100%',border:'1.5px solid rgba(255,255,255,.12)',borderRadius:'8px',padding:'10px 12px',fontSize:'14px',color:'#fff',outline:'none',fontFamily:'inherit',background:'rgba(255,255,255,.06)',boxSizing:'border-box' as const}
@@ -662,7 +656,7 @@ export default function Orcamentos(){
               </div>
               {mensagem&&<div style={{padding:'10px 14px',borderRadius:'8px',marginBottom:'12px',background:'rgba(22,163,74,.15)',border:'1px solid rgba(22,163,74,.3)',color:'#4ADE80',fontSize:'13px'}}>{mensagem}</div>}
               {/* Filtro período */}
-              <div style={{background:'linear-gradient(145deg,rgba(15,23,42,.97),rgba(8,20,33,.99))',border:'1.5px solid rgba(99,102,241,.22)',borderRadius:'14px',padding:'14px 16px',marginBottom:'14px'}}>
+              <div style={{background:'linear-gradient(145deg,rgba(15,23,42,.97),rgba(8,20,33,.99))',border:'1px solid rgba(99,102,241,.18)',borderRadius:'10px',padding:'8px 12px',marginBottom:'10px'}}>
                 <p style={{fontSize:'10px',fontWeight:700,color:'#818CF8',textTransform:'uppercase' as const,letterSpacing:'.08em',marginBottom:'10px'}}>Período</p>
                 <div style={{display:'flex',gap:'6px',marginBottom:'10px',flexWrap:'wrap'}}>
                   {([['mes','Mês'],['7d','7 dias'],['30d','30 dias'],['ano','Este ano'],['todo','Todo período']] as const).map(([val,label])=>(
@@ -681,16 +675,16 @@ export default function Orcamentos(){
                 )}
                 {periodoTipo!=='mes'&&<p style={{fontSize:'12px',color:'#64748B'}}>Período: <span style={{color:'#A5B4FC',fontWeight:600}}>{periodoTipo==='7d'?'Últimos 7 dias':periodoTipo==='30d'?'Últimos 30 dias':periodoTipo==='ano'?'Este ano':'Todo o período'}</span></p>}
               </div>
-              <div className="od-kpi" style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:'10px',marginBottom:'14px'}}>
+              <div className="od-kpi" style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:'8px',marginBottom:'10px'}}>
                 {[
                   {label:'Em aberto',valor:kpis.aberto,fmt:'n',cor:'#3B82F6',bg:'rgba(59,130,246,.12)',border:'rgba(59,130,246,.25)'},
                   {label:'A receber',valor:kpis.aReceber,fmt:'brl',cor:'#F59E0B',bg:'rgba(245,158,11,.12)',border:'rgba(245,158,11,.25)'},
                   {label:periodoTipo==='mes'?'Recebido no mês':'Recebido no período',valor:kpis.recebido,fmt:'brl',cor:'#22C55E',bg:'rgba(34,197,94,.12)',border:'rgba(34,197,94,.25)'},
                   {label:'Parciais',valor:kpis.parciais,fmt:'n',cor:'#A78BFA',bg:'rgba(167,139,250,.12)',border:'rgba(167,139,250,.25)'},
                 ].map(m=>(
-                  <div key={m.label} style={{background:m.bg,border:`1px solid ${m.border}`,borderRadius:'12px',padding:'12px',boxSizing:'border-box' as const}}>
+                  <div key={m.label} style={{background:m.bg,border:`1px solid ${m.border}`,borderRadius:'10px',padding:'9px 10px',boxSizing:'border-box' as const}}>
                     <p style={{fontSize:'10px',fontWeight:700,color:'#94A3B8',textTransform:'uppercase' as const,letterSpacing:'.05em',marginBottom:'4px'}}>{m.label}</p>
-                    <p style={{fontSize:'20px',fontWeight:800,color:m.cor}}>{m.fmt==='brl'?'R$ '+fmtBRL(m.valor as number):m.valor}</p>
+                    <p style={{fontSize:'18px',fontWeight:800,color:m.cor}}>{m.fmt==='brl'?'R$ '+fmtBRL(m.valor as number):m.valor}</p>
                   </div>
                 ))}
               </div>
@@ -923,13 +917,6 @@ export default function Orcamentos(){
                   </div>
                 </div>
               </div>
-              <button onClick={handleSalvarComum}
-                style={{width:'100%',background:'linear-gradient(135deg,#3B82F6,#7C3AED)',color:'#fff',border:'none',borderRadius:'12px',padding:'16px',fontSize:'15px',fontWeight:800,cursor:'pointer',fontFamily:'inherit',marginBottom:'14px',boxShadow:'0 8px 24px rgba(59,130,246,.3)'}}>
-                Salvar orçamento
-              </button>              <button onClick={handleSalvarComum}
-                style={{width:'100%',background:'linear-gradient(135deg,#3B82F6,#7C3AED)',color:'#fff',border:'none',borderRadius:'12px',padding:'16px',fontSize:'15px',fontWeight:800,cursor:'pointer',fontFamily:'inherit',marginBottom:'14px',boxShadow:'0 8px 24px rgba(59,130,246,.3)'}}>
-                Salvar orçamento
-              </button>
               <button onClick={handleSalvarComum}
                 style={{width:'100%',background:'linear-gradient(135deg,#3B82F6,#7C3AED)',color:'#fff',border:'none',borderRadius:'12px',padding:'16px',fontSize:'15px',fontWeight:800,cursor:'pointer',fontFamily:'inherit',marginBottom:'14px',boxShadow:'0 8px 24px rgba(59,130,246,.3)'}}>
                 Salvar orçamento
@@ -1306,10 +1293,6 @@ export default function Orcamentos(){
                 )}
               </div>
 
-              {/* Observacoes */}              <button onClick={handleSalvarOdonto}
-                style={{width:'100%',background:'linear-gradient(135deg,#7C3AED,#4F46E5)',color:'#fff',border:'none',borderRadius:'12px',padding:'16px',fontSize:'15px',fontWeight:800,cursor:'pointer',fontFamily:'inherit',marginBottom:'14px',boxShadow:'0 8px 24px rgba(124,58,237,.3)'}}>
-                Salvar orçamento
-              </button>
               <button onClick={handleSalvarOdonto}
                 style={{width:'100%',background:'linear-gradient(135deg,#7C3AED,#4F46E5)',color:'#fff',border:'none',borderRadius:'12px',padding:'16px',fontSize:'15px',fontWeight:800,cursor:'pointer',fontFamily:'inherit',marginBottom:'14px',boxShadow:'0 8px 24px rgba(124,58,237,.3)'}}>
                 Salvar orçamento
@@ -1464,7 +1447,7 @@ export default function Orcamentos(){
                 </div>
               ))}
             </div>
-            <div style={{display:'flex',flexDirection:'column',gap:'10px',marginBottom:'14px'}}>
+            <div style={{display:'flex',flexDirection:'column',gap:'8px',marginBottom:'10px'}}>
               <div>
                 <label style={lbl}>Valor recebido *</label>
                 <div style={{position:'relative'}}>
@@ -1495,6 +1478,7 @@ export default function Orcamentos(){
     </div>
   )
 }
+
 
 
 
