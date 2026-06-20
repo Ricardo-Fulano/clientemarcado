@@ -100,6 +100,7 @@ export default function Orcamentos(){
   const [profissionais,setProfissionais]=useState<any[]>([])
   const [orcamentos,setOrcamentos]=useState<any[]>([])
   const [loading,setLoading]=useState(true)
+  const [orcTotal,setOrcTotal]=useState(0)
   const [loadingMore,setLoadingMore]=useState(false)
   const [page,setPage]=useState(0)
   const [hasMore,setHasMore]=useState(false)
@@ -1493,6 +1494,7 @@ export default function Orcamentos(){
     </div>
   )
 }
+
 
 
 
