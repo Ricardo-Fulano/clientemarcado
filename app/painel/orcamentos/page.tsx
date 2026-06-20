@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 import { useEffect, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { supabase } from '../../lib/supabase'
@@ -245,7 +245,7 @@ export default function Orcamentos(){
     if(editandoId){await supabase.from('orcamentos').update(payload).eq('id',editandoId)}
     else{await supabase.from('orcamentos').insert(payload)}
     resetAll();setView('lista');await carregarOrcamentos()
-    setMensagem(editandoId?'Atualizado!':'Criado com sucesso!');setTimeout(()=>setMensagem(''),4000)
+    setMensagem(editandoId?'Orçamento atualizado com sucesso!':'Orçamento salvo com sucesso!');setTimeout(()=>setMensagem(''),4000)
   }
 
   async function handleSalvarOdonto(){
@@ -837,6 +837,10 @@ export default function Orcamentos(){
                   </div>
                 </div>
               </div>
+              <button onClick={handleSalvarComum}
+                style={{width:'100%',background:'linear-gradient(135deg,#3B82F6,#7C3AED)',color:'#fff',border:'none',borderRadius:'12px',padding:'16px',fontSize:'15px',fontWeight:800,cursor:'pointer',fontFamily:'inherit',marginBottom:'14px',boxShadow:'0 8px 24px rgba(59,130,246,.3)'}}>
+                Salvar orçamento
+              </button>
               <div style={{marginBottom:'10px'}}>
                 <label style={lbl}>Observações (opcional)</label>
                 <textarea rows={2} style={{...inp,resize:'none' as const}} placeholder="Ex: cliente preferiu parcelar, combinado via Pix..." value={observacoes} onChange={e=>setObservacoes(e.target.value)}/>
@@ -849,7 +853,7 @@ export default function Orcamentos(){
               </div>
               <div style={{display:'grid',gridTemplateColumns:'2fr 3fr',gap:'8px'}}>
                 <button onClick={()=>{resetAll();setView('lista')}} style={{background:'rgba(255,255,255,.08)',color:'#94A3B8',border:'1px solid rgba(255,255,255,.12)',borderRadius:'10px',padding:'12px 0',fontSize:'13px',fontWeight:600,cursor:'pointer',fontFamily:'inherit'}}>Rascunho</button>
-                <button onClick={handleSalvarComum} style={{background:'linear-gradient(135deg,#3B82F6,#7C3AED)',color:'#fff',border:'none',borderRadius:'10px',padding:'12px 0',fontSize:'14px',fontWeight:800,cursor:'pointer',fontFamily:'inherit'}}>{editandoId?'Salvar':'Criar orçamento'}</button>
+                <button onClick={handleSalvarComum} style={{background:'linear-gradient(135deg,#3B82F6,#7C3AED)',color:'#fff',border:'none',borderRadius:'10px',padding:'12px 0',fontSize:'14px',fontWeight:800,cursor:'pointer',fontFamily:'inherit'}}>Salvar orçamento</button>
               </div>
             </div>
           </div>
@@ -1391,3 +1395,4 @@ export default function Orcamentos(){
     </div>
   )
 }
+
