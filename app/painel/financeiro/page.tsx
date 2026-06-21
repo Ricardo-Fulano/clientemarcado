@@ -105,7 +105,7 @@ export default function Financeiro() {
   const recebidoMes = pagMes.reduce((a, p) => a + (p.valor || 0), 0)
   const despesasMes = despMes.reduce((a, d) => a + (d.valor || 0), 0)
   const resultado = recebidoMes - despesasMes
-  const aReceber = orcamentos.filter(o => !['Pago', 'Finalizado', 'Cancelado'].includes(o.status)).reduce((a, o) => a + (o.saldo_restante || 0), 0)
+  const aReceber = orcamentos.filter(o => !['Pago','Finalizado','Cancelado','pago','finalizado'].includes(o.status) && (o.saldo_restante||0) > 0).reduce((a, o) => a + (o.saldo_restante || 0), 0)
 
   function resetForm() {
     setFDesc(''); setFCat('Aluguel'); setFCatOutro(''); setFValor('')
@@ -499,5 +499,6 @@ export default function Financeiro() {
     </div>
   )
 }
+
 
 
