@@ -1,6 +1,7 @@
 with open('app/painel/cobrancas/page.tsx', 'r', encoding='utf-8') as f:
     c = f.read()
 
+# Localizar e substituir por posicao
 start = c.find('const isPaga=(o:any)=>{const st=String(o.status||'').toLowerCase();const saldo=Number(o.saldo_restante||0);const total=Number(o.total||0);const vp=Number(o.valor_pago||0);return st==='pago'||st==='finalizado'||saldo<=0||(total>0&&vp>=total)}
   const filtradas=cobrancas.filter(o=>{
     const saldo=Number(o.saldo_restante||0)
@@ -15,9 +16,11 @@ start = c.find('const isPaga=(o:any)=>{const st=String(o.status||'').toLowerCase
     return passaF&&passaB
   })', start) + 4
 
-print(f'Substituindo de {start} ate {end}')
-print('Bloco atual:')
-print(repr(c[start:end]))
+if start == -1:
+    print('ERRO: nao encontrou const filtradas')
+    exit(1)
+
+print(f'Bloco de {start} a {end}')
 
 novo = """const isPaga=(o:any)=>{const st=String(o.status||'').toLowerCase();const saldo=Number(o.saldo_restante||0);const total=Number(o.total||0);const vp=Number(o.valor_pago||0);return st==='pago'||st==='finalizado'||saldo<=0||(total>0&&vp>=total)}
   const filtradas=cobrancas.filter(o=>{
@@ -38,4 +41,4 @@ c = c[:start] + novo + c[end:]
 with open('app/painel/cobrancas/page.tsx', 'w', encoding='utf-8') as f:
     f.write(c)
 
-print('OK - feito!')
+print('OK!')
