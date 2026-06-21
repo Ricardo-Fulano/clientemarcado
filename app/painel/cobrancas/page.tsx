@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 import { useEffect, useState } from 'react'
 import { supabase } from '../../lib/supabase'
 import Link from 'next/link'
@@ -216,7 +216,7 @@ if(loading)return(<div style={{minHeight:'100vh',background:'#050B16',display:'f
                       ))}
                     </div>
                     <div style={{display:'flex',gap:'8px',flexWrap:'wrap'}}>
-                      {orc.cliente_whatsapp&&<button onClick={()=>enviarWpp(orc)} style={{flex:1,minWidth:'100px',background:'rgba(34,197,94,.12)',border:'1px solid rgba(34,197,94,.28)',borderRadius:'8px',height:'38px',fontSize:'12px',fontWeight:600,color:'#4ADE80',cursor:'pointer',fontFamily:'inherit',display:'flex',alignItems:'center',justifyContent:'center',gap:'5px'}}>💬 Cobrar no WhatsApp</button>}
+                      {orc.cliente_whatsapp&&(orc.saldo_restante||0)>0&&!['Pago','Finalizado'].includes(orc.status)&&<button onClick={()=>enviarWpp(orc)} style={{flex:1,minWidth:'100px',background:'rgba(34,197,94,.12)',border:'1px solid rgba(34,197,94,.28)',borderRadius:'8px',height:'38px',fontSize:'12px',fontWeight:600,color:'#4ADE80',cursor:'pointer',fontFamily:'inherit',display:'flex',alignItems:'center',justifyContent:'center',gap:'5px'}}>💬 Cobrar no WhatsApp</button>}
                       <Link href="/painel/orcamentos" style={{flex:1,minWidth:'100px',background:'rgba(15,23,42,.88)',border:'1px solid rgba(148,163,184,.20)',borderRadius:'8px',height:'38px',fontSize:'12px',fontWeight:600,color:'#CBD5E1',display:'flex',alignItems:'center',justifyContent:'center',gap:'5px',textDecoration:'none'}}>Ver detalhes</Link>
                     </div>
                   </div>
@@ -230,3 +230,4 @@ if(loading)return(<div style={{minHeight:'100vh',background:'#050B16',display:'f
     </div>
   )
 }
+
