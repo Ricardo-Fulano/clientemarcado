@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 import { useEffect, useState } from 'react'
 import { supabase } from '../../lib/supabase'
 import { Wallet, TrendingUp, TrendingDown, Clock, Search, Plus, Pencil, Trash2 } from 'lucide-react'
@@ -7,6 +7,7 @@ import PainelSidebar from '@/app/components/PainelSidebar'
 const G = 'linear-gradient(135deg,#3B82F6,#7C3AED)'
 const CATEGORIAS = ['Aluguel','Água','Luz','Internet','Produtos','Funcionários','Comissão','Manutenção','Marketing','Taxas','Outros']
 const FORMAS = ['Pix','Dinheiro','Cartão','Boleto','Transferência','Outro']
+const STATUS_REALIZADO = ['realizado','Realizado','compareceu','concluido','concluído','finalizado','confirmado']
 
 const CSS = `
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -84,28 +85,82 @@ export default function Financeiro() {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) { window.location.href = '/login'; return }
     setUserId(user.id)
-    const { data: p } = await supabase.from('perfis').select('*').eq('user_id', user.id).single()
+    const { data: p } = await supabase.from('perfis').select('*').eq('user_id', user.id).maybeSingle()
     setPerfil(p)
   }
 
   async function loadDados() {
-    const [{ data: pags }, { data: desps }, { data: orcs }] = await Promise.all([
+    // ✅ Mesma lógica do Relatório: buscar as 4 fontes
+    const [
+      { data: orcPags },
+      { data: pagsManuais },
+      { data: agends },
+      { data: desps },
+      { data: orcs },
+    ] = await Promise.all([
+      supabase.from('orcamento_pagamentos').select('*').eq('user_id', userId).order('data', { ascending: false }),
       supabase.from('pagamentos').select('*').eq('user_id', userId).order('created_at', { ascending: false }),
+      supabase.from('agendamentos').select('id,cliente_nome,data_hora,status,valor,forma_pagamento').eq('user_id', userId).order('data_hora', { ascending: false }),
       supabase.from('despesas').select('*').eq('user_id', userId).order('data', { ascending: false }),
-      supabase.from('orcamentos').select('id,saldo_restante,status').eq('user_id', userId),
+      supabase.from('orcamentos').select('id,saldo_restante,status,valor_pago,total').eq('user_id', userId),
     ])
-    setPagamentos(pags || [])
+
+    // 1. Pagamentos de orçamento (orcamento_pagamentos)
+    const pagsDeOrc = (orcPags || []).map((p: any) => ({
+      ...p,
+      origem: 'Orçamento',
+      forma: p.forma || 'Pix',
+      cliente_nome: p.cliente_nome || null,
+    }))
+
+    // 2. Pagamentos manuais sem vínculo com orçamento
+    const pagsSemOrc = (pagsManuais || [])
+      .filter((p: any) => !p.orcamento_id)
+      .map((p: any) => ({ ...p, origem: 'Manual' }))
+
+    // 3. Agendamentos realizados com valor (fallback quando não há pagamentos)
+    const pagsAgend = (agends || [])
+      .filter((a: any) => STATUS_REALIZADO.includes(a.status || '') && (a.valor || 0) > 0)
+      .map((a: any) => ({
+        id: a.id,
+        cliente_nome: a.cliente_nome || null,
+        data: a.data_hora ? a.data_hora.split('T')[0] : null,
+        valor: Number(a.valor) || 0,
+        forma: a.forma_pagamento || 'Pix',
+        origem: 'Agendamento',
+        orcamento_id: null,
+      }))
+
+    // ✅ Combinar TODAS as fontes sem fallback
+    const todosPags = [...pagsDeOrc, ...pagsSemOrc, ...pagsAgend]
+      .sort((a: any, b: any) => (b.data || '').localeCompare(a.data || ''))
+
+    setPagamentos(todosPags)
     setDespesas(desps || [])
     setOrcamentos(orcs || [])
     setLoading(false)
   }
 
-  const pagMes = pagamentos.filter(p => p.data?.startsWith(mes))
-  const despMes = despesas.filter(d => d.data?.startsWith(mes))
-  const recebidoMes = pagMes.reduce((a, p) => a + (p.valor || 0), 0)
-  const despesasMes = despMes.reduce((a, d) => a + (d.valor || 0), 0)
+  // ✅ Filtro de período por data do pagamento
+  const pagMes = pagamentos.filter(p => {
+    const data = p.data || p.data_pagamento || ''
+    return data.startsWith(mes)
+  })
+  const despMes = despesas.filter(d => (d.data || '').startsWith(mes))
+
+  // ✅ Receita = soma de todos pagamentos do mês
+  const recebidoMes = pagMes.reduce((a, p) => a + (Number(p.valor) || 0), 0)
+  const despesasMes = despMes.reduce((a, d) => a + (Number(d.valor) || 0), 0)
   const resultado = recebidoMes - despesasMes
-  const aReceber = orcamentos.filter(o => !['Pago','Finalizado','Cancelado','pago','finalizado'].includes(o.status) && (o.saldo_restante||0) > 0).reduce((a, o) => a + (o.saldo_restante || 0), 0)
+
+  // ✅ A receber = saldo pendente excluindo Pago/Finalizado/Cancelado
+  const aReceber = (orcamentos || [])
+    .filter((o: any) => {
+      const status = String(o.status || '').toLowerCase()
+      const saldo = Number(o.saldo_restante || 0)
+      return !['pago', 'finalizado', 'cancelado'].includes(status) && saldo > 0
+    })
+    .reduce((a: number, o: any) => a + Number(o.saldo_restante || 0), 0)
 
   function resetForm() {
     setFDesc(''); setFCat('Aluguel'); setFCatOutro(''); setFValor('')
@@ -156,15 +211,11 @@ export default function Financeiro() {
   }
 
   const nome = perfil?.nome_negocio || ''
-  const pagFiltrados = pagamentos.filter(p => {
-    const passMes = p.data?.startsWith(mes)
-    const passBusca = !busca || [p.cliente_nome, p.forma, p.descricao].some((v: string) => v?.toLowerCase().includes(busca.toLowerCase()))
-    return passMes && passBusca
+  const pagFiltrados = pagMes.filter(p => {
+    return !busca || [p.cliente_nome, p.forma, p.descricao, p.origem].some((v: any) => String(v || '').toLowerCase().includes(busca.toLowerCase()))
   })
-  const despFiltradas = despesas.filter(d => {
-    const passMes = d.data?.startsWith(mes)
-    const passBusca = !busca || [d.descricao, d.categoria].some((v: string) => v?.toLowerCase().includes(busca.toLowerCase()))
-    return passMes && passBusca
+  const despFiltradas = despMes.filter(d => {
+    return !busca || [d.descricao, d.categoria].some((v: any) => String(v || '').toLowerCase().includes(busca.toLowerCase()))
   })
 
   if (loading) return (
@@ -226,23 +277,21 @@ export default function Financeiro() {
           {aba === 'resumo' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               <div className="resumo-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-                {/* Pagamentos recentes */}
                 <div className="crd" style={{ padding: '20px' }}>
                   <p style={{ fontSize: '14px', fontWeight: 700, color: '#F8FAFC', marginBottom: '14px' }}>Pagamentos recentes</p>
                   {pagMes.length === 0 ? (
                     <p style={{ fontSize: '13px', color: '#64748B' }}>Nenhum pagamento em {mesNome(mes)}.</p>
-                  ) : pagMes.slice(0, 5).map(p => (
-                    <div key={p.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderBottom: '1px solid rgba(255,255,255,.06)' }}>
+                  ) : pagMes.slice(0, 5).map((p, i) => (
+                    <div key={p.id || i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderBottom: '1px solid rgba(255,255,255,.06)' }}>
                       <div>
                         <p style={{ fontSize: '13px', fontWeight: 600, color: '#F8FAFC' }}>{p.cliente_nome || p.descricao || '—'}</p>
-                        <p style={{ fontSize: '11px', color: '#64748B' }}>{p.forma} · {fmtData(p.data)}</p>
+                        <p style={{ fontSize: '11px', color: '#64748B' }}>{p.forma || p.forma_pagamento} · {fmtData(p.data)}{p.origem ? ` · ${p.origem}` : ''}</p>
                       </div>
-                      <p style={{ fontSize: '14px', fontWeight: 700, color: '#4ADE80' }}>{fmtBRL(p.valor)}</p>
+                      <p style={{ fontSize: '14px', fontWeight: 700, color: '#4ADE80' }}>{fmtBRL(Number(p.valor))}</p>
                     </div>
                   ))}
                   {pagMes.length > 5 && <p style={{ fontSize: '12px', marginTop: '8px', cursor: 'pointer', color: '#60A5FA' }} onClick={() => setAba('pagamentos')}>Ver todos ({pagMes.length})</p>}
                 </div>
-                {/* Últimas despesas */}
                 <div className="crd" style={{ padding: '20px' }}>
                   <p style={{ fontSize: '14px', fontWeight: 700, color: '#F8FAFC', marginBottom: '14px' }}>Últimas despesas</p>
                   {despMes.length === 0 ? (
@@ -253,7 +302,7 @@ export default function Financeiro() {
                         <p style={{ fontSize: '13px', fontWeight: 600, color: '#F8FAFC' }}>{d.descricao}</p>
                         <p style={{ fontSize: '11px', color: '#64748B' }}>{d.categoria} · {fmtData(d.data)}</p>
                       </div>
-                      <p style={{ fontSize: '14px', fontWeight: 700, color: '#F87171' }}>{fmtBRL(d.valor)}</p>
+                      <p style={{ fontSize: '14px', fontWeight: 700, color: '#F87171' }}>{fmtBRL(Number(d.valor))}</p>
                     </div>
                   ))}
                   {despMes.length > 5 && <p style={{ fontSize: '12px', cursor: 'pointer', color: '#60A5FA', marginTop: '8px' }} onClick={() => setAba('despesas')}>Ver todas ({despMes.length})</p>}
@@ -282,11 +331,11 @@ export default function Financeiro() {
                 <div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 16px', background: 'rgba(34,197,94,.08)', border: '1px solid rgba(34,197,94,.18)', borderRadius: '12px', marginBottom: '16px' }}>
                     <p style={{ fontSize: '12px', color: '#64748B' }}>{pagFiltrados.length} pagamento{pagFiltrados.length !== 1 ? 's' : ''}</p>
-                    <p style={{ fontSize: '15px', fontWeight: 800, color: '#4ADE80' }}>Total: {fmtBRL(pagFiltrados.reduce((a, p) => a + (p.valor || 0), 0))}</p>
+                    <p style={{ fontSize: '15px', fontWeight: 800, color: '#4ADE80' }}>Total: {fmtBRL(pagFiltrados.reduce((a, p) => a + (Number(p.valor) || 0), 0))}</p>
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                    {pagFiltrados.map(p => (
-                      <div key={p.id} className="crd" style={{ padding: '16px 20px' }}>
+                    {pagFiltrados.map((p, i) => (
+                      <div key={p.id || i} className="crd" style={{ padding: '16px 20px' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '12px', flexWrap: 'wrap' }}>
                           <div style={{ flex: 1, minWidth: 0 }}>
                             <p style={{ fontSize: '14px', fontWeight: 700, color: '#F8FAFC', marginBottom: '4px' }}>{p.cliente_nome || p.descricao || 'Pagamento'}</p>
@@ -300,7 +349,7 @@ export default function Financeiro() {
                               Ver detalhes
                             </button>
                           </div>
-                          <p style={{ fontSize: '20px', fontWeight: 800, color: '#4ADE80', lineHeight: 1 }}>{fmtBRL(p.valor)}</p>
+                          <p style={{ fontSize: '20px', fontWeight: 800, color: '#4ADE80', lineHeight: 1 }}>{fmtBRL(Number(p.valor))}</p>
                         </div>
                       </div>
                     ))}
@@ -407,7 +456,7 @@ export default function Financeiro() {
                 <div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 16px', background: 'rgba(239,68,68,.08)', border: '1px solid rgba(239,68,68,.18)', borderRadius: '12px', marginBottom: '16px' }}>
                     <p style={{ fontSize: '12px', color: '#64748B' }}>{despFiltradas.length} despesa{despFiltradas.length !== 1 ? 's' : ''}</p>
-                    <p style={{ fontSize: '15px', fontWeight: 800, color: '#F87171' }}>Total: {fmtBRL(despFiltradas.reduce((a, d) => a + (d.valor || 0), 0))}</p>
+                    <p style={{ fontSize: '15px', fontWeight: 800, color: '#F87171' }}>Total: {fmtBRL(despFiltradas.reduce((a, d) => a + (Number(d.valor) || 0), 0))}</p>
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                     {despFiltradas.map(d => (
@@ -425,7 +474,7 @@ export default function Financeiro() {
                             {d.observacao && <p style={{ fontSize: '12px', color: '#64748B', fontStyle: 'italic' }}>{d.observacao}</p>}
                           </div>
                           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '8px', flexShrink: 0 }}>
-                            <p style={{ fontSize: '20px', fontWeight: 800, color: '#F87171', lineHeight: 1 }}>{fmtBRL(d.valor)}</p>
+                            <p style={{ fontSize: '20px', fontWeight: 800, color: '#F87171', lineHeight: 1 }}>{fmtBRL(Number(d.valor))}</p>
                             <div style={{ display: 'flex', gap: '6px' }}>
                               <button onClick={() => abrirEditar(d)}
                                 style={{ background: 'rgba(59,130,246,.12)', border: '1px solid rgba(59,130,246,.25)', borderRadius: '8px', padding: '6px 10px', fontSize: '11px', fontWeight: 600, color: '#60A5FA', cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: '4px' }}>
@@ -461,19 +510,16 @@ export default function Financeiro() {
           </div>
           <div style={{background:'rgba(34,197,94,.08)',border:'1px solid rgba(34,197,94,.20)',borderRadius:'14px',padding:'16px',marginBottom:'20px',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
             <span style={{fontSize:'13px',color:'#94A3B8'}}>Valor recebido</span>
-            <span style={{fontSize:'24px',fontWeight:800,color:'#4ADE80'}}>{fmtBRL(pagSel.valor)}</span>
+            <span style={{fontSize:'24px',fontWeight:800,color:'#4ADE80'}}>{fmtBRL(Number(pagSel.valor))}</span>
           </div>
           <div style={{display:'flex',flexDirection:'column' as const,gap:'12px',marginBottom:'24px'}}>
             {[
               {l:'Cliente', v:pagSel.cliente_nome||'Não informado'},
               {l:'Data', v:pagSel.data?fmtData(pagSel.data):'Não informada'},
               {l:'Forma de pagamento', v:pagSel.forma||pagSel.forma_pagamento||'Não informada'},
-              {l:'Tipo', v:pagSel.tipo||'Completo'},
               {l:'Origem', v:pagSel.origem||'Manual'},
               {l:'Status', v:'Confirmado', c:'#4ADE80'},
-              ...(pagSel.referencia?[{l:'Referência', v:pagSel.referencia}]:[]),
               ...(pagSel.observacao?[{l:'Observação', v:pagSel.observacao}]:[]),
-              ...(!pagSel.observacao?[{l:'Observação', v:'Nenhuma observação', c:'#475569'}]:[]),
             ].map(({l,v,c:cor}:any)=>(
               <div key={l} style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',gap:'12px',padding:'10px 0',borderBottom:'1px solid rgba(255,255,255,.06)'}}>
                 <span style={{fontSize:'13px',color:'#64748B',flexShrink:0}}>{l}</span>
@@ -499,6 +545,3 @@ export default function Financeiro() {
     </div>
   )
 }
-
-
-
