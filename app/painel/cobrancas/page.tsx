@@ -13,11 +13,11 @@ html,body{overflow-x:hidden;width:100%;max-width:100%;background:#050B16}
 input,select,textarea{color-scheme:dark}
 .sb{width:220px;min-height:100vh;background:radial-gradient(circle at top left,rgba(124,58,237,.14),transparent 32%),linear-gradient(180deg,#070F1D,#050B16);border-right:1px solid rgba(148,163,184,.14);display:flex;flex-direction:column;position:fixed;top:0;left:0;z-index:30}
 .sb-logo{padding:20px 16px 16px;border-bottom:1px solid rgba(148,163,184,.08);display:flex;align-items:center;gap:8px}
-.sb-ic{width:28px;height:28px;border-radius:8px;background:\${G};display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 0 22px rgba(124,58,237,.48)}
+.sb-ic{width:28px;height:28px;border-radius:8px;background:${G};display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 0 22px rgba(124,58,237,.48)}
 .sb nav{flex:1;padding:10px 8px;overflow-y:auto}
 .nl{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:8px;margin-bottom:2px;text-decoration:none;font-size:13px;font-weight:500;color:#94A3B8;transition:all .18s;border:1px solid transparent;white-space:nowrap}
 .nl:hover{background:rgba(124,58,237,.10);color:#fff;border-color:rgba(124,58,237,.20)}
-.nl.on{background:\${G};color:#fff;font-weight:700;box-shadow:0 0 26px rgba(124,58,237,.34),inset 0 1px 0 rgba(255,255,255,.10);border-color:rgba(255,255,255,.10)}
+.nl.on{background:${G};color:#fff;font-weight:700;box-shadow:0 0 26px rgba(124,58,237,.34),inset 0 1px 0 rgba(255,255,255,.10);border-color:rgba(255,255,255,.10)}
 .sb-foot{padding:10px;border-top:1px solid rgba(148,163,184,.08)}
 .mob-hdr{display:none;align-items:center;justify-content:space-between;padding:0 16px;height:56px;background:rgba(5,11,22,.94);backdrop-filter:blur(20px);border-bottom:1px solid rgba(148,163,184,.1);position:sticky;top:0;z-index:20;width:100%}
 .drw{position:fixed;top:0;left:0;bottom:0;width:280px;max-width:85vw;background:linear-gradient(180deg,#070F1D,#050B16);z-index:50;transform:translateX(-100%);transition:transform .28s ease;display:flex;flex-direction:column;border-right:1px solid rgba(148,163,184,.12)}
@@ -28,14 +28,14 @@ input,select,textarea{color-scheme:dark}
 .pg{background:radial-gradient(circle at top left,rgba(124,58,237,.20),transparent 32%),radial-gradient(circle at top right,rgba(37,99,235,.14),transparent 28%),linear-gradient(135deg,#050B16 0%,#07111F 45%,#050B16 100%);min-height:100vh;overflow-x:hidden}
 .bdy{max-width:1200px;margin:0 auto;padding:28px 32px 80px;width:100%;box-sizing:border-box}
 .crd{background:radial-gradient(circle at top left,rgba(124,58,237,.10),transparent 38%),linear-gradient(145deg,rgba(15,23,42,.97),rgba(8,20,33,.99));border:1.5px solid rgba(148,163,184,.18);border-radius:18px;box-shadow:0 20px 48px rgba(0,0,0,.34),inset 0 1px 0 rgba(255,255,255,.04)}
-.btn-p{background:\${G};color:#fff;border:1px solid rgba(255,255,255,.12);border-radius:12px;height:44px;padding:0 20px;font-size:13px;font-weight:700;display:inline-flex;align-items:center;gap:6px;white-space:nowrap;transition:all .18s;font-family:inherit;cursor:pointer;text-decoration:none}
+.btn-p{background:${G};color:#fff;border:1px solid rgba(255,255,255,.12);border-radius:12px;height:44px;padding:0 20px;font-size:13px;font-weight:700;display:inline-flex;align-items:center;gap:6px;white-space:nowrap;transition:all .18s;font-family:inherit;cursor:pointer;text-decoration:none}
 .btn-p:hover{transform:translateY(-1px)}
 .btn-s{background:rgba(15,23,42,.88);color:#CBD5E1;border:1px solid rgba(148,163,184,.20);border-radius:10px;height:42px;padding:0 16px;font-size:13px;font-weight:600;display:inline-flex;align-items:center;gap:6px;white-space:nowrap;transition:all .18s;font-family:inherit;cursor:pointer;text-decoration:none}
 .btn-s:hover{border-color:rgba(124,58,237,.38);color:#fff}
 .kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px}
 .pill{padding:7px 14px;border-radius:999px;font-size:12px;font-weight:600;cursor:pointer;border:1.5px solid rgba(148,163,184,.18);background:rgba(15,23,42,.86);color:#94A3B8;white-space:nowrap;transition:all .18s;font-family:inherit}.fil-cob{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px;width:100%}.fil-cob .pill{flex:1 1 calc(33% - 8px);text-align:center;justify-content:center;display:flex;align-items:center}@media(max-width:480px){.fil-cob .pill{flex:1 1 calc(50% - 8px)}}
 .pill:hover{background:rgba(124,58,237,.10);border-color:rgba(124,58,237,.28);color:#fff}
-.pill.on{background:\${G};border-color:transparent;color:#fff;box-shadow:0 0 16px rgba(124,58,237,.28)}
+.pill.on{background:${G};border-color:transparent;color:#fff;box-shadow:0 0 16px rgba(124,58,237,.28)}
 @media(max-width:1023px){
   .sb{display:none!important}.main{margin-left:0!important;width:100%!important;max-width:100%!important}
   .mob-hdr{display:flex!important}.bdy{padding:14px 16px 80px!important}
@@ -87,6 +87,8 @@ function ePendente(c:any){
   const s=nrm(c.status)
   return s==='aberto'||s==='em aberto'||s==='parcialmente pago'||s==='pendente'
 }
+function fBRL(v:number){return 'R$ '+(v||0).toLocaleString('pt-BR',{minimumFractionDigits:2})}
+function fData(d:string){if(!d)return'';const[a,m,di]=d.split('-');return di+'/'+m+'/'+a}
 
 export default function Cobrancas(){
   const [perfil,setPerfil]=useState<any>(null)
@@ -117,9 +119,6 @@ export default function Cobrancas(){
   const parciais=cobrancas.filter(o=>ePendente(o)&&getPago(o)>0&&getSaldo(o)>0).length
   const emAberto=cobrancas.filter(o=>ePendente(o)&&nrm(o.status)==='aberto').length
 
-  const fBRL=(v:number)=>`R$ \${(v||0).toLocaleString('pt-BR',{minimumFractionDigits:2})}`
-  const fData=(d:string)=>{if(!d)return'';const[a,m,di]=d.split('-');return`\${di}/\${m}/\${a}`}
-
   const filtradas=cobrancas.filter(o=>{
     const s=nrm(o.status)
     const pago=getPago(o),saldo=getSaldo(o)
@@ -138,8 +137,11 @@ export default function Cobrancas(){
   function enviarWpp(orc:any){
     const tel=(orc.cliente_whatsapp||'').replace(/\D/g,'')
     if(!tel)return
-    const msg=`Olá, \${orc.cliente_nome}!\n\nVocê tem um saldo pendente de \${fBRL(getSaldo(orc))} referente a \${orc.tipo}.\n\nPor favor, entre em contato para regularizar. Obrigado!`
-    window.open(`https://wa.me/55\${tel}?text=\${encodeURIComponent(msg)}`,'_blank')
+    const nome_cliente=orc.cliente_nome||''
+    const saldo=fBRL(getSaldo(orc))
+    const tipo=orc.tipo||''
+    const msg='Olá, '+nome_cliente+'!\n\nVocê tem um saldo pendente de '+saldo+' referente a '+tipo+'.\n\nPor favor, entre em contato para regularizar. Obrigado!'
+    window.open('https://wa.me/55'+tel+'?text='+encodeURIComponent(msg),'_blank')
   }
 
   const SidebarComp=()=>(
@@ -164,15 +166,15 @@ export default function Cobrancas(){
   return(
     <div style={{display:'flex',minHeight:'100vh',background:'#050B16',fontFamily:'-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif',overflowX:'hidden',width:'100%'}}>
       <style dangerouslySetInnerHTML={{__html:CSS}}/>
-      <div className={`ovl\${mob?' open':''}`} onClick={()=>setMob(false)}/>
-      <div className={`drw\${mob?' open':''}`}>
-        <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'16px 18px',borderBottom:'1px solid rgba(148,163,184,.10)'}}><span style={{fontSize:'14px',fontWeight:800,color:'#F8FAFC'}}>ClienteMarcado</span><button onClick={()=>setMob(false)} style={{background:'none',border:'none',color:'rgba(255,255,255,.5)',cursor:'pointer',fontSize:'22px',lineHeight:1}}>×</button></div>
+      <div className={'ovl'+(mob?' open':'')} onClick={()=>setMob(false)}/>
+      <div className={'drw'+(mob?' open':'')}>
+        <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'16px 18px',borderBottom:'1px solid rgba(148,163,184,.10)'}}><span style={{fontSize:'14px',fontWeight:800,color:'#F8FAFC'}}>ClienteMarcado</span><button onClick={()=>setMob(false)} style={{background:'none',border:'none',color:'rgba(255,255,255,.5)',cursor:'pointer',fontSize:'22px',lineHeight:1}}>&times;</button></div>
         <nav style={{flex:1,padding:'10px 8px',overflowY:'auto'}}>{SB_LINKS.map(it=>(<Link key={it.l} href={it.h} onClick={()=>setMob(false)} className={'nl'+(it.on?' on':'')} style={{fontSize:'14px'}}><it.I size={16}/><span>{it.l}</span></Link>))}</nav>
       </div>
       <SidebarComp/>
       <div className="main">
         <div className="mob-hdr">
-          <button onClick={()=>setMob(true)} style={{background:'none',border:'none',cursor:'pointer',padding:'8px',display:'flex',flexDirection:'column',gap:'5px'}}>{[22,22,16].map((w,i)=><span key={i} style={{display:'block',width:`\${w}px`,height:'2px',background:'rgba(255,255,255,.8)',borderRadius:'2px'}}/>)}</button>
+          <button onClick={()=>setMob(true)} style={{background:'none',border:'none',cursor:'pointer',padding:'8px',display:'flex',flexDirection:'column',gap:'5px'}}>{[22,22,16].map((w,i)=><span key={i} style={{display:'block',width:w+'px',height:'2px',background:'rgba(255,255,255,.8)',borderRadius:'2px'}}/>)}</button>
           <span style={{fontSize:'14px',fontWeight:800,color:'#F8FAFC'}}>Cobranças</span>
           <div style={{width:'34px',height:'34px',borderRadius:'50%',background:AV,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'13px',fontWeight:700,color:'#fff'}}>{ini}</div>
         </div>
@@ -192,7 +194,7 @@ export default function Cobrancas(){
               {l:'PARCIAIS',sub:'Pagas em parte',v:String(parciais),c:'#C4B5FD',bg:'rgba(124,58,237,.10)',bd:'rgba(124,58,237,.28)',I:CircleDollarSign},
               {l:'EM ABERTO',sub:'Aguardando pagamento',v:String(emAberto),c:'#22D3EE',bg:'rgba(6,182,212,.10)',bd:'rgba(6,182,212,.28)',I:Hourglass},
             ].map(k=>(
-              <div key={k.l} className="crd" style={{padding:'18px 16px',background:`radial-gradient(circle at top left,\${k.bg},transparent 60%),linear-gradient(145deg,rgba(15,23,42,.97),rgba(8,20,33,.99))`,border:`1.5px solid \${k.bd}`}}>
+              <div key={k.l} className="crd" style={{padding:'18px 16px',background:'radial-gradient(circle at top left,'+k.bg+',transparent 60%),linear-gradient(145deg,rgba(15,23,42,.97),rgba(8,20,33,.99))',border:'1.5px solid '+k.bd}}>
                 <div style={{width:'36px',height:'36px',borderRadius:'10px',background:k.bg,display:'flex',alignItems:'center',justifyContent:'center',marginBottom:'10px'}}><k.I size={18} color={k.c}/></div>
                 <p style={{fontSize:'10px',fontWeight:700,color:'#94A3B8',textTransform:'uppercase',letterSpacing:'.08em',marginBottom:'3px'}}>{k.l}</p>
                 <p style={{fontSize:'11px',color:'#64748B',marginBottom:'6px'}}>{k.sub}</p>
@@ -208,7 +210,7 @@ export default function Cobrancas(){
           </div>
 
           <div className="fil-cob">
-            {FILTROS.map(f=>(<button key={f} onClick={()=>setFiltro(f)} className={`pill\${filtro===f?' on':''}`}>{f}</button>))}
+            {FILTROS.map(f=>(<button key={f} onClick={()=>setFiltro(f)} className={'pill'+(filtro===f?' on':'')}>{f}</button>))}
           </div>
 
           {filtradas.length===0?(
@@ -233,9 +235,9 @@ export default function Cobrancas(){
                     <div style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',gap:'12px',marginBottom:'14px',flexWrap:'wrap'}}>
                       <div>
                         <p style={{fontSize:'15px',fontWeight:700,color:'#F8FAFC',marginBottom:'3px'}}>{orc.cliente_nome}</p>
-                        <p style={{fontSize:'12px',color:'#64748B'}}>{orc.tipo} · {fData(orc.data)}{orc.cliente_whatsapp&&` · \${orc.cliente_whatsapp}`}</p>
+                        <p style={{fontSize:'12px',color:'#64748B'}}>{orc.tipo||'Orçamento'} · {fData(orc.data||orc.created_at||'')}{orc.cliente_whatsapp?' · '+orc.cliente_whatsapp:''}</p>
                       </div>
-                      <span style={{fontSize:'11px',fontWeight:700,padding:'4px 12px',borderRadius:'999px',background:statusC.bg,color:statusC.c,border:`1px solid \${statusC.bd}`,flexShrink:0,whiteSpace:'nowrap'}}>{orc.status}</span>
+                      <span style={{fontSize:'11px',fontWeight:700,padding:'4px 12px',borderRadius:'999px',background:statusC.bg,color:statusC.c,border:'1px solid '+statusC.bd,flexShrink:0,whiteSpace:'nowrap'}}>{orc.status}</span>
                     </div>
                     <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'10px',marginBottom:'14px'}}>
                       {[{l:'Total',v:fBRL(getTotal(orc)),c:'#F8FAFC'},{l:'Pago',v:fBRL(getPago(orc)),c:'#4ADE80'},{l:'Saldo',v:fBRL(saldoVal),c:saldoC}].map(f=>(
