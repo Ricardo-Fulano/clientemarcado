@@ -18,14 +18,14 @@
   },
   {
     "route": "/painel/orcamentos",
-    "firstLoadUncompressedJsBytes": 852112,
+    "firstLoadUncompressedJsBytes": 851113,
     "firstLoadChunkPaths": [
       ".next\\static\\chunks\\01xlw8hd842-c.js",
       ".next\\static\\chunks\\0n4z.7yu76je-.js",
       ".next\\static\\chunks\\168zdyi7olnq2.js",
       ".next\\static\\chunks\\0beezxjl1ft_0.js",
       ".next\\static\\chunks\\0nhsnw~ag31nl.js",
-      ".next\\static\\chunks\\0wqewizgah__-.js",
+      ".next\\static\\chunks\\095z2ipi650-y.js",
       ".next\\static\\chunks\\0bo-6z2fpq-v4.js",
       ".next\\static\\chunks\\0pqt~8bl3ukh4.js",
       ".next\\static\\chunks\\07lhk_q6pmm3r.js",
@@ -83,13 +83,13 @@
   },
   {
     "route": "/painel/financeiro",
-    "firstLoadUncompressedJsBytes": 785361,
+    "firstLoadUncompressedJsBytes": 786258,
     "firstLoadChunkPaths": [
       ".next\\static\\chunks\\01xlw8hd842-c.js",
       ".next\\static\\chunks\\0n4z.7yu76je-.js",
       ".next\\static\\chunks\\168zdyi7olnq2.js",
       ".next\\static\\chunks\\0beezxjl1ft_0.js",
-      ".next\\static\\chunks\\07i~wowztuw2p.js",
+      ".next\\static\\chunks\\0..khib_7tg1k.js",
       ".next\\static\\chunks\\0bo-6z2fpq-v4.js",
       ".next\\static\\chunks\\0pqt~8bl3ukh4.js",
       ".next\\static\\chunks\\07lhk_q6pmm3r.js",
