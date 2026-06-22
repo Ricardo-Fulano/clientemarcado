@@ -1,17 +1,209 @@
-import sys
+import { supabase } from '../lib/supabase'
+import { notFound } from 'next/navigation'
+import Link from 'next/link'
+import { Zap, CalendarDays, CheckCircle, Sparkles } from 'lucide-react'
 
-with open(r'app/[slug]/page.tsx', 'r', encoding='utf-8') as f:
-    c = f.read()
+// Presets de cor — mesmos do perfil
+function getTema(temaPublico: string) {
+  switch(temaPublico) {
+    case 'beleza':   return { accent:'#EC4899', soft:'rgba(236,72,153,.12)', border:'rgba(236,72,153,.28)', glow:'rgba(236,72,153,.15)', btnText:'#fff' }
+    case 'saude':    return { accent:'#22C55E', soft:'rgba(34,197,94,.12)',  border:'rgba(34,197,94,.28)',  glow:'rgba(34,197,94,.15)',  btnText:'#fff' }
+    case 'barbearia':return { accent:'#F59E0B', soft:'rgba(245,158,11,.12)', border:'rgba(245,158,11,.28)', glow:'rgba(245,158,11,.15)', btnText:'#111827' }
+    case 'minimal':  return { accent:'#3B82F6', soft:'rgba(59,130,246,.12)', border:'rgba(59,130,246,.28)', glow:'rgba(59,130,246,.15)', btnText:'#fff' }
+    default:         return { accent:'#3B82F6', soft:'rgba(59,130,246,.12)', border:'rgba(59,130,246,.28)', glow:'rgba(59,130,246,.15)', btnText:'#fff' }
+  }
+}
 
-old = "        <p style={{ textAlign: 'center', fontSize: '11px', color: '#374151', marginTop: '24px' }}>\n          Agendamento online via <span style={{ color: '#4B5563' }}>ClienteMarcado</span>\n        </p>"
-new = '        {/* CONTATOS E REDES SOCIAIS */}\n        {!!(perfil.whatsapp||perfil.instagram||perfil.endereco||perfil.cidade||perfil.descricao)&&(\n          <div style={{marginBottom:\'32px\'}}>\n            <p className="sec-title">Informações do negócio</p>\n            <p style={{fontSize:\'12px\',color:\'#64748B\',marginTop:\'-8px\',marginBottom:\'14px\'}}>Entre em contato ou acompanhe nas redes sociais.</p>\n            <div style={{display:\'flex\',flexDirection:\'column\' as const,gap:\'8px\'}}>\n              {perfil.whatsapp&&(()=>{\n                const n=String(perfil.whatsapp||\'\').replace(/\\D/g,\'\')\n                const nf=n.startsWith(\'55\')?n:\'55\'+n\n                const sem55=nf.slice(2)\n                const fmt=sem55.length===11?\'(\'+sem55.slice(0,2)+\') \'+sem55.slice(2,7)+\'-\'+sem55.slice(7):sem55.length===10?\'(\'+sem55.slice(0,2)+\') \'+sem55.slice(2,6)+\'-\'+sem55.slice(6):sem55\n                const link=\'https://wa.me/\'+nf+\'?text=\'+encodeURIComponent(\'Olá! Vim pela página e gostaria de mais informações.\')\n                return(\n                  <a key="wpp" href={link} target="_blank" rel="noopener noreferrer" className="crd" style={{display:\'flex\',alignItems:\'center\',gap:\'14px\',padding:\'16px 18px\',textDecoration:\'none\',color:\'inherit\',border:\'1px solid rgba(34,197,94,.22)\'}}>\n                    <div style={{width:\'42px\',height:\'42px\',borderRadius:\'12px\',background:\'rgba(34,197,94,.12)\',border:\'1px solid rgba(34,197,94,.28)\',display:\'flex\',alignItems:\'center\',justifyContent:\'center\',flexShrink:0}}>\n                      <svg width="20" height="20" viewBox="0 0 24 24" fill="#4ADE80"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>\n                    </div>\n                    <div style={{flex:1,minWidth:0}}>\n                      <p style={{fontWeight:700,fontSize:\'14px\',color:\'#4ADE80\',marginBottom:\'2px\'}}>Chamar no WhatsApp</p>\n                      <p style={{fontSize:\'12px\',color:\'#64748B\'}}>{fmt}</p>\n                    </div>\n                    <span style={{fontSize:\'18px\',color:\'#374151\'}}>›</span>\n                  </a>\n                )\n              })()}\n              {perfil.instagram&&(()=>{\n                const raw=String(perfil.instagram||\'\').trim()\n                const url=raw.startsWith(\'http\')?raw:\'https://instagram.com/\'+raw.replace(\'@\',\'\').replace(/^instagram\\.com\\/*/,\'\').replace(/^\\/+/,\'\')\n                const handle=raw.startsWith(\'http\')?(\'@\'+(raw.split(\'/\').filter(Boolean).pop()||raw)):\'@\'+raw.replace(\'@\',\'\').replace(/^instagram\\.com\\/*/,\'\').replace(/^\\/+/,\'\')\n                return(\n                  <a key="ig" href={url} target="_blank" rel="noopener noreferrer" className="crd" style={{display:\'flex\',alignItems:\'center\',gap:\'14px\',padding:\'16px 18px\',textDecoration:\'none\',color:\'inherit\',border:\'1px solid rgba(236,72,153,.22)\'}}>\n                    <div style={{width:\'42px\',height:\'42px\',borderRadius:\'12px\',background:\'rgba(236,72,153,.12)\',border:\'1px solid rgba(236,72,153,.28)\',display:\'flex\',alignItems:\'center\',justifyContent:\'center\',flexShrink:0}}>\n                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#EC4899" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1112.63 8 4 4 0 0116 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>\n                    </div>\n                    <div style={{flex:1,minWidth:0}}>\n                      <p style={{fontWeight:700,fontSize:\'14px\',color:\'#EC4899\',marginBottom:\'2px\'}}>Ver Instagram</p>\n                      <p style={{fontSize:\'12px\',color:\'#64748B\'}}>{handle}</p>\n                    </div>\n                    <span style={{fontSize:\'18px\',color:\'#374151\'}}>›</span>\n                  </a>\n                )\n              })()}\n              {(perfil.endereco||perfil.cidade)&&(()=>{\n                const end=String(perfil.endereco||perfil.cidade||\'\')\n                const mapsUrl=\'https://www.google.com/maps/search/?api=1&query=\'+encodeURIComponent(end)\n                return(\n                  <a key="end" href={mapsUrl} target="_blank" rel="noopener noreferrer" className="crd" style={{display:\'flex\',alignItems:\'center\',gap:\'14px\',padding:\'16px 18px\',textDecoration:\'none\',color:\'inherit\'}}>\n                    <div style={{width:\'42px\',height:\'42px\',borderRadius:\'12px\',background:tema.soft,border:`1px solid ${tema.border}`,display:\'flex\',alignItems:\'center\',justifyContent:\'center\',flexShrink:0}}>\n                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={tema.accent} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>\n                    </div>\n                    <div style={{flex:1,minWidth:0}}>\n                      <p style={{fontWeight:700,fontSize:\'14px\',color:\'#F8FAFC\',marginBottom:\'2px\'}}>Endereço</p>\n                      <p style={{fontSize:\'12px\',color:\'#94A3B8\'}}>{end}</p>\n                    </div>\n                    <span style={{fontSize:\'18px\',color:\'#374151\'}}>›</span>\n                  </a>\n                )\n              })()}\n              {perfil.descricao&&(\n                <div key="desc" className="crd" style={{display:\'flex\',alignItems:\'flex-start\' as const,gap:\'14px\',padding:\'16px 18px\'}}>\n                  <div style={{width:\'42px\',height:\'42px\',borderRadius:\'12px\',background:tema.soft,border:`1px solid ${tema.border}`,display:\'flex\',alignItems:\'center\',justifyContent:\'center\',flexShrink:0}}>\n                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={tema.accent} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>\n                  </div>\n                  <div style={{flex:1,minWidth:0}}>\n                    <p style={{fontWeight:700,fontSize:\'14px\',color:\'#F8FAFC\',marginBottom:\'4px\'}}>Sobre</p>\n                    <p style={{fontSize:\'13px\',color:\'#94A3B8\',lineHeight:1.6}}>{perfil.descricao}</p>\n                  </div>\n                </div>\n              )}\n            </div>\n          </div>\n        )}\n\n        <p style={{ textAlign: \'center\', fontSize: \'11px\', color: \'#374151\', marginTop: \'24px\' }}>\n          Agendamento online via <span style={{ color: \'#4B5563\' }}>ClienteMarcado</span>\n        </p>'
+const CSS = `
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{overflow-x:hidden;width:100%;max-width:100%}
+.hero{position:relative;width:100%;min-height:340px;display:flex;align-items:flex-end;overflow:hidden}
+.hero-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.hero-overlay{position:absolute;inset:0;background:linear-gradient(to bottom,rgba(5,11,22,.45) 0%,rgba(5,11,22,.82) 60%,#050B16 100%)}
+.hero-content{position:relative;z-index:2;width:100%;max-width:1100px;margin:0 auto;padding:48px 24px 36px}
+.badge{display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border-radius:999px;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;margin-bottom:14px}
+.crd{background:radial-gradient(circle at top left,rgba(124,58,237,.06),transparent 38%),linear-gradient(145deg,rgba(15,23,42,.97),rgba(8,20,33,.99));border:1px solid rgba(148,163,184,.14);border-radius:16px;transition:border-color .2s,box-shadow .2s}
+.wrap{max-width:1100px;margin:0 auto;padding:0 20px}
+.svc-card{display:flex;align-items:center;gap:14px;padding:16px 18px;text-decoration:none;color:inherit}
+.svc-card:hover{border-color:var(--accent-border)!important;box-shadow:0 0 20px var(--accent-glow)}
+.sec-title{font-size:13px;font-weight:700;color:#94A3B8;text-transform:uppercase;letter-spacing:.08em;margin-bottom:14px}
+.benefit-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.hero-btns{display:flex;gap:10px;flex-wrap:wrap;margin-top:20px}
+@media(max-width:767px){
+  .hero{min-height:280px}
+  .hero-content{padding:32px 16px 28px}
+  .benefit-grid{grid-template-columns:1fr}
+  .hero-btns{flex-direction:column}
+  .hero-btns a{width:100%;justify-content:center;text-align:center}
+  .cta-inner{flex-direction:column!important;gap:16px!important}
+  .cta-btns{width:100%!important;flex-direction:column!important}
+  .cta-btns a{width:100%!important;justify-content:center!important}
+  .wrap{padding:0 14px}
+}
+`
 
-if old in c:
-    c = c.replace(old, new)
-    with open(r'app/[slug]/page.tsx', 'w', encoding='utf-8') as f:
-        f.write(c)
-    print('OK!')
-else:
-    print('ERRO - nao encontrou')
-    idx = c.find('Agendamento online via')
-    print(repr(c[idx-50:idx+100]))
+export default async function PaginaPublica({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params
+  const { data: perfil } = await supabase.from('perfis').select('*').eq('slug', slug).single()
+  if (!perfil) return notFound()
+
+  const [{ data: servicos }, { data: profissionais }] = await Promise.all([
+    supabase.from('servicos').select('*').eq('user_id', perfil.user_id).eq('ativo', true).order('nome'),
+    supabase.from('profissionais').select('*').eq('user_id', perfil.user_id).eq('ativo', true).order('nome'),
+  ])
+
+  const temaId = perfil.tema_publico || perfil.tema_cor || 'padrao'
+  const tema = getTema(temaId)
+
+  const nomeBusiness = perfil.nome_negocio || 'Agendamento Online'
+  const descBusiness = perfil.descricao || 'Agende seu atendimento online de forma rápida e prática.'
+  const endereco = perfil.endereco || perfil.cidade || ''
+  const capaUrl = perfil.capa_url || perfil.imagem_capa || perfil.banner_url || ''
+  const wppNum = (perfil.whatsapp || '').replace(/\D/g, '')
+  const linkWpp = wppNum ? `https://wa.me/55${wppNum}?text=${encodeURIComponent('Olá! Vim pela página e gostaria de agendar.')}` : null
+
+  const fBRL = (v: number) => `R$ ${(v || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`
+
+  return (
+    <main style={{ minHeight: '100vh', background: '#050B16', color: '#F8FAFC', fontFamily: '-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif', overflowX: 'hidden' }}>
+      <style dangerouslySetInnerHTML={{ __html: CSS + `
+        :root { --accent: ${tema.accent}; --accent-border: ${tema.border}; --accent-glow: ${tema.glow}; }
+      ` }} />
+
+      {/* HERO */}
+      <div className="hero" style={{ minHeight: capaUrl ? '380px' : '280px' }}>
+        {capaUrl && <img src={capaUrl} alt={nomeBusiness} className="hero-img"/>}
+        {!capaUrl && <div style={{ position: 'absolute', inset: 0, background: `radial-gradient(circle at top left,${tema.soft},transparent 40%),linear-gradient(135deg,#050B16,#07111F)` }}/>}
+        <div className="hero-overlay"/>
+        <div className="hero-content">
+          <div className="badge" style={{ background: tema.soft, border: `1px solid ${tema.border}`, color: tema.accent }}>
+            <Zap size={11} color={tema.accent}/> Agendamento Online
+          </div>
+          <h1 style={{ fontSize: 'clamp(26px,5vw,40px)', fontWeight: 900, color: '#F8FAFC', letterSpacing: '-0.03em', marginBottom: '8px', lineHeight: 1.1 }}>
+            {nomeBusiness}
+          </h1>
+          <p style={{ fontSize: '15px', color: '#CBD5E1', marginBottom: endereco ? '6px' : '0', maxWidth: '500px', lineHeight: 1.5 }}>
+            {descBusiness}
+          </p>
+          {endereco && (
+            <p style={{ fontSize: '13px', color: '#94A3B8', display: 'flex', alignItems: 'center', gap: '5px' }}>
+              <span style={{ fontSize: '12px' }}>📍</span> {endereco}
+            </p>
+          )}
+          <div className="hero-btns">
+            <Link href={`/${slug}/agendar`} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: tema.accent, color: tema.btnText, fontWeight: 800, padding: '13px 26px', borderRadius: '12px', textDecoration: 'none', fontSize: '14px', boxShadow: `0 8px 24px ${tema.glow}`, letterSpacing: '-0.01em' }}>
+              Agendar agora →
+            </Link>
+            {linkWpp && (
+              <a href={linkWpp} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: '7px', background: 'rgba(34,197,94,.14)', color: '#4ADE80', fontWeight: 700, padding: '13px 22px', borderRadius: '12px', textDecoration: 'none', fontSize: '14px', border: '1px solid rgba(34,197,94,.28)' }}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+                WhatsApp
+              </a>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* CONTEUDO */}
+      <div className="wrap" style={{ paddingTop: '32px', paddingBottom: '60px' }}>
+
+        {/* SERVICOS */}
+        {servicos && servicos.length > 0 && (
+          <div style={{ marginBottom: '32px' }}>
+            <p className="sec-title">Serviços</p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              {servicos.map(s => (
+                <Link key={s.id} href={`/${slug}/agendar?servico=${s.id}`} className="crd svc-card" style={{ border: `1px solid rgba(148,163,184,.14)` }}>
+                  <div style={{ width: '42px', height: '42px', borderRadius: '12px', background: tema.soft, border: `1px solid ${tema.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <Sparkles size={18} color={tema.accent} />
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <p style={{ fontWeight: 700, fontSize: '14px', color: '#F8FAFC', marginBottom: '3px' }}>{s.nome}</p>
+                    {s.descricao && <p style={{ fontSize: '11px', color: '#64748B', marginBottom: '3px', lineHeight: 1.4 }}>{s.descricao}</p>}
+                    <p style={{ fontSize: '12px', color: '#94A3B8' }}>
+                      {s.duracao && <span>{s.duracao}</span>}
+                      {s.duracao && s.preco ? <span style={{ margin: '0 5px' }}>·</span> : null}
+                      {s.preco && <span style={{ color: tema.accent, fontWeight: 700 }}>{fBRL(parseFloat(s.preco))}</span>}
+                    </p>
+                  </div>
+                  <span style={{ fontSize: '18px', color: '#374151', flexShrink: 0 }}>›</span>
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* EQUIPE */}
+        {profissionais && profissionais.length > 0 && (
+          <div style={{ marginBottom: '32px' }}>
+            <p className="sec-title">Equipe</p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              {profissionais.map(p => (
+                <div key={p.id} className="crd" style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '14px 16px' }}>
+                  {p.foto_url ? (
+                    <img src={p.foto_url} alt={p.nome} style={{ width: '44px', height: '44px', borderRadius: '999px', objectFit: 'cover', border: `1px solid ${tema.border}`, flexShrink: 0 }} />
+                  ) : (
+                    <div style={{ width: '44px', height: '44px', borderRadius: '999px', background: tema.soft, border: `1px solid ${tema.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px', fontWeight: 700, color: tema.accent, flexShrink: 0 }}>
+                      {(p.nome || 'P').charAt(0).toUpperCase()}
+                    </div>
+                  )}
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <p style={{ fontSize: '14px', fontWeight: 600, color: '#F8FAFC', marginBottom: '2px' }}>{p.nome}</p>
+                    <p style={{ fontSize: '12px', color: '#64748B' }}>{p.cargo || 'Profissional'}</p>
+                  </div>
+                  <span style={{ fontSize: '18px', color: '#374151' }}>›</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* POR QUE AGENDAR */}
+        <div style={{ marginBottom: '32px' }}>
+          <p className="sec-title">Por que agendar aqui?</p>
+          <div className="benefit-grid">
+            {[
+              { I: Zap, titulo: 'Agende em segundos', desc: 'Sem ligação. Sem espera.' },
+              { I: CalendarDays, titulo: 'Horários reais', desc: 'Veja apenas horários livres.' },
+              { I: CheckCircle, titulo: 'Tudo registrado', desc: 'Sua agenda fica organizada.' },
+            ].map(b => (
+              <div key={b.titulo} className="crd" style={{ padding: '18px 16px', display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
+                <div style={{ width: '34px', height: '34px', borderRadius: '10px', background: tema.soft, border: `1px solid ${tema.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <b.I size={16} color={tema.accent} />
+                </div>
+                <div>
+                  <p style={{ fontWeight: 700, fontSize: '13px', color: '#E2E8F0', marginBottom: '4px' }}>{b.titulo}</p>
+                  <p style={{ fontSize: '12px', color: '#64748B', lineHeight: 1.5 }}>{b.desc}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* CTA FINAL */}
+        <div style={{ background: `radial-gradient(circle at top left,${tema.soft},transparent 40%),linear-gradient(145deg,rgba(15,23,42,.97),rgba(8,20,33,.99))`, border: `1.5px solid ${tema.border}`, borderRadius: '18px', padding: '28px 28px', boxShadow: `0 0 32px ${tema.glow}` }}>
+          <div className="cta-inner" style={{ display: 'flex', alignItems: 'center', gap: '20px', flexWrap: 'wrap' }}>
+            <div style={{ flex: 1, minWidth: '200px' }}>
+              <p style={{ fontSize: '18px', fontWeight: 800, color: '#F8FAFC', marginBottom: '6px', letterSpacing: '-0.02em' }}>Pronto para marcar seu horário?</p>
+              <p style={{ fontSize: '13px', color: '#64748B', lineHeight: 1.6 }}>Escolha o serviço, veja os horários disponíveis e finalize em poucos segundos.</p>
+            </div>
+            <div className="cta-btns" style={{ display: 'flex', gap: '10px', flexShrink: 0, flexWrap: 'wrap' }}>
+              <Link href={`/${slug}/agendar`} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: tema.accent, color: tema.btnText, fontWeight: 800, padding: '13px 24px', borderRadius: '12px', textDecoration: 'none', fontSize: '14px', boxShadow: `0 8px 24px ${tema.glow}`, whiteSpace: 'nowrap' }}>
+                Agendar agora →
+              </Link>
+              {linkWpp && (
+                <a href={linkWpp} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: '7px', background: 'rgba(15,23,42,.88)', color: '#94A3B8', fontWeight: 600, padding: '13px 18px', borderRadius: '12px', textDecoration: 'none', fontSize: '14px', border: '1px solid rgba(148,163,184,.18)', whiteSpace: 'nowrap' }}>
+                  Falar no WhatsApp
+                </a>
+              )}
+            </div>
+          </div>
+        </div>
+
+        <p style={{ textAlign: 'center', fontSize: '11px', color: '#374151', marginTop: '24px' }}>
+          Agendamento via <span style={{ color: '#4B5563' }}>ClienteMarcado</span>
+        </p>
+      </div>
+    </main>
+  )
+}
