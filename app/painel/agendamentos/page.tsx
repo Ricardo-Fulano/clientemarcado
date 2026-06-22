@@ -218,14 +218,14 @@ export default function Agendamentos(){
   const pend=todosAgs.filter(a=>{
     const d=new Date(a.data_hora||'');if(isNaN(d.getTime())||d>hojeBase)return false
     const s=String(a.status||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim()
-    return !['realizado','concluido','concluido','finalizado','finalizada','cancelado','cancelada','faltou'].includes(s)&&(s===''||s==='pendente'||s==='aguardando'||s==='retorno'||s==='confirmado'||s==='agendado')
+    return !['realizado','concluido','finalizado','finalizada','cancelado','cancelada','faltou','compareceu'].includes(s)&&(s===''||s==='pendente'||s==='aguardando'||s==='retorno'||s==='agendado')
   }).length
 
   // Filtro Hoje
   const agsF=ags.filter(a=>{
     const d=new Date(a.data_hora).toISOString().split('T')[0]
     if(view==='hoje'&&d!==hoje)return false
-    if(fSt!=='todos'&&a.status!==fSt)return false
+    if(fSt!=='todos'){const _s=a.status||'pendente';if(_s!==fSt)return false}
     if(fPr!=='todos'&&a.profissional_id!==fPr)return false
     return true
   })
@@ -238,7 +238,7 @@ export default function Agendamentos(){
     else if(periodoTodos==='30d'){const lim=new Date();lim.setDate(lim.getDate()-30);if(new Date(a.data_hora)<lim)return false}
     else if(periodoTodos==='mes'){if(!d.startsWith(agora.toISOString().slice(0,7)))return false}
     else if(periodoTodos==='ano'){if(!d.startsWith(String(agora.getFullYear())))return false}
-    if(fSt!=='todos'&&a.status!==fSt)return false
+    if(fSt!=='todos'){const _s=a.status||'pendente';if(_s!==fSt)return false}
     if(fPr!=='todos'&&a.profissional_id!==fPr)return false
     return true
   })
