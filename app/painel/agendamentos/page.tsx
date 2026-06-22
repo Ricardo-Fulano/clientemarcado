@@ -117,6 +117,7 @@ export default function Agendamentos(){
   const [bMotivo,setBMotivo]=useState('')
   const [salvandoBloqueio,setSalvandoBloqueio]=useState(false)
   const [bloqueios,setBloqueios]=useState<any[]>([])
+  const [todosAgs,setTodosAgs]=useState<any[]>([])
   // Aba Todos
   const [busca,setBusca]=useState('')
   const [periodoTodos,setPeriodoTodos]=useState<'7d'|'30d'|'mes'|'ano'|'tudo'>('mes')
@@ -151,6 +152,8 @@ export default function Agendamentos(){
       .lte('data_hora',fim.toISOString())
       .order('data_hora',{ascending:true})
     setAgs(a||[])
+    const{data:todos}=await supabase.from('agendamentos').select('id,data_hora,status,confirmacao_status').eq('user_id',user.id)
+    setTodosAgs(todos||[])
     const{data:bl}=await supabase.from('bloqueios_agenda').select('*').eq('user_id',user.id).order('data',{ascending:true})
     setBloqueios(bl||[])
     setLoading(false)
@@ -211,8 +214,12 @@ export default function Agendamentos(){
 
   const agsHj=ags.filter(a=>new Date(a.data_hora).toISOString().split('T')[0]===hoje)
   const conf=agsHj.filter(a=>a.status==='confirmado').length
-  const hojeBase=new Date();hojeBase.setHours(0,0,0,0)
-  const pend=ags.filter(a=>{const d=new Date(a.data_hora||a.data||'');d.setHours(0,0,0,0);if(d>hojeBase)return false;const s=String(a.status||'').toLowerCase().trim();return !s||s==='pendente'||s==='aguardando'||s==='retorno'}).length
+  const hojeBase=new Date();hojeBase.setHours(23,59,59,0)
+  const pend=todosAgs.filter(a=>{
+    const d=new Date(a.data_hora||'');if(isNaN(d.getTime())||d>hojeBase)return false
+    const s=String(a.status||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim()
+    return !['realizado','concluido','concluido','finalizado','finalizada','cancelado','cancelada','faltou'].includes(s)&&(s===''||s==='pendente'||s==='aguardando'||s==='retorno'||s==='confirmado'||s==='agendado')
+  }).length
 
   // Filtro Hoje
   const agsF=ags.filter(a=>{
@@ -387,6 +394,8 @@ export default function Agendamentos(){
     if(!user){toast('Sessão expirada.');setSalvandoBloqueio(false);return}
     const{error}=await supabase.from('bloqueios_agenda').insert({user_id:user.id,data:bData,horario_inicio:bHoraIni,horario_fim:bHoraFim,profissional_id:bProfId||null,motivo:bMotivo||null})
     if(error){toast('Erro ao bloquear horário.');setSalvandoBloqueio(false);return}
+    const{data:todos}=await supabase.from('agendamentos').select('id,data_hora,status,confirmacao_status').eq('user_id',user.id)
+    setTodosAgs(todos||[])
     const{data:bl}=await supabase.from('bloqueios_agenda').select('*').eq('user_id',user.id).order('data',{ascending:true})
     setBloqueios(bl||[])
     toast('Horário bloqueado com sucesso.')
