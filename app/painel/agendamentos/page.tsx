@@ -448,7 +448,7 @@ export default function Agendamentos(){
                 {v==='hoje'?'Hoje':v==='semana'?'Semana':'Todos'}
               </button>
             ))}
-            {(view==='hoje')&&['todos','pendente','confirmado','realizado','cancelado'].map(f=>(
+            {(view==='hoje')&&['todos','pendente','realizado','faltou','cancelado'].map(f=>(
               <button key={f} onClick={()=>setFSt(f)}
                 style={{height:32,padding:'0 12px',borderRadius:8,fontSize:12,fontWeight:600,cursor:'pointer',border:'1px solid '+(fSt===f?'rgba(59,130,246,.35)':'rgba(148,163,184,.13)'),background:fSt===f?'rgba(59,130,246,.12)':'transparent',color:fSt===f?'#60A5FA':'#64748B',fontFamily:'inherit',whiteSpace:'nowrap',flexShrink:0}}>
                 {f==='todos'?'Status':stCfg[f]?.t||f}
@@ -574,7 +574,7 @@ export default function Agendamentos(){
                     {lbl}
                   </button>
                 ))}
-                {['todos','pendente','confirmado','realizado','cancelado'].map(f=>(
+                {['todos','pendente','realizado','faltou','cancelado'].map(f=>(
                   <button key={f} onClick={()=>setFSt(f)}
                     style={{height:30,padding:'0 10px',borderRadius:8,fontSize:11,fontWeight:600,cursor:'pointer',border:'1px solid '+(fSt===f?'rgba(124,58,237,.4)':'rgba(148,163,184,.13)'),background:fSt===f?'rgba(124,58,237,.12)':'transparent',color:fSt===f?'#C4B5FD':'#64748B',fontFamily:'inherit',whiteSpace:'nowrap' as const}}>
                     {f==='todos'?'Status':stCfg[f]?.t||f}
