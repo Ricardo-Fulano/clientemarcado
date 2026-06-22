@@ -211,7 +211,7 @@ export default function Agendamentos(){
 
   const agsHj=ags.filter(a=>new Date(a.data_hora).toISOString().split('T')[0]===hoje)
   const conf=agsHj.filter(a=>a.status==='confirmado').length
-  const pend=agsHj.filter(a=>!a.status||a.status==='pendente').length
+  const pend=agsHj.filter(a=>{const s=String(a.status||'').toLowerCase().trim();return !s||s==='pendente'||s==='aguardando'||s==='retorno'}).length
 
   // Filtro Hoje
   const agsF=ags.filter(a=>{
