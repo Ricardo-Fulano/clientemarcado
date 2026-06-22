@@ -213,7 +213,7 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
                 <div style={{flex:1,minWidth:0}}><p style={{fontWeight:700,fontSize:'14px',color:'#EC4899',marginBottom:'2px'}}>Ver no Instagram</p><p style={{fontSize:'12px',color:'#64748B'}}>{String(perfil.instagram||'').startsWith('@')?String(perfil.instagram):'@'+String(perfil.instagram).replace('@','')}</p></div>
               </a>}
               {(perfil.endereco||perfil.cidade)&&<div className="crd" style={{display:'flex',alignItems:'center',gap:'14px',padding:'16px 18px'}}>
-                <div style={{width:'42px',height:'42px',borderRadius:'12px',background:tema.soft,border:1px solid ,display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={tema.accent} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg></div>
+                <div style={{width:'42px',height:'42px',borderRadius:'12px',background:tema.soft,border:'1px solid rgba(148,163,184,.22)',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={tema.accent} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg></div>
                 <div style={{flex:1,minWidth:0}}><p style={{fontWeight:700,fontSize:'14px',color:'#F8FAFC',marginBottom:'2px'}}>Endere&#xE7;o</p><p style={{fontSize:'12px',color:'#94A3B8'}}>{String(perfil.endereco||perfil.cidade||'')}</p></div>
               </div>}
             </div>
