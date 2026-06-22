@@ -121,7 +121,7 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
                     <p style={{ fontWeight: 700, fontSize: '14px', color: '#F8FAFC', marginBottom: '3px' }}>{s.nome}</p>
                     {s.descricao && <p style={{ fontSize: '11px', color: '#64748B', marginBottom: '3px', lineHeight: 1.4 }}>{s.descricao}</p>}
                     <p style={{ fontSize: '12px', color: '#94A3B8' }}>
-                      {s.duracao && <span>{s.duracao}</span>}
+                      {s.duracao && <span>{s.duracao} min</span>}
                       {s.duracao && s.preco ? <span style={{ margin: '0 5px' }}>·</span> : null}
                       {s.preco && <span style={{ color: tema.accent, fontWeight: 700 }}>{fBRL(parseFloat(s.preco))}</span>}
                     </p>
