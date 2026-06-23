@@ -189,10 +189,10 @@ export default function Cobrancas(){
 
           <div className="kpi-grid">
             {[
-              {l:'A RECEBER',sub:'Total pendente',v:fBRL(aReceber),c:'#FBBF24',bg:'rgba(245,158,11,.10)',bd:'rgba(245,158,11,.28)',I:CreditCard},
-              {l:'VENCIDAS',sub:'Cobranças em atraso',v:String(vencidas),c:'#F87171',bg:'rgba(239,68,68,.10)',bd:'rgba(239,68,68,.28)',I:AlertTriangle},
-              {l:'PARCIAIS',sub:'Pagas em parte',v:String(parciais),c:'#C4B5FD',bg:'rgba(124,58,237,.10)',bd:'rgba(124,58,237,.28)',I:CircleDollarSign},
-              {l:'EM ABERTO',sub:'Aguardando pagamento',v:String(emAberto),c:'#22D3EE',bg:'rgba(6,182,212,.10)',bd:'rgba(6,182,212,.28)',I:Hourglass},
+              {l:'A RECEBER',sub:'Total pendente',v:fBRL(aReceber),c:'#F8FAFC',bg:'rgba(148,163,184,.08)',bd:'rgba(148,163,184,.18)',I:CreditCard},
+              {l:'VENCIDAS',sub:'Cobranças em atraso',v:String(vencidas),c:'#F87171',bg:'rgba(239,68,68,.08)',bd:'rgba(248,113,113,.18)',I:AlertTriangle},
+              {l:'PARCIAIS',sub:'Pagas em parte',v:String(parciais),c:'#A78BFA',bg:'rgba(139,92,246,.08)',bd:'rgba(167,139,250,.18)',I:CircleDollarSign},
+              {l:'EM ABERTO',sub:'Aguardando pagamento',v:String(emAberto),c:'#60A5FA',bg:'rgba(59,130,246,.08)',bd:'rgba(96,165,250,.18)',I:Hourglass},
             ].map(k=>(
               <div key={k.l} className="crd" style={{padding:'18px 16px',background:'radial-gradient(circle at top left,'+k.bg+',transparent 60%),linear-gradient(145deg,rgba(15,23,42,.97),rgba(8,20,33,.99))',border:'1.5px solid '+k.bd}}>
                 <div style={{width:'36px',height:'36px',borderRadius:'10px',background:k.bg,display:'flex',alignItems:'center',justifyContent:'center',marginBottom:'10px'}}><k.I size={18} color={k.c}/></div>
@@ -228,8 +228,8 @@ export default function Cobrancas(){
             <div style={{display:'flex',flexDirection:'column',gap:'10px'}}>
               {filtradas.map(orc=>{
                 const saldoVal=getSaldo(orc)
-                const saldoC=saldoVal>0?'#FBBF24':'#4ADE80'
-                const statusC=ePaga(orc)?{bg:'rgba(34,197,94,.14)',c:'#4ADE80',bd:'rgba(34,197,94,.28)'}:orc.status==='Parcialmente pago'?{bg:'rgba(124,58,237,.14)',c:'#C4B5FD',bd:'rgba(124,58,237,.28)'}:eCancelada(orc)?{bg:'rgba(239,68,68,.14)',c:'#F87171',bd:'rgba(239,68,68,.28)'}:{bg:'rgba(245,158,11,.14)',c:'#FBBF24',bd:'rgba(245,158,11,.28)'}
+                const saldoC=saldoVal>0?'#CBD5E1':'#34D399'
+                const statusC=ePaga(orc)?{bg:'rgba(16,185,129,.08)',c:'#34D399',bd:'rgba(34,197,94,.22)'}:orc.status==='Parcialmente pago'?{bg:'rgba(250,204,21,.08)',c:'#FACC15',bd:'rgba(250,204,21,.20)'}:eCancelada(orc)?{bg:'rgba(148,163,184,.06)',c:'#CBD5E1',bd:'rgba(148,163,184,.16)'}:{bg:'rgba(59,130,246,.10)',c:'#60A5FA',bd:'rgba(96,165,250,.22)'}
                 return(
                   <div key={orc.id} className="crd" style={{padding:'18px 20px'}}>
                     <div style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',gap:'12px',marginBottom:'14px',flexWrap:'wrap'}}>
@@ -240,7 +240,7 @@ export default function Cobrancas(){
                       <span style={{fontSize:'11px',fontWeight:700,padding:'4px 12px',borderRadius:'999px',background:statusC.bg,color:statusC.c,border:'1px solid '+statusC.bd,flexShrink:0,whiteSpace:'nowrap'}}>{orc.status}</span>
                     </div>
                     <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'10px',marginBottom:'14px'}}>
-                      {[{l:'Total',v:fBRL(getTotal(orc)),c:'#F8FAFC'},{l:'Pago',v:fBRL(getPago(orc)),c:'#4ADE80'},{l:'Saldo',v:fBRL(saldoVal),c:saldoC}].map(f=>(
+                      {[{l:'Total',v:fBRL(getTotal(orc)),c:'#F8FAFC'},{l:'Pago',v:fBRL(getPago(orc)),c:'#34D399'},{l:'Saldo',v:fBRL(saldoVal),c:saldoC}].map(f=>(
                         <div key={f.l} style={{background:'rgba(255,255,255,.04)',borderRadius:'10px',padding:'10px 12px',border:'1px solid rgba(255,255,255,.07)'}}>
                           <p style={{fontSize:'10px',fontWeight:700,color:'#64748B',textTransform:'uppercase',letterSpacing:'.05em',marginBottom:'3px'}}>{f.l}</p>
                           <p style={{fontSize:'14px',fontWeight:800,color:f.c}}>{f.v}</p>
@@ -248,8 +248,8 @@ export default function Cobrancas(){
                       ))}
                     </div>
                     <div style={{display:'flex',gap:'8px',flexWrap:'wrap'}}>
-                      {orc.cliente_whatsapp&&ePendente(orc)&&<button onClick={()=>enviarWpp(orc)} style={{flex:1,minWidth:'100px',background:'rgba(34,197,94,.12)',border:'1px solid rgba(34,197,94,.28)',borderRadius:'8px',height:'38px',fontSize:'12px',fontWeight:600,color:'#4ADE80',cursor:'pointer',fontFamily:'inherit',display:'flex',alignItems:'center',justifyContent:'center',gap:'5px'}}>Cobrar no WhatsApp</button>}
-                      <Link href="/painel/orcamentos" style={{flex:1,minWidth:'100px',background:'rgba(15,23,42,.88)',border:'1px solid rgba(148,163,184,.20)',borderRadius:'8px',height:'38px',fontSize:'12px',fontWeight:600,color:'#CBD5E1',display:'flex',alignItems:'center',justifyContent:'center',gap:'5px',textDecoration:'none'}}>Ver detalhes</Link>
+                      {orc.cliente_whatsapp&&ePendente(orc)&&<button onClick={()=>enviarWpp(orc)} style={{flex:1,minWidth:'100px',background:'rgba(15,23,42,.78)',border:'1px solid rgba(34,197,94,.26)',borderRadius:'8px',height:'38px',fontSize:'12px',fontWeight:600,color:'#4ADE80',cursor:'pointer',fontFamily:'inherit',display:'flex',alignItems:'center',justifyContent:'center',gap:'5px'}}>Cobrar no WhatsApp</button>}
+                      <Link href="/painel/orcamentos" style={{flex:1,minWidth:'100px',background:'rgba(29,78,216,.10)',border:'1px solid rgba(96,165,250,.22)',borderRadius:'8px',height:'38px',fontSize:'12px',fontWeight:600,color:'#BFDBFE',display:'flex',alignItems:'center',justifyContent:'center',gap:'5px',textDecoration:'none'}}>Ver detalhes</Link>
                     </div>
                   </div>
                 )
