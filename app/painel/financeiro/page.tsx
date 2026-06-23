@@ -251,10 +251,10 @@ export default function Financeiro() {
           {/* KPIs */}
           <div className="kpi-grid">
             {[
-              { l: 'Recebido no mês', v: fmtBRL(recebidoMes), c: '#4ADE80', bg: 'rgba(34,197,94,.10)', bd: 'rgba(34,197,94,.26)', I: TrendingUp },
-              { l: 'Despesas do mês', v: fmtBRL(despesasMes), c: '#F87171', bg: 'rgba(239,68,68,.10)', bd: 'rgba(239,68,68,.26)', I: TrendingDown },
-              { l: 'Resultado estimado', v: fmtBRL(resultado), c: resultado >= 0 ? '#4ADE80' : '#F87171', bg: resultado >= 0 ? 'rgba(34,197,94,.10)' : 'rgba(239,68,68,.10)', bd: resultado >= 0 ? 'rgba(34,197,94,.26)' : 'rgba(239,68,68,.26)', I: Wallet },
-              { l: 'A receber', v: fmtBRL(aReceber), c: '#FBBF24', bg: 'rgba(245,158,11,.10)', bd: 'rgba(245,158,11,.26)', I: Clock },
+              { l: 'Recebido no mês', v: fmtBRL(recebidoMes), c: '#34D399', bg: 'rgba(16,185,129,.08)', bd: 'rgba(34,197,94,.20)', I: TrendingUp },
+              { l: 'Despesas do mês', v: fmtBRL(despesasMes), c: '#F87171', bg: 'rgba(239,68,68,.08)', bd: 'rgba(248,113,113,.18)', I: TrendingDown },
+              { l: 'Resultado estimado', v: fmtBRL(resultado), c: resultado >= 0 ? '#4ADE80' : '#F87171', bg: resultado >= 0 ? 'rgba(16,185,129,.08)' : 'rgba(239,68,68,.08)', bd: resultado >= 0 ? 'rgba(34,197,94,.20)' : 'rgba(248,113,113,.18)', I: Wallet },
+              { l: 'A receber', v: fmtBRL(aReceber), c: '#F8FAFC', bg: 'rgba(148,163,184,.08)', bd: 'rgba(148,163,184,.18)', I: Clock },
             ].map(k => (
               <div key={k.l} className="crd" style={{ padding: '18px 16px', background: `radial-gradient(circle at top left,${k.bg},transparent 60%),linear-gradient(145deg,rgba(15,23,42,.97),rgba(8,20,33,.99))`, border: `1.5px solid ${k.bd}` }}>
                 <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: k.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '10px' }}><k.I size={18} color={k.c} /></div>
