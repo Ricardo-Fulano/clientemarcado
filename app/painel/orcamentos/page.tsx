@@ -747,11 +747,11 @@ export default function Orcamentos(){
                           {(orc.saldo_restante||0)>0.01&&!['Pago','Finalizado','Cancelado'].includes(orc.status)&&(
                             <button onClick={()=>abrirModalPag(orc)}
                               style={{gridColumn:'1/-1',background:'rgba(15,23,42,.78)',border:'1.5px solid rgba(34,197,94,.26)',borderRadius:'8px',padding:'10px',fontSize:'13px',fontWeight:700,color:'#4ADE80',cursor:'pointer',fontFamily:'inherit',display:'flex',alignItems:'center',justifyContent:'center',gap:'6px'}}>
-                              Confirmar pagamento · R$ {fmtBRL(orc.saldo_restante||0)}
+                              Confirmar pagamento
                             </button>
                           )}
                           <button onClick={()=>handleExcluir(orc.id)}
-                            style={{gridColumn:'1/-1',background:'rgba(239,68,68,.07)',border:'1px solid rgba(248,113,113,.20)',borderRadius:'8px',padding:'6px',fontSize:'11px',fontWeight:600,color:'#FCA5A5',cursor:'pointer',fontFamily:'inherit'}}>Excluir</button>
+                            style={{gridColumn:'1/-1',background:'rgba(29,78,216,.10)',border:'1px solid rgba(96,165,250,.22)',borderRadius:'8px',padding:'6px',fontSize:'11px',fontWeight:600,color:'#BFDBFE',cursor:'pointer',fontFamily:'inherit'}}>Excluir</button>
                         </div>
                       </div>
                     )
