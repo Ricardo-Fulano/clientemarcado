@@ -12,15 +12,15 @@ const CSS=`
 html,body{overflow-x:hidden;width:100%;max-width:100%;background:#050B16}
 input,select,textarea{color-scheme:dark}
 select option{background:#07111F;color:#F8FAFC}
-.pg{background:radial-gradient(circle at top left,rgba(124,58,237,.20),transparent 32%),radial-gradient(circle at top right,rgba(37,99,235,.14),transparent 28%),linear-gradient(135deg,#050B16 0%,#07111F 45%,#050B16 100%);min-height:100vh;overflow-x:hidden}
+.pg{background:radial-gradient(circle at top left,rgba(124,58,237,.10),transparent 32%),radial-gradient(circle at top right,rgba(37,99,235,.14),transparent 28%),linear-gradient(135deg,#050B16 0%,#07111F 45%,#050B16 100%);min-height:100vh;overflow-x:hidden}
 .bdy{max-width:1200px;margin:0 auto;padding:28px 32px 80px;width:100%;box-sizing:border-box}
-.crd{background:radial-gradient(circle at top left,rgba(124,58,237,.08),transparent 38%),linear-gradient(145deg,rgba(15,23,42,.97),rgba(8,20,33,.99));border:1.5px solid rgba(148,163,184,.18);border-radius:18px;box-shadow:0 20px 48px rgba(0,0,0,.34),inset 0 1px 0 rgba(255,255,255,.04)}
+.crd{background:linear-gradient(145deg,rgba(15,23,42,.97),rgba(8,20,33,.99));border:1px solid rgba(148,163,184,.16);border-radius:16px;box-shadow:0 4px 20px rgba(0,0,0,.28)}
 .btn-p{background:${G};color:#fff;border:1px solid rgba(255,255,255,.12);border-radius:12px;height:44px;padding:0 20px;font-size:13px;font-weight:700;display:inline-flex;align-items:center;gap:6px;white-space:nowrap;transition:all .18s;font-family:inherit;cursor:pointer;text-decoration:none;box-shadow:0 8px 24px rgba(59,130,246,.28)}
 .btn-p:hover{transform:translateY(-1px)}
 .kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px}
 .pill{padding:7px 14px;border-radius:999px;font-size:12px;font-weight:600;cursor:pointer;border:1.5px solid rgba(148,163,184,.18);background:rgba(15,23,42,.86);color:#94A3B8;white-space:nowrap;flex-shrink:0;transition:all .18s;font-family:inherit}.fil-sv{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:20px;width:100%}.fil-sv .pill{flex-shrink:0;text-align:center;justify-content:center;display:flex;align-items:center;white-space:normal;font-size:11px;height:36px;padding:0 8px}@media(max-width:767px){.fil-sv{grid-template-columns:repeat(2,1fr)!important}.fil-sv .pill{height:40px!important;font-size:12px!important}}
 .pill:hover{background:rgba(124,58,237,.10);border-color:rgba(124,58,237,.28);color:#fff}
-.pill.on{background:${G};border-color:transparent;color:#fff;box-shadow:0 0 16px rgba(124,58,237,.28)}
+.pill.on{background:${G};border-color:transparent;color:#fff}
 .inp{width:100%;background:rgba(15,23,42,.88);border:1.5px solid rgba(148,163,184,.18);border-radius:12px;padding:0 14px;height:46px;font-size:14px;color:#F8FAFC;outline:none;font-family:inherit;transition:border-color .2s;display:block;box-sizing:border-box}
 .inp:focus{border-color:rgba(124,58,237,.55);box-shadow:0 0 0 3px rgba(124,58,237,.12)}
 .lbl{font-size:11px;font-weight:700;color:#94A3B8;text-transform:uppercase;letter-spacing:.08em;display:block;margin-bottom:6px}
@@ -203,9 +203,9 @@ export default function Servicos(){
           )}
           <div className="kpi-grid">
             {[
-              {l:'TOTAL CADASTRADO',sub:'Servicos e procedimentos',v:servicos.length,fmt:'n',c:'#F472B6',bg:'rgba(236,72,153,.10)',bd:'rgba(236,72,153,.28)',I:Sparkles},
+              {l:'TOTAL CADASTRADO',sub:'Servicos e procedimentos',v:servicos.length,fmt:'n',c:'#60A5FA',bg:'rgba(59,130,246,.10)',bd:'rgba(59,130,246,.22)',I:Sparkles},
               {l:'SERVICOS ATIVOS',sub:'Disponíveis para agendamento',v:ativos,fmt:'n',c:'#4ADE80',bg:'rgba(34,197,94,.10)',bd:'rgba(34,197,94,.28)',I:Tag},
-              {l:'CATEGORIAS',sub:'Tipos de servico',v:cats||0,fmt:'n',c:'#22D3EE',bg:'rgba(6,182,212,.10)',bd:'rgba(6,182,212,.28)',I:Tag},
+              {l:'CATEGORIAS',sub:'Tipos de servico',v:cats||0,fmt:'n',c:'#94A3B8',bg:'rgba(148,163,184,.08)',bd:'rgba(148,163,184,.20)',I:Tag},
               {l:'VALOR MEDIO',sub:comPreco.length>0?'Media dos servicos com preco':'Sem valores cadastrados',v:ticketMedio,fmt:'brl',c:'#FBBF24',bg:'rgba(245,158,11,.10)',bd:'rgba(245,158,11,.28)',I:Tag},
             ].map(k=>(
               <div key={k.l} className="crd" style={{padding:'18px 16px',background:`radial-gradient(circle at top left,${k.bg},transparent 60%),linear-gradient(145deg,rgba(15,23,42,.97),rgba(8,20,33,.99))`,border:`1.5px solid ${k.bd}`}}>
@@ -226,7 +226,7 @@ export default function Servicos(){
           </div>
           {filtrados.length===0?(
             <div className="crd" style={{padding:'56px 24px',textAlign:'center'}}>
-              <div style={{width:'60px',height:'60px',borderRadius:'18px',background:'rgba(236,72,153,.12)',border:'1px solid rgba(236,72,153,.28)',display:'flex',alignItems:'center',justifyContent:'center',margin:'0 auto 18px'}}><Sparkles size={26} color="#F472B6"/></div>
+              <div style={{width:'60px',height:'60px',borderRadius:'18px',background:'rgba(59,130,246,.10)',border:'1px solid rgba(59,130,246,.22)',display:'flex',alignItems:'center',justifyContent:'center',margin:'0 auto 18px'}}><Sparkles size={26} color="#60A5FA"/></div>
               <p style={{fontSize:'16px',fontWeight:700,color:'#F8FAFC',marginBottom:'8px'}}>Nenhum servico cadastrado</p>
               <p style={{fontSize:'13px',color:'#64748B',lineHeight:1.6,marginBottom:'24px',maxWidth:'380px',margin:'0 auto 24px'}}>Cadastre servicos ou procedimentos para comecar a organizar sua agenda e seus orcamentos.</p>
               <button onClick={()=>{resetForm();setShowForm(true)}} className="btn-p" style={{display:'inline-flex'}}><Plus size={15}/>Novo servico</button>
@@ -240,7 +240,7 @@ export default function Servicos(){
                   <div key={s.id} className="crd sv-card" style={{background:s.ativo?'radial-gradient(circle at top left,rgba(124,58,237,.08),transparent 38%),linear-gradient(145deg,rgba(15,23,42,.97),rgba(8,20,33,.99))':'linear-gradient(145deg,rgba(10,18,30,.98),rgba(6,14,24,.99))',border:`1.5px solid ${s.ativo?'rgba(148,163,184,.18)':'rgba(148,163,184,.10)'}`}}>
                     <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:'8px',marginBottom:'10px',flexWrap:'wrap'}}>
                       <div style={{display:'flex',alignItems:'center',gap:'10px',minWidth:0}}>
-                        <div style={{width:'38px',height:'38px',borderRadius:'10px',background:'rgba(236,72,153,.14)',border:'1px solid rgba(236,72,153,.22)',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}><Sparkles size={18} color="#F472B6"/></div>
+                        <div style={{width:'38px',height:'38px',borderRadius:'10px',background:'rgba(59,130,246,.12)',border:'1px solid rgba(59,130,246,.22)',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}><Sparkles size={18} color="#60A5FA"/></div>
                         <p style={{fontSize:'15px',fontWeight:700,color:'#F8FAFC',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{s.nome}</p>
                       </div>
                       <div style={{display:'flex',gap:'6px',alignItems:'center',flexShrink:0}}>
@@ -248,9 +248,9 @@ export default function Servicos(){
                         <span style={{fontSize:'11px',fontWeight:700,padding:'4px 12px',borderRadius:'999px',background:s.ativo?'rgba(34,197,94,.14)':'rgba(148,163,184,.10)',color:s.ativo?'#4ADE80':'#94A3B8',border:`1px solid ${s.ativo?'rgba(34,197,94,.28)':'rgba(148,163,184,.16)'}`}}>{s.ativo?'Ativo':'Inativo'}</span>
                       </div>
                     </div>
-                    {!ehGratuito&&<p style={{fontSize:'20px',fontWeight:800,color:'#4ADE80',marginBottom:'8px'}}>{fBRL(s.preco||0)}</p>}
+                    {!ehGratuito&&<p style={{fontSize:'20px',fontWeight:800,color:'#22C55E',marginBottom:'8px'}}>{fBRL(s.preco||0)}</p>}
                     <div style={{display:'flex',flexWrap:'wrap',gap:'6px',marginBottom:'12px'}}>
-                      {s.duracao&&<span style={{fontSize:'11px',color:'#94A3B8',background:'rgba(255,255,255,.05)',border:'1px solid rgba(255,255,255,.07)',borderRadius:'6px',padding:'3px 10px'}}>{s.duracao}</span>}
+                      {s.duracao&&<span style={{fontSize:'11px',color:'#94A3B8',background:'rgba(255,255,255,.05)',border:'1px solid rgba(255,255,255,.07)',borderRadius:'6px',padding:'3px 10px'}}>{typeof s.duracao==='number'?s.duracao+' min':String(s.duracao).includes('min')?s.duracao:s.duracao+' min'}</span>}
                       {s.categoria&&<span style={{fontSize:'11px',color:'#94A3B8',background:'rgba(255,255,255,.05)',border:'1px solid rgba(255,255,255,.07)',borderRadius:'6px',padding:'3px 10px'}}>{s.categoria}</span>}
                       <span style={{fontSize:'11px',color:'#94A3B8',background:'rgba(255,255,255,.05)',border:'1px solid rgba(255,255,255,.07)',borderRadius:'6px',padding:'3px 10px'}}>{profLabel}</span>
                       {s.descricao&&<span style={{fontSize:'11px',color:'#64748B',fontStyle:'italic'}}>{s.descricao}</span>}
