@@ -17,7 +17,7 @@ input,select,textarea{color-scheme:dark}
 .kpi-g{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px}
 .hdr-btns{display:flex;gap:8px;flex-wrap:wrap;flex-shrink:0}
 .fil-scroll{display:flex;align-items:center;gap:8px;margin-bottom:14px;width:100%;flex-wrap:wrap}
-.ag-item{background:linear-gradient(145deg,rgba(11,22,40,.98),rgba(8,16,28,.99));border:1px solid rgba(59,130,246,.18);border-radius:20px;padding:16px;margin-bottom:12px;cursor:pointer;transition:all .15s}
+.ag-item{background:linear-gradient(145deg,rgba(11,22,40,.98),rgba(8,16,28,.99));border:1px solid rgba(96,165,250,.18);border-radius:20px;padding:16px;margin-bottom:12px;cursor:pointer;transition:all .15s}
 .ag-item:hover{border-color:rgba(59,130,246,.35)}
 .ag-item.sel{border-color:rgba(59,130,246,.55);background:radial-gradient(circle at top left,rgba(59,130,246,.09),transparent 60%),linear-gradient(145deg,rgba(11,22,40,.98),rgba(8,16,28,.99))}
 .card-btns{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
@@ -65,16 +65,16 @@ input,select,textarea{color-scheme:dark}
 `
 
 const confCfg: Record<string,{t:string,bg:string,c:string}> = {
-  pendente:         {t:'Aguardando confirmação',bg:'rgba(245,158,11,.12)',c:'#FCD34D'},
+  pendente:         {t:'Aguardando confirmação',bg:'rgba(250,204,21,.08)',c:'#FACC15'},
   mensagem_enviada: {t:'Mensagem enviada',      bg:'rgba(59,130,246,.12)', c:'#60A5FA'},
   confirmado:       {t:'Cliente confirmou',     bg:'rgba(34,197,94,.12)',  c:'#4ADE80'},
-  sem_resposta:     {t:'Sem resposta',          bg:'rgba(245,158,11,.12)',c:'#FCD34D'},
+  sem_resposta:     {t:'Sem resposta',          bg:'rgba(250,204,21,.08)',c:'#FACC15'},
   nao_comparece:    {t:'Não vai comparecer',    bg:'rgba(239,68,68,.12)',  c:'#F87171'},
   remarcado:        {t:'Remarcado',             bg:'rgba(124,58,237,.12)',c:'#C4B5FD'},
 }
 
 const stCfg: Record<string,{t:string,bg:string,c:string,bd:string}> = {
-  pendente:      {t:'Pendente',       bg:'rgba(245,158,11,.14)',c:'#FCD34D',bd:'rgba(245,158,11,.30)'},
+  pendente:      {t:'Pendente',       bg:'rgba(250,204,21,.10)',c:'#FACC15',bd:'rgba(250,204,21,.22)'},
   confirmado:    {t:'Confirmado',     bg:'rgba(34,197,94,.14)', c:'#4ADE80',bd:'rgba(34,197,94,.30)'},
   realizado:     {t:'Realizado',      bg:'rgba(34,197,94,.12)', c:'#22C55E',bd:'rgba(34,197,94,.25)'},
   cancelado:     {t:'Cancelado',      bg:'rgba(239,68,68,.12)', c:'#F87171',bd:'rgba(239,68,68,.28)'},
@@ -312,10 +312,10 @@ export default function Agendamentos(){
           {a.servicos?.preco?<span style={{color:'#22C55E'}}> · R$ {a.servicos.preco}</span>:null}
         </p>
         <div className="card-btns" onClick={e=>e.stopPropagation()}>
-          {wW&&<a href={wW} target="_blank" rel="noreferrer" className="card-btn" style={{background:'rgba(34,197,94,.12)',color:'#4ADE80',border:'1px solid rgba(34,197,94,.28)'}}>WhatsApp</a>}
-          {wC2&&!jaRealizado&&<a href={wC2} target="_blank" rel="noreferrer" className="card-btn" onClick={()=>updConf(a.id,'mensagem_enviada')} style={{background:'rgba(59,130,246,.12)',color:'#BFDBFE',border:'1px solid rgba(59,130,246,.28)'}}>Enviar confirmação</a>}
+          {wW&&<a href={wW} target="_blank" rel="noreferrer" className="card-btn" style={{background:'rgba(34,197,94,.12)',color:'#4ADE80',border:'1px solid rgba(34,197,94,.25)'}}>WhatsApp</a>}
+          {wC2&&!jaRealizado&&<a href={wC2} target="_blank" rel="noreferrer" className="card-btn" onClick={()=>updConf(a.id,'mensagem_enviada')} style={{background:'rgba(59,130,246,.12)',color:'#BFDBFE',border:'1px solid rgba(96,165,250,.25)'}}>Enviar confirmação</a>}
           {!jaRealizado&&a.status!=='cancelado'&&a.status!=='faltou'&&(
-            <button className="card-btn" onClick={()=>updSt(a.id,'realizado')} style={{background:'rgba(34,197,94,.10)',color:'#86EFAC',border:'1px solid rgba(34,197,94,.22)'}}>✓ Realizado</button>
+            <button className="card-btn" onClick={()=>updSt(a.id,'realizado')} style={{background:'rgba(34,197,94,.10)',color:'#86EFAC',border:'1px solid rgba(34,197,94,.25)'}}>✓ Realizado</button>
           )}
           <button className="card-btn" onClick={()=>setBsAg(a)} style={{background:'rgba(255,255,255,.05)',color:'#94A3B8',border:'1px solid rgba(148,163,184,.16)'}}>⋯ Mais</button>
         </div>
@@ -430,7 +430,7 @@ export default function Agendamentos(){
             {[
               {l:'Hoje',n:agsHj.length,c:'#60A5FA',bd:'rgba(59,130,246,.28)',bg:'rgba(59,130,246,.08)',ic:<svg width={15} height={15} viewBox='0 0 24 24' fill='none' stroke='#60A5FA' strokeWidth='2' strokeLinecap='round' strokeLinejoin='round'><rect x='3' y='4' width='18' height='18' rx='2'/><line x1='16' y1='2' x2='16' y2='6'/><line x1='8' y1='2' x2='8' y2='6'/><line x1='3' y1='10' x2='21' y2='10'/></svg>},
               {l:'Confirmados',n:conf,c:'#4ADE80',bd:'rgba(34,197,94,.28)',bg:'rgba(34,197,94,.08)',ic:<svg width={15} height={15} viewBox='0 0 24 24' fill='none' stroke='#4ADE80' strokeWidth='2.5' strokeLinecap='round' strokeLinejoin='round'><polyline points='20 6 9 17 4 12'/></svg>},
-              {l:'Pendentes',n:pend,c:'#FBBF24',bd:'rgba(245,158,11,.28)',bg:'rgba(245,158,11,.08)',ic:<svg width={15} height={15} viewBox='0 0 24 24' fill='none' stroke='#FBBF24' strokeWidth='2' strokeLinecap='round' strokeLinejoin='round'><circle cx='12' cy='12' r='10'/><polyline points='12 6 12 12 16 14'/></svg>},
+              {l:'Pendentes',n:pend,c:'#FBBF24',bd:'rgba(250,204,21,.25)',bg:'rgba(250,204,21,.08)',ic:<svg width={15} height={15} viewBox='0 0 24 24' fill='none' stroke='#FACC15' strokeWidth='2' strokeLinecap='round' strokeLinejoin='round'><circle cx='12' cy='12' r='10'/><polyline points='12 6 12 12 16 14'/></svg>},
             ].map(({l,n,c,bd,bg,ic})=>(
               <div key={l} style={{background:'radial-gradient(circle at top left,'+bg+',transparent 70%),linear-gradient(145deg,rgba(11,22,40,.97),rgba(8,16,28,.99))',border:'1.5px solid '+bd,borderRadius:16,padding:'12px 10px',display:'flex',flexDirection:'column',gap:4,minWidth:0,boxSizing:'border-box'}}>
                 <div style={{display:'flex',alignItems:'center',justifyContent:'center',width:28,height:28}}>{ic}</div>
