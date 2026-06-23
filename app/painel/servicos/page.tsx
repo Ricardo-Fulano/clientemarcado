@@ -206,7 +206,7 @@ export default function Servicos(){
               {l:'TOTAL CADASTRADO',sub:'Servicos e procedimentos',v:servicos.length,fmt:'n',c:'#60A5FA',bg:'rgba(59,130,246,.10)',bd:'rgba(59,130,246,.22)',I:Sparkles},
               {l:'SERVICOS ATIVOS',sub:'Disponíveis para agendamento',v:ativos,fmt:'n',c:'#4ADE80',bg:'rgba(34,197,94,.10)',bd:'rgba(34,197,94,.28)',I:Tag},
               {l:'CATEGORIAS',sub:'Tipos de servico',v:cats||0,fmt:'n',c:'#94A3B8',bg:'rgba(148,163,184,.08)',bd:'rgba(148,163,184,.20)',I:Tag},
-              {l:'VALOR MEDIO',sub:comPreco.length>0?'Media dos servicos com preco':'Sem valores cadastrados',v:ticketMedio,fmt:'brl',c:'#FBBF24',bg:'rgba(245,158,11,.10)',bd:'rgba(245,158,11,.28)',I:Tag},
+              {l:'VALOR MEDIO',sub:comPreco.length>0?'Media dos servicos com preco':'Sem valores cadastrados',v:ticketMedio,fmt:'brl',c:'#60A5FA',bg:'rgba(59,130,246,.10)',bd:'rgba(96,165,250,.22)',I:Tag},
             ].map(k=>(
               <div key={k.l} className="crd" style={{padding:'18px 16px',background:`radial-gradient(circle at top left,${k.bg},transparent 60%),linear-gradient(145deg,rgba(15,23,42,.97),rgba(8,20,33,.99))`,border:`1.5px solid ${k.bd}`}}>
                 <div style={{width:'36px',height:'36px',borderRadius:'10px',background:k.bg,display:'flex',alignItems:'center',justifyContent:'center',marginBottom:'10px'}}><k.I size={18} color={k.c}/></div>
