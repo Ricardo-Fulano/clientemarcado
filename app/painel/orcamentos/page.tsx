@@ -675,9 +675,9 @@ export default function Orcamentos(){
               <div className="od-kpi" style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:'8px',marginBottom:'10px'}}>
                 {[
                   {label:'Em aberto',valor:kpis.aberto,fmt:'n',cor:'#3B82F6',bg:'rgba(59,130,246,.12)',border:'rgba(59,130,246,.25)'},
-                  {label:'A receber',valor:kpis.aReceber,fmt:'brl',cor:'#F59E0B',bg:'rgba(245,158,11,.12)',border:'rgba(245,158,11,.25)'},
-                  {label:periodoTipo==='mes'?'Recebido no mês':'Recebido no período',valor:kpis.recebido,fmt:'brl',cor:'#22C55E',bg:'rgba(34,197,94,.12)',border:'rgba(34,197,94,.25)'},
-                  {label:'Parciais',valor:kpis.parciais,fmt:'n',cor:'#A78BFA',bg:'rgba(167,139,250,.12)',border:'rgba(167,139,250,.25)'},
+                  {label:'A receber',valor:kpis.aReceber,fmt:'brl',cor:'#F8FAFC',bg:'rgba(148,163,184,.08)',border:'rgba(148,163,184,.18)'},
+                  {label:periodoTipo==='mes'?'Recebido no mês':'Recebido no período',valor:kpis.recebido,fmt:'brl',cor:'#34D399',bg:'rgba(16,185,129,.08)',border:'rgba(52,211,153,.20)'},
+                  {label:'Parciais',valor:kpis.parciais,fmt:'n',cor:'#A78BFA',bg:'rgba(139,92,246,.08)',border:'rgba(167,139,250,.18)'},
                 ].map(m=>(
                   <div key={m.label} style={{background:m.bg,border:`1px solid ${m.border}`,borderRadius:'10px',padding:'9px 10px',boxSizing:'border-box' as const}}>
                     <p style={{fontSize:'10px',fontWeight:700,color:'#94A3B8',textTransform:'uppercase' as const,letterSpacing:'.05em',marginBottom:'4px'}}>{m.label}</p>
@@ -721,14 +721,14 @@ export default function Orcamentos(){
                           <div style={{minWidth:0}}>
                             <div style={{display:'flex',alignItems:'center',gap:'8px',marginBottom:'2px',flexWrap:'wrap'}}>
                               <p style={{fontSize:'14px',fontWeight:700,color:'#fff'}}>{orc.cliente_nome}</p>
-                              {isOd&&<span style={{fontSize:'10px',fontWeight:700,padding:'2px 8px',borderRadius:'999px',background:'rgba(124,58,237,.2)',color:'#C4B5FD',border:'1px solid rgba(124,58,237,.35)',whiteSpace:'nowrap' as const}}>Odontológico</span>}
+                              {isOd&&<span style={{fontSize:'10px',fontWeight:700,padding:'2px 8px',borderRadius:'999px',background:'rgba(139,92,246,.12)',color:'#C4B5FD',border:'1px solid rgba(167,139,250,.22)',whiteSpace:'nowrap' as const}}>Odontológico</span>}
                             </div>
                             <p style={{fontSize:'11px',color:'#64748B'}}>{orc.tipo} · {fmtData(orc.data)}</p>
                           </div>
                           <span style={{fontSize:'11px',fontWeight:700,padding:'3px 10px',borderRadius:'999px',background:cfg.bg,color:cfg.color,border:`1px solid ${cfg.border}`,whiteSpace:'nowrap' as const,flexShrink:0}}>{orc.status}</span>
                         </div>
                         <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:'6px',marginBottom:'10px'}}>
-                          {[{l:'Total',v:orc.total,c:'#fff'},{l:'Pago',v:orc.valor_pago,c:'#22C55E'},{l:'Saldo',v:orc.saldo_restante,c:orc.saldo_restante>0?'#F59E0B':'#22C55E'}].map(f=>(
+                          {[{l:'Total',v:orc.total,c:'#fff'},{l:'Pago',v:orc.valor_pago,c:'#22C55E'},{l:'Saldo',v:orc.saldo_restante,c:orc.saldo_restante>0?'#CBD5E1':'#34D399'}].map(f=>(
                             <div key={f.l} style={{background:'rgba(255,255,255,.04)',borderRadius:'8px',padding:'7px 10px'}}>
                               <p style={{fontSize:'10px',color:'#64748B',fontWeight:600,textTransform:'uppercase' as const,letterSpacing:'.04em',marginBottom:'2px'}}>{f.l}</p>
                               <p style={{fontSize:'13px',fontWeight:700,color:f.c}}>R$ {fmtBRL(f.v)}</p>
@@ -737,21 +737,21 @@ export default function Orcamentos(){
                         </div>
                         <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'6px'}}>
                           <button onClick={()=>{setDetalheId(orc.id);carregarPagamentos(orc.id);setView('detalhe')}}
-                            style={{background:'rgba(59,130,246,.15)',border:'1px solid rgba(59,130,246,.3)',borderRadius:'8px',padding:'8px',fontSize:'12px',fontWeight:600,color:'#60A5FA',cursor:'pointer',fontFamily:'inherit'}}>Ver detalhes</button>
+                            style={{background:'rgba(59,130,246,.12)',border:'1px solid rgba(96,165,250,.24)',borderRadius:'8px',padding:'8px',fontSize:'12px',fontWeight:600,color:'#93C5FD',cursor:'pointer',fontFamily:'inherit'}}>Ver detalhes</button>
                           <button onClick={()=>enviarWpp(orc)}
-                            style={{background:'rgba(34,197,94,.15)',border:'1px solid rgba(34,197,94,.3)',borderRadius:'8px',padding:'8px',fontSize:'12px',fontWeight:600,color:'#4ADE80',cursor:'pointer',fontFamily:'inherit'}}>WhatsApp</button>
+                            style={{background:'rgba(15,23,42,.72)',border:'1px solid rgba(34,197,94,.24)',borderRadius:'8px',padding:'8px',fontSize:'12px',fontWeight:600,color:'#4ADE80',cursor:'pointer',fontFamily:'inherit'}}>WhatsApp</button>
                           <button onClick={()=>gerarPDF(orc)}
-                            style={{background:'rgba(6,182,212,.15)',border:'1px solid rgba(6,182,212,.3)',borderRadius:'8px',padding:'8px',fontSize:'12px',fontWeight:600,color:'#22D3EE',cursor:'pointer',fontFamily:'inherit'}}>PDF</button>
+                            style={{background:'rgba(59,130,246,.12)',border:'1px solid rgba(96,165,250,.24)',borderRadius:'8px',padding:'8px',fontSize:'12px',fontWeight:600,color:'#93C5FD',cursor:'pointer',fontFamily:'inherit'}}>PDF</button>
                           <button onClick={()=>abrirEditar(orc)}
-                            style={{background:'rgba(255,255,255,.08)',border:'1px solid rgba(255,255,255,.12)',borderRadius:'8px',padding:'8px',fontSize:'12px',fontWeight:600,color:'#CBD5E1',cursor:'pointer',fontFamily:'inherit'}}>Editar</button>
+                            style={{background:'rgba(59,130,246,.12)',border:'1px solid rgba(96,165,250,.24)',borderRadius:'8px',padding:'8px',fontSize:'12px',fontWeight:600,color:'#93C5FD',cursor:'pointer',fontFamily:'inherit'}}>Editar</button>
                           {(orc.saldo_restante||0)>0.01&&!['Pago','Finalizado','Cancelado'].includes(orc.status)&&(
                             <button onClick={()=>abrirModalPag(orc)}
-                              style={{gridColumn:'1/-1',background:'rgba(34,197,94,.12)',border:'1.5px solid rgba(34,197,94,.35)',borderRadius:'8px',padding:'10px',fontSize:'13px',fontWeight:700,color:'#4ADE80',cursor:'pointer',fontFamily:'inherit',display:'flex',alignItems:'center',justifyContent:'center',gap:'6px'}}>
+                              style={{gridColumn:'1/-1',background:'rgba(15,23,42,.78)',border:'1.5px solid rgba(34,197,94,.26)',borderRadius:'8px',padding:'10px',fontSize:'13px',fontWeight:700,color:'#4ADE80',cursor:'pointer',fontFamily:'inherit',display:'flex',alignItems:'center',justifyContent:'center',gap:'6px'}}>
                               Confirmar pagamento · R$ {fmtBRL(orc.saldo_restante||0)}
                             </button>
                           )}
                           <button onClick={()=>handleExcluir(orc.id)}
-                            style={{gridColumn:'1/-1',background:'rgba(239,68,68,.07)',border:'1px solid rgba(239,68,68,.18)',borderRadius:'8px',padding:'6px',fontSize:'11px',fontWeight:600,color:'#F87171',cursor:'pointer',fontFamily:'inherit'}}>Excluir</button>
+                            style={{gridColumn:'1/-1',background:'rgba(239,68,68,.07)',border:'1px solid rgba(248,113,113,.20)',borderRadius:'8px',padding:'6px',fontSize:'11px',fontWeight:600,color:'#FCA5A5',cursor:'pointer',fontFamily:'inherit'}}>Excluir</button>
                         </div>
                       </div>
                     )
