@@ -402,7 +402,7 @@ export default function Relatorios(){
                         <p style={{fontSize:'14px',fontWeight:600,color:'#F8FAFC',marginBottom:'2px'}}>{sv.nome}</p>
                         <p style={{fontSize:'12px',color:'#64748B'}}>{sv.qtd} realizado{sv.qtd!==1?'s':''} · ticket médio {fBRL(sv.ticket)}</p>
                       </div>
-                      <p style={{fontSize:'15px',fontWeight:800,color:'#4ADE80',flexShrink:0}}>{fBRL(sv.receita)}</p>
+                      <p style={{fontSize:'15px',fontWeight:800,color:'#34D399',flexShrink:0}}>{fBRL(sv.receita)}</p>
                     </div>
                   ))}
                 </div>
@@ -488,11 +488,11 @@ export default function Relatorios(){
                           <div style={{minWidth:0,flex:1}}>
                             <div style={{display:'flex',alignItems:'center',gap:'8px',marginBottom:'4px'}}>
                               <p style={{fontSize:'14px',fontWeight:600,color:'#F8FAFC'}}>{cat.nome}</p>
-                              <span style={{fontSize:'10px',fontWeight:700,padding:'2px 6px',borderRadius:'999px',background:'rgba(239,68,68,.12)',color:'#F87171',border:'1px solid rgba(239,68,68,.22)'}}>{pct}%</span>
+                              <span style={{fontSize:'10px',fontWeight:700,padding:'2px 6px',borderRadius:'999px',background:'rgba(239,68,68,.08)',color:'#F87171',border:'1px solid rgba(248,113,113,.18)'}}>{pct}%</span>
                             </div>
                             <div style={{display:'flex',alignItems:'center',gap:'8px'}}>
                               <div style={{flex:1,height:'3px',borderRadius:'2px',background:'rgba(255,255,255,.06)',overflow:'hidden'}}>
-                                <div style={{height:'100%',width:`${pct}%`,background:'linear-gradient(90deg,#EF4444,#F87171)',borderRadius:'2px'}}/>
+                                <div style={{height:'100%',width:`${pct}%`,background:'linear-gradient(90deg,#F87171,#FCA5A5)',borderRadius:'2px'}}/>
                               </div>
                               <p style={{fontSize:'12px',color:'#64748B',flexShrink:0}}>{cat.qtd} lançamento{cat.qtd!==1?'s':''}</p>
                             </div>
@@ -548,12 +548,12 @@ export default function Relatorios(){
                         <p style={{fontSize:'15px',fontWeight:700,color:'#F8FAFC',marginBottom:'3px'}}>{p.nome}</p>
                         {p.cargo&&<p style={{fontSize:'12px',color:'#94A3B8',marginBottom:'6px'}}>{p.cargo}</p>}
                         <div style={{display:'flex',gap:'6px',flexWrap:'wrap'}}>
-                          <span style={{fontSize:'11px',fontWeight:600,padding:'2px 8px',borderRadius:'999px',background:'rgba(59,130,246,.14)',color:'#93C5FD',border:'1px solid rgba(59,130,246,.28)'}}>{atsMes} atendimento{atsMes!==1?'s':''}</span>
+                          <span style={{fontSize:'11px',fontWeight:600,padding:'2px 8px',borderRadius:'999px',background:'rgba(59,130,246,.10)',color:'#BFDBFE',border:'1px solid rgba(96,165,250,.18)'}}>{atsMes} atendimento{atsMes!==1?'s':''}</span>
                           {retMes>0&&<span style={{fontSize:'11px',fontWeight:600,padding:'2px 8px',borderRadius:'999px',background:'rgba(124,58,237,.14)',color:'#C4B5FD',border:'1px solid rgba(124,58,237,.28)'}}>{retMes} retorno{retMes!==1?'s':''}</span>}
                         </div>
                       </div>
                       <div style={{textAlign:'right' as const,flexShrink:0}}>
-                        <p style={{fontSize:'22px',fontWeight:800,color:'#4ADE80',lineHeight:1,marginBottom:'8px'}}>{fBRL(p.rec)}</p>
+                        <p style={{fontSize:'22px',fontWeight:800,color:'#34D399',lineHeight:1,marginBottom:'8px'}}>{fBRL(p.rec)}</p>
                         <button onClick={()=>setProfSel(p)} style={{background:'rgba(59,130,246,.10)',border:'1px solid rgba(59,130,246,.24)',color:'#93C5FD',borderRadius:'12px',padding:'8px 12px',fontSize:'13px',fontWeight:700,cursor:'pointer',fontFamily:'inherit'}}>
                           Ver relatório →
                         </button>
