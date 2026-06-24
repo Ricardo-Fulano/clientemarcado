@@ -159,9 +159,9 @@ export default function Relatorios(){
 
   // ✅ Gráfico financeiro usa receita unificada
   const chartData=[
-    {name:'Receita',valor:receita,fill:'#22C55E'},
-    {name:'Despesas',valor:despTotal,fill:'#EF4444'},
-    {name:'Resultado',valor:Math.abs(lucro),fill:lucroPositivo?'#22C55E':'#EF4444'},
+    {name:'Receita',valor:receita,fill:'#34D399'},
+    {name:'Despesas',valor:despTotal,fill:'#F87171'},
+    {name:'Resultado',valor:Math.abs(lucro),fill:'#60A5FA'},
   ]
 
   // ✅ Cálculos diários — usa agendamentos realizados para receita por dia
@@ -298,7 +298,7 @@ export default function Relatorios(){
                         <XAxis dataKey="name" tick={{fill:'#64748B',fontSize:9}} axisLine={false} tickLine={false} interval={1}/>
                         <YAxis tickFormatter={v=>v>0?`${(v/1000).toFixed(0)}k`:'0'} tick={{fill:'#64748B',fontSize:9}} axisLine={false} tickLine={false} width={28}/>
                         <Tooltip content={<CustomTooltip/>} cursor={{fill:'rgba(148,163,184,.06)'}}/>
-                        <Bar dataKey="valor" fill="#22C55E" radius={[3,3,0,0]} fillOpacity={0.85}/>
+                        <Bar dataKey="valor" fill="#34D399" radius={[3,3,0,0]} fillOpacity={0.85}/>
                       </BarChart>
                     </ResponsiveContainer>
                   </div>
@@ -315,11 +315,11 @@ export default function Relatorios(){
               ):(
                 <>
                   <div style={{display:'flex',gap:'8px',marginBottom:'14px',flexWrap:'wrap'}}>
-                    {melhorSemana.valor>0&&<div style={{display:'flex',alignItems:'center',gap:'6px',background:'rgba(34,197,94,.10)',border:'1px solid rgba(34,197,94,.22)',borderRadius:'8px',padding:'5px 10px'}}>
-                      <span style={{fontSize:'11px',fontWeight:700,color:'#4ADE80'}}>Mais forte: {melhorSemana.name}</span>
+                    {melhorSemana.valor>0&&<div style={{display:'flex',alignItems:'center',gap:'6px',background:'rgba(16,185,129,.08)',border:'1px solid rgba(34,197,94,.20)',borderRadius:'8px',padding:'5px 10px'}}>
+                      <span style={{fontSize:'11px',fontWeight:700,color:'#34D399'}}>Mais forte: {melhorSemana.name}</span>
                     </div>}
-                    {fracoSemana&&fracoSemana.valor>0&&melhorSemana.name!==fracoSemana.name&&<div style={{display:'flex',alignItems:'center',gap:'6px',background:'rgba(239,68,68,.08)',border:'1px solid rgba(239,68,68,.20)',borderRadius:'8px',padding:'5px 10px'}}>
-                      <span style={{fontSize:'11px',fontWeight:700,color:'#F87171'}}>Mais fraco: {fracoSemana.name}</span>
+                    {fracoSemana&&fracoSemana.valor>0&&melhorSemana.name!==fracoSemana.name&&<div style={{display:'flex',alignItems:'center',gap:'6px',background:'rgba(148,163,184,.08)',border:'1px solid rgba(148,163,184,.18)',borderRadius:'8px',padding:'5px 10px'}}>
+                      <span style={{fontSize:'11px',fontWeight:700,color:'#CBD5E1'}}>Mais fraco: {fracoSemana.name}</span>
                     </div>}
                   </div>
                   <div style={{height:'160px'}}>
@@ -330,7 +330,7 @@ export default function Relatorios(){
                         <YAxis tickFormatter={v=>v>0?`${(v/1000).toFixed(0)}k`:'0'} tick={{fill:'#64748B',fontSize:10}} axisLine={false} tickLine={false} width={32}/>
                         <Tooltip content={<CustomTooltip/>} cursor={{fill:'rgba(148,163,184,.06)'}}/>
                         <Bar dataKey="valor" radius={[5,5,0,0]} fillOpacity={0.88}>
-                          {chartSemana.map((d,i)=><Cell key={i} fill={d.name===melhorSemana.name&&d.valor>0?'#22C55E':'#3B82F6'}/>)}
+                          {chartSemana.map((d,i)=><Cell key={i} fill={d.name===melhorSemana.name&&d.valor>0?'#34D399':'#60A5FA'}/>)}
                         </Bar>
                       </BarChart>
                     </ResponsiveContainer>
