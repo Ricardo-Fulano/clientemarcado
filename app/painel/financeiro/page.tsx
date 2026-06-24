@@ -253,7 +253,7 @@ export default function Financeiro() {
             {[
               { l: 'Recebido no mês', v: fmtBRL(recebidoMes), c: '#34D399', bg: 'rgba(16,185,129,.08)', bd: 'rgba(34,197,94,.20)', I: TrendingUp },
               { l: 'Despesas do mês', v: fmtBRL(despesasMes), c: '#F87171', bg: 'rgba(239,68,68,.08)', bd: 'rgba(248,113,113,.18)', I: TrendingDown },
-              { l: 'Resultado estimado', v: fmtBRL(resultado), c: resultado >= 0 ? '#4ADE80' : '#FCA5A5', bg: resultado >= 0 ? 'rgba(16,185,129,.08)' : 'rgba(239,68,68,.055)', bd: resultado >= 0 ? 'rgba(34,197,94,.20)' : 'rgba(248,113,113,.14)', I: Wallet },
+              { l: 'Resultado estimado', v: fmtBRL(resultado), c: '#60A5FA', bg: 'rgba(59,130,246,.08)', bd: 'rgba(96,165,250,.18)', I: Wallet },
               { l: 'A receber', v: fmtBRL(aReceber), c: '#F8FAFC', bg: 'rgba(148,163,184,.08)', bd: 'rgba(148,163,184,.18)', I: Clock },
             ].map(k => (
               <div key={k.l} className="crd" style={{ padding: '18px 16px', background: `radial-gradient(circle at top left,${k.bg},transparent 60%),linear-gradient(145deg,rgba(15,23,42,.97),rgba(8,20,33,.99))`, border: `1.5px solid ${k.bd}` }}>
