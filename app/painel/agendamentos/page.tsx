@@ -312,7 +312,7 @@ export default function Agendamentos(){
           {a.servicos?.preco?<span style={{color:'#22C55E'}}> · R$ {a.servicos.preco}</span>:null}
         </p>
         <div className="card-btns" onClick={e=>e.stopPropagation()}>
-          {wW&&<a href={wW} target="_blank" rel="noreferrer" className="card-btn" style={{background:'rgba(34,197,94,.12)',color:'#4ADE80',border:'1px solid rgba(34,197,94,.25)'}}>WhatsApp</a>}
+          {wW&&<a href={wW} target="_blank" rel="noreferrer" className="card-btn" style={{background:'rgba(15,23,42,.78)',color:'#34D399',border:'1px solid rgba(34,197,94,.24)'}}>WhatsApp</a>}
           {wC2&&!jaRealizado&&<a href={wC2} target="_blank" rel="noreferrer" className="card-btn" onClick={()=>updConf(a.id,'mensagem_enviada')} style={{background:'rgba(29,78,216,.10)',color:'#BFDBFE',border:'1px solid rgba(96,165,250,.22)'}}>Enviar confirmação</a>}
           {!jaRealizado&&a.status!=='cancelado'&&a.status!=='faltou'&&(
             <button className="card-btn" onClick={()=>updSt(a.id,'realizado')} style={{background:'rgba(15,23,42,.78)',color:'#34D399',border:'1px solid rgba(34,197,94,.24)'}}>✓ Realizado</button>
