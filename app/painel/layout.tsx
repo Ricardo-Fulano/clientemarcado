@@ -8,6 +8,7 @@ const G = 'linear-gradient(135deg,#3B82F6,#7C3AED)'
 
 export default function PainelLayout({ children }: { children: React.ReactNode }) {
   const [status, setStatus] = useState<string>('ativo')
+  const [diasTrial, setDiasTrial] = useState<number|null>(null)
   const [loading, setLoading] = useState(true)
   const router = useRouter()
 
@@ -15,8 +16,39 @@ export default function PainelLayout({ children }: { children: React.ReactNode }
     async function verificar() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) { router.push('/login'); return }
-      const { data: p } = await supabase.from('perfis').select('status_acesso').eq('user_id', user.id).single()
-      setStatus(p?.status_acesso || 'ativo')
+
+      const { data: p } = await supabase
+        .from('perfis')
+        .select('status_acesso, trial_ends_at, plano_ativo_ate')
+        .eq('user_id', user.id)
+        .single()
+
+      let st = p?.status_acesso || 'ativo'
+
+      // Clientes legados (trial_ends_at null): nao aplicar regra automatica
+      if (p?.trial_ends_at) {
+        const agora = new Date()
+        const fimTrial = new Date(p.trial_ends_at)
+        const fimPlano = p?.plano_ativo_ate ? new Date(p.plano_ativo_ate) : null
+        const msRestantes = fimTrial.getTime() - agora.getTime()
+        const diasRestantes = Math.ceil(msRestantes / (1000 * 60 * 60 * 24))
+
+        const trialVencido = agora > fimTrial
+        const planoAtivo = fimPlano && agora < fimPlano
+
+        if (!trialVencido) {
+          // Trial ainda ativo
+          if (diasRestantes <= 2) setDiasTrial(diasRestantes)
+        } else if (!planoAtivo) {
+          // Trial vencido e sem plano ativo: mudar para em_atraso
+          if (st === 'ativo') {
+            st = 'em_atraso'
+            await supabase.from('perfis').update({ status_acesso: 'em_atraso' }).eq('user_id', user.id)
+          }
+        }
+      }
+
+      setStatus(st)
       setLoading(false)
     }
     verificar()
@@ -48,6 +80,16 @@ export default function PainelLayout({ children }: { children: React.ReactNode }
           </p>
           <a href={CHECKOUT_URL} target="_blank" rel="noreferrer" style={{display:'inline-flex',alignItems:'center',height:'32px',padding:'0 16px',background:G,color:'#fff',borderRadius:'8px',textDecoration:'none',fontSize:'12px',fontWeight:700,whiteSpace:'nowrap',flexShrink:0}}>
             Regularizar
+          </a>
+        </div>
+      )}
+      {diasTrial !== null && status === 'ativo' && (
+        <div style={{background:'rgba(59,130,246,.08)',border:'1px solid rgba(96,165,250,.22)',borderRadius:'0',padding:'10px 24px',display:'flex',alignItems:'center',gap:'10px',position:'sticky',top:0,zIndex:100}}>
+          <p style={{fontSize:'13px',fontWeight:600,color:'#93C5FD',margin:0}}>
+            🕐 Seu teste grátis termina em {diasTrial <= 0 ? 'menos de 1 dia' : `${diasTrial} dia${diasTrial === 1 ? '' : 's'}`}. Ative seu plano para continuar usando o ClienteMarcado.
+          </p>
+          <a href={CHECKOUT_URL} target="_blank" rel="noreferrer" style={{display:'inline-flex',alignItems:'center',height:'30px',padding:'0 14px',background:G,color:'#fff',borderRadius:'8px',textDecoration:'none',fontSize:'12px',fontWeight:700,whiteSpace:'nowrap',flexShrink:0}}>
+            Ativar plano
           </a>
         </div>
       )}
