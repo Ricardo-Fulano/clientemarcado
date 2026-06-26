@@ -39,5 +39,19 @@ export default function PainelLayout({ children }: { children: React.ReactNode }
     </div>
   )
 
-  return <>{children}</>
+  return (
+    <>
+      {status === 'em_atraso' && (
+        <div style={{background:'rgba(245,158,11,.08)',border:'1px solid rgba(245,158,11,.28)',borderRadius:'0',padding:'12px 24px',display:'flex',alignItems:'center',justifyContent:'space-between',flexWrap:'wrap',gap:'12px',position:'sticky',top:0,zIndex:100}}>
+          <p style={{fontSize:'13px',fontWeight:600,color:'#FCD34D',margin:0}}>
+            ⚠️ Sua mensalidade está pendente. Regularize o pagamento para evitar o bloqueio do acesso.
+          </p>
+          <a href={CHECKOUT_URL} target="_blank" rel="noreferrer" style={{display:'inline-flex',alignItems:'center',height:'32px',padding:'0 16px',background:G,color:'#fff',borderRadius:'8px',textDecoration:'none',fontSize:'12px',fontWeight:700,whiteSpace:'nowrap',flexShrink:0}}>
+            Regularizar
+          </a>
+        </div>
+      )}
+      {children}
+    </>
+  )
 }
