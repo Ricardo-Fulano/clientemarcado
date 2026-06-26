@@ -9,8 +9,33 @@ const G = 'linear-gradient(135deg,#3B82F6,#7C3AED)'
 export default function PainelLayout({ children }: { children: React.ReactNode }) {
   const [status, setStatus] = useState<string>('ativo')
   const [diasTrial, setDiasTrial] = useState<number|null>(null)
+  const [loadingPag, setLoadingPag] = useState(false)
   const [loading, setLoading] = useState(true)
   const router = useRouter()
+
+  async function abrirCheckout() {
+    if (loadingPag) return
+    setLoadingPag(true)
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      const token = session?.access_token
+      if (!token) { window.location.href = CHECKOUT_URL; return }
+      const res = await fetch('/api/mercadopago/criar-assinatura', {
+        method: 'POST',
+        headers: { 'Authorization': 'Bearer ' + token },
+      })
+      const data = await res.json()
+      if (data.init_point) {
+        window.location.href = data.init_point
+      } else {
+        window.location.href = CHECKOUT_URL
+      }
+    } catch {
+      window.location.href = CHECKOUT_URL
+    } finally {
+      setLoadingPag(false)
+    }
+  }
 
   useEffect(() => {
     async function verificar() {
@@ -78,9 +103,9 @@ export default function PainelLayout({ children }: { children: React.ReactNode }
           <p style={{fontSize:'13px',fontWeight:600,color:'#FCD34D',margin:0}}>
             ⚠️ Sua mensalidade está pendente. Regularize o pagamento para evitar o bloqueio do acesso.
           </p>
-          <a href={CHECKOUT_URL} target="_blank" rel="noreferrer" style={{display:'inline-flex',alignItems:'center',height:'32px',padding:'0 16px',background:G,color:'#fff',borderRadius:'8px',textDecoration:'none',fontSize:'12px',fontWeight:700,whiteSpace:'nowrap',flexShrink:0}}>
-            Regularizar
-          </a>
+          <button onClick={abrirCheckout} disabled={loadingPag} style={{display:'inline-flex',alignItems:'center',height:'32px',padding:'0 16px',background:G,color:'#fff',borderRadius:'8px',border:'none',fontSize:'12px',fontWeight:700,whiteSpace:'nowrap',flexShrink:0,cursor:loadingPag?'wait':'pointer',opacity:loadingPag?.7:1,fontFamily:'inherit'}}>
+            {loadingPag ? 'Gerando...' : 'Regularizar'}
+          </button>
         </div>
       )}
       {diasTrial !== null && status === 'ativo' && (
@@ -88,9 +113,9 @@ export default function PainelLayout({ children }: { children: React.ReactNode }
           <p style={{fontSize:'13px',fontWeight:600,color:'#93C5FD',margin:0}}>
             🕐 Seu teste grátis termina em {diasTrial <= 0 ? 'menos de 1 dia' : `${diasTrial} dia${diasTrial === 1 ? '' : 's'}`}. Ative seu plano para continuar usando o ClienteMarcado.
           </p>
-          <a href={CHECKOUT_URL} target="_blank" rel="noreferrer" style={{display:'inline-flex',alignItems:'center',height:'30px',padding:'0 14px',background:G,color:'#fff',borderRadius:'8px',textDecoration:'none',fontSize:'12px',fontWeight:700,whiteSpace:'nowrap',flexShrink:0}}>
-            Ativar plano
-          </a>
+          <button onClick={abrirCheckout} disabled={loadingPag} style={{display:'inline-flex',alignItems:'center',height:'30px',padding:'0 14px',background:G,color:'#fff',borderRadius:'8px',border:'none',fontSize:'12px',fontWeight:700,whiteSpace:'nowrap',flexShrink:0,cursor:loadingPag?'wait':'pointer',opacity:loadingPag?.7:1,fontFamily:'inherit'}}>
+            {loadingPag ? 'Gerando...' : 'Ativar plano'}
+          </button>
         </div>
       )}
       {children}
