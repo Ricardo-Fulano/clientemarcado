@@ -15,7 +15,7 @@ export async function POST(request: NextRequest) {
       external_reference: userId,
       back_url: (process.env.NEXT_PUBLIC_SITE_URL || 'https://clientemarcado.com.br') + '/painel?pagamento=sucesso',
       auto_recurring: { frequency: 1, frequency_type: 'months', transaction_amount: 79.90, currency_id: 'BRL' },
-      payer_email: user.email,
+
     }
     console.log('[MP] user_id:', userId)
     const mpResponse = await fetch('https://api.mercadopago.com/preapproval', {
