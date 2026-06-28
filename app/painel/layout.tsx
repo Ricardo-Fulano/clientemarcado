@@ -2,6 +2,8 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '../lib/supabase'
+import { Suspense } from 'react'
+import BannerPagamentoSucesso from '../components/BannerPagamentoSucesso'
 
 const CHECKOUT_URL = "https://www.mercadopago.com.br/subscriptions/checkout?preapproval_plan_id=1a0fb25c46214e45b0eb3d21b494e5d6"
 const G = 'linear-gradient(135deg,#3B82F6,#7C3AED)'
@@ -118,6 +120,7 @@ export default function PainelLayout({ children }: { children: React.ReactNode }
           </button>
         </div>
       )}
+      <Suspense fallback={null}><BannerPagamentoSucesso /></Suspense>
       {children}
     </>
   )
