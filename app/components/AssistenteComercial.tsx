@@ -77,14 +77,14 @@ export default function AssistenteComercial({ checkoutUrl = '/cadastro' }: Props
     setInput('')
   }
 
-  const linkWpp = `https://wa.me/${COMERCIAL_WHATSAPP}?text=${encodeURIComponent('Olá! Tenho uma dúvida sobre o ClienteMarcado.')}`
+  const linkWpp = 'https://wa.me/' + COMERCIAL_WHATSAPP + '?text=' + encodeURIComponent('Olá! Tenho interesse no ClienteMarcado e gostaria de tirar uma dúvida.')
 
   return (
     <>
       {/* Botão flutuante */}
       {!aberto && (
         <button
-          onClick={() => window.open('https://wa.me/' + COMERCIAL_WHATSAPP + '?text=' + encodeURIComponent('Olá! Tenho interesse no ClienteMarcado e gostaria de tirar uma dúvida.'), '_blank')}
+          onClick={() => setAberto(true)}
           style={{
             position: 'fixed', bottom: 24, right: 24, zIndex: 9000,
             display: 'flex', alignItems: 'center', gap: 8,
@@ -194,7 +194,7 @@ export default function AssistenteComercial({ checkoutUrl = '/cadastro' }: Props
                 Começar grátis →
               </a>
               <a href={linkWpp} target="_blank" rel="noreferrer" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5, background: 'rgba(34,197,94,.12)', border: '1px solid rgba(34,197,94,.25)', color: '#4ADE80', borderRadius: 10, padding: '9px 8px', fontSize: 12, fontWeight: 700, textDecoration: 'none' }}>
-                WhatsApp
+                Falar com suporte
               </a>
             </div>
           </div>
