@@ -2,7 +2,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { X, MessageCircle, Send, ChevronRight } from 'lucide-react'
 
-const COMERCIAL_WHATSAPP = '5511999999999'
+const COMERCIAL_WHATSAPP = '5511940091429'
 
 const RESPOSTAS: Record<string, string> = {
   'como-funciona': 'O ClienteMarcado é um painel simples para negócios organizarem agenda, clientes, serviços, orçamentos, cobranças e pagamentos. Você também recebe uma página pública para seus clientes agendarem online.',
@@ -84,7 +84,7 @@ export default function AssistenteComercial({ checkoutUrl = '/cadastro' }: Props
       {/* Botão flutuante */}
       {!aberto && (
         <button
-          onClick={() => setAberto(true)}
+          onClick={() => window.open('https://wa.me/' + COMERCIAL_WHATSAPP + '?text=' + encodeURIComponent('Olá! Tenho interesse no ClienteMarcado e gostaria de tirar uma dúvida.'), '_blank')}
           style={{
             position: 'fixed', bottom: 24, right: 24, zIndex: 9000,
             display: 'flex', alignItems: 'center', gap: 8,
