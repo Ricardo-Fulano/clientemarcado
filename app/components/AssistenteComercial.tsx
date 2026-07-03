@@ -2,7 +2,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { X, MessageCircle, Send, ChevronRight } from 'lucide-react'
 
-const COMERCIAL_WHATSAPP = '5511940091429'
+const COMERCIAL_WHATSAPP = '5511941059063'
 
 const RESPOSTAS: Record<string, string> = {
   'como-funciona': 'O ClienteMarcado é um painel simples para negócios organizarem agenda, clientes, serviços, orçamentos, cobranças e pagamentos. Você também recebe uma página pública para seus clientes agendarem online.',
