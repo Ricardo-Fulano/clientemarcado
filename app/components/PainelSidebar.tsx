@@ -1,10 +1,11 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { supabase } from '../lib/supabase'
 
+const ADMIN_ID = '618aedd1-f174-4419-b4b2-b81b8dd1c47e'
 const AV = 'linear-gradient(135deg,rgba(59,130,246,.95),rgba(124,58,237,.95))'
 
 const LINKS = [
@@ -52,6 +53,8 @@ interface Props {
 
 export default function PainelSidebar({ nome = '', tituloMobile = 'Painel' }: Props) {
   const [mob, setMob] = useState(false)
+  const [isAdmin, setIsAdmin] = useState(false)
+  useEffect(() => { supabase.auth.getUser().then(({ data: { user } }) => { if (user?.id === ADMIN_ID) setIsAdmin(true) }) }, [])
   const path = usePathname()
   const router = useRouter()
   const ini = (nome || 'C').charAt(0).toUpperCase()
@@ -68,7 +71,7 @@ export default function PainelSidebar({ nome = '', tituloMobile = 'Painel' }: Pr
 
   const NavLinks = ({ onClick }: { onClick?: () => void }) => (
     <>
-      {LINKS.map(it => (
+      {LINKS.filter(it => it.h !== '/painel/parceiros' || isAdmin).map(it => (
         <Link key={it.h} href={it.h} prefetch={false} onClick={onClick}
           className={'nl' + (ativo(it.h) ? ' on' : '')}>
           {it.l}

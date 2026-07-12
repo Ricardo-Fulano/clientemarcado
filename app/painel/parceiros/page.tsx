@@ -3,6 +3,8 @@ import { useEffect, useState } from 'react'
 import { supabase } from '../../lib/supabase'
 import PainelSidebar from '@/app/components/PainelSidebar'
 
+const ADMIN_ID = '618aedd1-f174-4419-b4b2-b81b8dd1c47e'
+
 const CSS = `
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html,body{overflow-x:hidden;width:100%;background:#050B16}
@@ -83,6 +85,7 @@ export default function Parceiros() {
   async function init() {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) { window.location.href = '/login'; return }
+    if (user.id !== ADMIN_ID) { window.location.href = '/painel'; return }
     const { data: p } = await supabase.from('perfis').select('*').eq('user_id', user.id).single()
     setPerfil(p)
     await Promise.all([carregarParceiros(), carregarIndicacoes(), carregarComissoesMensais()])
