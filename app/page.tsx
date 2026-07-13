@@ -179,7 +179,7 @@ export default function Home() {
       </section>
       <footer style={{borderTop:'1px solid rgba(148,163,184,.08)',padding:'32px 24px',textAlign:'center'}}>
         <p style={{fontSize:'13px',color:'#334155'}}>© 2026 ClienteMarcado. Todos os direitos reservados.</p>
-        <a href='https://instagram.com/clientemarcado' target='_blank' rel='noreferrer' style={{fontSize:'13px',color:'#94A3B8',textDecoration:'none',marginTop:'8px',display:'inline-block'}}>@clientemarcado</a>
+        <a href='https://instagram.com/clientemarcado' target='_blank' rel='noreferrer' style={{fontSize:'13px',color:'#E1306C',textDecoration:'none',marginTop:'8px',display:'inline-flex',alignItems:'center',gap:'5px',fontWeight:600}}><svg xmlns='http://www.w3.org/2000/svg' width='15' height='15' viewBox='0 0 24 24' fill='none' stroke='#E1306C' strokeWidth='2' strokeLinecap='round' strokeLinejoin='round'><rect x='2' y='2' width='20' height='20' rx='5' ry='5'/><path d='M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z'/><line x1='17.5' y1='6.5' x2='17.51' y2='6.5'/></svg>@clientemarcado</a>
       </footer>
       <AssistenteComercial checkoutUrl={CHECKOUT_URL} />
     </div>
