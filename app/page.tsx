@@ -179,6 +179,7 @@ export default function Home() {
       </section>
       <footer style={{borderTop:'1px solid rgba(148,163,184,.08)',padding:'32px 24px',textAlign:'center'}}>
         <p style={{fontSize:'13px',color:'#334155'}}>© 2026 ClienteMarcado. Todos os direitos reservados.</p>
+        <a href='https://instagram.com/clientemarcado' target='_blank' rel='noreferrer' style={{fontSize:'13px',color:'#94A3B8',textDecoration:'none',marginTop:'8px',display:'inline-block'}}>@clientemarcado</a>
       </footer>
       <AssistenteComercial checkoutUrl={CHECKOUT_URL} />
     </div>
