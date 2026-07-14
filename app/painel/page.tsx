@@ -4,8 +4,8 @@ import { supabase } from '../lib/supabase'
 import Link from 'next/link'
 import PainelSidebar from '@/app/components/PainelSidebar'
 
-const G='linear-gradient(135deg,#3B82F6,#7C3AED)'
-const AV='linear-gradient(135deg,rgba(59,130,246,.95),rgba(124,58,237,.95))'
+const G='linear-gradient(135deg,#2563EB,#3B4FD4)'
+const AV='linear-gradient(135deg,rgba(37,99,235,.97),rgba(67,56,202,.85))'
 
 // Ícones SVG inline profissionais
 const IcoCalendar=({c='#60A5FA',s=18}:{c?:string,s?:number})=><svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
@@ -27,7 +27,7 @@ input,select,textarea{color-scheme:dark}
 .pg{background:radial-gradient(circle at top left,rgba(124,58,237,.20),transparent 32%),linear-gradient(135deg,#050B16 0%,#07111F 45%,#050B16 100%);min-height:100vh}
 .bdy{max-width:1200px;margin:0 auto;padding:28px 32px 80px;width:100%}
 .crd{background:radial-gradient(circle at top left,rgba(124,58,237,.10),transparent 38%),linear-gradient(145deg,rgba(15,23,42,.97),rgba(8,20,33,.99));border:1.5px solid rgba(148,163,184,.18);border-radius:18px}
-.btn-p{background:linear-gradient(135deg,#3B82F6,#7C3AED);color:#fff;border:1px solid rgba(255,255,255,.12);border-radius:14px;height:46px;padding:0 20px;font-size:13px;font-weight:700;display:inline-flex;align-items:center;gap:6px;white-space:nowrap;transition:all .18s;font-family:inherit;cursor:pointer;text-decoration:none;box-shadow:0 8px 24px rgba(59,130,246,.25)}
+.btn-p{background:linear-gradient(135deg,#2563EB,#3B4FD4);color:#fff;border:1px solid rgba(255,255,255,.12);border-radius:14px;height:46px;padding:0 20px;font-size:13px;font-weight:700;display:inline-flex;align-items:center;gap:6px;white-space:nowrap;transition:all .18s;font-family:inherit;cursor:pointer;text-decoration:none;box-shadow:0 8px 24px rgba(59,130,246,.25)}
 .btn-s{background:rgba(15,23,42,.88);color:#CBD5E1;border:1px solid rgba(148,163,184,.20);border-radius:12px;height:44px;padding:0 16px;font-size:13px;font-weight:600;display:inline-flex;align-items:center;gap:6px;white-space:nowrap;font-family:inherit;cursor:pointer;text-decoration:none}
 .kpi-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px}
 .atalho-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:24px}
@@ -108,7 +108,7 @@ const saldo=Math.max(0,saldoRaw)
                 <div style={{width:'44px',height:'44px',borderRadius:'12px',background:'rgba(59,130,246,.14)',border:'1px solid rgba(59,130,246,.24)',display:'flex',alignItems:'center',justifyContent:'center',margin:'0 auto 12px'}}><IcoCalendar c="#60A5FA" s={22}/></div>
                 <p style={{fontSize:'14px',fontWeight:600,color:'#F8FAFC',marginBottom:'4px'}}>Nenhum atendimento hoje</p>
                 <p style={{fontSize:'12px',color:'#64748B',marginBottom:'14px'}}>Quando houver horários marcados, aparecerão aqui.</p>
-                <a href="/painel/agendamentos/novo" style={{background:'linear-gradient(135deg,#3B82F6,#7C3AED)',color:'#fff',borderRadius:'10px',padding:'8px 16px',fontSize:'13px',fontWeight:700,textDecoration:'none',display:'inline-block'}}>+ Novo agendamento</a>
+                <a href="/painel/agendamentos/novo" style={{background:'linear-gradient(135deg,#2563EB,#3B4FD4)',color:'#fff',borderRadius:'10px',padding:'8px 16px',fontSize:'13px',fontWeight:700,textDecoration:'none',display:'inline-block'}}>+ Novo agendamento</a>
               </div>
             ):(
               <div style={{marginBottom:'16px'}}>

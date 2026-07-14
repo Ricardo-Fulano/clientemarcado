@@ -6,7 +6,7 @@ import { usePathname } from 'next/navigation'
 import { supabase } from '../lib/supabase'
 
 const ADMIN_ID = '618aedd1-f174-4419-b4b2-b81b8dd1c47e'
-const AV = 'linear-gradient(135deg,rgba(59,130,246,.95),rgba(124,58,237,.95))'
+const AV = 'linear-gradient(135deg,rgba(37,99,235,.97),rgba(67,56,202,.85))'
 
 const LINKS = [
   { h: '/painel',               l: 'Início'        },
@@ -26,11 +26,11 @@ const LINKS = [
 const CSS = `
 .psb{width:240px;min-height:100vh;background:radial-gradient(circle at top left,rgba(124,58,237,.14),transparent 32%),linear-gradient(180deg,#070F1D,#050B16);border-right:1px solid rgba(148,163,184,.14);display:flex;flex-direction:column;position:fixed;top:0;left:0;z-index:30}
 .psb-logo{padding:22px 18px 16px;border-bottom:1px solid rgba(148,163,184,.10);display:flex;align-items:center;gap:10px}
-.psb-ic{width:30px;height:30px;border-radius:8px;background:linear-gradient(135deg,#3B82F6,#7C3AED);display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 0 20px rgba(124,58,237,.5)}
+.psb-ic{width:30px;height:30px;border-radius:8px;background:linear-gradient(135deg,#2563EB,#3B4FD4);display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 0 20px rgba(124,58,237,.5)}
 .psb nav{flex:1;padding:10px 8px;overflow-y:auto}
 .nl{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:10px;margin-bottom:2px;text-decoration:none;font-size:13px;font-weight:500;color:#94A3B8;transition:all .15s;border:1px solid transparent;white-space:nowrap}
 .nl:hover{background:rgba(124,58,237,.10);border-color:rgba(124,58,237,.20);color:#fff}
-.nl.on{background:linear-gradient(135deg,#3B82F6,#7C3AED);color:#fff;font-weight:700;border-color:rgba(255,255,255,.10);box-shadow:0 0 26px rgba(124,58,237,.34),inset 0 1px 0 rgba(255,255,255,.12)}
+.nl.on{background:linear-gradient(135deg,#2563EB,#3B4FD4);color:#fff;font-weight:700;border-color:rgba(255,255,255,.10);box-shadow:0 0 26px rgba(124,58,237,.34),inset 0 1px 0 rgba(255,255,255,.12)}
 .psb-foot{padding:12px 10px;border-top:1px solid rgba(148,163,184,.10)}
 .psb-mhdr{display:none;align-items:center;justify-content:space-between;padding:0 16px;height:56px;background:rgba(5,11,22,.96);backdrop-filter:blur(20px);border-bottom:1px solid rgba(148,163,184,.12);position:fixed;top:0;left:0;right:0;z-index:20;width:100%}
 .psb-drw{position:fixed;top:0;left:0;bottom:0;width:280px;max-width:85vw;background:radial-gradient(circle at top left,rgba(124,58,237,.14),transparent 32%),linear-gradient(180deg,#070F1D,#050B16);z-index:50;transform:translateX(-100%);transition:transform .28s ease;display:flex;flex-direction:column;border-right:1px solid rgba(148,163,184,.14)}
