@@ -32,7 +32,7 @@ input,select,textarea{color-scheme:dark}
 .kpi-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px}
 .atalho-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:24px}
 .atalho{background:radial-gradient(circle at top left,rgba(124,58,237,.08),transparent 40%),linear-gradient(145deg,rgba(15,23,42,.97),rgba(8,20,33,.99));border:1.5px solid rgba(148,163,184,.16);border-radius:16px;padding:18px 14px;text-decoration:none;display:flex;flex-direction:column;gap:8px;transition:all .18s}
-.atalho:hover{border-color:rgba(124,58,237,.32);transform:translateY(-2px)}
+.atalho:hover{background:linear-gradient(145deg,rgba(20,30,55,.97),rgba(12,25,45,.99));border-color:rgba(59,130,246,.35);transform:translateY(-2px)}
 .ag-item{background:rgba(15,23,42,.72);border:1px solid rgba(148,163,184,.14);border-radius:12px;padding:12px 14px;margin-bottom:6px}
 @media(max-width:1023px){
   .psb-main .bdy{padding:14px 14px 80px!important;max-width:100%!important;width:100%!important;box-sizing:border-box!important;overflow-x:hidden!important}
@@ -71,7 +71,8 @@ export default function Home(){
   const recMes=pagamentos.filter(p=>p.data?.startsWith(mesAtual)).reduce((a,p)=>a+(p.valor||0),0)
   const fBRL=(v:number)=>`R$ ${v.toLocaleString('pt-BR',{minimumFractionDigits:2})}`
   const orcsAbertos=orcamentos.filter(o=>o.status==='aberto'||o.status==='em_andamento').length
-  const saldo=orcamentos.filter(o=>o.status!=='pago'&&o.status!=='cancelado').reduce((a,o)=>(o.valor_total||0)-(o.valor_pago||0)+a,0)
+  const saldoRaw=orcamentos.filter(o=>o.status!=='pago'&&o.status!=='cancelado').reduce((a,o)=>(o.valor_total||0)-(o.valor_pago||0)+a,0)
+const saldo=Math.max(0,saldoRaw)
   const nome=perfil?.nome_negocio||'seu negócio'
   const slug=perfil?.slug||''
   const ini=(nome||'C').charAt(0).toUpperCase()
@@ -89,7 +90,7 @@ export default function Home(){
           <div style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',gap:'16px',flexWrap:'wrap',marginBottom:'24px'}}>
             <div>
               <h1 style={{fontSize:'24px',fontWeight:800,color:'#F8FAFC',letterSpacing:'-0.04em',marginBottom:'5px'}}>Olá, {nome}!</h1>
-              <p style={{fontSize:'13px',color:'#64748B',lineHeight:1.5}}>Acompanhe sua agenda, clientes, cobranças e retornos em um só lugar.</p>
+              <p style={{fontSize:'13px',color:'#64748B',lineHeight:1.5}}>Acompanhe sua agenda, pacientes, cobranças e retornos em um só lugar.</p>
             </div>
             <div style={{display:'flex',gap:'8px',flexShrink:0,flexWrap:'wrap'}}>
               <Link href="/painel/agendamentos/novo" className="btn-p">+ Novo agendamento</Link>
@@ -126,7 +127,7 @@ export default function Home(){
             <div className="crd" style={{padding:'16px 20px',marginBottom:'20px',display:'flex',alignItems:'center',justifyContent:'space-between',gap:'12px',flexWrap:'wrap'}}>
               <div style={{display:'flex',alignItems:'center',gap:'10px'}}>
                 <div style={{width:'36px',height:'36px',borderRadius:'10px',background:'rgba(34,197,94,.14)',border:'1px solid rgba(34,197,94,.28)',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}><IcoLink c="#4ADE80" s={18}/></div>
-                <div><p style={{fontSize:'13px',fontWeight:600,color:'#F8FAFC',marginBottom:'2px'}}>Sua página pública está ativa</p><p style={{fontSize:'11px',color:'#64748B'}}>Compartilhe o link com seus clientes para receber agendamentos.</p></div>
+                <div><p style={{fontSize:'13px',fontWeight:600,color:'#F8FAFC',marginBottom:'2px'}}>Sua página pública está ativa</p><p style={{fontSize:'11px',color:'#64748B'}}>Compartilhe com seus pacientes para receber agendamentos online.</p></div>
               </div>
               <div style={{display:'flex',gap:'8px',flexShrink:0}}>
                 <a href={pubUrl} target="_blank" rel="noreferrer" className="btn-s" style={{height:'36px',fontSize:'12px'}}>Ver página</a>
@@ -141,7 +142,7 @@ export default function Home(){
               {l:'Orçamentos em aberto',v:orcsAbertos,c:'#FBBF24',bg:'rgba(245,158,11,.10)',bd:'rgba(245,158,11,.24)',I:<IcoClipboard c="#FBBF24"/>},
               {l:'Total a receber',v:fBRL(saldo||0),c:'#F87171',bg:'rgba(239,68,68,.10)',bd:'rgba(239,68,68,.24)',I:<IcoCreditCard c="#F87171"/>},
               {l:'Recebido no mês',v:fBRL(recMes),c:'#4ADE80',bg:'rgba(34,197,94,.10)',bd:'rgba(34,197,94,.24)',I:<IcoCheck c="#4ADE80"/>},
-              {l:'Clientes cadastrados',v:0,c:'#22D3EE',bg:'rgba(6,182,212,.10)',bd:'rgba(6,182,212,.24)',I:<IcoUsers c="#22D3EE"/>},
+              {l:'Pacientes cadastrados',v:0,c:'#22D3EE',bg:'rgba(6,182,212,.10)',bd:'rgba(6,182,212,.24)',I:<IcoUsers c="#22D3EE"/>},
             ] as any[]).map((k:any)=>(
               <div key={k.l} style={{background:`radial-gradient(circle at top left,${k.bg},transparent 60%),linear-gradient(145deg,rgba(15,23,42,.97),rgba(8,20,33,.99))`,border:`1.5px solid ${k.bd}`,borderRadius:'18px',padding:'18px 16px'}}>
                 <div style={{width:'36px',height:'36px',borderRadius:'10px',background:k.bg,display:'flex',alignItems:'center',justifyContent:'center',marginBottom:'8px'}}>{k.I}</div>
@@ -154,7 +155,7 @@ export default function Home(){
           <div className="atalho-grid">
             {([
               {h:'/painel/agendamentos',l:'Agenda',I:<IcoCalendar c="#60A5FA" s={17}/>,bg:'rgba(59,130,246,.10)'},
-              {h:'/painel/clientes',l:'Clientes',I:<IcoUsers c="#4ADE80" s={17}/>,bg:'rgba(34,197,94,.10)'},
+              {h:'/painel/clientes',l:'Pacientes',I:<IcoUsers c="#4ADE80" s={17}/>,bg:'rgba(34,197,94,.10)'},
               {h:'/painel/orcamentos',l:'Orçamentos',I:<IcoClipboard c="#FBBF24" s={17}/>,bg:'rgba(245,158,11,.10)'},
               {h:'/painel/cobrancas',l:'Cobranças',I:<IcoWallet c="#C4B5FD" s={17}/>,bg:'rgba(124,58,237,.10)'},
               {h:'/painel/pagamentos',l:'Pagamentos',I:<IcoCheck c="#4ADE80" s={17}/>,bg:'rgba(34,197,94,.10)'},
