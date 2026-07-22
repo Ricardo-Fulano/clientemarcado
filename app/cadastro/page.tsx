@@ -65,10 +65,12 @@ export default function Cadastro() {
     setCupomStatus(data ? 'ok' : 'erro')
   }
   if (typeof window !== 'undefined') {
-    const urlCupom = new URLSearchParams(window.location.search).get('cupom')
-    if (urlCupom && !cupom) setTimeout(() => {
-      setCupom(urlCupom.toUpperCase())
-      validarCupom(urlCupom.toUpperCase())
+   const urlCupom = new URLSearchParams(window.location.search).get('cupom')
+    const savedCupom = localStorage.getItem('cm_cupom')
+    const cupomFinal = urlCupom || savedCupom
+    if (cupomFinal && !cupom) setTimeout(() => {
+      setCupom(cupomFinal.toUpperCase())
+      validarCupom(cupomFinal.toUpperCase())
     }, 0)
   }
   async function handleCadastro() {
@@ -296,7 +298,7 @@ export default function Cadastro() {
               {cupomStatus==='erro'&&<p style={{fontSize:'11px',color:'#F87171',marginTop:'5px'}}>Cupom não encontrado. Você pode continuar sem cupom.</p>}
               {cupomStatus==='idle'&&<p style={{fontSize:'11px',color:'#475569',marginTop:'5px'}}>Se recebeu um cupom de um parceiro, informe aqui. Campo opcional.</p>}
             </div>
-            <div style={{marginBottom:'14px',display:'flex',alignItems:'flex-start',gap:'10px'}}><input type="checkbox" id="aceite" checked={aceitou} onChange={e=>setAceitou(e.target.checked)} style={{marginTop:'2px',accentColor:'#3B82F6',width:'15px',height:'15px',flexShrink:0,cursor:'pointer'}} /><label htmlFor="aceite" style={{fontSize:'12px',color:'#9CA3AF',lineHeight:1.5,cursor:'pointer'}}>Li e aceito os <a href="/contrato-de-adesao" target="_blank" rel="noreferrer" style={{color:'#3B82F6',textDecoration:'none',fontWeight:600}}>termos de uso e contrato de adesão</a> do ClienteMarcado.</label></div>
+            <div style={{marginBottom:'14px',display:'flex',alignItems:'flex-start',gap:'10px'}}><input type="checkbox" id="aceite" checked={aceitou} onChange={e=>setAceitou(e.target.checked)} style={{marginTop:'2px',accentColor:'#3B82F6',width:'15px',height:'15px',flexShrink:0,cursor:'pointer'}} /><label htmlFor="aceite" style={{fontSize:'12px',color:'#9CA3AF',lineHeight:1.5,cursor:'pointer'}}>Li e aceito os <a href="/contrato-de-adesao" target="_blank" rel="noreferrer" onClick={()=>{if(cupom&&typeof window!=='undefined')localStorage.setItem('cm_cupom',cupom)}} style={{color:'#3B82F6',textDecoration:'none',fontWeight:600}}>termos de uso e contrato de adesão</a> do ClienteMarcado.</label></div>
             <button onClick={handleCadastro} disabled={loading} className="btn-criar">
               {loading ? 'Criando conta...' : (
                 <>
