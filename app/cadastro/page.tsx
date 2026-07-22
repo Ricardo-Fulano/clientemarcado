@@ -57,6 +57,7 @@ export default function Cadastro() {
   const [senha, setSenha] = useState('')
   const [mostrarSenha, setMostrarSenha] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [aceitou, setAceitou] = useState(false)
   const [mensagem, setMensagem] = useState('')
   async function validarCupom(c: string) {
     if (!c) { setCupomStatus('idle'); return }
@@ -71,9 +72,13 @@ export default function Cadastro() {
     }, 0)
   }
   async function handleCadastro() {
-    if (typeof window !== 'undefined' && localStorage.getItem('clienteMarcadoAceitePlano') !== 'true') {
+    const jaAceitou = typeof window !== 'undefined' && localStorage.getItem('clienteMarcadoAceitePlano') === 'true'
+    if (!aceitou && !jaAceitou) {
       setMensagem('Para criar sua conta, aceite primeiro o contrato do plano.')
       return
+    }
+    if (aceitou && typeof window !== 'undefined') {
+      localStorage.setItem('clienteMarcadoAceitePlano', 'true')
     }
     setLoading(true)
     setMensagem('')
@@ -291,6 +296,7 @@ export default function Cadastro() {
               {cupomStatus==='erro'&&<p style={{fontSize:'11px',color:'#F87171',marginTop:'5px'}}>Cupom não encontrado. Você pode continuar sem cupom.</p>}
               {cupomStatus==='idle'&&<p style={{fontSize:'11px',color:'#475569',marginTop:'5px'}}>Se recebeu um cupom de um parceiro, informe aqui. Campo opcional.</p>}
             </div>
+            <div style={{marginBottom:'14px',display:'flex',alignItems:'flex-start',gap:'10px'}}><input type="checkbox" id="aceite" checked={aceitou} onChange={e=>setAceitou(e.target.checked)} style={{marginTop:'2px',accentColor:'#3B82F6',width:'15px',height:'15px',flexShrink:0,cursor:'pointer'}} /><label htmlFor="aceite" style={{fontSize:'12px',color:'#9CA3AF',lineHeight:1.5,cursor:'pointer'}}>Li e aceito os <a href="/contrato-de-adesao" target="_blank" rel="noreferrer" style={{color:'#3B82F6',textDecoration:'none',fontWeight:600}}>termos de uso e contrato de adesão</a> do ClienteMarcado.</label></div>
             <button onClick={handleCadastro} disabled={loading} className="btn-criar">
               {loading ? 'Criando conta...' : (
                 <>
