@@ -94,6 +94,7 @@ export default function Servicos(){
       duracao_minutos:parseInt(fDur)||null,duracao:parseInt(fDur)||null,
       categoria:fCat,
       profissional_nome:profNome,
+      profissionais_ids:fProfIds.length>0?fProfIds:null,
     }
     let error:any=null
     if(editId){
@@ -175,10 +176,10 @@ export default function Servicos(){
               <div style={{marginBottom:'14px'}}>
                 <label className="lbl">Profissionais que realizam esse servico</label>
                 <div style={{display:'flex',gap:'8px',marginBottom:'10px'}}>
-                  {(['todos','especificos'] as const).map(t=>(
+                  {(['especificos'] as const).map(t=>(
                     <button key={t} type="button" onClick={()=>{setFProfTipo(t);if(t==='todos')setFProfIds([])}}
                       style={{height:'36px',padding:'0 14px',borderRadius:'8px',fontSize:'12px',fontWeight:600,cursor:'pointer',fontFamily:'inherit',border:`1px solid ${fProfTipo===t?'rgba(124,58,237,.5)':'rgba(148,163,184,.2)'}`,background:fProfTipo===t?'rgba(124,58,237,.18)':'rgba(15,23,42,.88)',color:fProfTipo===t?'#C4B5FD':'#94A3B8'}}>
-                      {t==='todos'?'Todos os profissionais':'Selecionar especificos'}
+                      {t==='todos'?'':'Profissionais que realizam este serviço'}
                     </button>
                   ))}
                 </div>

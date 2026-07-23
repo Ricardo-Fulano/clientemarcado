@@ -325,7 +325,7 @@ export default function Agendar() {
 
   const G = 'linear-gradient(135deg,#3B82F6,#7C3AED)'
   const cor = perfil?.cor_tema || '#3B82F6'
-  const servicoSelecionado = servicos.find(s => s.id === servicoId)
+  const servicoAtual = servicos.find(s => s.id === servicoId)
   const profissionalSelecionado = profissionais.find(p => p.id === profissionalId)
   const todayStr = new Date().toISOString().split('T')[0]
   const linkWppEstabelecimento = perfil?.whatsapp
@@ -572,8 +572,8 @@ export default function Agendar() {
     </div>
   )
 
-  const servicoSelecionado = servicos.find(s => s.id === servicoId)
-  const profissionaisFiltrados = servicoSelecionado?.profissionais_ids && servicoSelecionado.profissionais_ids.length > 0
+  const servicoAtual = servicos.find(s => s.id === servicoId)
+  const profissionaisFiltrados = servicoAtual?.profissionais_ids && servicoAtual.profissionais_ids.length > 0
     ? profissionais.filter(p => servicoSelecionado.profissionais_ids!.includes(p.id))
     : profissionais
 
