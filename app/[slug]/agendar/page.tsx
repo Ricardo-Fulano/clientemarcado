@@ -572,12 +572,7 @@ export default function Agendar() {
     </div>
   )
 
-  const servicoAtual = servicos.find(s => s.id === servicoId)
-  const profissionaisFiltrados = servicoAtual?.profissionais_ids && servicoAtual.profissionais_ids.length > 0
-    ? profissionais.filter(p => servicoSelecionado.profissionais_ids!.includes(p.id))
-    : profissionais
-
-  return (
+ return (
     <main className="page">
       <style>{css}</style>
       <div className="header">
