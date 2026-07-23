@@ -219,6 +219,13 @@ export default function Perfil(){
     setTimeout(()=>setMsg(''),3000)
   }
 
+  async function restaurarCapa() {
+    const {data:{user}}=await supabase.auth.getUser();if(!user)return
+    await supabase.from('perfis').update({capa_url:null}).eq('user_id',user.id)
+    setCapUrl('')
+    setMsg('Imagem padrão restaurada!')
+    setTimeout(()=>setMsg(''),3000)
+  }
   // ✅ CORRIGIDO: uploadCapa com validações, contentType e salvamento no perfil
   async function uploadCapa(e:React.ChangeEvent<HTMLInputElement>){
     const file=e.target.files?.[0];if(!file)return

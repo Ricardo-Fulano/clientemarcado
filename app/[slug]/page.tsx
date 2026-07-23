@@ -46,6 +46,16 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
   const { slug } = await params
   const { data: perfil } = await supabase.from('perfis').select('*').eq('slug', slug).single()
   if (!perfil) return notFound()
+  // Buscar capa padrao dinamicamente pelos slugs de referencia
+  let capaFallback = ''
+  if (!perfil.capa_url) {
+    const tipoNeg = (perfil.tipo_negocio || '').toLowerCase()
+    const slugRef = tipoNeg.includes('barbearia') ? 'domcorte' : (tipoNeg.includes('est') || tipoNeg.includes('sal') || tipoNeg.includes('bel') ? 'studiobella' : '')
+    if (slugRef) {
+      const { data: perfilRef } = await supabase.from('perfis').select('capa_url').eq('slug', slugRef).single()
+      capaFallback = perfilRef?.capa_url || ''
+    }
+  }
 
   const [{ data: servicos }, { data: profissionais }] = await Promise.all([
     supabase.from('servicos').select('*').eq('user_id', perfil.user_id).eq('ativo', true).order('nome'),
@@ -58,7 +68,7 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
   const nomeBusiness = perfil.nome_negocio || 'Agendamento Online'
   const descBusiness = perfil.descricao || 'Agende seu atendimento online de forma rápida e prática.'
   const endereco = perfil.endereco || perfil.cidade || ''
-  const capaUrl = perfil.capa_url || perfil.imagem_capa || perfil.banner_url || ''
+  const capaUrl = perfil.capa_url || perfil.imagem_capa || perfil.banner_url || capaFallback || ''
   const wppNum = (perfil.whatsapp || '').replace(/\D/g, '')
   const linkWpp = wppNum ? `https://wa.me/55${wppNum}?text=${encodeURIComponent('Olá! Vim pela página e gostaria de agendar.')}` : null
 
