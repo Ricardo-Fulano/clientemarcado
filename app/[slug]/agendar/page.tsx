@@ -121,7 +121,7 @@ export default function Agendar() {
     URL.revokeObjectURL(url)
   }
 
-// Ô£à Gera PDF premium via window.open (mesma estrat├®gia do PDF de or├ºamento)
+// Ô£à Gera PDF premium via window.open (mesma estrat├®gia do PDF de orúamento)
   function baixarConfirmacaoPDF() {
     const nomeCliente = clienteNome || 'cliente'
     const dataFormatada = formatarData(dataSelecionada)
@@ -468,7 +468,7 @@ export default function Agendar() {
       'Agendamento confirmado!',
       '',
       'Nome: ' + clienteNome,
-      'Servi├ºo: ' + (servicoSelecionado?.nome||''),
+      'Serviúo: ' + (servicoSelecionado?.nome||''),
       'Profissional: ' + (profissionalSelecionado?.nome||''),
       'Data: ' + formatarData(dataSelecionada),
       'Hor├írio: ' + horarioSelecionado,
@@ -496,14 +496,14 @@ export default function Agendar() {
     const txt = [s.nome, s.categoria||'', s.descricao||''].join(' ').toLowerCase()
     const sz = 20
     if (/corte|barba|cabelo|barbearia|cabeleirei|platina|mecha|progressiva|alisam|relaxam/.test(txt)) return <Scissors size={sz}/>
-    if (/colora|escova|hidrata├º|hidratac|mechas|luzes|reflexo|tinta/.test(txt)) return <Sparkles size={sz}/>
+    if (/colora|escova|hidrataú|hidratac|mechas|luzes|reflexo|tinta/.test(txt)) return <Sparkles size={sz}/>
     if (/retorno|reavalia|acompan|revis├úo|revisao|follow/.test(txt)) return <CalendarCheck size={sz}/>
     if (/avalia|consul|diagnos|triagem|primeira.*vez|anamese|anamnese/.test(txt)) return <ClipboardCheck size={sz}/>
-    if (/or├ºamento|orcamento|proposta|plano.*trat|plano.*paga/.test(txt)) return <FileText size={sz}/>
-    if (/limpeza|clarea|branquea|peeling|esfolia├º├úo|esfoliacao|profilax/.test(txt)) return <Sparkles size={sz}/>
-    if (/restaur|obtura|canal|endodon|cirur|extra├º├úo|extracao|implant|enxerto/.test(txt)) return <ShieldPlus size={sz}/>
+    if (/orúamento|orcamento|proposta|plano.*trat|plano.*paga/.test(txt)) return <FileText size={sz}/>
+    if (/limpeza|clarea|branquea|peeling|esfoliaú├úo|esfoliacao|profilax/.test(txt)) return <Sparkles size={sz}/>
+    if (/restaur|obtura|canal|endodon|cirur|extraú├úo|extracao|implant|enxerto/.test(txt)) return <ShieldPlus size={sz}/>
     if (/pr├│tese|protese|reabilit|coroa|faceta|lente|inlay|onlay/.test(txt)) return <Stethoscope size={sz}/>
-    if (/estet|facial|botox|harmoniz|preench|massag|drenag|corporal|sobrancelha|depila├º|depilac/.test(txt)) return <HeartPulse size={sz}/>
+    if (/estet|facial|botox|harmoniz|preench|massag|drenag|corporal|sobrancelha|depilaú|depilac/.test(txt)) return <HeartPulse size={sz}/>
     if (/odonto|dent|bucal|oral/.test(txt)) return <ClipboardList size={sz}/>
     return <CalendarCheck size={sz}/>
   }
@@ -541,12 +541,12 @@ export default function Agendar() {
             </a>
           )}
           <button onClick={copiarConfirmacao} className="btn-ics" style={{background:copiado?'rgba(34,197,94,.12)':undefined,borderColor:copiado?'rgba(34,197,94,.30)':undefined,color:copiado?'#22C55E':undefined}}>
-            {copiado ? 'Ô£ô Confirma├º├úo copiada!' : '­ƒôï Copiar confirma├º├úo'}
+            {copiado ? 'Ô£ô Confirmaú├úo copiada!' : '­ƒôï Copiar confirmaú├úo'}
           </button>
           <button onClick={baixarConfirmacaoPDF} className="btn-pdf">
             ­ƒôä Baixar comprovante
           </button>
-          <Link href={'/'+slug} className="btn-inicio">Voltar ao in├¡cio</Link>
+          <Link href={'/'+slug} className="btn-inicio">Voltar ao início</Link>
         </div>
       </div>
     </div>
@@ -584,7 +584,7 @@ export default function Agendar() {
         <div className="container">
           <Steps/>
           <h2 className="section-title">Selecione o atendimento</h2>
-          <p className="section-sub">Escolha um servi├ºo, procedimento ou consulta para continuar.</p>
+          <p className="section-sub">Escolha um serviúo, procedimento ou consulta para continuar.</p>
           <div className="servico-list">
             {servicos.map(s=>(
               <button key={s.id} onClick={()=>{setServicoId(s.id);setEtapa(2)}} className={'servico-card'+(servicoId===s.id?' sel':'')}>
@@ -592,7 +592,7 @@ export default function Agendar() {
                 <div className="servico-icon" style={{color:'#60A5FA'}}>{getServicoIcone(s)}</div>
                 <div style={{flex:1,minWidth:0}}>
                   <p className="servico-nome">{s.nome}</p>
-                  <p className="servico-desc">{s.descricao||'Selecione para ver profissionais e hor├írios dispon├¡veis'}</p>
+                  <p className="servico-desc">{s.descricao||'Selecione para ver profissionais e hor├írios disponíveis'}</p>
                   <div className="servico-meta">
                     {s.duracao_minutos&&(<span className="servico-dur"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>{s.duracao_minutos} min</span>)}
                     {s.duracao_minutos&&s.preco&&<span className="servico-meta-sep"/>}
@@ -628,12 +628,12 @@ export default function Agendar() {
         <div className="container-wide">
           <Steps/>
           <h2 className="section-title">Data e hor├írio</h2>
-          <p className="section-sub">Escolha o melhor hor├írio dispon├¡vel</p>
+          <p className="section-sub">Escolha o melhor hor├írio disponível</p>
           <div className="resumo-strip">
             {[
               {label:'Atendimento',valor:servicoSelecionado?.nome,cor:'#F8FAFC'},
               {label:'Profissional',valor:profissionalSelecionado?.nome,cor:'#F8FAFC'},
-              {label:'Dura├º├úo',valor:(servicoSelecionado?.duracao_minutos||30)+' min',cor:'#F8FAFC'},
+              {label:'Duraú├úo',valor:(servicoSelecionado?.duracao_minutos||30)+' min',cor:'#F8FAFC'},
               {label:'Valor',valor:'R$ '+servicoSelecionado?.preco,cor:'#22C55E'},
             ].map(item=>(
               <div key={item.label}>
@@ -672,7 +672,7 @@ export default function Agendar() {
                 <>
                   <p className="horarios-data-label">{formatarDataExtenso(dataSelecionada)}</p>
                   {carregandoHorarios&&<div className="horarios-empty"><p style={{fontSize:'13px',color:'#64748B'}}>Buscando hor├írios...</p></div>}
-                  {!carregandoHorarios&&horariosDisponiveis.length===0&&<div className="horarios-empty"><span style={{fontSize:'28px',opacity:.3}}>­ƒÿö</span><p style={{fontSize:'13px',color:'#64748B',textAlign:'center',lineHeight:1.6}}>Nenhum hor├írio dispon├¡vel<br/>nesta data.</p></div>}
+                  {!carregandoHorarios&&horariosDisponiveis.length===0&&<div className="horarios-empty"><span style={{fontSize:'28px',opacity:.3}}>­ƒÿö</span><p style={{fontSize:'13px',color:'#64748B',textAlign:'center',lineHeight:1.6}}>Nenhum hor├írio disponível<br/>nesta data.</p></div>}
                   {!carregandoHorarios&&horariosDisponiveis.length>0&&(
                     <div>
                       {[
