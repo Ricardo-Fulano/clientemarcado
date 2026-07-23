@@ -121,7 +121,7 @@ export default function Agendar() {
     URL.revokeObjectURL(url)
   }
 
-// Ô£à Gera PDF premium via window.open (mesma estrat├®gia do PDF de orúamento)
+// Ô£à Gera PDF premium via window.open (mesma estratégia do PDF de orúamento)
   function baixarConfirmacaoPDF() {
     const nomeCliente = clienteNome || 'cliente'
     const dataFormatada = formatarData(dataSelecionada)
@@ -329,7 +329,7 @@ export default function Agendar() {
   const profissionalSelecionado = profissionais.find(p => p.id === profissionalId)
   const todayStr = new Date().toISOString().split('T')[0]
   const linkWppEstabelecimento = perfil?.whatsapp
-    ? 'https://wa.me/55' + perfil.whatsapp.replace(/\D/g,'') + '?text=' + encodeURIComponent('Ol├í! Acabei de agendar um hor├írio pelo link e gostaria de confirmar.')
+    ? 'https://wa.me/55' + perfil.whatsapp.replace(/\D/g,'') + '?text=' + encodeURIComponent('Olá! Acabei de agendar um horário pelo link e gostaria de confirmar.')
     : null
   const hoje = new Date(); hoje.setHours(0,0,0,0)
   const diasNoMes = new Date(mesAtual.getFullYear(), mesAtual.getMonth()+1, 0).getDate()
@@ -471,7 +471,7 @@ export default function Agendar() {
       'Serviúo: ' + (servicoSelecionado?.nome||''),
       'Profissional: ' + (profissionalSelecionado?.nome||''),
       'Data: ' + formatarData(dataSelecionada),
-      'Hor├írio: ' + horarioSelecionado,
+      'Horário: ' + horarioSelecionado,
       servicoSelecionado?.preco ? 'Valor: R$ ' + servicoSelecionado.preco : '',
       '',
       perfil?.nome_negocio || '',
@@ -514,14 +514,14 @@ export default function Agendar() {
       <div className="sucesso-inner">
         <div className="sucesso-icon">Ô£à</div>
         <h1 className="sucesso-title">Agendamento confirmado!</h1>
-        <p className="sucesso-sub">{clienteNome ? <>Obrigado, <strong style={{color:'#F8FAFC'}}>{clienteNome}</strong>! Seu hor├írio foi registrado com sucesso.</> : <>Seu hor├írio foi registrado com sucesso.</>}</p>
+        <p className="sucesso-sub">{clienteNome ? <>Obrigado, <strong style={{color:'#F8FAFC'}}>{clienteNome}</strong>! Seu horário foi registrado com sucesso.</> : <>Seu horário foi registrado com sucesso.</>}</p>
         <div className="resumo-card">
           <p className="resumo-card-title">Resumo do agendamento</p>
           {[
             {label:'Atendimento',valor:servicoSelecionado?.nome,cor:'#F8FAFC'},
             {label:'Profissional',valor:profissionalSelecionado?.nome,cor:'#F8FAFC'},
             {label:'Data',valor:formatarData(dataSelecionada),cor:'#F8FAFC'},
-            {label:'Hor├írio',valor:horarioSelecionado,cor:'#60A5FA'},
+            {label:'Horário',valor:horarioSelecionado,cor:'#60A5FA'},
             {label:'Valor',valor:'R$ '+servicoSelecionado?.preco,cor:'#22C55E'},
           ].map((item,idx,arr)=>(
             <div key={item.label}>
@@ -592,7 +592,7 @@ export default function Agendar() {
                 <div className="servico-icon" style={{color:'#60A5FA'}}>{getServicoIcone(s)}</div>
                 <div style={{flex:1,minWidth:0}}>
                   <p className="servico-nome">{s.nome}</p>
-                  <p className="servico-desc">{s.descricao||'Selecione para ver profissionais e hor├írios disponíveis'}</p>
+                  <p className="servico-desc">{s.descricao||'Selecione para ver profissionais e horários disponíveis'}</p>
                   <div className="servico-meta">
                     {s.duracao_minutos&&(<span className="servico-dur"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>{s.duracao_minutos} min</span>)}
                     {s.duracao_minutos&&s.preco&&<span className="servico-meta-sep"/>}
@@ -627,8 +627,8 @@ export default function Agendar() {
       {etapa===3&&(
         <div className="container-wide">
           <Steps/>
-          <h2 className="section-title">Data e hor├írio</h2>
-          <p className="section-sub">Escolha o melhor hor├írio disponível</p>
+          <h2 className="section-title">Data e horário</h2>
+          <p className="section-sub">Escolha o melhor horário disponível</p>
           <div className="resumo-strip">
             {[
               {label:'Atendimento',valor:servicoSelecionado?.nome,cor:'#F8FAFC'},
@@ -667,12 +667,12 @@ export default function Agendar() {
               </div>
             </div>
             <div className="horarios-wrap">
-              {!dataSelecionada&&<div className="horarios-placeholder"><span style={{fontSize:'32px',opacity:.2}}>­ƒôà</span><p style={{fontSize:'13px',color:'#334155',textAlign:'center',lineHeight:1.6}}>Selecione uma data<br/>para ver os hor├írios</p></div>}
+              {!dataSelecionada&&<div className="horarios-placeholder"><span style={{fontSize:'32px',opacity:.2}}>­ƒôà</span><p style={{fontSize:'13px',color:'#334155',textAlign:'center',lineHeight:1.6}}>Selecione uma data<br/>para ver os horários</p></div>}
               {dataSelecionada&&(
                 <>
                   <p className="horarios-data-label">{formatarDataExtenso(dataSelecionada)}</p>
-                  {carregandoHorarios&&<div className="horarios-empty"><p style={{fontSize:'13px',color:'#64748B'}}>Buscando hor├írios...</p></div>}
-                  {!carregandoHorarios&&horariosDisponiveis.length===0&&<div className="horarios-empty"><span style={{fontSize:'28px',opacity:.3}}>­ƒÿö</span><p style={{fontSize:'13px',color:'#64748B',textAlign:'center',lineHeight:1.6}}>Nenhum hor├írio disponível<br/>nesta data.</p></div>}
+                  {carregandoHorarios&&<div className="horarios-empty"><p style={{fontSize:'13px',color:'#64748B'}}>Buscando horários...</p></div>}
+                  {!carregandoHorarios&&horariosDisponiveis.length===0&&<div className="horarios-empty"><span style={{fontSize:'28px',opacity:.3}}>­ƒÿö</span><p style={{fontSize:'13px',color:'#64748B',textAlign:'center',lineHeight:1.6}}>Nenhum horário disponível<br/>nesta data.</p></div>}
                   {!carregandoHorarios&&horariosDisponiveis.length>0&&(
                     <div>
                       {[
@@ -695,7 +695,7 @@ export default function Agendar() {
           </div>
           <div className="nav-row">
             <button onClick={()=>setEtapa(2)} className="btn-voltar">ÔåÉ Voltar</button>
-            <button onClick={()=>{if(!dataSelecionada||!horarioSelecionado){setErro('Selecione data e hor├írio.');return}setErro('');setEtapa(4)}} disabled={!dataSelecionada||!horarioSelecionado} className={'btn-continuar '+(dataSelecionada&&horarioSelecionado?'on':'off')}>Continuar ÔåÆ</button>
+            <button onClick={()=>{if(!dataSelecionada||!horarioSelecionado){setErro('Selecione data e horário.');return}setErro('');setEtapa(4)}} disabled={!dataSelecionada||!horarioSelecionado} className={'btn-continuar '+(dataSelecionada&&horarioSelecionado?'on':'off')}>Continuar ÔåÆ</button>
           </div>
           {erro&&<p className="erro-msg">{erro}</p>}
         </div>
@@ -711,7 +711,7 @@ export default function Agendar() {
               {label:'Atendimento',valor:servicoSelecionado?.nome,cor:'#F8FAFC'},
               {label:'Profissional',valor:profissionalSelecionado?.nome,cor:'#F8FAFC'},
               {label:'Data',valor:formatarData(dataSelecionada),cor:'#F8FAFC'},
-              {label:'Hor├írio',valor:horarioSelecionado,cor:'#60A5FA'},
+              {label:'Horário',valor:horarioSelecionado,cor:'#60A5FA'},
               {label:'Valor',valor:'R$ '+servicoSelecionado?.preco,cor:'#22C55E'},
             ].map((item,idx,arr)=>(
               <div key={item.label}>
