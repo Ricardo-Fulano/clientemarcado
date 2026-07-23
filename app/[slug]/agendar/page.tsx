@@ -735,7 +735,7 @@ export default function Agendar() {
           {erro&&<p className="erro-msg" style={{marginBottom:'12px'}}>{erro}</p>}
           <div className="nav-row">
             <button onClick={()=>setEtapa(3)} className="btn-voltar">Voltar</button>
-            <button onClick={handleAgendar} disabled={loading} className="btn-confirmar" style={{opacity:loading ? 0.7 : 1}}>{loading?'Confirmando...':'ô Confirmar agendamento'}</button>
+            <button onClick={handleAgendar} disabled={loading} className="btn-confirmar" style={{opacity:loading ? 0.7 : 1}}>{loading?'Confirmando...':'Confirmar agendamento'}</button>
           </div>
         </div>
       )}
