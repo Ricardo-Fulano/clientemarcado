@@ -572,6 +572,11 @@ export default function Agendar() {
     </div>
   )
 
+  const servicoSelecionado = servicos.find(s => s.id === servicoId)
+  const profissionaisFiltrados = servicoSelecionado?.profissionais_ids && servicoSelecionado.profissionais_ids.length > 0
+    ? profissionais.filter(p => servicoSelecionado.profissionais_ids!.includes(p.id))
+    : profissionais
+
   return (
     <main className="page">
       <style>{css}</style>
@@ -611,7 +616,7 @@ export default function Agendar() {
           <h2 className="section-title">Escolha o profissional</h2>
           <p className="section-sub">Com quem deseja ser atendido?</p>
           <div className="prof-grid">
-            {profissionais.map(p=>(
+            {profissionaisFiltrados.length === 0 ? (<p style={{color:'#94A3B8',fontSize:'14px',textAlign:'center',padding:'24px'}}>Nenhum profissional disponível para este serviço no momento.</p>) : profissionaisFiltrados.map(p=>(
               <button key={p.id} onClick={()=>{setProfissionalId(p.id);setEtapa(3)}} className={'prof-card'+(profissionalId===p.id?' sel':'')}>
                 {p.foto_url
                   ?<img src={p.foto_url} alt={p.nome} className="prof-avatar-img" style={{border:profissionalId===p.id?'2px solid #3B82F6':'2px solid rgba(148,163,184,.12)'}}/>

@@ -56,7 +56,7 @@ export default function Servicos(){
   const [fPreco,setFPreco]=useState('')
   const [fDur,setFDur]=useState('30 min')
   const [fCat,setFCat]=useState('Barbearia / Salão')
-  const [fProfTipo,setFProfTipo]=useState<'todos'|'especificos'>('todos')
+  const [fProfTipo,setFProfTipo]=useState<'todos'|'especificos'>('especificos')
   const [fProfIds,setFProfIds]=useState<string[]>([])
   useEffect(()=>{load()},[])
   async function load(){
@@ -69,7 +69,7 @@ export default function Servicos(){
     ])
     setPerfil(p);setServicos(svs||[]);setProfs(pr||[]);setLoading(false)
   }
-  function resetForm(){setFNome('');setFDesc('');setFPreco('');setFDur('30 min');setFCat('Barbearia / Salão');setFProfTipo('todos');setFProfIds([]);setEditId(null)}
+  function resetForm(){setFNome('');setFDesc('');setFPreco('');setFDur('30 min');setFCat('Barbearia / Salão');setFProfTipo('especificos');setFProfIds([]);setEditId(null)}
   function abrirEditar(s:Servico){
     setEditId(s.id);setFNome(s.nome);setFDesc(s.descricao||'')
     setFPreco(s.preco&&s.preco>0?String(s.preco):'')
@@ -81,6 +81,7 @@ export default function Servicos(){
   function toggleProfId(id:string){setFProfIds(prev=>prev.includes(id)?prev.filter(x=>x!==id):[...prev,id])}
   async function salvar(){
     if(!fNome.trim()){setMsg('Informe o nome do servico.');return}
+    if(fProfIds.length===0){setMsg('Selecione pelo menos um profissional para este servico.');setSalvando(false);return}
     setSalvando(true)
     const {data:{user}}=await supabase.auth.getUser()
     if(!user){setSalvando(false);return}
