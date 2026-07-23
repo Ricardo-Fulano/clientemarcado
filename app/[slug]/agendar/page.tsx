@@ -121,7 +121,7 @@ export default function Agendar() {
     URL.revokeObjectURL(url)
   }
 
-// Ô£à Gera PDF premium via window.open (mesma estratégia do PDF de orúamento)
+// £à Gera PDF premium via window.open (mesma estratégia do PDF de orúamento)
   function baixarConfirmacaoPDF() {
     const nomeCliente = clienteNome || 'cliente'
     const dataFormatada = formatarData(dataSelecionada)
@@ -497,12 +497,12 @@ export default function Agendar() {
     const sz = 20
     if (/corte|barba|cabelo|barbearia|cabeleirei|platina|mecha|progressiva|alisam|relaxam/.test(txt)) return <Scissors size={sz}/>
     if (/colora|escova|hidrataú|hidratac|mechas|luzes|reflexo|tinta/.test(txt)) return <Sparkles size={sz}/>
-    if (/retorno|reavalia|acompan|revis├úo|revisao|follow/.test(txt)) return <CalendarCheck size={sz}/>
+    if (/retorno|reavalia|acompan|revisúo|revisao|follow/.test(txt)) return <CalendarCheck size={sz}/>
     if (/avalia|consul|diagnos|triagem|primeira.*vez|anamese|anamnese/.test(txt)) return <ClipboardCheck size={sz}/>
     if (/orúamento|orcamento|proposta|plano.*trat|plano.*paga/.test(txt)) return <FileText size={sz}/>
-    if (/limpeza|clarea|branquea|peeling|esfoliaú├úo|esfoliacao|profilax/.test(txt)) return <Sparkles size={sz}/>
-    if (/restaur|obtura|canal|endodon|cirur|extraú├úo|extracao|implant|enxerto/.test(txt)) return <ShieldPlus size={sz}/>
-    if (/pr├│tese|protese|reabilit|coroa|faceta|lente|inlay|onlay/.test(txt)) return <Stethoscope size={sz}/>
+    if (/limpeza|clarea|branquea|peeling|esfoliaúúo|esfoliacao|profilax/.test(txt)) return <Sparkles size={sz}/>
+    if (/restaur|obtura|canal|endodon|cirur|extraúúo|extracao|implant|enxerto/.test(txt)) return <ShieldPlus size={sz}/>
+    if (/prótese|protese|reabilit|coroa|faceta|lente|inlay|onlay/.test(txt)) return <Stethoscope size={sz}/>
     if (/estet|facial|botox|harmoniz|preench|massag|drenag|corporal|sobrancelha|depilaú|depilac/.test(txt)) return <HeartPulse size={sz}/>
     if (/odonto|dent|bucal|oral/.test(txt)) return <ClipboardList size={sz}/>
     return <CalendarCheck size={sz}/>
@@ -512,7 +512,7 @@ export default function Agendar() {
     <div className="sucesso-wrap">
       <style>{css}</style>
       <div className="sucesso-inner">
-        <div className="sucesso-icon">Ô£à</div>
+        <div className="sucesso-icon">£à</div>
         <h1 className="sucesso-title">Agendamento confirmado!</h1>
         <p className="sucesso-sub">{clienteNome ? <>Obrigado, <strong style={{color:'#F8FAFC'}}>{clienteNome}</strong>! Seu horário foi registrado com sucesso.</> : <>Seu horário foi registrado com sucesso.</>}</p>
         <div className="resumo-card">
@@ -541,10 +541,10 @@ export default function Agendar() {
             </a>
           )}
           <button onClick={copiarConfirmacao} className="btn-ics" style={{background:copiado?'rgba(34,197,94,.12)':undefined,borderColor:copiado?'rgba(34,197,94,.30)':undefined,color:copiado?'#22C55E':undefined}}>
-            {copiado ? 'Ô£ô Confirmaú├úo copiada!' : '­ƒôï Copiar confirmaú├úo'}
+            {copiado ? '£ô Confirmaúúo copiada!' : '­ï Copiar confirmaúúo'}
           </button>
           <button onClick={baixarConfirmacaoPDF} className="btn-pdf">
-            ­ƒôä Baixar comprovante
+            ­ä Baixar comprovante
           </button>
           <Link href={'/'+slug} className="btn-inicio">Voltar ao início</Link>
         </div>
@@ -557,7 +557,7 @@ export default function Agendar() {
       <div className="steps-track">
         {[1,2,3,4].map(n=>(
           <div key={n} style={{display:'flex',alignItems:'center',flex:n<4?1:'none'}}>
-            <div className={`step-dot ${etapa>n?'done':etapa===n?'active':'idle'}`}>{etapa>n?'Ô£ô':n}</div>
+            <div className={`step-dot ${etapa>n?'done':etapa===n?'active':'idle'}`}>{etapa>n?'£ô':n}</div>
             {n<4&&<div className="step-line" style={{background:etapa>n?'linear-gradient(90deg,#3B82F6,#7C3AED)':'rgba(148,163,184,.10)'}}/>}
           </div>
         ))}
@@ -576,7 +576,7 @@ export default function Agendar() {
     <main className="page">
       <style>{css}</style>
       <div className="header">
-        <Link href={'/'+slug} className="header-back">ÔåÉ Voltar</Link>
+        <Link href={'/'+slug} className="header-back">åÉ Voltar</Link>
         <p className="header-title">{perfil?.nome_negocio}</p>
         <div className="header-spacer"/>
       </div>
@@ -599,7 +599,7 @@ export default function Agendar() {
                     {s.preco&&<span className="servico-preco">R$ {s.preco}</span>}
                   </div>
                 </div>
-                <div className="servico-arrow">ÔÇ║</div>
+                <div className="servico-arrow">Ç║</div>
               </button>
             ))}
           </div>
@@ -611,7 +611,7 @@ export default function Agendar() {
           <h2 className="section-title">Escolha o profissional</h2>
           <p className="section-sub">Com quem deseja ser atendido?</p>
           <div className="prof-grid">
-            {profissionais.map(p=>(
+            {(servicos.find(s=>s.id===servicoId)?.profissionais_ids?.length>0?profissionais.filter(p=>(servicos.find(s=>s.id===servicoId)?.profissionais_ids||[]).includes(p.id)):profissionais).map(p=>(
               <button key={p.id} onClick={()=>{setProfissionalId(p.id);setEtapa(3)}} className={'prof-card'+(profissionalId===p.id?' sel':'')}>
                 {p.foto_url
                   ?<img src={p.foto_url} alt={p.nome} className="prof-avatar-img" style={{border:profissionalId===p.id?'2px solid #3B82F6':'2px solid rgba(148,163,184,.12)'}}/>
@@ -621,7 +621,7 @@ export default function Agendar() {
               </button>
             ))}
           </div>
-          <button onClick={()=>setEtapa(1)} className="btn-link-voltar">ÔåÉ Voltar</button>
+          <button onClick={()=>setEtapa(1)} className="btn-link-voltar">åÉ Voltar</button>
         </div>
       )}
       {etapa===3&&(
@@ -633,7 +633,7 @@ export default function Agendar() {
             {[
               {label:'Atendimento',valor:servicoSelecionado?.nome,cor:'#F8FAFC'},
               {label:'Profissional',valor:profissionalSelecionado?.nome,cor:'#F8FAFC'},
-              {label:'Duraú├úo',valor:(servicoSelecionado?.duracao_minutos||30)+' min',cor:'#F8FAFC'},
+              {label:'Duraúúo',valor:(servicoSelecionado?.duracao_minutos||30)+' min',cor:'#F8FAFC'},
               {label:'Valor',valor:'R$ '+servicoSelecionado?.preco,cor:'#22C55E'},
             ].map(item=>(
               <div key={item.label}>
@@ -645,9 +645,9 @@ export default function Agendar() {
           <div className="etapa3-cols">
             <div className="cal-wrap">
               <div className="cal-header">
-                <button className="cal-nav" onClick={()=>setMesAtual(new Date(mesAtual.getFullYear(),mesAtual.getMonth()-1,1))}>ÔÇ╣</button>
+                <button className="cal-nav" onClick={()=>setMesAtual(new Date(mesAtual.getFullYear(),mesAtual.getMonth()-1,1))}>Ç╣</button>
                 <p className="cal-mes">{mesAtual.toLocaleDateString('pt-BR',{month:'long',year:'numeric'})}</p>
-                <button className="cal-nav" onClick={()=>setMesAtual(new Date(mesAtual.getFullYear(),mesAtual.getMonth()+1,1))}>ÔÇ║</button>
+                <button className="cal-nav" onClick={()=>setMesAtual(new Date(mesAtual.getFullYear(),mesAtual.getMonth()+1,1))}>Ç║</button>
               </div>
               <div className="cal-dow">{['D','S','T','Q','Q','S','S'].map((d,i)=><div key={i} className="cal-dow-label">{d}</div>)}</div>
               <div className="cal-days">
@@ -667,7 +667,7 @@ export default function Agendar() {
               </div>
             </div>
             <div className="horarios-wrap">
-              {!dataSelecionada&&<div className="horarios-placeholder"><span style={{fontSize:'32px',opacity:.2}}>­ƒôà</span><p style={{fontSize:'13px',color:'#334155',textAlign:'center',lineHeight:1.6}}>Selecione uma data<br/>para ver os horários</p></div>}
+              {!dataSelecionada&&<div className="horarios-placeholder"><span style={{fontSize:'32px',opacity:.2}}>­à</span><p style={{fontSize:'13px',color:'#334155',textAlign:'center',lineHeight:1.6}}>Selecione uma data<br/>para ver os horários</p></div>}
               {dataSelecionada&&(
                 <>
                   <p className="horarios-data-label">{formatarDataExtenso(dataSelecionada)}</p>
@@ -676,7 +676,7 @@ export default function Agendar() {
                   {!carregandoHorarios&&horariosDisponiveis.length>0&&(
                     <div>
                       {[
-                        {label:'Manh├ú',icon:<Sun size={11} color="#475569"/>,lista:horariosManha},
+                        {label:'Manhú',icon:<Sun size={11} color="#475569"/>,lista:horariosManha},
                         {label:'Tarde',icon:<Clock size={11} color="#475569"/>,lista:horariosTarde},
                         {label:'Noite',icon:<Moon size={11} color="#475569"/>,lista:horariosNoite},
                       ].filter(p=>p.lista.length>0).map(periodo=>(
@@ -694,8 +694,8 @@ export default function Agendar() {
             </div>
           </div>
           <div className="nav-row">
-            <button onClick={()=>setEtapa(2)} className="btn-voltar">ÔåÉ Voltar</button>
-            <button onClick={()=>{if(!dataSelecionada||!horarioSelecionado){setErro('Selecione data e horário.');return}setErro('');setEtapa(4)}} disabled={!dataSelecionada||!horarioSelecionado} className={'btn-continuar '+(dataSelecionada&&horarioSelecionado?'on':'off')}>Continuar ÔåÆ</button>
+            <button onClick={()=>setEtapa(2)} className="btn-voltar">åÉ Voltar</button>
+            <button onClick={()=>{if(!dataSelecionada||!horarioSelecionado){setErro('Selecione data e horário.');return}setErro('');setEtapa(4)}} disabled={!dataSelecionada||!horarioSelecionado} className={'btn-continuar '+(dataSelecionada&&horarioSelecionado?'on':'off')}>Continuar åÆ</button>
           </div>
           {erro&&<p className="erro-msg">{erro}</p>}
         </div>
@@ -729,13 +729,13 @@ export default function Agendar() {
               <label className="input-label">WhatsApp *</label>
               <input type="tel" placeholder="(11) 99999-9999" value={clienteTelefone} onChange={e=>setClienteTelefone(aplicarMascaraTelefone(e.target.value))} className="input-field"/>
               <p style={{fontSize:'12px',color:'#475569',marginTop:'6px'}}>Usado apenas para contato sobre seu agendamento.</p>
-              <p style={{fontSize:'12px',color:'#334155',marginTop:'12px',textAlign:'center',lineHeight:1.6}}>­ƒöÆ Seus dados ser├úo usados apenas para confirmar este agendamento.</p>
+              <p style={{fontSize:'12px',color:'#334155',marginTop:'12px',textAlign:'center',lineHeight:1.6}}>­ƒöÆ Seus dados serúo usados apenas para confirmar este agendamento.</p>
             </div>
           </div>
           {erro&&<p className="erro-msg" style={{marginBottom:'12px'}}>{erro}</p>}
           <div className="nav-row">
-            <button onClick={()=>setEtapa(3)} className="btn-voltar">ÔåÉ Voltar</button>
-            <button onClick={handleAgendar} disabled={loading} className="btn-confirmar" style={{opacity:loading ? 0.7 : 1}}>{loading?'Confirmando...':'Ô£ô Confirmar agendamento'}</button>
+            <button onClick={()=>setEtapa(3)} className="btn-voltar">åÉ Voltar</button>
+            <button onClick={handleAgendar} disabled={loading} className="btn-confirmar" style={{opacity:loading ? 0.7 : 1}}>{loading?'Confirmando...':'£ô Confirmar agendamento'}</button>
           </div>
         </div>
       )}
