@@ -121,7 +121,7 @@ export default function Agendar() {
     URL.revokeObjectURL(url)
   }
 
-// £à Gera PDF premium via window.open (mesma estratégia do PDF de orúamento)
+// à Gera PDF premium via window.open (mesma estratégia do PDF de orúamento)
   function baixarConfirmacaoPDF() {
     const nomeCliente = clienteNome || 'cliente'
     const dataFormatada = formatarData(dataSelecionada)
@@ -512,7 +512,7 @@ export default function Agendar() {
     <div className="sucesso-wrap">
       <style>{css}</style>
       <div className="sucesso-inner">
-        <div className="sucesso-icon">£à</div>
+        <div className="sucesso-icon">à</div>
         <h1 className="sucesso-title">Agendamento confirmado!</h1>
         <p className="sucesso-sub">{clienteNome ? <>Obrigado, <strong style={{color:'#F8FAFC'}}>{clienteNome}</strong>! Seu horário foi registrado com sucesso.</> : <>Seu horário foi registrado com sucesso.</>}</p>
         <div className="resumo-card">
@@ -541,7 +541,7 @@ export default function Agendar() {
             </a>
           )}
           <button onClick={copiarConfirmacao} className="btn-ics" style={{background:copiado?'rgba(34,197,94,.12)':undefined,borderColor:copiado?'rgba(34,197,94,.30)':undefined,color:copiado?'#22C55E':undefined}}>
-            {copiado ? '£ô Confirmaúúo copiada!' : '­ï Copiar confirmaúúo'}
+            {copiado ? 'ô Confirmaúúo copiada!' : '­ï Copiar confirmaúúo'}
           </button>
           <button onClick={baixarConfirmacaoPDF} className="btn-pdf">
             ­ä Baixar comprovante
@@ -557,7 +557,7 @@ export default function Agendar() {
       <div className="steps-track">
         {[1,2,3,4].map(n=>(
           <div key={n} style={{display:'flex',alignItems:'center',flex:n<4?1:'none'}}>
-            <div className={`step-dot ${etapa>n?'done':etapa===n?'active':'idle'}`}>{etapa>n?'£ô':n}</div>
+            <div className={`step-dot ${etapa>n?'done':etapa===n?'active':'idle'}`}>{etapa>n?'ô':n}</div>
             {n<4&&<div className="step-line" style={{background:etapa>n?'linear-gradient(90deg,#3B82F6,#7C3AED)':'rgba(148,163,184,.10)'}}/>}
           </div>
         ))}
@@ -599,7 +599,7 @@ export default function Agendar() {
                     {s.preco&&<span className="servico-preco">R$ {s.preco}</span>}
                   </div>
                 </div>
-                <div className="servico-arrow">Ç║</div>
+                <div className="servico-arrow">›</div>
               </button>
             ))}
           </div>
@@ -647,7 +647,7 @@ export default function Agendar() {
               <div className="cal-header">
                 <button className="cal-nav" onClick={()=>setMesAtual(new Date(mesAtual.getFullYear(),mesAtual.getMonth()-1,1))}>Ç╣</button>
                 <p className="cal-mes">{mesAtual.toLocaleDateString('pt-BR',{month:'long',year:'numeric'})}</p>
-                <button className="cal-nav" onClick={()=>setMesAtual(new Date(mesAtual.getFullYear(),mesAtual.getMonth()+1,1))}>Ç║</button>
+                <button className="cal-nav" onClick={()=>setMesAtual(new Date(mesAtual.getFullYear(),mesAtual.getMonth()+1,1))}>›</button>
               </div>
               <div className="cal-dow">{['D','S','T','Q','Q','S','S'].map((d,i)=><div key={i} className="cal-dow-label">{d}</div>)}</div>
               <div className="cal-days">
@@ -735,7 +735,7 @@ export default function Agendar() {
           {erro&&<p className="erro-msg" style={{marginBottom:'12px'}}>{erro}</p>}
           <div className="nav-row">
             <button onClick={()=>setEtapa(3)} className="btn-voltar">åÉ Voltar</button>
-            <button onClick={handleAgendar} disabled={loading} className="btn-confirmar" style={{opacity:loading ? 0.7 : 1}}>{loading?'Confirmando...':'£ô Confirmar agendamento'}</button>
+            <button onClick={handleAgendar} disabled={loading} className="btn-confirmar" style={{opacity:loading ? 0.7 : 1}}>{loading?'Confirmando...':'ô Confirmar agendamento'}</button>
           </div>
         </div>
       )}
