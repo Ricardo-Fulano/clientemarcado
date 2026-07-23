@@ -109,10 +109,10 @@ export default function Agendar() {
 
   function baixarAgendaICS() {
     const inicio = new Date(dataSelecionada + 'T' + horarioSelecionado + ':00')
-    const fim = new Date(inicio.getTime() + (servicoSelecionado?.duracao_minutos || 30) * 60000)
+    const fim = new Date(inicio.getTime() + (servicoAtual?.duracao_minutos || 30) * 60000)
     const fmt = (d: Date) => d.toISOString().replace(/[-:]/g,'').split('.')[0] + 'Z'
     const ics = ['BEGIN:VCALENDAR','VERSION:2.0','BEGIN:VEVENT','DTSTART:'+fmt(inicio),'DTEND:'+fmt(fim),
-      'SUMMARY:'+(servicoSelecionado?.nome||'')+' - '+(perfil?.nome_negocio||''),
+      'SUMMARY:'+(servicoAtual?.nome||'')+' - '+(perfil?.nome_negocio||''),
       'DESCRIPTION:Profissional: '+(profissionalSelecionado?.nome||''),
       'END:VEVENT','END:VCALENDAR'].join('\r\n')
     const blob = new Blob([ics],{type:'text/calendar'})
@@ -132,9 +132,9 @@ export default function Agendar() {
     const endereco = perfil?.endereco || ''
     const wppRaw = (perfil?.whatsapp || '').replace(/\D/g, '')
     const whatsapp = wppRaw ? `(${wppRaw.slice(0,2)}) ${wppRaw.slice(2,7)}-${wppRaw.slice(7)}` : ''
-    const servNome = servicoSelecionado?.nome || ''
+    const servNome = servicoAtual?.nome || ''
     const profNome = profissionalSelecionado?.nome || ''
-    const precoRaw = servicoSelecionado?.preco
+    const precoRaw = servicoAtual?.preco
     const valor = precoRaw ? 'R$\u00a0' + Number(precoRaw).toLocaleString('pt-BR', { minimumFractionDigits: 2 }) : ''
     const nomeArquivo = 'confirmacao-agendamento-' + nomeCliente.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,'-').replace(/[^a-z0-9-]/g,'') + '-' + dataSelecionada
 
@@ -468,11 +468,11 @@ export default function Agendar() {
       'Agendamento confirmado!',
       '',
       'Nome: ' + clienteNome,
-      'Serviço: ' + (servicoSelecionado?.nome||''),
+      'Serviço: ' + (servicoAtual?.nome||''),
       'Profissional: ' + (profissionalSelecionado?.nome||''),
       'Data: ' + formatarData(dataSelecionada),
       'Horário: ' + horarioSelecionado,
-      servicoSelecionado?.preco ? 'Valor: R$ ' + servicoSelecionado.preco : '',
+      servicoAtual?.preco ? 'Valor: R$ ' + servicoAtual.preco : '',
       '',
       perfil?.nome_negocio || '',
       perfil?.endereco ? perfil.endereco : '',
@@ -518,11 +518,11 @@ export default function Agendar() {
         <div className="resumo-card">
           <p className="resumo-card-title">Resumo do agendamento</p>
           {[
-            {label:'Atendimento',valor:servicoSelecionado?.nome,cor:'#F8FAFC'},
+            {label:'Atendimento',valor:servicoAtual?.nome,cor:'#F8FAFC'},
             {label:'Profissional',valor:profissionalSelecionado?.nome,cor:'#F8FAFC'},
             {label:'Data',valor:formatarData(dataSelecionada),cor:'#F8FAFC'},
             {label:'Horário',valor:horarioSelecionado,cor:'#60A5FA'},
-            {label:'Valor',valor:'R$ '+servicoSelecionado?.preco,cor:'#22C55E'},
+            {label:'Valor',valor:'R$ '+servicoAtual?.preco,cor:'#22C55E'},
           ].map((item,idx,arr)=>(
             <div key={item.label}>
               <div className="resumo-row">
@@ -631,10 +631,10 @@ export default function Agendar() {
           <p className="section-sub">Escolha o melhor horário disponível</p>
           <div className="resumo-strip">
             {[
-              {label:'Atendimento',valor:servicoSelecionado?.nome,cor:'#F8FAFC'},
+              {label:'Atendimento',valor:servicoAtual?.nome,cor:'#F8FAFC'},
               {label:'Profissional',valor:profissionalSelecionado?.nome,cor:'#F8FAFC'},
-              {label:'Duração',valor:(servicoSelecionado?.duracao_minutos||30)+' min',cor:'#F8FAFC'},
-              {label:'Valor',valor:'R$ '+servicoSelecionado?.preco,cor:'#22C55E'},
+              {label:'Duração',valor:(servicoAtual?.duracao_minutos||30)+' min',cor:'#F8FAFC'},
+              {label:'Valor',valor:'R$ '+servicoAtual?.preco,cor:'#22C55E'},
             ].map(item=>(
               <div key={item.label}>
                 <p className="resumo-label">{item.label}</p>
@@ -708,11 +708,11 @@ export default function Agendar() {
           <div className="resumo-card">
             <p className="resumo-card-title">Resumo do agendamento</p>
             {[
-              {label:'Atendimento',valor:servicoSelecionado?.nome,cor:'#F8FAFC'},
+              {label:'Atendimento',valor:servicoAtual?.nome,cor:'#F8FAFC'},
               {label:'Profissional',valor:profissionalSelecionado?.nome,cor:'#F8FAFC'},
               {label:'Data',valor:formatarData(dataSelecionada),cor:'#F8FAFC'},
               {label:'Horário',valor:horarioSelecionado,cor:'#60A5FA'},
-              {label:'Valor',valor:'R$ '+servicoSelecionado?.preco,cor:'#22C55E'},
+              {label:'Valor',valor:'R$ '+servicoAtual?.preco,cor:'#22C55E'},
             ].map((item,idx,arr)=>(
               <div key={item.label}>
                 <div className="resumo-row"><span className="resumo-row-label">{item.label}</span><span className="resumo-row-valor" style={{color:item.cor}}>{item.valor}</span></div>
