@@ -576,7 +576,7 @@ export default function Agendar() {
     <main className="page">
       <style>{css}</style>
       <div className="header">
-        <Link href={'/'+slug} className="header-back">åÉ Voltar</Link>
+        <Link href={'/'+slug} className="header-back">Voltar</Link>
         <p className="header-title">{perfil?.nome_negocio}</p>
         <div className="header-spacer"/>
       </div>
@@ -621,7 +621,7 @@ export default function Agendar() {
               </button>
             ))}
           </div>
-          <button onClick={()=>setEtapa(1)} className="btn-link-voltar">åÉ Voltar</button>
+          <button onClick={()=>setEtapa(1)} className="btn-link-voltar">Voltar</button>
         </div>
       )}
       {etapa===3&&(
@@ -633,7 +633,7 @@ export default function Agendar() {
             {[
               {label:'Atendimento',valor:servicoSelecionado?.nome,cor:'#F8FAFC'},
               {label:'Profissional',valor:profissionalSelecionado?.nome,cor:'#F8FAFC'},
-              {label:'Duraúúo',valor:(servicoSelecionado?.duracao_minutos||30)+' min',cor:'#F8FAFC'},
+              {label:'Duração',valor:(servicoSelecionado?.duracao_minutos||30)+' min',cor:'#F8FAFC'},
               {label:'Valor',valor:'R$ '+servicoSelecionado?.preco,cor:'#22C55E'},
             ].map(item=>(
               <div key={item.label}>
@@ -676,7 +676,7 @@ export default function Agendar() {
                   {!carregandoHorarios&&horariosDisponiveis.length>0&&(
                     <div>
                       {[
-                        {label:'Manhú',icon:<Sun size={11} color="#475569"/>,lista:horariosManha},
+                        {label:'Manhã',icon:<Sun size={11} color="#475569"/>,lista:horariosManha},
                         {label:'Tarde',icon:<Clock size={11} color="#475569"/>,lista:horariosTarde},
                         {label:'Noite',icon:<Moon size={11} color="#475569"/>,lista:horariosNoite},
                       ].filter(p=>p.lista.length>0).map(periodo=>(
@@ -694,7 +694,7 @@ export default function Agendar() {
             </div>
           </div>
           <div className="nav-row">
-            <button onClick={()=>setEtapa(2)} className="btn-voltar">åÉ Voltar</button>
+            <button onClick={()=>setEtapa(2)} className="btn-voltar">Voltar</button>
             <button onClick={()=>{if(!dataSelecionada||!horarioSelecionado){setErro('Selecione data e horário.');return}setErro('');setEtapa(4)}} disabled={!dataSelecionada||!horarioSelecionado} className={'btn-continuar '+(dataSelecionada&&horarioSelecionado?'on':'off')}>Continuar åÆ</button>
           </div>
           {erro&&<p className="erro-msg">{erro}</p>}
@@ -734,7 +734,7 @@ export default function Agendar() {
           </div>
           {erro&&<p className="erro-msg" style={{marginBottom:'12px'}}>{erro}</p>}
           <div className="nav-row">
-            <button onClick={()=>setEtapa(3)} className="btn-voltar">åÉ Voltar</button>
+            <button onClick={()=>setEtapa(3)} className="btn-voltar">Voltar</button>
             <button onClick={handleAgendar} disabled={loading} className="btn-confirmar" style={{opacity:loading ? 0.7 : 1}}>{loading?'Confirmando...':'ô Confirmar agendamento'}</button>
           </div>
         </div>
