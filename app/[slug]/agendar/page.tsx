@@ -121,7 +121,7 @@ export default function Agendar() {
     URL.revokeObjectURL(url)
   }
 
-// à Gera PDF premium via window.open (mesma estratégia do PDF de orúamento)
+// à Gera PDF premium via window.open (mesma estratégia do PDF de orçamento)
   function baixarConfirmacaoPDF() {
     const nomeCliente = clienteNome || 'cliente'
     const dataFormatada = formatarData(dataSelecionada)
@@ -468,7 +468,7 @@ export default function Agendar() {
       'Agendamento confirmado!',
       '',
       'Nome: ' + clienteNome,
-      'Serviúo: ' + (servicoSelecionado?.nome||''),
+      'Serviço: ' + (servicoSelecionado?.nome||''),
       'Profissional: ' + (profissionalSelecionado?.nome||''),
       'Data: ' + formatarData(dataSelecionada),
       'Horário: ' + horarioSelecionado,
@@ -496,14 +496,14 @@ export default function Agendar() {
     const txt = [s.nome, s.categoria||'', s.descricao||''].join(' ').toLowerCase()
     const sz = 20
     if (/corte|barba|cabelo|barbearia|cabeleirei|platina|mecha|progressiva|alisam|relaxam/.test(txt)) return <Scissors size={sz}/>
-    if (/colora|escova|hidrataú|hidratac|mechas|luzes|reflexo|tinta/.test(txt)) return <Sparkles size={sz}/>
-    if (/retorno|reavalia|acompan|revisúo|revisao|follow/.test(txt)) return <CalendarCheck size={sz}/>
+    if (/colora|escova|hidrataç|hidratac|mechas|luzes|reflexo|tinta/.test(txt)) return <Sparkles size={sz}/>
+    if (/retorno|reavalia|acompan|revisão|revisao|follow/.test(txt)) return <CalendarCheck size={sz}/>
     if (/avalia|consul|diagnos|triagem|primeira.*vez|anamese|anamnese/.test(txt)) return <ClipboardCheck size={sz}/>
-    if (/orúamento|orcamento|proposta|plano.*trat|plano.*paga/.test(txt)) return <FileText size={sz}/>
-    if (/limpeza|clarea|branquea|peeling|esfoliaúúo|esfoliacao|profilax/.test(txt)) return <Sparkles size={sz}/>
-    if (/restaur|obtura|canal|endodon|cirur|extraúúo|extracao|implant|enxerto/.test(txt)) return <ShieldPlus size={sz}/>
+    if (/orçamento|orcamento|proposta|plano.*trat|plano.*paga/.test(txt)) return <FileText size={sz}/>
+    if (/limpeza|clarea|branquea|peeling|esfoliação|esfoliacao|profilax/.test(txt)) return <Sparkles size={sz}/>
+    if (/restaur|obtura|canal|endodon|cirur|extração|extracao|implant|enxerto/.test(txt)) return <ShieldPlus size={sz}/>
     if (/prótese|protese|reabilit|coroa|faceta|lente|inlay|onlay/.test(txt)) return <Stethoscope size={sz}/>
-    if (/estet|facial|botox|harmoniz|preench|massag|drenag|corporal|sobrancelha|depilaú|depilac/.test(txt)) return <HeartPulse size={sz}/>
+    if (/estet|facial|botox|harmoniz|preench|massag|drenag|corporal|sobrancelha|depilaç|depilac/.test(txt)) return <HeartPulse size={sz}/>
     if (/odonto|dent|bucal|oral/.test(txt)) return <ClipboardList size={sz}/>
     return <CalendarCheck size={sz}/>
   }
@@ -541,7 +541,7 @@ export default function Agendar() {
             </a>
           )}
           <button onClick={copiarConfirmacao} className="btn-ics" style={{background:copiado?'rgba(34,197,94,.12)':undefined,borderColor:copiado?'rgba(34,197,94,.30)':undefined,color:copiado?'#22C55E':undefined}}>
-            {copiado ? 'ô Confirmaúúo copiada!' : '­ï Copiar confirmaúúo'}
+            {copiado ? 'ô Confirmação copiada!' : '­Copiar confirmação'}
           </button>
           <button onClick={baixarConfirmacaoPDF} className="btn-pdf">
             ­ä Baixar comprovante
@@ -584,7 +584,7 @@ export default function Agendar() {
         <div className="container">
           <Steps/>
           <h2 className="section-title">Selecione o atendimento</h2>
-          <p className="section-sub">Escolha um serviúo, procedimento ou consulta para continuar.</p>
+          <p className="section-sub">Escolha um serviço, procedimento ou consulta para continuar.</p>
           <div className="servico-list">
             {servicos.map(s=>(
               <button key={s.id} onClick={()=>{setServicoId(s.id);setEtapa(2)}} className={'servico-card'+(servicoId===s.id?' sel':'')}>
@@ -645,7 +645,7 @@ export default function Agendar() {
           <div className="etapa3-cols">
             <div className="cal-wrap">
               <div className="cal-header">
-                <button className="cal-nav" onClick={()=>setMesAtual(new Date(mesAtual.getFullYear(),mesAtual.getMonth()-1,1))}>Ç╣</button>
+                <button className="cal-nav" onClick={()=>setMesAtual(new Date(mesAtual.getFullYear(),mesAtual.getMonth()-1,1))}>‹</button>
                 <p className="cal-mes">{mesAtual.toLocaleDateString('pt-BR',{month:'long',year:'numeric'})}</p>
                 <button className="cal-nav" onClick={()=>setMesAtual(new Date(mesAtual.getFullYear(),mesAtual.getMonth()+1,1))}>›</button>
               </div>
@@ -695,7 +695,7 @@ export default function Agendar() {
           </div>
           <div className="nav-row">
             <button onClick={()=>setEtapa(2)} className="btn-voltar">Voltar</button>
-            <button onClick={()=>{if(!dataSelecionada||!horarioSelecionado){setErro('Selecione data e horário.');return}setErro('');setEtapa(4)}} disabled={!dataSelecionada||!horarioSelecionado} className={'btn-continuar '+(dataSelecionada&&horarioSelecionado?'on':'off')}>Continuar åÆ</button>
+            <button onClick={()=>{if(!dataSelecionada||!horarioSelecionado){setErro('Selecione data e horário.');return}setErro('');setEtapa(4)}} disabled={!dataSelecionada||!horarioSelecionado} className={'btn-continuar '+(dataSelecionada&&horarioSelecionado?'on':'off')}>Continuar</button>
           </div>
           {erro&&<p className="erro-msg">{erro}</p>}
         </div>
@@ -729,7 +729,7 @@ export default function Agendar() {
               <label className="input-label">WhatsApp *</label>
               <input type="tel" placeholder="(11) 99999-9999" value={clienteTelefone} onChange={e=>setClienteTelefone(aplicarMascaraTelefone(e.target.value))} className="input-field"/>
               <p style={{fontSize:'12px',color:'#475569',marginTop:'6px'}}>Usado apenas para contato sobre seu agendamento.</p>
-              <p style={{fontSize:'12px',color:'#334155',marginTop:'12px',textAlign:'center',lineHeight:1.6}}>­ƒöÆ Seus dados serúo usados apenas para confirmar este agendamento.</p>
+              <p style={{fontSize:'12px',color:'#334155',marginTop:'12px',textAlign:'center',lineHeight:1.6}}>­Seus dados serão usados apenas para confirmar este agendamento.</p>
             </div>
           </div>
           {erro&&<p className="erro-msg" style={{marginBottom:'12px'}}>{erro}</p>}
