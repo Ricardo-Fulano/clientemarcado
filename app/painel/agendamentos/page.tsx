@@ -4,47 +4,49 @@ import { supabase } from '../../lib/supabase'
 import Link from 'next/link'
 import PainelSidebar from '@/app/components/PainelSidebar'
 
-const G='linear-gradient(135deg,#3B82F6,#7C3AED)'
+const G='linear-gradient(135deg,#EC4899,#D946EF,#8B5CF6)'
 
 const CSS=`
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-html,body{overflow-x:hidden;width:100%;max-width:100%;background:#050B16}
+html,body{overflow-x:hidden;width:100%;max-width:100%;background:#08060A}
 input,select,textarea{color-scheme:dark}
-.pg{background:radial-gradient(circle at top left,rgba(124,58,237,.14),transparent 28%),linear-gradient(135deg,#050B16 0%,#07111F 45%,#050B16 100%);min-height:100vh}
+.pg{background:radial-gradient(circle at top left,rgba(139,92,246,.14),transparent 28%),linear-gradient(135deg,#08060A 0%,#120A14 45%,#08060A 100%);min-height:100vh}
 .bdy{max-width:1200px;margin:0 auto;padding:24px 28px 80px;width:100%;box-sizing:border-box}
 .ag-grid{display:grid;grid-template-columns:1fr;gap:16px}
 .det-col{display:none}
 .kpi-g{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px}
 .hdr-btns{display:flex;gap:8px;flex-wrap:wrap;flex-shrink:0}
 .fil-scroll{display:flex;align-items:center;gap:8px;margin-bottom:14px;width:100%;flex-wrap:wrap}
-.ag-item{background:linear-gradient(145deg,rgba(11,22,40,.98),rgba(8,16,28,.99));border:1px solid rgba(96,165,250,.18);border-radius:20px;padding:16px;margin-bottom:12px;cursor:pointer;transition:all .15s}
-.ag-item:hover{border-color:rgba(59,130,246,.35)}
-.ag-item.sel{border-color:rgba(59,130,246,.55);background:radial-gradient(circle at top left,rgba(59,130,246,.09),transparent 60%),linear-gradient(145deg,rgba(11,22,40,.98),rgba(8,16,28,.99))}
+.btn-bloq:hover{border-color:rgba(236,72,153,.40)!important}
+.ag-item{background:linear-gradient(145deg,rgba(24,16,27,.98),rgba(18,10,20,.99));border:1px solid #2A1A2F;border-radius:20px;padding:16px;margin-bottom:12px;cursor:pointer;transition:all .15s}
+.ag-item:hover{border-color:rgba(236,72,153,.35)}
+.ag-item.sel{border-color:rgba(236,72,153,.55);background:radial-gradient(circle at top left,rgba(236,72,153,.09),transparent 60%),linear-gradient(145deg,rgba(24,16,27,.98),rgba(18,10,20,.99))}
 .card-btns{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
 .card-btn{border-radius:9px;padding:6px 11px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:4px;white-space:nowrap;border:1px solid transparent;transition:all .12s}
-.conf-area{margin-top:10px;padding-top:10px;border-top:1px solid rgba(148,163,184,.10)}
-.sem-card{background:linear-gradient(145deg,rgba(15,23,42,.98),rgba(8,20,33,.99));border:1px solid rgba(148,163,184,.12);border-radius:16px;padding:14px;cursor:pointer;transition:all .15s}
-.sem-card:hover{border-color:rgba(59,130,246,.3)}
-.sem-card.hoje-card{border-color:rgba(59,130,246,.35)}
-.sem-card.sel-card{border-color:rgba(59,130,246,.55);box-shadow:0 0 20px rgba(59,130,246,.15)}
-.sem-det-item{background:linear-gradient(145deg,rgba(15,23,42,.98),rgba(8,20,33,.99));border:1px solid rgba(148,163,184,.12);border-radius:12px;padding:12px 14px;margin-bottom:8px}
+.card-btn:hover{border-color:rgba(236,72,153,.28)!important}
+.conf-area{margin-top:10px;padding-top:10px;border-top:1px solid #2A1A2F}
+.sem-card{background:linear-gradient(145deg,rgba(24,16,27,.98),rgba(18,10,20,.99));border:1px solid #2A1A2F;border-radius:16px;padding:14px;cursor:pointer;transition:all .15s}
+.sem-card:hover{border-color:rgba(236,72,153,.3)}
+.sem-card.hoje-card{border-color:rgba(236,72,153,.35)}
+.sem-card.sel-card{border-color:rgba(236,72,153,.55);box-shadow:0 0 20px rgba(236,72,153,.15)}
+.sem-det-item{background:linear-gradient(145deg,rgba(24,16,27,.98),rgba(18,10,20,.99));border:1px solid #2A1A2F;border-radius:12px;padding:12px 14px;margin-bottom:8px}
 .bs-ovl{position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:60;opacity:0;pointer-events:none;transition:opacity .25s}
 .bs-ovl.open{opacity:1;pointer-events:auto}
-.bs{position:fixed;bottom:0;left:0;right:0;background:#0B1628;border-top:1px solid rgba(255,255,255,.10);border-radius:22px 22px 0 0;padding:24px 24px 36px;z-index:61;transform:translateY(100%);transition:transform .28s ease;max-height:82vh;overflow-y:auto;box-sizing:border-box}
+.bs{position:fixed;bottom:0;left:0;right:0;background:#120A14;border-top:1px solid rgba(255,255,255,.10);border-radius:22px 22px 0 0;padding:24px 24px 36px;z-index:61;transform:translateY(100%);transition:transform .28s ease;max-height:82vh;overflow-y:auto;box-sizing:border-box}
 .bs.open{transform:translateY(0)}
 .bs-handle{width:40px;height:4px;background:rgba(255,255,255,.15);border-radius:2px;margin:0 auto 20px}
 .bs-item{display:flex;align-items:center;gap:12px;padding:14px 0;border-bottom:1px solid rgba(255,255,255,.06);cursor:pointer;font-size:14px;font-weight:500;background:none;border-left:none;border-right:none;border-top:none;font-family:inherit;width:100%;text-align:left;min-height:48px}
 .bs-item:last-child{border-bottom:none}
-.bs-label{font-size:10px;font-weight:700;color:#64748B;text-transform:uppercase;letter-spacing:.08em;margin:14px 0 6px}
+.bs-label{font-size:10px;font-weight:700;color:#B8AAB8;text-transform:uppercase;letter-spacing:.08em;margin:14px 0 6px}
 .bl-ovl{position:fixed;inset:0;background:rgba(0,0,0,.65);backdrop-filter:blur(8px);z-index:80;opacity:0;pointer-events:none;transition:opacity .24s ease}
 .bl-ovl.open{opacity:1;pointer-events:auto}
-.bl-modal{position:fixed;z-index:90;background:linear-gradient(145deg,#0B1628,#101B2D);border:1px solid rgba(59,130,246,.25);box-shadow:0 24px 80px rgba(0,0,0,.55);color:#F8FAFC;overflow-y:auto;transition:transform .24s ease,opacity .24s ease;pointer-events:none;opacity:0}
+.bl-modal{position:fixed;z-index:90;background:linear-gradient(145deg,#120A14,#18101B);border:1px solid rgba(236,72,153,.25);box-shadow:0 24px 80px rgba(0,0,0,.55);color:#F8F4F7;overflow-y:auto;transition:transform .24s ease,opacity .24s ease;pointer-events:none;opacity:0}
 .bl-modal.open{pointer-events:auto;opacity:1}
 .bl-handle{width:40px;height:4px;background:rgba(255,255,255,.15);border-radius:2px;margin:0 auto 20px}
 .bl-grid{display:grid;gap:12px}
 .bl-actions{display:flex;gap:10px;margin-top:4px}
-.grp-hdr{font-size:11px;font-weight:700;color:#64748B;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid rgba(148,163,184,.08)}
-.grp-hdr.hoje-hdr{color:#60A5FA}
+.grp-hdr{font-size:11px;font-weight:700;color:#B8AAB8;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid #2A1A2F}
+.grp-hdr.hoje-hdr{color:#EC4899}
 @media(min-width:768px){.bl-modal{left:50%;top:50%;bottom:auto;width:min(92vw,560px);max-height:86vh;border-radius:28px;padding:26px;transform:translate(-50%,-46%) scale(.96)}.bl-modal.open{transform:translate(-50%,-50%) scale(1)}.bl-grid{grid-template-columns:1fr 1fr}.bl-actions{flex-direction:row}.bl-handle{display:none}}
 @media(max-width:767px){.bl-modal{left:0;right:0;bottom:0;width:100%;max-height:88vh;border-radius:26px 26px 0 0;padding:22px;transform:translateY(105%);opacity:1}.bl-modal.open{transform:translateY(0)}.bl-grid{grid-template-columns:1fr}.bl-actions{flex-direction:column}}
 @media(min-width:1100px){.ag-grid{grid-template-columns:1fr 360px}.det-col{display:block}}
@@ -65,23 +67,23 @@ input,select,textarea{color-scheme:dark}
 `
 
 const confCfg: Record<string,{t:string,bg:string,c:string}> = {
-  pendente:         {t:'Aguardando confirmação',bg:'rgba(148,163,184,.08)',c:'#CBD5E1'},
-  mensagem_enviada: {t:'Mensagem enviada',      bg:'rgba(59,130,246,.12)', c:'#60A5FA'},
-  confirmado:       {t:'Cliente confirmou',     bg:'rgba(16,185,129,.08)',  c:'#34D399'},
+  pendente:         {t:'Aguardando confirmação',bg:'#2A1A2F',c:'#B8AAB8'},
+  mensagem_enviada: {t:'Mensagem enviada',      bg:'rgba(236,72,153,.12)', c:'#EC4899'},
+  confirmado:       {t:'Cliente confirmou',     bg:'rgba(34,197,94,.08)',  c:'#22C55E'},
   sem_resposta:     {t:'Sem resposta',          bg:'rgba(250,204,21,.08)',c:'#FACC15'},
-  nao_comparece:    {t:'Não vai comparecer',    bg:'rgba(239,68,68,.12)',  c:'#F87171'},
-  remarcado:        {t:'Remarcado',             bg:'rgba(124,58,237,.12)',c:'#C4B5FD'},
+  nao_comparece:    {t:'Não vai comparecer',    bg:'rgba(239,68,68,.12)',  c:'#EF4444'},
+  remarcado:        {t:'Remarcado',             bg:'rgba(139,92,246,.12)',c:'#C4B5FD'},
 }
 
 const stCfg: Record<string,{t:string,bg:string,c:string,bd:string}> = {
   pendente:      {t:'Pendente',       bg:'rgba(250,204,21,.10)',c:'#FACC15',bd:'rgba(250,204,21,.22)'},
-  confirmado:    {t:'Confirmado',     bg:'rgba(16,185,129,.08)', c:'#34D399',bd:'rgba(34,197,94,.20)'},
-  realizado:     {t:'Realizado',      bg:'rgba(16,185,129,.08)', c:'#34D399',bd:'rgba(34,197,94,.20)'},
-  cancelado:     {t:'Cancelado',      bg:'rgba(239,68,68,.12)', c:'#F87171',bd:'rgba(239,68,68,.28)'},
-  retorno:       {t:'Retorno',        bg:'rgba(124,58,237,.14)',c:'#C4B5FD',bd:'rgba(124,58,237,.30)'},
-  compareceu:    {t:'Compareceu',     bg:'rgba(34,197,94,.14)', c:'#4ADE80',bd:'rgba(34,197,94,.30)'},
-  faltou:        {t:'Faltou',         bg:'rgba(239,68,68,.12)', c:'#F87171',bd:'rgba(239,68,68,.28)'},
-  em_atendimento:{t:'Em atendimento', bg:'rgba(59,130,246,.14)',c:'#60A5FA',bd:'rgba(59,130,246,.30)'},
+  confirmado:    {t:'Confirmado',     bg:'rgba(34,197,94,.08)', c:'#22C55E',bd:'rgba(34,197,94,.20)'},
+  realizado:     {t:'Realizado',      bg:'rgba(34,197,94,.08)', c:'#22C55E',bd:'rgba(34,197,94,.20)'},
+  cancelado:     {t:'Cancelado',      bg:'rgba(239,68,68,.12)', c:'#EF4444',bd:'rgba(239,68,68,.28)'},
+  retorno:       {t:'Retorno',        bg:'rgba(139,92,246,.14)',c:'#C4B5FD',bd:'rgba(139,92,246,.30)'},
+  compareceu:    {t:'Compareceu',     bg:'rgba(34,197,94,.14)', c:'#22C55E',bd:'rgba(34,197,94,.30)'},
+  faltou:        {t:'Faltou',         bg:'rgba(239,68,68,.12)', c:'#EF4444',bd:'rgba(239,68,68,.28)'},
+  em_atendimento:{t:'Em atendimento', bg:'rgba(236,72,153,.14)',c:'#EC4899',bd:'rgba(236,72,153,.30)'},
 }
 
 function fH(dh:string){return new Date(dh).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}
@@ -284,8 +286,8 @@ export default function Agendamentos(){
     return{borderRadius:8,padding:'7px 8px',fontSize:11,fontWeight:700,cursor:'pointer',border:'1px solid',fontFamily:'inherit',whiteSpace:'nowrap' as const,textDecoration:'none',display:'flex',alignItems:'center',justifyContent:'center',gap:3,transition:'opacity .15s',...ex}
   }
 
-  const btnP:React.CSSProperties={background:G,color:'#fff',border:'none',borderRadius:10,padding:'0 16px',height:36,fontSize:12,fontWeight:700,cursor:'pointer',fontFamily:'inherit',textDecoration:'none',display:'inline-flex',alignItems:'center',gap:5,whiteSpace:'nowrap',boxShadow:'0 4px 14px rgba(59,130,246,.25)'}
-  const btnS:React.CSSProperties={background:'rgba(15,23,42,.88)',color:'#CBD5E1',border:'1px solid rgba(148,163,184,.20)',borderRadius:10,padding:'0 14px',height:36,fontSize:12,fontWeight:600,cursor:'pointer',fontFamily:'inherit',whiteSpace:'nowrap',display:'inline-flex',alignItems:'center'}
+  const btnP:React.CSSProperties={background:G,color:'#fff',border:'none',borderRadius:10,padding:'0 16px',height:36,fontSize:12,fontWeight:700,cursor:'pointer',fontFamily:'inherit',textDecoration:'none',display:'inline-flex',alignItems:'center',gap:5,whiteSpace:'nowrap',boxShadow:'0 12px 34px rgba(236,72,153,.28)'}
+  const btnS:React.CSSProperties={background:'rgba(24,16,27,.75)',color:'#F8F4F7',border:'1px solid #2A1A2F',borderRadius:10,padding:'0 14px',height:36,fontSize:12,fontWeight:600,cursor:'pointer',fontFamily:'inherit',whiteSpace:'nowrap',display:'inline-flex',alignItems:'center'}
 
   const nome=perfil?.nome_negocio||'Negócio'
 
@@ -302,34 +304,34 @@ export default function Agendamentos(){
     return(
       <div className={'ag-item'+(isSel?' sel':'')} onClick={()=>setSel(a)}>
         <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:6}}>
-          <span style={{fontSize:12,fontWeight:800,color:'#60A5FA',background:'rgba(59,130,246,.14)',border:'1px solid rgba(59,130,246,.28)',borderRadius:6,padding:'2px 7px',flexShrink:0}}>{fH(a.data_hora)}</span>
-          <span style={{fontSize:14,fontWeight:700,color:'#F8FAFC',flex:1,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap' as const}}>{a.cliente_nome||'—'}</span>
+          <span style={{fontSize:12,fontWeight:800,color:'#EC4899',background:'rgba(236,72,153,.14)',border:'1px solid rgba(236,72,153,.28)',borderRadius:6,padding:'2px 7px',flexShrink:0}}>{fH(a.data_hora)}</span>
+          <span style={{fontSize:14,fontWeight:700,color:'#F8F4F7',flex:1,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap' as const}}>{a.cliente_nome||'—'}</span>
           <span style={{...stBadge(a.status),flexShrink:0}}>{sc.t}</span>
         </div>
-        {tf&&<p style={{fontSize:11,color:'#CBD5E1',marginBottom:2}}>{tf}</p>}
-        <p style={{fontSize:11,color:'#94A3B8',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap' as const,marginBottom:8}}>
+        {tf&&<p style={{fontSize:11,color:'#B8AAB8',marginBottom:2}}>{tf}</p>}
+        <p style={{fontSize:11,color:'#B8AAB8',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap' as const,marginBottom:8}}>
           {a.servicos?.nome||'Serviço não informado'}{a.profissionais?.nome?' · Prof. '+a.profissionais.nome:''}
           {a.servicos?.preco?<span style={{color:'#22C55E'}}> · R$ {a.servicos.preco}</span>:null}
         </p>
         <div className="card-btns" onClick={e=>e.stopPropagation()}>
-          {wW&&<a href={wW} target="_blank" rel="noreferrer" className="card-btn" style={{background:'rgba(15,23,42,.78)',color:'#34D399',border:'1px solid rgba(34,197,94,.24)'}}>WhatsApp</a>}
-          {wC2&&!jaRealizado&&<a href={wC2} target="_blank" rel="noreferrer" className="card-btn" onClick={()=>updConf(a.id,'mensagem_enviada')} style={{background:'rgba(29,78,216,.10)',color:'#BFDBFE',border:'1px solid rgba(96,165,250,.22)'}}>Enviar confirmação</a>}
+          {wW&&<a href={wW} target="_blank" rel="noreferrer" className="card-btn" style={{background:'rgba(24,16,27,.75)',color:'#F8F4F7',border:'1px solid #2A1A2F'}}>WhatsApp</a>}
+          {wC2&&!jaRealizado&&<a href={wC2} target="_blank" rel="noreferrer" className="card-btn" onClick={()=>updConf(a.id,'mensagem_enviada')} style={{background:'rgba(24,16,27,.75)',color:'#F8F4F7',border:'1px solid #2A1A2F'}}>Enviar confirmação</a>}
           {!jaRealizado&&a.status!=='cancelado'&&a.status!=='faltou'&&(
-            <button className="card-btn" onClick={()=>updSt(a.id,'realizado')} style={{background:'rgba(15,23,42,.78)',color:'#34D399',border:'1px solid rgba(34,197,94,.24)'}}>✓ Realizado</button>
+            <button className="card-btn" onClick={()=>updSt(a.id,'realizado')} style={{background:'rgba(24,16,27,.75)',color:'#F8F4F7',border:'1px solid #2A1A2F'}}>✓ Realizado</button>
           )}
-          <button className="card-btn" onClick={()=>setBsAg(a)} style={{background:'rgba(255,255,255,.05)',color:'#94A3B8',border:'1px solid rgba(148,163,184,.16)'}}>⋯ Mais</button>
+          <button className="card-btn" onClick={()=>setBsAg(a)} style={{background:'rgba(24,16,27,.75)',color:'#B8AAB8',border:'1px solid #2A1A2F'}}>⋯ Mais</button>
         </div>
         {!jaRealizado&&a.status!=='faltou'&&a.status!=='cancelado'&&(
           <div className="conf-area" onClick={e=>e.stopPropagation()}>
             <div style={{display:'flex',alignItems:'center',gap:6}}>
-              <span style={{fontSize:10,fontWeight:700,color:'#64748B',textTransform:'uppercase' as const,letterSpacing:'.06em'}}>Confirmação</span>
+              <span style={{fontSize:10,fontWeight:700,color:'#B8AAB8',textTransform:'uppercase' as const,letterSpacing:'.06em'}}>Confirmação</span>
               <span style={{fontSize:10,fontWeight:700,padding:'2px 7px',borderRadius:'999px',background:cc.bg,color:cc.c}}>{cc.t}</span>
             </div>
           </div>
         )}
-        {jaRealizado&&<div className="conf-area"><span style={{fontSize:10,fontWeight:700,padding:'2px 9px',borderRadius:'999px',background:'rgba(34,197,94,.12)',color:'#4ADE80',border:'1px solid rgba(34,197,94,.22)'}}>✓ Atendimento realizado</span></div>}
-        {a.status==='faltou'&&<div className="conf-area"><span style={{fontSize:10,fontWeight:700,padding:'2px 9px',borderRadius:'999px',background:'rgba(239,68,68,.12)',color:'#F87171',border:'1px solid rgba(239,68,68,.22)'}}>Cliente faltou</span></div>}
-        {a.status==='cancelado'&&<div className="conf-area"><span style={{fontSize:10,fontWeight:700,padding:'2px 9px',borderRadius:'999px',background:'rgba(239,68,68,.10)',color:'#F87171',border:'1px solid rgba(239,68,68,.18)'}}>Cancelado</span></div>}
+        {jaRealizado&&<div className="conf-area"><span style={{fontSize:10,fontWeight:700,padding:'2px 9px',borderRadius:'999px',background:'rgba(34,197,94,.12)',color:'#22C55E',border:'1px solid rgba(34,197,94,.22)'}}>✓ Atendimento realizado</span></div>}
+        {a.status==='faltou'&&<div className="conf-area"><span style={{fontSize:10,fontWeight:700,padding:'2px 9px',borderRadius:'999px',background:'rgba(239,68,68,.12)',color:'#EF4444',border:'1px solid rgba(239,68,68,.22)'}}>Cliente faltou</span></div>}
+        {a.status==='cancelado'&&<div className="conf-area"><span style={{fontSize:10,fontWeight:700,padding:'2px 9px',borderRadius:'999px',background:'rgba(239,68,68,.10)',color:'#EF4444',border:'1px solid rgba(239,68,68,.18)'}}>Cancelado</span></div>}
       </div>
     )
   }
@@ -340,46 +342,46 @@ export default function Agendamentos(){
     const wC=sel?wpp(sel,'c'):null
     const wL=sel?wpp(sel,'l'):null
     const wW=sel?wpp(sel,'w'):null
-    const sec:React.CSSProperties={marginBottom:12,paddingBottom:12,borderBottom:'1px solid rgba(148,163,184,.07)'}
-    const secT:React.CSSProperties={fontSize:9,fontWeight:700,textTransform:'uppercase' as const,letterSpacing:'.10em',color:'#475569',marginBottom:8}
+    const sec:React.CSSProperties={marginBottom:12,paddingBottom:12,borderBottom:'1px solid #2A1A2F'}
+    const secT:React.CSSProperties={fontSize:9,fontWeight:700,textTransform:'uppercase' as const,letterSpacing:'.10em',color:'#B8AAB8',marginBottom:8}
     const row:React.CSSProperties={display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:5}
     const g2:React.CSSProperties={display:'grid',gridTemplateColumns:'1fr 1fr',gap:6,marginTop:6}
     if(!sel)return(
-      <div style={{background:'radial-gradient(circle at top left,rgba(124,58,237,.06),transparent 50%),linear-gradient(145deg,rgba(15,23,42,.98),rgba(8,20,33,.99))',border:'1px solid rgba(148,163,184,.12)',borderRadius:16,padding:20,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',minHeight:300,textAlign:'center',gap:10}}>
-        <p style={{fontSize:14,fontWeight:700,color:'#F8FAFC'}}>Selecione um agendamento</p>
-        <p style={{fontSize:12,color:'#475569',lineHeight:1.5}}>Clique em um atendimento para ver detalhes.</p>
+      <div style={{background:'radial-gradient(circle at top left,rgba(139,92,246,.06),transparent 50%),linear-gradient(145deg,rgba(24,16,27,.98),rgba(18,10,20,.99))',border:'1px solid #2A1A2F',borderRadius:16,padding:20,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',minHeight:300,textAlign:'center',gap:10}}>
+        <p style={{fontSize:14,fontWeight:700,color:'#F8F4F7'}}>Selecione um agendamento</p>
+        <p style={{fontSize:12,color:'#B8AAB8',lineHeight:1.5}}>Clique em um atendimento para ver detalhes.</p>
       </div>
     )
     return(
-      <div style={{background:'radial-gradient(circle at top left,rgba(124,58,237,.08),transparent 50%),linear-gradient(145deg,rgba(15,23,42,.98),rgba(8,20,33,.99))',border:'1px solid rgba(124,58,237,.20)',borderRadius:16,padding:18,maxHeight:'calc(100vh - 160px)',overflowY:'auto'}}>
+      <div style={{background:'radial-gradient(circle at top left,rgba(139,92,246,.08),transparent 50%),linear-gradient(145deg,rgba(24,16,27,.98),rgba(18,10,20,.99))',border:'1px solid rgba(139,92,246,.20)',borderRadius:16,padding:18,maxHeight:'calc(100vh - 160px)',overflowY:'auto'}}>
         <p style={{...secT,marginBottom:12}}>Detalhes do agendamento</p>
         <div style={{width:44,height:44,borderRadius:'50%',background:G,display:'flex',alignItems:'center',justifyContent:'center',fontSize:18,fontWeight:800,color:'#fff',margin:'0 auto 10px'}}>{(sel.cliente_nome||'C').charAt(0).toUpperCase()}</div>
-        <p style={{fontSize:15,fontWeight:800,color:'#F8FAFC',textAlign:'center',marginBottom:3}}>{sel.cliente_nome||'Cliente sem nome'}</p>
+        <p style={{fontSize:15,fontWeight:800,color:'#F8F4F7',textAlign:'center',marginBottom:3}}>{sel.cliente_nome||'Cliente sem nome'}</p>
         <div style={{textAlign:'center',marginBottom:12}}><span style={stBadge(sel.status)}>{sc.t}</span></div>
         <div style={sec}>
           <p style={secT}>Contato</p>
-          <div style={row}><span style={{fontSize:11,color:'#64748B'}}>WhatsApp</span><span style={{fontSize:11,fontWeight:700,color:'#CBD5E1'}}>{tf||'Não informado'}</span></div>
+          <div style={row}><span style={{fontSize:11,color:'#B8AAB8'}}>WhatsApp</span><span style={{fontSize:11,fontWeight:700,color:'#B8AAB8'}}>{tf||'Não informado'}</span></div>
           <div style={g2}>
             {wW?<a href={wW} target="_blank" rel="noreferrer" style={{...dBtn({background:'rgba(37,211,102,.12)',borderColor:'rgba(37,211,102,.25)',color:'#25D366'}),gridColumn:'1/-1'}}>Abrir WhatsApp</a>
-              :<button disabled style={{...dBtn({background:'rgba(255,255,255,.04)',borderColor:'rgba(148,163,184,.10)',color:'#334155',cursor:'not-allowed'}),gridColumn:'1/-1'}}>Sem telefone</button>}
-            <button onClick={()=>copiar(sel)} style={{...dBtn({background:'rgba(255,255,255,.04)',borderColor:'rgba(148,163,184,.14)',color:'#94A3B8'}),gridColumn:'1/-1'}}>Copiar contato</button>
+              :<button disabled style={{...dBtn({background:'rgba(255,255,255,.04)',borderColor:'#2A1A2F',color:'#B8AAB8',cursor:'not-allowed'}),gridColumn:'1/-1'}}>Sem telefone</button>}
+            <button onClick={()=>copiar(sel)} style={{...dBtn({background:'rgba(255,255,255,.04)',borderColor:'#2A1A2F',color:'#B8AAB8'}),gridColumn:'1/-1'}}>Copiar contato</button>
           </div>
         </div>
         <div style={sec}>
           <p style={secT}>Atendimento</p>
-          {[{l:'Serviço',v:sel.servicos?.nome||'Não informado',c:'#F8FAFC'},{l:'Profissional',v:sel.profissionais?.nome||'Não informado',c:'#F8FAFC'},{l:'Data',v:fDF(sel.data_hora),c:'#CBD5E1',fs:10},{l:'Horário',v:fH(sel.data_hora),c:'#60A5FA'},...(sel.servicos?.preco?[{l:'Valor',v:'R$ '+sel.servicos.preco,c:'#22C55E'}]:[])].map(({l,v,c,fs}:any)=>(
-            <div key={l} style={row}><span style={{fontSize:11,color:'#64748B'}}>{l}</span><span style={{fontSize:fs||11,fontWeight:700,color:c,textAlign:'right' as const,maxWidth:'58%'}}>{v}</span></div>
+          {[{l:'Serviço',v:sel.servicos?.nome||'Não informado',c:'#F8F4F7'},{l:'Profissional',v:sel.profissionais?.nome||'Não informado',c:'#F8F4F7'},{l:'Data',v:fDF(sel.data_hora),c:'#B8AAB8',fs:10},{l:'Horário',v:fH(sel.data_hora),c:'#EC4899'},...(sel.servicos?.preco?[{l:'Valor',v:'R$ '+sel.servicos.preco,c:'#22C55E'}]:[])].map(({l,v,c,fs}:any)=>(
+            <div key={l} style={row}><span style={{fontSize:11,color:'#B8AAB8'}}>{l}</span><span style={{fontSize:fs||11,fontWeight:700,color:c,textAlign:'right' as const,maxWidth:'58%'}}>{v}</span></div>
           ))}
         </div>
         <div>
           <p style={secT}>Ações rápidas</p>
           <div style={g2}>
             {wC&&(sel.status==='pendente'||!sel.status||sel.status==='retorno')&&<a href={wC} target="_blank" rel="noreferrer" style={dBtn({background:'rgba(34,197,94,.12)',borderColor:'rgba(34,197,94,.25)',color:'#22C55E'})}>✓ Confirmar</a>}
-            {wL&&<a href={wL} target="_blank" rel="noreferrer" style={dBtn({background:'rgba(245,158,11,.10)',borderColor:'rgba(245,158,11,.22)',color:'#FCD34D'})}>Lembrete</a>}
-            {sel.status!=='realizado'&&<button onClick={()=>updSt(sel.id,'realizado')} style={dBtn({background:'rgba(34,197,94,.10)',borderColor:'rgba(34,197,94,.20)',color:'#4ADE80'})}>✓ Realizado</button>}
-            {sel.status!=='faltou'&&<button onClick={()=>updSt(sel.id,'faltou')} style={dBtn({background:'rgba(239,68,68,.08)',borderColor:'rgba(239,68,68,.18)',color:'#F87171'})}>✗ Faltou</button>}
-            {sel.status!=='retorno'&&<button onClick={()=>updSt(sel.id,'retorno')} style={dBtn({background:'rgba(124,58,237,.10)',borderColor:'rgba(124,58,237,.22)',color:'#C4B5FD'})}>↩ Retorno</button>}
-            {sel.status!=='cancelado'&&<button onClick={()=>updSt(sel.id,'cancelado')} style={dBtn({background:'rgba(239,68,68,.06)',borderColor:'rgba(239,68,68,.14)',color:'#F87171'})}>✕ Cancelar</button>}
+            {wL&&<a href={wL} target="_blank" rel="noreferrer" style={dBtn({background:'rgba(250,204,21,.10)',borderColor:'rgba(250,204,21,.22)',color:'#FCD34D'})}>Lembrete</a>}
+            {sel.status!=='realizado'&&<button onClick={()=>updSt(sel.id,'realizado')} style={dBtn({background:'rgba(34,197,94,.10)',borderColor:'rgba(34,197,94,.20)',color:'#22C55E'})}>✓ Realizado</button>}
+            {sel.status!=='faltou'&&<button onClick={()=>updSt(sel.id,'faltou')} style={dBtn({background:'rgba(239,68,68,.08)',borderColor:'rgba(239,68,68,.18)',color:'#EF4444'})}>✗ Faltou</button>}
+            {sel.status!=='retorno'&&<button onClick={()=>updSt(sel.id,'retorno')} style={dBtn({background:'rgba(139,92,246,.10)',borderColor:'rgba(139,92,246,.22)',color:'#C4B5FD'})}>↩ Retorno</button>}
+            {sel.status!=='cancelado'&&<button onClick={()=>updSt(sel.id,'cancelado')} style={dBtn({background:'rgba(239,68,68,.06)',borderColor:'rgba(239,68,68,.14)',color:'#EF4444'})}>✕ Cancelar</button>}
           </div>
         </div>
       </div>
@@ -403,38 +405,38 @@ export default function Agendamentos(){
     setSalvandoBloqueio(false)
   }
 
-  if(loading)return(<div style={{minHeight:'100vh',background:'#050B16',display:'flex',alignItems:'center',justifyContent:'center',fontFamily:'system-ui'}}><p style={{color:'#64748B',fontSize:'14px'}}>Carregando...</p></div>)
+  if(loading)return(<div style={{minHeight:'100vh',background:'#08060A',display:'flex',alignItems:'center',justifyContent:'center',fontFamily:'system-ui'}}><p style={{color:'#B8AAB8',fontSize:'14px'}}>Carregando...</p></div>)
 
   return(
-    <div style={{display:'flex',minHeight:'100vh',background:'#050B16',fontFamily:'-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif',overflowX:'hidden',width:'100%'}}>
+    <div style={{display:'flex',minHeight:'100vh',background:'#08060A',fontFamily:'-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif',overflowX:'hidden',width:'100%'}}>
       <style dangerouslySetInnerHTML={{__html:CSS}}/>
       <PainelSidebar nome={perfil?.nome_negocio||''} tituloMobile="Agenda"/>
       <div className="psb-main">
         <div className="pg"><div className="bdy">
 
-          {msg&&<div style={{position:'fixed',top:72,left:'50%',transform:'translateX(-50%)',background:'rgba(15,23,42,.96)',border:'1px solid rgba(59,130,246,.35)',borderRadius:10,padding:'10px 20px',fontSize:13,fontWeight:600,color:'#F8FAFC',zIndex:99,whiteSpace:'nowrap',boxShadow:'0 8px 24px rgba(0,0,0,.5)'}}>{msg}</div>}
+          {msg&&<div style={{position:'fixed',top:72,left:'50%',transform:'translateX(-50%)',background:'rgba(24,16,27,.96)',border:'1px solid rgba(236,72,153,.35)',borderRadius:10,padding:'10px 20px',fontSize:13,fontWeight:600,color:'#F8F4F7',zIndex:99,whiteSpace:'nowrap',boxShadow:'0 8px 24px rgba(0,0,0,.5)'}}>{msg}</div>}
 
           <div style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',gap:14,marginBottom:16,flexWrap:'wrap'}}>
             <div>
-              <h1 style={{fontSize:22,fontWeight:800,color:'#F8FAFC',letterSpacing:'-0.03em',marginBottom:2}}>Agenda</h1>
-              <p style={{fontSize:13,color:'#94A3B8',lineHeight:1.4}}>Veja seus horários, confirme clientes e acompanhe os atendimentos do dia.</p>
+              <h1 style={{fontSize:22,fontWeight:800,color:'#F8F4F7',letterSpacing:'-0.03em',marginBottom:2}}>Agenda</h1>
+              <p style={{fontSize:13,color:'#B8AAB8',lineHeight:1.4}}>Veja seus horários, confirme clientes e acompanhe os atendimentos do dia.</p>
             </div>
             <div className="hdr-btns">
               <Link href="/painel/agendamentos/novo" style={btnP}>+ Novo agendamento</Link>
-              <button style={btnS} onClick={()=>setShowBloqueio(true)}>Bloquear horário</button>
+              <button className="btn-bloq" style={btnS} onClick={()=>setShowBloqueio(true)}>Bloquear horário</button>
             </div>
           </div>
 
           {/* KPIs */}
           <div className="kpi-g">
             {[
-              {l:'Hoje',n:agsHj.length,c:'#60A5FA',bd:'rgba(59,130,246,.28)',bg:'rgba(59,130,246,.08)',ic:<svg width={15} height={15} viewBox='0 0 24 24' fill='none' stroke='#60A5FA' strokeWidth='2' strokeLinecap='round' strokeLinejoin='round'><rect x='3' y='4' width='18' height='18' rx='2'/><line x1='16' y1='2' x2='16' y2='6'/><line x1='8' y1='2' x2='8' y2='6'/><line x1='3' y1='10' x2='21' y2='10'/></svg>},
-              {l:'Confirmados',n:conf,c:'#4ADE80',bd:'rgba(34,197,94,.28)',bg:'rgba(34,197,94,.08)',ic:<svg width={15} height={15} viewBox='0 0 24 24' fill='none' stroke='#4ADE80' strokeWidth='2.5' strokeLinecap='round' strokeLinejoin='round'><polyline points='20 6 9 17 4 12'/></svg>},
-              {l:'Pendentes',n:pend,c:'#FBBF24',bd:'rgba(250,204,21,.20)',bg:'rgba(250,204,21,.08)',ic:<svg width={15} height={15} viewBox='0 0 24 24' fill='none' stroke='#FACC15' strokeWidth='2' strokeLinecap='round' strokeLinejoin='round'><circle cx='12' cy='12' r='10'/><polyline points='12 6 12 12 16 14'/></svg>},
-            ].map(({l,n,c,bd,bg,ic})=>(
-              <div key={l} style={{background:'radial-gradient(circle at top left,'+bg+',transparent 70%),linear-gradient(145deg,rgba(11,22,40,.97),rgba(8,16,28,.99))',border:'1.5px solid '+bd,borderRadius:16,padding:'12px 10px',display:'flex',flexDirection:'column',gap:4,minWidth:0,boxSizing:'border-box'}}>
-                <div style={{display:'flex',alignItems:'center',justifyContent:'center',width:28,height:28}}>{ic}</div>
-                <p style={{fontSize:9,fontWeight:700,textTransform:'uppercase' as const,letterSpacing:'.08em',color:'#64748B'}}>{l}</p>
+              {l:'Hoje',n:agsHj.length,c:'#EC4899',ibg:'rgba(236,72,153,.12)',ic:<svg width={15} height={15} viewBox='0 0 24 24' fill='none' stroke='#EC4899' strokeWidth='2' strokeLinecap='round' strokeLinejoin='round'><rect x='3' y='4' width='18' height='18' rx='2'/><line x1='16' y1='2' x2='16' y2='6'/><line x1='8' y1='2' x2='8' y2='6'/><line x1='3' y1='10' x2='21' y2='10'/></svg>},
+              {l:'Confirmados',n:conf,c:'#22C55E',ibg:'rgba(34,197,94,.10)',ic:<svg width={15} height={15} viewBox='0 0 24 24' fill='none' stroke='#22C55E' strokeWidth='2.5' strokeLinecap='round' strokeLinejoin='round'><polyline points='20 6 9 17 4 12'/></svg>},
+              {l:'Pendentes',n:pend,c:'#FACC15',ibg:'rgba(250,204,21,.10)',ic:<svg width={15} height={15} viewBox='0 0 24 24' fill='none' stroke='#FACC15' strokeWidth='2' strokeLinecap='round' strokeLinejoin='round'><circle cx='12' cy='12' r='10'/><polyline points='12 6 12 12 16 14'/></svg>},
+            ].map(({l,n,c,ibg,ic})=>(
+              <div key={l} style={{background:'#18101B',border:'1.5px solid #2A1A2F',borderRadius:16,padding:'12px 10px',display:'flex',flexDirection:'column',gap:4,minWidth:0,boxSizing:'border-box'}}>
+                <div style={{display:'flex',alignItems:'center',justifyContent:'center',width:28,height:28,borderRadius:8,background:ibg}}>{ic}</div>
+                <p style={{fontSize:9,fontWeight:700,textTransform:'uppercase' as const,letterSpacing:'.08em',color:'#B8AAB8'}}>{l}</p>
                 <p style={{fontSize:22,fontWeight:800,color:c,lineHeight:1}}>{n}</p>
               </div>
             ))}
@@ -444,18 +446,18 @@ export default function Agendamentos(){
           <div className="fil-scroll">
             {(['hoje','semana','todos'] as const).map(v=>(
               <button key={v} onClick={()=>{setView(v);setDiaSel(null);setBusca('');setLimTodos(30)}}
-                style={{height:32,padding:'0 14px',borderRadius:8,fontSize:12,fontWeight:600,cursor:'pointer',border:'1px solid '+(view===v?'rgba(59,130,246,.4)':'rgba(148,163,184,.15)'),background:view===v?'rgba(59,130,246,.15)':'transparent',color:view===v?'#60A5FA':'#64748B',fontFamily:'inherit',whiteSpace:'nowrap',flexShrink:0}}>
+                style={{height:32,padding:'0 14px',borderRadius:8,fontSize:12,fontWeight:600,cursor:'pointer',border:'1px solid '+(view===v?'rgba(236,72,153,.4)':'#2A1A2F'),background:view===v?'rgba(236,72,153,.15)':'transparent',color:view===v?'#EC4899':'#B8AAB8',fontFamily:'inherit',whiteSpace:'nowrap',flexShrink:0}}>
                 {v==='hoje'?'Hoje':v==='semana'?'Semana':'Todos'}
               </button>
             ))}
             {(view==='hoje')&&['todos','pendente','realizado','faltou','cancelado'].map(f=>(
               <button key={f} onClick={()=>setFSt(f)}
-                style={{height:32,padding:'0 12px',borderRadius:8,fontSize:12,fontWeight:600,cursor:'pointer',border:'1px solid '+(fSt===f?'rgba(59,130,246,.35)':'rgba(148,163,184,.13)'),background:fSt===f?'rgba(59,130,246,.12)':'transparent',color:fSt===f?'#60A5FA':'#64748B',fontFamily:'inherit',whiteSpace:'nowrap',flexShrink:0}}>
+                style={{height:32,padding:'0 12px',borderRadius:8,fontSize:12,fontWeight:600,cursor:'pointer',border:'1px solid '+(fSt===f?'rgba(236,72,153,.35)':'#2A1A2F'),background:fSt===f?'rgba(236,72,153,.12)':'transparent',color:fSt===f?'#EC4899':'#B8AAB8',fontFamily:'inherit',whiteSpace:'nowrap',flexShrink:0}}>
                 {f==='todos'?'Status':stCfg[f]?.t||f}
               </button>
             ))}
             <select value={fPr} onChange={e=>setFPr(e.target.value)}
-              style={{height:32,background:'rgba(15,23,42,.88)',border:'1px solid rgba(148,163,184,.16)',borderRadius:8,padding:'0 10px',fontSize:11,color:'#CBD5E1',fontFamily:'inherit',cursor:'pointer',outline:'none',flexShrink:0,minWidth:160}}>
+              style={{height:32,background:'rgba(24,16,27,.88)',border:'1px solid #2A1A2F',borderRadius:8,padding:'0 10px',fontSize:11,color:'#B8AAB8',fontFamily:'inherit',cursor:'pointer',outline:'none',flexShrink:0,minWidth:160}}>
               <option value="todos">Todos profissionais</option>
               {profs.map(p=><option key={p.id} value={p.id}>{p.nome}</option>)}
             </select>
@@ -465,21 +467,21 @@ export default function Agendamentos(){
           {view==='hoje'&&(
             <div className="ag-grid">
               <div>
-                <p style={{fontSize:10,fontWeight:700,color:'#475569',textTransform:'uppercase' as const,marginBottom:8,letterSpacing:'.08em'}}>{agsF.length} atendimento{agsF.length!==1?'s':''} hoje</p>
+                <p style={{fontSize:10,fontWeight:700,color:'#B8AAB8',textTransform:'uppercase' as const,marginBottom:8,letterSpacing:'.08em'}}>{agsF.length} atendimento{agsF.length!==1?'s':''} hoje</p>
                 {agsF.length===0?(
-                  <div style={{background:'linear-gradient(145deg,rgba(11,22,40,.98),rgba(8,16,28,.99))',border:'1px solid rgba(148,163,184,.12)',borderRadius:20,padding:32,textAlign:'center'}}>
-                    <p style={{fontSize:15,fontWeight:600,color:'#F8FAFC',marginBottom:6}}>Nenhum atendimento hoje</p>
-                    <p style={{fontSize:13,color:'#64748B',marginBottom:16}}>Sem agendamentos para hoje.</p>
+                  <div style={{background:'linear-gradient(145deg,rgba(24,16,27,.98),rgba(18,10,20,.99))',border:'1px solid #2A1A2F',borderRadius:20,padding:32,textAlign:'center'}}>
+                    <p style={{fontSize:15,fontWeight:600,color:'#F8F4F7',marginBottom:6}}>Nenhum atendimento hoje</p>
+                    <p style={{fontSize:13,color:'#B8AAB8',marginBottom:16}}>Sem agendamentos para hoje.</p>
                     <Link href="/painel/agendamentos/novo" style={{...btnP,display:'inline-flex'}}>+ Novo agendamento</Link>
                   </div>
                 ):agsF.map(a=><AgCard key={a.id} a={a}/>)}
                 {bloqueios.filter(b=>b.data===hoje).map(b=>(
-                  <div key={b.id} style={{background:'linear-gradient(145deg,rgba(11,22,40,.98),rgba(8,16,28,.99))',border:'1px solid rgba(239,68,68,.22)',borderRadius:20,padding:16,marginBottom:12}}>
+                  <div key={b.id} style={{background:'linear-gradient(145deg,rgba(24,16,27,.98),rgba(18,10,20,.99))',border:'1px solid rgba(239,68,68,.22)',borderRadius:20,padding:16,marginBottom:12}}>
                     <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:4}}>
-                      <span style={{fontSize:12,fontWeight:800,color:'#F87171',background:'rgba(239,68,68,.14)',border:'1px solid rgba(239,68,68,.28)',borderRadius:6,padding:'2px 7px',flexShrink:0}}>{b.horario_inicio} - {b.horario_fim}</span>
-                      <span style={{fontSize:13,fontWeight:700,color:'#F8FAFC',flex:1}}>Horário bloqueado</span>
+                      <span style={{fontSize:12,fontWeight:800,color:'#EF4444',background:'rgba(239,68,68,.14)',border:'1px solid rgba(239,68,68,.28)',borderRadius:6,padding:'2px 7px',flexShrink:0}}>{b.horario_inicio} - {b.horario_fim}</span>
+                      <span style={{fontSize:13,fontWeight:700,color:'#F8F4F7',flex:1}}>Horário bloqueado</span>
                     </div>
-                    {b.motivo&&<p style={{fontSize:11,color:'#94A3B8'}}>Motivo: {b.motivo}</p>}
+                    {b.motivo&&<p style={{fontSize:11,color:'#B8AAB8'}}>Motivo: {b.motivo}</p>}
                   </div>
                 ))}
               </div>
@@ -491,7 +493,7 @@ export default function Agendamentos(){
           {view==='semana'&&(
             <div>
               <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:16,flexWrap:'wrap',gap:8}}>
-                <p style={{fontSize:14,fontWeight:700,color:'#CBD5E1'}}>{fDC(dS[0])} — {fDC(dS[6])} {dS[6].getFullYear()}</p>
+                <p style={{fontSize:14,fontWeight:700,color:'#B8AAB8'}}>{fDC(dS[0])} — {fDC(dS[6])} {dS[6].getFullYear()}</p>
                 <div style={{display:'flex',gap:6}}>
                   {[{l:'Anterior',fn:()=>{setSemOff(s=>s-1);setDiaSel(null)}},{l:'Hoje',fn:()=>{setSemOff(0);setDiaSel(null)}},{l:'Próxima',fn:()=>{setSemOff(s=>s+1);setDiaSel(null)}}].map(({l,fn})=>(
                     <button key={l} onClick={fn} style={{...btnS,height:30,padding:'0 12px',fontSize:11}}>{l}</button>
@@ -517,22 +519,22 @@ export default function Agendamentos(){
                       }}
                       className={'sem-card'+(ehHoje?' hoje-card':'')+(isSel?' sel-card':'')}>
                       <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:5}}>
-                        <p style={{fontSize:10,fontWeight:700,color:ehHoje?'#60A5FA':'#CBD5E1',textTransform:'capitalize' as const,lineHeight:1.3}}>
+                        <p style={{fontSize:10,fontWeight:700,color:ehHoje?'#EC4899':'#B8AAB8',textTransform:'capitalize' as const,lineHeight:1.3}}>
                           {d.toLocaleDateString('pt-BR',{weekday:'short'})}<br/>
                           <span style={{fontSize:11,fontWeight:800}}>{d.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'})}</span>
                         </p>
-                        {it.length>0&&<span style={{fontSize:10,fontWeight:800,color:'#60A5FA',background:'rgba(59,130,246,.14)',borderRadius:999,padding:'1px 6px',flexShrink:0}}>{it.length}</span>}
+                        {it.length>0&&<span style={{fontSize:10,fontWeight:800,color:'#EC4899',background:'rgba(236,72,153,.14)',borderRadius:999,padding:'1px 6px',flexShrink:0}}>{it.length}</span>}
                       </div>
                       {it.length===0
-                        ?<p style={{fontSize:10,color:'#475569'}}>Livre</p>
+                        ?<p style={{fontSize:10,color:'#B8AAB8'}}>Livre</p>
                         :<>
-                          {primeiro&&<p style={{fontSize:10,color:'#94A3B8',marginBottom:3}}>🕐 {primeiro}</p>}
+                          {primeiro&&<p style={{fontSize:10,color:'#B8AAB8',marginBottom:3}}>🕐 {primeiro}</p>}
                           <div style={{display:'flex',gap:3,flexWrap:'wrap'}}>
-                            {totalConf>0&&<span style={{fontSize:9,fontWeight:700,color:'#4ADE80',background:'rgba(34,197,94,.12)',borderRadius:999,padding:'1px 5px'}}>{totalConf}✓</span>}
-                            {totalPend>0&&<span style={{fontSize:9,fontWeight:700,color:'#FBBF24',background:'rgba(245,158,11,.12)',borderRadius:999,padding:'1px 5px'}}>{totalPend}⏳</span>}
+                            {totalConf>0&&<span style={{fontSize:9,fontWeight:700,color:'#22C55E',background:'rgba(34,197,94,.12)',borderRadius:999,padding:'1px 5px'}}>{totalConf}✓</span>}
+                            {totalPend>0&&<span style={{fontSize:9,fontWeight:700,color:'#FACC15',background:'rgba(250,204,21,.12)',borderRadius:999,padding:'1px 5px'}}>{totalPend}⏳</span>}
                             {totalReal>0&&<span style={{fontSize:9,fontWeight:700,color:'#22C55E',background:'rgba(34,197,94,.1)',borderRadius:999,padding:'1px 5px'}}>{totalReal}✔</span>}
                           </div>
-                          <p style={{fontSize:9,color:'#3B82F6',marginTop:4,fontWeight:600}}>Ver ↓</p>
+                          <p style={{fontSize:9,color:'#EC4899',marginTop:4,fontWeight:600}}>Ver ↓</p>
                         </>
                       }
                     </div>
@@ -546,12 +548,12 @@ export default function Agendamentos(){
                 return(
                   <div ref={refDia} style={{paddingTop:4}}>
                     <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:14}}>
-                      <p style={{fontSize:14,fontWeight:700,color:'#F8FAFC',textTransform:'capitalize' as const}}>{labelDia}</p>
-                      <span style={{fontSize:11,color:'#64748B'}}>{itD.length} agendamento{itD.length!==1?'s':''}</span>
-                      <button onClick={()=>setDiaSel(null)} style={{marginLeft:'auto',background:'none',border:'none',color:'#475569',cursor:'pointer',fontSize:18,lineHeight:1}}>×</button>
+                      <p style={{fontSize:14,fontWeight:700,color:'#F8F4F7',textTransform:'capitalize' as const}}>{labelDia}</p>
+                      <span style={{fontSize:11,color:'#B8AAB8'}}>{itD.length} agendamento{itD.length!==1?'s':''}</span>
+                      <button onClick={()=>setDiaSel(null)} style={{marginLeft:'auto',background:'none',border:'none',color:'#B8AAB8',cursor:'pointer',fontSize:18,lineHeight:1}}>×</button>
                     </div>
                     {itD.length===0
-                      ?<div style={{background:'rgba(255,255,255,.03)',border:'1px solid rgba(148,163,184,.1)',borderRadius:12,padding:'20px',textAlign:'center'}}><p style={{fontSize:13,color:'#64748B'}}>Nenhum agendamento neste dia.</p></div>
+                      ?<div style={{background:'rgba(255,255,255,.03)',border:'1px solid #2A1A2F',borderRadius:12,padding:'20px',textAlign:'center'}}><p style={{fontSize:13,color:'#B8AAB8'}}>Nenhum agendamento neste dia.</p></div>
                       :itD.map(a=><AgCard key={a.id} a={a} showSel={false}/>)
                     }
                   </div>
@@ -565,32 +567,32 @@ export default function Agendamentos(){
             <div>
               {/* Busca */}
               <input type="text" placeholder="Buscar cliente, telefone, serviço ou profissional..." value={busca} onChange={e=>{setBusca(e.target.value);setLimTodos(30)}}
-                style={{width:'100%',background:'rgba(15,23,42,.88)',border:'1px solid rgba(148,163,184,.16)',borderRadius:10,padding:'10px 14px',fontSize:13,color:'#F8FAFC',outline:'none',fontFamily:'inherit',boxSizing:'border-box' as const,marginBottom:10}}/>
+                style={{width:'100%',background:'rgba(24,16,27,.88)',border:'1px solid #2A1A2F',borderRadius:10,padding:'10px 14px',fontSize:13,color:'#F8F4F7',outline:'none',fontFamily:'inherit',boxSizing:'border-box' as const,marginBottom:10}}/>
               {/* Filtros período + status */}
               <div style={{display:'flex',gap:6,flexWrap:'wrap',marginBottom:10}}>
                 {([['7d','7 dias'],['30d','30 dias'],['mes','Este mês'],['ano','Este ano'],['tudo','Todo período']] as const).map(([val,lbl])=>(
                   <button key={val} onClick={()=>{setPeriodoTodos(val);setLimTodos(30)}}
-                    style={{height:30,padding:'0 12px',borderRadius:8,fontSize:11,fontWeight:600,cursor:'pointer',border:'1px solid '+(periodoTodos===val?'rgba(59,130,246,.4)':'rgba(148,163,184,.15)'),background:periodoTodos===val?'rgba(59,130,246,.15)':'transparent',color:periodoTodos===val?'#60A5FA':'#64748B',fontFamily:'inherit',whiteSpace:'nowrap' as const}}>
+                    style={{height:30,padding:'0 12px',borderRadius:8,fontSize:11,fontWeight:600,cursor:'pointer',border:'1px solid '+(periodoTodos===val?'rgba(236,72,153,.4)':'#2A1A2F'),background:periodoTodos===val?'rgba(236,72,153,.15)':'transparent',color:periodoTodos===val?'#EC4899':'#B8AAB8',fontFamily:'inherit',whiteSpace:'nowrap' as const}}>
                     {lbl}
                   </button>
                 ))}
                 {['todos','pendente','realizado','faltou','cancelado'].map(f=>(
                   <button key={f} onClick={()=>setFSt(f)}
-                    style={{height:30,padding:'0 10px',borderRadius:8,fontSize:11,fontWeight:600,cursor:'pointer',border:'1px solid '+(fSt===f?'rgba(124,58,237,.4)':'rgba(148,163,184,.13)'),background:fSt===f?'rgba(124,58,237,.12)':'transparent',color:fSt===f?'#C4B5FD':'#64748B',fontFamily:'inherit',whiteSpace:'nowrap' as const}}>
+                    style={{height:30,padding:'0 10px',borderRadius:8,fontSize:11,fontWeight:600,cursor:'pointer',border:'1px solid '+(fSt===f?'rgba(139,92,246,.4)':'#2A1A2F'),background:fSt===f?'rgba(139,92,246,.12)':'transparent',color:fSt===f?'#C4B5FD':'#B8AAB8',fontFamily:'inherit',whiteSpace:'nowrap' as const}}>
                     {f==='todos'?'Status':stCfg[f]?.t||f}
                   </button>
                 ))}
               </div>
               {/* Contador + aviso */}
-              <p style={{fontSize:11,color:'#64748B',marginBottom:12}}>
+              <p style={{fontSize:11,color:'#B8AAB8',marginBottom:12}}>
                 {busca?`${agsTodos.length} resultado${agsTodos.length!==1?'s':''} para "${busca}" ${periodoLabel()}`:`${agsTodos.length} agendamento${agsTodos.length!==1?'s':''} ${periodoLabel()}`}
-                {periodoTodos==='tudo'&&<span style={{color:'#FBBF24'}}> · Use a busca para encontrar clientes antigos</span>}
+                {periodoTodos==='tudo'&&<span style={{color:'#FACC15'}}> · Use a busca para encontrar clientes antigos</span>}
               </p>
               {/* Lista agrupada por data */}
               {agsTodos.length===0?(
-                <div style={{background:'linear-gradient(145deg,rgba(11,22,40,.98),rgba(8,16,28,.99))',border:'1px solid rgba(148,163,184,.12)',borderRadius:20,padding:32,textAlign:'center'}}>
-                  <p style={{fontSize:15,fontWeight:600,color:'#F8FAFC',marginBottom:6}}>Nenhum agendamento encontrado</p>
-                  <p style={{fontSize:13,color:'#64748B',marginBottom:16}}>Tente outro período ou limpe a busca.</p>
+                <div style={{background:'linear-gradient(145deg,rgba(24,16,27,.98),rgba(18,10,20,.99))',border:'1px solid #2A1A2F',borderRadius:20,padding:32,textAlign:'center'}}>
+                  <p style={{fontSize:15,fontWeight:600,color:'#F8F4F7',marginBottom:6}}>Nenhum agendamento encontrado</p>
+                  <p style={{fontSize:13,color:'#B8AAB8',marginBottom:16}}>Tente outro período ou limpe a busca.</p>
                 </div>
               ):(
                 <>
@@ -608,7 +610,7 @@ export default function Agendamentos(){
                   })}
                   {agsTodos.length>limTodos&&(
                     <button onClick={()=>setLimTodos(l=>l+30)}
-                      style={{width:'100%',background:'rgba(59,130,246,.10)',border:'1.5px solid rgba(59,130,246,.22)',borderRadius:12,padding:'14px',fontSize:13,fontWeight:700,color:'#60A5FA',cursor:'pointer',fontFamily:'inherit',marginTop:4}}>
+                      style={{width:'100%',background:'rgba(236,72,153,.10)',border:'1.5px solid rgba(236,72,153,.22)',borderRadius:12,padding:'14px',fontSize:13,fontWeight:700,color:'#EC4899',cursor:'pointer',fontFamily:'inherit',marginTop:4}}>
                       Carregar mais ({agsTodos.length-limTodos} restantes)
                     </button>
                   )}
@@ -626,17 +628,17 @@ export default function Agendamentos(){
         <div className="bs-handle"/>
         <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:16}}>
           <div>
-            <p style={{fontSize:15,fontWeight:700,color:'#F8FAFC'}}>Ações do atendimento</p>
-            {bsAg&&<p style={{fontSize:12,color:'#64748B'}}>{bsAg.cliente_nome||'—'} · {fH(bsAg.data_hora)}</p>}
+            <p style={{fontSize:15,fontWeight:700,color:'#F8F4F7'}}>Ações do atendimento</p>
+            {bsAg&&<p style={{fontSize:12,color:'#B8AAB8'}}>{bsAg.cliente_nome||'—'} · {fH(bsAg.data_hora)}</p>}
           </div>
-          <button onClick={()=>setBsAg(null)} style={{background:'none',border:'none',color:'#475569',cursor:'pointer',fontSize:22,lineHeight:1}}>×</button>
+          <button onClick={()=>setBsAg(null)} style={{background:'none',border:'none',color:'#B8AAB8',cursor:'pointer',fontSize:22,lineHeight:1}}>×</button>
         </div>
         <p className="bs-label">Contato</p>
-        <button className="bs-item" style={{color:'#CBD5E1'}} onClick={()=>{bsAg&&copiar(bsAg);setBsAg(null)}}>
+        <button className="bs-item" style={{color:'#B8AAB8'}} onClick={()=>{bsAg&&copiar(bsAg);setBsAg(null)}}>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
           Copiar contato
         </button>
-        <button className="bs-item" style={{color:'#60A5FA'}} onClick={()=>{bsAg&&resgatarCliente(bsAg);setBsAg(null)}}>
+        <button className="bs-item" style={{color:'#EC4899'}} onClick={()=>{bsAg&&resgatarCliente(bsAg);setBsAg(null)}}>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
           Resgatar cliente
         </button>
@@ -649,33 +651,33 @@ export default function Agendamentos(){
           return(<>
             {jaRealizado?(
               <div style={{padding:'12px 0',borderBottom:'1px solid rgba(255,255,255,.06)',display:'flex',alignItems:'center',gap:10}}>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#4ADE80" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                <span style={{fontSize:14,color:'#4ADE80',fontWeight:500}}>Atendimento já realizado</span>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22C55E" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                <span style={{fontSize:14,color:'#22C55E',fontWeight:500}}>Atendimento já realizado</span>
               </div>
             ):jaCancelado?null:(
-              <button className="bs-item" style={{color:'#4ADE80'}} onClick={()=>{updSt(bsAg.id,'realizado');setBsAg(null)}}>
+              <button className="bs-item" style={{color:'#22C55E'}} onClick={()=>{updSt(bsAg.id,'realizado');setBsAg(null)}}>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
                 ✓ Marcar como realizado
               </button>
             )}
             {jaFaltou?(
               <div style={{padding:'12px 0',borderBottom:'1px solid rgba(255,255,255,.06)',display:'flex',alignItems:'center',gap:10}}>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#F87171" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
-                <span style={{fontSize:14,color:'#F87171',fontWeight:500}}>Cliente marcado como faltou</span>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#EF4444" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+                <span style={{fontSize:14,color:'#EF4444',fontWeight:500}}>Cliente marcado como faltou</span>
               </div>
             ):jaCancelado?null:(
-              <button className="bs-item" style={{color:'#F87171'}} onClick={()=>{updSt(bsAg.id,'faltou');setBsAg(null)}}>
+              <button className="bs-item" style={{color:'#EF4444'}} onClick={()=>{updSt(bsAg.id,'faltou');setBsAg(null)}}>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
                 Marcar como faltou
               </button>
             )}
             {jaCancelado?(
               <div style={{padding:'12px 0',borderBottom:'1px solid rgba(255,255,255,.06)',display:'flex',alignItems:'center',gap:10}}>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-                <span style={{fontSize:14,color:'#94A3B8',fontWeight:500}}>Atendimento cancelado</span>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#B8AAB8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                <span style={{fontSize:14,color:'#B8AAB8',fontWeight:500}}>Atendimento cancelado</span>
               </div>
             ):(
-              <button className="bs-item" style={{color:'#F87171'}} onClick={()=>{updSt(bsAg.id,'cancelado');setBsAg(null)}}>
+              <button className="bs-item" style={{color:'#EF4444'}} onClick={()=>{updSt(bsAg.id,'cancelado');setBsAg(null)}}>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
                 Cancelar atendimento
               </button>
@@ -695,40 +697,40 @@ export default function Agendamentos(){
         <div className="bl-handle"/>
         <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:20}}>
           <div>
-            <p style={{fontSize:11,fontWeight:700,color:'#60A5FA',textTransform:'uppercase' as const,letterSpacing:'.08em',marginBottom:4}}>Agenda</p>
-            <p style={{fontSize:16,fontWeight:800,color:'#F8FAFC',letterSpacing:'-0.02em'}}>Bloquear horário</p>
-            <p style={{fontSize:12,color:'#94A3B8',marginTop:2}}>Reserve um período indisponível na agenda.</p>
+            <p style={{fontSize:11,fontWeight:700,color:'#EC4899',textTransform:'uppercase' as const,letterSpacing:'.08em',marginBottom:4}}>Agenda</p>
+            <p style={{fontSize:16,fontWeight:800,color:'#F8F4F7',letterSpacing:'-0.02em'}}>Bloquear horário</p>
+            <p style={{fontSize:12,color:'#B8AAB8',marginTop:2}}>Reserve um período indisponível na agenda.</p>
           </div>
-          <button onClick={()=>setShowBloqueio(false)} style={{background:'none',border:'none',color:'#475569',cursor:'pointer',fontSize:22,lineHeight:1,marginTop:2}}>×</button>
+          <button onClick={()=>setShowBloqueio(false)} style={{background:'none',border:'none',color:'#B8AAB8',cursor:'pointer',fontSize:22,lineHeight:1,marginTop:2}}>×</button>
         </div>
         <div style={{marginBottom:14}}>
-          <label style={{fontSize:11,fontWeight:700,color:'#64748B',textTransform:'uppercase' as const,letterSpacing:'.06em',display:'block',marginBottom:4}}>Data *</label>
-          <input type="date" value={bData} onChange={e=>setBData(e.target.value)} style={{width:'100%',background:'#111827',border:'1px solid rgba(148,163,184,.18)',borderRadius:10,padding:'10px 14px',color:'#F8FAFC',fontSize:14,fontFamily:'inherit',boxSizing:'border-box' as any,colorScheme:'dark' as any}}/>
+          <label style={{fontSize:11,fontWeight:700,color:'#B8AAB8',textTransform:'uppercase' as const,letterSpacing:'.06em',display:'block',marginBottom:4}}>Data *</label>
+          <input type="date" value={bData} onChange={e=>setBData(e.target.value)} style={{width:'100%',background:'#18101B',border:'1px solid #2A1A2F',borderRadius:10,padding:'10px 14px',color:'#F8F4F7',fontSize:14,fontFamily:'inherit',boxSizing:'border-box' as any,colorScheme:'dark' as any}}/>
         </div>
         <div className="bl-grid" style={{marginBottom:14}}>
           <div>
-            <label style={{fontSize:11,fontWeight:700,color:'#64748B',textTransform:'uppercase' as const,letterSpacing:'.06em',display:'block',marginBottom:4}}>Horário inicial *</label>
-            <input type="time" value={bHoraIni} onChange={e=>setBHoraIni(e.target.value)} style={{width:'100%',background:'#111827',border:'1px solid rgba(148,163,184,.18)',borderRadius:10,padding:'10px 14px',color:'#F8FAFC',fontSize:14,fontFamily:'inherit',boxSizing:'border-box' as any,colorScheme:'dark' as any}}/>
+            <label style={{fontSize:11,fontWeight:700,color:'#B8AAB8',textTransform:'uppercase' as const,letterSpacing:'.06em',display:'block',marginBottom:4}}>Horário inicial *</label>
+            <input type="time" value={bHoraIni} onChange={e=>setBHoraIni(e.target.value)} style={{width:'100%',background:'#18101B',border:'1px solid #2A1A2F',borderRadius:10,padding:'10px 14px',color:'#F8F4F7',fontSize:14,fontFamily:'inherit',boxSizing:'border-box' as any,colorScheme:'dark' as any}}/>
           </div>
           <div>
-            <label style={{fontSize:11,fontWeight:700,color:'#64748B',textTransform:'uppercase' as const,letterSpacing:'.06em',display:'block',marginBottom:4}}>Horário final *</label>
-            <input type="time" value={bHoraFim} onChange={e=>setBHoraFim(e.target.value)} style={{width:'100%',background:'#111827',border:'1px solid rgba(148,163,184,.18)',borderRadius:10,padding:'10px 14px',color:'#F8FAFC',fontSize:14,fontFamily:'inherit',boxSizing:'border-box' as any,colorScheme:'dark' as any}}/>
+            <label style={{fontSize:11,fontWeight:700,color:'#B8AAB8',textTransform:'uppercase' as const,letterSpacing:'.06em',display:'block',marginBottom:4}}>Horário final *</label>
+            <input type="time" value={bHoraFim} onChange={e=>setBHoraFim(e.target.value)} style={{width:'100%',background:'#18101B',border:'1px solid #2A1A2F',borderRadius:10,padding:'10px 14px',color:'#F8F4F7',fontSize:14,fontFamily:'inherit',boxSizing:'border-box' as any,colorScheme:'dark' as any}}/>
           </div>
         </div>
         <div style={{marginBottom:14}}>
-          <label style={{fontSize:11,fontWeight:700,color:'#64748B',textTransform:'uppercase' as const,letterSpacing:'.06em',display:'block',marginBottom:4}}>Profissional</label>
-          <select value={bProfId} onChange={e=>setBProfId(e.target.value)} style={{width:'100%',background:'#111827',border:'1px solid rgba(148,163,184,.18)',borderRadius:10,padding:'10px 14px',color:'#F8FAFC',fontSize:14,fontFamily:'inherit',boxSizing:'border-box' as any}}>
+          <label style={{fontSize:11,fontWeight:700,color:'#B8AAB8',textTransform:'uppercase' as const,letterSpacing:'.06em',display:'block',marginBottom:4}}>Profissional</label>
+          <select value={bProfId} onChange={e=>setBProfId(e.target.value)} style={{width:'100%',background:'#18101B',border:'1px solid #2A1A2F',borderRadius:10,padding:'10px 14px',color:'#F8F4F7',fontSize:14,fontFamily:'inherit',boxSizing:'border-box' as any}}>
             <option value="">Todos os profissionais</option>
             {profs.map(p=><option key={p.id} value={p.id}>{p.nome}</option>)}
           </select>
         </div>
         <div style={{marginBottom:24}}>
-          <label style={{fontSize:11,fontWeight:700,color:'#64748B',textTransform:'uppercase' as const,letterSpacing:'.06em',display:'block',marginBottom:4}}>Motivo</label>
-          <input value={bMotivo} onChange={e=>setBMotivo(e.target.value)} placeholder="Ex: almoço, reunião, compromisso..." style={{width:'100%',background:'#111827',border:'1px solid rgba(148,163,184,.18)',borderRadius:10,padding:'10px 14px',color:'#F8FAFC',fontSize:14,fontFamily:'inherit',boxSizing:'border-box' as any}}/>
+          <label style={{fontSize:11,fontWeight:700,color:'#B8AAB8',textTransform:'uppercase' as const,letterSpacing:'.06em',display:'block',marginBottom:4}}>Motivo</label>
+          <input value={bMotivo} onChange={e=>setBMotivo(e.target.value)} placeholder="Ex: almoço, reunião, compromisso..." style={{width:'100%',background:'#18101B',border:'1px solid #2A1A2F',borderRadius:10,padding:'10px 14px',color:'#F8F4F7',fontSize:14,fontFamily:'inherit',boxSizing:'border-box' as any}}/>
         </div>
         <div className="bl-actions">
-          <button onClick={()=>setShowBloqueio(false)} style={{flex:1,background:'rgba(15,23,42,.85)',border:'1px solid rgba(148,163,184,.18)',borderRadius:16,padding:'14px',color:'#CBD5E1',fontSize:14,fontWeight:600,cursor:'pointer',fontFamily:'inherit',height:52}}>Cancelar</button>
-          <button onClick={salvarBloqueio} disabled={salvandoBloqueio} style={{flex:2,background:'linear-gradient(135deg,#3B82F6,#7C3AED)',border:'none',borderRadius:16,padding:'14px',color:'#fff',fontSize:14,fontWeight:700,cursor:'pointer',fontFamily:'inherit',height:52,boxShadow:'0 8px 24px rgba(59,130,246,.25)'}}>{salvandoBloqueio?'Salvando...':'Salvar bloqueio'}</button>
+          <button onClick={()=>setShowBloqueio(false)} style={{flex:1,background:'rgba(24,16,27,.85)',border:'1px solid #2A1A2F',borderRadius:16,padding:'14px',color:'#B8AAB8',fontSize:14,fontWeight:600,cursor:'pointer',fontFamily:'inherit',height:52}}>Cancelar</button>
+          <button onClick={salvarBloqueio} disabled={salvandoBloqueio} style={{flex:2,background:'linear-gradient(135deg,#EC4899,#D946EF,#8B5CF6)',border:'none',borderRadius:16,padding:'14px',color:'#fff',fontSize:14,fontWeight:700,cursor:'pointer',fontFamily:'inherit',height:52,boxShadow:'0 8px 24px rgba(236,72,153,.28)'}}>{salvandoBloqueio?'Salvando...':'Salvar bloqueio'}</button>
         </div>
       </div>
     </div>
