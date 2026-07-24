@@ -6,7 +6,7 @@ import { usePathname } from 'next/navigation'
 import { supabase } from '../lib/supabase'
 
 const ADMIN_ID = '618aedd1-f174-4419-b4b2-b81b8dd1c47e'
-const AV = 'linear-gradient(135deg,rgba(37,99,235,.97),rgba(67,56,202,.85))'
+const AV = 'linear-gradient(135deg,rgba(236,72,153,.95),rgba(139,92,246,.85))'
 
 const LINKS = [
   { h: '/painel',               l: 'Início'        },
@@ -24,16 +24,16 @@ const LINKS = [
 ]
 
 const CSS = `
-.psb{width:240px;min-height:100vh;background:radial-gradient(circle at top left,rgba(124,58,237,.14),transparent 32%),linear-gradient(180deg,#070F1D,#050B16);border-right:1px solid rgba(148,163,184,.14);display:flex;flex-direction:column;position:fixed;top:0;left:0;z-index:30}
-.psb-logo{padding:22px 18px 16px;border-bottom:1px solid rgba(148,163,184,.10);display:flex;align-items:center;gap:10px}
-.psb-ic{width:30px;height:30px;border-radius:8px;background:linear-gradient(135deg,#2563EB,#3B4FD4);display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 0 20px rgba(124,58,237,.5)}
+.psb{width:240px;min-height:100vh;background:radial-gradient(circle at top left,rgba(139,92,246,.14),transparent 32%),linear-gradient(180deg,#120A14,#08060A);border-right:1px solid #2A1A2F;display:flex;flex-direction:column;position:fixed;top:0;left:0;z-index:30}
+.psb-logo{padding:22px 18px 16px;border-bottom:1px solid #2A1A2F;display:flex;align-items:center;gap:10px}
+.psb-ic{width:30px;height:30px;border-radius:8px;background:linear-gradient(135deg,#EC4899,#D946EF,#8B5CF6);display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 0 20px rgba(236,72,153,.28)}
 .psb nav{flex:1;padding:10px 8px;overflow-y:auto}
-.nl{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:10px;margin-bottom:2px;text-decoration:none;font-size:13px;font-weight:500;color:#94A3B8;transition:all .15s;border:1px solid transparent;white-space:nowrap}
-.nl:hover{background:rgba(124,58,237,.10);border-color:rgba(124,58,237,.20);color:#fff}
-.nl.on{background:linear-gradient(135deg,#2563EB,#3B4FD4);color:#fff;font-weight:700;border-color:rgba(255,255,255,.10);box-shadow:0 0 26px rgba(124,58,237,.34),inset 0 1px 0 rgba(255,255,255,.12)}
-.psb-foot{padding:12px 10px;border-top:1px solid rgba(148,163,184,.10)}
-.psb-mhdr{display:none;align-items:center;justify-content:space-between;padding:0 16px;height:56px;background:rgba(5,11,22,.96);backdrop-filter:blur(20px);border-bottom:1px solid rgba(148,163,184,.12);position:fixed;top:0;left:0;right:0;z-index:20;width:100%}
-.psb-drw{position:fixed;top:0;left:0;bottom:0;width:280px;max-width:85vw;background:radial-gradient(circle at top left,rgba(124,58,237,.14),transparent 32%),linear-gradient(180deg,#070F1D,#050B16);z-index:50;transform:translateX(-100%);transition:transform .28s ease;display:flex;flex-direction:column;border-right:1px solid rgba(148,163,184,.14)}
+.nl{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:10px;margin-bottom:2px;text-decoration:none;font-size:13px;font-weight:500;color:#B8AAB8;transition:all .15s;border:1px solid transparent;white-space:nowrap}
+.nl:hover{background:rgba(236,72,153,.10);border-color:rgba(236,72,153,.24);color:#F8F4F7}
+.nl.on{background:linear-gradient(135deg,#EC4899,#D946EF,#8B5CF6);color:#fff;font-weight:700;border-color:rgba(255,255,255,.10);box-shadow:0 0 26px rgba(236,72,153,.28),inset 0 1px 0 rgba(255,255,255,.12)}
+.psb-foot{padding:12px 10px;border-top:1px solid #2A1A2F}
+.psb-mhdr{display:none;align-items:center;justify-content:space-between;padding:0 16px;height:56px;background:rgba(8,6,10,.96);backdrop-filter:blur(20px);border-bottom:1px solid #2A1A2F;position:fixed;top:0;left:0;right:0;z-index:20;width:100%}
+.psb-drw{position:fixed;top:0;left:0;bottom:0;width:280px;max-width:85vw;background:radial-gradient(circle at top left,rgba(139,92,246,.14),transparent 32%),linear-gradient(180deg,#120A14,#08060A);z-index:50;transform:translateX(-100%);transition:transform .28s ease;display:flex;flex-direction:column;border-right:1px solid #2A1A2F}
 .psb-drw.open{transform:translateX(0)}
 .psb-ovl{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:49;opacity:0;pointer-events:none;transition:opacity .28s}
 .psb-ovl.open{opacity:1;pointer-events:auto}
@@ -100,14 +100,14 @@ export default function PainelSidebar({ nome = '', tituloMobile = 'Painel' }: Pr
 
       {/* Drawer mobile */}
       <div className={`psb-drw${mob ? ' open' : ''}`}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 18px', borderBottom: '1px solid rgba(148,163,184,.10)' }}>
-          <span style={{ fontSize: '14px', fontWeight: 800, color: '#F8FAFC' }}>ClienteMarcado</span>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 18px', borderBottom: '1px solid #2A1A2F' }}>
+          <span style={{ fontSize: '14px', fontWeight: 800, color: '#F8F4F7' }}>ClienteMarcado</span>
           <button onClick={() => setMob(false)} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,.5)', cursor: 'pointer', fontSize: '22px', lineHeight: 1 }}>×</button>
         </div>
         <nav style={{ flex: 1, padding: '10px 8px', overflowY: 'auto' }}>
           <NavLinks onClick={() => setMob(false)} />
         </nav>
-        <div style={{ padding: '12px 10px', borderTop: '1px solid rgba(148,163,184,.10)' }}>
+        <div style={{ padding: '12px 10px', borderTop: '1px solid #2A1A2F' }}>
           <BtnSair onClick={() => { setMob(false); sair() }} />
         </div>
       </div>
@@ -123,15 +123,15 @@ export default function PainelSidebar({ nome = '', tituloMobile = 'Painel' }: Pr
               <line x1="3" y1="10" x2="21" y2="10"/>
             </svg>
           </div>
-          <span style={{ fontSize: '14px', fontWeight: 800, color: '#F8FAFC', letterSpacing: '-0.02em' }}>ClienteMarcado</span>
+          <span style={{ fontSize: '14px', fontWeight: 800, color: '#F8F4F7', letterSpacing: '-0.02em' }}>ClienteMarcado</span>
         </div>
         <nav><NavLinks /></nav>
         <div className="psb-foot">
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', background: 'rgba(15,23,42,.6)', border: '1px solid rgba(148,163,184,.12)', borderRadius: '10px', padding: '10px 12px', marginBottom: '8px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', background: 'rgba(24,16,27,.6)', border: '1px solid #2A1A2F', borderRadius: '10px', padding: '10px 12px', marginBottom: '8px' }}>
             <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: AV, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '13px', fontWeight: 700, color: '#fff', flexShrink: 0 }}>{ini}</div>
             <div style={{ minWidth: 0 }}>
-              <p style={{ fontSize: '12px', fontWeight: 600, color: '#F8FAFC', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{nome || 'Meu negócio'}</p>
-              <p style={{ fontSize: '10px', color: '#64748B' }}>Administrador</p>
+              <p style={{ fontSize: '12px', fontWeight: 600, color: '#F8F4F7', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{nome || 'Meu negócio'}</p>
+              <p style={{ fontSize: '10px', color: '#B8AAB8' }}>Administrador</p>
             </div>
           </div>
           <BtnSair />
@@ -145,7 +145,7 @@ export default function PainelSidebar({ nome = '', tituloMobile = 'Painel' }: Pr
             <span key={i} style={{ display: 'block', width: `${w}px`, height: '2px', background: 'rgba(255,255,255,.8)', borderRadius: '2px' }} />
           ))}
         </button>
-        <span style={{ fontSize: '14px', fontWeight: 800, color: '#F8FAFC' }}>{tituloMobile}</span>
+        <span style={{ fontSize: '14px', fontWeight: 800, color: '#F8F4F7' }}>{tituloMobile}</span>
         <div style={{ width: '34px', height: '34px', borderRadius: '50%', background: AV, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '13px', fontWeight: 700, color: '#fff' }}>{ini}</div>
       </div>
     </>

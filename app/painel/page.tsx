@@ -22,18 +22,20 @@ const IcoLink=({c='#4ADE80',s=18}:{c?:string,s?:number})=><svg width={s} height=
 
 const CSS=`
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-html,body{overflow-x:hidden;width:100%;max-width:100%;background:#050B16}
+html,body{overflow-x:hidden;width:100%;max-width:100%;background:#08060A}
 input,select,textarea{color-scheme:dark}
-.pg{background:radial-gradient(circle at top left,rgba(124,58,237,.20),transparent 32%),linear-gradient(135deg,#050B16 0%,#07111F 45%,#050B16 100%);min-height:100vh}
+.pg{background:radial-gradient(circle at top left,rgba(139,92,246,.18),transparent 32%),linear-gradient(135deg,#08060A 0%,#120A14 45%,#08060A 100%);min-height:100vh}
 .bdy{max-width:1200px;margin:0 auto;padding:28px 32px 80px;width:100%}
-.crd{background:radial-gradient(circle at top left,rgba(124,58,237,.10),transparent 38%),linear-gradient(145deg,rgba(15,23,42,.97),rgba(8,20,33,.99));border:1.5px solid rgba(148,163,184,.18);border-radius:18px}
-.btn-p{background:linear-gradient(135deg,#2563EB,#3B4FD4);color:#fff;border:1px solid rgba(255,255,255,.12);border-radius:14px;height:46px;padding:0 20px;font-size:13px;font-weight:700;display:inline-flex;align-items:center;gap:6px;white-space:nowrap;transition:all .18s;font-family:inherit;cursor:pointer;text-decoration:none;box-shadow:0 8px 24px rgba(59,130,246,.25)}
-.btn-s{background:rgba(15,23,42,.88);color:#CBD5E1;border:1px solid rgba(148,163,184,.20);border-radius:12px;height:44px;padding:0 16px;font-size:13px;font-weight:600;display:inline-flex;align-items:center;gap:6px;white-space:nowrap;font-family:inherit;cursor:pointer;text-decoration:none}
+.crd{background:radial-gradient(circle at top left,rgba(139,92,246,.10),transparent 38%),linear-gradient(145deg,rgba(24,16,27,.97),rgba(18,10,20,.99));border:1.5px solid #2A1A2F;border-radius:18px}
+.btn-p{background:linear-gradient(135deg,#EC4899,#D946EF,#8B5CF6);color:#fff;border:1px solid rgba(255,255,255,.12);border-radius:14px;height:46px;padding:0 20px;font-size:13px;font-weight:700;display:inline-flex;align-items:center;gap:6px;white-space:nowrap;transition:all .18s;font-family:inherit;cursor:pointer;text-decoration:none;box-shadow:0 8px 24px rgba(236,72,153,.35)}
+.btn-s{background:rgba(24,16,27,.88);color:#B8AAB8;border:1px solid #2A1A2F;border-radius:12px;height:44px;padding:0 16px;font-size:13px;font-weight:600;display:inline-flex;align-items:center;gap:6px;white-space:nowrap;font-family:inherit;cursor:pointer;text-decoration:none}
 .kpi-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px}
 .atalho-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:24px}
-.atalho{background:radial-gradient(circle at top left,rgba(124,58,237,.08),transparent 40%),linear-gradient(145deg,rgba(15,23,42,.97),rgba(8,20,33,.99));border:1.5px solid rgba(148,163,184,.16);border-radius:16px;padding:18px 14px;text-decoration:none;display:flex;flex-direction:column;gap:8px;transition:all .18s}
-.atalho:hover{background:linear-gradient(145deg,rgba(20,30,55,.97),rgba(12,25,45,.99));border-color:rgba(59,130,246,.35);transform:translateY(-2px)}
-.ag-item{background:rgba(15,23,42,.72);border:1px solid rgba(148,163,184,.14);border-radius:12px;padding:12px 14px;margin-bottom:6px}
+.atalho{background:radial-gradient(circle at top left,rgba(139,92,246,.08),transparent 40%),linear-gradient(145deg,rgba(24,16,27,.97),rgba(18,10,20,.99));border:1.5px solid #2A1A2F;border-radius:16px;padding:18px 14px;text-decoration:none;display:flex;flex-direction:column;gap:8px;transition:all .18s}
+.atalho:hover{background:linear-gradient(145deg,rgba(32,18,36,.97),rgba(22,12,24,.99));border-color:rgba(236,72,153,.35);transform:translateY(-2px)}
+.ag-item{background:rgba(24,16,27,.72);border:1px solid #2A1A2F;border-radius:12px;padding:12px 14px;margin-bottom:6px}
+.kpi-card{transition:all .18s}
+.kpi-card:hover{box-shadow:0 8px 24px rgba(236,72,153,.12)}
 @media(max-width:1023px){
   .psb-main .bdy{padding:14px 14px 80px!important;max-width:100%!important;width:100%!important;box-sizing:border-box!important;overflow-x:hidden!important}
   .kpi-grid{grid-template-columns:1fr 1fr!important;gap:8px!important}
@@ -80,17 +82,17 @@ const saldo=Math.max(0,saldoRaw)
   function copiarLink(){if(pubUrl)navigator.clipboard.writeText(pubUrl);setCopied(true);setTimeout(()=>setCopied(false),2000)}
   const fmtHora=(s:string)=>new Date(s).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})
   const fmtData=(s:string)=>new Date(s).toLocaleDateString('pt-BR',{day:'2-digit',month:'short'})
-  if(loading)return(<div style={{minHeight:'100vh',background:'#050B16',display:'flex',alignItems:'center',justifyContent:'center',fontFamily:'system-ui'}}><p style={{color:'#64748B',fontSize:'14px'}}>Carregando...</p></div>)
+  if(loading)return(<div style={{minHeight:'100vh',background:'#08060A',display:'flex',alignItems:'center',justifyContent:'center',fontFamily:'system-ui'}}><p style={{color:'#B8AAB8',fontSize:'14px'}}>Carregando...</p></div>)
   return(
-    <div style={{display:'flex',minHeight:'100vh',background:'#050B16',fontFamily:'-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif',overflowX:'hidden',width:'100%',position:'relative'}}>
+    <div style={{display:'flex',minHeight:'100vh',background:'#08060A',fontFamily:'-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif',overflowX:'hidden',width:'100%',position:'relative'}}>
       <style dangerouslySetInnerHTML={{__html:CSS}}/>
       <PainelSidebar nome={nome} tituloMobile="Início"/>
       <div className="psb-main">
         <div className="pg"><div className="bdy">
           <div style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',gap:'16px',flexWrap:'wrap',marginBottom:'24px'}}>
             <div>
-              <h1 style={{fontSize:'24px',fontWeight:800,color:'#F8FAFC',letterSpacing:'-0.04em',marginBottom:'5px'}}>Olá, {nome}!</h1>
-              <p style={{fontSize:'13px',color:'#64748B',lineHeight:1.5}}>Acompanhe sua agenda, clientes, cobranças e retornos em um só lugar.</p>
+              <h1 style={{fontSize:'24px',fontWeight:800,color:'#F8F4F7',letterSpacing:'-0.04em',marginBottom:'5px'}}>Olá, {nome}!</h1>
+              <p style={{fontSize:'13px',color:'#B8AAB8',lineHeight:1.5}}>Acompanhe sua agenda, clientes, cobranças e retornos em um só lugar.</p>
             </div>
             <div style={{display:'flex',gap:'8px',flexShrink:0,flexWrap:'wrap'}}>
               <Link href="/painel/agendamentos/novo" className="btn-p">+ Novo agendamento</Link>
@@ -100,23 +102,23 @@ const saldo=Math.max(0,saldoRaw)
           {/* Agenda de hoje - mobile */}
           <div className="mob-show">
             <div style={{marginBottom:'12px',display:'flex',alignItems:'center',justifyContent:'space-between'}}>
-              <p style={{fontSize:'14px',fontWeight:700,color:'#F8FAFC'}}>Agenda de hoje</p>
-              <a href="/painel/agendamentos" style={{fontSize:'12px',color:'#64748B',textDecoration:'none'}}>Ver tudo</a>
+              <p style={{fontSize:'14px',fontWeight:700,color:'#F8F4F7'}}>Agenda de hoje</p>
+              <a href="/painel/agendamentos" style={{fontSize:'12px',color:'#B8AAB8',textDecoration:'none'}}>Ver tudo</a>
             </div>
             {agsHoje.length===0?(
               <div className="crd" style={{padding:'28px 20px',textAlign:'center',marginBottom:'16px'}}>
-                <div style={{width:'44px',height:'44px',borderRadius:'12px',background:'rgba(59,130,246,.14)',border:'1px solid rgba(59,130,246,.24)',display:'flex',alignItems:'center',justifyContent:'center',margin:'0 auto 12px'}}><IcoCalendar c="#60A5FA" s={22}/></div>
-                <p style={{fontSize:'14px',fontWeight:600,color:'#F8FAFC',marginBottom:'4px'}}>Nenhum atendimento hoje</p>
-                <p style={{fontSize:'12px',color:'#64748B',marginBottom:'14px'}}>Quando houver horários marcados, aparecerão aqui.</p>
-                <a href="/painel/agendamentos/novo" style={{background:'linear-gradient(135deg,#2563EB,#3B4FD4)',color:'#fff',borderRadius:'10px',padding:'8px 16px',fontSize:'13px',fontWeight:700,textDecoration:'none',display:'inline-block'}}>+ Novo agendamento</a>
+                <div style={{width:'44px',height:'44px',borderRadius:'12px',background:'rgba(236,72,153,.14)',border:'1px solid rgba(236,72,153,.24)',display:'flex',alignItems:'center',justifyContent:'center',margin:'0 auto 12px'}}><IcoCalendar c="#EC4899" s={22}/></div>
+                <p style={{fontSize:'14px',fontWeight:600,color:'#F8F4F7',marginBottom:'4px'}}>Nenhum atendimento hoje</p>
+                <p style={{fontSize:'12px',color:'#B8AAB8',marginBottom:'14px'}}>Quando houver horários marcados, aparecerão aqui.</p>
+                <a href="/painel/agendamentos/novo" style={{background:'linear-gradient(135deg,#EC4899,#D946EF,#8B5CF6)',color:'#fff',borderRadius:'10px',padding:'8px 16px',fontSize:'13px',fontWeight:700,textDecoration:'none',display:'inline-block'}}>+ Novo agendamento</a>
               </div>
             ):(
               <div style={{marginBottom:'16px'}}>
                 {agsHoje.map(a=>(
                   <div key={a.id} className="ag-item">
                     <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:'8px',flexWrap:'wrap'}}>
-                      <div><p style={{fontSize:'14px',fontWeight:600,color:'#F8FAFC'}}>{a.cliente_nome||'—'}</p><p style={{fontSize:'12px',color:'#94A3B8'}}>{fmtHora(a.data_hora)}</p></div>
-                      <span style={{fontSize:'11px',fontWeight:600,padding:'3px 10px',borderRadius:'999px',background:'rgba(59,130,246,.14)',color:'#93C5FD',border:'1px solid rgba(59,130,246,.28)'}}>{a.status||'pendente'}</span>
+                      <div><p style={{fontSize:'14px',fontWeight:600,color:'#F8F4F7'}}>{a.cliente_nome||'—'}</p><p style={{fontSize:'12px',color:'#B8AAB8'}}>{fmtHora(a.data_hora)}</p></div>
+                      <span style={{fontSize:'11px',fontWeight:600,padding:'3px 10px',borderRadius:'999px',background:'rgba(236,72,153,.14)',color:'#F9A8D4',border:'1px solid rgba(236,72,153,.28)'}}>{a.status||'pendente'}</span>
                     </div>
                   </div>
                 ))}
@@ -126,8 +128,8 @@ const saldo=Math.max(0,saldoRaw)
           {slug&&(
             <div className="crd" style={{padding:'16px 20px',marginBottom:'20px',display:'flex',alignItems:'center',justifyContent:'space-between',gap:'12px',flexWrap:'wrap'}}>
               <div style={{display:'flex',alignItems:'center',gap:'10px'}}>
-                <div style={{width:'36px',height:'36px',borderRadius:'10px',background:'rgba(34,197,94,.14)',border:'1px solid rgba(34,197,94,.28)',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}><IcoLink c="#4ADE80" s={18}/></div>
-                <div><p style={{fontSize:'13px',fontWeight:600,color:'#F8FAFC',marginBottom:'2px'}}>Sua página pública está ativa</p><p style={{fontSize:'11px',color:'#64748B'}}>Compartilhe o link com seus clientes para receber agendamentos.</p></div>
+                <div style={{width:'36px',height:'36px',borderRadius:'10px',background:'rgba(217,70,239,.14)',border:'1px solid rgba(217,70,239,.28)',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}><IcoLink c="#D946EF" s={18}/></div>
+                <div><p style={{fontSize:'13px',fontWeight:600,color:'#F8F4F7',marginBottom:'2px'}}>Sua página pública está ativa</p><p style={{fontSize:'11px',color:'#B8AAB8'}}>Compartilhe o link com seus clientes para receber agendamentos.</p></div>
               </div>
               <div style={{display:'flex',gap:'8px',flexShrink:0}}>
                 <a href={pubUrl} target="_blank" rel="noreferrer" className="btn-s" style={{height:'36px',fontSize:'12px'}}>Ver página</a>
@@ -137,48 +139,48 @@ const saldo=Math.max(0,saldoRaw)
           )}
           <div className="kpi-grid">
             {([
-              {l:'Atendimentos hoje',v:agsHoje.length,c:'#60A5FA',bg:'rgba(59,130,246,.10)',bd:'rgba(59,130,246,.24)',I:<IcoCalendar c="#60A5FA"/>},
-              {l:'Próximos agendamentos',v:proximos.length,c:'#C4B5FD',bg:'rgba(124,58,237,.10)',bd:'rgba(124,58,237,.24)',I:<IcoClock c="#C4B5FD"/>},
-              {l:'Orçamentos em aberto',v:orcsAbertos,c:'#FBBF24',bg:'rgba(245,158,11,.10)',bd:'rgba(245,158,11,.24)',I:<IcoClipboard c="#FBBF24"/>},
-              {l:'Total a receber',v:fBRL(saldo||0),c:'#F87171',bg:'rgba(239,68,68,.10)',bd:'rgba(239,68,68,.24)',I:<IcoCreditCard c="#F87171"/>},
-              {l:'Recebido no mês',v:fBRL(recMes),c:'#4ADE80',bg:'rgba(34,197,94,.10)',bd:'rgba(34,197,94,.24)',I:<IcoCheck c="#4ADE80"/>},
-              {l:'Clientes cadastrados',v:0,c:'#22D3EE',bg:'rgba(6,182,212,.10)',bd:'rgba(6,182,212,.24)',I:<IcoUsers c="#22D3EE"/>},
+              {l:'Atendimentos hoje',v:agsHoje.length,c:'#EC4899',bg:'rgba(236,72,153,.12)',bd:'rgba(236,72,153,.24)',I:<IcoCalendar c="#EC4899"/>},
+              {l:'Próximos agendamentos',v:proximos.length,c:'#C4B5FD',bg:'rgba(139,92,246,.12)',bd:'rgba(139,92,246,.24)',I:<IcoClock c="#C4B5FD"/>},
+              {l:'Orçamentos em aberto',v:orcsAbertos,c:'#FACC15',bg:'rgba(250,204,21,.10)',bd:'rgba(250,204,21,.22)',I:<IcoClipboard c="#FACC15"/>},
+              {l:'Total a receber',v:fBRL(saldo||0),c:'#EF4444',bg:'rgba(239,68,68,.10)',bd:'rgba(239,68,68,.22)',I:<IcoCreditCard c="#EF4444"/>},
+              {l:'Recebido no mês',v:fBRL(recMes),c:'#22C55E',bg:'rgba(34,197,94,.10)',bd:'rgba(34,197,94,.22)',I:<IcoCheck c="#22C55E"/>},
+              {l:'Clientes cadastrados',v:0,c:'#D946EF',bg:'rgba(217,70,239,.10)',bd:'rgba(217,70,239,.22)',I:<IcoUsers c="#D946EF"/>},
             ] as any[]).map((k:any)=>(
-              <div key={k.l} style={{background:`radial-gradient(circle at top left,${k.bg},transparent 60%),linear-gradient(145deg,rgba(15,23,42,.97),rgba(8,20,33,.99))`,border:`1.5px solid ${k.bd}`,borderRadius:'18px',padding:'18px 16px'}}>
-                <div style={{width:'36px',height:'36px',borderRadius:'10px',background:k.bg,display:'flex',alignItems:'center',justifyContent:'center',marginBottom:'8px'}}>{k.I}</div>
-                <p style={{fontSize:'10px',fontWeight:700,color:'#94A3B8',textTransform:'uppercase' as const,letterSpacing:'.08em',marginBottom:'4px'}}>{k.l}</p>
+              <div key={k.l} className="kpi-card" style={{background:'#18101B',border:`1.5px solid ${k.bd}`,borderRadius:'18px',padding:'18px 16px'}}>
+                <div style={{width:'36px',height:'36px',borderRadius:'10px',background:k.bg,border:`1px solid ${k.bd}`,display:'flex',alignItems:'center',justifyContent:'center',marginBottom:'8px'}}>{k.I}</div>
+                <p style={{fontSize:'10px',fontWeight:700,color:'#B8AAB8',textTransform:'uppercase' as const,letterSpacing:'.08em',marginBottom:'4px'}}>{k.l}</p>
                 <p style={{fontSize:'22px',fontWeight:800,color:k.c,lineHeight:1}}>{k.v}</p>
               </div>
             ))}
           </div>
-          <p style={{fontSize:'14px',fontWeight:700,color:'#F8FAFC',marginBottom:'12px'}}>Acesso rápido</p>
+          <p style={{fontSize:'14px',fontWeight:700,color:'#F8F4F7',marginBottom:'12px'}}>Acesso rápido</p>
           <div className="atalho-grid">
             {([
-              {h:'/painel/agendamentos',l:'Agenda',I:<IcoCalendar c="#60A5FA" s={17}/>,bg:'rgba(59,130,246,.10)'},
-              {h:'/painel/clientes',l:'Clientes',I:<IcoUsers c="#4ADE80" s={17}/>,bg:'rgba(34,197,94,.10)'},
-              {h:'/painel/orcamentos',l:'Orçamentos',I:<IcoClipboard c="#FBBF24" s={17}/>,bg:'rgba(245,158,11,.10)'},
-              {h:'/painel/cobrancas',l:'Cobranças',I:<IcoWallet c="#C4B5FD" s={17}/>,bg:'rgba(124,58,237,.10)'},
-              {h:'/painel/pagamentos',l:'Pagamentos',I:<IcoCheck c="#4ADE80" s={17}/>,bg:'rgba(34,197,94,.10)'},
-              {h:'/painel/servicos',l:'Serviços',I:<IcoTag c="#22D3EE" s={17}/>,bg:'rgba(6,182,212,.10)'},
-              {h:'/painel/profissionais',l:'Profissionais',I:<IcoUser c="#C4B5FD" s={17}/>,bg:'rgba(124,58,237,.10)'},
-              {h:'/painel/relatorio',l:'Relatórios',I:<IcoBar c="#FBBF24" s={17}/>,bg:'rgba(245,158,11,.10)'},
+              {h:'/painel/agendamentos',l:'Agenda',I:<IcoCalendar c="#EC4899" s={17}/>,bg:'rgba(236,72,153,.10)'},
+              {h:'/painel/clientes',l:'Clientes',I:<IcoUsers c="#D946EF" s={17}/>,bg:'rgba(217,70,239,.10)'},
+              {h:'/painel/orcamentos',l:'Orçamentos',I:<IcoClipboard c="#FACC15" s={17}/>,bg:'rgba(250,204,21,.10)'},
+              {h:'/painel/cobrancas',l:'Cobranças',I:<IcoWallet c="#8B5CF6" s={17}/>,bg:'rgba(139,92,246,.10)'},
+              {h:'/painel/pagamentos',l:'Pagamentos',I:<IcoCheck c="#22C55E" s={17}/>,bg:'rgba(34,197,94,.10)'},
+              {h:'/painel/servicos',l:'Serviços',I:<IcoTag c="#D946EF" s={17}/>,bg:'rgba(217,70,239,.10)'},
+              {h:'/painel/profissionais',l:'Profissionais',I:<IcoUser c="#C4B5FD" s={17}/>,bg:'rgba(139,92,246,.10)'},
+              {h:'/painel/relatorio',l:'Relatórios',I:<IcoBar c="#8B5CF6" s={17}/>,bg:'rgba(139,92,246,.10)'},
             ] as any[]).map((a:any)=>(
               <Link key={a.h} href={a.h} className="atalho">
                 <div style={{width:'34px',height:'34px',borderRadius:'10px',background:a.bg,display:'flex',alignItems:'center',justifyContent:'center'}}>{a.I}</div>
-                <p style={{fontSize:'13px',fontWeight:600,color:'#CBD5E1'}}>{a.l}</p>
+                <p style={{fontSize:'13px',fontWeight:600,color:'#B8AAB8'}}>{a.l}</p>
               </Link>
             ))}
           </div>
           <div className="mob-hide">
             <div style={{marginBottom:'16px',display:'flex',alignItems:'center',justifyContent:'space-between'}}>
-              <p style={{fontSize:'14px',fontWeight:700,color:'#F8FAFC'}}>Agenda de hoje</p>
-              <Link href="/painel/agendamentos" style={{fontSize:'12px',color:'#64748B',textDecoration:'none'}}>Ver tudo</Link>
+              <p style={{fontSize:'14px',fontWeight:700,color:'#F8F4F7'}}>Agenda de hoje</p>
+              <Link href="/painel/agendamentos" style={{fontSize:'12px',color:'#B8AAB8',textDecoration:'none'}}>Ver tudo</Link>
             </div>
             {agsHoje.length===0?(
               <div className="crd" style={{padding:'36px 24px',textAlign:'center',marginBottom:'24px'}}>
-                <div style={{width:'52px',height:'52px',borderRadius:'14px',background:'rgba(59,130,246,.14)',border:'1px solid rgba(59,130,246,.24)',display:'flex',alignItems:'center',justifyContent:'center',margin:'0 auto 14px'}}><IcoCalendar c="#60A5FA" s={26}/></div>
-                <p style={{fontSize:'15px',fontWeight:600,color:'#F8FAFC',marginBottom:'5px'}}>Nenhum atendimento hoje</p>
-                <p style={{fontSize:'13px',color:'#64748B',marginBottom:'16px'}}>Quando houver horários marcados, eles aparecerão aqui.</p>
+                <div style={{width:'52px',height:'52px',borderRadius:'14px',background:'rgba(236,72,153,.14)',border:'1px solid rgba(236,72,153,.24)',display:'flex',alignItems:'center',justifyContent:'center',margin:'0 auto 14px'}}><IcoCalendar c="#EC4899" s={26}/></div>
+                <p style={{fontSize:'15px',fontWeight:600,color:'#F8F4F7',marginBottom:'5px'}}>Nenhum atendimento hoje</p>
+                <p style={{fontSize:'13px',color:'#B8AAB8',marginBottom:'16px'}}>Quando houver horários marcados, eles aparecerão aqui.</p>
                 <Link href="/painel/agendamentos/novo" className="btn-p" style={{display:'inline-flex'}}>+ Novo agendamento</Link>
               </div>
             ):(
@@ -186,8 +188,8 @@ const saldo=Math.max(0,saldoRaw)
                 {agsHoje.map(a=>(
                   <div key={a.id} className="ag-item">
                     <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:'8px',flexWrap:'wrap'}}>
-                      <div><p style={{fontSize:'14px',fontWeight:600,color:'#F8FAFC'}}>{a.cliente_nome||'—'}</p><p style={{fontSize:'12px',color:'#94A3B8'}}>{fmtHora(a.data_hora)}</p></div>
-                      <span style={{fontSize:'11px',fontWeight:600,padding:'3px 10px',borderRadius:'999px',background:'rgba(59,130,246,.14)',color:'#93C5FD',border:'1px solid rgba(59,130,246,.28)'}}>{a.status||'confirmado'}</span>
+                      <div><p style={{fontSize:'14px',fontWeight:600,color:'#F8F4F7'}}>{a.cliente_nome||'—'}</p><p style={{fontSize:'12px',color:'#B8AAB8'}}>{fmtHora(a.data_hora)}</p></div>
+                      <span style={{fontSize:'11px',fontWeight:600,padding:'3px 10px',borderRadius:'999px',background:'rgba(236,72,153,.14)',color:'#F9A8D4',border:'1px solid rgba(236,72,153,.28)'}}>{a.status||'confirmado'}</span>
                     </div>
                   </div>
                 ))}
@@ -195,12 +197,12 @@ const saldo=Math.max(0,saldoRaw)
             )}
             {proximos.length>0&&(
               <>
-                <p style={{fontSize:'14px',fontWeight:700,color:'#F8FAFC',marginBottom:'12px'}}>Próximos agendamentos</p>
+                <p style={{fontSize:'14px',fontWeight:700,color:'#F8F4F7',marginBottom:'12px'}}>Próximos agendamentos</p>
                 {proximos.map(a=>(
                   <div key={a.id} className="ag-item">
                     <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:'8px',flexWrap:'wrap'}}>
-                      <div><p style={{fontSize:'14px',fontWeight:600,color:'#F8FAFC'}}>{a.cliente_nome||'—'}</p><p style={{fontSize:'12px',color:'#94A3B8'}}>{fmtData(a.data_hora)} - {fmtHora(a.data_hora)}</p></div>
-                      <span style={{fontSize:'11px',fontWeight:600,padding:'3px 10px',borderRadius:'999px',background:'rgba(124,58,237,.14)',color:'#C4B5FD',border:'1px solid rgba(124,58,237,.28)'}}>{a.status||'confirmado'}</span>
+                      <div><p style={{fontSize:'14px',fontWeight:600,color:'#F8F4F7'}}>{a.cliente_nome||'—'}</p><p style={{fontSize:'12px',color:'#B8AAB8'}}>{fmtData(a.data_hora)} - {fmtHora(a.data_hora)}</p></div>
+                      <span style={{fontSize:'11px',fontWeight:600,padding:'3px 10px',borderRadius:'999px',background:'rgba(139,92,246,.14)',color:'#C4B5FD',border:'1px solid rgba(139,92,246,.28)'}}>{a.status||'confirmado'}</span>
                     </div>
                   </div>
                 ))}
