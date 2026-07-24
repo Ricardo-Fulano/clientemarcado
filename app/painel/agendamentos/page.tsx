@@ -18,7 +18,7 @@ input,select,textarea{color-scheme:dark}
 .hdr-btns{display:flex;gap:8px;flex-wrap:wrap;flex-shrink:0}
 .fil-scroll{display:flex;align-items:center;gap:8px;margin-bottom:14px;width:100%;flex-wrap:wrap}
 .btn-bloq:hover{border-color:rgba(236,72,153,.40)!important}
-.ag-item{background:linear-gradient(145deg,rgba(24,16,27,.98),rgba(18,10,20,.99));border:1px solid #2A1A2F;border-radius:20px;padding:16px;margin-bottom:12px;cursor:pointer;transition:all .15s}
+.ag-item{background:linear-gradient(145deg,rgba(24,16,27,.98),rgba(18,10,20,.99));border:2px solid rgba(236,72,153,.24);border-radius:20px;padding:16px;margin-bottom:16px;box-shadow:0 12px 30px rgba(0,0,0,.22),0 0 0 1px rgba(236,72,153,.04);cursor:pointer;transition:all .15s}
 .ag-item:hover{border-color:rgba(236,72,153,.35)}
 .ag-item.sel{border-color:rgba(236,72,153,.55);background:radial-gradient(circle at top left,rgba(236,72,153,.09),transparent 60%),linear-gradient(145deg,rgba(24,16,27,.98),rgba(18,10,20,.99))}
 .card-btns{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
