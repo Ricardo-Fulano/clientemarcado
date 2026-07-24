@@ -25,9 +25,9 @@ input,select,textarea{color-scheme:dark}
 .card-btn{border-radius:9px;padding:6px 11px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:4px;white-space:nowrap;border:1px solid transparent;transition:all .12s}
 .card-btn:hover{border-color:rgba(236,72,153,.28)!important}
 .conf-area{margin-top:10px;padding-top:10px;border-top:1px solid #2A1A2F}
-.sem-card{background:linear-gradient(145deg,rgba(24,16,27,.98),rgba(18,10,20,.99));border:1px solid #2A1A2F;border-radius:16px;padding:14px;cursor:pointer;transition:all .15s}
+.sem-card{background:linear-gradient(145deg,rgba(24,16,27,.98),rgba(18,10,20,.99));border:2px solid rgba(236,72,153,.22);border-radius:16px;padding:14px;cursor:pointer;transition:all .15s;box-shadow:0 12px 28px rgba(0,0,0,.24)}
 .sem-card:hover{border-color:rgba(236,72,153,.3)}
-.sem-card.hoje-card{border-color:rgba(236,72,153,.35)}
+.sem-card.hoje-card{border-color:rgba(236,72,153,.42)}
 .sem-card.sel-card{border-color:rgba(236,72,153,.55);box-shadow:0 0 20px rgba(236,72,153,.15)}
 .sem-det-item{background:linear-gradient(145deg,rgba(24,16,27,.98),rgba(18,10,20,.99));border:1px solid #2A1A2F;border-radius:12px;padding:12px 14px;margin-bottom:8px}
 .bs-ovl{position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:60;opacity:0;pointer-events:none;transition:opacity .25s}
@@ -45,7 +45,7 @@ input,select,textarea{color-scheme:dark}
 .bl-handle{width:40px;height:4px;background:rgba(255,255,255,.15);border-radius:2px;margin:0 auto 20px}
 .bl-grid{display:grid;gap:12px}
 .bl-actions{display:flex;gap:10px;margin-top:4px}
-.grp-hdr{font-size:11px;font-weight:700;color:#B8AAB8;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid #2A1A2F}
+.grp-hdr{font-size:11px;font-weight:700;color:#F8F4F7;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid rgba(236,72,153,.22)}
 .grp-hdr.hoje-hdr{color:#EC4899}
 @media(min-width:768px){.bl-modal{left:50%;top:50%;bottom:auto;width:min(92vw,560px);max-height:86vh;border-radius:28px;padding:26px;transform:translate(-50%,-46%) scale(.96)}.bl-modal.open{transform:translate(-50%,-50%) scale(1)}.bl-grid{grid-template-columns:1fr 1fr}.bl-actions{flex-direction:row}.bl-handle{display:none}}
 @media(max-width:767px){.bl-modal{left:0;right:0;bottom:0;width:100%;max-height:88vh;border-radius:26px 26px 0 0;padding:22px;transform:translateY(105%);opacity:1}.bl-modal.open{transform:translateY(0)}.bl-grid{grid-template-columns:1fr}.bl-actions{flex-direction:column}}
@@ -519,7 +519,7 @@ export default function Agendamentos(){
                       }}
                       className={'sem-card'+(ehHoje?' hoje-card':'')+(isSel?' sel-card':'')}>
                       <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:5}}>
-                        <p style={{fontSize:10,fontWeight:700,color:ehHoje?'#EC4899':'#B8AAB8',textTransform:'capitalize' as const,lineHeight:1.3}}>
+                        <p style={{fontSize:10,fontWeight:700,color:ehHoje?'#EC4899':'#F8F4F7',textTransform:'capitalize' as const,lineHeight:1.3}}>
                           {d.toLocaleDateString('pt-BR',{weekday:'short'})}<br/>
                           <span style={{fontSize:11,fontWeight:800}}>{d.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'})}</span>
                         </p>
@@ -528,7 +528,7 @@ export default function Agendamentos(){
                       {it.length===0
                         ?<p style={{fontSize:10,color:'#B8AAB8'}}>Livre</p>
                         :<>
-                          {primeiro&&<p style={{fontSize:10,color:'#B8AAB8',marginBottom:3}}>🕐 {primeiro}</p>}
+                          {primeiro&&<p style={{fontSize:10,color:'#F8F4F7',marginBottom:3}}>🕐 {primeiro}</p>}
                           <div style={{display:'flex',gap:3,flexWrap:'wrap'}}>
                             {totalConf>0&&<span style={{fontSize:9,fontWeight:700,color:'#22C55E',background:'rgba(34,197,94,.12)',borderRadius:999,padding:'1px 5px'}}>{totalConf}✓</span>}
                             {totalPend>0&&<span style={{fontSize:9,fontWeight:700,color:'#FACC15',background:'rgba(250,204,21,.12)',borderRadius:999,padding:'1px 5px'}}>{totalPend}⏳</span>}
