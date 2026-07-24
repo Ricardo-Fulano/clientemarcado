@@ -1,3 +1,0 @@
-module.exports=[44791,a=>{"use strict";var b=a.i(87924),c=a.i(72131),d=a.i(50944);a.s(["default",0,function(){let a=(0,d.useRouter)();return(0,c.useEffect)(()=>{a.replace("/painel/financeiro?aba=pagamentos")},[a]),(0,b.jsx)("div",{style:{minHeight:"100vh",background:"#050B16",display:"flex",alignItems:"center",justifyContent:"center",fontFamily:"system-ui"},children:(0,b.jsx)("p",{style:{color:"#64748B",fontSize:"14px"},children:"Redirecionando..."})})}])}];
-
-//# sourceMappingURL=app_painel_pagamentos_page_tsx_0pd~~jy._.js.map
