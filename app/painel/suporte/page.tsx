@@ -5,7 +5,7 @@ import { Search, ChevronRight, MessageCircle, X, CalendarDays, Users, Star, Clip
 import PainelSidebar from '@/app/components/PainelSidebar'
 import { supabase } from '../../lib/supabase'
 import { useEffect } from 'react'
-const SUPORTE_WHATSAPP = '5511999999999'
+const SUPORTE_WHATSAPP = '5511941059063'
 interface HelpItem {
   category: string
   question: string
