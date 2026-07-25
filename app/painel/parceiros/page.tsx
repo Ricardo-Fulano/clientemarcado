@@ -7,26 +7,28 @@ const ADMIN_ID = '618aedd1-f174-4419-b4b2-b81b8dd1c47e'
 
 const CSS = `
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-html,body{overflow-x:hidden;width:100%;background:#050B16}
-.pg{min-height:100vh;width:100%;max-width:100%;box-sizing:border-box;overflow-x:hidden;background:radial-gradient(circle at top left,rgba(124,58,237,.12),transparent 32%),#07111F}
+html,body{overflow-x:hidden;width:100%;background:#08060A}
+.pg{min-height:100vh;width:100%;max-width:100%;box-sizing:border-box;overflow-x:hidden;background:radial-gradient(circle at top left,rgba(139,92,246,.12),transparent 32%),#120A14}
 .bdy{max-width:1200px;margin:0 auto;padding:28px 28px 80px;width:100%}
 .kpi{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:24px}
-.card{background:linear-gradient(145deg,rgba(15,23,42,.97),rgba(8,20,33,.99));border:1.5px solid rgba(148,163,184,.16);border-radius:18px;padding:20px}
-.inp{width:100%;background:rgba(15,23,42,.92);border:1.5px solid rgba(148,163,184,.18);border-radius:12px;padding:11px 14px;color:#F8FAFC;font-size:14px;outline:none;font-family:inherit;transition:border-color .2s}
-.inp:focus{border-color:#3B82F6;box-shadow:0 0 0 3px rgba(59,130,246,.14)}
-.inp::placeholder{color:#475569}
-.lbl{display:block;font-size:11px;font-weight:700;color:#94A3B8;text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px}
-.btn-p{background:linear-gradient(135deg,#3B82F6,#7C3AED);color:#fff;border:none;border-radius:12px;padding:11px 20px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
-.btn-s{background:rgba(15,23,42,.88);color:#CBD5E1;border:1px solid rgba(148,163,184,.18);border-radius:10px;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
-.btn-g{background:rgba(34,197,94,.15);color:#4ADE80;border:1px solid rgba(34,197,94,.28);border-radius:8px;padding:6px 12px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit}
-.btn-y{background:rgba(245,158,11,.15);color:#FBBF24;border:1px solid rgba(245,158,11,.28);border-radius:8px;padding:6px 12px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit}
+.card{background:linear-gradient(145deg,rgba(24,16,27,.97),rgba(18,10,20,.99));border:1.5px solid #2A1A2F;border-radius:18px;padding:20px}
+.inp{width:100%;background:rgba(24,16,27,.92);border:1.5px solid #2A1A2F;border-radius:12px;padding:11px 14px;color:#F8F4F7;font-size:14px;outline:none;font-family:inherit;transition:border-color .2s}
+.inp:focus{border-color:#EC4899;box-shadow:0 0 0 3px rgba(236,72,153,.14)}
+.inp::placeholder{color:#B8AAB8}
+.lbl{display:block;font-size:11px;font-weight:700;color:#B8AAB8;text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px}
+.btn-p{background:linear-gradient(135deg,#EC4899,#8B5CF6);color:#fff;border:none;border-radius:12px;padding:11px 20px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.btn-s{background:rgba(24,16,27,.88);color:#B8AAB8;border:1px solid #2A1A2F;border-radius:10px;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:6px;white-space:nowrap;transition:all .18s}
+.btn-s:hover{border-color:rgba(236,72,153,.32);color:#F8F4F7}
+.btn-desativar:hover{border-color:rgba(239,68,68,.35)!important;background:rgba(239,68,68,.08)!important;color:#EF4444!important}
+.btn-g{background:rgba(34,197,94,.15);color:#22C55E;border:1px solid rgba(34,197,94,.28);border-radius:8px;padding:6px 12px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit}
+.btn-y{background:rgba(250,204,21,.15);color:#FACC15;border:1px solid rgba(250,204,21,.28);border-radius:8px;padding:6px 12px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit}
 .tbl-row{padding:14px 20px;border-bottom:1px solid rgba(255,255,255,.05);transition:background .15s}
 .tbl-row:hover{background:rgba(255,255,255,.03)}
 .badge{display:inline-flex;align-items:center;padding:3px 10px;border-radius:999px;font-size:11px;font-weight:700}
 .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:50;display:flex;align-items:center;justify-content:center;padding:20px}
-.modal{background:#0F172A;border:1.5px solid rgba(148,163,184,.18);border-radius:22px;padding:32px;width:100%;max-width:520px;max-height:90vh;overflow-y:auto}
-.period-sel{background:rgba(15,23,42,.92);border:1.5px solid rgba(99,102,241,.35);border-radius:12px;padding:10px 16px;color:#F8FAFC;font-size:14px;font-weight:600;outline:none;font-family:inherit;cursor:pointer;transition:border-color .2s}
-.period-sel:focus{border-color:#6366F1;box-shadow:0 0 0 3px rgba(99,102,241,.18)}
+.modal{background:#18101B;border:1.5px solid #2A1A2F;border-radius:22px;padding:32px;width:100%;max-width:520px;max-height:90vh;overflow-y:auto}
+.period-sel{background:rgba(24,16,27,.92);border:1.5px solid rgba(139,92,246,.35);border-radius:12px;padding:10px 16px;color:#F8F4F7;font-size:14px;font-weight:600;outline:none;font-family:inherit;cursor:pointer;transition:border-color .2s}
+.period-sel:focus{border-color:#EC4899;box-shadow:0 0 0 3px rgba(236,72,153,.18)}
 @media(max-width:1023px){
   .psb-main{overflow-x:hidden!important;width:100%!important;max-width:100%!important;box-sizing:border-box!important}
   .pg{width:100%!important;max-width:100%!important;overflow-x:hidden!important}
@@ -264,10 +266,10 @@ export default function Parceiros() {
     .filter(c => c.mes === mesSel && c.ano === anoSel && c.status === 'pago')
     .reduce((a, c) => a + Number(c.valor_comissao || 0), 0)
 
-  if (loading) return <div style={{ minHeight: '100vh', background: '#050B16', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><p style={{ color: '#64748B' }}>Carregando...</p></div>
+  if (loading) return <div style={{ minHeight: '100vh', background: '#08060A', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><p style={{ color: '#B8AAB8' }}>Carregando...</p></div>
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', background: '#050B16', fontFamily: '-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif', overflowX: 'hidden', width: '100%', position: 'relative' }}>
+    <div style={{ display: 'flex', minHeight: '100vh', background: '#08060A', fontFamily: '-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif', overflowX: 'hidden', width: '100%', position: 'relative' }}>
       <style dangerouslySetInnerHTML={{ __html: CSS }} />
       <PainelSidebar nome={perfil?.nome_negocio || ''} tituloMobile="Parceiros" />
 
@@ -278,40 +280,40 @@ export default function Parceiros() {
             {/* Header */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '12px', marginBottom: '24px' }}>
               <div>
-                <h1 style={{ fontSize: '24px', fontWeight: 800, color: '#F8FAFC', letterSpacing: '-0.03em', marginBottom: '4px' }}>Parceiros e indicações</h1>
-                <p style={{ fontSize: '13px', color: '#64748B' }}>Acompanhe cadastros, pagantes e comissões por período.</p>
+                <h1 style={{ fontSize: '24px', fontWeight: 800, color: '#F8F4F7', letterSpacing: '-0.03em', marginBottom: '4px' }}>Parceiros e indicações</h1>
+                <p style={{ fontSize: '13px', color: '#B8AAB8' }}>Acompanhe cadastros, pagantes e comissões por período.</p>
               </div>
               <button className="btn-p" onClick={() => { resetForm(); setShowModal(true) }}>+ Novo parceiro</button>
             </div>
 
-            {msg && <div style={{ background: 'rgba(34,197,94,.12)', border: '1px solid rgba(34,197,94,.28)', borderRadius: '10px', padding: '10px 14px', fontSize: '13px', color: '#4ADE80', marginBottom: '16px' }}>{msg}</div>}
+            {msg && <div style={{ background: 'rgba(34,197,94,.12)', border: '1px solid rgba(34,197,94,.28)', borderRadius: '10px', padding: '10px 14px', fontSize: '13px', color: '#22C55E', marginBottom: '16px' }}>{msg}</div>}
 
             {/* Filtro de período */}
-            <div style={{ background: 'linear-gradient(145deg,rgba(15,23,42,.97),rgba(8,20,33,.99))', border: '1.5px solid rgba(99,102,241,.25)', borderRadius: '16px', padding: '16px 20px', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
+            <div style={{ background: 'linear-gradient(145deg,rgba(24,16,27,.97),rgba(18,10,20,.99))', border: '1.5px solid rgba(139,92,246,.25)', borderRadius: '16px', padding: '16px 20px', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
               <div>
-                <label className="lbl" style={{ color: '#818CF8', marginBottom: '4px' }}>Período</label>
+                <label className="lbl" style={{ color: '#B8AAB8', marginBottom: '4px' }}>Período</label>
                 <select className="period-sel" value={periodoKey} onChange={e => setPeriodoKey(e.target.value)}>
                   {mesesOpcoes.map(m => (
                     <option key={m.key} value={m.key}>{m.label.charAt(0).toUpperCase() + m.label.slice(1)}</option>
                   ))}
                 </select>
               </div>
-              <div style={{ fontSize: '13px', color: '#64748B', paddingTop: '18px' }}>
-                Exibindo dados de <span style={{ color: '#A5B4FC', fontWeight: 700 }}>{periodoAtual.label}</span>
+              <div style={{ fontSize: '13px', color: '#B8AAB8', paddingTop: '18px' }}>
+                Exibindo dados de <span style={{ color: '#C4B5FD', fontWeight: 700 }}>{periodoAtual.label}</span>
               </div>
             </div>
 
             {/* KPIs */}
             <div className="kpi">
               {[
-                { l: 'Parceiros ativos', v: totalAtivos, c: '#60A5FA', bg: 'rgba(59,130,246,.12)', bd: 'rgba(59,130,246,.25)' },
-                { l: 'Cadastros no mês', v: totalCadsMes, c: '#C4B5FD', bg: 'rgba(124,58,237,.12)', bd: 'rgba(124,58,237,.25)' },
-                { l: 'Pagantes no mês', v: totalPagantesMes, c: '#4ADE80', bg: 'rgba(34,197,94,.12)', bd: 'rgba(34,197,94,.25)' },
-                { l: 'Comissão pendente', v: fBRL(totalPendenteMes), c: '#FBBF24', bg: 'rgba(245,158,11,.12)', bd: 'rgba(245,158,11,.25)' },
-                { l: 'Comissão paga', v: fBRL(totalPagoMes), c: '#4ADE80', bg: 'rgba(34,197,94,.10)', bd: 'rgba(34,197,94,.22)' },
+                { l: 'Parceiros ativos', v: totalAtivos, c: '#EC4899', bg: 'rgba(236,72,153,.12)', bd: 'rgba(236,72,153,.25)' },
+                { l: 'Cadastros no mês', v: totalCadsMes, c: '#C4B5FD', bg: 'rgba(139,92,246,.12)', bd: 'rgba(139,92,246,.25)' },
+                { l: 'Pagantes no mês', v: totalPagantesMes, c: '#22C55E', bg: 'rgba(34,197,94,.12)', bd: 'rgba(34,197,94,.25)' },
+                { l: 'Comissão pendente', v: fBRL(totalPendenteMes), c: '#FACC15', bg: 'rgba(250,204,21,.12)', bd: 'rgba(250,204,21,.25)' },
+                { l: 'Comissão paga', v: fBRL(totalPagoMes), c: '#22C55E', bg: 'rgba(34,197,94,.10)', bd: 'rgba(34,197,94,.22)' },
               ].map(k => (
-                <div key={k.l} style={{ background: k.bg, border: `1.5px solid ${k.bd}`, borderRadius: '18px', padding: '18px 16px' }}>
-                  <p style={{ fontSize: '10px', fontWeight: 700, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '.07em', marginBottom: '6px' }}>{k.l}</p>
+                <div key={k.l} style={{ background: '#18101B', border: `1.5px solid ${k.bd}`, borderRadius: '18px', padding: '18px 16px' }}>
+                  <p style={{ fontSize: '10px', fontWeight: 700, color: '#B8AAB8', textTransform: 'uppercase', letterSpacing: '.07em', marginBottom: '6px' }}>{k.l}</p>
                   <p style={{ fontSize: '22px', fontWeight: 800, color: k.c }}>{k.v}</p>
                 </div>
               ))}
@@ -321,7 +323,8 @@ export default function Parceiros() {
             <div style={{ display: 'flex', gap: '8px', marginBottom: '20px' }}>
               {(['parceiros', 'indicacoes'] as const).map(a => (
                 <button key={a} onClick={() => setAba(a)}
-                  style={{ padding: '8px 18px', borderRadius: '10px', border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontSize: '13px', fontWeight: 600, background: aba === a ? 'linear-gradient(135deg,#3B82F6,#7C3AED)' : 'rgba(255,255,255,.06)', color: aba === a ? '#fff' : '#94A3B8' }}>
+                  className={aba === a ? '' : 'btn-s'}
+                  style={{ padding: '8px 18px', borderRadius: '10px', border: aba === a ? 'none' : undefined, cursor: 'pointer', fontFamily: 'inherit', fontSize: '13px', fontWeight: 600, background: aba === a ? 'linear-gradient(135deg,#EC4899,#D946EF,#8B5CF6)' : undefined, color: aba === a ? '#fff' : undefined }}>
                   {a === 'parceiros' ? 'Parceiros' : 'Indicações'}
                 </button>
               ))}
@@ -331,12 +334,12 @@ export default function Parceiros() {
             {aba === 'parceiros' && (
               <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
                 <div style={{ padding: '16px 20px', borderBottom: '1px solid rgba(255,255,255,.06)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <p style={{ fontSize: '14px', fontWeight: 700, color: '#F8FAFC' }}>Lista de parceiros</p>
-                  <span style={{ fontSize: '12px', color: '#64748B' }}>{parceiros.length} parceiro{parceiros.length !== 1 ? 's' : ''}</span>
+                  <p style={{ fontSize: '14px', fontWeight: 700, color: '#F8F4F7' }}>Lista de parceiros</p>
+                  <span style={{ fontSize: '12px', color: '#B8AAB8' }}>{parceiros.length} parceiro{parceiros.length !== 1 ? 's' : ''}</span>
                 </div>
                 {parceiros.length === 0 ? (
                   <div style={{ padding: '48px', textAlign: 'center' }}>
-                    <p style={{ fontSize: '14px', color: '#64748B', marginBottom: '16px' }}>Nenhum parceiro cadastrado ainda.</p>
+                    <p style={{ fontSize: '14px', color: '#B8AAB8', marginBottom: '16px' }}>Nenhum parceiro cadastrado ainda.</p>
                     <button className="btn-p" onClick={() => { resetForm(); setShowModal(true) }}>+ Cadastrar primeiro parceiro</button>
                   </div>
                 ) : parceiros.map(p => {
@@ -353,15 +356,15 @@ export default function Parceiros() {
                       {/* Linha principal do parceiro */}
                       <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px', alignItems: 'center', marginBottom: '12px' }}>
                         <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-                          <div style={{ width: '42px', height: '42px', borderRadius: '12px', background: 'linear-gradient(135deg,rgba(59,130,246,.2),rgba(124,58,237,.2))', border: '1px solid rgba(59,130,246,.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '16px', fontWeight: 800, color: '#60A5FA', flexShrink: 0 }}>
+                          <div style={{ width: '42px', height: '42px', borderRadius: '12px', background: 'linear-gradient(135deg,rgba(236,72,153,.2),rgba(139,92,246,.2))', border: '1px solid rgba(236,72,153,.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '16px', fontWeight: 800, color: '#EC4899', flexShrink: 0 }}>
                             {p.nome.charAt(0)}
                           </div>
                           <div>
-                            <p style={{ fontSize: '14px', fontWeight: 700, color: '#F8FAFC', marginBottom: '3px' }}>{p.nome}</p>
+                            <p style={{ fontSize: '14px', fontWeight: 700, color: '#F8F4F7', marginBottom: '3px' }}>{p.nome}</p>
                             <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', alignItems: 'center' }}>
-                              <span style={{ fontSize: '12px', fontWeight: 800, color: '#7C3AED', background: 'rgba(124,58,237,.15)', border: '1px solid rgba(124,58,237,.28)', padding: '2px 8px', borderRadius: '6px' }}>{p.cupom}</span>
-                              <span style={{ fontSize: '11px', color: '#64748B' }}>{p.tipo}</span>
-                              <span className="badge" style={{ background: p.ativo ? 'rgba(34,197,94,.14)' : 'rgba(239,68,68,.14)', border: `1px solid ${p.ativo ? 'rgba(34,197,94,.28)' : 'rgba(239,68,68,.28)'}`, color: p.ativo ? '#4ADE80' : '#F87171' }}>{p.ativo ? 'Ativo' : 'Inativo'}</span>
+                              <span style={{ fontSize: '12px', fontWeight: 800, color: '#EC4899', background: 'rgba(236,72,153,.12)', border: '1px solid rgba(236,72,153,.28)', padding: '2px 8px', borderRadius: '6px' }}>{p.cupom}</span>
+                              <span style={{ fontSize: '11px', color: '#B8AAB8' }}>{p.tipo}</span>
+                              <span className="badge" style={{ background: p.ativo ? 'rgba(34,197,94,.14)' : 'rgba(239,68,68,.14)', border: `1px solid ${p.ativo ? 'rgba(34,197,94,.28)' : 'rgba(239,68,68,.28)'}`, color: p.ativo ? '#22C55E' : '#EF4444' }}>{p.ativo ? 'Ativo' : 'Inativo'}</span>
                             </div>
                           </div>
                         </div>
@@ -369,14 +372,14 @@ export default function Parceiros() {
                         {/* Stats do período */}
                         <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', alignItems: 'center' }}>
                           {[
-                            { l: 'Cadastros', v: String(cads.length), c: '#CBD5E1' },
-                            { l: 'Pagantes', v: String(pags.length), c: '#4ADE80' },
-                            { l: 'Pendente', v: fBRL(valorPendente), c: '#FBBF24' },
-                            { l: 'Pago', v: fBRL(valorPago), c: '#4ADE80' },
-                            { l: 'Comissão/cliente', v: fBRL(p.comissao_fixa || 0), c: '#A78BFA' },
+                            { l: 'Cadastros', v: String(cads.length), c: '#B8AAB8' },
+                            { l: 'Pagantes', v: String(pags.length), c: '#22C55E' },
+                            { l: 'Pendente', v: fBRL(valorPendente), c: '#FACC15' },
+                            { l: 'Pago', v: fBRL(valorPago), c: '#22C55E' },
+                            { l: 'Comissão/cliente', v: fBRL(p.comissao_fixa || 0), c: '#EC4899' },
                           ].map(s => (
                             <div key={s.l} style={{ textAlign: 'center' }}>
-                              <p style={{ fontSize: '10px', color: '#64748B', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: '2px' }}>{s.l}</p>
+                              <p style={{ fontSize: '10px', color: '#B8AAB8', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: '2px' }}>{s.l}</p>
                               <p style={{ fontSize: '14px', fontWeight: 700, color: s.c }}>{s.v}</p>
                             </div>
                           ))}
@@ -386,7 +389,7 @@ export default function Parceiros() {
                       {/* Status do fechamento */}
                       {fechado?.status === 'pago' && (
                         <div style={{ background: 'rgba(34,197,94,.08)', border: '1px solid rgba(34,197,94,.22)', borderRadius: '8px', padding: '7px 12px', marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          <span style={{ fontSize: '12px', color: '#4ADE80', fontWeight: 600 }}>✓ Comissão de {periodoAtual.label} paga em {new Date(fechado.pago_em).toLocaleDateString('pt-BR')}</span>
+                          <span style={{ fontSize: '12px', color: '#22C55E', fontWeight: 600 }}>✓ Comissão de {periodoAtual.label} paga em {new Date(fechado.pago_em).toLocaleDateString('pt-BR')}</span>
                         </div>
                       )}
 
@@ -394,8 +397,8 @@ export default function Parceiros() {
                       <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
                         <button className="btn-s" onClick={() => copiarLink(p.cupom)}>Copiar link</button>
                         <button className="btn-s" onClick={() => abrirEditar(p)}>Editar</button>
-                        <button className="btn-s" onClick={() => toggleAtivo(p)} style={{ color: p.ativo ? '#F87171' : '#4ADE80' }}>{p.ativo ? 'Desativar' : 'Ativar'}</button>
-                        <button className="btn-s" style={{ color: '#A5B4FC', borderColor: 'rgba(99,102,241,.28)' }}
+                        <button className={p.ativo ? 'btn-s btn-desativar' : 'btn-s'} onClick={() => toggleAtivo(p)}>{p.ativo ? 'Desativar' : 'Ativar'}</button>
+                        <button className="btn-s"
                           onClick={() => setHistoricoAberto(histAberto ? null : p.id)}>
                           {histAberto ? '▲ Fechar histórico' : '▼ Histórico mensal'}
                         </button>
@@ -409,32 +412,32 @@ export default function Parceiros() {
                       {/* Histórico mensal expandido */}
                       {histAberto && (
                         <div style={{ marginTop: '14px', background: 'rgba(255,255,255,.03)', border: '1px solid rgba(255,255,255,.07)', borderRadius: '12px', overflow: 'hidden' }}>
-                          <div style={{ padding: '10px 16px', borderBottom: '1px solid rgba(255,255,255,.06)', background: 'rgba(99,102,241,.08)' }}>
-                            <p style={{ fontSize: '12px', fontWeight: 700, color: '#A5B4FC', textTransform: 'uppercase', letterSpacing: '.06em' }}>Histórico mensal — {p.nome}</p>
+                          <div style={{ padding: '10px 16px', borderBottom: '1px solid rgba(255,255,255,.06)', background: 'rgba(139,92,246,.08)' }}>
+                            <p style={{ fontSize: '12px', fontWeight: 700, color: '#C4B5FD', textTransform: 'uppercase', letterSpacing: '.06em' }}>Histórico mensal — {p.nome}</p>
                           </div>
                           {hist.length === 0 ? (
-                            <p style={{ padding: '16px', fontSize: '13px', color: '#64748B' }}>Nenhum dado histórico encontrado.</p>
+                            <p style={{ padding: '16px', fontSize: '13px', color: '#B8AAB8' }}>Nenhum dado histórico encontrado.</p>
                           ) : (
                             <div>
                               {/* Header da tabela */}
                               <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 80px 80px 110px 110px 90px', padding: '8px 16px', borderBottom: '1px solid rgba(255,255,255,.06)' }}>
                                 {['Mês', 'Cadastros', 'Pagantes', 'Comissão', 'Status', ''].map(h => (
-                                  <p key={h} style={{ fontSize: '10px', fontWeight: 700, color: '#475569', textTransform: 'uppercase', letterSpacing: '.06em' }}>{h}</p>
+                                  <p key={h} style={{ fontSize: '10px', fontWeight: 700, color: '#B8AAB8', textTransform: 'uppercase', letterSpacing: '.06em' }}>{h}</p>
                                 ))}
                               </div>
                               {hist.map(h => (
                                 <div key={h.key} style={{ display: 'grid', gridTemplateColumns: '1.5fr 80px 80px 110px 110px 90px', padding: '10px 16px', borderBottom: '1px solid rgba(255,255,255,.04)', alignItems: 'center' }}>
-                                  <p style={{ fontSize: '13px', fontWeight: 600, color: '#CBD5E1', textTransform: 'capitalize' }}>{h.label}</p>
-                                  <p style={{ fontSize: '13px', color: '#94A3B8' }}>{h.cadastros}</p>
-                                  <p style={{ fontSize: '13px', color: '#4ADE80', fontWeight: 600 }}>{h.pagantes}</p>
-                                  <p style={{ fontSize: '13px', color: '#A78BFA', fontWeight: 600 }}>{fBRL(h.valorComissao)}</p>
+                                  <p style={{ fontSize: '13px', fontWeight: 600, color: '#B8AAB8', textTransform: 'capitalize' }}>{h.label}</p>
+                                  <p style={{ fontSize: '13px', color: '#B8AAB8' }}>{h.cadastros}</p>
+                                  <p style={{ fontSize: '13px', color: '#22C55E', fontWeight: 600 }}>{h.pagantes}</p>
+                                  <p style={{ fontSize: '13px', color: '#EC4899', fontWeight: 600 }}>{fBRL(h.valorComissao)}</p>
                                   <div>
                                     {h.fechado?.status === 'pago' ? (
-                                      <span className="badge" style={{ background: 'rgba(34,197,94,.12)', border: '1px solid rgba(34,197,94,.28)', color: '#4ADE80' }}>Pago</span>
+                                      <span className="badge" style={{ background: 'rgba(34,197,94,.12)', border: '1px solid rgba(34,197,94,.28)', color: '#22C55E' }}>Pago</span>
                                     ) : h.pagantes > 0 ? (
-                                      <span className="badge" style={{ background: 'rgba(245,158,11,.12)', border: '1px solid rgba(245,158,11,.28)', color: '#FBBF24' }}>Pendente</span>
+                                      <span className="badge" style={{ background: 'rgba(250,204,21,.12)', border: '1px solid rgba(250,204,21,.28)', color: '#FACC15' }}>Pendente</span>
                                     ) : (
-                                      <span className="badge" style={{ background: 'rgba(148,163,184,.08)', border: '1px solid rgba(148,163,184,.14)', color: '#64748B' }}>Sem pagantes</span>
+                                      <span className="badge" style={{ background: '#2A1A2F', border: '1px solid #2A1A2F', color: '#B8AAB8' }}>Sem pagantes</span>
                                     )}
                                   </div>
                                   <div>
@@ -471,7 +474,7 @@ export default function Parceiros() {
             {aba === 'indicacoes' && (
               <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
                 <div style={{ padding: '16px 20px', borderBottom: '1px solid rgba(255,255,255,.06)' }}>
-                  <p style={{ fontSize: '14px', fontWeight: 700, color: '#F8FAFC' }}>Clientes indicados — {periodoAtual.label}</p>
+                  <p style={{ fontSize: '14px', fontWeight: 700, color: '#F8F4F7' }}>Clientes indicados — {periodoAtual.label}</p>
                 </div>
                 {(() => {
                   const indsMes = indicacoes.filter(ind => {
@@ -480,20 +483,20 @@ export default function Parceiros() {
                   })
                   if (indsMes.length === 0) return (
                     <div style={{ padding: '48px', textAlign: 'center' }}>
-                      <p style={{ fontSize: '14px', color: '#64748B' }}>Nenhuma indicação em {periodoAtual.label}.</p>
+                      <p style={{ fontSize: '14px', color: '#B8AAB8' }}>Nenhuma indicação em {periodoAtual.label}.</p>
                     </div>
                   )
                   return indsMes.map(ind => (
                     <div key={ind.id} className="tbl-row">
                       <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px', alignItems: 'center' }}>
                         <div>
-                          <p style={{ fontSize: '14px', fontWeight: 600, color: '#F8FAFC', marginBottom: '2px' }}>{ind.nome_negocio || '—'}</p>
-                          {ind.nome_responsavel && <p style={{ fontSize: '12px', color: '#94A3B8', marginBottom: '1px' }}>{ind.nome_responsavel}</p>}
-                          <p style={{ fontSize: '12px', color: '#64748B', marginBottom: '4px' }}>{ind.email}</p>
+                          <p style={{ fontSize: '14px', fontWeight: 600, color: '#F8F4F7', marginBottom: '2px' }}>{ind.nome_negocio || '—'}</p>
+                          {ind.nome_responsavel && <p style={{ fontSize: '12px', color: '#B8AAB8', marginBottom: '1px' }}>{ind.nome_responsavel}</p>}
+                          <p style={{ fontSize: '12px', color: '#B8AAB8', marginBottom: '4px' }}>{ind.email}</p>
                           <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-                            <span style={{ fontSize: '11px', fontWeight: 800, color: '#7C3AED', background: 'rgba(124,58,237,.15)', border: '1px solid rgba(124,58,237,.28)', padding: '2px 8px', borderRadius: '6px' }}>{ind.cupom_codigo}</span>
-                            {(() => { const par = parceiros.find((pc: any) => pc.id === ind.parceiro_id); return par ? <span style={{ fontSize: '11px', color: '#94A3B8' }}>→ {par.nome}</span> : null })()}
-                            <span className="badge" style={{ background: ind.status === 'pagante' ? 'rgba(34,197,94,.12)' : 'rgba(59,130,246,.12)', border: `1px solid ${ind.status === 'pagante' ? 'rgba(34,197,94,.24)' : 'rgba(59,130,246,.24)'}`, color: ind.status === 'pagante' ? '#4ADE80' : '#60A5FA' }}>{ind.status || 'cadastrado'}</span>
+                            <span style={{ fontSize: '11px', fontWeight: 800, color: '#EC4899', background: 'rgba(236,72,153,.12)', border: '1px solid rgba(236,72,153,.28)', padding: '2px 8px', borderRadius: '6px' }}>{ind.cupom_codigo}</span>
+                            {(() => { const par = parceiros.find((pc: any) => pc.id === ind.parceiro_id); return par ? <span style={{ fontSize: '11px', color: '#B8AAB8' }}>→ {par.nome}</span> : null })()}
+                            <span className="badge" style={{ background: ind.status === 'pagante' ? 'rgba(34,197,94,.12)' : 'rgba(236,72,153,.12)', border: `1px solid ${ind.status === 'pagante' ? 'rgba(34,197,94,.24)' : 'rgba(236,72,153,.24)'}`, color: ind.status === 'pagante' ? '#22C55E' : '#EC4899' }}>{ind.status || 'cadastrado'}</span>
                           </div>
                         </div>
                         <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
@@ -519,14 +522,14 @@ export default function Parceiros() {
       {showModal && (
         <div className="modal-bg" onClick={() => setShowModal(false)}>
           <div className="modal" onClick={e => e.stopPropagation()}>
-            <p style={{ fontSize: '18px', fontWeight: 800, color: '#F8FAFC', marginBottom: '20px' }}>{editando ? 'Editar parceiro' : 'Novo parceiro'}</p>
-            {msg && <p style={{ fontSize: '13px', color: '#F87171', marginBottom: '12px' }}>{msg}</p>}
+            <p style={{ fontSize: '18px', fontWeight: 800, color: '#F8F4F7', marginBottom: '20px' }}>{editando ? 'Editar parceiro' : 'Novo parceiro'}</p>
+            {msg && <p style={{ fontSize: '13px', color: '#EF4444', marginBottom: '12px' }}>{msg}</p>}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
               <div><label className="lbl">Nome do parceiro *</label><input className="inp" type="text" placeholder="Ex: João Barbearia" value={nome} onChange={e => setNome(e.target.value)} /></div>
               <div>
                 <label className="lbl">Cupom *</label>
                 <input className="inp" type="text" placeholder="Ex: JOAO" value={cupom} onChange={e => setCupom(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ''))} />
-                <p style={{ fontSize: '11px', color: '#475569', marginTop: '4px' }}>Letras e números, sem espaços.</p>
+                <p style={{ fontSize: '11px', color: '#B8AAB8', marginTop: '4px' }}>Letras e números, sem espaços.</p>
               </div>
               <div><label className="lbl">WhatsApp</label><input className="inp" type="tel" placeholder="(11) 99999-9999" value={wpp} onChange={e => setWpp(e.target.value)} /></div>
               <div><label className="lbl">E-mail</label><input className="inp" type="email" placeholder="parceiro@email.com" value={email} onChange={e => setEmail(e.target.value)} /></div>
@@ -538,10 +541,10 @@ export default function Parceiros() {
               </div>
               <div><label className="lbl">Comissão por cliente pagante (R$)</label><input className="inp" type="number" min="0" step="0.01" placeholder="0,00" value={comissao} onChange={e => setComissao(e.target.value)} /></div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <button onClick={() => setAtivo(!ativo)} style={{ width: '36px', height: '20px', borderRadius: '999px', border: 'none', cursor: 'pointer', position: 'relative', background: ativo ? '#3B82F6' : '#374151' }}>
+                <button onClick={() => setAtivo(!ativo)} style={{ width: '36px', height: '20px', borderRadius: '999px', border: 'none', cursor: 'pointer', position: 'relative', background: ativo ? '#EC4899' : '#2A1A2F' }}>
                   <span style={{ position: 'absolute', top: '2px', left: ativo ? '18px' : '2px', width: '16px', height: '16px', borderRadius: '50%', background: '#fff', transition: 'left .2s' }} />
                 </button>
-                <span style={{ fontSize: '13px', color: '#CBD5E1' }}>Parceiro ativo</span>
+                <span style={{ fontSize: '13px', color: '#B8AAB8' }}>Parceiro ativo</span>
               </div>
               <div style={{ display: 'flex', gap: '8px' }}>
                 <button className="btn-s" onClick={() => { setShowModal(false); resetForm() }} style={{ flex: 1 }}>Cancelar</button>
