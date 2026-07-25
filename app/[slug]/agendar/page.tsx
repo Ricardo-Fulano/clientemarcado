@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useParams, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
-import { Sun, Clock, Moon, Scissors, Sparkles, ClipboardList, ClipboardCheck, CalendarCheck, FileText, HeartPulse, ShieldPlus, Stethoscope } from 'lucide-react'
+import { Sun, Clock, Moon, Scissors, Sparkles, ClipboardList, ClipboardCheck, CalendarCheck, FileText, HeartPulse, ShieldPlus, Stethoscope, Check, Copy, Download, CalendarX2 } from 'lucide-react'
 
 export default function Agendar() {
   const params = useParams()
@@ -121,7 +121,7 @@ export default function Agendar() {
     URL.revokeObjectURL(url)
   }
 
-// à Gera PDF premium via window.open (mesma estratégia do PDF de orçamento)
+// ✅ Gera PDF premium via window.open (mesma estratégia do PDF de orçamento)
   function baixarConfirmacaoPDF() {
     const nomeCliente = clienteNome || 'cliente'
     const dataFormatada = formatarData(dataSelecionada)
@@ -149,7 +149,7 @@ export default function Agendar() {
   body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;background:#fff;color:#1E293B;font-size:14px;line-height:1.5}
   @media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
   .page{max-width:800px;margin:0 auto;padding:0}
-  .hdr{background:linear-gradient(135deg,#1E3A5F 0%,#2D1B69 100%);padding:32px 40px;position:relative;overflow:hidden}
+  .hdr{background:linear-gradient(135deg,#EC4899 0%,#D946EF 50%,#8B5CF6 100%);padding:32px 40px;position:relative;overflow:hidden}
   .hdr::after{content:'';position:absolute;top:-60px;right:-60px;width:200px;height:200px;border-radius:50%;background:rgba(255,255,255,.05)}
   .hdr::before{content:'';position:absolute;bottom:-40px;left:40px;width:120px;height:120px;border-radius:50%;background:rgba(255,255,255,.04)}
   .hdr-inner{position:relative;z-index:1;display:flex;justify-content:space-between;align-items:flex-start;gap:20px}
@@ -159,33 +159,33 @@ export default function Agendar() {
   .hdr-right .doc-label{font-size:10px;font-weight:700;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px}
   .hdr-right .doc-date{font-size:14px;font-weight:700;color:#fff}
   .hdr-right .doc-time{font-size:11px;color:rgba(255,255,255,.5);margin-top:2px}
-  .status-badge{display:inline-flex;align-items:center;gap:6px;padding:5px 14px;border-radius:999px;font-size:11px;font-weight:700;letter-spacing:.04em;margin-top:10px;background:rgba(34,197,94,.18);color:#4ADE80;border:1px solid rgba(34,197,94,.35)}
-  .status-dot{width:6px;height:6px;border-radius:50%;background:#4ADE80;flex-shrink:0}
+  .status-badge{display:inline-flex;align-items:center;gap:6px;padding:5px 14px;border-radius:999px;font-size:11px;font-weight:700;letter-spacing:.04em;margin-top:10px;background:rgba(255,255,255,.22);color:#fff;border:1px solid rgba(255,255,255,.35)}
+  .status-dot{width:6px;height:6px;border-radius:50%;background:#fff;flex-shrink:0}
   .body{padding:0 40px 40px}
   .section{margin-top:28px}
   .section-title{font-size:10px;font-weight:700;color:#94A3B8;text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px;padding-bottom:6px;border-bottom:1.5px solid #E2E8F0}
-  .highlight-box{background:linear-gradient(135deg,#EFF6FF,#F5F3FF);border:1.5px solid #BFDBFE;border-radius:14px;padding:20px 24px;display:flex;justify-content:space-between;align-items:center;gap:16px}
-  .hl-label{font-size:10px;font-weight:700;color:#1D4ED8;text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px}
+  .highlight-box{background:linear-gradient(135deg,#FDF2F8,#FAF5FF);border:1.5px solid #FBCFE8;border-radius:14px;padding:20px 24px;display:flex;justify-content:space-between;align-items:center;gap:16px}
+  .hl-label{font-size:10px;font-weight:700;color:#DB2777;text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px}
   .hl-value{font-size:22px;font-weight:900;color:#1E293B;letter-spacing:-0.02em}
-  .hl-sub{font-size:12px;color:#6366F1;margin-top:3px;font-weight:600}
-  .valor-label{font-size:10px;font-weight:700;color:#15803D;text-transform:uppercase;letter-spacing:.08em;margin-bottom:2px;text-align:right}
-  .valor-value{font-size:22px;font-weight:900;color:#15803D;text-align:right}
+  .hl-sub{font-size:12px;color:#8B5CF6;margin-top:3px;font-weight:600}
+  .valor-label{font-size:10px;font-weight:700;color:#DB2777;text-transform:uppercase;letter-spacing:.08em;margin-bottom:2px;text-align:right}
+  .valor-value{font-size:22px;font-weight:900;color:#DB2777;text-align:right}
   .info-grid{display:grid;grid-template-columns:1fr 1fr;gap:0;border:1px solid #E2E8F0;border-radius:12px;overflow:hidden}
   .info-cell{padding:14px 18px;border-bottom:1px solid #F1F5F9}
   .info-cell:nth-last-child(-n+2){border-bottom:none}
   .info-cell:nth-child(odd){border-right:1px solid #F1F5F9}
   .info-label{font-size:10px;font-weight:700;color:#94A3B8;text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px}
   .info-value{font-size:14px;font-weight:700;color:#1E293B}
-  .info-value.purple{color:#6366F1}
-  .info-value.blue{color:#1D4ED8}
-  .info-value.green{color:#15803D}
+  .info-value.purple{color:#8B5CF6}
+  .info-value.blue{color:#DB2777}
+  .info-value.green{color:#DB2777}
   .estab-box{background:#F8FAFC;border:1px solid #E2E8F0;border-radius:12px;padding:18px 20px}
   .estab-nome{font-size:15px;font-weight:800;color:#1E293B;margin-bottom:10px}
   .estab-row{font-size:12px;color:#475569;margin-bottom:5px;display:flex;align-items:flex-start;gap:6px}
-  .obs-box{background:#FFFBEB;border:1px solid #FDE68A;border-radius:10px;padding:14px 18px}
-  .obs-text{font-size:12px;color:#92400E;line-height:1.6}
+  .obs-box{background:#FDF2F8;border:1px solid #FBCFE8;border-radius:10px;padding:14px 18px}
+  .obs-text{font-size:12px;color:#9D174D;line-height:1.6}
   .footer{margin-top:32px;padding:16px 40px;background:#F8FAFC;border-top:1.5px solid #E2E8F0;display:flex;justify-content:space-between;align-items:center}
-  .footer-brand{font-size:12px;font-weight:700;color:#6366F1}
+  .footer-brand{font-size:12px;font-weight:700;color:#8B5CF6}
   .footer-right{font-size:11px;color:#94A3B8;text-align:right}
   @media print{
     body{margin:0}
@@ -323,8 +323,8 @@ export default function Agendar() {
   }
 
 
-  const G = 'linear-gradient(135deg,#3B82F6,#7C3AED)'
-  const cor = perfil?.cor_tema || '#3B82F6'
+  const G = 'linear-gradient(135deg,#EC4899,#D946EF,#8B5CF6)'
+  const cor = perfil?.cor_tema || '#EC4899'
   const servicoSelecionado = servicos.find(s => s.id === servicoId)
   const profissionalSelecionado = profissionais.find(p => p.id === profissionalId)
   const todayStr = new Date().toISOString().split('T')[0]
@@ -354,11 +354,11 @@ export default function Agendar() {
   const css = `
     *{box-sizing:border-box;margin:0;padding:0}
     html,body{overflow-x:hidden;width:100%;max-width:100%}
-    .page{min-height:100vh;background:radial-gradient(ellipse at top,rgba(124,58,237,.10),transparent 50%),linear-gradient(180deg,#060C18 0%,#050B16 100%);color:#F8FAFC;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
-    .header{border-bottom:1px solid rgba(148,163,184,.10);padding:14px 20px;display:flex;align-items:center;background:rgba(5,11,22,.97);backdrop-filter:blur(20px);position:sticky;top:0;z-index:10}
-    .header-back{color:#64748B;text-decoration:none;font-size:14px;display:flex;align-items:center;gap:4px;min-width:60px;font-weight:500;transition:color .15s}
-    .header-back:hover{color:#94A3B8}
-    .header-title{flex:1;text-align:center;font-size:15px;font-weight:800;color:#F8FAFC;letter-spacing:-0.01em}
+    .page{min-height:100vh;background:radial-gradient(ellipse at top,rgba(139,92,246,.10),transparent 50%),linear-gradient(180deg,#08060A 0%,#08060A 100%);color:#F8F4F7;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+    .header{border-bottom:1px solid #2A1A2F;padding:14px 20px;display:flex;align-items:center;background:rgba(8,6,10,.97);backdrop-filter:blur(20px);position:sticky;top:0;z-index:10}
+    .header-back{color:#B8AAB8;text-decoration:none;font-size:14px;display:flex;align-items:center;gap:4px;min-width:60px;font-weight:500;transition:color .15s}
+    .header-back:hover{color:#B8AAB8}
+    .header-title{flex:1;text-align:center;font-size:15px;font-weight:800;color:#F8F4F7;letter-spacing:-0.01em}
     .header-spacer{min-width:60px}
     .container{max-width:680px;margin:0 auto;padding:24px 16px 60px}
     .container-wide{max-width:980px;margin:0 auto;padding:24px 16px 60px}
@@ -366,96 +366,96 @@ export default function Agendar() {
     .steps-wrap{margin-bottom:28px}
     .steps-track{display:flex;align-items:center;margin-bottom:10px}
     .step-dot{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;transition:all .2s}
-    .step-dot.done{background:${G};color:#fff;box-shadow:0 0 16px rgba(124,58,237,.35)}
-    .step-dot.active{background:${G};color:#fff;box-shadow:0 0 20px rgba(59,130,246,.40)}
-    .step-dot.idle{background:rgba(15,23,42,.88);color:#475569;border:1px solid rgba(148,163,184,.12)}
+    .step-dot.done{background:${G};color:#fff;box-shadow:0 0 16px rgba(139,92,246,.35)}
+    .step-dot.active{background:${G};color:#fff;box-shadow:0 0 20px rgba(236,72,153,.40)}
+    .step-dot.idle{background:rgba(24,16,27,.88);color:#B8AAB8;border:1px solid #2A1A2F}
     .step-line{flex:1;height:2px;margin:0 6px;border-radius:1px;transition:background .2s}
     .step-labels{display:flex;justify-content:space-between}
     .step-label{font-size:10px;letter-spacing:.02em}
-    .section-title{font-size:22px;font-weight:800;color:#F8FAFC;letter-spacing:-0.03em;margin-bottom:6px}
-    .section-sub{font-size:14px;color:#64748B;margin-bottom:24px;line-height:1.5}
+    .section-title{font-size:22px;font-weight:800;color:#F8F4F7;letter-spacing:-0.03em;margin-bottom:6px}
+    .section-sub{font-size:14px;color:#B8AAB8;margin-bottom:24px;line-height:1.5}
     .servico-list{display:flex;flex-direction:column;gap:10px}
-    .servico-card{display:flex;align-items:center;gap:16px;background:radial-gradient(circle at top left,rgba(59,130,246,.05),transparent 55%),linear-gradient(145deg,rgba(15,23,42,.97),rgba(8,20,33,.99));border:1.5px solid rgba(148,163,184,.12);border-radius:16px;padding:18px 16px 18px 20px;cursor:pointer;text-align:left;width:100%;position:relative;overflow:hidden;transition:all .18s;-webkit-tap-highlight-color:transparent}
-    .servico-card:hover{border-color:rgba(59,130,246,.45);box-shadow:0 8px 32px rgba(0,0,0,.28),0 0 0 1px rgba(59,130,246,.12);transform:translateY(-1px)}
-    .servico-card.sel{border-color:rgba(59,130,246,.65);box-shadow:0 0 0 1px rgba(59,130,246,.22),0 10px 36px rgba(59,130,246,.14);background:radial-gradient(circle at top left,rgba(59,130,246,.10),transparent 55%),linear-gradient(145deg,rgba(15,23,42,.97),rgba(8,20,33,.99))}
+    .servico-card{display:flex;align-items:center;gap:16px;background:radial-gradient(circle at top left,rgba(236,72,153,.05),transparent 55%),linear-gradient(145deg,rgba(24,16,27,.97),rgba(18,10,20,.99));border:1.5px solid #2A1A2F;border-radius:16px;padding:18px 16px 18px 20px;cursor:pointer;text-align:left;width:100%;position:relative;overflow:hidden;transition:all .18s;-webkit-tap-highlight-color:transparent}
+    .servico-card:hover{border-color:rgba(236,72,153,.45);box-shadow:0 8px 32px rgba(0,0,0,.28),0 0 0 1px rgba(236,72,153,.12);transform:translateY(-1px)}
+    .servico-card.sel{border-color:rgba(236,72,153,.65);box-shadow:0 0 0 1px rgba(236,72,153,.22),0 10px 36px rgba(236,72,153,.14);background:radial-gradient(circle at top left,rgba(236,72,153,.10),transparent 55%),linear-gradient(145deg,rgba(24,16,27,.97),rgba(18,10,20,.99))}
     .servico-accent{position:absolute;top:0;left:0;bottom:0;width:3px;background:${G};border-radius:0 2px 2px 0}
-    .servico-icon{width:46px;height:46px;border-radius:13px;background:rgba(59,130,246,.10);border:1px solid rgba(59,130,246,.18);display:flex;align-items:center;justify-content:center;flex-shrink:0}
-    .servico-nome{font-weight:700;font-size:15px;color:#F8FAFC;margin-bottom:3px;line-height:1.3}
-    .servico-desc{font-size:12px;color:#64748B;margin-bottom:7px;line-height:1.5}
-    .servico-meta{display:flex;align-items:center;gap:8px;font-size:12px;color:#64748B}
-    .servico-meta-sep{width:3px;height:3px;border-radius:50%;background:#334155;flex-shrink:0}
-    .servico-preco{color:#22C55E;font-weight:700;font-size:13px}
-    .servico-dur{display:flex;align-items:center;gap:3px;color:#64748B}
-    .servico-arrow{width:28px;height:28px;border-radius:8px;background:rgba(59,130,246,.08);border:1px solid rgba(59,130,246,.15);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:#3B82F6;font-size:16px;transition:all .15s}
-    .servico-card:hover .servico-arrow{background:rgba(59,130,246,.16);border-color:rgba(59,130,246,.30)}
+    .servico-icon{width:46px;height:46px;border-radius:13px;background:rgba(236,72,153,.10);border:1px solid rgba(236,72,153,.18);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+    .servico-nome{font-weight:700;font-size:15px;color:#F8F4F7;margin-bottom:3px;line-height:1.3}
+    .servico-desc{font-size:12px;color:#B8AAB8;margin-bottom:7px;line-height:1.5}
+    .servico-meta{display:flex;align-items:center;gap:8px;font-size:12px;color:#B8AAB8}
+    .servico-meta-sep{width:3px;height:3px;border-radius:50%;background:#2A1A2F;flex-shrink:0}
+    .servico-preco{color:#EC4899;font-weight:700;font-size:13px}
+    .servico-dur{display:flex;align-items:center;gap:3px;color:#B8AAB8}
+    .servico-arrow{width:28px;height:28px;border-radius:8px;background:rgba(236,72,153,.08);border:1px solid rgba(236,72,153,.15);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:#EC4899;font-size:16px;transition:all .15s}
+    .servico-card:hover .servico-arrow{background:rgba(236,72,153,.16);border-color:rgba(236,72,153,.30)}
     .prof-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:24px}
     @media(min-width:480px){.prof-grid{grid-template-columns:repeat(3,1fr)}}
     @media(min-width:768px){.prof-grid{grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:14px}}
-    .prof-card{display:flex;flex-direction:column;align-items:center;gap:12px;background:radial-gradient(circle at top,rgba(124,58,237,.06),transparent 60%),linear-gradient(145deg,rgba(15,23,42,.97),rgba(8,20,33,.99));border:1px solid rgba(148,163,184,.12);border-radius:18px;padding:24px 16px;cursor:pointer;text-align:center;transition:all .18s;-webkit-tap-highlight-color:transparent}
-    .prof-card:hover{border-color:rgba(59,130,246,.40);transform:translateY(-2px);box-shadow:0 8px 32px rgba(0,0,0,.25)}
-    .prof-card.sel{border-color:rgba(59,130,246,.70);box-shadow:0 0 0 1px rgba(59,130,246,.25),0 8px 32px rgba(59,130,246,.15);background:radial-gradient(circle at top,rgba(59,130,246,.12),transparent 60%),linear-gradient(145deg,rgba(15,23,42,.97),rgba(8,20,33,.99))}
+    .prof-card{display:flex;flex-direction:column;align-items:center;gap:12px;background:radial-gradient(circle at top,rgba(139,92,246,.06),transparent 60%),linear-gradient(145deg,rgba(24,16,27,.97),rgba(18,10,20,.99));border:1px solid #2A1A2F;border-radius:18px;padding:24px 16px;cursor:pointer;text-align:center;transition:all .18s;-webkit-tap-highlight-color:transparent}
+    .prof-card:hover{border-color:rgba(236,72,153,.40);transform:translateY(-2px);box-shadow:0 8px 32px rgba(0,0,0,.25)}
+    .prof-card.sel{border-color:rgba(236,72,153,.70);box-shadow:0 0 0 1px rgba(236,72,153,.25),0 8px 32px rgba(236,72,153,.15);background:radial-gradient(circle at top,rgba(236,72,153,.12),transparent 60%),linear-gradient(145deg,rgba(24,16,27,.97),rgba(18,10,20,.99))}
     .prof-avatar-img{width:72px;height:72px;border-radius:50%;object-fit:cover}
-    .prof-avatar-letra{width:72px;height:72px;border-radius:50%;background:rgba(59,130,246,.12);display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:800;color:#3B82F6}
-    .prof-nome{font-size:14px;font-weight:700;color:#F8FAFC;margin-bottom:3px}
-    .prof-cargo{font-size:12px;color:#64748B}
-    .resumo-strip{display:grid;grid-template-columns:repeat(2,1fr);background:radial-gradient(circle at top left,rgba(124,58,237,.08),transparent 60%),linear-gradient(145deg,rgba(15,23,42,.97),rgba(8,20,33,.99));border:1px solid rgba(148,163,184,.12);border-radius:16px;padding:16px 20px;margin-bottom:18px;gap:12px}
+    .prof-avatar-letra{width:72px;height:72px;border-radius:50%;background:rgba(236,72,153,.12);display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:800;color:#EC4899}
+    .prof-nome{font-size:14px;font-weight:700;color:#F8F4F7;margin-bottom:3px}
+    .prof-cargo{font-size:12px;color:#B8AAB8}
+    .resumo-strip{display:grid;grid-template-columns:repeat(2,1fr);background:radial-gradient(circle at top left,rgba(139,92,246,.08),transparent 60%),linear-gradient(145deg,rgba(24,16,27,.97),rgba(18,10,20,.99));border:1px solid #2A1A2F;border-radius:16px;padding:16px 20px;margin-bottom:18px;gap:12px}
     @media(min-width:768px){.resumo-strip{grid-template-columns:repeat(4,1fr)}}
-    .resumo-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#475569;margin-bottom:4px}
+    .resumo-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#B8AAB8;margin-bottom:4px}
     .resumo-valor{font-size:13px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
     .etapa3-cols{display:flex;flex-direction:column;gap:14px;margin-bottom:16px}
     @media(min-width:768px){.etapa3-cols{display:grid;grid-template-columns:1fr 1fr;gap:18px;align-items:start}}
-    .cal-wrap{background:radial-gradient(circle at top left,rgba(124,58,237,.06),transparent 60%),linear-gradient(145deg,rgba(15,23,42,.97),rgba(8,20,33,.99));border:1px solid rgba(148,163,184,.12);border-radius:18px;padding:20px}
+    .cal-wrap{background:radial-gradient(circle at top left,rgba(139,92,246,.06),transparent 60%),linear-gradient(145deg,rgba(24,16,27,.97),rgba(18,10,20,.99));border:1px solid #2A1A2F;border-radius:18px;padding:20px}
     .cal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
-    .cal-nav{background:rgba(15,23,42,.88);border:1px solid rgba(148,163,184,.15);border-radius:10px;padding:8px 16px;color:#94A3B8;cursor:pointer;font-size:16px;line-height:1;transition:all .15s;-webkit-tap-highlight-color:transparent}
-    .cal-nav:hover{border-color:rgba(59,130,246,.35);color:#F8FAFC}
-    .cal-mes{font-weight:700;font-size:14px;text-transform:capitalize;color:#F8FAFC}
+    .cal-nav{background:rgba(24,16,27,.88);border:1px solid #2A1A2F;border-radius:10px;padding:8px 16px;color:#B8AAB8;cursor:pointer;font-size:16px;line-height:1;transition:all .15s;-webkit-tap-highlight-color:transparent}
+    .cal-nav:hover{border-color:rgba(236,72,153,.35);color:#F8F4F7}
+    .cal-mes{font-weight:700;font-size:14px;text-transform:capitalize;color:#F8F4F7}
     .cal-dow{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:8px}
-    .cal-dow-label{text-align:center;font-size:11px;font-weight:700;color:#334155;padding:4px 0}
+    .cal-dow-label{text-align:center;font-size:11px;font-weight:700;color:#2A1A2F;padding:4px 0}
     .cal-days{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}
     .dia{padding:10px 2px;border-radius:10px;font-size:13px;font-weight:500;cursor:default;border:1px solid transparent;text-align:center;background:transparent;color:#1E293B;transition:all .15s;-webkit-tap-highlight-color:transparent;font-family:inherit}
-    .dia.disp{color:#CBD5E1;background:rgba(255,255,255,.04);cursor:pointer;font-weight:600}
-    .dia.disp:hover{background:rgba(59,130,246,.14);color:#F8FAFC;border-color:rgba(59,130,246,.25)}
-    .dia.hoje{border-color:rgba(59,130,246,.50);color:#3B82F6;font-weight:700}
-    .dia.sel{background:${G}!important;color:#fff!important;border-color:transparent!important;font-weight:700;box-shadow:0 4px 12px rgba(59,130,246,.35)}
-    .horarios-wrap{background:radial-gradient(circle at top left,rgba(124,58,237,.06),transparent 60%),linear-gradient(145deg,rgba(15,23,42,.97),rgba(8,20,33,.99));border:1px solid rgba(148,163,184,.12);border-radius:18px;padding:20px;min-height:200px}
-    .horarios-data-label{font-size:13px;font-weight:600;color:#94A3B8;margin-bottom:16px;padding-bottom:14px;border-bottom:1px solid rgba(148,163,184,.08);text-transform:capitalize}
+    .dia.disp{color:#B8AAB8;background:rgba(255,255,255,.04);cursor:pointer;font-weight:600}
+    .dia.disp:hover{background:rgba(236,72,153,.14);color:#F8F4F7;border-color:rgba(236,72,153,.25)}
+    .dia.hoje{border-color:rgba(236,72,153,.50);color:#EC4899;font-weight:700}
+    .dia.sel{background:${G}!important;color:#fff!important;border-color:transparent!important;font-weight:700;box-shadow:0 4px 12px rgba(236,72,153,.35)}
+    .horarios-wrap{background:radial-gradient(circle at top left,rgba(139,92,246,.06),transparent 60%),linear-gradient(145deg,rgba(24,16,27,.97),rgba(18,10,20,.99));border:1px solid #2A1A2F;border-radius:18px;padding:20px;min-height:200px}
+    .horarios-data-label{font-size:13px;font-weight:600;color:#B8AAB8;margin-bottom:16px;padding-bottom:14px;border-bottom:1px solid #2A1A2F;text-transform:capitalize}
     .periodo-label-row{display:flex;align-items:center;gap:5px;margin-bottom:8px}
-    .periodo-label{font-size:10px;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:.09em}
+    .periodo-label{font-size:10px;font-weight:700;color:#B8AAB8;text-transform:uppercase;letter-spacing:.09em}
     .horarios-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px}
     @media(min-width:400px){.horarios-grid{grid-template-columns:repeat(4,1fr)}}
-    .h-btn{padding:12px 4px;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;border:1px solid rgba(148,163,184,.12);text-align:center;background:rgba(15,23,42,.88);color:#CBD5E1;transition:all .15s;width:100%;font-family:inherit;-webkit-tap-highlight-color:transparent}
-    .h-btn:hover{border-color:rgba(59,130,246,.45);color:#F8FAFC;background:rgba(59,130,246,.08)}
-    .h-btn.sel{background:${G};border-color:transparent;color:#fff;box-shadow:0 0 0 2px rgba(59,130,246,.30)}
+    .h-btn{padding:12px 4px;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;border:1px solid #2A1A2F;text-align:center;background:rgba(24,16,27,.88);color:#B8AAB8;transition:all .15s;width:100%;font-family:inherit;-webkit-tap-highlight-color:transparent}
+    .h-btn:hover{border-color:rgba(236,72,153,.45);color:#F8F4F7;background:rgba(236,72,153,.08)}
+    .h-btn.sel{background:${G};border-color:transparent;color:#fff;box-shadow:0 0 0 2px rgba(236,72,153,.30)}
     .nav-row{display:flex;gap:10px}
-    .btn-voltar{flex:1;background:rgba(15,23,42,.88);border:1px solid rgba(148,163,184,.15);border-radius:14px;padding:14px;font-size:14px;font-weight:600;color:#64748B;cursor:pointer;transition:all .15s;font-family:inherit;-webkit-tap-highlight-color:transparent}
-    .btn-voltar:hover{border-color:rgba(148,163,184,.25);color:#94A3B8}
+    .btn-voltar{flex:1;background:rgba(24,16,27,.88);border:1px solid #2A1A2F;border-radius:14px;padding:14px;font-size:14px;font-weight:600;color:#B8AAB8;cursor:pointer;transition:all .15s;font-family:inherit;-webkit-tap-highlight-color:transparent}
+    .btn-voltar:hover{border-color:#2A1A2F;color:#B8AAB8}
     .btn-continuar{flex:2;border:none;border-radius:14px;padding:14px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;transition:all .2s;-webkit-tap-highlight-color:transparent}
-    .btn-continuar.on{background:${G};color:#fff;box-shadow:0 8px 24px rgba(59,130,246,.30)}
-    .btn-continuar.off{background:rgba(59,130,246,.08);color:#334155;cursor:not-allowed}
-    .btn-confirmar{flex:2;background:${G};border:none;border-radius:14px;padding:14px;font-size:15px;font-weight:700;color:#fff;cursor:pointer;box-shadow:0 8px 24px rgba(59,130,246,.30);font-family:inherit;transition:opacity .15s;-webkit-tap-highlight-color:transparent}
-    .btn-link-voltar{font-size:13px;color:#64748B;background:none;border:none;cursor:pointer;padding:4px 0;font-family:inherit;transition:color .15s}
-    .btn-link-voltar:hover{color:#94A3B8}
-    .input-field{width:100%;background:rgba(15,23,42,.88);border:1px solid rgba(148,163,184,.15);border-radius:14px;padding:14px 16px;color:#F8FAFC;font-size:16px;outline:none;box-sizing:border-box;transition:border-color .15s,box-shadow .15s;font-family:inherit}
-    .input-field:focus{border-color:rgba(124,58,237,.55);box-shadow:0 0 0 3px rgba(124,58,237,.12)}
-    .input-field::placeholder{color:#334155}
-    .input-label{font-size:11px;font-weight:700;color:#64748B;text-transform:uppercase;letter-spacing:.08em;display:block;margin-bottom:8px}
-    .resumo-card{background:radial-gradient(circle at top left,rgba(124,58,237,.08),transparent 50%),linear-gradient(145deg,rgba(15,23,42,.97),rgba(8,20,33,.99));border:1px solid rgba(148,163,184,.12);border-radius:18px;padding:20px 22px;margin-bottom:24px}
-    .resumo-card-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.10em;color:#475569;margin-bottom:16px}
+    .btn-continuar.on{background:${G};color:#fff;box-shadow:0 8px 24px rgba(236,72,153,.30)}
+    .btn-continuar.off{background:rgba(236,72,153,.08);color:#2A1A2F;cursor:not-allowed}
+    .btn-confirmar{flex:2;background:${G};border:none;border-radius:14px;padding:14px;font-size:15px;font-weight:700;color:#fff;cursor:pointer;box-shadow:0 8px 24px rgba(236,72,153,.30);font-family:inherit;transition:opacity .15s;-webkit-tap-highlight-color:transparent}
+    .btn-link-voltar{font-size:13px;color:#B8AAB8;background:none;border:none;cursor:pointer;padding:4px 0;font-family:inherit;transition:color .15s}
+    .btn-link-voltar:hover{color:#B8AAB8}
+    .input-field{width:100%;background:rgba(24,16,27,.88);border:1px solid #2A1A2F;border-radius:14px;padding:14px 16px;color:#F8F4F7;font-size:16px;outline:none;box-sizing:border-box;transition:border-color .15s,box-shadow .15s;font-family:inherit}
+    .input-field:focus{border-color:rgba(139,92,246,.55);box-shadow:0 0 0 3px rgba(139,92,246,.12)}
+    .input-field::placeholder{color:#2A1A2F}
+    .input-label{font-size:11px;font-weight:700;color:#B8AAB8;text-transform:uppercase;letter-spacing:.08em;display:block;margin-bottom:8px}
+    .resumo-card{background:radial-gradient(circle at top left,rgba(139,92,246,.08),transparent 50%),linear-gradient(145deg,rgba(24,16,27,.97),rgba(18,10,20,.99));border:1px solid #2A1A2F;border-radius:18px;padding:20px 22px;margin-bottom:24px}
+    .resumo-card-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.10em;color:#B8AAB8;margin-bottom:16px}
     .resumo-row{display:flex;justify-content:space-between;align-items:center}
-    .resumo-row-label{font-size:13px;color:#64748B}
+    .resumo-row-label{font-size:13px;color:#B8AAB8}
     .resumo-row-valor{font-size:13px;font-weight:700}
-    .resumo-divider{border:none;border-top:1px solid rgba(148,163,184,.07);margin:10px 0}
-    .sucesso-wrap{min-height:100vh;background:radial-gradient(ellipse at top,rgba(124,58,237,.12),transparent 50%),linear-gradient(180deg,#060C18,#050B16);display:flex;align-items:center;justify-content:center;padding:24px;font-family:inherit}
+    .resumo-divider{border:none;border-top:1px solid #2A1A2F;margin:10px 0}
+    .sucesso-wrap{min-height:100vh;background:radial-gradient(ellipse at top,rgba(139,92,246,.12),transparent 50%),linear-gradient(180deg,#08060A,#08060A);display:flex;align-items:center;justify-content:center;padding:24px;font-family:inherit}
     .sucesso-inner{max-width:460px;width:100%;text-align:center}
     .sucesso-icon{width:72px;height:72px;border-radius:50%;background:rgba(34,197,94,.10);border:1px solid rgba(34,197,94,.25);display:flex;align-items:center;justify-content:center;margin:0 auto 24px;font-size:32px}
-    .sucesso-title{font-size:24px;font-weight:800;color:#F8FAFC;letter-spacing:-0.03em;margin-bottom:8px}
-    .sucesso-sub{font-size:14px;color:#64748B;margin-bottom:28px;line-height:1.7}
+    .sucesso-title{font-size:24px;font-weight:800;color:#F8F4F7;letter-spacing:-0.03em;margin-bottom:8px}
+    .sucesso-sub{font-size:14px;color:#B8AAB8;margin-bottom:28px;line-height:1.7}
     .sucesso-actions{display:flex;flex-direction:column;gap:10px}
     .btn-wpp{display:inline-flex;align-items:center;justify-content:center;gap:8px;background:#25D366;color:#fff;font-weight:700;padding:14px 28px;border-radius:14px;text-decoration:none;font-size:14px;transition:opacity .15s}
-    .btn-ics{display:inline-flex;align-items:center;justify-content:center;gap:8px;background:rgba(15,23,42,.88);color:#CBD5E1;font-weight:600;padding:14px 28px;border-radius:14px;font-size:14px;border:1px solid rgba(148,163,184,.15);cursor:pointer;font-family:inherit}
-    .btn-pdf{display:inline-flex;align-items:center;justify-content:center;gap:8px;background:linear-gradient(135deg,rgba(99,102,241,.18),rgba(59,130,246,.12));color:#818CF8;font-weight:700;padding:14px 28px;border-radius:14px;font-size:14px;border:1px solid rgba(99,102,241,.28);cursor:pointer;font-family:inherit;transition:all .18s}
-    .btn-pdf:hover{background:linear-gradient(135deg,rgba(99,102,241,.28),rgba(59,130,246,.20));border-color:rgba(99,102,241,.45)}
-    .btn-inicio{display:inline-flex;align-items:center;justify-content:center;background:${G};color:#fff;font-weight:700;padding:14px 28px;border-radius:14px;text-decoration:none;font-size:14px;box-shadow:0 8px 24px rgba(59,130,246,.25)}
+    .btn-ics{display:inline-flex;align-items:center;justify-content:center;gap:8px;background:rgba(24,16,27,.88);color:#B8AAB8;font-weight:600;padding:14px 28px;border-radius:14px;font-size:14px;border:1px solid #2A1A2F;cursor:pointer;font-family:inherit}
+    .btn-pdf{display:inline-flex;align-items:center;justify-content:center;gap:8px;background:linear-gradient(135deg,rgba(139,92,246,.18),rgba(236,72,153,.12));color:#D946EF;font-weight:700;padding:14px 28px;border-radius:14px;font-size:14px;border:1px solid rgba(139,92,246,.28);cursor:pointer;font-family:inherit;transition:all .18s}
+    .btn-pdf:hover{background:linear-gradient(135deg,rgba(139,92,246,.28),rgba(236,72,153,.20));border-color:rgba(139,92,246,.45)}
+    .btn-inicio{display:inline-flex;align-items:center;justify-content:center;background:${G};color:#fff;font-weight:700;padding:14px 28px;border-radius:14px;text-decoration:none;font-size:14px;box-shadow:0 8px 24px rgba(236,72,153,.25)}
     .erro-msg{font-size:13px;color:#EF4444;margin-top:10px}
     .horarios-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:140px;gap:8px}
     .horarios-placeholder{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:160px;gap:10px}
@@ -512,17 +512,17 @@ export default function Agendar() {
     <div className="sucesso-wrap">
       <style>{css}</style>
       <div className="sucesso-inner">
-        <div className="sucesso-icon">à</div>
+        <div className="sucesso-icon"><Check size={36} strokeWidth={2.5}/></div>
         <h1 className="sucesso-title">Agendamento confirmado!</h1>
-        <p className="sucesso-sub">{clienteNome ? <>Obrigado, <strong style={{color:'#F8FAFC'}}>{clienteNome}</strong>! Seu horário foi registrado com sucesso.</> : <>Seu horário foi registrado com sucesso.</>}</p>
+        <p className="sucesso-sub">{clienteNome ? <>Obrigado, <strong style={{color:'#F8F4F7'}}>{clienteNome}</strong>! Seu horário foi registrado com sucesso.</> : <>Seu horário foi registrado com sucesso.</>}</p>
         <div className="resumo-card">
           <p className="resumo-card-title">Resumo do agendamento</p>
           {[
-            {label:'Atendimento',valor:servicoSelecionado?.nome,cor:'#F8FAFC'},
-            {label:'Profissional',valor:profissionalSelecionado?.nome,cor:'#F8FAFC'},
-            {label:'Data',valor:formatarData(dataSelecionada),cor:'#F8FAFC'},
-            {label:'Horário',valor:horarioSelecionado,cor:'#60A5FA'},
-            {label:'Valor',valor:'R$ '+servicoSelecionado?.preco,cor:'#22C55E'},
+            {label:'Atendimento',valor:servicoSelecionado?.nome,cor:'#F8F4F7'},
+            {label:'Profissional',valor:profissionalSelecionado?.nome,cor:'#F8F4F7'},
+            {label:'Data',valor:formatarData(dataSelecionada),cor:'#F8F4F7'},
+            {label:'Horário',valor:horarioSelecionado,cor:'#EC4899'},
+            {label:'Valor',valor:'R$ '+servicoSelecionado?.preco,cor:'#EC4899'},
           ].map((item,idx,arr)=>(
             <div key={item.label}>
               <div className="resumo-row">
@@ -541,10 +541,10 @@ export default function Agendar() {
             </a>
           )}
           <button onClick={copiarConfirmacao} className="btn-ics" style={{background:copiado?'rgba(34,197,94,.12)':undefined,borderColor:copiado?'rgba(34,197,94,.30)':undefined,color:copiado?'#22C55E':undefined}}>
-            {copiado ? 'ô Confirmação copiada!' : '­Copiar confirmação'}
+            {copiado ? <><Check size={16}/> Confirmação copiada!</> : <><Copy size={16}/> Copiar confirmação</>}
           </button>
           <button onClick={baixarConfirmacaoPDF} className="btn-pdf">
-            ­ä Baixar comprovante
+            <Download size={16}/> Baixar comprovante
           </button>
           <Link href={'/'+slug} className="btn-inicio">Voltar ao início</Link>
         </div>
@@ -558,13 +558,13 @@ export default function Agendar() {
         {[1,2,3,4].map(n=>(
           <div key={n} style={{display:'flex',alignItems:'center',flex:n<4?1:'none'}}>
             <div className={`step-dot ${etapa>n?'done':etapa===n?'active':'idle'}`}>{etapa>n?'✓':n}</div>
-            {n<4&&<div className="step-line" style={{background:etapa>n?'linear-gradient(90deg,#3B82F6,#7C3AED)':'rgba(148,163,184,.10)'}}/>}
+            {n<4&&<div className="step-line" style={{background:etapa>n?'linear-gradient(90deg,#EC4899,#D946EF,#8B5CF6)':'#2A1A2F'}}/>}
           </div>
         ))}
       </div>
       <div className="step-labels">
         {nomeEtapas.map((nome,i)=>(
-          <span key={nome} className="step-label" style={{fontWeight:etapa===i+1?700:500,color:etapa===i+1?'#60A5FA':'#334155',flex:i<3?1:'none',textAlign:i===0?'left':i===3?'right':'center'}}>
+          <span key={nome} className="step-label" style={{fontWeight:etapa===i+1?700:500,color:etapa===i+1?'#EC4899':'#2A1A2F',flex:i<3?1:'none',textAlign:i===0?'left':i===3?'right':'center'}}>
             {nome}
           </span>
         ))}
@@ -589,7 +589,7 @@ export default function Agendar() {
             {servicos.map(s=>(
               <button key={s.id} onClick={()=>{setServicoId(s.id);setEtapa(2)}} className={'servico-card'+(servicoId===s.id?' sel':'')}>
                 <div className="servico-accent"/>
-                <div className="servico-icon" style={{color:'#60A5FA'}}>{getServicoIcone(s)}</div>
+                <div className="servico-icon" style={{color:'#EC4899'}}>{getServicoIcone(s)}</div>
                 <div style={{flex:1,minWidth:0}}>
                   <p className="servico-nome">{s.nome}</p>
                   <p className="servico-desc">{s.descricao||'Selecione para ver profissionais e horários disponíveis'}</p>
@@ -614,8 +614,8 @@ export default function Agendar() {
             {(servicos.find(s=>s.id===servicoId)?.profissionais_ids?.length>0?profissionais.filter(p=>(servicos.find(s=>s.id===servicoId)?.profissionais_ids||[]).includes(p.id)):profissionais).map(p=>(
               <button key={p.id} onClick={()=>{setProfissionalId(p.id);setEtapa(3)}} className={'prof-card'+(profissionalId===p.id?' sel':'')}>
                 {p.foto_url
-                  ?<img src={p.foto_url} alt={p.nome} className="prof-avatar-img" style={{border:profissionalId===p.id?'2px solid #3B82F6':'2px solid rgba(148,163,184,.12)'}}/>
-                  :<div className="prof-avatar-letra" style={{border:profissionalId===p.id?'2px solid #3B82F6':'2px solid rgba(59,130,246,.15)'}}>{p.nome.charAt(0).toUpperCase()}</div>
+                  ?<img src={p.foto_url} alt={p.nome} className="prof-avatar-img" style={{border:profissionalId===p.id?'2px solid #EC4899':'2px solid #2A1A2F'}}/>
+                  :<div className="prof-avatar-letra" style={{border:profissionalId===p.id?'2px solid #EC4899':'2px solid rgba(236,72,153,.15)'}}>{p.nome.charAt(0).toUpperCase()}</div>
                 }
                 <div><p className="prof-nome">{p.nome}</p><p className="prof-cargo">{p.cargo||'Profissional'}</p></div>
               </button>
@@ -631,10 +631,10 @@ export default function Agendar() {
           <p className="section-sub">Escolha o melhor horário disponível</p>
           <div className="resumo-strip">
             {[
-              {label:'Atendimento',valor:servicoSelecionado?.nome,cor:'#F8FAFC'},
-              {label:'Profissional',valor:profissionalSelecionado?.nome,cor:'#F8FAFC'},
-              {label:'Duração',valor:(servicoSelecionado?.duracao_minutos||30)+' min',cor:'#F8FAFC'},
-              {label:'Valor',valor:'R$ '+servicoSelecionado?.preco,cor:'#22C55E'},
+              {label:'Atendimento',valor:servicoSelecionado?.nome,cor:'#F8F4F7'},
+              {label:'Profissional',valor:profissionalSelecionado?.nome,cor:'#F8F4F7'},
+              {label:'Duração',valor:(servicoSelecionado?.duracao_minutos||30)+' min',cor:'#F8F4F7'},
+              {label:'Valor',valor:'R$ '+servicoSelecionado?.preco,cor:'#EC4899'},
             ].map(item=>(
               <div key={item.label}>
                 <p className="resumo-label">{item.label}</p>
@@ -667,18 +667,18 @@ export default function Agendar() {
               </div>
             </div>
             <div className="horarios-wrap">
-              {!dataSelecionada&&<div className="horarios-placeholder"><p style={{fontSize:'13px',color:'#334155',textAlign:'center',lineHeight:1.6}}>Selecione uma data<br/>para ver os horários</p></div>}
+              {!dataSelecionada&&<div className="horarios-placeholder"><p style={{fontSize:'13px',color:'#2A1A2F',textAlign:'center',lineHeight:1.6}}>Selecione uma data<br/>para ver os horários</p></div>}
               {dataSelecionada&&(
                 <>
                   <p className="horarios-data-label">{formatarDataExtenso(dataSelecionada)}</p>
-                  {carregandoHorarios&&<div className="horarios-empty"><p style={{fontSize:'13px',color:'#64748B'}}>Buscando horários...</p></div>}
-                  {!carregandoHorarios&&horariosDisponiveis.length===0&&<div className="horarios-empty"><span style={{fontSize:'28px',opacity:.3}}>­ƒÿö</span><p style={{fontSize:'13px',color:'#64748B',textAlign:'center',lineHeight:1.6}}>Nenhum horário disponível<br/>nesta data.</p></div>}
+                  {carregandoHorarios&&<div className="horarios-empty"><p style={{fontSize:'13px',color:'#B8AAB8'}}>Buscando horários...</p></div>}
+                  {!carregandoHorarios&&horariosDisponiveis.length===0&&<div className="horarios-empty"><CalendarX2 size={28} style={{opacity:.4,color:'#B8AAB8'}}/><p style={{fontSize:'13px',color:'#B8AAB8',textAlign:'center',lineHeight:1.6}}>Nenhum horário disponível<br/>nesta data.</p></div>}
                   {!carregandoHorarios&&horariosDisponiveis.length>0&&(
                     <div>
                       {[
-                        {label:'Manhã',icon:<Sun size={11} color="#475569"/>,lista:horariosManha},
-                        {label:'Tarde',icon:<Clock size={11} color="#475569"/>,lista:horariosTarde},
-                        {label:'Noite',icon:<Moon size={11} color="#475569"/>,lista:horariosNoite},
+                        {label:'Manhã',icon:<Sun size={11} color="#B8AAB8"/>,lista:horariosManha},
+                        {label:'Tarde',icon:<Clock size={11} color="#B8AAB8"/>,lista:horariosTarde},
+                        {label:'Noite',icon:<Moon size={11} color="#B8AAB8"/>,lista:horariosNoite},
                       ].filter(p=>p.lista.length>0).map(periodo=>(
                         <div key={periodo.label} style={{marginBottom:'16px'}}>
                           <div className="periodo-label-row">{periodo.icon}<span className="periodo-label">{periodo.label}</span></div>
@@ -708,11 +708,11 @@ export default function Agendar() {
           <div className="resumo-card">
             <p className="resumo-card-title">Resumo do agendamento</p>
             {[
-              {label:'Atendimento',valor:servicoSelecionado?.nome,cor:'#F8FAFC'},
-              {label:'Profissional',valor:profissionalSelecionado?.nome,cor:'#F8FAFC'},
-              {label:'Data',valor:formatarData(dataSelecionada),cor:'#F8FAFC'},
-              {label:'Horário',valor:horarioSelecionado,cor:'#60A5FA'},
-              {label:'Valor',valor:'R$ '+servicoSelecionado?.preco,cor:'#22C55E'},
+              {label:'Atendimento',valor:servicoSelecionado?.nome,cor:'#F8F4F7'},
+              {label:'Profissional',valor:profissionalSelecionado?.nome,cor:'#F8F4F7'},
+              {label:'Data',valor:formatarData(dataSelecionada),cor:'#F8F4F7'},
+              {label:'Horário',valor:horarioSelecionado,cor:'#EC4899'},
+              {label:'Valor',valor:'R$ '+servicoSelecionado?.preco,cor:'#EC4899'},
             ].map((item,idx,arr)=>(
               <div key={item.label}>
                 <div className="resumo-row"><span className="resumo-row-label">{item.label}</span><span className="resumo-row-valor" style={{color:item.cor}}>{item.valor}</span></div>
@@ -728,8 +728,8 @@ export default function Agendar() {
             <div>
               <label className="input-label">WhatsApp *</label>
               <input type="tel" placeholder="(11) 99999-9999" value={clienteTelefone} onChange={e=>setClienteTelefone(aplicarMascaraTelefone(e.target.value))} className="input-field"/>
-              <p style={{fontSize:'12px',color:'#475569',marginTop:'6px'}}>Usado apenas para contato sobre seu agendamento.</p>
-              <p style={{fontSize:'12px',color:'#334155',marginTop:'12px',textAlign:'center',lineHeight:1.6}}>­Seus dados serão usados apenas para confirmar este agendamento.</p>
+              <p style={{fontSize:'12px',color:'#B8AAB8',marginTop:'6px'}}>Usado apenas para contato sobre seu agendamento.</p>
+              <p style={{fontSize:'12px',color:'#2A1A2F',marginTop:'12px',textAlign:'center',lineHeight:1.6}}>Seus dados serão usados apenas para confirmar este agendamento.</p>
             </div>
           </div>
           {erro&&<p className="erro-msg" style={{marginBottom:'12px'}}>{erro}</p>}
