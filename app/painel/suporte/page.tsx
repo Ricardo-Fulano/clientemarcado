@@ -37,13 +37,13 @@ const HELP_ITEMS: HelpItem[] = [
 ]
 const CATEGORIAS = ['Agenda', 'Clientes', 'Serviços', 'Orçamentos', 'Cobranças', 'Pagamentos', 'Página pública', 'Conta e mensalidade']
 const CORES_CAT: Record<string, { bg: string; border: string; text: string; iconBg: string }> = {
-  'Agenda':              { bg: 'rgba(59,130,246,.10)',  border: 'rgba(59,130,246,.25)',  text: '#93C5FD', iconBg: 'rgba(59,130,246,.18)'  },
-  'Clientes':            { bg: 'rgba(34,211,238,.10)',  border: 'rgba(34,211,238,.25)',  text: '#22D3EE', iconBg: 'rgba(34,211,238,.14)'  },
-  'Serviços':            { bg: 'rgba(168,85,247,.10)',  border: 'rgba(168,85,247,.25)',  text: '#C4B5FD', iconBg: 'rgba(168,85,247,.16)' },
-  'Orçamentos':          { bg: 'rgba(167,139,250,.10)', border: 'rgba(167,139,250,.25)', text: '#A78BFA', iconBg: 'rgba(167,139,250,.16)' },
-  'Cobranças':           { bg: 'rgba(245,158,11,.10)',  border: 'rgba(245,158,11,.25)',  text: '#F59E0B', iconBg: 'rgba(245,158,11,.14)'  },
+  'Agenda':              { bg: 'rgba(236,72,153,.10)',  border: 'rgba(236,72,153,.25)',  text: '#EC4899', iconBg: 'rgba(236,72,153,.18)'  },
+  'Clientes':            { bg: 'rgba(236,72,153,.10)',  border: 'rgba(236,72,153,.25)',  text: '#EC4899', iconBg: 'rgba(236,72,153,.14)'  },
+  'Serviços':            { bg: 'rgba(139,92,246,.10)',  border: 'rgba(139,92,246,.25)',  text: '#C4B5FD', iconBg: 'rgba(139,92,246,.16)' },
+  'Orçamentos':          { bg: 'rgba(139,92,246,.10)', border: 'rgba(139,92,246,.25)', text: '#C4B5FD', iconBg: 'rgba(139,92,246,.16)' },
+  'Cobranças':           { bg: 'rgba(236,72,153,.10)',  border: 'rgba(236,72,153,.25)',  text: '#EC4899', iconBg: 'rgba(236,72,153,.14)'  },
   'Pagamentos':          { bg: 'rgba(34,197,94,.10)',   border: 'rgba(34,197,94,.25)',   text: '#22C55E', iconBg: 'rgba(34,197,94,.14)'   },
-  'Página pública':      { bg: 'rgba(34,211,238,.10)',  border: 'rgba(34,211,238,.25)',  text: '#22D3EE', iconBg: 'rgba(34,211,238,.14)'  },
+  'Página pública':      { bg: 'rgba(139,92,246,.10)',  border: 'rgba(139,92,246,.25)',  text: '#C4B5FD', iconBg: 'rgba(139,92,246,.14)'  },
   'Conta e mensalidade': { bg: 'rgba(139,92,246,.10)',  border: 'rgba(139,92,246,.25)',  text: '#8B5CF6', iconBg: 'rgba(139,92,246,.16)'  },
 }
 const CAT_ICONS: Record<string, React.ReactNode> = {
@@ -56,17 +56,19 @@ const CAT_ICONS: Record<string, React.ReactNode> = {
   'Página pública':      <Globe         size={24} />,
   'Conta e mensalidade': <Settings      size={24} />,
 }
-const G = 'linear-gradient(135deg,#3B82F6,#7C3AED)'
+const G = 'linear-gradient(135deg,#EC4899,#D946EF,#8B5CF6)'
 const CSS = `
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-html,body{overflow-x:hidden;width:100%;max-width:100%;background:#050B16}
+html,body{overflow-x:hidden;width:100%;max-width:100%;background:#08060A}
 input,select,textarea{color-scheme:dark}
-.pg{background:radial-gradient(circle at top left,rgba(124,58,237,.20),transparent 32%),radial-gradient(circle at top right,rgba(37,99,235,.14),transparent 28%),linear-gradient(135deg,#050B16 0%,#07111F 45%,#050B16 100%);min-height:100vh;overflow-x:hidden}
+.pg{background:radial-gradient(circle at top left,rgba(139,92,246,.20),transparent 32%),radial-gradient(circle at top right,rgba(236,72,153,.14),transparent 28%),linear-gradient(135deg,#08060A 0%,#120A14 45%,#08060A 100%);min-height:100vh;overflow-x:hidden}
 .bdy{max-width:1060px;margin:0 auto;padding:28px 32px 80px;width:100%;box-sizing:border-box}
-.crd{background:radial-gradient(circle at top left,rgba(124,58,237,.08),transparent 38%),linear-gradient(145deg,rgba(15,23,42,.97),rgba(8,20,33,.99));border:1.5px solid rgba(148,163,184,.18);border-radius:18px;padding:24px;box-shadow:0 20px 48px rgba(0,0,0,.34),inset 0 1px 0 rgba(255,255,255,.04)}
-.inp{width:100%;background:rgba(15,23,42,.88);border:1.5px solid rgba(148,163,184,.18);border-radius:12px;padding:0 14px 0 42px;height:48px;font-size:14px;color:#F8FAFC;outline:none;font-family:inherit;transition:border-color .2s,box-shadow .2s;display:block;box-sizing:border-box}
-.inp:focus{border-color:rgba(124,58,237,.55);box-shadow:0 0 0 3px rgba(124,58,237,.12)}
+.crd{background:radial-gradient(circle at top left,rgba(139,92,246,.08),transparent 38%),linear-gradient(145deg,rgba(24,16,27,.97),rgba(18,10,20,.99));border:1.5px solid #2A1A2F;border-radius:18px;padding:24px;box-shadow:0 20px 48px rgba(0,0,0,.34),inset 0 1px 0 rgba(255,255,255,.04)}
+.inp{width:100%;background:rgba(24,16,27,.88);border:1.5px solid #2A1A2F;border-radius:12px;padding:0 14px 0 42px;height:48px;font-size:14px;color:#F8F4F7;outline:none;font-family:inherit;transition:border-color .2s,box-shadow .2s;display:block;box-sizing:border-box}
+.inp:focus{border-color:rgba(236,72,153,.55);box-shadow:0 0 0 3px rgba(236,72,153,.12)}
 .cats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.sp-btn{transition:all .18s}
+.sp-btn:hover{border-color:rgba(236,72,153,.35)!important;color:#F8F4F7!important}
 @media(max-width:1023px){
   .bdy{padding:14px 16px 80px!important}
   .cats-grid{grid-template-columns:repeat(2,1fr)!important}
@@ -105,7 +107,7 @@ export default function Suporte() {
   const itens = itensFiltrados()
   const semResultado = (busca.trim().length > 2 || catAtiva) && itens.length === 0
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', background: '#050B16', fontFamily: '-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif', overflowX: 'hidden', width: '100%' }}>
+    <div style={{ display: 'flex', minHeight: '100vh', background: '#08060A', fontFamily: '-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif', overflowX: 'hidden', width: '100%' }}>
       <style dangerouslySetInnerHTML={{ __html: CSS }} />
       <PainelSidebar nome={nome} tituloMobile="Suporte" />
       <div className="psb-main">
@@ -114,21 +116,21 @@ export default function Suporte() {
             {/* Header */}
             <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap', marginBottom: 28 }}>
               <div>
-                <h1 style={{ fontSize: 22, fontWeight: 800, color: '#F8FAFC', letterSpacing: '-0.04em', marginBottom: 5 }}>Central de Ajuda</h1>
-                <p style={{ fontSize: 13, color: '#64748B' }}>Tire dúvidas sobre o ClienteMarcado e encontre respostas rápidas.</p>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginTop: 8, background: 'rgba(59,130,246,.08)', border: '1px solid rgba(59,130,246,.18)', borderRadius: 8, padding: '5px 10px', width: 'fit-content' }}>
-                  <Clock size={12} style={{ color: '#60A5FA', flexShrink: 0 }} />
-                  <span style={{ fontSize: 11, color: '#93C5FD', fontWeight: 600 }}>Suporte humano: seg a sex, das 08h às 17h</span>
+                <h1 style={{ fontSize: 22, fontWeight: 800, color: '#F8F4F7', letterSpacing: '-0.04em', marginBottom: 5 }}>Central de Ajuda</h1>
+                <p style={{ fontSize: 13, color: '#B8AAB8' }}>Tire dúvidas sobre o ClienteMarcado e encontre respostas rápidas.</p>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginTop: 8, background: 'rgba(236,72,153,.08)', border: '1px solid rgba(236,72,153,.18)', borderRadius: 8, padding: '5px 10px', width: 'fit-content' }}>
+                  <Clock size={12} style={{ color: '#EC4899', flexShrink: 0 }} />
+                  <span style={{ fontSize: 11, color: '#F9A8D4', fontWeight: 600 }}>Suporte humano: seg a sex, das 08h às 17h</span>
                 </div>
               </div>
-              <Link href="/painel" prefetch={false} style={{ fontSize: 13, color: '#64748B', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 4, padding: '8px 12px', background: 'rgba(15,23,42,.72)', border: '1px solid rgba(148,163,184,.14)', borderRadius: 8 }}>← Voltar ao painel</Link>
+              <Link href="/painel" prefetch={false} className="sp-btn" style={{ fontSize: 13, color: '#B8AAB8', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 4, padding: '8px 12px', background: 'rgba(24,16,27,.72)', border: '1px solid #2A1A2F', borderRadius: 8 }}>← Voltar ao painel</Link>
             </div>
             {/* Assistente */}
             <div className="crd" style={{ marginBottom: 20 }}>
-              <p style={{ fontSize: 15, fontWeight: 700, color: '#F8FAFC', marginBottom: 4 }}>Assistente ClienteMarcado</p>
-              <p style={{ fontSize: 12, color: '#64748B', marginBottom: 16 }}>Digite ou escolha uma dúvida para receber uma resposta rápida.</p>
+              <p style={{ fontSize: 15, fontWeight: 700, color: '#F8F4F7', marginBottom: 4 }}>Assistente ClienteMarcado</p>
+              <p style={{ fontSize: 12, color: '#B8AAB8', marginBottom: 16 }}>Digite ou escolha uma dúvida para receber uma resposta rápida.</p>
               <div style={{ position: 'relative', marginBottom: 16 }}>
-                <Search size={16} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: '#475569', pointerEvents: 'none' }} />
+                <Search size={16} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: '#B8AAB8', pointerEvents: 'none' }} />
                 <input
                   className="inp"
                   placeholder="Ex: como criar agendamento, cadastrar serviço..."
@@ -136,7 +138,7 @@ export default function Suporte() {
                   onChange={e => { setBusca(e.target.value); setCatAtiva(null); setPergAtiva(null) }}
                 />
                 {busca && (
-                  <button onClick={() => { setBusca(''); setPergAtiva(null) }} style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: '#475569', cursor: 'pointer', display: 'flex' }}>
+                  <button onClick={() => { setBusca(''); setPergAtiva(null) }} style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: '#B8AAB8', cursor: 'pointer', display: 'flex' }}>
                     <X size={14} />
                   </button>
                 )}
@@ -151,9 +153,9 @@ export default function Suporte() {
                     { label: 'Registrar pagamento', key: 'pagamento' },
                     { label: 'Regularizar mensalidade', key: 'mensalidade' },
                   ].map(b => (
-                    <button key={b.key} onClick={() => { setBusca(b.key); setCatAtiva(null); setPergAtiva(null) }} style={{
-                      background: 'rgba(15,23,42,.72)', border: '1px solid rgba(148,163,184,.16)', borderRadius: 8,
-                      padding: '7px 12px', fontSize: 12, color: '#CBD5E1', cursor: 'pointer', fontFamily: 'inherit',
+                    <button key={b.key} onClick={() => { setBusca(b.key); setCatAtiva(null); setPergAtiva(null) }} className="sp-btn" style={{
+                      background: 'rgba(24,16,27,.72)', border: '1px solid #2A1A2F', borderRadius: 8,
+                      padding: '7px 12px', fontSize: 12, color: '#B8AAB8', cursor: 'pointer', fontFamily: 'inherit',
                     }}>
                       {b.label}
                     </button>
@@ -163,13 +165,13 @@ export default function Suporte() {
               {itens.length > 0 && !pergAtiva && (
                 <div style={{ marginTop: 16, display: 'flex', flexDirection: 'column', gap: 6, animation: 'fadeIn .2s ease' }}>
                   {itens.map((item, i) => (
-                    <button key={i} onClick={() => setPergAtiva(item)} style={{
-                      background: 'rgba(15,23,42,.72)', border: '1px solid rgba(148,163,184,.14)', borderRadius: 10,
-                      padding: '10px 14px', fontSize: 13, color: '#CBD5E1', cursor: 'pointer', textAlign: 'left',
+                    <button key={i} onClick={() => setPergAtiva(item)} className="sp-btn" style={{
+                      background: 'rgba(24,16,27,.72)', border: '1px solid #2A1A2F', borderRadius: 10,
+                      padding: '10px 14px', fontSize: 13, color: '#B8AAB8', cursor: 'pointer', textAlign: 'left',
                       fontFamily: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8,
                     }}>
                       <span>
-                        <span style={{ fontSize: 10, color: '#475569', textTransform: 'uppercase', letterSpacing: '.06em', marginRight: 6 }}>{item.category}</span>
+                        <span style={{ fontSize: 10, color: '#B8AAB8', textTransform: 'uppercase', letterSpacing: '.06em', marginRight: 6 }}>{item.category}</span>
                         {item.question}
                       </span>
                       <ChevronRight size={14} style={{ flexShrink: 0, opacity: .5 }} />
@@ -179,25 +181,25 @@ export default function Suporte() {
               )}
               {pergAtiva && (
                 <div style={{ marginTop: 16, animation: 'fadeIn .2s ease' }}>
-                  <div style={{ background: 'rgba(59,130,246,.08)', border: '1px solid rgba(59,130,246,.20)', borderRadius: 14, padding: '14px 16px', marginBottom: 12 }}>
-                    <p style={{ fontSize: 11, fontWeight: 700, color: '#3B82F6', textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 6 }}>{pergAtiva.category}</p>
-                    <p style={{ fontSize: 14, fontWeight: 700, color: '#F8FAFC', marginBottom: 8 }}>{pergAtiva.question}</p>
-                    <p style={{ fontSize: 13, color: '#CBD5E1', lineHeight: 1.7 }}>{pergAtiva.answer}</p>
+                  <div style={{ background: 'rgba(236,72,153,.08)', border: '1px solid rgba(236,72,153,.20)', borderRadius: 14, padding: '14px 16px', marginBottom: 12 }}>
+                    <p style={{ fontSize: 11, fontWeight: 700, color: '#EC4899', textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 6 }}>{pergAtiva.category}</p>
+                    <p style={{ fontSize: 14, fontWeight: 700, color: '#F8F4F7', marginBottom: 8 }}>{pergAtiva.question}</p>
+                    <p style={{ fontSize: 13, color: '#B8AAB8', lineHeight: 1.7 }}>{pergAtiva.answer}</p>
                   </div>
                   <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                    <button onClick={() => setPergAtiva(null)} style={{ background: 'rgba(15,23,42,.72)', border: '1px solid rgba(148,163,184,.16)', borderRadius: 8, padding: '7px 14px', fontSize: 12, color: '#94A3B8', cursor: 'pointer', fontFamily: 'inherit' }}>
+                    <button onClick={() => setPergAtiva(null)} className="sp-btn" style={{ background: 'rgba(24,16,27,.72)', border: '1px solid #2A1A2F', borderRadius: 8, padding: '7px 14px', fontSize: 12, color: '#B8AAB8', cursor: 'pointer', fontFamily: 'inherit' }}>
                       ← Voltar
                     </button>
-                    <a href={linkWpp(pergAtiva.question)} target="_blank" rel="noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'rgba(34,197,94,.12)', border: '1px solid rgba(34,197,94,.25)', color: '#4ADE80', borderRadius: 8, padding: '7px 14px', fontSize: 12, fontWeight: 700, textDecoration: 'none' }}>
+                    <a href={linkWpp(pergAtiva.question)} target="_blank" rel="noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'rgba(34,197,94,.12)', border: '1px solid rgba(34,197,94,.25)', color: '#22C55E', borderRadius: 8, padding: '7px 14px', fontSize: 12, fontWeight: 700, textDecoration: 'none' }}>
                       <MessageCircle size={13} /> Falar com suporte
                     </a>
                   </div>
                 </div>
               )}
               {semResultado && !pergAtiva && (
-                <div style={{ marginTop: 16, background: 'rgba(245,158,11,.08)', border: '1px solid rgba(245,158,11,.20)', borderRadius: 14, padding: '14px 16px', animation: 'fadeIn .2s ease' }}>
-                  <p style={{ fontSize: 13, color: '#FCD34D', marginBottom: 10 }}>Não encontrei uma resposta exata. Fale conosco pelo WhatsApp!</p>
-                  <a href={linkWpp(busca)} target="_blank" rel="noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'rgba(34,197,94,.14)', border: '1px solid rgba(34,197,94,.28)', color: '#4ADE80', borderRadius: 8, padding: '8px 16px', fontSize: 13, fontWeight: 700, textDecoration: 'none' }}>
+                <div style={{ marginTop: 16, background: 'rgba(250,204,21,.08)', border: '1px solid rgba(250,204,21,.20)', borderRadius: 14, padding: '14px 16px', animation: 'fadeIn .2s ease' }}>
+                  <p style={{ fontSize: 13, color: '#FACC15', marginBottom: 10 }}>Não encontrei uma resposta exata. Fale conosco pelo WhatsApp!</p>
+                  <a href={linkWpp(busca)} target="_blank" rel="noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'rgba(34,197,94,.14)', border: '1px solid rgba(34,197,94,.28)', color: '#22C55E', borderRadius: 8, padding: '8px 16px', fontSize: 13, fontWeight: 700, textDecoration: 'none' }}>
                     <MessageCircle size={14} /> Falar com suporte
                   </a>
                 </div>
@@ -206,27 +208,27 @@ export default function Suporte() {
             {/* Categorias */}
             <div>
               <div style={{ marginBottom: 20 }}>
-                <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'rgba(59,130,246,.10)', border: '1px solid rgba(59,130,246,.25)', borderRadius: 999, padding: '4px 12px', marginBottom: 10 }}>
-                  <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#3B82F6', display: 'inline-block' }} />
-                  <span style={{ fontSize: 11, fontWeight: 700, color: '#60A5FA', letterSpacing: '.06em' }}>Autoatendimento</span>
+                <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'rgba(236,72,153,.10)', border: '1px solid rgba(236,72,153,.25)', borderRadius: 999, padding: '4px 12px', marginBottom: 10 }}>
+                  <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#EC4899', display: 'inline-block' }} />
+                  <span style={{ fontSize: 11, fontWeight: 700, color: '#EC4899', letterSpacing: '.06em' }}>Autoatendimento</span>
                 </div>
-                <h2 style={{ fontSize: 'clamp(17px,2.5vw,22px)', fontWeight: 800, color: '#F8FAFC', letterSpacing: '-0.02em', marginBottom: 8, lineHeight: 1.2 }}>Resolva sua dúvida em poucos segundos</h2>
-                <p style={{ fontSize: 'clamp(13px,1.5vw,15px)', color: '#94A3B8', lineHeight: 1.6 }}>Escolha uma categoria abaixo e veja respostas rápidas antes de falar com o suporte.</p>
+                <h2 style={{ fontSize: 'clamp(17px,2.5vw,22px)', fontWeight: 800, color: '#F8F4F7', letterSpacing: '-0.02em', marginBottom: 8, lineHeight: 1.2 }}>Resolva sua dúvida em poucos segundos</h2>
+                <p style={{ fontSize: 'clamp(13px,1.5vw,15px)', color: '#B8AAB8', lineHeight: 1.6 }}>Escolha uma categoria abaixo e veja respostas rápidas antes de falar com o suporte.</p>
               </div>
               <div className="cats-grid" style={{ marginBottom: 20 }}>
                 {CATEGORIAS.map(cat => {
                   const c = CORES_CAT[cat]
                   const ativa = catAtiva === cat
                   return (
-                    <button key={cat} onClick={() => { setCatAtiva(ativa ? null : cat); setBusca(''); setPergAtiva(null) }} style={{
-                      background: ativa ? c.bg : 'rgba(15,23,42,.72)',
-                      border: `1px solid ${ativa ? c.border : 'rgba(148,163,184,.14)'}`,
+                    <button key={cat} onClick={() => { setCatAtiva(ativa ? null : cat); setBusca(''); setPergAtiva(null) }} className={ativa ? '' : 'sp-btn'} style={{
+                      background: ativa ? c.bg : 'rgba(24,16,27,.72)',
+                      border: `1px solid ${ativa ? c.border : '#2A1A2F'}`,
                       borderRadius: 12, padding: '14px 12px', cursor: 'pointer', textAlign: 'left', fontFamily: 'inherit', transition: 'all .18s',
                     }}>
                       <div style={{ width: 48, height: 48, borderRadius: 14, background: c.iconBg, border: `1px solid ${c.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 10, color: c.text }}>
                         {CAT_ICONS[cat]}
                       </div>
-                      <p style={{ fontSize: 12, fontWeight: 700, color: ativa ? c.text : '#CBD5E1', lineHeight: 1.3 }}>{cat}</p>
+                      <p style={{ fontSize: 12, fontWeight: 700, color: ativa ? c.text : '#B8AAB8', lineHeight: 1.3 }}>{cat}</p>
                     </button>
                   )
                 })}
@@ -234,9 +236,9 @@ export default function Suporte() {
               {catAtiva && itens.length > 0 && !pergAtiva && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 20, animation: 'fadeIn .2s ease' }}>
                   {itens.map((item, i) => (
-                    <button key={i} onClick={() => setPergAtiva(item)} style={{
-                      background: 'rgba(15,23,42,.72)', border: '1px solid rgba(148,163,184,.14)', borderRadius: 10,
-                      padding: '12px 16px', fontSize: 13, color: '#CBD5E1', cursor: 'pointer', textAlign: 'left',
+                    <button key={i} onClick={() => setPergAtiva(item)} className="sp-btn" style={{
+                      background: 'rgba(24,16,27,.72)', border: '1px solid #2A1A2F', borderRadius: 10,
+                      padding: '12px 16px', fontSize: 13, color: '#B8AAB8', cursor: 'pointer', textAlign: 'left',
                       fontFamily: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8,
                     }}>
                       {item.question}
@@ -247,15 +249,15 @@ export default function Suporte() {
               )}
             </div>
             {/* Ainda não resolveu */}
-            <div style={{ background: 'radial-gradient(circle at top left,rgba(34,197,94,.08),transparent 40%),linear-gradient(145deg,rgba(15,23,42,.97),rgba(8,20,33,.99))', border: '1.5px solid rgba(34,197,94,.18)', borderRadius: 18, padding: '22px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap' }}>
+            <div style={{ background: 'radial-gradient(circle at top left,rgba(139,92,246,.06),transparent 40%),linear-gradient(145deg,rgba(24,16,27,.97),rgba(18,10,20,.99))', border: '1.5px solid #2A1A2F', borderRadius: 18, padding: '22px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap' }}>
               <div>
-                <p style={{ fontSize: 15, fontWeight: 700, color: '#F8FAFC', marginBottom: 4 }}>Ainda não resolveu?</p>
-                <p style={{ fontSize: 13, color: '#64748B', marginBottom: 10 }}>Se a central de ajuda não responder sua dúvida, fale com o suporte pelo WhatsApp.</p>
+                <p style={{ fontSize: 15, fontWeight: 700, color: '#F8F4F7', marginBottom: 4 }}>Ainda não resolveu?</p>
+                <p style={{ fontSize: 13, color: '#B8AAB8', marginBottom: 10 }}>Se a central de ajuda não responder sua dúvida, fale com o suporte pelo WhatsApp.</p>
                 <div style={{ display: 'flex', alignItems: 'flex-start', gap: 6 }}>
-                  <Clock size={13} style={{ color: '#4ADE80', flexShrink: 0, marginTop: 1 }} />
+                  <Clock size={13} style={{ color: '#22C55E', flexShrink: 0, marginTop: 1 }} />
                   <div>
-                    <p style={{ fontSize: 12, color: '#4ADE80', fontWeight: 600, marginBottom: 2 }}>Horário: seg a sex, das 08h às 17h</p>
-                    <p style={{ fontSize: 11, color: '#475569' }}>Fora desse horário, sua mensagem será respondida no próximo período útil.</p>
+                    <p style={{ fontSize: 12, color: '#B8AAB8', fontWeight: 600, marginBottom: 2 }}>Horário: seg a sex, das 08h às 17h</p>
+                    <p style={{ fontSize: 11, color: '#B8AAB8' }}>Fora desse horário, sua mensagem será respondida no próximo período útil.</p>
                   </div>
                 </div>
               </div>
@@ -263,7 +265,7 @@ export default function Suporte() {
                 display: 'inline-flex', alignItems: 'center', gap: 8,
                 background: G, color: '#fff', borderRadius: 12, padding: '11px 20px',
                 fontSize: 13, fontWeight: 800, textDecoration: 'none', whiteSpace: 'nowrap',
-                boxShadow: '0 8px 24px rgba(59,130,246,.28)',
+                boxShadow: '0 8px 24px rgba(236,72,153,.28)',
               }}>
                 <MessageCircle size={15} /> Falar com suporte
               </a>
