@@ -5,21 +5,22 @@ import Link from 'next/link'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts'
 import PainelSidebar from '@/app/components/PainelSidebar'
 
-const G='linear-gradient(135deg,#3B82F6,#7C3AED)'
-const AV='linear-gradient(135deg,rgba(59,130,246,.95),rgba(124,58,237,.95))'
+const G='linear-gradient(135deg,#EC4899,#D946EF,#8B5CF6)'
+const AV='linear-gradient(135deg,rgba(236,72,153,.95),rgba(139,92,246,.95))'
 const fBRL=(v:number)=>`R$ ${(v||0).toLocaleString('pt-BR',{minimumFractionDigits:2})}`
 
 const CSS=`
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-html,body{overflow-x:hidden;width:100%;max-width:100%;background:#050B16}
+html,body{overflow-x:hidden;width:100%;max-width:100%;background:#08060A}
 input,select,textarea{color-scheme:dark}
-select option{background:#07111F;color:#F8FAFC}
-.pg{background:radial-gradient(circle at top left,rgba(124,58,237,.20),transparent 32%),radial-gradient(circle at top right,rgba(37,99,235,.14),transparent 28%),linear-gradient(135deg,#050B16 0%,#07111F 45%,#050B16 100%);min-height:100vh;overflow-x:hidden}
+select option{background:#120A14;color:#F8F4F7}
+.pg{background:radial-gradient(circle at top left,rgba(139,92,246,.20),transparent 32%),radial-gradient(circle at top right,rgba(236,72,153,.14),transparent 28%),linear-gradient(135deg,#08060A 0%,#120A14 45%,#08060A 100%);min-height:100vh;overflow-x:hidden}
 .bdy{max-width:1200px;margin:0 auto;padding:28px 32px 80px;width:100%;box-sizing:border-box}
-.crd{background:radial-gradient(circle at top left,rgba(124,58,237,.10),transparent 38%),linear-gradient(145deg,rgba(15,23,42,.97),rgba(8,20,33,.99));border:1.5px solid rgba(148,163,184,.18);border-radius:18px;box-shadow:0 20px 48px rgba(0,0,0,.34),inset 0 1px 0 rgba(255,255,255,.04)}
+.crd{background:radial-gradient(circle at top left,rgba(139,92,246,.10),transparent 38%),linear-gradient(145deg,rgba(24,16,27,.97),rgba(18,10,20,.99));border:1.5px solid #2A1A2F;border-radius:18px;box-shadow:0 20px 48px rgba(0,0,0,.34),inset 0 1px 0 rgba(255,255,255,.04)}
 .kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:22px}
-.prof-card{background:radial-gradient(circle at top left,rgba(124,58,237,.08),transparent 36%),linear-gradient(145deg,rgba(15,23,42,.97),rgba(8,20,33,.99));border:1.5px solid rgba(148,163,184,.16);border-radius:18px;padding:18px;margin-bottom:8px;transition:border-color .18s}
+.prof-card{background:radial-gradient(circle at top left,rgba(139,92,246,.08),transparent 36%),linear-gradient(145deg,rgba(24,16,27,.97),rgba(18,10,20,.99));border:1.5px solid #2A1A2F;border-radius:18px;padding:18px;margin-bottom:8px;transition:border-color .18s}
 .prof-card:hover{border-color:rgba(139,92,246,.28)}
+.btn-verrel:hover{border-color:rgba(236,72,153,.32)!important;background:rgba(236,72,153,.08)!important}
 @media(max-width:1023px){
   .bdy{padding:14px 16px 80px!important}
   .kpi-grid{grid-template-columns:1fr 1fr!important;gap:8px!important}
@@ -34,8 +35,8 @@ const STATUS_REALIZADO=['realizado','Realizado','compareceu','concluido','conclu
 const CustomTooltip=({active,payload,label}:any)=>{
   if(active&&payload&&payload.length){
     return(
-      <div style={{background:'rgba(15,23,42,.98)',border:'1px solid rgba(148,163,184,.18)',borderRadius:'12px',padding:'10px 14px'}}>
-        <p style={{fontSize:'12px',fontWeight:700,color:'#F8FAFC',marginBottom:'4px'}}>{label}</p>
+      <div style={{background:'rgba(15,23,42,.98)',border:'1px solid #2A1A2F',borderRadius:'12px',padding:'10px 14px'}}>
+        <p style={{fontSize:'12px',fontWeight:700,color:'#F8F4F7',marginBottom:'4px'}}>{label}</p>
         <p style={{fontSize:'14px',fontWeight:800,color:payload[0].fill}}>{fBRL(payload[0].value)}</p>
       </div>
     )
@@ -159,9 +160,9 @@ export default function Relatorios(){
 
   // ✅ Gráfico financeiro usa receita unificada
   const chartData=[
-    {name:'Receita',valor:receita,fill:'#34D399'},
-    {name:'Despesas',valor:despTotal,fill:'#F87171'},
-    {name:'Resultado',valor:Math.abs(lucro),fill:'#60A5FA'},
+    {name:'Receita',valor:receita,fill:'#22C55E'},
+    {name:'Despesas',valor:despTotal,fill:'#EF4444'},
+    {name:'Resultado',valor:Math.abs(lucro),fill:'#EC4899'},
   ]
 
   // ✅ Cálculos diários — usa agendamentos realizados para receita por dia
@@ -203,17 +204,17 @@ export default function Relatorios(){
     const dow=new Date(data+'T12:00:00').getDay()
     porSemana[dow]+=val
   })
-  const chartSemana=diasSemana.map((n,i)=>({name:n,valor:porSemana[i],fill:'#3B82F6'}))
+  const chartSemana=diasSemana.map((n,i)=>({name:n,valor:porSemana[i],fill:'#8B5CF6'}))
   const melhorSemana=chartSemana.reduce((a,b)=>b.valor>a.valor?b:a)
   const fracoSemana=chartSemana.filter(d=>d.valor>0).reduce((a,b)=>b.valor<a.valor?b:a,chartSemana.find(d=>d.valor>0)||chartSemana[0])
 
   const fmtDia=(d:string)=>{if(!d)return '';const[a,m,di]=d.split('-');return `${di}/${m}`}
   const nomeMes=(()=>{const d=new Date(mes+'-02').toLocaleDateString('pt-BR',{month:'long',year:'numeric'});return d.charAt(0).toUpperCase()+d.slice(1).replace(' De ',' de ').replace(' de ',' de ')})()
 
-  if(loading)return(<div style={{minHeight:'100vh',background:'#050B16',display:'flex',alignItems:'center',justifyContent:'center',fontFamily:'system-ui'}}><p style={{color:'#64748B',fontSize:'14px'}}>Carregando relatórios...</p></div>)
+  if(loading)return(<div style={{minHeight:'100vh',background:'#08060A',display:'flex',alignItems:'center',justifyContent:'center',fontFamily:'system-ui'}}><p style={{color:'#B8AAB8',fontSize:'14px'}}>Carregando relatórios...</p></div>)
 
   return(
-    <div style={{display:'flex',minHeight:'100vh',background:'#050B16',fontFamily:'-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif',overflowX:'hidden',width:'100%',position:'relative'}}>
+    <div style={{display:'flex',minHeight:'100vh',background:'#08060A',fontFamily:'-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif',overflowX:'hidden',width:'100%',position:'relative'}}>
       <style dangerouslySetInnerHTML={{__html:CSS}}/>
       <PainelSidebar nome={perfil?.nome_negocio||''} tituloMobile="Relatórios"/>
 
@@ -221,19 +222,19 @@ export default function Relatorios(){
         <div className="pg"><div className="bdy">
           <div className="hdr-r" style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',gap:'16px',flexWrap:'wrap',marginBottom:'28px'}}>
             <div>
-              <h1 style={{fontSize:'24px',fontWeight:800,color:'#F8FAFC',letterSpacing:'-0.04em',marginBottom:'5px'}}>Relatórios</h1>
-              <p style={{fontSize:'13px',color:'#64748B',lineHeight:1.5}}>Acompanhe receita, despesas, lucro e desempenho da equipe em um só lugar.</p>
+              <h1 style={{fontSize:'24px',fontWeight:800,color:'#F8F4F7',letterSpacing:'-0.04em',marginBottom:'5px'}}>Relatórios</h1>
+              <p style={{fontSize:'13px',color:'#B8AAB8',lineHeight:1.5}}>Acompanhe receita, despesas, lucro e desempenho da equipe em um só lugar.</p>
             </div>
             <div>
-              <p style={{fontSize:'11px',fontWeight:700,color:'#94A3B8',textTransform:'uppercase',letterSpacing:'.06em',marginBottom:'6px'}}>Período</p>
-              <input type="month" value={mes} onChange={e=>setMes(e.target.value)} style={{background:'rgba(15,23,42,.88)',border:'1px solid rgba(148,163,184,.18)',borderRadius:'14px',padding:'0 14px',height:'46px',fontSize:'14px',color:'#F8FAFC',outline:'none',fontFamily:'inherit',minWidth:'200px'}}/>
-              <p style={{fontSize:'12px',color:'#64748B',marginTop:'5px',textTransform:'capitalize'}}>{nomeMes}</p>
+              <p style={{fontSize:'11px',fontWeight:700,color:'#B8AAB8',textTransform:'uppercase',letterSpacing:'.06em',marginBottom:'6px'}}>Período</p>
+              <input type="month" value={mes} onChange={e=>setMes(e.target.value)} style={{background:'rgba(24,16,27,.88)',border:'1px solid #2A1A2F',borderRadius:'14px',padding:'0 14px',height:'46px',fontSize:'14px',color:'#F8F4F7',outline:'none',fontFamily:'inherit',minWidth:'200px'}}/>
+              <p style={{fontSize:'12px',color:'#B8AAB8',marginTop:'5px',textTransform:'capitalize'}}>{nomeMes}</p>
             </div>
           </div>
 
           {/* ✅ Aviso sobre fonte de receita */}
           {receitaPagamentos===0&&receitaAgendamentos>0&&(
-            <div style={{background:'rgba(245,158,11,.10)',border:'1px solid rgba(245,158,11,.28)',borderRadius:'10px',padding:'10px 16px',fontSize:'12px',color:'#FBBF24',marginBottom:'16px'}}>
+            <div style={{background:'rgba(250,204,21,.10)',border:'1px solid rgba(250,204,21,.28)',borderRadius:'10px',padding:'10px 16px',fontSize:'12px',color:'#FACC15',marginBottom:'16px'}}>
               💡 Receita calculada a partir de agendamentos realizados. Para usar pagamentos confirmados, registre-os na página de Pagamentos.
             </div>
           )}
@@ -241,15 +242,15 @@ export default function Relatorios(){
           {/* KPIs */}
           <div className="kpi-grid">
             {[
-              {l:'Receita total',d:receitaPagamentos>0?'Pagamentos confirmados':'Agendamentos realizados',v:fBRL(receita),c:'#34D399',bg:'rgba(16,185,129,.08)',bd:'rgba(34,197,94,.20)',ico:'↑'},
-              {l:'Despesas',d:'Custos registrados no período',v:fBRL(despTotal),c:'#F87171',bg:'rgba(239,68,68,.08)',bd:'rgba(248,113,113,.18)',ico:'↓'},
-              {l:'Lucro estimado',d:'Receita menos despesas',v:fBRL(lucro),c:'#60A5FA',bg:'rgba(59,130,246,.08)',bd:'rgba(96,165,250,.18)',ico:lucroPositivo?'✓':'⚠'},
-              {l:'Melhor profissional',d:melhorComRec?fBRL(melhorComRec.rec)+' no período':'Nenhuma receita no período',v:melhorComRec?.nome||'Sem destaque ainda',c:'#BFDBFE',bg:'rgba(139,92,246,.08)',bd:'rgba(167,139,250,.18)',ico:'🏆'},
+              {l:'Receita total',d:receitaPagamentos>0?'Pagamentos confirmados':'Agendamentos realizados',v:fBRL(receita),c:'#22C55E',bg:'rgba(34,197,94,.08)',bd:'rgba(34,197,94,.20)',ico:'↑'},
+              {l:'Despesas',d:'Custos registrados no período',v:fBRL(despTotal),c:'#EF4444',bg:'rgba(239,68,68,.08)',bd:'rgba(239,68,68,.18)',ico:'↓'},
+              {l:'Lucro estimado',d:'Receita menos despesas',v:fBRL(lucro),c:'#EC4899',bg:'rgba(236,72,153,.08)',bd:'rgba(236,72,153,.22)',ico:lucroPositivo?'✓':'⚠'},
+              {l:'Melhor profissional',d:melhorComRec?fBRL(melhorComRec.rec)+' no período':'Nenhuma receita no período',v:melhorComRec?.nome||'Sem destaque ainda',c:'#C4B5FD',bg:'rgba(139,92,246,.08)',bd:'rgba(139,92,246,.18)',ico:'🏆'},
             ].map(k=>(
-              <div key={k.l} style={{background:`radial-gradient(circle at top left,${k.bg},transparent 60%),linear-gradient(145deg,rgba(15,23,42,.97),rgba(8,20,33,.99))`,border:`1.5px solid ${k.bd}`,borderRadius:'18px',padding:'18px 16px',boxSizing:'border-box' as const,boxShadow:'0 20px 48px rgba(0,0,0,.28)'}}>
+              <div key={k.l} style={{background:`radial-gradient(circle at top left,${k.bg},transparent 60%),linear-gradient(145deg,rgba(24,16,27,.97),rgba(18,10,20,.99))`,border:`1.5px solid ${k.bd}`,borderRadius:'18px',padding:'18px 16px',boxSizing:'border-box' as const,boxShadow:'0 20px 48px rgba(0,0,0,.28)'}}>
                 <div style={{width:'38px',height:'38px',borderRadius:'11px',background:k.bg,border:`1px solid ${k.bd}`,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'18px',marginBottom:'10px'}}>{k.ico}</div>
-                <p style={{fontSize:'10px',fontWeight:700,color:'#94A3B8',textTransform:'uppercase' as const,letterSpacing:'.08em',marginBottom:'3px'}}>{k.l}</p>
-                <p style={{fontSize:'11px',color:'#64748B',marginBottom:'6px'}}>{k.d}</p>
+                <p style={{fontSize:'10px',fontWeight:700,color:'#B8AAB8',textTransform:'uppercase' as const,letterSpacing:'.08em',marginBottom:'3px'}}>{k.l}</p>
+                <p style={{fontSize:'11px',color:'#B8AAB8',marginBottom:'6px'}}>{k.d}</p>
                 <p style={{fontSize:'20px',fontWeight:800,color:k.c,lineHeight:1,letterSpacing:'-0.02em',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{k.v}</p>
               </div>
             ))}
@@ -260,45 +261,45 @@ export default function Relatorios(){
             <div style={{marginBottom:'16px'}}>
               <div style={{display:'inline-flex',alignItems:'center',gap:'6px',background:'rgba(34,197,94,.10)',border:'1px solid rgba(34,197,94,.22)',borderRadius:'999px',padding:'4px 12px',marginBottom:'10px'}}>
                 <span style={{width:'6px',height:'6px',borderRadius:'50%',background:'#22C55E',display:'inline-block'}}/>
-                <span style={{fontSize:'11px',fontWeight:700,color:'#4ADE80',letterSpacing:'.06em'}}>ANÁLISE DIÁRIA</span>
+                <span style={{fontSize:'11px',fontWeight:700,color:'#22C55E',letterSpacing:'.06em'}}>ANÁLISE DIÁRIA</span>
               </div>
-              <p style={{fontSize:'20px',fontWeight:800,color:'#F8FAFC',letterSpacing:'-0.02em',marginBottom:'5px'}}>Desempenho diário</p>
-              <p style={{fontSize:'13px',color:'#64748B'}}>Veja quais dias do mês geraram mais receita no período selecionado.</p>
+              <p style={{fontSize:'20px',fontWeight:800,color:'#F8F4F7',letterSpacing:'-0.02em',marginBottom:'5px'}}>Desempenho diário</p>
+              <p style={{fontSize:'13px',color:'#B8AAB8'}}>Veja quais dias do mês geraram mais receita no período selecionado.</p>
             </div>
             <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:'12px',marginBottom:'20px'}} className="kpi-grid">
               {[
-                {l:'Hoje',d:new Date().toLocaleDateString('pt-BR',{day:'2-digit',month:'short'}),v:fBRL(receitaHoje),c:'#34D399',bg:'rgba(16,185,129,.08)',bd:'rgba(34,197,94,.20)',ico:<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>},
-                {l:'Melhor dia do mês',d:melhorDia?fmtDia(melhorDia[0]):'Sem dados',v:melhorDia?fBRL(melhorDia[1]):'—',c:'#60A5FA',bg:'rgba(59,130,246,.08)',bd:'rgba(96,165,250,.18)',ico:<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>},
-                {l:'Dia mais fraco',d:diaFraco?fmtDia(diaFraco[0]):'Sem dados',v:diaFraco?fBRL(diaFraco[1]):'—',c:'#F87171',bg:'rgba(239,68,68,.08)',bd:'rgba(248,113,113,.18)',ico:<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="22 17 13.5 8.5 8.5 13.5 2 7"/><polyline points="16 17 22 17 22 11"/></svg>},
-                {l:'Média diária',d:`Base: ${diasAteHoje} dias`,v:fBRL(mediaDiaria),c:'#60A5FA',bg:'rgba(59,130,246,.10)',bd:'rgba(59,130,246,.26)',ico:<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>},
+                {l:'Hoje',d:new Date().toLocaleDateString('pt-BR',{day:'2-digit',month:'short'}),v:fBRL(receitaHoje),c:'#22C55E',bg:'rgba(34,197,94,.08)',bd:'rgba(34,197,94,.20)',ico:<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>},
+                {l:'Melhor dia do mês',d:melhorDia?fmtDia(melhorDia[0]):'Sem dados',v:melhorDia?fBRL(melhorDia[1]):'—',c:'#EC4899',bg:'rgba(236,72,153,.08)',bd:'rgba(236,72,153,.22)',ico:<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>},
+                {l:'Dia mais fraco',d:diaFraco?fmtDia(diaFraco[0]):'Sem dados',v:diaFraco?fBRL(diaFraco[1]):'—',c:'#EF4444',bg:'rgba(239,68,68,.08)',bd:'rgba(239,68,68,.18)',ico:<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="22 17 13.5 8.5 8.5 13.5 2 7"/><polyline points="16 17 22 17 22 11"/></svg>},
+                {l:'Média diária',d:`Base: ${diasAteHoje} dias`,v:fBRL(mediaDiaria),c:'#EC4899',bg:'rgba(236,72,153,.10)',bd:'rgba(236,72,153,.26)',ico:<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>},
               ].map(k=>(
-                <div key={k.l} style={{background:`radial-gradient(circle at top left,${k.bg},transparent 60%),linear-gradient(145deg,rgba(15,23,42,.97),rgba(8,20,33,.99))`,border:`1.5px solid ${k.bd}`,borderRadius:'16px',padding:'16px',boxSizing:'border-box' as const}}>
+                <div key={k.l} style={{background:`radial-gradient(circle at top left,${k.bg},transparent 60%),linear-gradient(145deg,rgba(24,16,27,.97),rgba(18,10,20,.99))`,border:`1.5px solid ${k.bd}`,borderRadius:'16px',padding:'16px',boxSizing:'border-box' as const}}>
                   <div style={{width:'36px',height:'36px',borderRadius:'10px',background:k.bg,border:`1px solid ${k.bd}`,display:'flex',alignItems:'center',justifyContent:'center',marginBottom:'10px',color:k.c}}>{k.ico}</div>
-                  <p style={{fontSize:'10px',fontWeight:700,color:'#94A3B8',textTransform:'uppercase' as const,letterSpacing:'.08em',marginBottom:'2px'}}>{k.l}</p>
-                  <p style={{fontSize:'11px',color:'#64748B',marginBottom:'5px'}}>{k.d}</p>
+                  <p style={{fontSize:'10px',fontWeight:700,color:'#B8AAB8',textTransform:'uppercase' as const,letterSpacing:'.08em',marginBottom:'2px'}}>{k.l}</p>
+                  <p style={{fontSize:'11px',color:'#B8AAB8',marginBottom:'5px'}}>{k.d}</p>
                   <p style={{fontSize:'18px',fontWeight:800,color:k.c,lineHeight:1,letterSpacing:'-0.02em'}}>{k.v}</p>
                 </div>
               ))}
             </div>
 
             {/* Gráfico Receita por Dia */}
-            <div style={{background:'radial-gradient(circle at top left,rgba(34,197,94,.06),transparent 35%),linear-gradient(145deg,rgba(15,23,42,.97),rgba(8,20,33,.99))',border:'1.5px solid rgba(148,163,184,.16)',borderRadius:'18px',padding:'20px',marginBottom:'16px'}}>
-              <p style={{fontSize:'15px',fontWeight:700,color:'#F8FAFC',marginBottom:'3px'}}>Receita por dia</p>
-              <p style={{fontSize:'12px',color:'#64748B',marginBottom:'16px'}}>Veja quanto entrou em cada dia do período selecionado.</p>
+            <div style={{background:'radial-gradient(circle at top left,rgba(34,197,94,.06),transparent 35%),linear-gradient(145deg,rgba(24,16,27,.97),rgba(18,10,20,.99))',border:'1.5px solid #2A1A2F',borderRadius:'18px',padding:'20px',marginBottom:'16px'}}>
+              <p style={{fontSize:'15px',fontWeight:700,color:'#F8F4F7',marginBottom:'3px'}}>Receita por dia</p>
+              <p style={{fontSize:'12px',color:'#B8AAB8',marginBottom:'16px'}}>Veja quanto entrou em cada dia do período selecionado.</p>
               {receita===0?(
                 <div style={{height:'140px',display:'flex',alignItems:'center',justifyContent:'center',flexDirection:'column',gap:'6px'}}>
-                  <p style={{fontSize:'13px',color:'#64748B'}}>Nenhuma receita confirmada neste período.</p>
+                  <p style={{fontSize:'13px',color:'#B8AAB8'}}>Nenhuma receita confirmada neste período.</p>
                 </div>
               ):(
                 <div style={{overflowX:'auto',WebkitOverflowScrolling:'touch' as any}}>
                   <div style={{minWidth:`${diasDoMes*28}px`,height:'180px'}}>
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart data={chartDiario} margin={{top:5,right:4,left:0,bottom:0}} barSize={14}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(148,163,184,.08)" vertical={false}/>
-                        <XAxis dataKey="name" tick={{fill:'#64748B',fontSize:9}} axisLine={false} tickLine={false} interval={1}/>
-                        <YAxis tickFormatter={v=>v>0?`${(v/1000).toFixed(0)}k`:'0'} tick={{fill:'#64748B',fontSize:9}} axisLine={false} tickLine={false} width={28}/>
-                        <Tooltip content={<CustomTooltip/>} cursor={{fill:'rgba(148,163,184,.06)'}}/>
-                        <Bar dataKey="valor" fill="#34D399" radius={[3,3,0,0]} fillOpacity={0.85}/>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#2A1A2F" vertical={false}/>
+                        <XAxis dataKey="name" tick={{fill:'#B8AAB8',fontSize:9}} axisLine={false} tickLine={false} interval={1}/>
+                        <YAxis tickFormatter={v=>v>0?`${(v/1000).toFixed(0)}k`:'0'} tick={{fill:'#B8AAB8',fontSize:9}} axisLine={false} tickLine={false} width={28}/>
+                        <Tooltip content={<CustomTooltip/>} cursor={{fill:'#2A1A2F'}}/>
+                        <Bar dataKey="valor" fill="#22C55E" radius={[3,3,0,0]} fillOpacity={0.85}/>
                       </BarChart>
                     </ResponsiveContainer>
                   </div>
@@ -307,30 +308,30 @@ export default function Relatorios(){
             </div>
 
             {/* Melhores dias da semana */}
-            <div style={{background:'radial-gradient(circle at top left,rgba(59,130,246,.06),transparent 35%),linear-gradient(145deg,rgba(15,23,42,.97),rgba(8,20,33,.99))',border:'1.5px solid rgba(148,163,184,.16)',borderRadius:'18px',padding:'20px'}}>
-              <p style={{fontSize:'15px',fontWeight:700,color:'#F8FAFC',marginBottom:'3px'}}>Melhores dias da semana</p>
-              <p style={{fontSize:'12px',color:'#64748B',marginBottom:'14px'}}>Entenda quais dias costumam movimentar mais o seu negócio no período.</p>
+            <div style={{background:'radial-gradient(circle at top left,rgba(236,72,153,.06),transparent 35%),linear-gradient(145deg,rgba(24,16,27,.97),rgba(18,10,20,.99))',border:'1.5px solid #2A1A2F',borderRadius:'18px',padding:'20px'}}>
+              <p style={{fontSize:'15px',fontWeight:700,color:'#F8F4F7',marginBottom:'3px'}}>Melhores dias da semana</p>
+              <p style={{fontSize:'12px',color:'#B8AAB8',marginBottom:'14px'}}>Entenda quais dias costumam movimentar mais o seu negócio no período.</p>
               {receita===0?(
-                <p style={{fontSize:'13px',color:'#64748B'}}>Nenhuma receita confirmada neste período.</p>
+                <p style={{fontSize:'13px',color:'#B8AAB8'}}>Nenhuma receita confirmada neste período.</p>
               ):(
                 <>
                   <div style={{display:'flex',gap:'8px',marginBottom:'14px',flexWrap:'wrap'}}>
-                    {melhorSemana.valor>0&&<div style={{display:'flex',alignItems:'center',gap:'6px',background:'rgba(16,185,129,.08)',border:'1px solid rgba(34,197,94,.20)',borderRadius:'8px',padding:'5px 10px'}}>
-                      <span style={{fontSize:'11px',fontWeight:700,color:'#34D399'}}>Mais forte: {melhorSemana.name}</span>
+                    {melhorSemana.valor>0&&<div style={{display:'flex',alignItems:'center',gap:'6px',background:'rgba(34,197,94,.08)',border:'1px solid rgba(34,197,94,.20)',borderRadius:'8px',padding:'5px 10px'}}>
+                      <span style={{fontSize:'11px',fontWeight:700,color:'#22C55E'}}>Mais forte: {melhorSemana.name}</span>
                     </div>}
-                    {fracoSemana&&fracoSemana.valor>0&&melhorSemana.name!==fracoSemana.name&&<div style={{display:'flex',alignItems:'center',gap:'6px',background:'rgba(148,163,184,.08)',border:'1px solid rgba(148,163,184,.18)',borderRadius:'8px',padding:'5px 10px'}}>
-                      <span style={{fontSize:'11px',fontWeight:700,color:'#CBD5E1'}}>Mais fraco: {fracoSemana.name}</span>
+                    {fracoSemana&&fracoSemana.valor>0&&melhorSemana.name!==fracoSemana.name&&<div style={{display:'flex',alignItems:'center',gap:'6px',background:'#2A1A2F',border:'1px solid #2A1A2F',borderRadius:'8px',padding:'5px 10px'}}>
+                      <span style={{fontSize:'11px',fontWeight:700,color:'#B8AAB8'}}>Mais fraco: {fracoSemana.name}</span>
                     </div>}
                   </div>
                   <div style={{height:'160px'}}>
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart data={chartSemana} margin={{top:5,right:5,left:0,bottom:0}} barSize={28}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(148,163,184,.08)" vertical={false}/>
-                        <XAxis dataKey="name" tick={{fill:'#94A3B8',fontSize:11,fontWeight:600}} axisLine={false} tickLine={false}/>
-                        <YAxis tickFormatter={v=>v>0?`${(v/1000).toFixed(0)}k`:'0'} tick={{fill:'#64748B',fontSize:10}} axisLine={false} tickLine={false} width={32}/>
-                        <Tooltip content={<CustomTooltip/>} cursor={{fill:'rgba(148,163,184,.06)'}}/>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#2A1A2F" vertical={false}/>
+                        <XAxis dataKey="name" tick={{fill:'#B8AAB8',fontSize:11,fontWeight:600}} axisLine={false} tickLine={false}/>
+                        <YAxis tickFormatter={v=>v>0?`${(v/1000).toFixed(0)}k`:'0'} tick={{fill:'#B8AAB8',fontSize:10}} axisLine={false} tickLine={false} width={32}/>
+                        <Tooltip content={<CustomTooltip/>} cursor={{fill:'#2A1A2F'}}/>
                         <Bar dataKey="valor" radius={[5,5,0,0]} fillOpacity={0.88}>
-                          {chartSemana.map((d,i)=><Cell key={i} fill={d.name===melhorSemana.name&&d.valor>0?'#34D399':'#60A5FA'}/>)}
+                          {chartSemana.map((d,i)=><Cell key={i} fill={d.name===melhorSemana.name&&d.valor>0?'#22C55E':'#EC4899'}/>)}
                         </Bar>
                       </BarChart>
                     </ResponsiveContainer>
@@ -341,22 +342,22 @@ export default function Relatorios(){
           </div>
 
           {/* Gráfico Financeiro Período */}
-          <div style={{background:'radial-gradient(circle at top left,rgba(34,211,238,.08),transparent 35%),linear-gradient(145deg,rgba(15,23,42,.97),rgba(8,20,33,.99))',border:'1.5px solid rgba(148,163,184,.18)',borderRadius:'20px',padding:'24px',marginBottom:'22px',boxShadow:'0 20px 48px rgba(0,0,0,.28)'}}>
-            <p style={{fontSize:'16px',fontWeight:700,color:'#F8FAFC',marginBottom:'4px'}}>Desempenho financeiro do período</p>
-            <p style={{fontSize:'13px',color:'#64748B',marginBottom:'18px'}}>Compare receita, despesas e lucro estimado no período selecionado.</p>
+          <div style={{background:'radial-gradient(circle at top left,rgba(139,92,246,.08),transparent 35%),linear-gradient(145deg,rgba(24,16,27,.97),rgba(18,10,20,.99))',border:'1.5px solid #2A1A2F',borderRadius:'20px',padding:'24px',marginBottom:'22px',boxShadow:'0 20px 48px rgba(0,0,0,.28)'}}>
+            <p style={{fontSize:'16px',fontWeight:700,color:'#F8F4F7',marginBottom:'4px'}}>Desempenho financeiro do período</p>
+            <p style={{fontSize:'13px',color:'#B8AAB8',marginBottom:'18px'}}>Compare receita, despesas e lucro estimado no período selecionado.</p>
             {receita===0&&despTotal===0?(
               <div style={{height:'200px',display:'flex',alignItems:'center',justifyContent:'center',flexDirection:'column',gap:'8px'}}>
-                <p style={{fontSize:'13px',color:'#64748B'}}>Sem dados financeiros neste período.</p>
+                <p style={{fontSize:'13px',color:'#B8AAB8'}}>Sem dados financeiros neste período.</p>
               </div>
             ):(
               <>
                 <div style={{width:'100%',height:'280px'}}>
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={chartData} margin={{top:10,right:10,left:10,bottom:0}} barSize={56}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(148,163,184,.10)" vertical={false}/>
-                      <XAxis dataKey="name" tick={{fill:'#94A3B8',fontSize:13,fontWeight:600}} axisLine={false} tickLine={false}/>
-                      <YAxis tickFormatter={(v)=>`R$ ${(v/1000).toFixed(0)}k`} tick={{fill:'#64748B',fontSize:11}} axisLine={false} tickLine={false} width={60}/>
-                      <Tooltip content={<CustomTooltip/>} cursor={{fill:'rgba(148,163,184,.06)'}}/>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#2A1A2F" vertical={false}/>
+                      <XAxis dataKey="name" tick={{fill:'#B8AAB8',fontSize:13,fontWeight:600}} axisLine={false} tickLine={false}/>
+                      <YAxis tickFormatter={(v)=>`R$ ${(v/1000).toFixed(0)}k`} tick={{fill:'#B8AAB8',fontSize:11}} axisLine={false} tickLine={false} width={60}/>
+                      <Tooltip content={<CustomTooltip/>} cursor={{fill:'#2A1A2F'}}/>
                       <Bar dataKey="valor" radius={[8,8,0,0]}>
                         {chartData.map((entry,i)=><Cell key={i} fill={entry.fill} fillOpacity={0.85}/>)}
                       </Bar>
@@ -367,7 +368,7 @@ export default function Relatorios(){
                   {chartData.map(d=>(
                     <div key={d.name} style={{display:'flex',alignItems:'center',gap:'6px'}}>
                       <div style={{width:'10px',height:'10px',borderRadius:'3px',background:d.fill,flexShrink:0}}/>
-                      <span style={{fontSize:'12px',color:'#94A3B8'}}>{d.name}: <strong style={{color:'#CBD5E1'}}>{d.name==='Resultado'?fBRL(lucro):fBRL(d.valor)}</strong></span>
+                      <span style={{fontSize:'12px',color:'#B8AAB8'}}>{d.name}: <strong style={{color:'#B8AAB8'}}>{d.name==='Resultado'?fBRL(lucro):fBRL(d.valor)}</strong></span>
                     </div>
                   ))}
                 </div>
@@ -377,32 +378,32 @@ export default function Relatorios(){
 
           {/* Resumo por serviço */}
           <div style={{marginBottom:'22px'}}>
-            <p style={{fontSize:'16px',fontWeight:700,color:'#F8FAFC',marginBottom:'4px'}}>Resumo por serviço</p>
-            <p style={{fontSize:'13px',color:'#64748B',marginBottom:'16px'}}>Veja quais serviços e procedimentos geraram receita no período selecionado.</p>
+            <p style={{fontSize:'16px',fontWeight:700,color:'#F8F4F7',marginBottom:'4px'}}>Resumo por serviço</p>
+            <p style={{fontSize:'13px',color:'#B8AAB8',marginBottom:'16px'}}>Veja quais serviços e procedimentos geraram receita no período selecionado.</p>
             {resumoServicos.length===0?(
               <div className="crd" style={{padding:'40px 24px',textAlign:'center'}}>
-                <p style={{fontSize:'15px',fontWeight:700,color:'#F8FAFC',marginBottom:'8px'}}>Nenhum serviço realizado neste período</p>
-                <p style={{fontSize:'13px',color:'#64748B',lineHeight:1.6}}>Quando atendimentos forem marcados como realizados, o resumo por serviço aparecerá aqui.</p>
+                <p style={{fontSize:'15px',fontWeight:700,color:'#F8F4F7',marginBottom:'8px'}}>Nenhum serviço realizado neste período</p>
+                <p style={{fontSize:'13px',color:'#B8AAB8',lineHeight:1.6}}>Quando atendimentos forem marcados como realizados, o resumo por serviço aparecerá aqui.</p>
               </div>
             ):(
               <>
                 {svMaisRealizado&&(
-                  <div style={{background:'radial-gradient(circle at top left,rgba(59,130,246,.10),transparent 40%),linear-gradient(145deg,rgba(15,23,42,.97),rgba(8,20,33,.99))',border:'1.5px solid rgba(59,130,246,.22)',borderRadius:'14px',padding:'14px 18px',marginBottom:'16px',display:'flex',alignItems:'center',justifyContent:'space-between',flexWrap:'wrap',gap:'8px'}}>
+                  <div style={{background:'radial-gradient(circle at top left,rgba(236,72,153,.10),transparent 40%),linear-gradient(145deg,rgba(24,16,27,.97),rgba(18,10,20,.99))',border:'1.5px solid rgba(236,72,153,.22)',borderRadius:'14px',padding:'14px 18px',marginBottom:'16px',display:'flex',alignItems:'center',justifyContent:'space-between',flexWrap:'wrap',gap:'8px'}}>
                     <div>
-                      <p style={{fontSize:'10px',fontWeight:700,color:'#60A5FA',textTransform:'uppercase' as const,letterSpacing:'.08em',marginBottom:'4px'}}>Serviço mais realizado</p>
-                      <p style={{fontSize:'15px',fontWeight:700,color:'#F8FAFC'}}>{svMaisRealizado.nome}</p>
+                      <p style={{fontSize:'10px',fontWeight:700,color:'#EC4899',textTransform:'uppercase' as const,letterSpacing:'.08em',marginBottom:'4px'}}>Serviço mais realizado</p>
+                      <p style={{fontSize:'15px',fontWeight:700,color:'#F8F4F7'}}>{svMaisRealizado.nome}</p>
                     </div>
-                    <span style={{fontSize:'13px',fontWeight:700,color:'#60A5FA',background:'rgba(59,130,246,.12)',border:'1px solid rgba(59,130,246,.22)',borderRadius:'999px',padding:'4px 12px'}}>{svMaisRealizado.qtd} atendimento{svMaisRealizado.qtd!==1?'s':''} · {fBRL(svMaisRealizado.receita)}</span>
+                    <span style={{fontSize:'13px',fontWeight:700,color:'#EC4899',background:'rgba(236,72,153,.12)',border:'1px solid rgba(236,72,153,.22)',borderRadius:'999px',padding:'4px 12px'}}>{svMaisRealizado.qtd} atendimento{svMaisRealizado.qtd!==1?'s':''} · {fBRL(svMaisRealizado.receita)}</span>
                   </div>
                 )}
-                <div style={{background:'linear-gradient(145deg,rgba(15,23,42,.97),rgba(8,20,33,.99))',border:'1.5px solid rgba(148,163,184,.14)',borderRadius:'16px',overflow:'hidden'}}>
+                <div style={{background:'linear-gradient(145deg,rgba(24,16,27,.97),rgba(18,10,20,.99))',border:'1.5px solid #2A1A2F',borderRadius:'16px',overflow:'hidden'}}>
                   {resumoServicos.map((sv,i)=>(
                     <div key={sv.nome} style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:'12px',padding:'13px 18px',borderBottom:i<resumoServicos.length-1?'1px solid rgba(255,255,255,.05)':'none'}}>
                       <div style={{minWidth:0,flex:1}}>
-                        <p style={{fontSize:'14px',fontWeight:600,color:'#F8FAFC',marginBottom:'2px'}}>{sv.nome}</p>
-                        <p style={{fontSize:'12px',color:'#64748B'}}>{sv.qtd} realizado{sv.qtd!==1?'s':''} · ticket médio {fBRL(sv.ticket)}</p>
+                        <p style={{fontSize:'14px',fontWeight:600,color:'#F8F4F7',marginBottom:'2px'}}>{sv.nome}</p>
+                        <p style={{fontSize:'12px',color:'#B8AAB8'}}>{sv.qtd} realizado{sv.qtd!==1?'s':''} · ticket médio {fBRL(sv.ticket)}</p>
                       </div>
-                      <p style={{fontSize:'15px',fontWeight:800,color:'#34D399',flexShrink:0}}>{fBRL(sv.receita)}</p>
+                      <p style={{fontSize:'15px',fontWeight:800,color:'#22C55E',flexShrink:0}}>{fBRL(sv.receita)}</p>
                     </div>
                   ))}
                 </div>
@@ -424,14 +425,14 @@ export default function Relatorios(){
             if(!procs.length)return null;
             return(
               <div style={{marginBottom:'22px'}}>
-                <p style={{fontSize:'16px',fontWeight:700,color:'#F8FAFC',marginBottom:'4px'}}>Procedimentos odontológicos</p>
-                <p style={{fontSize:'13px',color:'#64748B',marginBottom:'16px'}}>Procedimentos registrados nos orçamentos do período.</p>
-                <div style={{background:'linear-gradient(145deg,rgba(15,23,42,.97),rgba(8,20,33,.99))',border:'1.5px solid rgba(148,163,184,.14)',borderRadius:'16px',overflow:'hidden'}}>
+                <p style={{fontSize:'16px',fontWeight:700,color:'#F8F4F7',marginBottom:'4px'}}>Procedimentos odontológicos</p>
+                <p style={{fontSize:'13px',color:'#B8AAB8',marginBottom:'16px'}}>Procedimentos registrados nos orçamentos do período.</p>
+                <div style={{background:'linear-gradient(145deg,rgba(24,16,27,.97),rgba(18,10,20,.99))',border:'1.5px solid #2A1A2F',borderRadius:'16px',overflow:'hidden'}}>
                   {procs.map((sv,i)=>(
                     <div key={sv.nome} style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:'12px',padding:'13px 18px',borderBottom:i<procs.length-1?'1px solid rgba(255,255,255,.05)':'none'}}>
                       <div style={{minWidth:0,flex:1}}>
-                        <p style={{fontSize:'14px',fontWeight:600,color:'#F8FAFC',marginBottom:'2px'}}>{sv.nome}</p>
-                        <p style={{fontSize:'12px',color:'#64748B'}}>{sv.qtd} procedimento{sv.qtd!==1?'s':''}{sv.dentes>0?` · ${sv.dentes} dente${sv.dentes!==1?'s':''}`:''}</p>
+                        <p style={{fontSize:'14px',fontWeight:600,color:'#F8F4F7',marginBottom:'2px'}}>{sv.nome}</p>
+                        <p style={{fontSize:'12px',color:'#B8AAB8'}}>{sv.qtd} procedimento{sv.qtd!==1?'s':''}{sv.dentes>0?` · ${sv.dentes} dente${sv.dentes!==1?'s':''}`:''}</p>
                       </div>
                       <p style={{fontSize:'15px',fontWeight:800,color:'#C4B5FD',flexShrink:0}}>{fBRL(sv.total)}</p>
                     </div>
@@ -445,11 +446,11 @@ export default function Relatorios(){
           {(()=>{
             if(despMes.length===0)return(
               <div style={{marginBottom:'22px'}}>
-                <p style={{fontSize:'16px',fontWeight:700,color:'#F8FAFC',marginBottom:'4px'}}>Resumo de despesas</p>
-                <p style={{fontSize:'13px',color:'#64748B',marginBottom:'16px'}}>Veja de onde vêm as despesas registradas no período selecionado.</p>
-                <div style={{background:'linear-gradient(145deg,rgba(15,23,42,.97),rgba(8,20,33,.99))',border:'1.5px solid rgba(148,163,184,.12)',borderRadius:'16px',padding:'40px 24px',textAlign:'center'}}>
-                  <p style={{fontSize:'15px',fontWeight:700,color:'#F8FAFC',marginBottom:'8px'}}>Nenhuma despesa registrada</p>
-                  <p style={{fontSize:'13px',color:'#64748B',lineHeight:1.6}}>Quando você registrar despesas, elas aparecerão aqui separadas por categoria.</p>
+                <p style={{fontSize:'16px',fontWeight:700,color:'#F8F4F7',marginBottom:'4px'}}>Resumo de despesas</p>
+                <p style={{fontSize:'13px',color:'#B8AAB8',marginBottom:'16px'}}>Veja de onde vêm as despesas registradas no período selecionado.</p>
+                <div style={{background:'linear-gradient(145deg,rgba(24,16,27,.97),rgba(18,10,20,.99))',border:'1.5px solid #2A1A2F',borderRadius:'16px',padding:'40px 24px',textAlign:'center'}}>
+                  <p style={{fontSize:'15px',fontWeight:700,color:'#F8F4F7',marginBottom:'8px'}}>Nenhuma despesa registrada</p>
+                  <p style={{fontSize:'13px',color:'#B8AAB8',lineHeight:1.6}}>Quando você registrar despesas, elas aparecerão aqui separadas por categoria.</p>
                 </div>
               </div>
             )
@@ -465,19 +466,19 @@ export default function Relatorios(){
             const maiorCat=cats[0]
             return(
               <div style={{marginBottom:'22px'}}>
-                <p style={{fontSize:'16px',fontWeight:700,color:'#F8FAFC',marginBottom:'4px'}}>Resumo de despesas</p>
-                <p style={{fontSize:'13px',color:'#64748B',marginBottom:'16px'}}>Veja de onde vêm as despesas registradas no período selecionado.</p>
+                <p style={{fontSize:'16px',fontWeight:700,color:'#F8F4F7',marginBottom:'4px'}}>Resumo de despesas</p>
+                <p style={{fontSize:'13px',color:'#B8AAB8',marginBottom:'16px'}}>Veja de onde vêm as despesas registradas no período selecionado.</p>
                 {maiorCat&&(
-                  <div style={{background:'radial-gradient(circle at top left,rgba(239,68,68,.08),transparent 40%),linear-gradient(145deg,rgba(15,23,42,.97),rgba(8,20,33,.99))',border:'1.5px solid rgba(239,68,68,.22)',borderRadius:'14px',padding:'14px 18px',marginBottom:'16px',display:'flex',alignItems:'center',justifyContent:'space-between',flexWrap:'wrap',gap:'10px'}}>
+                  <div style={{background:'radial-gradient(circle at top left,rgba(239,68,68,.08),transparent 40%),linear-gradient(145deg,rgba(24,16,27,.97),rgba(18,10,20,.99))',border:'1.5px solid rgba(239,68,68,.22)',borderRadius:'14px',padding:'14px 18px',marginBottom:'16px',display:'flex',alignItems:'center',justifyContent:'space-between',flexWrap:'wrap',gap:'10px'}}>
                     <div>
-                      <p style={{fontSize:'10px',fontWeight:700,color:'#F87171',textTransform:'uppercase' as const,letterSpacing:'.08em',marginBottom:'3px'}}>Maior despesa do período</p>
-                      <p style={{fontSize:'15px',fontWeight:800,color:'#F8FAFC'}}>{maiorCat.nome}</p>
-                      <p style={{fontSize:'12px',color:'#64748B',marginTop:'2px'}}>{maiorCat.qtd} lançamento{maiorCat.qtd!==1?'s':''}</p>
+                      <p style={{fontSize:'10px',fontWeight:700,color:'#EF4444',textTransform:'uppercase' as const,letterSpacing:'.08em',marginBottom:'3px'}}>Maior despesa do período</p>
+                      <p style={{fontSize:'15px',fontWeight:800,color:'#F8F4F7'}}>{maiorCat.nome}</p>
+                      <p style={{fontSize:'12px',color:'#B8AAB8',marginTop:'2px'}}>{maiorCat.qtd} lançamento{maiorCat.qtd!==1?'s':''}</p>
                     </div>
-                    <p style={{fontSize:'22px',fontWeight:800,color:'#F87171'}}>{fBRL(maiorCat.total)}</p>
+                    <p style={{fontSize:'22px',fontWeight:800,color:'#EF4444'}}>{fBRL(maiorCat.total)}</p>
                   </div>
                 )}
-                <div style={{background:'linear-gradient(145deg,rgba(15,23,42,.97),rgba(8,20,33,.99))',border:'1.5px solid rgba(148,163,184,.14)',borderRadius:'16px',overflow:'hidden'}}>
+                <div style={{background:'linear-gradient(145deg,rgba(24,16,27,.97),rgba(18,10,20,.99))',border:'1.5px solid #2A1A2F',borderRadius:'16px',overflow:'hidden'}}>
                   {cats.map((cat,i)=>{
                     const pct=despTotal>0?Math.round((cat.total/despTotal)*100):0
                     const isExp=expandida===cat.nome
@@ -487,19 +488,19 @@ export default function Relatorios(){
                           style={{width:'100%',display:'flex',alignItems:'center',justifyContent:'space-between',gap:'12px',padding:'13px 18px',background:'none',border:'none',cursor:'pointer',fontFamily:'inherit',textAlign:'left'}}>
                           <div style={{minWidth:0,flex:1}}>
                             <div style={{display:'flex',alignItems:'center',gap:'8px',marginBottom:'4px'}}>
-                              <p style={{fontSize:'14px',fontWeight:600,color:'#F8FAFC'}}>{cat.nome}</p>
-                              <span style={{fontSize:'10px',fontWeight:700,padding:'2px 6px',borderRadius:'999px',background:'rgba(239,68,68,.08)',color:'#F87171',border:'1px solid rgba(248,113,113,.18)'}}>{pct}%</span>
+                              <p style={{fontSize:'14px',fontWeight:600,color:'#F8F4F7'}}>{cat.nome}</p>
+                              <span style={{fontSize:'10px',fontWeight:700,padding:'2px 6px',borderRadius:'999px',background:'rgba(239,68,68,.08)',color:'#EF4444',border:'1px solid rgba(239,68,68,.18)'}}>{pct}%</span>
                             </div>
                             <div style={{display:'flex',alignItems:'center',gap:'8px'}}>
                               <div style={{flex:1,height:'3px',borderRadius:'2px',background:'rgba(255,255,255,.06)',overflow:'hidden'}}>
-                                <div style={{height:'100%',width:`${pct}%`,background:'linear-gradient(90deg,#F87171,#FCA5A5)',borderRadius:'2px'}}/>
+                                <div style={{height:'100%',width:`${pct}%`,background:'linear-gradient(90deg,#EF4444,#EF4444)',borderRadius:'2px'}}/>
                               </div>
-                              <p style={{fontSize:'12px',color:'#64748B',flexShrink:0}}>{cat.qtd} lançamento{cat.qtd!==1?'s':''}</p>
+                              <p style={{fontSize:'12px',color:'#B8AAB8',flexShrink:0}}>{cat.qtd} lançamento{cat.qtd!==1?'s':''}</p>
                             </div>
                           </div>
                           <div style={{display:'flex',alignItems:'center',gap:'10px',flexShrink:0}}>
-                            <p style={{fontSize:'15px',fontWeight:800,color:'#F87171'}}>{fBRL(cat.total)}</p>
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#475569" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{transform:isExp?'rotate(180deg)':'none',transition:'transform .2s'}}><polyline points="6 9 12 15 18 9"/></svg>
+                            <p style={{fontSize:'15px',fontWeight:800,color:'#EF4444'}}>{fBRL(cat.total)}</p>
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#B8AAB8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{transform:isExp?'rotate(180deg)':'none',transition:'transform .2s'}}><polyline points="6 9 12 15 18 9"/></svg>
                           </div>
                         </button>
                         {isExp&&cat.itens.length>0&&(
@@ -507,10 +508,10 @@ export default function Relatorios(){
                             {cat.itens.map((item,j)=>(
                               <div key={j} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'7px 0',borderBottom:j<cat.itens.length-1?'1px solid rgba(255,255,255,.04)':'none'}}>
                                 <div>
-                                  <p style={{fontSize:'13px',color:'#CBD5E1'}}>{item.desc||cat.nome}</p>
-                                  {item.data&&<p style={{fontSize:'11px',color:'#475569',marginTop:'1px'}}>{(()=>{const[a,m,d]=item.data.split('-');return `${d}/${m}`})()}</p>}
+                                  <p style={{fontSize:'13px',color:'#B8AAB8'}}>{item.desc||cat.nome}</p>
+                                  {item.data&&<p style={{fontSize:'11px',color:'#B8AAB8',marginTop:'1px'}}>{(()=>{const[a,m,d]=item.data.split('-');return `${d}/${m}`})()}</p>}
                                 </div>
-                                <p style={{fontSize:'13px',fontWeight:700,color:'#F87171'}}>{fBRL(item.valor)}</p>
+                                <p style={{fontSize:'13px',fontWeight:700,color:'#EF4444'}}>{fBRL(item.valor)}</p>
                               </div>
                             ))}
                           </div>
@@ -525,11 +526,11 @@ export default function Relatorios(){
 
           {/* Desempenho por profissional */}
           <div>
-            <p style={{fontSize:'16px',fontWeight:700,color:'#F8FAFC',marginBottom:'4px'}}>Desempenho por profissional</p>
-            <p style={{fontSize:'13px',color:'#64748B',marginBottom:'16px'}}>Veja quanto cada profissional movimentou no período selecionado.</p>
+            <p style={{fontSize:'16px',fontWeight:700,color:'#F8F4F7',marginBottom:'4px'}}>Desempenho por profissional</p>
+            <p style={{fontSize:'13px',color:'#B8AAB8',marginBottom:'16px'}}>Veja quanto cada profissional movimentou no período selecionado.</p>
             {profStats.length===0?(
               <div className="crd" style={{padding:'40px 24px',textAlign:'center'}}>
-                <p style={{fontSize:'14px',color:'#64748B'}}>Nenhum profissional cadastrado. <Link href="/painel/profissionais" style={{color:'#60A5FA',textDecoration:'none'}}>Cadastrar profissional</Link></p>
+                <p style={{fontSize:'14px',color:'#B8AAB8'}}>Nenhum profissional cadastrado. <Link href="/painel/profissionais" style={{color:'#EC4899',textDecoration:'none'}}>Cadastrar profissional</Link></p>
               </div>
             ):(
               profStats.map(p=>{
@@ -545,16 +546,16 @@ export default function Relatorios(){
                         <div style={{width:'48px',height:'48px',borderRadius:'50%',background:AV,border:'1px solid rgba(255,255,255,.12)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'18px',fontWeight:800,color:'#fff',flexShrink:0}}>{ini2}</div>
                       )}
                       <div style={{flex:1,minWidth:0}}>
-                        <p style={{fontSize:'15px',fontWeight:700,color:'#F8FAFC',marginBottom:'3px'}}>{p.nome}</p>
-                        {p.cargo&&<p style={{fontSize:'12px',color:'#94A3B8',marginBottom:'6px'}}>{p.cargo}</p>}
+                        <p style={{fontSize:'15px',fontWeight:700,color:'#F8F4F7',marginBottom:'3px'}}>{p.nome}</p>
+                        {p.cargo&&<p style={{fontSize:'12px',color:'#B8AAB8',marginBottom:'6px'}}>{p.cargo}</p>}
                         <div style={{display:'flex',gap:'6px',flexWrap:'wrap'}}>
-                          <span style={{fontSize:'11px',fontWeight:600,padding:'2px 8px',borderRadius:'999px',background:'rgba(59,130,246,.10)',color:'#BFDBFE',border:'1px solid rgba(96,165,250,.18)'}}>{atsMes} atendimento{atsMes!==1?'s':''}</span>
-                          {retMes>0&&<span style={{fontSize:'11px',fontWeight:600,padding:'2px 8px',borderRadius:'999px',background:'rgba(124,58,237,.14)',color:'#C4B5FD',border:'1px solid rgba(124,58,237,.28)'}}>{retMes} retorno{retMes!==1?'s':''}</span>}
+                          <span style={{fontSize:'11px',fontWeight:600,padding:'2px 8px',borderRadius:'999px',background:'rgba(236,72,153,.10)',color:'#F9A8D4',border:'1px solid rgba(236,72,153,.22)'}}>{atsMes} atendimento{atsMes!==1?'s':''}</span>
+                          {retMes>0&&<span style={{fontSize:'11px',fontWeight:600,padding:'2px 8px',borderRadius:'999px',background:'rgba(139,92,246,.14)',color:'#C4B5FD',border:'1px solid rgba(139,92,246,.28)'}}>{retMes} retorno{retMes!==1?'s':''}</span>}
                         </div>
                       </div>
                       <div style={{textAlign:'right' as const,flexShrink:0}}>
-                        <p style={{fontSize:'22px',fontWeight:800,color:'#34D399',lineHeight:1,marginBottom:'8px'}}>{fBRL(p.rec)}</p>
-                        <button onClick={()=>setProfSel(p)} style={{background:'rgba(59,130,246,.10)',border:'1px solid rgba(59,130,246,.24)',color:'#93C5FD',borderRadius:'12px',padding:'8px 12px',fontSize:'13px',fontWeight:700,cursor:'pointer',fontFamily:'inherit'}}>
+                        <p style={{fontSize:'22px',fontWeight:800,color:'#22C55E',lineHeight:1,marginBottom:'8px'}}>{fBRL(p.rec)}</p>
+                        <button onClick={()=>setProfSel(p)} className="btn-verrel" style={{background:'rgba(24,16,27,.85)',border:'1px solid #2A1A2F',color:'#F8F4F7',borderRadius:'12px',padding:'8px 12px',fontSize:'13px',fontWeight:700,cursor:'pointer',fontFamily:'inherit'}}>
                           Ver relatório →
                         </button>
                       </div>
@@ -585,85 +586,85 @@ export default function Relatorios(){
             const d=new Date(a.data_hora)
             return d>=start&&d<=end
           }).reduce((a,ag)=>a+(ag.valor||ag.servicos?.preco||0),0)
-          return{name:`Sem ${s}`,valor:v,fill:'#3B82F6'}
+          return{name:`Sem ${s}`,valor:v,fill:'#8B5CF6'}
         })
         const temDados=semsData.some(s=>s.valor>0)
         const SC:Record<string,{c:string,t:string}>={
-          realizado:{c:'#4ADE80',t:'Realizado'},confirmado:{c:'#93C5FD',t:'Confirmado'},
-          pendente:{c:'#FBBF24',t:'Pendente'},cancelado:{c:'#F87171',t:'Cancelado'},
+          realizado:{c:'#22C55E',t:'Realizado'},confirmado:{c:'#F9A8D4',t:'Confirmado'},
+          pendente:{c:'#FACC15',t:'Pendente'},cancelado:{c:'#EF4444',t:'Cancelado'},
           retorno:{c:'#C4B5FD',t:'Retorno'},
         }
         return(
           <>
             <div onClick={()=>setProfSel(null)} style={{position:'fixed',inset:0,background:'rgba(0,0,0,.7)',zIndex:98,backdropFilter:'blur(4px)'}}/>
-            <div style={{position:'fixed',top:0,right:0,bottom:0,width:'min(580px,100vw)',background:'linear-gradient(180deg,#07111F,#050B16)',borderLeft:'1.5px solid rgba(148,163,184,.18)',boxShadow:'-24px 0 60px rgba(0,0,0,.45)',zIndex:99,overflowY:'auto',overflowX:'hidden'}}>
-              <div style={{padding:'22px 24px 18px',borderBottom:'1px solid rgba(148,163,184,.12)',display:'flex',alignItems:'flex-start',justifyContent:'space-between',gap:'12px',position:'sticky',top:0,background:'rgba(7,17,31,.96)',backdropFilter:'blur(20px)',zIndex:10}}>
+            <div style={{position:'fixed',top:0,right:0,bottom:0,width:'min(580px,100vw)',background:'linear-gradient(180deg,#120A14,#08060A)',borderLeft:'1.5px solid #2A1A2F',boxShadow:'-24px 0 60px rgba(0,0,0,.45)',zIndex:99,overflowY:'auto',overflowX:'hidden'}}>
+              <div style={{padding:'22px 24px 18px',borderBottom:'1px solid #2A1A2F',display:'flex',alignItems:'flex-start',justifyContent:'space-between',gap:'12px',position:'sticky',top:0,background:'rgba(18,10,20,.96)',backdropFilter:'blur(20px)',zIndex:10}}>
                 <div style={{display:'flex',alignItems:'center',gap:'12px'}}>
                   {profSel.foto_url?(<img src={profSel.foto_url} alt={profSel.nome} style={{width:'52px',height:'52px',borderRadius:'50%',objectFit:'cover',border:'1px solid rgba(255,255,255,.12)',flexShrink:0}}/>):(<div style={{width:'52px',height:'52px',borderRadius:'50%',background:AV,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'20px',fontWeight:800,color:'#fff',flexShrink:0}}>{ini2}</div>)}
                   <div>
-                    <p style={{fontSize:'16px',fontWeight:800,color:'#F8FAFC',marginBottom:'2px'}}>{profSel.nome}</p>
-                    {profSel.cargo&&<p style={{fontSize:'12px',color:'#94A3B8'}}>{profSel.cargo}</p>}
-                    <p style={{fontSize:'11px',color:'#64748B',textTransform:'capitalize' as const}}>Período: {nomeMesSel}</p>
+                    <p style={{fontSize:'16px',fontWeight:800,color:'#F8F4F7',marginBottom:'2px'}}>{profSel.nome}</p>
+                    {profSel.cargo&&<p style={{fontSize:'12px',color:'#B8AAB8'}}>{profSel.cargo}</p>}
+                    <p style={{fontSize:'11px',color:'#B8AAB8',textTransform:'capitalize' as const}}>Período: {nomeMesSel}</p>
                   </div>
                 </div>
-                <button onClick={()=>setProfSel(null)} style={{background:'rgba(15,23,42,.8)',border:'1px solid rgba(148,163,184,.18)',borderRadius:'8px',width:'34px',height:'34px',display:'flex',alignItems:'center',justifyContent:'center',color:'#94A3B8',cursor:'pointer',fontSize:'18px',lineHeight:1}}>×</button>
+                <button onClick={()=>setProfSel(null)} style={{background:'rgba(24,16,27,.8)',border:'1px solid #2A1A2F',borderRadius:'8px',width:'34px',height:'34px',display:'flex',alignItems:'center',justifyContent:'center',color:'#B8AAB8',cursor:'pointer',fontSize:'18px',lineHeight:1}}>×</button>
               </div>
               <div style={{padding:'22px 24px 40px'}}>
                 <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'10px',marginBottom:'22px'}}>
                   {[
-                    {l:'Receita gerada',v:fBRL(pRec),c:'#4ADE80',bg:'rgba(34,197,94,.10)',bd:'rgba(34,197,94,.24)',ico:'↑'},
-                    {l:'Atendimentos',v:pAts,c:'#60A5FA',bg:'rgba(59,130,246,.10)',bd:'rgba(59,130,246,.24)',ico:'📅'},
-                    {l:'Retornos',v:pRets,c:'#C4B5FD',bg:'rgba(124,58,237,.10)',bd:'rgba(124,58,237,.24)',ico:'↩'},
-                    {l:'Ticket médio',v:fBRL(pTicket),c:'#22D3EE',bg:'rgba(6,182,212,.10)',bd:'rgba(6,182,212,.24)',ico:'↗'},
+                    {l:'Receita gerada',v:fBRL(pRec),c:'#22C55E',bg:'rgba(34,197,94,.10)',bd:'rgba(34,197,94,.24)',ico:'↑'},
+                    {l:'Atendimentos',v:pAts,c:'#EC4899',bg:'rgba(236,72,153,.10)',bd:'rgba(236,72,153,.24)',ico:'📅'},
+                    {l:'Retornos',v:pRets,c:'#C4B5FD',bg:'rgba(139,92,246,.10)',bd:'rgba(139,92,246,.24)',ico:'↩'},
+                    {l:'Ticket médio',v:fBRL(pTicket),c:'#8B5CF6',bg:'rgba(139,92,246,.10)',bd:'rgba(139,92,246,.24)',ico:'↗'},
                   ].map(k=>(
-                    <div key={k.l} style={{background:`radial-gradient(circle at top left,${k.bg},transparent 60%),linear-gradient(145deg,rgba(15,23,42,.97),rgba(8,20,33,.99))`,border:`1.5px solid ${k.bd}`,borderRadius:'16px',padding:'16px',boxSizing:'border-box' as const}}>
+                    <div key={k.l} style={{background:`radial-gradient(circle at top left,${k.bg},transparent 60%),linear-gradient(145deg,rgba(24,16,27,.97),rgba(18,10,20,.99))`,border:`1.5px solid ${k.bd}`,borderRadius:'16px',padding:'16px',boxSizing:'border-box' as const}}>
                       <div style={{width:'34px',height:'34px',borderRadius:'10px',background:k.bg,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'16px',marginBottom:'8px'}}>{k.ico}</div>
-                      <p style={{fontSize:'10px',fontWeight:700,color:'#94A3B8',textTransform:'uppercase' as const,letterSpacing:'.07em',marginBottom:'4px'}}>{k.l}</p>
+                      <p style={{fontSize:'10px',fontWeight:700,color:'#B8AAB8',textTransform:'uppercase' as const,letterSpacing:'.07em',marginBottom:'4px'}}>{k.l}</p>
                       <p style={{fontSize:'20px',fontWeight:800,color:k.c,lineHeight:1}}>{k.v}</p>
                     </div>
                   ))}
                 </div>
-                <div style={{background:'linear-gradient(145deg,rgba(15,23,42,.97),rgba(8,20,33,.99))',border:'1.5px solid rgba(148,163,184,.16)',borderRadius:'16px',padding:'18px',marginBottom:'20px'}}>
-                  <p style={{fontSize:'14px',fontWeight:700,color:'#F8FAFC',marginBottom:'3px'}}>Evolução no período</p>
-                  <p style={{fontSize:'12px',color:'#64748B',marginBottom:'14px'}}>Receita gerada por semana.</p>
+                <div style={{background:'linear-gradient(145deg,rgba(24,16,27,.97),rgba(18,10,20,.99))',border:'1.5px solid #2A1A2F',borderRadius:'16px',padding:'18px',marginBottom:'20px'}}>
+                  <p style={{fontSize:'14px',fontWeight:700,color:'#F8F4F7',marginBottom:'3px'}}>Evolução no período</p>
+                  <p style={{fontSize:'12px',color:'#B8AAB8',marginBottom:'14px'}}>Receita gerada por semana.</p>
                   {temDados?(
                     <div style={{width:'100%',height:'200px'}}>
                       <ResponsiveContainer width="100%" height="100%">
                         <BarChart data={semsData} margin={{top:5,right:5,left:0,bottom:0}} barSize={36}>
-                          <CartesianGrid strokeDasharray="3 3" stroke="rgba(148,163,184,.10)" vertical={false}/>
-                          <XAxis dataKey="name" tick={{fill:'#94A3B8',fontSize:12}} axisLine={false} tickLine={false}/>
-                          <YAxis tickFormatter={v=>`R$${(v/1000).toFixed(1)}k`} tick={{fill:'#64748B',fontSize:10}} axisLine={false} tickLine={false} width={50}/>
-                          <Tooltip content={<CustomTooltip/>} cursor={{fill:'rgba(148,163,184,.06)'}}/>
-                          <Bar dataKey="valor" fill="#3B82F6" radius={[6,6,0,0]} fillOpacity={0.85}/>
+                          <CartesianGrid strokeDasharray="3 3" stroke="#2A1A2F" vertical={false}/>
+                          <XAxis dataKey="name" tick={{fill:'#B8AAB8',fontSize:12}} axisLine={false} tickLine={false}/>
+                          <YAxis tickFormatter={v=>`R$${(v/1000).toFixed(1)}k`} tick={{fill:'#B8AAB8',fontSize:10}} axisLine={false} tickLine={false} width={50}/>
+                          <Tooltip content={<CustomTooltip/>} cursor={{fill:'#2A1A2F'}}/>
+                          <Bar dataKey="valor" fill="#8B5CF6" radius={[6,6,0,0]} fillOpacity={0.85}/>
                         </BarChart>
                       </ResponsiveContainer>
                     </div>
                   ):(
                     <div style={{height:'120px',display:'flex',alignItems:'center',justifyContent:'center'}}>
-                      <p style={{fontSize:'13px',color:'#64748B'}}>Sem dados suficientes ainda</p>
+                      <p style={{fontSize:'13px',color:'#B8AAB8'}}>Sem dados suficientes ainda</p>
                     </div>
                   )}
                 </div>
-                <p style={{fontSize:'14px',fontWeight:700,color:'#F8FAFC',marginBottom:'12px'}}>Últimos atendimentos</p>
+                <p style={{fontSize:'14px',fontWeight:700,color:'#F8F4F7',marginBottom:'12px'}}>Últimos atendimentos</p>
                 {pAgs.length===0?(
-                  <div style={{background:'rgba(15,23,42,.6)',border:'1px solid rgba(148,163,184,.12)',borderRadius:'14px',padding:'24px',textAlign:'center'}}>
-                    <p style={{fontSize:'13px',color:'#64748B'}}>Nenhum atendimento encontrado</p>
+                  <div style={{background:'rgba(24,16,27,.6)',border:'1px solid #2A1A2F',borderRadius:'14px',padding:'24px',textAlign:'center'}}>
+                    <p style={{fontSize:'13px',color:'#B8AAB8'}}>Nenhum atendimento encontrado</p>
                   </div>
                 ):(
                   pAgs.slice(0,10).map((a:any)=>{
-                    const st=SC[a.status]||{c:'#94A3B8',t:a.status}
+                    const st=SC[a.status]||{c:'#B8AAB8',t:a.status}
                     const fmtD=(s:string)=>new Date(s).toLocaleDateString('pt-BR',{day:'2-digit',month:'short'})
                     const val=a.valor||a.servicos?.preco||0
                     return(
-                      <div key={a.id} style={{background:'rgba(15,23,42,.72)',border:'1px solid rgba(148,163,184,.12)',borderRadius:'14px',padding:'14px',marginBottom:'6px'}}>
+                      <div key={a.id} style={{background:'rgba(24,16,27,.72)',border:'1px solid #2A1A2F',borderRadius:'14px',padding:'14px',marginBottom:'6px'}}>
                         <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:'8px',flexWrap:'wrap'}}>
                           <div style={{minWidth:0}}>
-                            <p style={{fontSize:'13px',fontWeight:600,color:'#F8FAFC',marginBottom:'2px'}}>{a.cliente_nome||'—'}</p>
-                            <p style={{fontSize:'11px',color:'#94A3B8'}}>{a.servicos?.nome||'Serviço'} · {fmtD(a.data_hora)}</p>
+                            <p style={{fontSize:'13px',fontWeight:600,color:'#F8F4F7',marginBottom:'2px'}}>{a.cliente_nome||'—'}</p>
+                            <p style={{fontSize:'11px',color:'#B8AAB8'}}>{a.servicos?.nome||'Serviço'} · {fmtD(a.data_hora)}</p>
                           </div>
                           <div style={{display:'flex',alignItems:'center',gap:'8px',flexShrink:0}}>
-                            <span style={{fontSize:'10px',fontWeight:600,padding:'2px 8px',borderRadius:'999px',background:'rgba(59,130,246,.12)',color:st.c,border:`1px solid ${st.c}40`}}>{st.t}</span>
-                            {val>0&&<p style={{fontSize:'13px',fontWeight:700,color:'#4ADE80'}}>{fBRL(val)}</p>}
+                            <span style={{fontSize:'10px',fontWeight:600,padding:'2px 8px',borderRadius:'999px',background:'rgba(236,72,153,.12)',color:st.c,border:`1px solid ${st.c}40`}}>{st.t}</span>
+                            {val>0&&<p style={{fontSize:'13px',fontWeight:700,color:'#22C55E'}}>{fBRL(val)}</p>}
                           </div>
                         </div>
                       </div>
