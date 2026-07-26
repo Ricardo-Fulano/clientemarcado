@@ -22,8 +22,11 @@ input,select,textarea{color-scheme:dark}
 .ag-item:hover{border-color:rgba(236,72,153,.35)}
 .ag-item.sel{border-color:rgba(236,72,153,.55);background:radial-gradient(circle at top left,rgba(236,72,153,.09),transparent 60%),linear-gradient(145deg,rgba(24,16,27,.98),rgba(18,10,20,.99))}
 .card-btns{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
-.card-btn{border-radius:9px;padding:6px 11px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:4px;white-space:nowrap;border:1px solid transparent;transition:all .12s}
-.card-btn:hover{border-color:rgba(236,72,153,.28)!important}
+.card-btn{border-radius:9px;padding:6px 11px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:4px;white-space:nowrap;border:1px solid transparent;transition:all .18s}
+.card-btn-wpp:hover{background:rgba(34,197,94,.10)!important;border-color:rgba(34,197,94,.35)!important;color:#22C55E!important}
+.card-btn-confirm:hover{background:rgba(236,72,153,.10)!important;border-color:rgba(236,72,153,.40)!important;color:#F472B6!important}
+.card-btn-real:hover{background:rgba(74,222,128,.12)!important;border-color:rgba(74,222,128,.40)!important;color:#4ADE80!important}
+.card-btn-mais:hover{background:rgba(196,181,253,.08)!important;border-color:rgba(196,181,253,.35)!important;color:#C4B5FD!important}
 .conf-area{margin-top:10px;padding-top:10px;border-top:1px solid #2A1A2F}
 .sem-card{background:linear-gradient(145deg,rgba(24,16,27,.98),rgba(18,10,20,.99));border:2px solid rgba(236,72,153,.22);border-radius:16px;padding:14px;cursor:pointer;transition:all .15s;box-shadow:0 12px 28px rgba(0,0,0,.24)}
 .sem-card:hover{border-color:rgba(236,72,153,.3)}
@@ -314,12 +317,12 @@ export default function Agendamentos(){
           {a.servicos?.preco?<span style={{color:'#22C55E'}}> · R$ {a.servicos.preco}</span>:null}
         </p>
         <div className="card-btns" onClick={e=>e.stopPropagation()}>
-          {wW&&<a href={wW} target="_blank" rel="noreferrer" className="card-btn" style={{background:'rgba(24,16,27,.75)',color:'#F8F4F7',border:'1px solid #2A1A2F'}}>WhatsApp</a>}
-          {wC2&&!jaRealizado&&<a href={wC2} target="_blank" rel="noreferrer" className="card-btn" onClick={()=>updConf(a.id,'mensagem_enviada')} style={{background:'rgba(24,16,27,.75)',color:'#F8F4F7',border:'1px solid #2A1A2F'}}>Enviar confirmação</a>}
+          {wW&&<a href={wW} target="_blank" rel="noreferrer" className="card-btn card-btn-wpp" style={{background:'rgba(24,16,27,.75)',color:'#F8F4F7',border:'1px solid #2A1A2F'}}>WhatsApp</a>}
+          {wC2&&!jaRealizado&&<a href={wC2} target="_blank" rel="noreferrer" className="card-btn card-btn-confirm" onClick={()=>updConf(a.id,'mensagem_enviada')} style={{background:'rgba(24,16,27,.75)',color:'#F8F4F7',border:'1px solid #2A1A2F'}}>Enviar confirmação</a>}
           {!jaRealizado&&a.status!=='cancelado'&&a.status!=='faltou'&&(
-            <button className="card-btn" onClick={()=>updSt(a.id,'realizado')} style={{background:'rgba(24,16,27,.75)',color:'#F8F4F7',border:'1px solid #2A1A2F'}}>✓ Realizado</button>
+            <button className="card-btn card-btn-real" onClick={()=>updSt(a.id,'realizado')} style={{background:'rgba(24,16,27,.75)',color:'#F8F4F7',border:'1px solid #2A1A2F'}}>✓ Realizado</button>
           )}
-          <button className="card-btn" onClick={()=>setBsAg(a)} style={{background:'rgba(24,16,27,.75)',color:'#B8AAB8',border:'1px solid #2A1A2F'}}>⋯ Mais</button>
+          <button className="card-btn card-btn-mais" onClick={()=>setBsAg(a)} style={{background:'rgba(24,16,27,.75)',color:'#B8AAB8',border:'1px solid #2A1A2F'}}>⋯ Mais</button>
         </div>
         {!jaRealizado&&a.status!=='faltou'&&a.status!=='cancelado'&&(
           <div className="conf-area" onClick={e=>e.stopPropagation()}>
