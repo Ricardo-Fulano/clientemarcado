@@ -131,23 +131,23 @@ export default function Cadastro() {
   }
   const css = `
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    body { background: #08080A; }
-    .pg { min-height: 100vh; background: radial-gradient(circle at 20% 20%,rgba(59,130,246,.12),transparent 30%),radial-gradient(circle at 80% 15%,rgba(124,58,237,.14),transparent 32%),#050B16;
+    body { background: #08060A; }
+    .pg { min-height: 100vh; background: radial-gradient(circle at 20% 20%,rgba(236,72,153,.12),transparent 30%),radial-gradient(circle at 80% 15%,rgba(139,92,246,.14),transparent 32%),#08060A;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       display: flex; flex-direction: column; }
     .col-esquerda { display: none; }
     .pg-body { flex: 1; display: flex; flex-direction: column; align-items: center; padding: 32px 16px 40px; gap: 0; }
     .logo-bloco { width: 100%; max-width: 480px; display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 24px; }
-    .logo-icone { width: 34px; height: 34px; border-radius: 10px; background: #3B82F6; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-    .logo-texto { font-size: 18px; font-weight: 800; color: #F1F5F9; letter-spacing: -0.02em; }
+    .logo-icone { width: 34px; height: 34px; border-radius: 10px; background: #EC4899; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .logo-texto { font-size: 18px; font-weight: 800; color: #F8F4F7; letter-spacing: -0.02em; }
     .headline-bloco { width: 100%; max-width: 480px; text-align: center; margin-bottom: 24px; }
-    .headline-titulo { font-size: 24px; font-weight: 800; color: #F1F5F9; letter-spacing: -0.02em; margin-bottom: 8px; line-height: 1.2; }
-    .headline-sub { font-size: 14px; color: #6B7280; line-height: 1.55; }
+    .headline-titulo { font-size: 24px; font-weight: 800; color: #F8F4F7; letter-spacing: -0.02em; margin-bottom: 8px; line-height: 1.2; }
+    .headline-sub { font-size: 14px; color: #B8AAB8; line-height: 1.55; }
     .form-bloco { width: 100%; max-width: 480px; margin-bottom: 20px; }
     .beneficios-mobile { width: 100%; max-width: 480px; display: flex; flex-direction: column; gap: 8px; }
     .beneficio-mobile-item { display: flex; align-items: center; gap: 12px; padding: 13px 15px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); border-radius: 11px; }
-    .beneficio-mobile-icone { width: 32px; height: 32px; border-radius: 8px; flex-shrink: 0; background: rgba(59,130,246,0.1); border: 1px solid rgba(59,130,246,0.15); display: flex; align-items: center; justify-content: center; color: #3B82F6; }
-    .beneficio-mobile-titulo { font-size: 13px; font-weight: 600; color: #D1D5DB; }
+    .beneficio-mobile-icone { width: 32px; height: 32px; border-radius: 8px; flex-shrink: 0; background: rgba(236,72,153,0.1); border: 1px solid rgba(236,72,153,0.15); display: flex; align-items: center; justify-content: center; color: #EC4899; }
+    .beneficio-mobile-titulo { font-size: 13px; font-weight: 600; color: #B8AAB8; }
     @media (min-width: 900px) {
       .col-esquerda { display: flex; flex-direction: column; gap: 36px; flex: 1; }
       .logo-bloco { display: none; }
@@ -158,39 +158,39 @@ export default function Cadastro() {
       .pg-body > .col-esquerda, .pg-body > .form-bloco { max-width: 480px; }
     }
     .desk-logo-row { display: flex; align-items: center; gap: 10px; }
-    .desk-logo-icone { width: 36px; height: 36px; border-radius: 10px; background: #3B82F6; display: flex; align-items: center; justify-content: center; }
-    .desk-logo-texto { font-size: 18px; font-weight: 800; color: #F1F5F9; letter-spacing: -0.02em; }
-    .desk-hero-titulo { font-size: 38px; font-weight: 800; color: #F1F5F9; letter-spacing: -0.03em; line-height: 1.15; margin-bottom: 14px; }
-    .desk-hero-titulo span { color: #3B82F6; }
-    .desk-hero-sub { font-size: 16px; color: #6B7280; line-height: 1.6; }
+    .desk-logo-icone { width: 36px; height: 36px; border-radius: 10px; background: #EC4899; display: flex; align-items: center; justify-content: center; }
+    .desk-logo-texto { font-size: 18px; font-weight: 800; color: #F8F4F7; letter-spacing: -0.02em; }
+    .desk-hero-titulo { font-size: 38px; font-weight: 800; color: #F8F4F7; letter-spacing: -0.03em; line-height: 1.15; margin-bottom: 14px; }
+    .desk-hero-titulo span { color: #EC4899; }
+    .desk-hero-sub { font-size: 16px; color: #B8AAB8; line-height: 1.6; }
     .desk-beneficios { display: flex; flex-direction: column; gap: 14px; }
     .desk-beneficio { display: flex; align-items: flex-start; gap: 14px; background: linear-gradient(180deg, rgba(18,22,30,0.92) 0%, rgba(10,12,16,0.92) 100%); border: 1px solid rgba(255,255,255,0.07); border-radius: 12px; padding: 16px 18px; }
-    .desk-beneficio-icone { width: 36px; height: 36px; border-radius: 9px; flex-shrink: 0; background: rgba(59,130,246,0.12); border: 1px solid rgba(59,130,246,0.2); display: flex; align-items: center; justify-content: center; color: #3B82F6; }
-    .desk-beneficio-titulo { font-size: 14px; font-weight: 700; color: #F1F5F9; margin-bottom: 3px; }
-    .desk-beneficio-desc { font-size: 13px; color: #6B7280; line-height: 1.45; }
-    .card { background: radial-gradient(circle at top right,rgba(124,58,237,.08),transparent 35%),linear-gradient(180deg, rgba(16,20,30,0.98) 0%, rgba(10,12,18,0.98) 100%); border: 1px solid rgba(255,255,255,0.09); border-radius: 20px; padding: 24px 20px; box-shadow: 0 8px 40px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.03); }
+    .desk-beneficio-icone { width: 36px; height: 36px; border-radius: 9px; flex-shrink: 0; background: rgba(236,72,153,0.12); border: 1px solid rgba(236,72,153,0.2); display: flex; align-items: center; justify-content: center; color: #EC4899; }
+    .desk-beneficio-titulo { font-size: 14px; font-weight: 700; color: #F8F4F7; margin-bottom: 3px; }
+    .desk-beneficio-desc { font-size: 13px; color: #B8AAB8; line-height: 1.45; }
+    .card { background: radial-gradient(circle at top right,rgba(139,92,246,.08),transparent 35%),linear-gradient(180deg, rgba(16,20,30,0.98) 0%, rgba(10,12,18,0.98) 100%); border: 1px solid rgba(255,255,255,0.09); border-radius: 20px; padding: 24px 20px; box-shadow: 0 8px 40px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.03); }
     @media (min-width: 900px) { .card { padding: 36px 32px; } }
-    .card-titulo { font-size: 19px; font-weight: 800; color: #F1F5F9; letter-spacing: -0.02em; margin-bottom: 3px; }
-    .card-sub { font-size: 13px; color: #6B7280; margin-bottom: 22px; }
+    .card-titulo { font-size: 19px; font-weight: 800; color: #F8F4F7; letter-spacing: -0.02em; margin-bottom: 3px; }
+    .card-sub { font-size: 13px; color: #B8AAB8; margin-bottom: 22px; }
     .campos { display: flex; flex-direction: column; gap: 14px; margin-bottom: 20px; }
-    .label { display: block; font-size: 11px; font-weight: 600; color: #9CA3AF; text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 7px; }
-    .hint { font-size: 11px; color: #374151; margin-top: 5px; }
-    .input { width: 100%; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; padding: 14px 16px; color: #F1F5F9; font-size: 16px; outline: none; transition: border-color 0.15s, box-shadow 0.15s; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; -webkit-appearance: none; }
-    .input:focus { border-color: rgba(59,130,246,0.5); box-shadow: 0 0 0 3px rgba(59,130,246,0.1); }
-    .input::placeholder { color: #374151; }
+    .label { display: block; font-size: 11px; font-weight: 600; color: #B8AAB8; text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 7px; }
+    .hint { font-size: 11px; color: #B8AAB8; margin-top: 5px; }
+    .input { width: 100%; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; padding: 14px 16px; color: #F8F4F7; font-size: 16px; outline: none; transition: border-color 0.15s, box-shadow 0.15s; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; -webkit-appearance: none; }
+    .input:focus { border-color: rgba(236,72,153,0.5); box-shadow: 0 0 0 3px rgba(236,72,153,0.1); }
+    .input::placeholder { color: #B8AAB8; }
     .senha-wrap { position: relative; }
     .senha-wrap .input { padding-right: 48px; }
-    .olho { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: #4B5563; display: flex; align-items: center; padding: 4px; -webkit-tap-highlight-color: transparent; }
-    .olho:hover { color: #9CA3AF; }
-    .btn-criar { width: 100%; background: linear-gradient(135deg,#3B82F6,#7C3AED); color: #fff; font-size: 15px; font-weight: 700; padding: 15px; border: none; border-radius: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 20px rgba(59,130,246,0.35); transition: background 0.15s, box-shadow 0.15s, opacity 0.15s; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; -webkit-tap-highlight-color: transparent; margin-bottom: 14px; }
-    .btn-criar:hover { background: #2563EB; box-shadow: 0 4px 28px rgba(59,130,246,0.5); }
+    .olho { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: #B8AAB8; display: flex; align-items: center; padding: 4px; -webkit-tap-highlight-color: transparent; }
+    .olho:hover { color: #B8AAB8; }
+    .btn-criar { width: 100%; background: linear-gradient(135deg,#EC4899,#D946EF,#8B5CF6); color: #fff; font-size: 15px; font-weight: 700; padding: 15px; border: none; border-radius: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 20px rgba(236,72,153,0.35); transition: background 0.15s, box-shadow 0.15s, opacity 0.15s; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; -webkit-tap-highlight-color: transparent; margin-bottom: 14px; }
+    .btn-criar:hover { box-shadow: 0 4px 28px rgba(236,72,153,0.5); }
     .btn-criar:disabled { opacity: 0.6; cursor: not-allowed; }
-    .link-login { text-align: center; font-size: 13px; color: #4B5563; }
-    .link-login a { color: #3B82F6; font-weight: 600; text-decoration: none; }
+    .link-login { text-align: center; font-size: 13px; color: #B8AAB8; }
+    .link-login a { color: #EC4899; font-weight: 600; text-decoration: none; }
     .link-login a:hover { text-decoration: underline; }
     .msg-ok { background: rgba(34,197,94,0.08); border: 1px solid rgba(34,197,94,0.2); border-radius: 10px; padding: 11px 14px; font-size: 13px; color: #22C55E; margin-bottom: 14px; text-align: center; }
     .msg-err { background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.2); border-radius: 10px; padding: 11px 14px; font-size: 13px; color: #EF4444; margin-bottom: 14px; text-align: center; }
-    .footer { text-align: center; padding: 16px; font-size: 12px; color: #374151; display: flex; align-items: center; justify-content: center; gap: 6px; }
+    .footer { text-align: center; padding: 16px; font-size: 12px; color: #B8AAB8; display: flex; align-items: center; justify-content: center; gap: 6px; }
   `
   return (
     <div className="pg">
@@ -239,20 +239,20 @@ export default function Cadastro() {
                 <label className="label">Tipo de negócio</label>
                 <div style={{position:'relative',width:'100%'}} onBlur={e=>{if(!e.currentTarget.contains(e.relatedTarget as Node))setDropOpen(false)}}>
                   <button type="button" onClick={()=>setDropOpen(!dropOpen)}
-                    style={{width:'100%',background:'rgba(15,23,42,.92)',border:`1.5px solid ${dropOpen?'#3B82F6':'rgba(148,163,184,.18)'}`,borderRadius:'14px',padding:'13px 16px',color:tipoNegocio?'#F8FAFC':'#475569',fontSize:'15px',fontFamily:'inherit',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'space-between',gap:'8px',textAlign:'left' as const,transition:'border-color .2s',boxShadow:dropOpen?'0 0 0 3px rgba(59,130,246,.14)':'none'}}>
+                    style={{width:'100%',background:'rgba(24,16,27,.92)',border:`1.5px solid ${dropOpen?'#EC4899':'rgba(42,26,47,.18)'}`,borderRadius:'14px',padding:'13px 16px',color:tipoNegocio?'#F8F4F7':'#B8AAB8',fontSize:'15px',fontFamily:'inherit',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'space-between',gap:'8px',textAlign:'left' as const,transition:'border-color .2s',boxShadow:dropOpen?'0 0 0 3px rgba(236,72,153,.14)':'none'}}>
                     <span>{tipoNegocio||'Selecione o tipo...'}</span>
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{flexShrink:0,transition:'transform .2s',transform:dropOpen?'rotate(180deg)':'none',color:'#64748B'}}>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{flexShrink:0,transition:'transform .2s',transform:dropOpen?'rotate(180deg)':'none',color:'#B8AAB8'}}>
                       <polyline points="6 9 12 15 18 9"/>
                     </svg>
                   </button>
                   {dropOpen&&(
-                    <div style={{position:'absolute',top:'calc(100% + 6px)',left:0,right:0,background:'#0F172A',border:'1.5px solid rgba(59,130,246,.35)',borderRadius:'14px',padding:'6px',zIndex:50,boxShadow:'0 16px 40px rgba(0,0,0,.6)',overflow:'hidden'}}>
+                    <div style={{position:'absolute',top:'calc(100% + 6px)',left:0,right:0,background:'#18101B',border:'1.5px solid rgba(236,72,153,.35)',borderRadius:'14px',padding:'6px',zIndex:50,boxShadow:'0 16px 40px rgba(0,0,0,.6)',overflow:'hidden'}}>
                       {TIPOS_NEGOCIO.map(t=>(
                         <button key={t} type="button" tabIndex={0}
                           onClick={()=>{setTipoNegocio(t);setDropOpen(false)}}
-                          style={{width:'100%',padding:'10px 14px',background:tipoNegocio===t?'rgba(59,130,246,.22)':'transparent',border:'none',borderRadius:'10px',color:tipoNegocio===t?'#60A5FA':'#F8FAFC',fontSize:'14px',fontFamily:'inherit',cursor:'pointer',textAlign:'left' as const,transition:'background .12s',display:'block',fontWeight:tipoNegocio===t?600:400}}
-                          onMouseEnter={e=>(e.currentTarget.style.background=tipoNegocio===t?'rgba(59,130,246,.28)':'rgba(59,130,246,.10)')}
-                          onMouseLeave={e=>(e.currentTarget.style.background=tipoNegocio===t?'rgba(59,130,246,.22)':'transparent')}>
+                          style={{width:'100%',padding:'10px 14px',background:tipoNegocio===t?'rgba(236,72,153,.22)':'transparent',border:'none',borderRadius:'10px',color:tipoNegocio===t?'#EC4899':'#F8F4F7',fontSize:'14px',fontFamily:'inherit',cursor:'pointer',textAlign:'left' as const,transition:'background .12s',display:'block',fontWeight:tipoNegocio===t?600:400}}
+                          onMouseEnter={e=>(e.currentTarget.style.background=tipoNegocio===t?'rgba(236,72,153,.28)':'rgba(236,72,153,.10)')}
+                          onMouseLeave={e=>(e.currentTarget.style.background=tipoNegocio===t?'rgba(236,72,153,.22)':'transparent')}>
                           {t}
                         </button>
                       ))}
@@ -289,16 +289,16 @@ export default function Cadastro() {
               </div>
             )}
             <div style={{marginBottom:'16px'}}>
-              <label style={{display:'block',fontSize:'11px',fontWeight:700,color:'#94A3B8',textTransform:'uppercase' as const,letterSpacing:'.08em',marginBottom:'7px'}}>Cupom de indicação</label>
+              <label style={{display:'block',fontSize:'11px',fontWeight:700,color:'#B8AAB8',textTransform:'uppercase' as const,letterSpacing:'.08em',marginBottom:'7px'}}>Cupom de indicação</label>
               <input type="text" placeholder="Ex: JOAO" value={cupom}
                 onChange={e => { setCupom(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g,'')); setCupomStatus('idle') }}
                 onBlur={() => validarCupom(cupom)}
-                style={{width:'100%',background:'rgba(15,23,42,.92)',border:`1.5px solid ${cupomStatus==='ok'?'rgba(34,197,94,.5)':cupomStatus==='erro'?'rgba(239,68,68,.4)':'rgba(148,163,184,.18)'}`,borderRadius:'14px',padding:'13px 16px',color:'#F8FAFC',fontSize:'15px',outline:'none',fontFamily:'inherit',transition:'border-color .2s',boxSizing:'border-box' as const}} />
-              {cupomStatus==='ok'&&<p style={{fontSize:'11px',color:'#4ADE80',marginTop:'5px'}}>✓ Cupom de indicação aplicado com sucesso.</p>}
-              {cupomStatus==='erro'&&<p style={{fontSize:'11px',color:'#F87171',marginTop:'5px'}}>Cupom não encontrado. Você pode continuar sem cupom.</p>}
-              {cupomStatus==='idle'&&<p style={{fontSize:'11px',color:'#475569',marginTop:'5px'}}>Se recebeu um cupom de um parceiro, informe aqui. Campo opcional.</p>}
+                style={{width:'100%',background:'rgba(24,16,27,.92)',border:`1.5px solid ${cupomStatus==='ok'?'rgba(34,197,94,.5)':cupomStatus==='erro'?'rgba(239,68,68,.4)':'rgba(42,26,47,.18)'}`,borderRadius:'14px',padding:'13px 16px',color:'#F8F4F7',fontSize:'15px',outline:'none',fontFamily:'inherit',transition:'border-color .2s',boxSizing:'border-box' as const}} />
+              {cupomStatus==='ok'&&<p style={{fontSize:'11px',color:'#22C55E',marginTop:'5px'}}>✓ Cupom de indicação aplicado com sucesso.</p>}
+              {cupomStatus==='erro'&&<p style={{fontSize:'11px',color:'#EF4444',marginTop:'5px'}}>Cupom não encontrado. Você pode continuar sem cupom.</p>}
+              {cupomStatus==='idle'&&<p style={{fontSize:'11px',color:'#B8AAB8',marginTop:'5px'}}>Se recebeu um cupom de um parceiro, informe aqui. Campo opcional.</p>}
             </div>
-            <div style={{marginBottom:'14px',display:'flex',alignItems:'flex-start',gap:'10px'}}><input type="checkbox" id="aceite" checked={aceitou} onChange={e=>setAceitou(e.target.checked)} style={{marginTop:'2px',accentColor:'#3B82F6',width:'15px',height:'15px',flexShrink:0,cursor:'pointer'}} /><label htmlFor="aceite" style={{fontSize:'12px',color:'#9CA3AF',lineHeight:1.5,cursor:'pointer'}}>Li e aceito os <a href="/contrato-de-adesao" target="_blank" rel="noreferrer" onClick={()=>{if(cupom&&typeof window!=='undefined')localStorage.setItem('cm_cupom',cupom)}} style={{color:'#3B82F6',textDecoration:'none',fontWeight:600}}>termos de uso e contrato de adesão</a> do ClienteMarcado.</label></div>
+            <div style={{marginBottom:'14px',display:'flex',alignItems:'flex-start',gap:'10px'}}><input type="checkbox" id="aceite" checked={aceitou} onChange={e=>setAceitou(e.target.checked)} style={{marginTop:'2px',accentColor:'#EC4899',width:'15px',height:'15px',flexShrink:0,cursor:'pointer'}} /><label htmlFor="aceite" style={{fontSize:'12px',color:'#B8AAB8',lineHeight:1.5,cursor:'pointer'}}>Li e aceito os <a href="/contrato-de-adesao" target="_blank" rel="noreferrer" onClick={()=>{if(cupom&&typeof window!=='undefined')localStorage.setItem('cm_cupom',cupom)}} style={{color:'#EC4899',textDecoration:'none',fontWeight:600}}>termos de uso e contrato de adesão</a> do ClienteMarcado.</label></div>
             <button onClick={handleCadastro} disabled={loading} className="btn-criar">
               {loading ? 'Criando conta...' : (
                 <>
@@ -324,7 +324,7 @@ export default function Cadastro() {
         </div>
       </div>
       <div className="footer">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#374151" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#B8AAB8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
         </svg>
         Seus dados estão protegidos com segurança de nível empresarial.
