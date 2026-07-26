@@ -4,13 +4,17 @@ import Link from 'next/link'
 import { Zap, CalendarDays, CheckCircle, Sparkles } from 'lucide-react'
 
 // Presets de cor — mesmos do perfil
+// Compatibilidade com valores antigos salvos no banco (nao apaga dados, so traduz visualmente)
+const TEMA_LEGADO: Record<string,string> = {padrao:'modelo1', beleza:'modelo2', barbearia:'modelo3', minimal:'modelo4', saude:'modelo5'}
+function resolverTema(id:string){ return TEMA_LEGADO[id] || id }
 function getTema(temaPublico: string) {
   switch(temaPublico) {
-    case 'beleza':   return { accent:'#EC4899', soft:'rgba(236,72,153,.12)', border:'rgba(236,72,153,.28)', glow:'rgba(236,72,153,.15)', btnText:'#fff' }
-    case 'saude':    return { accent:'#22C55E', soft:'rgba(34,197,94,.12)',  border:'rgba(34,197,94,.28)',  glow:'rgba(34,197,94,.15)',  btnText:'#fff' }
-    case 'barbearia':return { accent:'#F59E0B', soft:'rgba(245,158,11,.12)', border:'rgba(245,158,11,.28)', glow:'rgba(245,158,11,.15)', btnText:'#111827' }
-    case 'minimal':  return { accent:'#3B82F6', soft:'rgba(59,130,246,.12)', border:'rgba(59,130,246,.28)', glow:'rgba(59,130,246,.15)', btnText:'#fff' }
-    default:         return { accent:'#3B82F6', soft:'rgba(59,130,246,.12)', border:'rgba(59,130,246,.28)', glow:'rgba(59,130,246,.15)', btnText:'#fff' }
+    case 'modelo1':  return { accent:'#FF4FA3', accent2:'#EC4899', secondary:'#D946EF', soft:'rgba(255,79,163,.12)', border:'rgba(255,79,163,.28)', glow:'rgba(255,79,163,.15)', btnText:'#fff' }
+    case 'modelo2':  return { accent:'#DB6A9A', accent2:'#B85C8E', secondary:'#8B5CF6', soft:'rgba(219,106,154,.12)',border:'rgba(219,106,154,.28)',glow:'rgba(219,106,154,.15)',btnText:'#fff' }
+    case 'modelo3':  return { accent:'#D4AF37', accent2:'#F0D98A', secondary:'#9C7A2F', soft:'rgba(212,175,55,.12)', border:'rgba(212,175,55,.28)', glow:'rgba(212,175,55,.15)', btnText:'#1A140A' }
+    case 'modelo4':  return { accent:'#A78BFA', accent2:'#C084FC', secondary:'#7C3AED', soft:'rgba(167,139,250,.12)',border:'rgba(167,139,250,.28)',glow:'rgba(167,139,250,.15)',btnText:'#fff' }
+    case 'modelo5':  return { accent:'#D6A77A', accent2:'#E8C39E', secondary:'#A47148', soft:'rgba(214,167,122,.12)',border:'rgba(214,167,122,.28)',glow:'rgba(214,167,122,.15)',btnText:'#2A1810' }
+    default:         return { accent:'#DB6A9A', accent2:'#B85C8E', secondary:'#8B5CF6', soft:'rgba(219,106,154,.12)',border:'rgba(219,106,154,.28)',glow:'rgba(219,106,154,.15)',btnText:'#fff' }
   }
 }
 
@@ -62,7 +66,7 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
     supabase.from('profissionais').select('*').eq('user_id', perfil.user_id).eq('ativo', true).order('nome'),
   ])
 
-  const temaId = perfil.public_theme || perfil.tema_publico || perfil.tema_cor || 'padrao'
+  const temaId = resolverTema(perfil.public_theme || perfil.tema_publico || perfil.tema_cor || 'modelo2')
   const tema = getTema(temaId)
 
   const nomeBusiness = perfil.nome_negocio || 'Agendamento Online'
@@ -73,6 +77,11 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
   const linkWpp = wppNum ? `https://wa.me/55${wppNum}?text=${encodeURIComponent('Olá! Vim pela página e gostaria de agendar.')}` : null
 
   const fBRL = (v: number) => `R$ ${(v || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`
+
+  // Promocao em destaque: aparece se ativa, com titulo e preco novo, e dentro do periodo (se houver datas)
+  const hojeISO = new Date().toISOString().split('T')[0]
+  const promoDentroPeriodo = (!perfil.promocao_data_inicio || perfil.promocao_data_inicio <= hojeISO) && (!perfil.promocao_data_fim || perfil.promocao_data_fim >= hojeISO)
+  const promoVisivel = !!(perfil.promocao_ativa && perfil.promocao_titulo && perfil.promocao_preco_novo && promoDentroPeriodo)
 
   return (
     <main style={{ minHeight: '100vh', background: '#08060A', color: '#F8F4F7', fontFamily: '-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif', overflowX: 'hidden' }}>
@@ -116,6 +125,25 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
 
       {/* CONTEUDO */}
       <div className="wrap" style={{ paddingTop: '32px', paddingBottom: '60px' }}>
+
+        {/* PROMOCAO EM DESTAQUE */}
+        {promoVisivel && (
+          <div style={{ marginBottom: '28px', background: `radial-gradient(circle at top right,${tema.soft},transparent 40%),linear-gradient(145deg,rgba(24,16,27,.97),rgba(18,10,20,.99))`, border: `1.5px solid ${tema.border}`, borderRadius: '18px', padding: '22px 24px', boxShadow: `0 0 32px ${tema.glow}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '20px', flexWrap: 'wrap' }}>
+            <div style={{ flex: 1, minWidth: '200px' }}>
+              <p style={{ fontSize: '11px', fontWeight: 800, color: tema.accent, letterSpacing: '.12em', textTransform: 'uppercase', marginBottom: '6px' }}>Oferta da semana</p>
+              <p style={{ fontSize: '19px', fontWeight: 900, color: '#F8F4F7', marginBottom: '4px' }}>{perfil.promocao_titulo}</p>
+              {perfil.promocao_descricao && <p style={{ fontSize: '13px', color: '#B8AAB8' }}>{perfil.promocao_descricao}</p>}
+              {perfil.promocao_observacao && <p style={{ fontSize: '12px', color: '#B8AAB8', marginTop: '6px' }}>{perfil.promocao_observacao}</p>}
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
+              {perfil.promocao_preco_antigo && <p style={{ fontSize: '12px', color: '#B8AAB8', textDecoration: 'line-through', margin: 0 }}>De {fBRL(parseFloat(perfil.promocao_preco_antigo))}</p>}
+              <p style={{ fontSize: '24px', fontWeight: 900, color: tema.accent, margin: 0 }}>{fBRL(parseFloat(perfil.promocao_preco_novo))}</p>
+              <Link href={`/${slug}/agendar`} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: `linear-gradient(135deg,${tema.accent},${tema.accent2},${tema.secondary})`, color: tema.btnText, fontWeight: 800, padding: '11px 22px', borderRadius: '12px', textDecoration: 'none', fontSize: '14px', boxShadow: `0 8px 24px ${tema.glow}`, whiteSpace: 'nowrap' }}>
+                {perfil.promocao_botao_texto || 'Agendar promoção'} →
+              </Link>
+            </div>
+          </div>
+        )}
 
         {/* SERVICOS */}
         {servicos && servicos.length > 0 && (

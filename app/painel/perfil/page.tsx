@@ -24,20 +24,24 @@ const DIAS=['Dom','Seg','Ter','Qua','Qui','Sex','Sáb']
 const INTERVALOS=['15 min','30 min','45 min','1 hora']
 const ANTECEDENCIAS=['Sem restrição','1 hora antes','2 horas antes','4 horas antes','1 dia antes']
 
+// Compatibilidade com valores antigos salvos no banco (nao apaga dados, so traduz visualmente)
+const TEMA_LEGADO: Record<string,string> = {padrao:'modelo1', beleza:'modelo2', barbearia:'modelo3', minimal:'modelo4', saude:'modelo5'}
+function resolverTema(id:string){ return TEMA_LEGADO[id] || id }
+
 const TEMAS=[
-  {id:'padrao',nome:'Padrão ClienteMarcado',desc:'Azul + roxo, ideal para qualquer negócio.',p:'#3B82F6',s:'#7C3AED'},
-  {id:'beleza',nome:'Beleza Premium',desc:'Rosa + roxo, ideal para estética, salão e beleza.',p:'#EC4899',s:'#7C3AED'},
-  {id:'saude',nome:'Saúde Premium',desc:'Verde + ciano, ideal para clínicas e saúde.',p:'#22C55E',s:'#22D3EE'},
-  {id:'barbearia',nome:'Barbearia Premium',desc:'Laranja + dourado, ideal para barbearias.',p:'#F59E0B',s:'#FACC15'},
-  {id:'minimal',nome:'Minimal Premium',desc:'Azul + cinza, visual neutro e profissional.',p:'#3B82F6',s:'#94A3B8'},
+  {id:'modelo1',nome:'Modelo 1',desc:'Rosa vibrante, moderno e marcante.',p:'#FF4FA3',s:'#D946EF'},
+  {id:'modelo2',nome:'Modelo 2',desc:'Rosa suave e elegante, com presença sofisticada.',p:'#DB6A9A',s:'#8B5CF6'},
+  {id:'modelo3',nome:'Modelo 3',desc:'Preto e dourado, visual luxuoso e de alto padrão.',p:'#D4AF37',s:'#9C7A2F'},
+  {id:'modelo4',nome:'Modelo 4',desc:'Lilás e roxo, delicado, moderno e sofisticado.',p:'#A78BFA',s:'#7C3AED'},
+  {id:'modelo5',nome:'Modelo 5',desc:'Nude e champagne, visual natural e acolhedor.',p:'#D6A77A',s:'#A47148'},
 ]
 
 const TEMA_CORES: Record<string, {primary:string;secondary:string;accent:string;border:string;bg:string;text:string;btnText:string}> = {
-  padrao:    {primary:'#3B82F6',secondary:'#7C3AED',accent:'#818CF8',border:'rgba(99,102,241,.38)',   bg:'rgba(99,102,241,.10)', text:'#A5B4FC', btnText:'#fff'},
-  beleza:    {primary:'#EC4899',secondary:'#A855F7',accent:'#F472B6',border:'rgba(236,72,153,.38)',   bg:'rgba(236,72,153,.10)', text:'#F9A8D4', btnText:'#fff'},
-  saude:     {primary:'#22C55E',secondary:'#06B6D4',accent:'#34D399',border:'rgba(34,197,94,.38)',    bg:'rgba(34,197,94,.10)',  text:'#86EFAC', btnText:'#fff'},
-  barbearia: {primary:'#F59E0B',secondary:'#FACC15',accent:'#FCD34D',border:'rgba(245,158,11,.38)',   bg:'rgba(245,158,11,.10)', text:'#FCD34D', btnText:'#020617'},
-  minimal:   {primary:'#3B82F6',secondary:'#94A3B8',accent:'#94A3B8',border:'rgba(100,116,139,.38)', bg:'rgba(100,116,139,.10)',text:'#CBD5E1', btnText:'#fff'},
+  modelo1: {primary:'#FF4FA3',secondary:'#D946EF',accent:'#EC4899',border:'rgba(255,79,163,.38)', bg:'rgba(255,79,163,.10)', text:'#FF8FC4', btnText:'#fff'},
+  modelo2: {primary:'#DB6A9A',secondary:'#8B5CF6',accent:'#B85C8E',border:'rgba(219,106,154,.38)',bg:'rgba(219,106,154,.10)',text:'#D8A0BE', btnText:'#fff'},
+  modelo3: {primary:'#D4AF37',secondary:'#9C7A2F',accent:'#F0D98A',border:'rgba(212,175,55,.38)', bg:'rgba(212,175,55,.10)', text:'#F0D98A', btnText:'#1A140A'},
+  modelo4: {primary:'#A78BFA',secondary:'#7C3AED',accent:'#C084FC',border:'rgba(167,139,250,.38)',bg:'rgba(167,139,250,.10)',text:'#C4B5FD', btnText:'#fff'},
+  modelo5: {primary:'#D6A77A',secondary:'#A47148',accent:'#E8C39E',border:'rgba(214,167,122,.38)',bg:'rgba(214,167,122,.10)',text:'#E8C39E', btnText:'#2A1810'},
 }
 
 const CSS=`
@@ -114,9 +118,9 @@ export default function Perfil(){
   const [abertura,setAbertura]=useState('08:00')
   const [fechamento,setFechamento]=useState('18:00')
   const [antecedencia,setAntecedencia]=useState('Sem restrição')
-  const [publicTheme,setPublicTheme]=useState('padrao')
+  const [publicTheme,setPublicTheme]=useState('modelo2')
 
-  const tc = TEMA_CORES[publicTheme] ?? TEMA_CORES.padrao
+  const tc = TEMA_CORES[publicTheme] ?? TEMA_CORES.modelo2
 
   useEffect(()=>{load()},[])
 
@@ -143,7 +147,7 @@ export default function Perfil(){
       if(p.abertura_geral) setAbertura(p.abertura_geral)
       if(p.fechamento_geral) setFechamento(p.fechamento_geral)
       if(p.antecedencia||p.antecedencia_minima) setAntecedencia(p.antecedencia||p.antecedencia_minima||'Sem restrição')
-      if(p.public_theme||p.tema_publico||p.tema_cor) setPublicTheme(p.public_theme||p.tema_publico||p.tema_cor||'padrao')
+      if(p.public_theme||p.tema_publico||p.tema_cor) setPublicTheme(resolverTema(p.public_theme||p.tema_publico||p.tema_cor||'modelo2'))
       if(p.promocao_ativa!==undefined&&p.promocao_ativa!==null) setPromoAtiva(p.promocao_ativa)
       if(p.promocao_titulo) setPromoTitulo(p.promocao_titulo)
       if(p.promocao_descricao) setPromoDesc(p.promocao_descricao)
@@ -440,13 +444,14 @@ export default function Perfil(){
               <p style={{fontSize:'12px',color:'#64748B',marginBottom:'14px'}}>Escolha uma cor pronta para combinar com o estilo do seu negócio. Afeta apenas a página pública.</p>
               <div className="temas-grid" style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'10px'}}>
                 {TEMAS.map(t=>(
-                  <button key={t.id} onClick={()=>setPublicTheme(t.id)} className={`tema-card${publicTheme===t.id?' on':''}`}>
+                  <button key={t.id} onClick={()=>setPublicTheme(t.id)} className={`tema-card${publicTheme===t.id?' on':''}`}
+                    style={publicTheme===t.id?{borderColor:t.p,background:`${t.p}1A`,boxShadow:`0 0 18px ${t.p}30`}:undefined}>
                     <div style={{display:'flex',alignItems:'center',gap:'8px',marginBottom:'8px'}}>
                       <div style={{display:'flex',gap:'4px'}}>
                         <div style={{width:'16px',height:'16px',borderRadius:'50%',background:t.p,flexShrink:0}}/>
                         <div style={{width:'16px',height:'16px',borderRadius:'50%',background:t.s,flexShrink:0}}/>
                       </div>
-                      {publicTheme===t.id&&<span style={{fontSize:'10px',fontWeight:700,color:'#C4B5FD',background:'rgba(124,58,237,.18)',borderRadius:'6px',padding:'2px 7px',marginLeft:'auto'}}>Ativo</span>}
+                      {publicTheme===t.id&&<span style={{fontSize:'10px',fontWeight:700,color:t.p,background:`${t.p}24`,borderRadius:'6px',padding:'2px 7px',marginLeft:'auto'}}>Ativo</span>}
                     </div>
                     <p style={{fontSize:'12px',fontWeight:700,color:publicTheme===t.id?'#F8FAFC':'#CBD5E1',marginBottom:'3px'}}>{t.nome}</p>
                     <p style={{fontSize:'11px',color:'#64748B',lineHeight:1.4}}>{t.desc}</p>
@@ -531,7 +536,7 @@ export default function Perfil(){
                     {promoPrecoAnt&&<p style={{fontSize:12,color:'#64748B',textDecoration:'line-through',margin:0}}>De R$ {promoPrecoAnt}</p>}
                     {promoPrecoNovo&&<p style={{fontSize:24,fontWeight:900,color:tc.accent,margin:0}}>R$ {promoPrecoNovo}</p>}
                     <div style={{
-                      background:`linear-gradient(135deg,${tc.primary},${tc.secondary})`,
+                      background:`linear-gradient(135deg,${tc.primary},${tc.accent},${tc.secondary})`,
                       color:tc.btnText,
                       borderRadius:10,
                       padding:'9px 20px',
