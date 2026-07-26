@@ -120,7 +120,7 @@ export default function NovoAgendamento(){
       if(confError){console.error('Erro ao validar conflito:',confError);setErros(['Erro ao validar horario. Tente novamente.']);setSalvando(false);return}
       const conflitoAtivo=(conf||[]).some((a:any)=>a.status?.toLowerCase()!=='cancelado')
       if(conflitoAtivo){setErros(['Esse horario ja esta ocupado. Escolha outro horario.']);setSalvando(false);return}
-      const {error}=await supabase.from("agendamentos").insert({user_id:user.id,cliente_nome:cNome.trim(),cliente_whatsapp:wpp||null,servico_id:servId||null,profissional_id:profId||null,data_hora:data+"T"+hora+":00",status:"pendente",observacoes:obs.trim()||null,valor:valor?parseFloat(valor):null})
+      const {error}=await supabase.from("agendamentos").insert({user_id:user.id,cliente_nome:cNome.trim(),cliente_whatsapp:wpp||null,servico_id:servId||null,profissional_id:profId||null,data_hora:data+"T"+hora+":00",status:status,observacoes:obs.trim()||null,valor:valor?parseFloat(valor):null})
       if(error){console.error("Erro:",JSON.stringify(error));setErros(["Erro ao salvar. Tente novamente."]);setSalvando(false);return}
       router.push("/painel/agendamentos")
     }catch(e){console.error("Erro inesperado:",e);setErros(["Erro inesperado."]);setSalvando(false)}
