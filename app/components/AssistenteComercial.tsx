@@ -88,11 +88,11 @@ export default function AssistenteComercial({ checkoutUrl = '/cadastro' }: Props
           style={{
             position: 'fixed', bottom: 24, right: 24, zIndex: 9000,
             display: 'flex', alignItems: 'center', gap: 8,
-            background: 'linear-gradient(135deg,#3B82F6,#7C3AED)',
+            background: 'linear-gradient(135deg,#EC4899,#8B5CF6)',
             color: '#fff', border: '1px solid rgba(255,255,255,.12)',
             borderRadius: 999, padding: '12px 20px', fontSize: 14, fontWeight: 700,
             cursor: 'pointer', fontFamily: 'inherit',
-            boxShadow: '0 8px 32px rgba(59,130,246,.35)',
+            boxShadow: '0 8px 32px rgba(236,72,153,.35)',
             transition: 'transform .18s',
           }}
           onMouseEnter={e => (e.currentTarget.style.transform = 'translateY(-2px)')}
@@ -109,8 +109,8 @@ export default function AssistenteComercial({ checkoutUrl = '/cadastro' }: Props
           position: 'fixed', bottom: 24, right: 24, zIndex: 9001,
           width: 'min(420px, calc(100vw - 32px))',
           maxHeight: 'min(580px, 80vh)',
-          background: 'linear-gradient(145deg,rgba(15,23,42,.99),rgba(7,17,31,.99))',
-          border: '1.5px solid rgba(148,163,184,.18)', borderRadius: 24,
+          background: 'linear-gradient(145deg,rgba(24,16,27,.99),rgba(18,10,20,.99))',
+          border: '1.5px solid #2A1A2F', borderRadius: 24,
           boxShadow: '0 32px 80px rgba(0,0,0,.55)',
           display: 'flex', flexDirection: 'column', overflow: 'hidden',
           fontFamily: '-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif',
@@ -118,35 +118,35 @@ export default function AssistenteComercial({ checkoutUrl = '/cadastro' }: Props
           {/* Header */}
           <div style={{
             padding: '18px 20px 14px',
-            background: 'linear-gradient(135deg,rgba(59,130,246,.15),rgba(124,58,237,.12))',
-            borderBottom: '1px solid rgba(148,163,184,.10)',
+            background: 'linear-gradient(135deg,rgba(236,72,153,.15),rgba(139,92,246,.12))',
+            borderBottom: '1px solid #2A1A2F',
             display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0,
           }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <div style={{ width: 36, height: 36, borderRadius: 10, background: 'linear-gradient(135deg,#3B82F6,#7C3AED)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 16px rgba(124,58,237,.4)' }}>
+              <div style={{ width: 36, height: 36, borderRadius: 10, background: 'linear-gradient(135deg,#EC4899,#8B5CF6)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 16px rgba(139,92,246,.4)' }}>
                 <MessageCircle size={16} color="#fff" />
               </div>
               <div>
-                <p style={{ fontSize: 13, fontWeight: 800, color: '#F8FAFC', margin: 0 }}>Assistente ClienteMarcado</p>
-                <p style={{ fontSize: 11, color: '#64748B', margin: 0 }}>Tire dúvidas antes de começar</p>
+                <p style={{ fontSize: 13, fontWeight: 800, color: '#F8F4F7', margin: 0 }}>Assistente ClienteMarcado</p>
+                <p style={{ fontSize: 11, color: '#B8AAB8', margin: 0 }}>Tire dúvidas antes de começar</p>
               </div>
             </div>
-            <button onClick={() => { setAberto(false); setPerguntaAtiva(''); setResposta('') }} style={{ background: 'rgba(148,163,184,.12)', border: 'none', borderRadius: 8, padding: 6, cursor: 'pointer', color: '#94A3B8', display: 'flex' }}>
+            <button onClick={() => { setAberto(false); setPerguntaAtiva(''); setResposta('') }} style={{ background: '#2A1A2F', border: 'none', borderRadius: 8, padding: 6, cursor: 'pointer', color: '#B8AAB8', display: 'flex' }}>
               <X size={16} />
             </button>
           </div>
 
           {/* Corpo */}
           <div style={{ flex: 1, overflowY: 'auto', padding: '16px 16px 12px' }}>
-            <div style={{ background: 'rgba(59,130,246,.10)', border: '1px solid rgba(59,130,246,.20)', borderRadius: 14, padding: '12px 14px', marginBottom: 14 }}>
-              <p style={{ fontSize: 13, color: '#CBD5E1', lineHeight: 1.6, margin: 0 }}>
-                Olá! Posso te ajudar a entender se o ClienteMarcado serve para o seu negócio, como funcionam os <strong style={{ color: '#93C5FD' }}>7 dias grátis</strong> e o que está incluso no plano.
+            <div style={{ background: 'rgba(236,72,153,.10)', border: '1px solid rgba(236,72,153,.20)', borderRadius: 14, padding: '12px 14px', marginBottom: 14 }}>
+              <p style={{ fontSize: 13, color: '#B8AAB8', lineHeight: 1.6, margin: 0 }}>
+                Olá! Posso te ajudar a entender se o ClienteMarcado serve para o seu negócio, como funcionam os <strong style={{ color: '#F9A8D4' }}>7 dias grátis</strong> e o que está incluso no plano.
               </p>
             </div>
 
             {resposta && (
               <div style={{ background: 'rgba(34,197,94,.08)', border: '1px solid rgba(34,197,94,.20)', borderRadius: 14, padding: '12px 14px', marginBottom: 14 }}>
-                <p style={{ fontSize: 13, color: '#CBD5E1', lineHeight: 1.6, margin: 0 }}>{resposta}</p>
+                <p style={{ fontSize: 13, color: '#B8AAB8', lineHeight: 1.6, margin: 0 }}>{resposta}</p>
               </div>
             )}
             {perguntaAtiva === 'nao-encontrado' && !resposta && (
@@ -155,14 +155,14 @@ export default function AssistenteComercial({ checkoutUrl = '/cadastro' }: Props
               </div>
             )}
 
-            <p style={{ fontSize: 11, fontWeight: 700, color: '#475569', textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 8 }}>Dúvidas frequentes</p>
+            <p style={{ fontSize: 11, fontWeight: 700, color: '#B8AAB8', textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 8 }}>Dúvidas frequentes</p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
               {BOTOES_RAPIDOS.map(b => (
                 <button key={b.id} onClick={() => responder(b.id)} style={{
-                  background: perguntaAtiva === b.id ? 'rgba(59,130,246,.16)' : 'rgba(15,23,42,.72)',
-                  border: `1px solid ${perguntaAtiva === b.id ? 'rgba(59,130,246,.40)' : 'rgba(148,163,184,.14)'}`,
+                  background: perguntaAtiva === b.id ? 'rgba(236,72,153,.16)' : 'rgba(24,16,27,.72)',
+                  border: `1px solid ${perguntaAtiva === b.id ? 'rgba(236,72,153,.40)' : '#2A1A2F'}`,
                   borderRadius: 10, padding: '9px 12px', fontSize: 13,
-                  color: perguntaAtiva === b.id ? '#93C5FD' : '#CBD5E1',
+                  color: perguntaAtiva === b.id ? '#F9A8D4' : '#B8AAB8',
                   cursor: 'pointer', textAlign: 'left', fontFamily: 'inherit',
                   display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                   fontWeight: perguntaAtiva === b.id ? 700 : 400, transition: 'all .15s',
@@ -175,7 +175,7 @@ export default function AssistenteComercial({ checkoutUrl = '/cadastro' }: Props
           </div>
 
           {/* Input + CTAs */}
-          <div style={{ padding: '10px 12px', borderTop: '1px solid rgba(148,163,184,.10)', flexShrink: 0 }}>
+          <div style={{ padding: '10px 12px', borderTop: '1px solid #2A1A2F', flexShrink: 0 }}>
             <div style={{ display: 'flex', gap: 8, marginBottom: 10 }}>
               <input
                 ref={inputRef}
@@ -183,14 +183,14 @@ export default function AssistenteComercial({ checkoutUrl = '/cadastro' }: Props
                 onChange={e => setInput(e.target.value)}
                 onKeyDown={e => e.key === 'Enter' && enviarInput()}
                 placeholder="Digite sua dúvida..."
-                style={{ flex: 1, background: 'rgba(15,23,42,.88)', border: '1px solid rgba(148,163,184,.18)', borderRadius: 10, padding: '9px 12px', fontSize: 13, color: '#F8FAFC', outline: 'none', fontFamily: 'inherit' }}
+                style={{ flex: 1, background: 'rgba(24,16,27,.88)', border: '1px solid #2A1A2F', borderRadius: 10, padding: '9px 12px', fontSize: 13, color: '#F8F4F7', outline: 'none', fontFamily: 'inherit' }}
               />
-              <button onClick={enviarInput} style={{ background: 'linear-gradient(135deg,#3B82F6,#7C3AED)', border: 'none', borderRadius: 10, padding: '0 14px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <button onClick={enviarInput} style={{ background: 'linear-gradient(135deg,#EC4899,#8B5CF6)', border: 'none', borderRadius: 10, padding: '0 14px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <Send size={15} color="#fff" />
               </button>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-              <a href={checkoutUrl} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(135deg,#3B82F6,#7C3AED)', color: '#fff', borderRadius: 10, padding: '9px 8px', fontSize: 12, fontWeight: 800, textDecoration: 'none', boxShadow: '0 4px 16px rgba(59,130,246,.28)' }}>
+              <a href={checkoutUrl} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(135deg,#EC4899,#8B5CF6)', color: '#fff', borderRadius: 10, padding: '9px 8px', fontSize: 12, fontWeight: 800, textDecoration: 'none', boxShadow: '0 4px 16px rgba(236,72,153,.28)' }}>
                 Começar grátis →
               </a>
               <a href={linkWpp} target="_blank" rel="noreferrer" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5, background: 'rgba(34,197,94,.12)', border: '1px solid rgba(34,197,94,.25)', color: '#4ADE80', borderRadius: 10, padding: '9px 8px', fontSize: 12, fontWeight: 700, textDecoration: 'none' }}>

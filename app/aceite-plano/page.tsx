@@ -21,32 +21,32 @@ const CLAUSULAS = [
 
 const CSS = `
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-html,body{overflow-x:hidden;width:100%;max-width:100%;background:#050B16}
-.pg{min-height:100vh;background:radial-gradient(circle at 15% 20%,rgba(124,58,237,.16),transparent 32%),radial-gradient(circle at 85% 15%,rgba(59,130,246,.13),transparent 30%),#050B16;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;padding:0 16px 64px}
+html,body{overflow-x:hidden;width:100%;max-width:100%;background:#08060A}
+.pg{min-height:100vh;background:radial-gradient(circle at 15% 20%,rgba(139,92,246,.16),transparent 32%),radial-gradient(circle at 85% 15%,rgba(236,72,153,.13),transparent 30%),#08060A;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;padding:0 16px 64px}
 .wrap{max-width:700px;margin:0 auto;width:100%}
 .hdr{display:flex;align-items:center;justify-content:space-between;padding:24px 0 32px}
 .logo-row{display:flex;align-items:center;gap:10px;text-decoration:none}
-.logo-ic{width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,#3B82F6,#7C3AED);display:flex;align-items:center;justify-content:center;box-shadow:0 0 20px rgba(124,58,237,.5);flex-shrink:0}
-.logo-txt{font-size:15px;font-weight:800;color:#F8FAFC;letter-spacing:-0.02em}
-.btn-v{background:rgba(15,23,42,.88);color:#94A3B8;border:1px solid rgba(148,163,184,.18);border-radius:10px;height:36px;padding:0 16px;font-size:13px;font-weight:600;display:inline-flex;align-items:center;gap:6px;text-decoration:none;white-space:nowrap;cursor:pointer;font-family:inherit}
-.card{background:radial-gradient(circle at top left,rgba(59,130,246,.06),transparent 40%),linear-gradient(145deg,rgba(15,23,42,.97),rgba(8,20,33,.99));border:1.5px solid rgba(148,163,184,.16);border-radius:22px;padding:28px;margin-bottom:16px;box-shadow:0 16px 48px rgba(0,0,0,.35)}
+.logo-ic{width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,#EC4899,#D946EF,#8B5CF6);display:flex;align-items:center;justify-content:center;box-shadow:0 0 20px rgba(139,92,246,.5);flex-shrink:0}
+.logo-txt{font-size:15px;font-weight:800;color:#F8F4F7;letter-spacing:-0.02em}
+.btn-v{background:rgba(24,16,27,.88);color:#B8AAB8;border:1px solid rgba(42,26,47,.18);border-radius:10px;height:36px;padding:0 16px;font-size:13px;font-weight:600;display:inline-flex;align-items:center;gap:6px;text-decoration:none;white-space:nowrap;cursor:pointer;font-family:inherit}
+.card{background:radial-gradient(circle at top left,rgba(236,72,153,.06),transparent 40%),linear-gradient(145deg,rgba(24,16,27,.97),rgba(18,10,20,.99));border:1.5px solid rgba(42,26,47,.16);border-radius:22px;padding:28px;margin-bottom:16px;box-shadow:0 16px 48px rgba(0,0,0,.35)}
 .badge{display:inline-flex;align-items:center;padding:3px 10px;border-radius:999px;font-size:11px;font-weight:700}
-.contrato-scroll{max-height:360px;overflow-y:auto;background:rgba(2,6,23,.45);border:1px solid rgba(148,163,184,.12);border-radius:16px;padding:20px;scrollbar-width:thin;scrollbar-color:rgba(148,163,184,.2) transparent}
+.contrato-scroll{max-height:360px;overflow-y:auto;background:rgba(8,6,10,.45);border:1px solid rgba(42,26,47,.12);border-radius:16px;padding:20px;scrollbar-width:thin;scrollbar-color:rgba(42,26,47,.2) transparent}
 .contrato-scroll::-webkit-scrollbar{width:4px}
-.contrato-scroll::-webkit-scrollbar-thumb{background:rgba(148,163,184,.2);border-radius:4px}
-.clausula{padding:12px 0;border-bottom:1px solid rgba(148,163,184,.08)}
+.contrato-scroll::-webkit-scrollbar-thumb{background:rgba(42,26,47,.2);border-radius:4px}
+.clausula{padding:12px 0;border-bottom:1px solid rgba(42,26,47,.08)}
 .clausula:last-child{border-bottom:none}
-.chk-row{display:flex;align-items:flex-start;gap:12px;padding:14px;background:rgba(59,130,246,.05);border:1px solid rgba(59,130,246,.14);border-radius:12px;cursor:pointer;margin-bottom:10px;transition:border-color .15s}
-.chk-row:hover{border-color:rgba(59,130,246,.28)}
-.chk-box{width:20px;height:20px;border-radius:6px;border:2px solid rgba(148,163,184,.30);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;transition:all .15s}
-.chk-box.on{background:#3B82F6;border-color:#3B82F6}
-.btn-p{width:100%;background:linear-gradient(135deg,#3B82F6,#7C3AED);color:#fff;border:none;border-radius:14px;padding:16px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 12px 28px rgba(59,130,246,.25);transition:all .18s;margin-bottom:12px}
-.btn-p:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 16px 34px rgba(124,58,237,.28)}
+.chk-row{display:flex;align-items:flex-start;gap:12px;padding:14px;background:rgba(236,72,153,.05);border:1px solid rgba(236,72,153,.14);border-radius:12px;cursor:pointer;margin-bottom:10px;transition:border-color .15s}
+.chk-row:hover{border-color:rgba(236,72,153,.28)}
+.chk-box{width:20px;height:20px;border-radius:6px;border:2px solid rgba(42,26,47,.30);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;transition:all .15s}
+.chk-box.on{background:#EC4899;border-color:#EC4899}
+.btn-p{width:100%;background:linear-gradient(135deg,#EC4899,#D946EF,#8B5CF6);color:#fff;border:none;border-radius:14px;padding:16px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 12px 28px rgba(236,72,153,.25);transition:all .18s;margin-bottom:12px}
+.btn-p:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 16px 34px rgba(139,92,246,.28)}
 .btn-p:disabled{opacity:.45;cursor:not-allowed;transform:none}
-.msg-err{background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.28);border-radius:10px;padding:10px 14px;font-size:13px;color:#F87171;margin-bottom:14px;text-align:center}
+.msg-err{background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.28);border-radius:10px;padding:10px 14px;font-size:13px;color:#EF4444;margin-bottom:14px;text-align:center}
 .links-row{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
-.links-row a{font-size:12px;color:#475569;text-decoration:none;transition:color .15s}
-.links-row a:hover{color:#7C3AED}
+.links-row a{font-size:12px;color:#B8AAB8;text-decoration:none;transition:color .15s}
+.links-row a:hover{color:#8B5CF6}
 @media(max-width:480px){.card{padding:20px 16px;border-radius:18px}.hdr{padding:18px 0 24px}}
 `
 
@@ -90,30 +90,30 @@ export default function AceitePlano() {
 
         {/* Intro */}
         <div style={{ marginBottom: '28px' }}>
-          <h1 style={{ fontSize: '28px', fontWeight: 800, color: '#F8FAFC', letterSpacing: '-0.03em', marginBottom: '8px' }}>Antes de começar</h1>
-          <p style={{ fontSize: '14px', color: '#64748B', lineHeight: 1.6 }}>Revise o plano, leia o contrato e confirme seu aceite para ativar seu teste grátis.</p>
+          <h1 style={{ fontSize: '28px', fontWeight: 800, color: '#F8F4F7', letterSpacing: '-0.03em', marginBottom: '8px' }}>Antes de começar</h1>
+          <p style={{ fontSize: '14px', color: '#B8AAB8', lineHeight: 1.6 }}>Revise o plano, leia o contrato e confirme seu aceite para ativar seu teste grátis.</p>
         </div>
 
         {/* Card do plano */}
         <div className="card">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '12px', marginBottom: '16px' }}>
             <div>
-              <p style={{ fontSize: '18px', fontWeight: 800, color: '#F8FAFC', marginBottom: '8px' }}>Plano ClienteMarcado</p>
+              <p style={{ fontSize: '18px', fontWeight: 800, color: '#F8F4F7', marginBottom: '8px' }}>Plano ClienteMarcado</p>
               <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-                <span className="badge" style={{ background: 'rgba(34,197,94,.14)', border: '1px solid rgba(34,197,94,.28)', color: '#4ADE80' }}>7 dias grátis</span>
-                <span className="badge" style={{ background: 'rgba(148,163,184,.10)', border: '1px solid rgba(148,163,184,.18)', color: '#94A3B8' }}>Sem fidelidade</span>
-                <span className="badge" style={{ background: 'rgba(148,163,184,.10)', border: '1px solid rgba(148,163,184,.18)', color: '#94A3B8' }}>Cancele quando quiser</span>
+                <span className="badge" style={{ background: 'rgba(34,197,94,.14)', border: '1px solid rgba(34,197,94,.28)', color: '#22C55E' }}>7 dias grátis</span>
+                <span className="badge" style={{ background: 'rgba(42,26,47,.10)', border: '1px solid rgba(42,26,47,.18)', color: '#B8AAB8' }}>Sem fidelidade</span>
+                <span className="badge" style={{ background: 'rgba(42,26,47,.10)', border: '1px solid rgba(42,26,47,.18)', color: '#B8AAB8' }}>Cancele quando quiser</span>
               </div>
             </div>
             <div style={{ textAlign: 'right' }}>
-              <p style={{ fontSize: '28px', fontWeight: 800, color: '#60A5FA', letterSpacing: '-0.02em', lineHeight: 1 }}>R$ 79,90</p>
-              <p style={{ fontSize: '12px', color: '#64748B' }}>/mês após o teste</p>
+              <p style={{ fontSize: '28px', fontWeight: 800, color: '#EC4899', letterSpacing: '-0.02em', lineHeight: 1 }}>R$ 79,90</p>
+              <p style={{ fontSize: '12px', color: '#B8AAB8' }}>/mês após o teste</p>
             </div>
           </div>
-          <div style={{ borderTop: '1px solid rgba(148,163,184,.10)', paddingTop: '14px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
+          <div style={{ borderTop: '1px solid rgba(42,26,47,.10)', paddingTop: '14px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
             {['Agenda e agendamento online', 'Clientes e profissionais', 'Orçamentos e cobranças', 'Pagamentos e relatórios', 'Página pública de agendamento', 'Suporte por WhatsApp'].map(i => (
-              <div key={i} style={{ display: 'flex', gap: '6px', alignItems: 'center', fontSize: '12px', color: '#94A3B8' }}>
-                <span style={{ color: '#4ADE80', flexShrink: 0 }}>✓</span>{i}
+              <div key={i} style={{ display: 'flex', gap: '6px', alignItems: 'center', fontSize: '12px', color: '#B8AAB8' }}>
+                <span style={{ color: '#22C55E', flexShrink: 0 }}>✓</span>{i}
               </div>
             ))}
           </div>
@@ -125,14 +125,14 @@ export default function AceitePlano() {
         {/* Card do contrato */}
         <div className="card">
           <div style={{ marginBottom: '16px' }}>
-            <p style={{ fontSize: '16px', fontWeight: 700, color: '#F8FAFC', marginBottom: '4px' }}>Contrato de Adesão</p>
-            <p style={{ fontSize: '12px', color: '#64748B' }}>Leia os principais termos antes de continuar. · Versão 1.0</p>
+            <p style={{ fontSize: '16px', fontWeight: 700, color: '#F8F4F7', marginBottom: '4px' }}>Contrato de Adesão</p>
+            <p style={{ fontSize: '12px', color: '#B8AAB8' }}>Leia os principais termos antes de continuar. · Versão 1.0</p>
           </div>
           <div className="contrato-scroll">
             {CLAUSULAS.map(c => (
               <div key={c.t} className="clausula">
-                <p style={{ fontSize: '12px', fontWeight: 700, color: '#CBD5E1', marginBottom: '4px' }}>{c.t}</p>
-                <p style={{ fontSize: '12px', color: '#64748B', lineHeight: 1.7 }}>{c.c}</p>
+                <p style={{ fontSize: '12px', fontWeight: 700, color: '#B8AAB8', marginBottom: '4px' }}>{c.t}</p>
+                <p style={{ fontSize: '12px', color: '#B8AAB8', lineHeight: 1.7 }}>{c.c}</p>
               </div>
             ))}
           </div>
@@ -140,27 +140,27 @@ export default function AceitePlano() {
 
         {/* Card de aceite */}
         <div className="card">
-          <p style={{ fontSize: '15px', fontWeight: 700, color: '#F8FAFC', marginBottom: '16px' }}>Confirmação de aceite</p>
+          <p style={{ fontSize: '15px', fontWeight: 700, color: '#F8F4F7', marginBottom: '16px' }}>Confirmação de aceite</p>
 
           <div className="chk-row" onClick={() => { setC1(!c1); setErro('') }}>
             <div className={'chk-box' + (c1 ? ' on' : '')}>
               {c1 && <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>}
             </div>
-            <p style={{ fontSize: '13px', color: '#CBD5E1', lineHeight: 1.5 }}>Li e aceito o <Link href="/contrato-de-adesao" target="_blank" onClick={e => e.stopPropagation()} style={{ color: '#7C3AED', fontWeight: 600 }}>Contrato de Adesão</Link> do ClienteMarcado.</p>
+            <p style={{ fontSize: '13px', color: '#B8AAB8', lineHeight: 1.5 }}>Li e aceito o <Link href="/contrato-de-adesao" target="_blank" onClick={e => e.stopPropagation()} style={{ color: '#8B5CF6', fontWeight: 600 }}>Contrato de Adesão</Link> do ClienteMarcado.</p>
           </div>
 
           <div className="chk-row" onClick={() => { setC2(!c2); setErro('') }}>
             <div className={'chk-box' + (c2 ? ' on' : '')}>
               {c2 && <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>}
             </div>
-            <p style={{ fontSize: '13px', color: '#CBD5E1', lineHeight: 1.5 }}>Li e aceito os <Link href="/termos-de-uso" target="_blank" onClick={e => e.stopPropagation()} style={{ color: '#7C3AED', fontWeight: 600 }}>Termos de Uso</Link> e a <Link href="/politica-de-privacidade" target="_blank" onClick={e => e.stopPropagation()} style={{ color: '#7C3AED', fontWeight: 600 }}>Politica de Privacidade</Link>.</p>
+            <p style={{ fontSize: '13px', color: '#B8AAB8', lineHeight: 1.5 }}>Li e aceito os <Link href="/termos-de-uso" target="_blank" onClick={e => e.stopPropagation()} style={{ color: '#8B5CF6', fontWeight: 600 }}>Termos de Uso</Link> e a <Link href="/politica-de-privacidade" target="_blank" onClick={e => e.stopPropagation()} style={{ color: '#8B5CF6', fontWeight: 600 }}>Politica de Privacidade</Link>.</p>
           </div>
 
           <div className="chk-row" onClick={() => { setC3(!c3); setErro('') }}>
             <div className={'chk-box' + (c3 ? ' on' : '')}>
               {c3 && <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>}
             </div>
-            <p style={{ fontSize: '13px', color: '#CBD5E1', lineHeight: 1.5 }}>Estou ciente de que o plano possui 7 dias grátis e, após esse período, poderei ser cobrado R$ 79,90/mês, caso não cancele antes.</p>
+            <p style={{ fontSize: '13px', color: '#B8AAB8', lineHeight: 1.5 }}>Estou ciente de que o plano possui 7 dias grátis e, após esse período, poderei ser cobrado R$ 79,90/mês, caso não cancele antes.</p>
           </div>
 
           {erro && <div className="msg-err">{erro}</div>}
@@ -171,10 +171,10 @@ export default function AceitePlano() {
 
           <div className="links-row">
             <a href="/">← Voltar</a>
-            <span style={{ color: '#1E293B' }}>·</span>
-            <Link href="/termos-de-uso" style={{ fontSize: '12px', color: '#475569', textDecoration: 'none' }}>Termos de Uso</Link>
-            <span style={{ color: '#1E293B' }}>·</span>
-            <Link href="/politica-de-privacidade" style={{ fontSize: '12px', color: '#475569', textDecoration: 'none' }}>Politica de Privacidade</Link>
+            <span style={{ color: '#2A1A2F' }}>·</span>
+            <Link href="/termos-de-uso" style={{ fontSize: '12px', color: '#B8AAB8', textDecoration: 'none' }}>Termos de Uso</Link>
+            <span style={{ color: '#2A1A2F' }}>·</span>
+            <Link href="/politica-de-privacidade" style={{ fontSize: '12px', color: '#B8AAB8', textDecoration: 'none' }}>Politica de Privacidade</Link>
           </div>
         </div>
 
