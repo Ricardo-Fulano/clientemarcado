@@ -1,20 +1,12 @@
 'use client'
 import { useState } from 'react'
 import { supabase } from '../lib/supabase'
-const TIPOS_NEGOCIO = [
-  'Barbearia',
-  'Salão de beleza',
-  'Clínica estética',
-  'Clínica odontológica',
-  'Clínica médica / consultório',
-  'Consultoria / atendimento profissional',
-  'Outro',
-]
+
 const BENEFICIOS = [
   {
     icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>,
     titulo: 'Página de agendamento pronta',
-    desc: 'Seu negócio online em minutos, com sua cara e seu horário.',
+    desc: 'Seu negócio de beleza online em minutos, com sua cara e seus horários.',
   },
   {
     icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>,
@@ -48,8 +40,7 @@ const EyeOffIcon = () => (
 )
 export default function Cadastro() {
   const [nomeNegocio, setNomeNegocio] = useState('')
-  const [tipoNegocio, setTipoNegocio] = useState('')
-  const [dropOpen, setDropOpen] = useState(false)
+  const tipoNegocio = 'Estética e beleza'
   const [cupom, setCupom] = useState('')
   const [cupomStatus, setCupomStatus] = useState<'idle'|'ok'|'erro'>('idle')
   const [nomeUsuario, setNomeUsuario] = useState('')
@@ -207,7 +198,7 @@ export default function Cadastro() {
             </h1>
             <p className="desk-hero-sub">
               Seu cliente agenda sozinho.<br />
-              Você controla tudo pelo painel.
+              Você organiza sua rotina pelo painel.
             </p>
           </div>
           <div className="desk-beneficios">
@@ -236,42 +227,17 @@ export default function Cadastro() {
             <p className="card-sub">É rápido, fácil e sem compromisso.</p>
             <div className="campos">
               <div>
-                <label className="label">Tipo de negócio</label>
-                <div style={{position:'relative',width:'100%'}} onBlur={e=>{if(!e.currentTarget.contains(e.relatedTarget as Node))setDropOpen(false)}}>
-                  <button type="button" onClick={()=>setDropOpen(!dropOpen)}
-                    style={{width:'100%',background:'rgba(24,16,27,.92)',border:`1.5px solid ${dropOpen?'#EC4899':'rgba(42,26,47,.18)'}`,borderRadius:'14px',padding:'13px 16px',color:tipoNegocio?'#F8F4F7':'#B8AAB8',fontSize:'15px',fontFamily:'inherit',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'space-between',gap:'8px',textAlign:'left' as const,transition:'border-color .2s',boxShadow:dropOpen?'0 0 0 3px rgba(236,72,153,.14)':'none'}}>
-                    <span>{tipoNegocio||'Selecione o tipo...'}</span>
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{flexShrink:0,transition:'transform .2s',transform:dropOpen?'rotate(180deg)':'none',color:'#B8AAB8'}}>
-                      <polyline points="6 9 12 15 18 9"/>
-                    </svg>
-                  </button>
-                  {dropOpen&&(
-                    <div style={{position:'absolute',top:'calc(100% + 6px)',left:0,right:0,background:'#18101B',border:'1.5px solid rgba(236,72,153,.35)',borderRadius:'14px',padding:'6px',zIndex:50,boxShadow:'0 16px 40px rgba(0,0,0,.6)',overflow:'hidden'}}>
-                      {TIPOS_NEGOCIO.map(t=>(
-                        <button key={t} type="button" tabIndex={0}
-                          onClick={()=>{setTipoNegocio(t);setDropOpen(false)}}
-                          style={{width:'100%',padding:'10px 14px',background:tipoNegocio===t?'rgba(236,72,153,.22)':'transparent',border:'none',borderRadius:'10px',color:tipoNegocio===t?'#EC4899':'#F8F4F7',fontSize:'14px',fontFamily:'inherit',cursor:'pointer',textAlign:'left' as const,transition:'background .12s',display:'block',fontWeight:tipoNegocio===t?600:400}}
-                          onMouseEnter={e=>(e.currentTarget.style.background=tipoNegocio===t?'rgba(236,72,153,.28)':'rgba(236,72,153,.10)')}
-                          onMouseLeave={e=>(e.currentTarget.style.background=tipoNegocio===t?'rgba(236,72,153,.22)':'transparent')}>
-                          {t}
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
-                <p className="hint">Isso ajuda a preparar sua Página de agendamento.</p>
-              </div>
-              <div>
+
                 <label className="label">Nome do negócio</label>
-                <input type="text" placeholder="Ex: Nome do seu negócio" value={nomeNegocio} onChange={e => setNomeNegocio(e.target.value)} className="input" />
+                <input type="text" placeholder="Ex: Studio Bella Beauty" value={nomeNegocio} onChange={e => setNomeNegocio(e.target.value)} className="input" />
               </div>
               <div>
                 <label className="label">Seu nome</label>
-                <input type="text" placeholder="Ex: João Silva" value={nomeUsuario} onChange={e => setNomeUsuario(e.target.value)} className="input" />
+                <input type="text" placeholder="Ex: Ana Carolina" value={nomeUsuario} onChange={e => setNomeUsuario(e.target.value)} className="input" />
               </div>
               <div>
                 <label className="label">E-mail</label>
-                <input type="email" placeholder="joao@email.com" value={email} onChange={e => setEmail(e.target.value)} className="input" />
+                <input type="email" placeholder="ana@email.com" value={email} onChange={e => setEmail(e.target.value)} className="input" />
               </div>
               <div>
                 <label className="label">Senha</label>
@@ -290,7 +256,7 @@ export default function Cadastro() {
             )}
             <div style={{marginBottom:'16px'}}>
               <label style={{display:'block',fontSize:'11px',fontWeight:700,color:'#B8AAB8',textTransform:'uppercase' as const,letterSpacing:'.08em',marginBottom:'7px'}}>Cupom de indicação</label>
-              <input type="text" placeholder="Ex: JOAO" value={cupom}
+              <input type="text" placeholder="Ex: ANNA10" value={cupom}
                 onChange={e => { setCupom(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g,'')); setCupomStatus('idle') }}
                 onBlur={() => validarCupom(cupom)}
                 style={{width:'100%',background:'rgba(24,16,27,.92)',border:`1.5px solid ${cupomStatus==='ok'?'rgba(34,197,94,.5)':cupomStatus==='erro'?'rgba(239,68,68,.4)':'rgba(42,26,47,.18)'}`,borderRadius:'14px',padding:'13px 16px',color:'#F8F4F7',fontSize:'15px',outline:'none',fontFamily:'inherit',transition:'border-color .2s',boxSizing:'border-box' as const}} />

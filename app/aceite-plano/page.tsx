@@ -38,7 +38,8 @@ html,body{overflow-x:hidden;width:100%;max-width:100%;background:#08060A}
 .clausula:last-child{border-bottom:none}
 .chk-row{display:flex;align-items:flex-start;gap:12px;padding:14px;background:rgba(236,72,153,.05);border:1px solid rgba(236,72,153,.14);border-radius:12px;cursor:pointer;margin-bottom:10px;transition:border-color .15s}
 .chk-row:hover{border-color:rgba(236,72,153,.28)}
-.chk-box{width:20px;height:20px;border-radius:6px;border:2px solid rgba(42,26,47,.30);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;transition:all .15s}
+.chk-box{width:20px;height:20px;border-radius:6px;border:2px solid rgba(248,244,247,.75);background:rgba(255,255,255,.03);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;transition:all .15s}
+.chk-row:hover .chk-box{border-color:#EC4899;box-shadow:0 0 0 3px rgba(236,72,153,.14)}
 .chk-box.on{background:#EC4899;border-color:#EC4899}
 .btn-p{width:100%;background:linear-gradient(135deg,#EC4899,#D946EF,#8B5CF6);color:#fff;border:none;border-radius:14px;padding:16px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 12px 28px rgba(236,72,153,.25);transition:all .18s;margin-bottom:12px}
 .btn-p:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 16px 34px rgba(139,92,246,.28)}
