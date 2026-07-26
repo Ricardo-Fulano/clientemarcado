@@ -43,10 +43,10 @@ export default function Login() {
     .pg {
       min-height: 100vh;
       background:
-        radial-gradient(circle at 20% 20%, rgba(124,58,237,0.18), transparent 38%),
-        radial-gradient(circle at 80% 10%, rgba(37,99,235,0.16), transparent 32%),
-        radial-gradient(circle at 60% 80%, rgba(59,130,246,0.10), transparent 30%),
-        linear-gradient(135deg, #050B16 0%, #07111F 50%, #050B16 100%);
+        radial-gradient(circle at 20% 20%, rgba(236,72,153,0.16), transparent 38%),
+        radial-gradient(circle at 80% 10%, rgba(217,70,239,0.14), transparent 32%),
+        radial-gradient(circle at 60% 80%, rgba(139,92,246,0.10), transparent 30%),
+        linear-gradient(135deg, #08060A 0%, #120A14 50%, #08060A 100%);
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       display: flex;
       align-items: center;
@@ -73,17 +73,17 @@ export default function Login() {
       width: 36px;
       height: 36px;
       border-radius: 10px;
-      background: linear-gradient(135deg, #3B82F6, #7C3AED);
+      background: linear-gradient(135deg, #EC4899, #D946EF, #8B5CF6);
       display: flex;
       align-items: center;
       justify-content: center;
-      box-shadow: 0 0 24px rgba(124,58,237,0.50);
+      box-shadow: 0 0 24px rgba(236,72,153,0.35);
       flex-shrink: 0;
     }
     .logo-txt {
       font-size: 18px;
       font-weight: 800;
-      color: #F8FAFC;
+      color: #F8F4F7;
       letter-spacing: -0.02em;
     }
 
@@ -94,14 +94,14 @@ export default function Login() {
     .headline h1 {
       font-size: 24px;
       font-weight: 800;
-      color: #F8FAFC;
+      color: #F8F4F7;
       letter-spacing: -0.03em;
       margin-bottom: 8px;
       line-height: 1.2;
     }
     .headline p {
       font-size: 14px;
-      color: #64748B;
+      color: #B8AAB8;
       line-height: 1.6;
       max-width: 340px;
       margin: 0 auto;
@@ -109,8 +109,8 @@ export default function Login() {
 
     .card {
       width: 100%;
-      background: radial-gradient(circle at top left, rgba(124,58,237,0.10), transparent 40%), linear-gradient(145deg, rgba(15,23,42,0.97), rgba(8,20,33,0.99));
-      border: 1.5px solid rgba(148,163,184,0.18);
+      background: radial-gradient(circle at top left, rgba(139,92,246,0.10), transparent 40%), linear-gradient(145deg, rgba(24,16,27,0.97), rgba(18,10,20,0.99));
+      border: 1.5px solid rgba(42,26,47,0.18);
       border-radius: 22px;
       padding: 32px 28px;
       box-shadow: 0 24px 60px rgba(0,0,0,0.48), inset 0 1px 0 rgba(255,255,255,0.04);
@@ -126,18 +126,18 @@ export default function Login() {
       display: block;
       font-size: 11px;
       font-weight: 700;
-      color: #94A3B8;
+      color: #B8AAB8;
       text-transform: uppercase;
       letter-spacing: .08em;
       margin-bottom: 7px;
     }
     .inp {
       width: 100%;
-      background: rgba(15,23,42,0.92);
-      border: 1.5px solid rgba(148,163,184,0.18);
+      background: rgba(24,16,27,0.92);
+      border: 1.5px solid rgba(42,26,47,0.18);
       border-radius: 14px;
       padding: 13px 16px;
-      color: #F8FAFC;
+      color: #F8F4F7;
       font-size: 15px;
       outline: none;
       transition: border-color .2s, box-shadow .2s;
@@ -146,10 +146,10 @@ export default function Login() {
       box-sizing: border-box;
     }
     .inp:focus {
-      border-color: rgba(124,58,237,0.55);
-      box-shadow: 0 0 0 3px rgba(124,58,237,0.14);
+      border-color: rgba(139,92,246,0.55);
+      box-shadow: 0 0 0 3px rgba(236,72,153,0.14);
     }
-    .inp::placeholder { color: #374151; }
+    .inp::placeholder { color: #B8AAB8; }
 
     .senha-wrap { position: relative; }
     .senha-wrap .inp { padding-right: 48px; }
@@ -161,13 +161,13 @@ export default function Login() {
       background: none;
       border: none;
       cursor: pointer;
-      color: #475569;
+      color: #B8AAB8;
       display: flex;
       align-items: center;
       padding: 4px;
       transition: color .15s;
     }
-    .olho:hover { color: #94A3B8; }
+    .olho:hover { color: #B8AAB8; }
 
     .esqueci-row {
       display: flex;
@@ -181,11 +181,11 @@ export default function Login() {
       cursor: pointer;
       padding: 0;
       font-size: 12px;
-      color: #475569;
+      color: #B8AAB8;
       font-family: inherit;
       transition: color .15s;
     }
-    .btn-esqueci:hover { color: #7C3AED; }
+    .btn-esqueci:hover { color: #8B5CF6; }
     .btn-esqueci:disabled { opacity: 0.6; cursor: not-allowed; }
 
     .msg-err {
@@ -194,7 +194,7 @@ export default function Login() {
       border-radius: 12px;
       padding: 11px 14px;
       font-size: 13px;
-      color: #F87171;
+      color: #EF4444;
       margin-bottom: 16px;
       text-align: center;
     }
@@ -204,20 +204,20 @@ export default function Login() {
       border-radius: 12px;
       padding: 11px 14px;
       font-size: 13px;
-      color: #4ADE80;
+      color: #22C55E;
       margin-bottom: 16px;
       text-align: center;
     }
     .msg-info {
       font-size: 12px;
-      color: #64748B;
+      color: #B8AAB8;
       text-align: center;
       margin-bottom: 16px;
     }
 
     .btn-entrar {
       width: 100%;
-      background: linear-gradient(135deg, #3B82F6, #7C3AED);
+      background: linear-gradient(135deg, #EC4899, #D946EF, #8B5CF6);
       color: #fff;
       font-size: 15px;
       font-weight: 700;
@@ -229,7 +229,7 @@ export default function Login() {
       align-items: center;
       justify-content: center;
       gap: 8px;
-      box-shadow: 0 12px 32px rgba(59,130,246,0.30), 0 0 28px rgba(124,58,237,0.22);
+      box-shadow: 0 12px 32px rgba(236,72,153,0.28);
       transition: all .18s;
       font-family: inherit;
       margin-bottom: 18px;
@@ -237,22 +237,22 @@ export default function Login() {
     }
     .btn-entrar:hover {
       transform: translateY(-1px);
-      box-shadow: 0 16px 40px rgba(59,130,246,0.38), 0 0 36px rgba(124,58,237,0.30);
+      box-shadow: 0 16px 40px rgba(236,72,153,0.38);
     }
     .btn-entrar:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
 
     .link-cadastro {
       text-align: center;
       font-size: 13px;
-      color: #475569;
+      color: #B8AAB8;
     }
     .link-cadastro a {
-      color: #7C3AED;
+      color: #8B5CF6;
       font-weight: 600;
       text-decoration: none;
       transition: color .15s;
     }
-    .link-cadastro a:hover { color: #A78BFA; }
+    .link-cadastro a:hover { color: #C4B5FD; }
 
     .beneficios {
       display: flex;
@@ -260,34 +260,34 @@ export default function Login() {
       gap: 8px;
       margin-top: 24px;
       padding-top: 20px;
-      border-top: 1px solid rgba(148,163,184,0.10);
+      border-top: 1px solid rgba(42,26,47,0.10);
     }
     .beneficio {
       display: flex;
       align-items: center;
       gap: 8px;
       font-size: 12px;
-      color: #475569;
+      color: #B8AAB8;
     }
     .beneficio-dot {
       width: 18px;
       height: 18px;
       border-radius: 50%;
-      background: rgba(124,58,237,0.16);
-      border: 1px solid rgba(124,58,237,0.28);
+      background: rgba(139,92,246,0.16);
+      border: 1px solid rgba(139,92,246,0.28);
       display: flex;
       align-items: center;
       justify-content: center;
       flex-shrink: 0;
       font-size: 9px;
-      color: #A78BFA;
+      color: #C4B5FD;
       font-weight: 700;
     }
 
     .seguranca {
       margin-top: 20px;
       font-size: 11px;
-      color: #374151;
+      color: #B8AAB8;
       text-align: center;
       display: flex;
       align-items: center;
@@ -399,7 +399,7 @@ export default function Login() {
         </div>
 
         <p className="seguranca">
-          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#374151" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#B8AAB8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
           Ambiente seguro para gestão do seu negócio.
         </p>
 
