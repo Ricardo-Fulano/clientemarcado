@@ -10,6 +10,8 @@ const FORMAS = ['Pix','Dinheiro','Cartão','Boleto','Transferência','Outro']
 const STATUS_REALIZADO = ['realizado','Realizado','compareceu','concluido','concluído','finalizado','confirmado']
 
 const CSS = `
+.btn-despesa-editar:hover{background:rgba(236,72,153,.10)!important;border-color:rgba(236,72,153,.32)!important;color:#F9A8D4!important}
+.btn-despesa-excluir:hover{background:rgba(239,68,68,.10)!important;border-color:rgba(239,68,68,.28)!important;color:#FCA5A5!important}
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html,body{overflow-x:hidden;width:100%;max-width:100%;background:#08060A}
 input,select,textarea{color-scheme:dark}
@@ -478,12 +480,12 @@ export default function Financeiro() {
                           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '8px', flexShrink: 0 }}>
                             <p style={{ fontSize: '20px', fontWeight: 800, color: '#EF4444', lineHeight: 1 }}>{fmtBRL(Number(d.valor))}</p>
                             <div style={{ display: 'flex', gap: '6px' }}>
-                              <button onClick={() => abrirEditar(d)}
-                                style={{ background: 'rgba(236,72,153,.12)', border: '1px solid rgba(236,72,153,.25)', borderRadius: '8px', padding: '6px 10px', fontSize: '11px', fontWeight: 600, color: '#EC4899', cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                              <button onClick={() => abrirEditar(d)} className="btn-despesa-editar"
+                                style={{ background: 'rgba(24,16,27,.65)', border: '1px solid #2A1A2F', borderRadius: '8px', padding: '6px 10px', fontSize: '11px', fontWeight: 600, color: '#F8F4F7', cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: '4px' }}>
                                 <Pencil size={12} /> Editar
                               </button>
-                              <button onClick={() => excluirDespesa(d.id)}
-                                style={{ background: 'rgba(239,68,68,.10)', border: '1px solid rgba(239,68,68,.22)', borderRadius: '8px', padding: '6px 10px', fontSize: '11px', fontWeight: 600, color: '#EF4444', cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                              <button onClick={() => excluirDespesa(d.id)} className="btn-despesa-excluir"
+                                style={{ background: 'rgba(24,16,27,.65)', border: '1px solid #2A1A2F', borderRadius: '8px', padding: '6px 10px', fontSize: '11px', fontWeight: 600, color: '#F8F4F7', cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: '4px' }}>
                                 <Trash2 size={12} /> Excluir
                               </button>
                             </div>
