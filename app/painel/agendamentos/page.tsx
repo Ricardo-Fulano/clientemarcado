@@ -40,6 +40,7 @@ input,select,textarea{color-scheme:dark}
 .bs-handle{width:40px;height:4px;background:rgba(255,255,255,.15);border-radius:2px;margin:0 auto 20px}
 .bs-item{display:flex;align-items:center;gap:12px;padding:14px 0;border-bottom:1px solid rgba(255,255,255,.06);cursor:pointer;font-size:14px;font-weight:500;background:none;border-left:none;border-right:none;border-top:none;font-family:inherit;width:100%;text-align:left;min-height:48px}
 .bs-item:last-child{border-bottom:none}
+.bs-item-desfazer:hover{color:#EC4899!important}
 .bs-label{font-size:10px;font-weight:700;color:#B8AAB8;text-transform:uppercase;letter-spacing:.08em;margin:14px 0 6px}
 .bl-ovl{position:fixed;inset:0;background:rgba(0,0,0,.65);backdrop-filter:blur(8px);z-index:80;opacity:0;pointer-events:none;transition:opacity .24s ease}
 .bl-ovl.open{opacity:1;pointer-events:auto}
@@ -653,10 +654,16 @@ export default function Agendamentos(){
           const jaCancelado=st==='cancelado'
           return(<>
             {jaRealizado?(
-              <div style={{padding:'12px 0',borderBottom:'1px solid rgba(255,255,255,.06)',display:'flex',alignItems:'center',gap:10}}>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22C55E" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                <span style={{fontSize:14,color:'#22C55E',fontWeight:500}}>Atendimento já realizado</span>
-              </div>
+              <>
+                <div style={{padding:'12px 0',borderBottom:'1px solid rgba(255,255,255,.06)',display:'flex',alignItems:'center',gap:10}}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22C55E" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                  <span style={{fontSize:14,color:'#22C55E',fontWeight:500}}>Atendimento já realizado</span>
+                </div>
+                <button className="bs-item bs-item-desfazer" style={{color:'#B8AAB8'}} onClick={()=>{if(window.confirm('Deseja desfazer o status de realizado e voltar este atendimento para pendente?')){updSt(bsAg.id,'pendente');setBsAg(null)}}}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12a9 9 0 1 0 9-9"/><polyline points="3 4 3 12 11 12"/></svg>
+                  Desfazer realizado
+                </button>
+              </>
             ):jaCancelado?null:(
               <button className="bs-item" style={{color:'#22C55E'}} onClick={()=>{updSt(bsAg.id,'realizado');setBsAg(null)}}>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
