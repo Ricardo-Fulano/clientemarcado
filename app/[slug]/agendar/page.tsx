@@ -4,6 +4,7 @@ import { supabase } from '../../lib/supabase'
 import { useParams, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { Sun, Clock, Moon, Scissors, Sparkles, ClipboardList, ClipboardCheck, CalendarCheck, FileText, HeartPulse, ShieldPlus, Stethoscope, Check, Copy, Download, CalendarX2 } from 'lucide-react'
+import { resolverTema, getTema } from '../../lib/tema-publico'
 
 export default function Agendar() {
   const params = useParams()
@@ -323,8 +324,9 @@ export default function Agendar() {
   }
 
 
-  const G = 'linear-gradient(135deg,#EC4899,#D946EF,#8B5CF6)'
-  const cor = perfil?.cor_tema || '#EC4899'
+  const tema = getTema(resolverTema(perfil?.public_theme || perfil?.tema_publico || perfil?.tema_cor || 'modelo2'))
+  const G = `linear-gradient(135deg,${tema.accent},${tema.accent2},${tema.secondary})`
+  const cor = tema.accent
   const servicoSelecionado = servicos.find(s => s.id === servicoId)
   const profissionalSelecionado = profissionais.find(p => p.id === profissionalId)
   const todayStr = new Date().toISOString().split('T')[0]
@@ -354,7 +356,7 @@ export default function Agendar() {
   const css = `
     *{box-sizing:border-box;margin:0;padding:0}
     html,body{overflow-x:hidden;width:100%;max-width:100%}
-    .page{min-height:100vh;background:radial-gradient(ellipse at top,rgba(139,92,246,.10),transparent 50%),linear-gradient(180deg,#08060A 0%,#08060A 100%);color:#F8F4F7;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+    .page{min-height:100vh;background:radial-gradient(ellipse at top,${tema.soft},transparent 50%),linear-gradient(180deg,#08060A 0%,#08060A 100%);color:#F8F4F7;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
     .header{border-bottom:1px solid #2A1A2F;padding:14px 20px;display:flex;align-items:center;background:rgba(8,6,10,.97);backdrop-filter:blur(20px);position:sticky;top:0;z-index:10}
     .header-back{color:#B8AAB8;text-decoration:none;font-size:14px;display:flex;align-items:center;gap:4px;min-width:60px;font-weight:500;transition:color .15s}
     .header-back:hover{color:#B8AAB8}
@@ -366,8 +368,8 @@ export default function Agendar() {
     .steps-wrap{margin-bottom:28px}
     .steps-track{display:flex;align-items:center;margin-bottom:10px}
     .step-dot{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;transition:all .2s}
-    .step-dot.done{background:${G};color:#fff;box-shadow:0 0 16px rgba(139,92,246,.35)}
-    .step-dot.active{background:${G};color:#fff;box-shadow:0 0 20px rgba(236,72,153,.40)}
+    .step-dot.done{background:${G};color:#fff;box-shadow:0 0 16px ${tema.glow}}
+    .step-dot.active{background:${G};color:#fff;box-shadow:0 0 20px ${tema.glow}}
     .step-dot.idle{background:rgba(24,16,27,.88);color:#B8AAB8;border:1px solid #2A1A2F}
     .step-line{flex:1;height:2px;margin:0 6px;border-radius:1px;transition:background .2s}
     .step-labels{display:flex;justify-content:space-between}
@@ -375,77 +377,77 @@ export default function Agendar() {
     .section-title{font-size:22px;font-weight:800;color:#F8F4F7;letter-spacing:-0.03em;margin-bottom:6px}
     .section-sub{font-size:14px;color:#B8AAB8;margin-bottom:24px;line-height:1.5}
     .servico-list{display:flex;flex-direction:column;gap:10px}
-    .servico-card{display:flex;align-items:center;gap:16px;background:radial-gradient(circle at top left,rgba(236,72,153,.05),transparent 55%),linear-gradient(145deg,rgba(24,16,27,.97),rgba(18,10,20,.99));border:1.5px solid #2A1A2F;border-radius:16px;padding:18px 16px 18px 20px;cursor:pointer;text-align:left;width:100%;position:relative;overflow:hidden;transition:all .18s;-webkit-tap-highlight-color:transparent}
-    .servico-card:hover{border-color:rgba(236,72,153,.45);box-shadow:0 8px 32px rgba(0,0,0,.28),0 0 0 1px rgba(236,72,153,.12);transform:translateY(-1px)}
-    .servico-card.sel{border-color:rgba(236,72,153,.65);box-shadow:0 0 0 1px rgba(236,72,153,.22),0 10px 36px rgba(236,72,153,.14);background:radial-gradient(circle at top left,rgba(236,72,153,.10),transparent 55%),linear-gradient(145deg,rgba(24,16,27,.97),rgba(18,10,20,.99))}
+    .servico-card{display:flex;align-items:center;gap:16px;background:radial-gradient(circle at top left,${tema.soft},transparent 55%),linear-gradient(145deg,rgba(24,16,27,.97),rgba(18,10,20,.99));border:1.5px solid #2A1A2F;border-radius:16px;padding:18px 16px 18px 20px;cursor:pointer;text-align:left;width:100%;position:relative;overflow:hidden;transition:all .18s;-webkit-tap-highlight-color:transparent}
+    .servico-card:hover{border-color:${tema.border};box-shadow:0 8px 32px rgba(0,0,0,.28),0 0 0 1px ${tema.soft};transform:translateY(-1px)}
+    .servico-card.sel{border-color:${tema.accent};box-shadow:0 0 0 1px ${tema.glow},0 10px 36px ${tema.soft};background:radial-gradient(circle at top left,${tema.soft},transparent 55%),linear-gradient(145deg,rgba(24,16,27,.97),rgba(18,10,20,.99))}
     .servico-accent{position:absolute;top:0;left:0;bottom:0;width:3px;background:${G};border-radius:0 2px 2px 0}
-    .servico-icon{width:46px;height:46px;border-radius:13px;background:rgba(236,72,153,.10);border:1px solid rgba(236,72,153,.18);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+    .servico-icon{width:46px;height:46px;border-radius:13px;background:${tema.soft};border:1px solid ${tema.border};display:flex;align-items:center;justify-content:center;flex-shrink:0}
     .servico-nome{font-weight:700;font-size:15px;color:#F8F4F7;margin-bottom:3px;line-height:1.3}
     .servico-desc{font-size:12px;color:#B8AAB8;margin-bottom:7px;line-height:1.5}
     .servico-meta{display:flex;align-items:center;gap:8px;font-size:12px;color:#B8AAB8}
     .servico-meta-sep{width:3px;height:3px;border-radius:50%;background:#2A1A2F;flex-shrink:0}
-    .servico-preco{color:#EC4899;font-weight:700;font-size:13px}
+    .servico-preco{color:${tema.accent};font-weight:700;font-size:13px}
     .servico-dur{display:flex;align-items:center;gap:3px;color:#B8AAB8}
-    .servico-arrow{width:28px;height:28px;border-radius:8px;background:rgba(236,72,153,.08);border:1px solid rgba(236,72,153,.15);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:#EC4899;font-size:16px;transition:all .15s}
-    .servico-card:hover .servico-arrow{background:rgba(236,72,153,.16);border-color:rgba(236,72,153,.30)}
+    .servico-arrow{width:28px;height:28px;border-radius:8px;background:${tema.soft};border:1px solid ${tema.border};display:flex;align-items:center;justify-content:center;flex-shrink:0;color:${tema.accent};font-size:16px;transition:all .15s}
+    .servico-card:hover .servico-arrow{background:${tema.soft};border-color:${tema.glow}}
     .prof-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:24px}
     @media(min-width:480px){.prof-grid{grid-template-columns:repeat(3,1fr)}}
     @media(min-width:768px){.prof-grid{grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:14px}}
-    .prof-card{display:flex;flex-direction:column;align-items:center;gap:12px;background:radial-gradient(circle at top,rgba(139,92,246,.06),transparent 60%),linear-gradient(145deg,rgba(24,16,27,.97),rgba(18,10,20,.99));border:1px solid #2A1A2F;border-radius:18px;padding:24px 16px;cursor:pointer;text-align:center;transition:all .18s;-webkit-tap-highlight-color:transparent}
-    .prof-card:hover{border-color:rgba(236,72,153,.40);transform:translateY(-2px);box-shadow:0 8px 32px rgba(0,0,0,.25)}
-    .prof-card.sel{border-color:rgba(236,72,153,.70);box-shadow:0 0 0 1px rgba(236,72,153,.25),0 8px 32px rgba(236,72,153,.15);background:radial-gradient(circle at top,rgba(236,72,153,.12),transparent 60%),linear-gradient(145deg,rgba(24,16,27,.97),rgba(18,10,20,.99))}
+    .prof-card{display:flex;flex-direction:column;align-items:center;gap:12px;background:radial-gradient(circle at top,${tema.soft},transparent 60%),linear-gradient(145deg,rgba(24,16,27,.97),rgba(18,10,20,.99));border:1px solid #2A1A2F;border-radius:18px;padding:24px 16px;cursor:pointer;text-align:center;transition:all .18s;-webkit-tap-highlight-color:transparent}
+    .prof-card:hover{border-color:${tema.glow};transform:translateY(-2px);box-shadow:0 8px 32px rgba(0,0,0,.25)}
+    .prof-card.sel{border-color:${tema.accent};box-shadow:0 0 0 1px ${tema.border},0 8px 32px ${tema.border};background:radial-gradient(circle at top,${tema.soft},transparent 60%),linear-gradient(145deg,rgba(24,16,27,.97),rgba(18,10,20,.99))}
     .prof-avatar-img{width:72px;height:72px;border-radius:50%;object-fit:cover}
-    .prof-avatar-letra{width:72px;height:72px;border-radius:50%;background:rgba(236,72,153,.12);display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:800;color:#EC4899}
+    .prof-avatar-letra{width:72px;height:72px;border-radius:50%;background:${tema.soft};display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:800;color:${tema.accent}}
     .prof-nome{font-size:14px;font-weight:700;color:#F8F4F7;margin-bottom:3px}
     .prof-cargo{font-size:12px;color:#B8AAB8}
-    .resumo-strip{display:grid;grid-template-columns:repeat(2,1fr);background:radial-gradient(circle at top left,rgba(139,92,246,.08),transparent 60%),linear-gradient(145deg,rgba(24,16,27,.97),rgba(18,10,20,.99));border:1px solid #2A1A2F;border-radius:16px;padding:16px 20px;margin-bottom:18px;gap:12px}
+    .resumo-strip{display:grid;grid-template-columns:repeat(2,1fr);background:radial-gradient(circle at top left,${tema.soft},transparent 60%),linear-gradient(145deg,rgba(24,16,27,.97),rgba(18,10,20,.99));border:1px solid #2A1A2F;border-radius:16px;padding:16px 20px;margin-bottom:18px;gap:12px}
     @media(min-width:768px){.resumo-strip{grid-template-columns:repeat(4,1fr)}}
     .resumo-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#B8AAB8;margin-bottom:4px}
     .resumo-valor{font-size:13px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
     .etapa3-cols{display:flex;flex-direction:column;gap:14px;margin-bottom:16px}
     @media(min-width:768px){.etapa3-cols{display:grid;grid-template-columns:1fr 1fr;gap:18px;align-items:start}}
-    .cal-wrap{background:radial-gradient(circle at top left,rgba(139,92,246,.06),transparent 60%),linear-gradient(145deg,rgba(24,16,27,.97),rgba(18,10,20,.99));border:1px solid #2A1A2F;border-radius:18px;padding:20px}
+    .cal-wrap{background:radial-gradient(circle at top left,${tema.soft},transparent 60%),linear-gradient(145deg,rgba(24,16,27,.97),rgba(18,10,20,.99));border:1px solid #2A1A2F;border-radius:18px;padding:20px}
     .cal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
     .cal-nav{background:rgba(24,16,27,.88);border:1px solid #2A1A2F;border-radius:10px;padding:8px 16px;color:#B8AAB8;cursor:pointer;font-size:16px;line-height:1;transition:all .15s;-webkit-tap-highlight-color:transparent}
-    .cal-nav:hover{border-color:rgba(236,72,153,.35);color:#F8F4F7}
+    .cal-nav:hover{border-color:${tema.glow};color:#F8F4F7}
     .cal-mes{font-weight:700;font-size:14px;text-transform:capitalize;color:#F8F4F7}
     .cal-dow{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:8px}
     .cal-dow-label{text-align:center;font-size:11px;font-weight:700;color:#2A1A2F;padding:4px 0}
     .cal-days{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}
     .dia{padding:10px 2px;border-radius:10px;font-size:13px;font-weight:500;cursor:default;border:1px solid transparent;text-align:center;background:transparent;color:#1E293B;transition:all .15s;-webkit-tap-highlight-color:transparent;font-family:inherit}
     .dia.disp{color:#B8AAB8;background:rgba(255,255,255,.04);cursor:pointer;font-weight:600}
-    .dia.disp:hover{background:rgba(236,72,153,.14);color:#F8F4F7;border-color:rgba(236,72,153,.25)}
-    .dia.hoje{border-color:rgba(236,72,153,.50);color:#EC4899;font-weight:700}
-    .dia.sel{background:${G}!important;color:#fff!important;border-color:transparent!important;font-weight:700;box-shadow:0 4px 12px rgba(236,72,153,.35)}
-    .horarios-wrap{background:radial-gradient(circle at top left,rgba(139,92,246,.06),transparent 60%),linear-gradient(145deg,rgba(24,16,27,.97),rgba(18,10,20,.99));border:1px solid #2A1A2F;border-radius:18px;padding:20px;min-height:200px}
+    .dia.disp:hover{background:${tema.soft};color:#F8F4F7;border-color:${tema.border}}
+    .dia.hoje{border-color:${tema.border};color:${tema.accent};font-weight:700}
+    .dia.sel{background:${G}!important;color:#fff!important;border-color:transparent!important;font-weight:700;box-shadow:0 4px 12px ${tema.glow}}
+    .horarios-wrap{background:radial-gradient(circle at top left,${tema.soft},transparent 60%),linear-gradient(145deg,rgba(24,16,27,.97),rgba(18,10,20,.99));border:1px solid #2A1A2F;border-radius:18px;padding:20px;min-height:200px}
     .horarios-data-label{font-size:13px;font-weight:600;color:#B8AAB8;margin-bottom:16px;padding-bottom:14px;border-bottom:1px solid #2A1A2F;text-transform:capitalize}
     .periodo-label-row{display:flex;align-items:center;gap:5px;margin-bottom:8px}
     .periodo-label{font-size:10px;font-weight:700;color:#B8AAB8;text-transform:uppercase;letter-spacing:.09em}
     .horarios-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px}
     @media(min-width:400px){.horarios-grid{grid-template-columns:repeat(4,1fr)}}
     .h-btn{padding:12px 4px;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;border:1px solid #2A1A2F;text-align:center;background:rgba(24,16,27,.88);color:#B8AAB8;transition:all .15s;width:100%;font-family:inherit;-webkit-tap-highlight-color:transparent}
-    .h-btn:hover{border-color:rgba(236,72,153,.45);color:#F8F4F7;background:rgba(236,72,153,.08)}
-    .h-btn.sel{background:${G};border-color:transparent;color:#fff;box-shadow:0 0 0 2px rgba(236,72,153,.30)}
+    .h-btn:hover{border-color:${tema.border};color:#F8F4F7;background:${tema.soft}}
+    .h-btn.sel{background:${G};border-color:transparent;color:#fff;box-shadow:0 0 0 2px ${tema.glow}}
     .nav-row{display:flex;gap:10px}
     .btn-voltar{flex:1;background:rgba(24,16,27,.88);border:1px solid #2A1A2F;border-radius:14px;padding:14px;font-size:14px;font-weight:600;color:#B8AAB8;cursor:pointer;transition:all .15s;font-family:inherit;-webkit-tap-highlight-color:transparent}
     .btn-voltar:hover{border-color:#2A1A2F;color:#B8AAB8}
     .btn-continuar{flex:2;border:none;border-radius:14px;padding:14px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;transition:all .2s;-webkit-tap-highlight-color:transparent}
-    .btn-continuar.on{background:${G};color:#fff;box-shadow:0 8px 24px rgba(236,72,153,.30)}
-    .btn-continuar.off{background:rgba(236,72,153,.08);color:#2A1A2F;cursor:not-allowed}
-    .btn-confirmar{flex:2;background:${G};border:none;border-radius:14px;padding:14px;font-size:15px;font-weight:700;color:#fff;cursor:pointer;box-shadow:0 8px 24px rgba(236,72,153,.30);font-family:inherit;transition:opacity .15s;-webkit-tap-highlight-color:transparent}
+    .btn-continuar.on{background:${G};color:#fff;box-shadow:0 8px 24px ${tema.glow}}
+    .btn-continuar.off{background:${tema.soft};color:#2A1A2F;cursor:not-allowed}
+    .btn-confirmar{flex:2;background:${G};border:none;border-radius:14px;padding:14px;font-size:15px;font-weight:700;color:#fff;cursor:pointer;box-shadow:0 8px 24px ${tema.glow};font-family:inherit;transition:opacity .15s;-webkit-tap-highlight-color:transparent}
     .btn-link-voltar{font-size:13px;color:#B8AAB8;background:none;border:none;cursor:pointer;padding:4px 0;font-family:inherit;transition:color .15s}
     .btn-link-voltar:hover{color:#B8AAB8}
     .input-field{width:100%;background:rgba(24,16,27,.88);border:1px solid #2A1A2F;border-radius:14px;padding:14px 16px;color:#F8F4F7;font-size:16px;outline:none;box-sizing:border-box;transition:border-color .15s,box-shadow .15s;font-family:inherit}
-    .input-field:focus{border-color:rgba(139,92,246,.55);box-shadow:0 0 0 3px rgba(139,92,246,.12)}
+    .input-field:focus{border-color:${tema.accent};box-shadow:0 0 0 3px ${tema.soft}}
     .input-field::placeholder{color:#2A1A2F}
     .input-label{font-size:11px;font-weight:700;color:#B8AAB8;text-transform:uppercase;letter-spacing:.08em;display:block;margin-bottom:8px}
-    .resumo-card{background:radial-gradient(circle at top left,rgba(139,92,246,.08),transparent 50%),linear-gradient(145deg,rgba(24,16,27,.97),rgba(18,10,20,.99));border:1px solid #2A1A2F;border-radius:18px;padding:20px 22px;margin-bottom:24px}
+    .resumo-card{background:radial-gradient(circle at top left,${tema.soft},transparent 50%),linear-gradient(145deg,rgba(24,16,27,.97),rgba(18,10,20,.99));border:1px solid #2A1A2F;border-radius:18px;padding:20px 22px;margin-bottom:24px}
     .resumo-card-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.10em;color:#B8AAB8;margin-bottom:16px}
     .resumo-row{display:flex;justify-content:space-between;align-items:center}
     .resumo-row-label{font-size:13px;color:#B8AAB8}
     .resumo-row-valor{font-size:13px;font-weight:700}
     .resumo-divider{border:none;border-top:1px solid #2A1A2F;margin:10px 0}
-    .sucesso-wrap{min-height:100vh;background:radial-gradient(ellipse at top,rgba(139,92,246,.12),transparent 50%),linear-gradient(180deg,#08060A,#08060A);display:flex;align-items:center;justify-content:center;padding:24px;font-family:inherit}
+    .sucesso-wrap{min-height:100vh;background:radial-gradient(ellipse at top,${tema.soft},transparent 50%),linear-gradient(180deg,#08060A,#08060A);display:flex;align-items:center;justify-content:center;padding:24px;font-family:inherit}
     .sucesso-inner{max-width:460px;width:100%;text-align:center}
     .sucesso-icon{width:72px;height:72px;border-radius:50%;background:rgba(34,197,94,.10);border:1px solid rgba(34,197,94,.25);display:flex;align-items:center;justify-content:center;margin:0 auto 24px;font-size:32px}
     .sucesso-title{font-size:24px;font-weight:800;color:#F8F4F7;letter-spacing:-0.03em;margin-bottom:8px}
@@ -453,9 +455,9 @@ export default function Agendar() {
     .sucesso-actions{display:flex;flex-direction:column;gap:10px}
     .btn-wpp{display:inline-flex;align-items:center;justify-content:center;gap:8px;background:#25D366;color:#fff;font-weight:700;padding:14px 28px;border-radius:14px;text-decoration:none;font-size:14px;transition:opacity .15s}
     .btn-ics{display:inline-flex;align-items:center;justify-content:center;gap:8px;background:rgba(24,16,27,.88);color:#B8AAB8;font-weight:600;padding:14px 28px;border-radius:14px;font-size:14px;border:1px solid #2A1A2F;cursor:pointer;font-family:inherit}
-    .btn-pdf{display:inline-flex;align-items:center;justify-content:center;gap:8px;background:linear-gradient(135deg,rgba(139,92,246,.18),rgba(236,72,153,.12));color:#D946EF;font-weight:700;padding:14px 28px;border-radius:14px;font-size:14px;border:1px solid rgba(139,92,246,.28);cursor:pointer;font-family:inherit;transition:all .18s}
-    .btn-pdf:hover{background:linear-gradient(135deg,rgba(139,92,246,.28),rgba(236,72,153,.20));border-color:rgba(139,92,246,.45)}
-    .btn-inicio{display:inline-flex;align-items:center;justify-content:center;background:${G};color:#fff;font-weight:700;padding:14px 28px;border-radius:14px;text-decoration:none;font-size:14px;box-shadow:0 8px 24px rgba(236,72,153,.25)}
+    .btn-pdf{display:inline-flex;align-items:center;justify-content:center;gap:8px;background:linear-gradient(135deg,${tema.border},${tema.soft});color:${tema.accent2};font-weight:700;padding:14px 28px;border-radius:14px;font-size:14px;border:1px solid ${tema.border};cursor:pointer;font-family:inherit;transition:all .18s}
+    .btn-pdf:hover{background:linear-gradient(135deg,${tema.glow},${tema.border});border-color:${tema.accent}}
+    .btn-inicio{display:inline-flex;align-items:center;justify-content:center;background:${G};color:#fff;font-weight:700;padding:14px 28px;border-radius:14px;text-decoration:none;font-size:14px;box-shadow:0 8px 24px ${tema.border}}
     .erro-msg{font-size:13px;color:#EF4444;margin-top:10px}
     .horarios-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:140px;gap:8px}
     .horarios-placeholder{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:160px;gap:10px}
@@ -521,8 +523,8 @@ export default function Agendar() {
             {label:'Atendimento',valor:servicoSelecionado?.nome,cor:'#F8F4F7'},
             {label:'Profissional',valor:profissionalSelecionado?.nome,cor:'#F8F4F7'},
             {label:'Data',valor:formatarData(dataSelecionada),cor:'#F8F4F7'},
-            {label:'Horário',valor:horarioSelecionado,cor:'#EC4899'},
-            {label:'Valor',valor:'R$ '+servicoSelecionado?.preco,cor:'#EC4899'},
+            {label:'Horário',valor:horarioSelecionado,cor:tema.accent},
+            {label:'Valor',valor:'R$ '+servicoSelecionado?.preco,cor:tema.accent},
           ].map((item,idx,arr)=>(
             <div key={item.label}>
               <div className="resumo-row">
@@ -558,13 +560,13 @@ export default function Agendar() {
         {[1,2,3,4].map(n=>(
           <div key={n} style={{display:'flex',alignItems:'center',flex:n<4?1:'none'}}>
             <div className={`step-dot ${etapa>n?'done':etapa===n?'active':'idle'}`}>{etapa>n?'✓':n}</div>
-            {n<4&&<div className="step-line" style={{background:etapa>n?'linear-gradient(90deg,#EC4899,#D946EF,#8B5CF6)':'#2A1A2F'}}/>}
+            {n<4&&<div className="step-line" style={{background:etapa>n?`linear-gradient(90deg,${tema.accent},${tema.accent2},${tema.secondary})`:'#2A1A2F'}}/>}
           </div>
         ))}
       </div>
       <div className="step-labels">
         {nomeEtapas.map((nome,i)=>(
-          <span key={nome} className="step-label" style={{fontWeight:etapa===i+1?700:500,color:etapa===i+1?'#EC4899':'#2A1A2F',flex:i<3?1:'none',textAlign:i===0?'left':i===3?'right':'center'}}>
+          <span key={nome} className="step-label" style={{fontWeight:etapa===i+1?700:500,color:etapa===i+1?tema.accent:'#2A1A2F',flex:i<3?1:'none',textAlign:i===0?'left':i===3?'right':'center'}}>
             {nome}
           </span>
         ))}
@@ -589,7 +591,7 @@ export default function Agendar() {
             {servicos.map(s=>(
               <button key={s.id} onClick={()=>{setServicoId(s.id);setEtapa(2)}} className={'servico-card'+(servicoId===s.id?' sel':'')}>
                 <div className="servico-accent"/>
-                <div className="servico-icon" style={{color:'#EC4899'}}>{getServicoIcone(s)}</div>
+                <div className="servico-icon" style={{color:tema.accent}}>{getServicoIcone(s)}</div>
                 <div style={{flex:1,minWidth:0}}>
                   <p className="servico-nome">{s.nome}</p>
                   <p className="servico-desc">{s.descricao||'Selecione para ver profissionais e horários disponíveis'}</p>
@@ -614,8 +616,8 @@ export default function Agendar() {
             {(servicos.find(s=>s.id===servicoId)?.profissionais_ids?.length>0?profissionais.filter(p=>(servicos.find(s=>s.id===servicoId)?.profissionais_ids||[]).includes(p.id)):profissionais).map(p=>(
               <button key={p.id} onClick={()=>{setProfissionalId(p.id);setEtapa(3)}} className={'prof-card'+(profissionalId===p.id?' sel':'')}>
                 {p.foto_url
-                  ?<img src={p.foto_url} alt={p.nome} className="prof-avatar-img" style={{border:profissionalId===p.id?'2px solid #EC4899':'2px solid #2A1A2F'}}/>
-                  :<div className="prof-avatar-letra" style={{border:profissionalId===p.id?'2px solid #EC4899':'2px solid rgba(236,72,153,.15)'}}>{p.nome.charAt(0).toUpperCase()}</div>
+                  ?<img src={p.foto_url} alt={p.nome} className="prof-avatar-img" style={{border:profissionalId===p.id?`2px solid ${tema.accent}`:'2px solid #2A1A2F'}}/>
+                  :<div className="prof-avatar-letra" style={{border:profissionalId===p.id?`2px solid ${tema.accent}`:`2px solid ${tema.border}`}}>{p.nome.charAt(0).toUpperCase()}</div>
                 }
                 <div><p className="prof-nome">{p.nome}</p><p className="prof-cargo">{p.cargo||'Profissional'}</p></div>
               </button>
@@ -634,7 +636,7 @@ export default function Agendar() {
               {label:'Atendimento',valor:servicoSelecionado?.nome,cor:'#F8F4F7'},
               {label:'Profissional',valor:profissionalSelecionado?.nome,cor:'#F8F4F7'},
               {label:'Duração',valor:(servicoSelecionado?.duracao_minutos||30)+' min',cor:'#F8F4F7'},
-              {label:'Valor',valor:'R$ '+servicoSelecionado?.preco,cor:'#EC4899'},
+              {label:'Valor',valor:'R$ '+servicoSelecionado?.preco,cor:tema.accent},
             ].map(item=>(
               <div key={item.label}>
                 <p className="resumo-label">{item.label}</p>
@@ -711,8 +713,8 @@ export default function Agendar() {
               {label:'Atendimento',valor:servicoSelecionado?.nome,cor:'#F8F4F7'},
               {label:'Profissional',valor:profissionalSelecionado?.nome,cor:'#F8F4F7'},
               {label:'Data',valor:formatarData(dataSelecionada),cor:'#F8F4F7'},
-              {label:'Horário',valor:horarioSelecionado,cor:'#EC4899'},
-              {label:'Valor',valor:'R$ '+servicoSelecionado?.preco,cor:'#EC4899'},
+              {label:'Horário',valor:horarioSelecionado,cor:tema.accent},
+              {label:'Valor',valor:'R$ '+servicoSelecionado?.preco,cor:tema.accent},
             ].map((item,idx,arr)=>(
               <div key={item.label}>
                 <div className="resumo-row"><span className="resumo-row-label">{item.label}</span><span className="resumo-row-valor" style={{color:item.cor}}>{item.valor}</span></div>
