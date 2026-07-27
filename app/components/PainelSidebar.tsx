@@ -55,6 +55,7 @@ export default function PainelSidebar({ nome = '', tituloMobile = 'Painel' }: Pr
   const [mob, setMob] = useState(false)
   const [isAdmin, setIsAdmin] = useState(false)
   const [isProfissional, setIsProfissional] = useState(false)
+  const [nomeProfissionalVinculo, setNomeProfissionalVinculo] = useState('')
   useEffect(() => {
     supabase.auth.getUser().then(async ({ data: { user } }) => {
       if (!user) return
@@ -65,13 +66,17 @@ export default function PainelSidebar({ nome = '', tituloMobile = 'Painel' }: Pr
       try {
         const res = await fetch('/api/equipe/meu-vinculo', { headers: { 'Authorization': 'Bearer ' + token } })
         const vinculo = await res.json()
-        if (res.ok && vinculo?.role === 'profissional' && vinculo?.ativo) setIsProfissional(true)
+        if (res.ok && vinculo?.role === 'profissional' && vinculo?.ativo) {
+          setIsProfissional(true)
+          if (vinculo.nome_profissional) setNomeProfissionalVinculo(vinculo.nome_profissional)
+        }
       } catch (e) { console.warn('Erro ao verificar vinculo de equipe:', e) }
     })
   }, [])
+  const nomeExibido = isProfissional ? (nomeProfissionalVinculo || nome) : nome
   const path = usePathname()
   const router = useRouter()
-  const ini = (nome || 'C').charAt(0).toUpperCase()
+  const ini = (nomeExibido || 'C').charAt(0).toUpperCase()
 
   async function sair() {
     await supabase.auth.signOut()
@@ -85,6 +90,7 @@ export default function PainelSidebar({ nome = '', tituloMobile = 'Painel' }: Pr
 
   const LINKS_PROFISSIONAL = [
     { h: '/painel/minha-agenda', l: 'Minha agenda' },
+    { h: '/painel/meu-desempenho', l: 'Meu desempenho' },
     { h: '/painel/alterar-senha', l: 'Alterar senha' },
   ]
 
@@ -155,7 +161,7 @@ export default function PainelSidebar({ nome = '', tituloMobile = 'Painel' }: Pr
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', background: 'rgba(24,16,27,.6)', border: '1px solid #2A1A2F', borderRadius: '10px', padding: '10px 12px', marginBottom: '8px' }}>
             <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: AV, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '13px', fontWeight: 700, color: '#fff', flexShrink: 0 }}>{ini}</div>
             <div style={{ minWidth: 0 }}>
-              <p style={{ fontSize: '12px', fontWeight: 600, color: '#F8F4F7', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{nome || 'Meu negócio'}</p>
+              <p style={{ fontSize: '12px', fontWeight: 600, color: '#F8F4F7', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{nomeExibido || 'Meu negócio'}</p>
               <p style={{ fontSize: '10px', color: '#B8AAB8' }}>{isProfissional ? 'Profissional' : 'Administrador'}</p>
             </div>
           </div>

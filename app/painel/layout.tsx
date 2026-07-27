@@ -117,7 +117,7 @@ export default function PainelLayout({ children }: { children: React.ReactNode }
 
   // Reavalia o bloqueio de rota a cada navegacao (sem repetir as consultas pesadas)
   useEffect(() => {
-    if (!loading && isProfissional && pathname !== '/painel/minha-agenda' && pathname !== '/painel/alterar-senha') {
+    if (!loading && isProfissional && pathname !== '/painel/minha-agenda' && pathname !== '/painel/alterar-senha' && pathname !== '/painel/meu-desempenho') {
       router.replace('/painel/minha-agenda')
     }
   }, [pathname, isProfissional, loading])
@@ -129,7 +129,7 @@ export default function PainelLayout({ children }: { children: React.ReactNode }
   )
 
   // Profissional tentando acessar rota administrativa: nao renderiza nada ate o redirecionamento
-  if (isProfissional && pathname !== '/painel/minha-agenda' && pathname !== '/painel/alterar-senha') return (
+  if (isProfissional && pathname !== '/painel/minha-agenda' && pathname !== '/painel/alterar-senha' && pathname !== '/painel/meu-desempenho') return (
     <div style={{minHeight:'100vh',background:'#08060A',display:'flex',alignItems:'center',justifyContent:'center',fontFamily:'system-ui'}}>
       <p style={{color:'#B8AAB8',fontSize:'14px'}}>Redirecionando...</p>
     </div>
