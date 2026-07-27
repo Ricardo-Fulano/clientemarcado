@@ -18,12 +18,29 @@ const dores = [
   { I:Clock, c:'#FBBF24', bg:'rgba(245,158,11,.10)', bd:'rgba(245,158,11,.20)', titulo:'Horário fica sem confirmação', texto:'Sem uma agenda clara, o cliente esquece e o profissional perde tempo.' },
   { I:DollarSign, c:'#C4B5FD', bg:'rgba(139,92,246,.10)', bd:'rgba(139,92,246,.20)', titulo:'Cobranças e retornos ficam espalhados', texto:'Organize clientes, pagamentos e histórico sem depender de conversas antigas.' },
 ]
-const inclusos = [
-  'Agenda online e página pública',
-  'Clientes, serviços e profissionais',
-  'Cobranças, pagamentos e financeiro',
-  'Relatórios para acompanhar o negócio',
-  'Suporte pelo WhatsApp',
+const inclusosEssencial = [
+  '1 login administrador',
+  'Até 3 profissionais cadastrados',
+  'Agenda online',
+  'Página pública personalizada',
+  'Cadastro de clientes',
+  'Serviços e profissionais',
+  'Controle financeiro',
+  'Cobranças',
+  'Relatórios',
+  '7 dias grátis',
+]
+const inclusosEquipe = [
+  '1 login administrador',
+  'Até 15 profissionais cadastrados',
+  'Login individual para cada profissional',
+  'Cada profissional vê apenas a própria agenda',
+  'Área "Meu Desempenho" para profissionais',
+  'Administradora com acesso completo',
+  'Financeiro, cobranças e relatórios protegidos',
+  'Controle de equipe',
+  'Página pública personalizada',
+  '7 dias grátis',
 ]
 export default function Home() {
   const [scrolled, setScrolled] = useState(false)
@@ -132,41 +149,70 @@ export default function Home() {
       </section>
       {/* PLANO */}
       <section id="plano" style={{padding:'80px 24px',background:'radial-gradient(ellipse at 50% 50%,rgba(139,92,246,.09),transparent 65%)'}}>
-        <div style={{maxWidth:'480px',margin:'0 auto'}}>
-          <div style={{textAlign:'center',marginBottom:'40px'}}>
-            <h2 style={{fontSize:'clamp(22px,4vw,34px)',fontWeight:800,color:'#F8F4F7',letterSpacing:'-0.03em',marginBottom:'12px'}}>Um plano. Tudo incluso.</h2>
-            <p style={{fontSize:'15px',color:'#B8AAB8',lineHeight:1.6}}>Tudo que seu negócio precisa em um só painel.</p>
+        <div style={{maxWidth:'980px',margin:'0 auto'}}>
+          <div style={{textAlign:'center',marginBottom:'48px'}}>
+            <h2 style={{fontSize:'clamp(22px,4vw,34px)',fontWeight:800,color:'#F8F4F7',letterSpacing:'-0.03em',marginBottom:'12px'}}>Escolha o plano ideal para sua rotina de beleza</h2>
+            <p style={{fontSize:'15px',color:'#B8AAB8',lineHeight:1.6,maxWidth:'560px',margin:'0 auto'}}>Comece organizando sua agenda com o Plano Essencial ou escolha o Plano Equipe para trabalhar com acessos individuais e mais controle sobre sua equipe.</p>
           </div>
-          <div style={{background:'radial-gradient(ellipse at top,rgba(139,92,246,.16),transparent 55%),rgba(24,16,27,.97)',border:'1.5px solid rgba(139,92,246,.50)',borderRadius:'22px',padding:'40px 32px',boxShadow:'0 0 64px rgba(139,92,246,.14)',position:'relative' as const}}>
-            <div style={{position:'absolute' as const,top:'-13px',left:'50%',transform:'translateX(-50%)',background:G,borderRadius:'999px',padding:'4px 18px',fontSize:'11px',fontWeight:700,color:'#fff',whiteSpace:'nowrap' as const}}>Preço de lançamento</div>
-            <div style={{textAlign:'center',marginBottom:'28px'}}>
-              <h3 style={{fontSize:'20px',fontWeight:800,color:'#F8F4F7',marginBottom:'16px'}}>Plano ClienteMarcado</h3>
-              <p style={{fontSize:'14px',color:'#B8AAB8',textDecoration:'line-through',marginBottom:'2px'}}>De R$ 129,90</p>
-              <div style={{marginBottom:'8px'}}>
-                <span style={{fontSize:'13px',color:'#B8AAB8',marginRight:'4px'}}>por</span>
-                <span style={{fontSize:'52px',fontWeight:900,color:'#F8F4F7',letterSpacing:'-0.03em'}}>R$ 79</span>
-                <span style={{fontSize:'22px',fontWeight:700,color:'#F8F4F7'}}>,90</span>
-                <span style={{fontSize:'15px',color:'#B8AAB8'}}>/mês</span>
-              </div>
-              <p style={{fontSize:'13px',color:'#B8AAB8'}}>7 dias grátis para testar. Sem fidelidade. Cancele quando quiser.</p>
-            </div>
-            <div style={{marginBottom:'32px'}}>
-              {inclusos.map((item,i)=>(
-                <div key={i} style={{display:'flex',alignItems:'center',gap:'10px',marginBottom:'12px'}}>
-                  <span style={{color:'#22C55E',fontSize:'14px',flexShrink:0,fontWeight:700}}>✓</span>
-                  <span style={{fontSize:'14px',color:'#B8AAB8'}}>{item}</span>
+
+          <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(300px,1fr))',gap:'24px',alignItems:'start'}}>
+
+            {/* PLANO ESSENCIAL */}
+            <div style={{background:'radial-gradient(ellipse at top,rgba(139,92,246,.10),transparent 55%),rgba(24,16,27,.97)',border:'1.5px solid #2A1A2F',borderRadius:'22px',padding:'40px 32px',position:'relative' as const}}>
+              <div style={{textAlign:'center',marginBottom:'24px'}}>
+                <h3 style={{fontSize:'20px',fontWeight:800,color:'#F8F4F7',marginBottom:'6px'}}>Plano Essencial</h3>
+                <p style={{fontSize:'13px',color:'#B8AAB8',lineHeight:1.5,marginBottom:'18px',minHeight:'40px'}}>Para autônomas e negócios pequenos que querem organizar a agenda em um só lugar.</p>
+                <div style={{marginBottom:'8px'}}>
+                  <span style={{fontSize:'44px',fontWeight:900,color:'#F8F4F7',letterSpacing:'-0.03em'}}>R$ 79</span>
+                  <span style={{fontSize:'20px',fontWeight:700,color:'#F8F4F7'}}>,90</span>
+                  <span style={{fontSize:'14px',color:'#B8AAB8'}}>/mês</span>
                 </div>
-              ))}
+              </div>
+              <div style={{marginBottom:'28px'}}>
+                {inclusosEssencial.map((item,i)=>(
+                  <div key={i} style={{display:'flex',alignItems:'center',gap:'10px',marginBottom:'12px'}}>
+                    <span style={{color:'#22C55E',fontSize:'14px',flexShrink:0,fontWeight:700}}>✓</span>
+                    <span style={{fontSize:'14px',color:'#B8AAB8'}}>{item}</span>
+                  </div>
+                ))}
+              </div>
+              <Link href="/aceite-plano" className="btn-s" style={{width:'100%',justifyContent:'center',height:'50px',fontSize:'14px'}}>
+                Começar com o Essencial
+              </Link>
+              <p style={{textAlign:'center',fontSize:'12px',color:'#B8AAB8',marginTop:'14px'}}>Ideal para quem centraliza a gestão do negócio.</p>
             </div>
-            <Link href="/aceite-plano" className="btn-p" style={{width:'100%',justifyContent:'center',height:'52px',fontSize:'15px'}}>
-              Começar 7 dias grátis
-            </Link>
-            <p style={{textAlign:'center',fontSize:'12px',color:'#B8AAB8',marginTop:'16px'}}>Teste grátis por 7 dias. Depois R$ 79,90/mês. Sem fidelidade.</p>
-            <p style={{textAlign:'center',fontSize:'11px',color:'#B8AAB8',marginTop:'6px',fontStyle:'italic' as const}}>Valor promocional de lançamento por tempo limitado.</p>
+
+            {/* PLANO EQUIPE */}
+            <div style={{background:'radial-gradient(ellipse at top,rgba(139,92,246,.16),transparent 55%),rgba(24,16,27,.97)',border:'1.5px solid rgba(139,92,246,.50)',borderRadius:'22px',padding:'40px 32px',boxShadow:'0 0 64px rgba(139,92,246,.14)',position:'relative' as const}}>
+              <div style={{position:'absolute' as const,top:'-13px',left:'50%',transform:'translateX(-50%)',background:G,borderRadius:'999px',padding:'4px 18px',fontSize:'11px',fontWeight:700,color:'#fff',whiteSpace:'nowrap' as const}}>Mais completo</div>
+              <div style={{textAlign:'center',marginBottom:'24px'}}>
+                <h3 style={{fontSize:'20px',fontWeight:800,color:'#F8F4F7',marginBottom:'6px'}}>Plano Equipe</h3>
+                <p style={{fontSize:'13px',color:'#B8AAB8',lineHeight:1.5,marginBottom:'18px',minHeight:'40px'}}>Para salões, studios e clínicas de estética que precisam dividir acessos sem expor o financeiro.</p>
+                <div style={{marginBottom:'8px'}}>
+                  <span style={{fontSize:'44px',fontWeight:900,color:'#F8F4F7',letterSpacing:'-0.03em'}}>R$ 149</span>
+                  <span style={{fontSize:'20px',fontWeight:700,color:'#F8F4F7'}}>,90</span>
+                  <span style={{fontSize:'14px',color:'#B8AAB8'}}>/mês</span>
+                </div>
+              </div>
+              <div style={{marginBottom:'28px'}}>
+                {inclusosEquipe.map((item,i)=>(
+                  <div key={i} style={{display:'flex',alignItems:'center',gap:'10px',marginBottom:'12px'}}>
+                    <span style={{color:'#22C55E',fontSize:'14px',flexShrink:0,fontWeight:700}}>✓</span>
+                    <span style={{fontSize:'14px',color:'#B8AAB8'}}>{item}</span>
+                  </div>
+                ))}
+              </div>
+              <Link href="/aceite-plano" className="btn-p" style={{width:'100%',justifyContent:'center',height:'50px',fontSize:'14px'}}>
+                Quero o Plano Equipe
+              </Link>
+              <p style={{textAlign:'center',fontSize:'12px',color:'#B8AAB8',marginTop:'14px'}}>Sua equipe acessa apenas o que precisa. Você continua no controle de tudo.</p>
+            </div>
+
           </div>
+
+          <p style={{textAlign:'center',fontSize:'13px',color:'#B8AAB8',marginTop:'32px'}}>Todos os planos incluem 7 dias grátis para testar o ClienteMarcado.</p>
         </div>
-      </section>
-      {/* CTA FINAL */}
+      </section>      {/* CTA FINAL */}
       <section style={{padding:'80px 24px',textAlign:'center',background:'radial-gradient(ellipse at 50% 50%,rgba(139,92,246,.10),transparent 60%)'}}>
         <div style={{maxWidth:'600px',margin:'0 auto'}}>
           <h2 style={{fontSize:'clamp(22px,4vw,32px)',fontWeight:800,color:'#F8F4F7',letterSpacing:'-0.03em',marginBottom:'16px',lineHeight:1.2}}>
