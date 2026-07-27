@@ -44,10 +44,18 @@ const TEMA_CORES: Record<string, {primary:string;secondary:string;accent:string;
   modelo5: {primary:'#D6A77A',secondary:'#A47148',accent:'#E8C39E',border:'rgba(214,167,122,.38)',bg:'rgba(214,167,122,.10)',text:'#E8C39E', btnText:'#2A1810'},
 }
 
+const BANNERS_PRONTOS=Array.from({length:10},(_,i)=>`/banners/beauty/banner-${String(i+1).padStart(2,'0')}.png`)
+
 const CSS=`
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html,body{overflow-x:hidden;width:100%;max-width:100%;background:#08060A}
 input,select,textarea{color-scheme:dark}
+.banner-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px}
+.banner-thumb{position:relative;border-radius:10px;overflow:hidden;border:1.5px solid #2A1A2F;cursor:pointer;aspect-ratio:16/9;background:#18101B;transition:all .18s;padding:0}
+.banner-thumb:hover{border-color:rgba(236,72,153,.45);transform:translateY(-2px);box-shadow:0 8px 20px rgba(0,0,0,.35)}
+.banner-thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.banner-thumb.sel{border-color:#EC4899;box-shadow:0 0 0 2px rgba(236,72,153,.28),0 8px 20px rgba(236,72,153,.18)}
+.banner-sel-badge{position:absolute;top:5px;right:5px;background:linear-gradient(135deg,#EC4899,#D946EF,#8B5CF6);color:#fff;font-size:9px;font-weight:700;padding:2px 7px;border-radius:999px;letter-spacing:.02em;box-shadow:0 2px 8px rgba(236,72,153,.4)}
 select option{background:#120A14;color:#F8F4F7}
 .sb{width:220px;min-height:100vh;background:radial-gradient(circle at top left,rgba(139,92,246,.14),transparent 32%),linear-gradient(180deg,#070F1D,#08060A);border-right:1px solid #2A1A2F;display:flex;flex-direction:column;position:fixed;top:0;left:0;z-index:30}
 .sb-logo{padding:20px 16px 16px;border-bottom:1px solid #2A1A2F;display:flex;align-items:center;gap:8px}
@@ -439,6 +447,19 @@ export default function Perfil(){
               </div>
             )}
             <input ref={imgRef} type="file" accept="image/*" onChange={uploadCapa} style={{display:'none'}}/>
+
+            <div style={{borderTop:'1px solid #2A1A2F',paddingTop:'18px',marginTop:'4px',marginBottom:'18px'}}>
+              <p style={{fontSize:'13px',fontWeight:600,color:'#B8AAB8',marginBottom:'4px'}}>Escolha um banner pronto</p>
+              <p style={{fontSize:'12px',color:'#B8AAB8',marginBottom:'14px'}}>Selecione uma imagem pronta para combinar com o estilo do seu negócio.</p>
+              <div className="banner-grid">
+                {BANNERS_PRONTOS.map(b=>(
+                  <button key={b} type="button" onClick={()=>setCapUrl(b)} className={`banner-thumb${capUrl===b?' sel':''}`}>
+                    <img src={b} alt="Banner pronto" loading="lazy"/>
+                    {capUrl===b&&<span className="banner-sel-badge">Selecionado</span>}
+                  </button>
+                ))}
+              </div>
+            </div>
 
             <div style={{borderTop:'1px solid #2A1A2F',paddingTop:'18px',marginTop:'4px'}}>
               <p style={{fontSize:'13px',fontWeight:600,color:'#B8AAB8',marginBottom:'4px'}}>Cor de destaque</p>
