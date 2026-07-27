@@ -1,6 +1,6 @@
 'use client'
 import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, usePathname } from 'next/navigation'
 import { supabase } from '../lib/supabase'
 import { Suspense } from 'react'
 import BannerPagamentoSucesso from '../components/BannerPagamentoSucesso'
@@ -14,7 +14,9 @@ export default function PainelLayout({ children }: { children: React.ReactNode }
   const [diasTrial, setDiasTrial] = useState<number|null>(null)
   const [loadingPag, setLoadingPag] = useState(false)
   const [loading, setLoading] = useState(true)
+  const [isProfissional, setIsProfissional] = useState(false)
   const router = useRouter()
+  const pathname = usePathname()
 
   async function abrirCheckout() {
     if (loadingPag) return
@@ -53,11 +55,32 @@ export default function PainelLayout({ children }: { children: React.ReactNode }
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) { router.push('/login'); return }
 
-      const { data: p } = await supabase
+      const { data: p, error: perfilError } = await supabase
         .from('perfis')
         .select('status_acesso, trial_ends_at, plano_ativo_ate, plano_tipo')
         .eq('user_id', user.id)
         .single()
+
+      // Sem perfil proprio (nao e dona): pode ser uma profissional com acesso individual
+      if (!p || perfilError) {
+        const { data: { session } } = await supabase.auth.getSession()
+        const token = session?.access_token
+        if (token) {
+          try {
+            const res = await fetch('/api/equipe/meu-vinculo', { headers: { 'Authorization': 'Bearer ' + token } })
+            const vinculo = await res.json()
+            if (res.ok && vinculo?.role === 'profissional' && vinculo?.ativo) {
+              setIsProfissional(true)
+              setLoading(false)
+              return
+            }
+          } catch (e) { console.warn('Erro ao verificar vinculo de equipe:', e) }
+        }
+        // Sem perfil e sem vinculo: comportamento atual (trata como admin, ex: perfil ainda nao criado)
+        setStatus('ativo')
+        setLoading(false)
+        return
+      }
 
       setPlanoTipo(p?.plano_tipo === 'equipe' ? 'equipe' : 'essencial')
 
@@ -92,11 +115,28 @@ export default function PainelLayout({ children }: { children: React.ReactNode }
     verificar()
   }, [])
 
+  // Reavalia o bloqueio de rota a cada navegacao (sem repetir as consultas pesadas)
+  useEffect(() => {
+    if (!loading && isProfissional && pathname !== '/painel/minha-agenda' && pathname !== '/painel/alterar-senha') {
+      router.replace('/painel/minha-agenda')
+    }
+  }, [pathname, isProfissional, loading])
+
   if (loading) return (
     <div style={{minHeight:'100vh',background:'#050B16',display:'flex',alignItems:'center',justifyContent:'center',fontFamily:'system-ui'}}>
       <p style={{color:'#475569',fontSize:'14px'}}>Carregando...</p>
     </div>
   )
+
+  // Profissional tentando acessar rota administrativa: nao renderiza nada ate o redirecionamento
+  if (isProfissional && pathname !== '/painel/minha-agenda' && pathname !== '/painel/alterar-senha') return (
+    <div style={{minHeight:'100vh',background:'#08060A',display:'flex',alignItems:'center',justifyContent:'center',fontFamily:'system-ui'}}>
+      <p style={{color:'#B8AAB8',fontSize:'14px'}}>Redirecionando...</p>
+    </div>
+  )
+
+  // Profissional na propria area: sem banners de cobranca (irrelevantes pra ela)
+  if (isProfissional) return <>{children}</>
 
   if (status === 'bloqueado' || status === 'cancelado') return (
     <div style={{minHeight:'100vh',background:'linear-gradient(180deg,#060C18,#050B16)',display:'flex',alignItems:'center',justifyContent:'center',padding:'24px',fontFamily:'system-ui'}}>

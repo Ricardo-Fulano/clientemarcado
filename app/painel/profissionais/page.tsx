@@ -72,6 +72,11 @@ export default function Profissionais(){
   const [fAtivo,setFAtivo]=useState(true)
   const [fFoto,setFFoto]=useState<File|null>(null)
   const [fFotoPreview,setFFotoPreview]=useState<string|null>(null)
+  const [acessosEquipe,setAcessosEquipe]=useState<Record<string,{email:string;ativo:boolean}>>({})
+  const [criandoAcessoId,setCriandoAcessoId]=useState<string|null>(null)
+  const [emailAcesso,setEmailAcesso]=useState('')
+  const [criandoAcessoLoading,setCriandoAcessoLoading]=useState(false)
+  const [senhaGerada,setSenhaGerada]=useState<{nome:string;email:string;senha:string}|null>(null)
 
   useEffect(()=>{load()},[])
 
@@ -103,6 +108,20 @@ export default function Profissionais(){
     console.log('DEBUG - perfil_id usado:',p.id,'profissionais encontrados:',ps?.length)
 
     setProfs(ps||[]);setLoading(false)
+
+    const {data:{session}}=await supabase.auth.getSession()
+    const token=session?.access_token
+    if(token){
+      try{
+        const res=await fetch('/api/equipe/criar-acesso',{headers:{'Authorization':'Bearer '+token}})
+        const data=await res.json()
+        if(res.ok && data.membros){
+          const mapa:Record<string,{email:string;ativo:boolean}>={}
+          data.membros.forEach((m:any)=>{mapa[m.profissional_id]={email:m.email,ativo:m.ativo}})
+          setAcessosEquipe(mapa)
+        }
+      }catch(e){console.warn('Erro ao carregar acessos da equipe:',e)}
+    }
   }
 
   function resetForm(){
@@ -211,6 +230,42 @@ export default function Profissionais(){
     setMsg(p.ativo?'Profissional desativado.':'Profissional ativado.');setTimeout(()=>setMsg(''),2000)
   }
 
+  async function confirmarCriarAcesso(p:Prof){
+    const planoTipoAtual = perfil?.plano_tipo === 'equipe' ? 'equipe' : 'essencial'
+    if(planoTipoAtual!=='equipe'){
+      setMsg('Login individual para profissionais está disponível no Plano Equipe.')
+      setTimeout(()=>setMsg(''),5000)
+      return
+    }
+    if(!emailAcesso.trim()||!emailAcesso.includes('@')){setMsg('⚠ Informe um e-mail válido.');return}
+    setCriandoAcessoLoading(true)
+    const {data:{session}}=await supabase.auth.getSession()
+    const token=session?.access_token
+    if(!token){setMsg('Sessão expirada. Faça login novamente.');setCriandoAcessoLoading(false);return}
+    try{
+      const res=await fetch('/api/equipe/criar-acesso',{
+        method:'POST',
+        headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
+        body:JSON.stringify({profissional_id:p.id,email:emailAcesso.trim()})
+      })
+      const data=await res.json()
+      if(!res.ok){
+        setMsg(data.error||'Erro ao criar acesso.')
+        setTimeout(()=>setMsg(''),5000)
+        setCriandoAcessoLoading(false)
+        return
+      }
+      setAcessosEquipe(prev=>({...prev,[p.id]:{email:data.email,ativo:true}}))
+      setSenhaGerada({nome:p.nome,email:data.email,senha:data.senha_temporaria})
+      setCriandoAcessoId(null)
+      setEmailAcesso('')
+    }catch(e){
+      setMsg('Erro ao criar acesso. Tente novamente.')
+      setTimeout(()=>setMsg(''),5000)
+    }
+    setCriandoAcessoLoading(false)
+  }
+
   const filtrados=profs.filter(p=>{
     const q=busca.toLowerCase()
     const mb=!busca||(p.nome?.toLowerCase().includes(q)||p.cargo?.toLowerCase().includes(q))
@@ -239,6 +294,23 @@ export default function Profissionais(){
         <div className="pg"><div className="bdy">
 
           {msg&&<div style={{position:'fixed',top:'20px',left:'50%',transform:'translateX(-50%)',background:'rgba(139,92,246,.18)',border:'1px solid rgba(139,92,246,.40)',borderRadius:'10px',padding:'10px 20px',zIndex:99,color:'#C4B5FD',fontSize:'13px',fontWeight:700,backdropFilter:'blur(20px)',whiteSpace:'nowrap'}}>{msg}</div>}
+
+          {senhaGerada&&(
+            <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,.65)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:200,padding:'20px'}}>
+              <div className="crd" style={{maxWidth:'440px',width:'100%',padding:'28px',border:'1.5px solid rgba(139,92,246,.40)'}}>
+                <p style={{fontSize:'17px',fontWeight:800,color:'#F8F4F7',marginBottom:'6px'}}>🔑 Acesso criado para {senhaGerada.nome}</p>
+                <p style={{fontSize:'13px',color:'#B8AAB8',marginBottom:'6px',lineHeight:1.5}}>Copie e envie esses dados com segurança. Por segurança, a senha não ficará salva em lugar nenhum — se perder, será necessário gerar um novo acesso.</p>
+                <p style={{fontSize:'12px',color:'#C4B5FD',marginBottom:'18px',lineHeight:1.5}}>A profissional poderá alterar essa senha após o primeiro acesso, em "Alterar senha" no menu dela.</p>
+                <div style={{background:'rgba(8,6,10,.6)',border:'1px solid #2A1A2F',borderRadius:'12px',padding:'16px',marginBottom:'20px'}}>
+                  <p style={{fontSize:'11px',color:'#B8AAB8',textTransform:'uppercase' as const,letterSpacing:'.06em',marginBottom:'4px'}}>E-mail de acesso</p>
+                  <p style={{fontSize:'14px',color:'#F8F4F7',fontWeight:600,marginBottom:'14px'}}>{senhaGerada.email}</p>
+                  <p style={{fontSize:'11px',color:'#B8AAB8',textTransform:'uppercase' as const,letterSpacing:'.06em',marginBottom:'4px'}}>Senha temporária</p>
+                  <p style={{fontSize:'18px',color:'#C4B5FD',fontWeight:800,letterSpacing:'.04em',fontFamily:'monospace'}}>{senhaGerada.senha}</p>
+                </div>
+                <button onClick={()=>setSenhaGerada(null)} className="btn-p" style={{width:'100%',justifyContent:'center',height:'44px'}}>Entendi, já anotei</button>
+              </div>
+            </div>
+          )}
 
           <div className="hdr-row" style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',gap:'16px',flexWrap:'wrap',marginBottom:'24px'}}>
             <div>
@@ -378,9 +450,21 @@ export default function Profissionais(){
                       <div className="prof-acts" style={{display:'flex',gap:'5px',flexShrink:0,flexWrap:'wrap',justifyContent:'flex-end'}}>
                         <button onClick={()=>abrirForm(p)} className="pact pact-edit" style={{background:'rgba(24,16,27,.85)',border:'1px solid #2A1A2F',color:'#F8F4F7'}}>✏ Editar</button>
                         <button onClick={()=>toggleAtivo(p)} className="pact pact-toggle" style={{background:'rgba(24,16,27,.85)',border:'1px solid #2A1A2F',color:'#F8F4F7'}}>{p.ativo!==false?'Desativar':'Ativar'}</button>
+                        {acessosEquipe[p.id]?(
+                          <span style={{fontSize:'10px',fontWeight:600,padding:'6px 10px',borderRadius:'8px',background:'rgba(139,92,246,.12)',color:'#C4B5FD',border:'1px solid rgba(139,92,246,.28)'}}>🔑 {acessosEquipe[p.id].email}</span>
+                        ):(
+                          <button onClick={()=>{setCriandoAcessoId(criandoAcessoId===p.id?null:p.id);setEmailAcesso(p.email||'')}} className="pact" style={{background:'rgba(139,92,246,.10)',border:'1px solid rgba(139,92,246,.28)',color:'#C4B5FD'}}>🔑 Criar acesso</button>
+                        )}
                         <button onClick={()=>excluir(p.id,p.nome)} className="pact pact-del" style={{background:'rgba(24,16,27,.85)',border:'1px solid #2A1A2F',color:'#B8AAB8'}}>✕</button>
                       </div>
                     </div>
+                    {criandoAcessoId===p.id&&(
+                      <div style={{marginTop:'12px',paddingTop:'12px',borderTop:'1px solid #2A1A2F',display:'flex',gap:'8px',flexWrap:'wrap',alignItems:'center'}}>
+                        <input type="email" value={emailAcesso} onChange={e=>setEmailAcesso(e.target.value)} placeholder="email@profissional.com" style={{flex:'1 1 220px',background:'rgba(24,16,27,.88)',border:'1px solid rgba(42,26,47,.30)',borderRadius:'10px',padding:'10px 14px',color:'#F8F4F7',fontSize:'13px',fontFamily:'inherit',outline:'none'}}/>
+                        <button onClick={()=>confirmarCriarAcesso(p)} disabled={criandoAcessoLoading} className="btn-p" style={{height:'38px',fontSize:'12px',padding:'0 16px',opacity:criandoAcessoLoading?.7:1}}>{criandoAcessoLoading?'Criando...':'Confirmar'}</button>
+                        <button onClick={()=>setCriandoAcessoId(null)} className="btn-s" style={{height:'38px',fontSize:'12px',padding:'0 14px'}}>Cancelar</button>
+                      </div>
+                    )}
                   </div>
                 )
               })

@@ -25,11 +25,11 @@ export default function Login() {
     setRecuperando(true)
     setMsgRecuperar('')
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: window.location.origin + '/painel',
+      redirectTo: window.location.origin + '/redefinir-senha',
     })
     setRecuperando(false)
     if (error) setMsgRecuperar('Erro ao enviar. Tente novamente.')
-    else setMsgRecuperar('Link enviado! Verifique seu e-mail.')
+    else setMsgRecuperar('Se esse e-mail estiver cadastrado, enviaremos um link para redefinir sua senha.')
   }
 
   function handleKeyDown(e: React.KeyboardEvent) {

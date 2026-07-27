@@ -54,7 +54,21 @@ interface Props {
 export default function PainelSidebar({ nome = '', tituloMobile = 'Painel' }: Props) {
   const [mob, setMob] = useState(false)
   const [isAdmin, setIsAdmin] = useState(false)
-  useEffect(() => { supabase.auth.getUser().then(({ data: { user } }) => { if (user?.id === ADMIN_ID) setIsAdmin(true) }) }, [])
+  const [isProfissional, setIsProfissional] = useState(false)
+  useEffect(() => {
+    supabase.auth.getUser().then(async ({ data: { user } }) => {
+      if (!user) return
+      if (user.id === ADMIN_ID) setIsAdmin(true)
+      const { data: { session } } = await supabase.auth.getSession()
+      const token = session?.access_token
+      if (!token) return
+      try {
+        const res = await fetch('/api/equipe/meu-vinculo', { headers: { 'Authorization': 'Bearer ' + token } })
+        const vinculo = await res.json()
+        if (res.ok && vinculo?.role === 'profissional' && vinculo?.ativo) setIsProfissional(true)
+      } catch (e) { console.warn('Erro ao verificar vinculo de equipe:', e) }
+    })
+  }, [])
   const path = usePathname()
   const router = useRouter()
   const ini = (nome || 'C').charAt(0).toUpperCase()
@@ -69,9 +83,14 @@ export default function PainelSidebar({ nome = '', tituloMobile = 'Painel' }: Pr
     return path.startsWith(href)
   }
 
+  const LINKS_PROFISSIONAL = [
+    { h: '/painel/minha-agenda', l: 'Minha agenda' },
+    { h: '/painel/alterar-senha', l: 'Alterar senha' },
+  ]
+
   const NavLinks = ({ onClick }: { onClick?: () => void }) => (
     <>
-      {LINKS.filter(it => it.h !== '/painel/parceiros' || isAdmin).map(it => (
+      {(isProfissional ? LINKS_PROFISSIONAL : LINKS.filter(it => it.h !== '/painel/parceiros' || isAdmin)).map(it => (
         <Link key={it.h} href={it.h} prefetch={false} onClick={onClick}
           className={'nl' + (ativo(it.h) ? ' on' : '')}>
           {it.l}
@@ -108,6 +127,12 @@ export default function PainelSidebar({ nome = '', tituloMobile = 'Painel' }: Pr
           <NavLinks onClick={() => setMob(false)} />
         </nav>
         <div style={{ padding: '12px 10px', borderTop: '1px solid #2A1A2F' }}>
+          {!isProfissional && (
+            <Link href="/painel/alterar-senha" prefetch={false} onClick={() => setMob(false)}
+              style={{ display: 'block', textAlign: 'center' as const, fontSize: '12px', color: '#B8AAB8', textDecoration: 'none', padding: '8px 0', marginBottom: '4px' }}>
+              Alterar senha
+            </Link>
+          )}
           <BtnSair onClick={() => { setMob(false); sair() }} />
         </div>
       </div>
@@ -131,9 +156,15 @@ export default function PainelSidebar({ nome = '', tituloMobile = 'Painel' }: Pr
             <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: AV, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '13px', fontWeight: 700, color: '#fff', flexShrink: 0 }}>{ini}</div>
             <div style={{ minWidth: 0 }}>
               <p style={{ fontSize: '12px', fontWeight: 600, color: '#F8F4F7', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{nome || 'Meu negócio'}</p>
-              <p style={{ fontSize: '10px', color: '#B8AAB8' }}>Administrador</p>
+              <p style={{ fontSize: '10px', color: '#B8AAB8' }}>{isProfissional ? 'Profissional' : 'Administrador'}</p>
             </div>
           </div>
+          {!isProfissional && (
+            <Link href="/painel/alterar-senha" prefetch={false}
+              style={{ display: 'block', textAlign: 'center' as const, fontSize: '11px', color: '#B8AAB8', textDecoration: 'none', padding: '6px 0', marginBottom: '4px' }}>
+              Alterar senha
+            </Link>
+          )}
           <BtnSair />
         </div>
       </aside>
