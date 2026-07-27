@@ -73,23 +73,36 @@ export default function Cadastro() {
     if (aceitou && typeof window !== 'undefined') {
       localStorage.setItem('clienteMarcadoAceitePlano', 'true')
     }
+    const planoSalvo = typeof window !== 'undefined' ? localStorage.getItem('cm_plano') : null
+    const planoTipo = planoSalvo === 'equipe' ? 'equipe' : 'essencial'
     setLoading(true)
     setMensagem('')
     const redirectTo = typeof window !== 'undefined'
       ? `${window.location.origin}/auth/callback`
       : 'https://clientemarcado.vercel.app/auth/callback'
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email,
       password: senha,
       options: {
         emailRedirectTo: redirectTo,
-        data: { nome_negocio: nomeNegocio, tipo_negocio: tipoNegocio, nome_usuario: nomeUsuario, cupom_indicacao: cupom || null }
+        data: { nome_negocio: nomeNegocio, tipo_negocio: tipoNegocio, nome_usuario: nomeUsuario, cupom_indicacao: cupom || null, plano_tipo: planoTipo }
       }
     })
     if (error) {
       setMensagem('Erro: ' + error.message)
       setLoading(false)
       return
+    }
+    // Garante que nome_negocio/tipo_negocio/plano_tipo cheguem em `perfis`
+    // (nao existe trigger no banco que faca essa copia automaticamente)
+    if (data?.user?.id) {
+      try {
+        await fetch('/api/cadastro/criar-perfil', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ user_id: data.user.id, nome_negocio: nomeNegocio, tipo_negocio: tipoNegocio, plano_tipo: planoTipo })
+        })
+      } catch (e) { console.warn('Erro ao gravar perfil inicial:', e) }
     }
     // Salvar indicação no banco imediatamente se cupom foi usado
     if (cupom && cupom.trim()) {

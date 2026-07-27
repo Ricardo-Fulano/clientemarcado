@@ -1,6 +1,7 @@
 'use client'
-import { useState } from 'react'
+import { useState, Suspense } from 'react'
 import Link from 'next/link'
+import { useSearchParams } from 'next/navigation'
 
 const CLAUSULAS = [
   { t: '1. Contratante', c: 'Pessoa física ou jurídica que realiza o cadastro e utiliza a plataforma ClienteMarcado.' },
@@ -52,6 +53,17 @@ html,body{overflow-x:hidden;width:100%;max-width:100%;background:#08060A}
 `
 
 export default function AceitePlano() {
+  return (
+    <Suspense fallback={null}>
+      <AceitePlanoConteudo />
+    </Suspense>
+  )
+}
+
+function AceitePlanoConteudo() {
+  const searchParams = useSearchParams()
+  const planoParam = searchParams.get('plano')
+  const planoValido = planoParam === 'equipe' ? 'equipe' : 'essencial'
   const [c1, setC1] = useState(false)
   const [c2, setC2] = useState(false)
   const [c3, setC3] = useState(false)
@@ -66,6 +78,7 @@ export default function AceitePlano() {
       localStorage.setItem('clienteMarcadoAceitePlano', 'true')
       localStorage.setItem('clienteMarcadoAceiteData', new Date().toISOString())
       localStorage.setItem('clienteMarcadoAceiteVersão', '1.0')
+      localStorage.setItem('cm_plano', planoValido)
     } catch (_) {}
     window.location.href = '/cadastro'
   }

@@ -176,7 +176,7 @@ export default function Home() {
                   </div>
                 ))}
               </div>
-              <Link href="/aceite-plano" className="btn-s" style={{width:'100%',justifyContent:'center',height:'50px',fontSize:'14px'}}>
+              <Link href="/aceite-plano?plano=essencial" className="btn-s" style={{width:'100%',justifyContent:'center',height:'50px',fontSize:'14px'}}>
                 Começar com o Essencial
               </Link>
               <p style={{textAlign:'center',fontSize:'12px',color:'#B8AAB8',marginTop:'14px'}}>Ideal para quem centraliza a gestão do negócio.</p>
@@ -202,7 +202,7 @@ export default function Home() {
                   </div>
                 ))}
               </div>
-              <Link href="/aceite-plano" className="btn-p" style={{width:'100%',justifyContent:'center',height:'50px',fontSize:'14px'}}>
+              <Link href="/aceite-plano?plano=equipe" className="btn-p" style={{width:'100%',justifyContent:'center',height:'50px',fontSize:'14px'}}>
                 Quero o Plano Equipe
               </Link>
               <p style={{textAlign:'center',fontSize:'12px',color:'#B8AAB8',marginTop:'14px'}}>Sua equipe acessa apenas o que precisa. Você continua no controle de tudo.</p>

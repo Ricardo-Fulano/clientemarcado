@@ -10,6 +10,7 @@ const G = 'linear-gradient(135deg,#3B82F6,#7C3AED)'
 
 export default function PainelLayout({ children }: { children: React.ReactNode }) {
   const [status, setStatus] = useState<string>('ativo')
+  const [planoTipo, setPlanoTipo] = useState<string>('essencial')
   const [diasTrial, setDiasTrial] = useState<number|null>(null)
   const [loadingPag, setLoadingPag] = useState(false)
   const [loading, setLoading] = useState(true)
@@ -21,7 +22,11 @@ export default function PainelLayout({ children }: { children: React.ReactNode }
     try {
       const { data: { session } } = await supabase.auth.getSession()
       const token = session?.access_token
-      if (!token) { window.location.href = CHECKOUT_URL; return }
+      if (!token) {
+        if (planoTipo !== 'equipe') window.location.href = CHECKOUT_URL
+        else alert('Sessão expirada. Faça login novamente para regularizar o pagamento.')
+        return
+      }
       const res = await fetch('/api/mercadopago/criar-assinatura', {
         method: 'POST',
         headers: { 'Authorization': 'Bearer ' + token },
@@ -29,11 +34,15 @@ export default function PainelLayout({ children }: { children: React.ReactNode }
       const data = await res.json()
       if (data.init_point) {
         window.location.href = data.init_point
-      } else {
+      } else if (planoTipo !== 'equipe') {
+        // Fallback antigo: so vale pro Essencial, nunca pro Equipe
         window.location.href = CHECKOUT_URL
+      } else {
+        alert('Não foi possível gerar o link de pagamento do Plano Equipe. Tente novamente em instantes ou entre em contato com o suporte.')
       }
     } catch {
-      window.location.href = CHECKOUT_URL
+      if (planoTipo !== 'equipe') window.location.href = CHECKOUT_URL
+      else alert('Não foi possível gerar o link de pagamento do Plano Equipe. Tente novamente em instantes ou entre em contato com o suporte.')
     } finally {
       setLoadingPag(false)
     }
@@ -46,9 +55,11 @@ export default function PainelLayout({ children }: { children: React.ReactNode }
 
       const { data: p } = await supabase
         .from('perfis')
-        .select('status_acesso, trial_ends_at, plano_ativo_ate')
+        .select('status_acesso, trial_ends_at, plano_ativo_ate, plano_tipo')
         .eq('user_id', user.id)
         .single()
+
+      setPlanoTipo(p?.plano_tipo === 'equipe' ? 'equipe' : 'essencial')
 
       let st = p?.status_acesso || 'ativo'
 
@@ -93,7 +104,7 @@ export default function PainelLayout({ children }: { children: React.ReactNode }
         <div style={{fontSize:'36px',marginBottom:'16px'}}>🔒</div>
         <h2 style={{fontSize:'20px',fontWeight:800,color:'#F8FAFC',marginBottom:'12px'}}>Acesso bloqueado</h2>
         <p style={{fontSize:'14px',color:'#94A3B8',marginBottom:'28px',lineHeight:1.6}}>Regularize o pagamento para voltar a acessar o ClienteMarcado.</p>
-        <a href={CHECKOUT_URL} target="_blank" rel="noreferrer" style={{display:'flex',alignItems:'center',justifyContent:'center',height:'48px',background:G,color:'#fff',borderRadius:'12px',textDecoration:'none',fontSize:'14px',fontWeight:700}}>Regularizar pagamento</a>
+        <button onClick={abrirCheckout} disabled={loadingPag} style={{display:'flex',width:'100%',alignItems:'center',justifyContent:'center',height:'48px',background:G,color:'#fff',border:'none',borderRadius:'12px',textDecoration:'none',fontSize:'14px',fontWeight:700,cursor:loadingPag?'wait':'pointer',opacity:loadingPag?.7:1,fontFamily:'inherit'}}>{loadingPag?'Gerando...':'Regularizar pagamento'}</button>
       </div>
     </div>
   )
