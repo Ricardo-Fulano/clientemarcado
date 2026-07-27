@@ -54,7 +54,7 @@ interface Props {
 export default function PainelSidebar({ nome = '', tituloMobile = 'Painel' }: Props) {
   const [mob, setMob] = useState(false)
   const [isAdmin, setIsAdmin] = useState(false)
-  const [isProfissional, setIsProfissional] = useState(false)
+  const [role, setRole] = useState<'loading' | 'admin' | 'profissional'>('loading')
   const [nomeProfissionalVinculo, setNomeProfissionalVinculo] = useState('')
   useEffect(() => {
     supabase.auth.getUser().then(async ({ data: { user } }) => {
@@ -62,17 +62,24 @@ export default function PainelSidebar({ nome = '', tituloMobile = 'Painel' }: Pr
       if (user.id === ADMIN_ID) setIsAdmin(true)
       const { data: { session } } = await supabase.auth.getSession()
       const token = session?.access_token
-      if (!token) return
+      if (!token) { setRole('admin'); return }
       try {
         const res = await fetch('/api/equipe/meu-vinculo', { headers: { 'Authorization': 'Bearer ' + token } })
         const vinculo = await res.json()
         if (res.ok && vinculo?.role === 'profissional' && vinculo?.ativo) {
-          setIsProfissional(true)
+          setRole('profissional')
           if (vinculo.nome_profissional) setNomeProfissionalVinculo(vinculo.nome_profissional)
+        } else {
+          setRole('admin')
         }
-      } catch (e) { console.warn('Erro ao verificar vinculo de equipe:', e) }
+      } catch (e) {
+        console.warn('Erro ao verificar vinculo de equipe:', e)
+        setRole('admin')
+      }
     })
   }, [])
+  const isProfissional = role === 'profissional'
+  const carregandoPapel = role === 'loading'
   const nomeExibido = isProfissional ? (nomeProfissionalVinculo || nome) : nome
   const path = usePathname()
   const router = useRouter()
@@ -105,6 +112,14 @@ export default function PainelSidebar({ nome = '', tituloMobile = 'Painel' }: Pr
     </>
   )
 
+  const NavLinksSkeleton = () => (
+    <div style={{ padding: '4px 14px' }}>
+      {[70, 55, 62, 45].map((w, i) => (
+        <div key={i} style={{ height: '13px', background: 'rgba(255,255,255,.05)', borderRadius: '6px', marginBottom: '14px', width: `${w}%` }} />
+      ))}
+    </div>
+  )
+
   const BtnSair = ({ onClick }: { onClick?: () => void }) => (
     <button onClick={onClick || sair}
       style={{ width: '100%', background: 'rgba(239,68,68,.10)', border: '1px solid rgba(239,68,68,.25)', borderRadius: '10px', padding: '10px 14px', color: '#FCA5A5', fontSize: '13px', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: '8px', transition: 'background .15s' }}
@@ -130,10 +145,10 @@ export default function PainelSidebar({ nome = '', tituloMobile = 'Painel' }: Pr
           <button onClick={() => setMob(false)} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,.5)', cursor: 'pointer', fontSize: '22px', lineHeight: 1 }}>×</button>
         </div>
         <nav style={{ flex: 1, padding: '10px 8px', overflowY: 'auto' }}>
-          <NavLinks onClick={() => setMob(false)} />
+          {carregandoPapel ? <NavLinksSkeleton /> : <NavLinks onClick={() => setMob(false)} />}
         </nav>
         <div style={{ padding: '12px 10px', borderTop: '1px solid #2A1A2F' }}>
-          {!isProfissional && (
+          {!carregandoPapel && !isProfissional && (
             <Link href="/painel/alterar-senha" prefetch={false} onClick={() => setMob(false)}
               style={{ display: 'block', textAlign: 'center' as const, fontSize: '12px', color: '#B8AAB8', textDecoration: 'none', padding: '8px 0', marginBottom: '4px' }}>
               Alterar senha
@@ -156,16 +171,16 @@ export default function PainelSidebar({ nome = '', tituloMobile = 'Painel' }: Pr
           </div>
           <span style={{ fontSize: '14px', fontWeight: 800, color: '#F8F4F7', letterSpacing: '-0.02em' }}>ClienteMarcado</span>
         </div>
-        <nav><NavLinks /></nav>
+        <nav>{carregandoPapel ? <NavLinksSkeleton /> : <NavLinks />}</nav>
         <div className="psb-foot">
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', background: 'rgba(24,16,27,.6)', border: '1px solid #2A1A2F', borderRadius: '10px', padding: '10px 12px', marginBottom: '8px' }}>
             <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: AV, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '13px', fontWeight: 700, color: '#fff', flexShrink: 0 }}>{ini}</div>
             <div style={{ minWidth: 0 }}>
-              <p style={{ fontSize: '12px', fontWeight: 600, color: '#F8F4F7', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{nomeExibido || 'Meu negócio'}</p>
-              <p style={{ fontSize: '10px', color: '#B8AAB8' }}>{isProfissional ? 'Profissional' : 'Administrador'}</p>
+              <p style={{ fontSize: '12px', fontWeight: 600, color: '#F8F4F7', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{carregandoPapel ? '' : (nomeExibido || 'Meu negócio')}</p>
+              <p style={{ fontSize: '10px', color: '#B8AAB8' }}>{carregandoPapel ? '' : (isProfissional ? 'Profissional' : 'Administrador')}</p>
             </div>
           </div>
-          {!isProfissional && (
+          {!carregandoPapel && !isProfissional && (
             <Link href="/painel/alterar-senha" prefetch={false}
               style={{ display: 'block', textAlign: 'center' as const, fontSize: '11px', color: '#B8AAB8', textDecoration: 'none', padding: '6px 0', marginBottom: '4px' }}>
               Alterar senha
