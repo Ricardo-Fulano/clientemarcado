@@ -23,6 +23,7 @@ export default function Agendar() {
   const [sucesso, setSucesso] = useState(false)
   const [erro, setErro] = useState('')
   const [loading, setLoading] = useState(false)
+  const [carregandoInicial, setCarregandoInicial] = useState(true)
   const [mesAtual, setMesAtual] = useState(new Date())
   const [horariosDisponiveis, setHorariosDisponiveis] = useState<string[]>([])
   const [carregandoHorarios, setCarregandoHorarios] = useState(false)
@@ -39,6 +40,7 @@ export default function Agendar() {
       if (servicoParam && s && s.find((sv: any) => sv.id === servicoParam)) {
         setServicoId(servicoParam); setEtapa(2)
       }
+      setCarregandoInicial(false)
     }
     carregar()
   }, [slug])
@@ -509,6 +511,12 @@ export default function Agendar() {
     if (/odonto|dent|bucal|oral/.test(txt)) return <ClipboardList size={sz}/>
     return <CalendarCheck size={sz}/>
   }
+
+  if (carregandoInicial) return (
+    <div style={{minHeight:'100vh',background:'radial-gradient(ellipse at top,rgba(139,92,246,.10),transparent 50%),#08060A',display:'flex',alignItems:'center',justifyContent:'center',fontFamily:'-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif'}}>
+      <p style={{color:'#B8AAB8',fontSize:'14px'}}>Carregando...</p>
+    </div>
+  )
 
   if (sucesso) return (
     <div className="sucesso-wrap">
