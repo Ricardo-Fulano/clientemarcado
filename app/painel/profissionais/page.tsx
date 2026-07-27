@@ -6,6 +6,7 @@ import PainelSidebar from '@/app/components/PainelSidebar'
 
 const G='linear-gradient(135deg,#EC4899,#D946EF,#8B5CF6)'
 const AV='linear-gradient(135deg,rgba(236,72,153,.95),rgba(139,92,246,.95))'
+const LIMITES_PROFISSIONAIS: Record<string, number> = { essencial: 3, equipe: 15 }
 
 const CSS=`
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -130,6 +131,19 @@ export default function Profissionais(){
     if(!fNome.trim()){setMsg('⚠ Informe o nome.');return}
     if(!perfil?.id){setMsg('⚠ Perfil do negócio não encontrado. Salve o perfil primeiro.');return}
 
+    // Limite de profissionais por plano (conta ativos + inativos, so nao vale pra edicao)
+    if(!editId){
+      const planoTipoAtual = perfil?.plano_tipo === 'equipe' ? 'equipe' : 'essencial'
+      const limiteAtual = LIMITES_PROFISSIONAIS[planoTipoAtual]
+      if(profs.length >= limiteAtual){
+        setMsg(planoTipoAtual==='equipe'
+          ? `Seu Plano Equipe permite até ${limiteAtual} profissionais cadastrados. Para aumentar esse limite, entre em contato com o suporte.`
+          : `Seu Plano Essencial permite até ${limiteAtual} profissionais cadastrados. Para adicionar mais profissionais, migre para o Plano Equipe.`)
+        setTimeout(()=>setMsg(''),5000)
+        return
+      }
+    }
+
     setSalvando(true)
     const {data:{user}}=await supabase.auth.getUser()
     if(!user){setSalvando(false);return}
@@ -209,6 +223,9 @@ export default function Profissionais(){
   const nome=perfil?.nome_negocio||''
   const ini=(nome||'P').charAt(0).toUpperCase()
   const ativos=profs.filter(p=>p.ativo!==false).length
+  const planoAtual = perfil?.plano_tipo === 'equipe' ? 'equipe' : 'essencial'
+  const limitePlano = LIMITES_PROFISSIONAIS[planoAtual]
+  const noLimite = profs.length >= limitePlano
 
   if(loading)return(<div style={{minHeight:'100vh',background:'#08060A',display:'flex',alignItems:'center',justifyContent:'center',fontFamily:'system-ui'}}><p style={{color:'#B8AAB8',fontSize:'14px'}}>Carregando...</p></div>)
 
@@ -234,6 +251,20 @@ export default function Profissionais(){
                 {showForm&&!editId?'Cancelar':'Novo profissional'}
               </button>
             </div>
+          </div>
+
+          <div className="crd" style={{padding:'14px 20px',marginBottom:'20px',display:'flex',alignItems:'center',justifyContent:'space-between',flexWrap:'wrap',gap:'10px',border:noLimite&&planoAtual==='essencial'?'1.5px solid rgba(236,72,153,.35)':'1.5px solid #2A1A2F'}}>
+            <div style={{display:'flex',alignItems:'center',gap:'10px',flexWrap:'wrap'}}>
+              <span style={{fontSize:'11px',fontWeight:700,padding:'4px 12px',borderRadius:'999px',background:planoAtual==='equipe'?'rgba(139,92,246,.16)':'rgba(236,72,153,.14)',color:planoAtual==='equipe'?'#C4B5FD':'#F9A8D4',border:`1px solid ${planoAtual==='equipe'?'rgba(139,92,246,.30)':'rgba(236,72,153,.28)'}`}}>
+                Plano {planoAtual==='equipe'?'Equipe':'Essencial'}
+              </span>
+              <span style={{fontSize:'13px',color:'#B8AAB8'}}>
+                Profissionais cadastrados: <strong style={{color:noLimite?'#F87171':'#F8F4F7'}}>{profs.length}</strong> de {limitePlano}
+              </span>
+            </div>
+            {noLimite&&planoAtual==='essencial'&&(
+              <Link href="/#plano" className="btn-s" style={{fontSize:'12px',height:'34px',padding:'0 14px'}}>Conhecer Plano Equipe</Link>
+            )}
           </div>
 
           <div className="kpi-grid">
