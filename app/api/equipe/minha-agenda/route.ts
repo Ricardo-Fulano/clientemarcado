@@ -77,7 +77,7 @@ export async function PATCH(request: NextRequest) {
 
     const body = await request.json().catch(() => null)
     const { agendamento_id, status } = body || {}
-    const statusPermitidos = ['realizado', 'pendente']
+    const statusPermitidos = ['realizado', 'pendente', 'faltou', 'cancelado']
     if (!agendamento_id || !statusPermitidos.includes(status)) {
       return NextResponse.json({ error: 'Dados invalidos' }, { status: 400 })
     }
