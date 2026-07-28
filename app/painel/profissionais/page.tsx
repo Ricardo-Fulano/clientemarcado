@@ -77,6 +77,7 @@ export default function Profissionais(){
   const [emailAcesso,setEmailAcesso]=useState('')
   const [criandoAcessoLoading,setCriandoAcessoLoading]=useState(false)
   const [senhaGerada,setSenhaGerada]=useState<{nome:string;email:string;senha:string}|null>(null)
+  const [upsellId,setUpsellId]=useState<string|null>(null)
 
   useEffect(()=>{load()},[])
 
@@ -452,8 +453,10 @@ export default function Profissionais(){
                         <button onClick={()=>toggleAtivo(p)} className="pact pact-toggle" style={{background:'rgba(24,16,27,.85)',border:'1px solid #2A1A2F',color:'#F8F4F7'}}>{p.ativo!==false?'Desativar':'Ativar'}</button>
                         {acessosEquipe[p.id]?(
                           <span style={{fontSize:'10px',fontWeight:600,padding:'6px 10px',borderRadius:'8px',background:'rgba(139,92,246,.12)',color:'#C4B5FD',border:'1px solid rgba(139,92,246,.28)'}}>🔑 {acessosEquipe[p.id].email}</span>
-                        ):(
+                        ):planoAtual==='equipe'?(
                           <button onClick={()=>{setCriandoAcessoId(criandoAcessoId===p.id?null:p.id);setEmailAcesso(p.email||'')}} className="pact" style={{background:'rgba(139,92,246,.10)',border:'1px solid rgba(139,92,246,.28)',color:'#C4B5FD'}}>🔑 Criar acesso</button>
+                        ):(
+                          <button onClick={()=>setUpsellId(upsellId===p.id?null:p.id)} className="pact" style={{background:'rgba(24,16,27,.85)',border:'1px solid #2A1A2F',color:'#B8AAB8'}}>🔒 Plano Equipe</button>
                         )}
                         <button onClick={()=>excluir(p.id,p.nome)} className="pact pact-del" style={{background:'rgba(24,16,27,.85)',border:'1px solid #2A1A2F',color:'#B8AAB8'}}>✕</button>
                       </div>
@@ -463,6 +466,13 @@ export default function Profissionais(){
                         <input type="email" value={emailAcesso} onChange={e=>setEmailAcesso(e.target.value)} placeholder="email@profissional.com" style={{flex:'1 1 220px',background:'rgba(24,16,27,.88)',border:'1px solid rgba(42,26,47,.30)',borderRadius:'10px',padding:'10px 14px',color:'#F8F4F7',fontSize:'13px',fontFamily:'inherit',outline:'none'}}/>
                         <button onClick={()=>confirmarCriarAcesso(p)} disabled={criandoAcessoLoading} className="btn-p" style={{height:'38px',fontSize:'12px',padding:'0 16px',opacity:criandoAcessoLoading?.7:1}}>{criandoAcessoLoading?'Criando...':'Confirmar'}</button>
                         <button onClick={()=>setCriandoAcessoId(null)} className="btn-s" style={{height:'38px',fontSize:'12px',padding:'0 14px'}}>Cancelar</button>
+                      </div>
+                    )}
+                    {upsellId===p.id&&(
+                      <div style={{marginTop:'12px',paddingTop:'12px',borderTop:'1px solid #2A1A2F'}}>
+                        <p style={{fontSize:'13px',color:'#F8F4F7',fontWeight:600,marginBottom:'5px'}}>🔒 Login individual para profissionais está disponível no Plano Equipe.</p>
+                        <p style={{fontSize:'12px',color:'#B8AAB8',marginBottom:'12px',lineHeight:1.5}}>Com o Plano Equipe, cada profissional acessa a própria agenda e Meu Desempenho, sem visualizar o financeiro, relatórios ou configurações do negócio.</p>
+                        <Link href="/#plano" className="btn-p" style={{fontSize:'12px',height:'34px',padding:'0 16px',display:'inline-flex'}}>Conhecer Plano Equipe</Link>
                       </div>
                     )}
                   </div>
