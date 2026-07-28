@@ -44,7 +44,7 @@ const TEMA_CORES: Record<string, {primary:string;secondary:string;accent:string;
   modelo5: {primary:'#D6A77A',secondary:'#A47148',accent:'#E8C39E',border:'rgba(214,167,122,.38)',bg:'rgba(214,167,122,.10)',text:'#E8C39E', btnText:'#2A1810'},
 }
 
-const BANNERS_PRONTOS=Array.from({length:10},(_,i)=>`/banners/beauty/banner-${String(i+1).padStart(2,'0')}.webp`)
+const BANNERS_PRONTOS=Array.from({length:14},(_,i)=>`/banners/beauty/banner-${String(i+1).padStart(2,'0')}.webp`)
 
 const CSS=`
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
