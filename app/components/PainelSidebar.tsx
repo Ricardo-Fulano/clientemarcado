@@ -104,7 +104,7 @@ export default function PainelSidebar({ nome = '', tituloMobile = 'Painel' }: Pr
   const NavLinks = ({ onClick }: { onClick?: () => void }) => (
     <>
       {(isProfissional ? LINKS_PROFISSIONAL : LINKS.filter(it => it.h !== '/painel/parceiros' || isAdmin)).map(it => (
-        <Link key={it.h} href={it.h} prefetch={false} onClick={onClick}
+        <Link key={it.h} href={it.h} onClick={onClick}
           className={'nl' + (ativo(it.h) ? ' on' : '')}>
           {it.l}
         </Link>
@@ -149,7 +149,7 @@ export default function PainelSidebar({ nome = '', tituloMobile = 'Painel' }: Pr
         </nav>
         <div style={{ padding: '12px 10px', borderTop: '1px solid #2A1A2F' }}>
           {!carregandoPapel && !isProfissional && (
-            <Link href="/painel/alterar-senha" prefetch={false} onClick={() => setMob(false)}
+            <Link href="/painel/alterar-senha" onClick={() => setMob(false)}
               style={{ display: 'block', textAlign: 'center' as const, fontSize: '12px', color: '#B8AAB8', textDecoration: 'none', padding: '8px 0', marginBottom: '4px' }}>
               Alterar senha
             </Link>
@@ -181,7 +181,7 @@ export default function PainelSidebar({ nome = '', tituloMobile = 'Painel' }: Pr
             </div>
           </div>
           {!carregandoPapel && !isProfissional && (
-            <Link href="/painel/alterar-senha" prefetch={false}
+            <Link href="/painel/alterar-senha"
               style={{ display: 'block', textAlign: 'center' as const, fontSize: '11px', color: '#B8AAB8', textDecoration: 'none', padding: '6px 0', marginBottom: '4px' }}>
               Alterar senha
             </Link>
