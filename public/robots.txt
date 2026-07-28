@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+Disallow: /painel
+Disallow: /painel/
+Disallow: /api/
+
+Sitemap: https://clientemarcado.com.br/sitemap.xml
