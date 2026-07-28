@@ -126,6 +126,7 @@ export default function Cadastro() {
             is_pagante: false,
             comissao_status: 'nenhuma',
             comissao_valor: 0,
+            plano_tipo: planoTipo,
           }, { onConflict: 'email,cupom_codigo', ignoreDuplicates: true })
         }
       } catch(e) { console.warn('Indicacao parceiro:', e) }
