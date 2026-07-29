@@ -152,7 +152,7 @@ export default function PainelLayoutClient({ children }: { children: React.React
   return (
     <>
       {status === 'em_atraso' && (
-        <div style={{background:'rgba(245,158,11,.08)',border:'1px solid rgba(245,158,11,.28)',borderRadius:'0',padding:'12px 24px',display:'flex',alignItems:'center',justifyContent:'space-between',flexWrap:'wrap',gap:'12px',position:'sticky',top:0,zIndex:100}}>
+        <div style={{background:'rgba(245,158,11,.08)',border:'1px solid rgba(245,158,11,.28)',borderRadius:'0',padding:'12px 24px',display:'flex',alignItems:'center',justifyContent:'space-between',flexWrap:'wrap',gap:'12px',position:'sticky',top:0,zIndex:15}}>
           <p style={{fontSize:'13px',fontWeight:600,color:'#FCD34D',margin:0}}>
             ⚠️ Sua mensalidade está pendente. Regularize o pagamento para evitar o bloqueio do acesso.
           </p>
@@ -162,7 +162,7 @@ export default function PainelLayoutClient({ children }: { children: React.React
         </div>
       )}
       {diasTrial !== null && status === 'ativo' && (
-        <div style={{background:'rgba(59,130,246,.08)',border:'1px solid rgba(96,165,250,.22)',borderRadius:'0',padding:'10px 24px',display:'flex',alignItems:'center',gap:'10px',position:'sticky',top:0,zIndex:100}}>
+        <div style={{background:'rgba(59,130,246,.08)',border:'1px solid rgba(96,165,250,.22)',borderRadius:'0',padding:'10px 24px',display:'flex',alignItems:'center',gap:'10px',position:'sticky',top:0,zIndex:15}}>
           <p style={{fontSize:'13px',fontWeight:600,color:'#93C5FD',margin:0}}>
             🕐 Seu teste grátis termina em {diasTrial <= 0 ? 'menos de 1 dia' : `${diasTrial} dia${diasTrial === 1 ? '' : 's'}`}. Ative seu plano para continuar usando o ClienteMarcado.
           </p>
