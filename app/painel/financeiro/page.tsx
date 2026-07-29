@@ -104,7 +104,7 @@ export default function Financeiro() {
     ] = await Promise.all([
       supabase.from('orcamento_pagamentos').select('*').eq('user_id', userId).order('data', { ascending: false }),
       supabase.from('pagamentos').select('*').eq('user_id', userId).order('created_at', { ascending: false }),
-      supabase.from('agendamentos').select('id,cliente_nome,data_hora,status,valor,forma_pagamento').eq('user_id', userId).order('data_hora', { ascending: false }),
+      supabase.from('agendamentos').select('id,cliente_nome,data_hora,status,valor,servicos(preco)').eq('user_id', userId).order('data_hora', { ascending: false }),
       supabase.from('despesas').select('*').eq('user_id', userId).order('data', { ascending: false }),
       supabase.from('orcamentos').select('id,saldo_restante,status,valor_pago,total').eq('user_id', userId),
     ])
@@ -124,13 +124,13 @@ export default function Financeiro() {
 
     // 3. Agendamentos realizados com valor (fallback quando não há pagamentos)
     const pagsAgend = (agends || [])
-      .filter((a: any) => STATUS_REALIZADO.includes(a.status || '') && (a.valor || 0) > 0)
+      .filter((a: any) => STATUS_REALIZADO.includes(a.status || '') && ((a.valor || a.servicos?.preco || 0) > 0))
       .map((a: any) => ({
         id: a.id,
         cliente_nome: a.cliente_nome || null,
         data: a.data_hora ? a.data_hora.split('T')[0] : null,
-        valor: Number(a.valor) || 0,
-        forma: a.forma_pagamento || 'Pix',
+        valor: Number(a.valor || a.servicos?.preco || 0),
+        forma: 'Pix',
         origem: 'Agendamento',
         orcamento_id: null,
       }))
@@ -152,8 +152,11 @@ export default function Financeiro() {
   })
   const despMes = despesas.filter(d => (d.data || '').startsWith(mes))
 
-  // ✅ Receita = soma de todos pagamentos do mês
-  const recebidoMes = pagMes.reduce((a, p) => a + (Number(p.valor) || 0), 0)
+  // ✅ Mesma lógica do Relatório: pagamentos reais (Manual + Orçamento) têm prioridade;
+  // só usa agendamentos realizados como fallback quando não há nenhum pagamento no mês
+  const receitaPagamentosMes = pagMes.filter(p => p.origem !== 'Agendamento').reduce((a, p) => a + (Number(p.valor) || 0), 0)
+  const receitaAgendamentosMes = pagMes.filter(p => p.origem === 'Agendamento').reduce((a, p) => a + (Number(p.valor) || 0), 0)
+  const recebidoMes = receitaPagamentosMes > 0 ? receitaPagamentosMes : receitaAgendamentosMes
   const despesasMes = despMes.reduce((a, d) => a + (Number(d.valor) || 0), 0)
   const resultado = recebidoMes - despesasMes
 
@@ -251,6 +254,13 @@ export default function Financeiro() {
               </div>
             </div>
           </div>
+
+          {/* ✅ Aviso sobre fonte de receita (mesmo padrao do Relatorio) */}
+          {receitaPagamentosMes===0 && receitaAgendamentosMes>0 && (
+            <div style={{background:'rgba(250,204,21,.10)',border:'1px solid rgba(250,204,21,.28)',borderRadius:'10px',padding:'10px 16px',fontSize:'12px',color:'#FACC15',marginBottom:'16px'}}>
+              💡 Receita calculada a partir de agendamentos realizados. Para usar pagamentos confirmados, registre-os na aba Pagamentos.
+            </div>
+          )}
 
           {/* KPIs */}
           <div className="kpi-grid">
