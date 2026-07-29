@@ -106,8 +106,14 @@ export default function Agendar() {
       cliente_nome: clienteNome, cliente_telefone: clienteTelefone,
     })
     setLoading(false)
-    if (error) setErro('Erro ao agendar. Tente novamente.')
-    else setSucesso(true)
+    if (error) { setErro('Erro ao agendar. Tente novamente.'); return }
+    setSucesso(true)
+    // Notificacao (best-effort): se falhar, nao afeta o agendamento, que ja foi criado acima
+    fetch('/api/publico/notificar-agendamento', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ user_id: perfil.user_id, servico_id: servicoId, profissional_id: profissionalId, data_hora: dataSelecionada + 'T' + horarioSelecionado + ':00', cliente_nome: clienteNome }),
+    }).catch(() => {})
   }
 
   function baixarAgendaICS() {

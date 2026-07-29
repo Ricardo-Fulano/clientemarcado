@@ -172,6 +172,17 @@ export default function Agendamentos(){
     setAgs(p=>p.map(a=>a.id===id?{...a,status}:a))
     if(sel?.id===id)setSel((s:any)=>({...s,status}))
     toast('Status atualizado!')
+    if(status==='realizado'||status==='pendente'){
+      supabase.auth.getSession().then(({data:{session}})=>{
+        const token=session?.access_token
+        if(!token)return
+        fetch('/api/notificacoes/evento-status',{
+          method:'POST',
+          headers:{'Content-Type':'application/json',Authorization:'Bearer '+token},
+          body:JSON.stringify({agendamento_id:id,novo_status:status}),
+        }).catch(()=>{})
+      })
+    }
   }
 
   async function updConf(id:string,status:string){

@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { supabase } from '../lib/supabase'
+import NotificacoesSino from './NotificacoesSino'
 
 const ADMIN_ID = '618aedd1-f174-4419-b4b2-b81b8dd1c47e'
 const AV = 'linear-gradient(135deg,rgba(236,72,153,.95),rgba(139,92,246,.85))'
@@ -160,16 +161,19 @@ export default function PainelSidebar({ nome = '', tituloMobile = 'Painel' }: Pr
 
       {/* Sidebar desktop */}
       <aside className="psb">
-        <div className="psb-logo">
-          <div className="psb-ic">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <rect x="3" y="4" width="18" height="18" rx="2"/>
-              <line x1="16" y1="2" x2="16" y2="6"/>
-              <line x1="8" y1="2" x2="8" y2="6"/>
-              <line x1="3" y1="10" x2="21" y2="10"/>
-            </svg>
+        <div className="psb-logo" style={{ justifyContent: 'space-between' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <div className="psb-ic">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="3" y="4" width="18" height="18" rx="2"/>
+                <line x1="16" y1="2" x2="16" y2="6"/>
+                <line x1="8" y1="2" x2="8" y2="6"/>
+                <line x1="3" y1="10" x2="21" y2="10"/>
+              </svg>
+            </div>
+            <span style={{ fontSize: '14px', fontWeight: 800, color: '#F8F4F7', letterSpacing: '-0.02em' }}>ClienteMarcado</span>
           </div>
-          <span style={{ fontSize: '14px', fontWeight: 800, color: '#F8F4F7', letterSpacing: '-0.02em' }}>ClienteMarcado</span>
+          {!carregandoPapel && <NotificacoesSino alinhamento="left" />}
         </div>
         <nav>{carregandoPapel ? <NavLinksSkeleton /> : <NavLinks />}</nav>
         <div className="psb-foot">
@@ -198,7 +202,10 @@ export default function PainelSidebar({ nome = '', tituloMobile = 'Painel' }: Pr
           ))}
         </button>
         <span style={{ fontSize: '14px', fontWeight: 800, color: '#F8F4F7' }}>{tituloMobile}</span>
-        <div style={{ width: '34px', height: '34px', borderRadius: '50%', background: AV, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '13px', fontWeight: 700, color: '#fff' }}>{ini}</div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          {!carregandoPapel && <NotificacoesSino />}
+          <div style={{ width: '34px', height: '34px', borderRadius: '50%', background: AV, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '13px', fontWeight: 700, color: '#fff' }}>{ini}</div>
+        </div>
       </div>
     </>
   )

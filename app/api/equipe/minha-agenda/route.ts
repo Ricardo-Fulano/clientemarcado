@@ -86,16 +86,41 @@ export async function PATCH(request: NextRequest) {
     if (!perfil) return NextResponse.json({ error: 'Negocio nao encontrado' }, { status: 404 })
 
     // So atualiza se o agendamento for do MESMO negocio e do MESMO profissional
-    const { error: updateError } = await supabase
+    const { data: agendamentoAtualizado, error: updateError } = await supabase
       .from('agendamentos')
       .update({ status })
       .eq('id', agendamento_id)
       .eq('user_id', perfil.user_id)
       .eq('profissional_id', vinculo.profissional_id)
+      .select('cliente_nome')
+      .maybeSingle()
 
     if (updateError) {
       console.error('[equipe/minha-agenda] Erro ao atualizar status:', updateError.message)
       return NextResponse.json({ error: 'Erro ao atualizar status' }, { status: 500 })
+    }
+
+    // Notificacoes (best-effort - nunca deve impedir a resposta de sucesso acima)
+    if (status === 'realizado' || status === 'pendente') {
+      try {
+        const { data: profissional } = await supabase.from('profissionais').select('nome').eq('id', vinculo.profissional_id).maybeSingle()
+        const nomeProfissional = profissional?.nome || 'A profissional'
+        const clienteNome = agendamentoAtualizado?.cliente_nome || 'um cliente'
+
+        if (status === 'realizado') {
+          await supabase.from('notificacoes').insert([
+            { perfil_id: vinculo.perfil_id, destinatario_user_id: perfil.user_id, tipo: 'atendimento_realizado', titulo: 'Atendimento realizado', mensagem: `${nomeProfissional} marcou o atendimento de ${clienteNome} como realizado.`, link: '/painel/agendamentos' },
+            { perfil_id: vinculo.perfil_id, destinatario_profissional_id: vinculo.profissional_id, tipo: 'atendimento_realizado', titulo: 'Atendimento realizado', mensagem: `Você marcou o atendimento de ${clienteNome} como realizado.`, link: '/painel/minha-agenda' },
+          ])
+        } else {
+          await supabase.from('notificacoes').insert([
+            { perfil_id: vinculo.perfil_id, destinatario_user_id: perfil.user_id, tipo: 'desfazer_realizado', titulo: 'Atendimento reaberto', mensagem: `${nomeProfissional} reabriu o atendimento de ${clienteNome} (deixou de estar marcado como realizado).`, link: '/painel/agendamentos' },
+            { perfil_id: vinculo.perfil_id, destinatario_profissional_id: vinculo.profissional_id, tipo: 'desfazer_realizado', titulo: 'Atendimento reaberto', mensagem: `O atendimento de ${clienteNome} deixou de estar marcado como realizado.`, link: '/painel/minha-agenda' },
+          ])
+        }
+      } catch (notifErr) {
+        console.error('[equipe/minha-agenda] Erro ao criar notificacao (nao afeta a atualizacao):', notifErr)
+      }
     }
 
     return NextResponse.json({ ok: true })
