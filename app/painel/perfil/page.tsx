@@ -100,6 +100,9 @@ export default function Perfil(){
   const [mob,setMob]=useState(false)
   const [salvando,setSalvando]=useState(false)
   const [promoAtiva,setPromoAtiva]=useState(false)
+  // A UI de "Promoção em destaque" foi substituída por Destaques + Links Rápidos.
+  // Mantemos todo o estado/lógica (nada é apagado do banco), apenas ocultamos a seção antiga.
+  const MOSTRAR_PROMOCAO_ANTIGA = false as boolean
   const [promoTitulo,setPromoTitulo]=useState('')
   const [promoDesc,setPromoDesc]=useState('')
   const [promoPrecoAnt,setPromoPrecoAnt]=useState('')
@@ -128,6 +131,23 @@ export default function Perfil(){
   const [fechamento,setFechamento]=useState('18:00')
   const [antecedencia,setAntecedencia]=useState('Sem restrição')
   const [publicTheme,setPublicTheme]=useState('modelo2')
+
+  const [fotoPerfilUrl,setFotoPerfilUrl]=useState('')
+  const [descCurta,setDescCurta]=useState('')
+  const [tituloBotaoAgenda,setTituloBotaoAgenda]=useState('')
+  const [mostrarAgenda,setMostrarAgenda]=useState(true)
+  const [mostrarServicos,setMostrarServicos]=useState(true)
+  const [mostrarEquipe,setMostrarEquipe]=useState(true)
+  const [mostrarPorQueAgendar,setMostrarPorQueAgendar]=useState(true)
+  const [mostrarContato,setMostrarContato]=useState(true)
+  const fotoRef=useRef<HTMLInputElement>(null)
+
+  const [destaques,setDestaques]=useState<any[]>([])
+  const [links,setLinks]=useState<any[]>([])
+  const [salvandoDestaqueId,setSalvandoDestaqueId]=useState('')
+  const [salvandoLinkId,setSalvandoLinkId]=useState('')
+  const [uploadingDestaqueId,setUploadingDestaqueId]=useState('')
+  const destaqueImgRef=useRef<HTMLInputElement>(null)
 
   const tc = TEMA_CORES[publicTheme] ?? TEMA_CORES.modelo2
 
@@ -166,7 +186,24 @@ export default function Perfil(){
       if(p.promocao_observacao) setPromoObs(p.promocao_observacao)
       if(p.promocao_data_inicio) setPromoInicio(p.promocao_data_inicio)
       if(p.promocao_data_fim) setPromoFim(p.promocao_data_fim)
+
+      // Campos novos da Página Profissional — fallback seguro se ainda não existirem no perfil
+      setFotoPerfilUrl(p.foto_perfil_url||'')
+      setDescCurta(p.pagina_descricao_curta||'')
+      setTituloBotaoAgenda(p.pagina_titulo_botao_agenda||'')
+      setMostrarAgenda(p.pagina_mostrar_agenda!==false)
+      setMostrarServicos(p.pagina_mostrar_servicos!==false)
+      setMostrarEquipe(p.pagina_mostrar_equipe!==false)
+      setMostrarPorQueAgendar(p.pagina_mostrar_por_que_agendar!==false)
+      setMostrarContato(p.pagina_mostrar_contato!==false)
     }
+
+    const [{data:dst},{data:lnk}]=await Promise.all([
+      supabase.from('pagina_destaques').select('*').eq('user_id',user.id).order('ordem'),
+      supabase.from('pagina_links').select('*').eq('user_id',user.id).order('ordem'),
+    ])
+    if(dst) setDestaques(dst)
+    if(lnk) setLinks(lnk)
   }
 
   async function salvar(){
@@ -185,6 +222,15 @@ export default function Perfil(){
     if(cidade!==undefined) payloadSeguro.cidade=cidade.trim()||null
     if(desc!==undefined) payloadSeguro.descricao=desc.trim()||null
     if(capUrl!==undefined) payloadSeguro.capa_url=capUrl||null
+
+    payloadSeguro.foto_perfil_url=fotoPerfilUrl||null
+    payloadSeguro.pagina_descricao_curta=descCurta.trim()||null
+    payloadSeguro.pagina_titulo_botao_agenda=tituloBotaoAgenda.trim()||null
+    payloadSeguro.pagina_mostrar_agenda=mostrarAgenda
+    payloadSeguro.pagina_mostrar_servicos=mostrarServicos
+    payloadSeguro.pagina_mostrar_equipe=mostrarEquipe
+    payloadSeguro.pagina_mostrar_por_que_agendar=mostrarPorQueAgendar
+    payloadSeguro.pagina_mostrar_contato=mostrarContato
 
     payloadSeguro.promocao_ativa=promoAtiva
     payloadSeguro.promocao_titulo=promoTitulo.trim()||null
@@ -288,6 +334,142 @@ export default function Perfil(){
 
     setMsg('Imagem de capa salva com sucesso!')
     setTimeout(()=>setMsg(''),3000)
+  }
+
+  async function uploadFotoPerfil(e:React.ChangeEvent<HTMLInputElement>){
+    const file=e.target.files?.[0];if(!file)return
+    const allowedTypes=['image/jpeg','image/jpg','image/png','image/webp']
+    if(!allowedTypes.includes(file.type)){setMsg('Envie uma imagem JPG, PNG ou WEBP.');return}
+    if(file.size>5*1024*1024){setMsg('A imagem deve ter no máximo 5MB.');return}
+
+    const {data:userData}=await supabase.auth.getUser()
+    if(!userData?.user){setMsg('Sua sessão expirou. Faça login novamente.');return}
+
+    const ext=file.name.split('.').pop()?.toLowerCase()||'png'
+    const path=`perfis/${userId}-${Date.now()}.${ext}`
+
+    const {error:uploadError}=await supabase.storage.from('fotos').upload(path,file,{upsert:true,contentType:file.type,cacheControl:'3600'})
+    if(uploadError){setMsg('Erro no upload: '+uploadError.message);return}
+
+    const {data}=supabase.storage.from('fotos').getPublicUrl(path)
+    setFotoPerfilUrl(data.publicUrl)
+
+    const {error:updateError}=await supabase.from('perfis').update({foto_perfil_url:data.publicUrl}).eq('user_id',userId)
+    if(updateError){setMsg('Foto enviada, mas erro ao salvar no perfil: '+updateError.message);return}
+
+    setMsg('Foto de perfil salva com sucesso!')
+    setTimeout(()=>setMsg(''),3000)
+  }
+
+  function abrirUploadDestaque(id:string){
+    setUploadingDestaqueId(id)
+    destaqueImgRef.current?.click()
+  }
+  async function uploadImagemDestaque(e:React.ChangeEvent<HTMLInputElement>){
+    const file=e.target.files?.[0];const id=uploadingDestaqueId
+    if(!file||!id)return
+    const allowedTypes=['image/jpeg','image/jpg','image/png','image/webp']
+    if(!allowedTypes.includes(file.type)){setMsg('Envie uma imagem JPG, PNG ou WEBP.');return}
+    if(file.size>5*1024*1024){setMsg('A imagem deve ter no máximo 5MB.');return}
+
+    const {data:userData}=await supabase.auth.getUser()
+    if(!userData?.user){setMsg('Sua sessão expirou. Faça login novamente.');return}
+
+    const ext=file.name.split('.').pop()?.toLowerCase()||'png'
+    const path=`destaques/${userId}-${Date.now()}.${ext}`
+
+    const {error:uploadError}=await supabase.storage.from('fotos').upload(path,file,{upsert:true,contentType:file.type,cacheControl:'3600'})
+    if(uploadError){setMsg('Erro no upload: '+uploadError.message);setUploadingDestaqueId('');if(destaqueImgRef.current)destaqueImgRef.current.value='';return}
+
+    const {data}=supabase.storage.from('fotos').getPublicUrl(path)
+    editarDestaque(id,'imagem_url',data.publicUrl)
+    setMsg('Imagem enviada! Clique em "Salvar" no destaque pra confirmar.')
+    setTimeout(()=>setMsg(''),3500)
+    setUploadingDestaqueId('')
+    if(destaqueImgRef.current)destaqueImgRef.current.value=''
+  }
+
+  // ---------- DESTAQUES ----------
+  function novoDestaque(){
+    setDestaques(prev=>[...prev,{id:'novo-'+Date.now(),user_id:userId,titulo:'',descricao:'',texto_botao:'Ver mais',url:'',imagem_url:'',ativo:true,ordem:prev.length,_novo:true}])
+  }
+  function editarDestaque(id:string,campo:string,valor:any){
+    setDestaques(prev=>prev.map(d=>d.id===id?{...d,[campo]:valor}:d))
+  }
+  async function salvarDestaque(d:any){
+    if(!d.titulo?.trim()){setMsg('Dê um título para o destaque.');return}
+    setSalvandoDestaqueId(d.id)
+    const payload={user_id:userId,titulo:d.titulo.trim(),descricao:d.descricao?.trim()||null,texto_botao:d.texto_botao?.trim()||'Ver mais',url:d.url?.trim()||null,imagem_url:d.imagem_url?.trim()||null,ativo:!!d.ativo,ordem:d.ordem||0}
+    if(d._novo){
+      const {data,error}=await supabase.from('pagina_destaques').insert(payload).select().single()
+      if(error){setMsg('Erro ao salvar destaque: '+error.message)}
+      else{setDestaques(prev=>prev.map(x=>x.id===d.id?data:x));setMsg('Destaque salvo!')}
+    } else {
+      const {error}=await supabase.from('pagina_destaques').update(payload).eq('id',d.id).eq('user_id',userId)
+      if(error){setMsg('Erro ao salvar destaque: '+error.message)}
+      else{setMsg('Destaque salvo!')}
+    }
+    setSalvandoDestaqueId('')
+    setTimeout(()=>setMsg(''),3000)
+  }
+  async function excluirDestaque(id:string){
+    if(!id.startsWith('novo-')){
+      const {error}=await supabase.from('pagina_destaques').delete().eq('id',id).eq('user_id',userId)
+      if(error){setMsg('Erro ao excluir: '+error.message);return}
+    }
+    setDestaques(prev=>prev.filter(d=>d.id!==id))
+  }
+
+  // ---------- LINKS RÁPIDOS ----------
+  function novoLink(){
+    setLinks(prev=>[...prev,{id:'novo-'+Date.now(),user_id:userId,tipo:'whatsapp',titulo:'',descricao:'',url:'',ativo:true,ordem:prev.length,_novo:true}])
+  }
+  function editarLink(id:string,campo:string,valor:any){
+    setLinks(prev=>prev.map(l=>l.id===id?{...l,[campo]:valor}:l))
+  }
+  // Monta o link final do WhatsApp a partir do que a pessoa digitou:
+  // - já é um link (começa com http) -> usa como está
+  // - só tem dígitos (número, com ou sem DDI) -> monta wa.me/55DDDNUMERO
+  // - tem letras (nome de usuário, com ou sem @) -> monta wa.me/usuario
+  function montarLinkWhatsapp(valor:string){
+    const v=(valor||'').trim()
+    if(!v)return ''
+    if(v.startsWith('http://')||v.startsWith('https://'))return v
+    const somenteDigitos=v.replace(/\D/g,'')
+    const temLetra=/[a-zA-Z]/.test(v)
+    if(temLetra){
+      const usuario=v.replace('@','').trim()
+      return `https://wa.me/${usuario}`
+    }
+    if(somenteDigitos){
+      const numero=somenteDigitos.startsWith('55')?somenteDigitos:`55${somenteDigitos}`
+      return `https://wa.me/${numero}`
+    }
+    return v
+  }
+  async function salvarLink(l:any){
+    if(!l.titulo?.trim()||!l.url?.trim()){setMsg('Preencha título e link.');return}
+    setSalvandoLinkId(l.id)
+    const urlFinal=l.tipo==='whatsapp'?montarLinkWhatsapp(l.url):l.url.trim()
+    const payload={user_id:userId,tipo:l.tipo||'outro',titulo:l.titulo.trim(),descricao:l.descricao?.trim()||null,url:urlFinal,ativo:!!l.ativo,ordem:l.ordem||0}
+    if(l._novo){
+      const {data,error}=await supabase.from('pagina_links').insert(payload).select().single()
+      if(error){setMsg('Erro ao salvar link: '+error.message)}
+      else{setLinks(prev=>prev.map(x=>x.id===l.id?data:x));setMsg('Link salvo!')}
+    } else {
+      const {error}=await supabase.from('pagina_links').update(payload).eq('id',l.id).eq('user_id',userId)
+      if(error){setMsg('Erro ao salvar link: '+error.message)}
+      else{setMsg('Link salvo!')}
+    }
+    setSalvandoLinkId('')
+    setTimeout(()=>setMsg(''),3000)
+  }
+  async function excluirLink(id:string){
+    if(!id.startsWith('novo-')){
+      const {error}=await supabase.from('pagina_links').delete().eq('id',id).eq('user_id',userId)
+      if(error){setMsg('Erro ao excluir: '+error.message);return}
+    }
+    setLinks(prev=>prev.filter(l=>l.id!==id))
   }
 
   function toggleDia(i:number){setDiasAtivos(prev=>prev.map((v,j)=>j===i?!v:v))}
@@ -483,6 +665,143 @@ export default function Perfil(){
             </div>
           </div>
 
+          <div className="crd">
+            <p style={{fontSize:'15px',fontWeight:700,color:'#F8F4F7',marginBottom:'4px'}}>Página profissional</p>
+            <p style={{fontSize:'12px',color:'#B8AAB8',marginBottom:'18px'}}>Foto de perfil, descrição da bio e o que aparece na sua página pública.</p>
+
+            <p style={{fontSize:'13px',fontWeight:600,color:'#B8AAB8',marginBottom:'4px'}}>Foto de perfil</p>
+            <p style={{fontSize:'11px',color:'#B8AAB8',marginBottom:'10px'}}>Recomendado: imagem quadrada, 400x400px (proporção 1:1). Aparece em formato circular.</p>
+            <div style={{display:'flex',alignItems:'center',gap:'16px',marginBottom:'18px'}}>
+              {fotoPerfilUrl?(
+                <img src={fotoPerfilUrl} alt="Foto de perfil" style={{width:'72px',height:'72px',borderRadius:'50%',objectFit:'cover',border:'1.5px solid #2A1A2F',flexShrink:0}}/>
+              ):(
+                <div style={{width:'72px',height:'72px',borderRadius:'50%',background:AV,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'24px',fontWeight:700,color:'#fff',flexShrink:0}}>{ini}</div>
+              )}
+              <div style={{display:'flex',gap:'8px',flexWrap:'wrap'}}>
+                <button type="button" onClick={()=>fotoRef.current?.click()} style={{background:'rgba(24,16,27,.9)',border:'1px solid #2A1A2F',color:'#B8AAB8',borderRadius:'8px',padding:'8px 14px',fontSize:'12px',fontWeight:600,cursor:'pointer',fontFamily:'inherit'}}>{fotoPerfilUrl?'Trocar foto':'Adicionar foto'}</button>
+                {fotoPerfilUrl&&<button type="button" onClick={()=>setFotoPerfilUrl('')} style={{background:'rgba(24,16,27,.9)',border:'1px solid #2A1A2F',color:'#EF4444',borderRadius:'8px',padding:'8px 14px',fontSize:'12px',fontWeight:600,cursor:'pointer',fontFamily:'inherit'}}>Remover</button>}
+              </div>
+              <input ref={fotoRef} type="file" accept="image/*" onChange={uploadFotoPerfil} style={{display:'none'}}/>
+            </div>
+
+            <div style={{marginBottom:'18px'}}>
+              <label className="lbl">Descrição curta da página (bio)</label>
+              <textarea value={descCurta} onChange={e=>setDescCurta(e.target.value.slice(0,140))} placeholder="Ex: Nail designer • Mentora • Cursos presenciais e online" style={{width:'100%',background:'rgba(24,16,27,.88)',border:'1.5px solid #2A1A2F',borderRadius:'12px',padding:'12px 14px',fontSize:'14px',color:'#F8F4F7',outline:'none',fontFamily:'inherit',resize:'none',height:'70px',lineHeight:1.5,boxSizing:'border-box'}}/>
+              <p style={{fontSize:'11px',color:'#B8AAB8',textAlign:'right',marginTop:'4px'}}>{descCurta.length}/140</p>
+            </div>
+
+            <div style={{marginBottom:'18px'}}>
+              <label className="lbl">Texto do botão de agendar (opcional)</label>
+              <input className="inp" type="text" placeholder="Agendar agora" value={tituloBotaoAgenda} onChange={e=>setTituloBotaoAgenda(e.target.value)}/>
+            </div>
+
+            <div style={{borderTop:'1px solid #2A1A2F',paddingTop:'18px'}}>
+              <p style={{fontSize:'13px',fontWeight:600,color:'#B8AAB8',marginBottom:'4px'}}>O que aparece na sua página</p>
+              <p style={{fontSize:'12px',color:'#B8AAB8',marginBottom:'14px'}}>Desative o que não usa. Sua página funciona bem com ou sem agenda.</p>
+              <div style={{display:'flex',flexDirection:'column',gap:'8px'}}>
+                {[
+                  {lbl:'Botão de agendar / Agenda',val:mostrarAgenda,set:setMostrarAgenda},
+                  {lbl:'Serviços',val:mostrarServicos,set:setMostrarServicos},
+                  {lbl:'Equipe',val:mostrarEquipe,set:setMostrarEquipe},
+                  {lbl:'Seção "Por que agendar aqui?"',val:mostrarPorQueAgendar,set:setMostrarPorQueAgendar},
+                  {lbl:'Contato (WhatsApp/Instagram/endereço)',val:mostrarContato,set:setMostrarContato},
+                ].map(({lbl,val,set})=>(
+                  <div key={lbl} style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'10px 14px',background:'rgba(255,255,255,.03)',borderRadius:'10px',border:'1px solid rgba(255,255,255,.06)'}}>
+                    <span style={{fontSize:'13px',color:'#F8F4F7'}}>{lbl}</span>
+                    <button type="button" onClick={()=>set((v:boolean)=>!v)} style={{background:val?'rgba(34,197,94,.14)':'#2A1A2F',border:'1px solid '+(val?'rgba(34,197,94,.25)':'#2A1A2F'),borderRadius:10,padding:'5px 12px',fontSize:11,fontWeight:700,color:val?'#22C55E':'#B8AAB8',cursor:'pointer',fontFamily:'inherit'}}>{val?'Exibindo':'Oculto'}</button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <div className="crd">
+            <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:'4px',flexWrap:'wrap',gap:'10px'}}>
+              <p style={{fontSize:'15px',fontWeight:700,color:'#F8F4F7'}}>Destaques da página</p>
+              <button type="button" onClick={novoDestaque} style={{background:G,color:'#fff',border:'1px solid rgba(255,255,255,.12)',borderRadius:'10px',padding:'8px 14px',fontSize:'12px',fontWeight:700,cursor:'pointer',fontFamily:'inherit'}}>+ Novo destaque</button>
+            </div>
+            <p style={{fontSize:'12px',color:'#B8AAB8',marginBottom:'18px'}}>Cards grandes como &quot;Curso Presencial&quot;, &quot;Mentoria VIP&quot; ou &quot;Produtos Indicados&quot;.</p>
+
+            {destaques.length===0&&<p style={{fontSize:'13px',color:'#B8AAB8',padding:'12px 0'}}>Nenhum destaque cadastrado ainda.</p>}
+
+            <div style={{display:'flex',flexDirection:'column',gap:'12px'}}>
+              {destaques.map(d=>(
+                <div key={d.id} style={{border:'1px solid #2A1A2F',borderRadius:'14px',padding:'16px'}}>
+                  <div className="fg2" style={{marginBottom:'10px'}}>
+                    <div><label className="lbl">Título</label><input className="inp" value={d.titulo||''} onChange={e=>editarDestaque(d.id,'titulo',e.target.value)} placeholder="Ex: Curso Presencial"/></div>
+                    <div><label className="lbl">Texto do botão</label><input className="inp" value={d.texto_botao||''} onChange={e=>editarDestaque(d.id,'texto_botao',e.target.value)} placeholder="Ex: Saiba mais"/></div>
+                  </div>
+                  <div style={{marginBottom:'10px'}}><label className="lbl">Descrição</label><input className="inp" value={d.descricao||''} onChange={e=>editarDestaque(d.id,'descricao',e.target.value)} placeholder="Ex: Aprenda técnicas profissionais na prática"/></div>
+                  <div style={{marginBottom:'12px'}}><label className="lbl">Link (URL)</label><input className="inp" value={d.url||''} onChange={e=>editarDestaque(d.id,'url',e.target.value)} placeholder="https://..."/></div>
+                  <div style={{marginBottom:'12px'}}>
+                    <label className="lbl">Imagem de fundo do card</label>
+                    <p style={{fontSize:'11px',color:'#B8AAB8',marginBottom:'8px'}}>Recomendado: 800x600px (proporção 4:3). Imagem horizontal funciona melhor.</p>
+                    <div style={{display:'flex',alignItems:'center',gap:'12px',flexWrap:'wrap'}}>
+                      {d.imagem_url?(
+                        <img src={d.imagem_url} alt="Imagem do destaque" style={{width:'88px',height:'66px',borderRadius:'10px',objectFit:'cover',border:'1px solid #2A1A2F',flexShrink:0}}/>
+                      ):(
+                        <div style={{width:'88px',height:'66px',borderRadius:'10px',background:'rgba(24,16,27,.72)',border:'1px dashed #2A1A2F',flexShrink:0}}/>
+                      )}
+                      <div style={{display:'flex',gap:'8px',flexWrap:'wrap'}}>
+                        <button type="button" onClick={()=>abrirUploadDestaque(d.id)} disabled={uploadingDestaqueId===d.id} style={{background:'rgba(24,16,27,.9)',border:'1px solid #2A1A2F',color:'#B8AAB8',borderRadius:'8px',padding:'8px 14px',fontSize:'12px',fontWeight:600,cursor:'pointer',fontFamily:'inherit'}}>{uploadingDestaqueId===d.id?'Enviando...':(d.imagem_url?'Trocar imagem':'Enviar imagem')}</button>
+                        {d.imagem_url&&<button type="button" onClick={()=>editarDestaque(d.id,'imagem_url','')} style={{background:'rgba(24,16,27,.9)',border:'1px solid #2A1A2F',color:'#EF4444',borderRadius:'8px',padding:'8px 14px',fontSize:'12px',fontWeight:600,cursor:'pointer',fontFamily:'inherit'}}>Remover</button>}
+                      </div>
+                    </div>
+                  </div>
+                  <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:'8px',flexWrap:'wrap'}}>
+                    <button type="button" onClick={()=>editarDestaque(d.id,'ativo',!d.ativo)} style={{background:d.ativo?'rgba(34,197,94,.14)':'#2A1A2F',border:'1px solid '+(d.ativo?'rgba(34,197,94,.25)':'#2A1A2F'),borderRadius:10,padding:'6px 14px',fontSize:12,fontWeight:700,color:d.ativo?'#22C55E':'#B8AAB8',cursor:'pointer',fontFamily:'inherit'}}>{d.ativo?'Ativo':'Oculto'}</button>
+                    <div style={{display:'flex',gap:'8px'}}>
+                      <button type="button" onClick={()=>excluirDestaque(d.id)} style={{background:'rgba(239,68,68,.10)',border:'1px solid rgba(239,68,68,.25)',color:'#EF4444',borderRadius:'8px',padding:'8px 14px',fontSize:'12px',fontWeight:600,cursor:'pointer',fontFamily:'inherit'}}>Excluir</button>
+                      <button type="button" onClick={()=>salvarDestaque(d)} disabled={salvandoDestaqueId===d.id} style={{background:G,color:'#fff',border:'1px solid rgba(255,255,255,.12)',borderRadius:'8px',padding:'8px 16px',fontSize:'12px',fontWeight:700,cursor:'pointer',fontFamily:'inherit',opacity:salvandoDestaqueId===d.id?.7:1}}>{salvandoDestaqueId===d.id?'Salvando...':'Salvar'}</button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <input ref={destaqueImgRef} type="file" accept="image/*" onChange={uploadImagemDestaque} style={{display:'none'}}/>
+          </div>
+
+          <div className="crd">
+            <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:'4px',flexWrap:'wrap',gap:'10px'}}>
+              <p style={{fontSize:'15px',fontWeight:700,color:'#F8F4F7'}}>Links rápidos</p>
+              <button type="button" onClick={novoLink} style={{background:G,color:'#fff',border:'1px solid rgba(255,255,255,.12)',borderRadius:'10px',padding:'8px 14px',fontSize:'12px',fontWeight:700,cursor:'pointer',fontFamily:'inherit'}}>+ Novo link</button>
+            </div>
+            <p style={{fontSize:'12px',color:'#B8AAB8',marginBottom:'18px'}}>TikTok, YouTube, Shopee, site, grupo VIP e outros links da sua bio.</p>
+
+            {links.length===0&&<p style={{fontSize:'13px',color:'#B8AAB8',padding:'12px 0'}}>Nenhum link cadastrado ainda.</p>}
+
+            <div style={{display:'flex',flexDirection:'column',gap:'12px'}}>
+              {links.map(l=>(
+                <div key={l.id} style={{border:'1px solid #2A1A2F',borderRadius:'14px',padding:'16px'}}>
+                  <div className="fg2" style={{marginBottom:'10px'}}>
+                    <div>
+                      <label className="lbl">Tipo</label>
+                      <select className="inp" style={{cursor:'pointer'}} value={l.tipo||'outro'} onChange={e=>editarLink(l.id,'tipo',e.target.value)}>
+                        {['whatsapp','instagram','tiktok','youtube','shopee','mercadolivre','site','curso','mentoria','endereco','outro'].map(t=><option key={t} value={t}>{t==='endereco'?'Endereço':t}</option>)}
+                      </select>
+                    </div>
+                    <div><label className="lbl">Título</label><input className="inp" value={l.titulo||''} onChange={e=>editarLink(l.id,'titulo',e.target.value)} placeholder="Ex: TikTok"/></div>
+                  </div>
+                  <div style={{marginBottom:'10px'}}><label className="lbl">Descrição (opcional)</label><input className="inp" value={l.descricao||''} onChange={e=>editarLink(l.id,'descricao',e.target.value)} placeholder="Ex: @studiobellaeducadora"/></div>
+                  <div style={{marginBottom:'12px'}}>
+                    <label className="lbl">{l.tipo==='whatsapp'?'Número (com DDD) ou @usuário do WhatsApp':l.tipo==='endereco'?'Endereço para abrir no Google Maps':'Link (URL)'}</label>
+                    <input className="inp" value={l.url||''} onChange={e=>editarLink(l.id,'url',e.target.value)} placeholder={l.tipo==='whatsapp'?'(11) 99999-9999 ou @studiobella':l.tipo==='endereco'?'Ex: Avenida Atlântica, 156 - São Paulo, SP':'https://...'}/>
+                    {l.tipo==='whatsapp'&&<p style={{fontSize:'11px',color:'#B8AAB8',marginTop:'6px'}}>Pode digitar só o número com DDD (sem link pronto) ou seu @usuário do WhatsApp, se você já tiver criado um. O link completo é montado sozinho ao salvar.</p>}
+                    {l.tipo==='endereco'&&<p style={{fontSize:'11px',color:'#B8AAB8',marginTop:'6px'}}>Digite o endereço completo. O ClienteMarcado abrirá esse local no Google Maps. Também aceita um link do Google Maps já pronto, se preferir colar um.</p>}
+                  </div>
+                  <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:'8px',flexWrap:'wrap'}}>
+                    <button type="button" onClick={()=>editarLink(l.id,'ativo',!l.ativo)} style={{background:l.ativo?'rgba(34,197,94,.14)':'#2A1A2F',border:'1px solid '+(l.ativo?'rgba(34,197,94,.25)':'#2A1A2F'),borderRadius:10,padding:'6px 14px',fontSize:12,fontWeight:700,color:l.ativo?'#22C55E':'#B8AAB8',cursor:'pointer',fontFamily:'inherit'}}>{l.ativo?'Ativo':'Oculto'}</button>
+                    <div style={{display:'flex',gap:'8px'}}>
+                      <button type="button" onClick={()=>excluirLink(l.id)} style={{background:'rgba(239,68,68,.10)',border:'1px solid rgba(239,68,68,.25)',color:'#EF4444',borderRadius:'8px',padding:'8px 14px',fontSize:'12px',fontWeight:600,cursor:'pointer',fontFamily:'inherit'}}>Excluir</button>
+                      <button type="button" onClick={()=>salvarLink(l)} disabled={salvandoLinkId===l.id} style={{background:G,color:'#fff',border:'1px solid rgba(255,255,255,.12)',borderRadius:'8px',padding:'8px 16px',fontSize:'12px',fontWeight:700,cursor:'pointer',fontFamily:'inherit',opacity:salvandoLinkId===l.id?.7:1}}>{salvandoLinkId===l.id?'Salvando...':'Salvar'}</button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {MOSTRAR_PROMOCAO_ANTIGA && (
           <div style={{
             marginTop:32,
             background:`radial-gradient(circle at top right,${tc.bg},transparent 40%),linear-gradient(145deg,rgba(15,23,42,.98),rgba(18,10,20,.99))`,
@@ -573,6 +892,7 @@ export default function Perfil(){
               </div>
             )}
           </div>
+          )}
 
           <button onClick={salvar} disabled={salvando} style={{width:'100%',marginTop:24,background:G,color:'#fff',border:'1px solid rgba(255,255,255,.12)',borderRadius:'14px',height:'52px',fontSize:'15px',fontWeight:800,cursor:salvando?'not-allowed':'pointer',fontFamily:'inherit',boxShadow:'0 12px 32px rgba(236,72,153,.30),0 0 28px rgba(139,92,246,.22)',opacity:salvando?.7:1,transition:'all .18s'}}>
             {salvando?'Salvando...':'Salvar perfil'}
