@@ -2,7 +2,7 @@
 import { useEffect, useState, useRef } from 'react'
 import { supabase } from '../../lib/supabase'
 import Link from 'next/link'
-import { Home, Calendar, Users, ClipboardList, Wallet, CreditCard, Sparkles, User, BarChart3, Settings, Copy, Check, ExternalLink } from 'lucide-react'
+import { Home, Calendar, Users, ClipboardList, Wallet, CreditCard, Sparkles, User, BarChart3, Settings, Copy, Check, ExternalLink, ChevronDown, ChevronUp } from 'lucide-react'
 
 const G='linear-gradient(135deg,#EC4899,#D946EF,#8B5CF6)'
 const AV='linear-gradient(135deg,rgba(236,72,153,.95),rgba(139,92,246,.95))'
@@ -30,18 +30,20 @@ function resolverTema(id:string){ return TEMA_LEGADO[id] || id }
 
 const TEMAS=[
   {id:'modelo1',nome:'Modelo 1',desc:'Rosa vibrante, moderno e marcante.',p:'#FF4FA3',s:'#D946EF'},
-  {id:'modelo2',nome:'Modelo 2',desc:'Rosa suave e elegante, com presença sofisticada.',p:'#DB6A9A',s:'#8B5CF6'},
+  {id:'modelo2',nome:'Modelo 2',desc:'Rosa blush claro, moderno e delicado.',p:'#FF4FA3',s:'#D946EF'},
   {id:'modelo3',nome:'Modelo 3',desc:'Preto e dourado, visual luxuoso e de alto padrão.',p:'#D4AF37',s:'#9C7A2F'},
   {id:'modelo4',nome:'Modelo 4',desc:'Lilás e roxo, delicado, moderno e sofisticado.',p:'#A78BFA',s:'#7C3AED'},
   {id:'modelo5',nome:'Modelo 5',desc:'Nude e champagne, visual natural e acolhedor.',p:'#D6A77A',s:'#A47148'},
+  {id:'modelo6',nome:'Modelo 6',desc:'Champagne claro, elegante e sofisticado.',p:'#B8875A',s:'#D6A77A'},
 ]
 
 const TEMA_CORES: Record<string, {primary:string;secondary:string;accent:string;border:string;bg:string;text:string;btnText:string}> = {
   modelo1: {primary:'#FF4FA3',secondary:'#D946EF',accent:'#EC4899',border:'rgba(255,79,163,.38)', bg:'rgba(255,79,163,.10)', text:'#FF8FC4', btnText:'#fff'},
-  modelo2: {primary:'#DB6A9A',secondary:'#8B5CF6',accent:'#B85C8E',border:'rgba(219,106,154,.38)',bg:'rgba(219,106,154,.10)',text:'#D8A0BE', btnText:'#fff'},
+  modelo2: {primary:'#FF4FA3',secondary:'#D946EF',accent:'#EC4899',border:'rgba(255,79,163,.38)', bg:'rgba(255,79,163,.10)', text:'#FF8FC4', btnText:'#fff'},
   modelo3: {primary:'#D4AF37',secondary:'#9C7A2F',accent:'#F0D98A',border:'rgba(212,175,55,.38)', bg:'rgba(212,175,55,.10)', text:'#F0D98A', btnText:'#1A140A'},
   modelo4: {primary:'#A78BFA',secondary:'#7C3AED',accent:'#C084FC',border:'rgba(167,139,250,.38)',bg:'rgba(167,139,250,.10)',text:'#C4B5FD', btnText:'#fff'},
   modelo5: {primary:'#D6A77A',secondary:'#A47148',accent:'#E8C39E',border:'rgba(214,167,122,.38)',bg:'rgba(214,167,122,.10)',text:'#E8C39E', btnText:'#2A1810'},
+  modelo6: {primary:'#B8875A',secondary:'#D6A77A',accent:'#E8C39E',border:'rgba(184,135,90,.38)', bg:'rgba(184,135,90,.10)', text:'#E8C39E', btnText:'#fff'},
 }
 
 const BANNERS_PRONTOS=Array.from({length:14},(_,i)=>`/banners/beauty/banner-${String(i+1).padStart(2,'0')}.webp`)
@@ -103,6 +105,10 @@ export default function Perfil(){
   // A UI de "Promoção em destaque" foi substituída por Destaques + Links Rápidos.
   // Mantemos todo o estado/lógica (nada é apagado do banco), apenas ocultamos a seção antiga.
   const MOSTRAR_PROMOCAO_ANTIGA = false as boolean
+  // Destaques comeca aberto (primeira coisa que a pessoa costuma preencher), Links comeca fechado
+  // pra reduzir a sensacao de pagina infinita. Pode expandir/recolher a qualquer momento.
+  const [destaquesAberto, setDestaquesAberto] = useState(true)
+  const [linksAberto, setLinksAberto] = useState(false)
   const [promoTitulo,setPromoTitulo]=useState('')
   const [promoDesc,setPromoDesc]=useState('')
   const [promoPrecoAnt,setPromoPrecoAnt]=useState('')
@@ -716,11 +722,19 @@ export default function Perfil(){
           </div>
 
           <div className="crd">
-            <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:'4px',flexWrap:'wrap',gap:'10px'}}>
-              <p style={{fontSize:'15px',fontWeight:700,color:'#F8F4F7'}}>Destaques da página</p>
-              <button type="button" onClick={novoDestaque} style={{background:G,color:'#fff',border:'1px solid rgba(255,255,255,.12)',borderRadius:'10px',padding:'8px 14px',fontSize:'12px',fontWeight:700,cursor:'pointer',fontFamily:'inherit'}}>+ Novo destaque</button>
+            <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:destaquesAberto?'4px':'0',flexWrap:'wrap',gap:'10px'}}>
+              <button type="button" onClick={()=>setDestaquesAberto(v=>!v)} style={{display:'flex',alignItems:'center',gap:'10px',background:'none',border:'none',cursor:'pointer',padding:0,fontFamily:'inherit',flex:1,minWidth:'200px',textAlign:'left'}}>
+                {destaquesAberto?<ChevronUp size={18} color="#B8AAB8"/>:<ChevronDown size={18} color="#B8AAB8"/>}
+                <span>
+                  <p style={{fontSize:'15px',fontWeight:700,color:'#F8F4F7'}}>Destaques da página</p>
+                  {!destaquesAberto && <p style={{fontSize:'12px',color:'#B8AAB8',marginTop:'2px'}}>{destaques.length} destaque{destaques.length!==1?'s':''} cadastrado{destaques.length!==1?'s':''}</p>}
+                </span>
+              </button>
+              <button type="button" onClick={()=>{novoDestaque();setDestaquesAberto(true)}} style={{background:G,color:'#fff',border:'1px solid rgba(255,255,255,.12)',borderRadius:'10px',padding:'8px 14px',fontSize:'12px',fontWeight:700,cursor:'pointer',fontFamily:'inherit',flexShrink:0}}>+ Novo destaque</button>
             </div>
-            <p style={{fontSize:'12px',color:'#B8AAB8',marginBottom:'18px'}}>Cards grandes como &quot;Curso Presencial&quot;, &quot;Mentoria VIP&quot; ou &quot;Produtos Indicados&quot;.</p>
+            {destaquesAberto && (
+            <>
+            <p style={{fontSize:'12px',color:'#B8AAB8',marginBottom:'18px',marginTop:'14px'}}>Cards grandes como &quot;Curso Presencial&quot;, &quot;Mentoria VIP&quot; ou &quot;Produtos Indicados&quot;.</p>
 
             {destaques.length===0&&<p style={{fontSize:'13px',color:'#B8AAB8',padding:'12px 0'}}>Nenhum destaque cadastrado ainda.</p>}
 
@@ -758,15 +772,25 @@ export default function Perfil(){
                 </div>
               ))}
             </div>
+            </>
+            )}
             <input ref={destaqueImgRef} type="file" accept="image/*" onChange={uploadImagemDestaque} style={{display:'none'}}/>
           </div>
 
           <div className="crd">
-            <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:'4px',flexWrap:'wrap',gap:'10px'}}>
-              <p style={{fontSize:'15px',fontWeight:700,color:'#F8F4F7'}}>Links rápidos</p>
-              <button type="button" onClick={novoLink} style={{background:G,color:'#fff',border:'1px solid rgba(255,255,255,.12)',borderRadius:'10px',padding:'8px 14px',fontSize:'12px',fontWeight:700,cursor:'pointer',fontFamily:'inherit'}}>+ Novo link</button>
+            <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:linksAberto?'4px':'0',flexWrap:'wrap',gap:'10px'}}>
+              <button type="button" onClick={()=>setLinksAberto(v=>!v)} style={{display:'flex',alignItems:'center',gap:'10px',background:'none',border:'none',cursor:'pointer',padding:0,fontFamily:'inherit',flex:1,minWidth:'200px',textAlign:'left'}}>
+                {linksAberto?<ChevronUp size={18} color="#B8AAB8"/>:<ChevronDown size={18} color="#B8AAB8"/>}
+                <span>
+                  <p style={{fontSize:'15px',fontWeight:700,color:'#F8F4F7'}}>Links rápidos</p>
+                  {!linksAberto && <p style={{fontSize:'12px',color:'#B8AAB8',marginTop:'2px'}}>{links.length} link{links.length!==1?'s':''} cadastrado{links.length!==1?'s':''}</p>}
+                </span>
+              </button>
+              <button type="button" onClick={()=>{novoLink();setLinksAberto(true)}} style={{background:G,color:'#fff',border:'1px solid rgba(255,255,255,.12)',borderRadius:'10px',padding:'8px 14px',fontSize:'12px',fontWeight:700,cursor:'pointer',fontFamily:'inherit',flexShrink:0}}>+ Novo link</button>
             </div>
-            <p style={{fontSize:'12px',color:'#B8AAB8',marginBottom:'18px'}}>TikTok, YouTube, Shopee, site, grupo VIP e outros links da sua bio.</p>
+            {linksAberto && (
+            <>
+            <p style={{fontSize:'12px',color:'#B8AAB8',marginBottom:'18px',marginTop:'14px'}}>TikTok, YouTube, Shopee, site, grupo VIP e outros links da sua bio.</p>
 
             {links.length===0&&<p style={{fontSize:'13px',color:'#B8AAB8',padding:'12px 0'}}>Nenhum link cadastrado ainda.</p>}
 
@@ -799,6 +823,8 @@ export default function Perfil(){
                 </div>
               ))}
             </div>
+            </>
+            )}
           </div>
 
           {MOSTRAR_PROMOCAO_ANTIGA && (

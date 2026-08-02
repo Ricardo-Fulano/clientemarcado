@@ -364,11 +364,11 @@ export default function Agendar() {
   const css = `
     *{box-sizing:border-box;margin:0;padding:0}
     html,body{overflow-x:hidden;width:100%;max-width:100%}
-    .page{min-height:100vh;background:radial-gradient(ellipse at top,${tema.soft},transparent 50%),linear-gradient(180deg,#08060A 0%,#08060A 100%);color:#F8F4F7;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
-    .header{border-bottom:1px solid #2A1A2F;padding:14px 20px;display:flex;align-items:center;background:rgba(8,6,10,.97);backdrop-filter:blur(20px);position:sticky;top:0;z-index:10}
-    .header-back{color:#B8AAB8;text-decoration:none;font-size:14px;display:flex;align-items:center;gap:4px;min-width:60px;font-weight:500;transition:color .15s}
-    .header-back:hover{color:#B8AAB8}
-    .header-title{flex:1;text-align:center;font-size:15px;font-weight:800;color:#F8F4F7;letter-spacing:-0.01em}
+    .page{min-height:100vh;background:radial-gradient(ellipse at top,${tema.soft},transparent 50%),${tema.bg};color:${tema.text};font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+    .header{border-bottom:1px solid ${tema.cardBorder};padding:14px 20px;display:flex;align-items:center;background:${tema.headerBg};backdrop-filter:blur(20px);position:sticky;top:0;z-index:10}
+    .header-back{color:${tema.textMuted};text-decoration:none;font-size:14px;display:flex;align-items:center;gap:4px;min-width:60px;font-weight:500;transition:color .15s}
+    .header-back:hover{color:${tema.textMuted}}
+    .header-title{flex:1;text-align:center;font-size:15px;font-weight:800;color:${tema.text};letter-spacing:-0.01em}
     .header-spacer{min-width:60px}
     .container{max-width:680px;margin:0 auto;padding:24px 16px 60px}
     .container-wide{max-width:980px;margin:0 auto;padding:24px 16px 60px}
@@ -376,96 +376,96 @@ export default function Agendar() {
     .steps-wrap{margin-bottom:28px}
     .steps-track{display:flex;align-items:center;margin-bottom:10px}
     .step-dot{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;transition:all .2s}
-    .step-dot.done{background:${G};color:#fff;box-shadow:0 0 16px ${tema.glow}}
-    .step-dot.active{background:${G};color:#fff;box-shadow:0 0 20px ${tema.glow}}
-    .step-dot.idle{background:rgba(24,16,27,.88);color:#B8AAB8;border:1px solid #2A1A2F}
+    .step-dot.done{background:${G};color:${tema.btnText};box-shadow:0 0 16px ${tema.glow}}
+    .step-dot.active{background:${G};color:${tema.btnText};box-shadow:0 0 20px ${tema.glow}}
+    .step-dot.idle{background:${tema.surface2};color:${tema.textMuted};border:1px solid ${tema.cardBorder}}
     .step-line{flex:1;height:2px;margin:0 6px;border-radius:1px;transition:background .2s}
     .step-labels{display:flex;justify-content:space-between}
     .step-label{font-size:10px;letter-spacing:.02em}
-    .section-title{font-size:22px;font-weight:800;color:#F8F4F7;letter-spacing:-0.03em;margin-bottom:6px}
-    .section-sub{font-size:14px;color:#B8AAB8;margin-bottom:24px;line-height:1.5}
+    .section-title{font-size:22px;font-weight:800;color:${tema.text};letter-spacing:-0.03em;margin-bottom:6px}
+    .section-sub{font-size:14px;color:${tema.textMuted};margin-bottom:24px;line-height:1.5}
     .servico-list{display:flex;flex-direction:column;gap:10px}
-    .servico-card{display:flex;align-items:center;gap:16px;background:radial-gradient(circle at top left,${tema.soft},transparent 55%),linear-gradient(145deg,rgba(24,16,27,.97),rgba(18,10,20,.99));border:1.5px solid #2A1A2F;border-radius:16px;padding:18px 16px 18px 20px;cursor:pointer;text-align:left;width:100%;position:relative;overflow:hidden;transition:all .18s;-webkit-tap-highlight-color:transparent}
+    .servico-card{display:flex;align-items:center;gap:16px;background:radial-gradient(circle at top left,${tema.soft},transparent 55%),${tema.card};border:1.5px solid ${tema.cardBorder};border-radius:16px;padding:18px 16px 18px 20px;cursor:pointer;text-align:left;width:100%;position:relative;overflow:hidden;transition:all .18s;-webkit-tap-highlight-color:transparent}
     .servico-card:hover{border-color:${tema.border};box-shadow:0 8px 32px rgba(0,0,0,.28),0 0 0 1px ${tema.soft};transform:translateY(-1px)}
-    .servico-card.sel{border-color:${tema.accent};box-shadow:0 0 0 1px ${tema.glow},0 10px 36px ${tema.soft};background:radial-gradient(circle at top left,${tema.soft},transparent 55%),linear-gradient(145deg,rgba(24,16,27,.97),rgba(18,10,20,.99))}
+    .servico-card.sel{border-color:${tema.accent};box-shadow:0 0 0 1px ${tema.glow},0 10px 36px ${tema.soft};background:radial-gradient(circle at top left,${tema.soft},transparent 55%),${tema.card}}
     .servico-accent{position:absolute;top:0;left:0;bottom:0;width:3px;background:${G};border-radius:0 2px 2px 0}
     .servico-icon{width:46px;height:46px;border-radius:13px;background:${tema.soft};border:1px solid ${tema.border};display:flex;align-items:center;justify-content:center;flex-shrink:0}
-    .servico-nome{font-weight:700;font-size:15px;color:#F8F4F7;margin-bottom:3px;line-height:1.3}
-    .servico-desc{font-size:12px;color:#B8AAB8;margin-bottom:7px;line-height:1.5}
-    .servico-meta{display:flex;align-items:center;gap:8px;font-size:12px;color:#B8AAB8}
-    .servico-meta-sep{width:3px;height:3px;border-radius:50%;background:#2A1A2F;flex-shrink:0}
+    .servico-nome{font-weight:700;font-size:15px;color:${tema.text};margin-bottom:3px;line-height:1.3}
+    .servico-desc{font-size:12px;color:${tema.textMuted};margin-bottom:7px;line-height:1.5}
+    .servico-meta{display:flex;align-items:center;gap:8px;font-size:12px;color:${tema.textMuted}}
+    .servico-meta-sep{width:3px;height:3px;border-radius:50%;background:${tema.cardBorder};flex-shrink:0}
     .servico-preco{color:${tema.accent};font-weight:700;font-size:13px}
-    .servico-dur{display:flex;align-items:center;gap:3px;color:#B8AAB8}
+    .servico-dur{display:flex;align-items:center;gap:3px;color:${tema.textMuted}}
     .servico-arrow{width:28px;height:28px;border-radius:8px;background:${tema.soft};border:1px solid ${tema.border};display:flex;align-items:center;justify-content:center;flex-shrink:0;color:${tema.accent};font-size:16px;transition:all .15s}
     .servico-card:hover .servico-arrow{background:${tema.soft};border-color:${tema.glow}}
     .prof-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:24px}
     @media(min-width:480px){.prof-grid{grid-template-columns:repeat(3,1fr)}}
     @media(min-width:768px){.prof-grid{grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:14px}}
-    .prof-card{display:flex;flex-direction:column;align-items:center;gap:12px;background:radial-gradient(circle at top,${tema.soft},transparent 60%),linear-gradient(145deg,rgba(24,16,27,.97),rgba(18,10,20,.99));border:1px solid #2A1A2F;border-radius:18px;padding:24px 16px;cursor:pointer;text-align:center;transition:all .18s;-webkit-tap-highlight-color:transparent}
+    .prof-card{display:flex;flex-direction:column;align-items:center;gap:12px;background:radial-gradient(circle at top,${tema.soft},transparent 60%),${tema.card};border:1px solid ${tema.cardBorder};border-radius:18px;padding:24px 16px;cursor:pointer;text-align:center;transition:all .18s;-webkit-tap-highlight-color:transparent}
     .prof-card:hover{border-color:${tema.glow};transform:translateY(-2px);box-shadow:0 8px 32px rgba(0,0,0,.25)}
-    .prof-card.sel{border-color:${tema.accent};box-shadow:0 0 0 1px ${tema.border},0 8px 32px ${tema.border};background:radial-gradient(circle at top,${tema.soft},transparent 60%),linear-gradient(145deg,rgba(24,16,27,.97),rgba(18,10,20,.99))}
+    .prof-card.sel{border-color:${tema.accent};box-shadow:0 0 0 1px ${tema.border},0 8px 32px ${tema.border};background:radial-gradient(circle at top,${tema.soft},transparent 60%),${tema.card}}
     .prof-avatar-img{width:72px;height:72px;border-radius:50%;object-fit:cover}
     .prof-avatar-letra{width:72px;height:72px;border-radius:50%;background:${tema.soft};display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:800;color:${tema.accent}}
-    .prof-nome{font-size:14px;font-weight:700;color:#F8F4F7;margin-bottom:3px}
-    .prof-cargo{font-size:12px;color:#B8AAB8}
-    .resumo-strip{display:grid;grid-template-columns:repeat(2,1fr);background:radial-gradient(circle at top left,${tema.soft},transparent 60%),linear-gradient(145deg,rgba(24,16,27,.97),rgba(18,10,20,.99));border:1px solid #2A1A2F;border-radius:16px;padding:16px 20px;margin-bottom:18px;gap:12px}
+    .prof-nome{font-size:14px;font-weight:700;color:${tema.text};margin-bottom:3px}
+    .prof-cargo{font-size:12px;color:${tema.textMuted}}
+    .resumo-strip{display:grid;grid-template-columns:repeat(2,1fr);background:radial-gradient(circle at top left,${tema.soft},transparent 60%),${tema.card};border:1px solid ${tema.cardBorder};border-radius:16px;padding:16px 20px;margin-bottom:18px;gap:12px}
     @media(min-width:768px){.resumo-strip{grid-template-columns:repeat(4,1fr)}}
-    .resumo-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#B8AAB8;margin-bottom:4px}
+    .resumo-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:${tema.textMuted};margin-bottom:4px}
     .resumo-valor{font-size:13px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
     .etapa3-cols{display:flex;flex-direction:column;gap:14px;margin-bottom:16px}
     @media(min-width:768px){.etapa3-cols{display:grid;grid-template-columns:1fr 1fr;gap:18px;align-items:start}}
-    .cal-wrap{background:radial-gradient(circle at top left,${tema.soft},transparent 60%),linear-gradient(145deg,rgba(24,16,27,.97),rgba(18,10,20,.99));border:1px solid #2A1A2F;border-radius:18px;padding:20px}
+    .cal-wrap{background:radial-gradient(circle at top left,${tema.soft},transparent 60%),${tema.card};border:1px solid ${tema.cardBorder};border-radius:18px;padding:20px}
     .cal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
-    .cal-nav{background:rgba(24,16,27,.88);border:1px solid #2A1A2F;border-radius:10px;padding:8px 16px;color:#B8AAB8;cursor:pointer;font-size:16px;line-height:1;transition:all .15s;-webkit-tap-highlight-color:transparent}
-    .cal-nav:hover{border-color:${tema.glow};color:#F8F4F7}
-    .cal-mes{font-weight:700;font-size:14px;text-transform:capitalize;color:#F8F4F7}
+    .cal-nav{background:${tema.surface2};border:1px solid ${tema.cardBorder};border-radius:10px;padding:8px 16px;color:${tema.textMuted};cursor:pointer;font-size:16px;line-height:1;transition:all .15s;-webkit-tap-highlight-color:transparent}
+    .cal-nav:hover{border-color:${tema.glow};color:${tema.text}}
+    .cal-mes{font-weight:700;font-size:14px;text-transform:capitalize;color:${tema.text}}
     .cal-dow{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:8px}
-    .cal-dow-label{text-align:center;font-size:11px;font-weight:700;color:#2A1A2F;padding:4px 0}
+    .cal-dow-label{text-align:center;font-size:11px;font-weight:700;color:${tema.cardBorder};padding:4px 0}
     .cal-days{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}
-    .dia{padding:10px 2px;border-radius:10px;font-size:13px;font-weight:500;cursor:default;border:1px solid transparent;text-align:center;background:transparent;color:#1E293B;transition:all .15s;-webkit-tap-highlight-color:transparent;font-family:inherit}
-    .dia.disp{color:#B8AAB8;background:rgba(255,255,255,.04);cursor:pointer;font-weight:600}
-    .dia.disp:hover{background:${tema.soft};color:#F8F4F7;border-color:${tema.border}}
+    .dia{padding:10px 2px;border-radius:10px;font-size:13px;font-weight:500;cursor:default;border:1px solid transparent;text-align:center;background:transparent;color:${tema.cardBorder};transition:all .15s;-webkit-tap-highlight-color:transparent;font-family:inherit}
+    .dia.disp{color:${tema.textMuted};background:${tema.mode === 'light' ? 'rgba(0,0,0,.035)' : 'rgba(255,255,255,.04)'};cursor:pointer;font-weight:600}
+    .dia.disp:hover{background:${tema.soft};color:${tema.text};border-color:${tema.border}}
     .dia.hoje{border-color:${tema.border};color:${tema.accent};font-weight:700}
-    .dia.sel{background:${G}!important;color:#fff!important;border-color:transparent!important;font-weight:700;box-shadow:0 4px 12px ${tema.glow}}
-    .horarios-wrap{background:radial-gradient(circle at top left,${tema.soft},transparent 60%),linear-gradient(145deg,rgba(24,16,27,.97),rgba(18,10,20,.99));border:1px solid #2A1A2F;border-radius:18px;padding:20px;min-height:200px}
-    .horarios-data-label{font-size:13px;font-weight:600;color:#B8AAB8;margin-bottom:16px;padding-bottom:14px;border-bottom:1px solid #2A1A2F;text-transform:capitalize}
+    .dia.sel{background:${G}!important;color:${tema.btnText}!important;border-color:transparent!important;font-weight:700;box-shadow:0 4px 12px ${tema.glow}}
+    .horarios-wrap{background:radial-gradient(circle at top left,${tema.soft},transparent 60%),${tema.card};border:1px solid ${tema.cardBorder};border-radius:18px;padding:20px;min-height:200px}
+    .horarios-data-label{font-size:13px;font-weight:600;color:${tema.textMuted};margin-bottom:16px;padding-bottom:14px;border-bottom:1px solid ${tema.cardBorder};text-transform:capitalize}
     .periodo-label-row{display:flex;align-items:center;gap:5px;margin-bottom:8px}
-    .periodo-label{font-size:10px;font-weight:700;color:#B8AAB8;text-transform:uppercase;letter-spacing:.09em}
+    .periodo-label{font-size:10px;font-weight:700;color:${tema.textMuted};text-transform:uppercase;letter-spacing:.09em}
     .horarios-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px}
     @media(min-width:400px){.horarios-grid{grid-template-columns:repeat(4,1fr)}}
-    .h-btn{padding:12px 4px;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;border:1px solid #2A1A2F;text-align:center;background:rgba(24,16,27,.88);color:#B8AAB8;transition:all .15s;width:100%;font-family:inherit;-webkit-tap-highlight-color:transparent}
-    .h-btn:hover{border-color:${tema.border};color:#F8F4F7;background:${tema.soft}}
-    .h-btn.sel{background:${G};border-color:transparent;color:#fff;box-shadow:0 0 0 2px ${tema.glow}}
+    .h-btn{padding:12px 4px;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;border:1px solid ${tema.cardBorder};text-align:center;background:${tema.surface2};color:${tema.textMuted};transition:all .15s;width:100%;font-family:inherit;-webkit-tap-highlight-color:transparent}
+    .h-btn:hover{border-color:${tema.border};color:${tema.text};background:${tema.soft}}
+    .h-btn.sel{background:${G};border-color:transparent;color:${tema.btnText};box-shadow:0 0 0 2px ${tema.glow}}
     .nav-row{display:flex;gap:10px}
-    .btn-voltar{flex:1;background:rgba(24,16,27,.88);border:1px solid #2A1A2F;border-radius:14px;padding:14px;font-size:14px;font-weight:600;color:#B8AAB8;cursor:pointer;transition:all .15s;font-family:inherit;-webkit-tap-highlight-color:transparent}
-    .btn-voltar:hover{border-color:#2A1A2F;color:#B8AAB8}
+    .btn-voltar{flex:1;background:${tema.surface2};border:1px solid ${tema.cardBorder};border-radius:14px;padding:14px;font-size:14px;font-weight:600;color:${tema.textMuted};cursor:pointer;transition:all .15s;font-family:inherit;-webkit-tap-highlight-color:transparent}
+    .btn-voltar:hover{border-color:${tema.cardBorder};color:${tema.textMuted}}
     .btn-continuar{flex:2;border:none;border-radius:14px;padding:14px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;transition:all .2s;-webkit-tap-highlight-color:transparent}
-    .btn-continuar.on{background:${G};color:#fff;box-shadow:0 8px 24px ${tema.glow}}
-    .btn-continuar.off{background:${tema.soft};color:#2A1A2F;cursor:not-allowed}
-    .btn-confirmar{flex:2;background:${G};border:none;border-radius:14px;padding:14px;font-size:15px;font-weight:700;color:#fff;cursor:pointer;box-shadow:0 8px 24px ${tema.glow};font-family:inherit;transition:opacity .15s;-webkit-tap-highlight-color:transparent}
-    .btn-link-voltar{font-size:13px;color:#B8AAB8;background:none;border:none;cursor:pointer;padding:4px 0;font-family:inherit;transition:color .15s}
-    .btn-link-voltar:hover{color:#B8AAB8}
-    .input-field{width:100%;background:rgba(24,16,27,.88);border:1px solid #2A1A2F;border-radius:14px;padding:14px 16px;color:#F8F4F7;font-size:16px;outline:none;box-sizing:border-box;transition:border-color .15s,box-shadow .15s;font-family:inherit}
+    .btn-continuar.on{background:${G};color:${tema.btnText};box-shadow:0 8px 24px ${tema.glow}}
+    .btn-continuar.off{background:${tema.soft};color:${tema.cardBorder};cursor:not-allowed}
+    .btn-confirmar{flex:2;background:${G};border:none;border-radius:14px;padding:14px;font-size:15px;font-weight:700;color:${tema.btnText};cursor:pointer;box-shadow:0 8px 24px ${tema.glow};font-family:inherit;transition:opacity .15s;-webkit-tap-highlight-color:transparent}
+    .btn-link-voltar{font-size:13px;color:${tema.textMuted};background:none;border:none;cursor:pointer;padding:4px 0;font-family:inherit;transition:color .15s}
+    .btn-link-voltar:hover{color:${tema.textMuted}}
+    .input-field{width:100%;background:${tema.surface2};border:1px solid ${tema.cardBorder};border-radius:14px;padding:14px 16px;color:${tema.text};font-size:16px;outline:none;box-sizing:border-box;transition:border-color .15s,box-shadow .15s;font-family:inherit}
     .input-field:focus{border-color:${tema.accent};box-shadow:0 0 0 3px ${tema.soft}}
-    .input-field::placeholder{color:#2A1A2F}
-    .input-label{font-size:11px;font-weight:700;color:#B8AAB8;text-transform:uppercase;letter-spacing:.08em;display:block;margin-bottom:8px}
-    .resumo-card{background:radial-gradient(circle at top left,${tema.soft},transparent 50%),linear-gradient(145deg,rgba(24,16,27,.97),rgba(18,10,20,.99));border:1px solid #2A1A2F;border-radius:18px;padding:20px 22px;margin-bottom:24px}
-    .resumo-card-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.10em;color:#B8AAB8;margin-bottom:16px}
+    .input-field::placeholder{color:${tema.cardBorder}}
+    .input-label{font-size:11px;font-weight:700;color:${tema.textMuted};text-transform:uppercase;letter-spacing:.08em;display:block;margin-bottom:8px}
+    .resumo-card{background:radial-gradient(circle at top left,${tema.soft},transparent 50%),${tema.card};border:1px solid ${tema.cardBorder};border-radius:18px;padding:20px 22px;margin-bottom:24px}
+    .resumo-card-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.10em;color:${tema.textMuted};margin-bottom:16px}
     .resumo-row{display:flex;justify-content:space-between;align-items:center}
-    .resumo-row-label{font-size:13px;color:#B8AAB8}
+    .resumo-row-label{font-size:13px;color:${tema.textMuted}}
     .resumo-row-valor{font-size:13px;font-weight:700}
-    .resumo-divider{border:none;border-top:1px solid #2A1A2F;margin:10px 0}
-    .sucesso-wrap{min-height:100vh;background:radial-gradient(ellipse at top,${tema.soft},transparent 50%),linear-gradient(180deg,#08060A,#08060A);display:flex;align-items:center;justify-content:center;padding:24px;font-family:inherit}
+    .resumo-divider{border:none;border-top:1px solid ${tema.cardBorder};margin:10px 0}
+    .sucesso-wrap{min-height:100vh;background:radial-gradient(ellipse at top,${tema.soft},transparent 50%),${tema.bg};display:flex;align-items:center;justify-content:center;padding:24px;font-family:inherit}
     .sucesso-inner{max-width:460px;width:100%;text-align:center}
     .sucesso-icon{width:72px;height:72px;border-radius:50%;background:rgba(34,197,94,.10);border:1px solid rgba(34,197,94,.25);display:flex;align-items:center;justify-content:center;margin:0 auto 24px;font-size:32px}
-    .sucesso-title{font-size:24px;font-weight:800;color:#F8F4F7;letter-spacing:-0.03em;margin-bottom:8px}
-    .sucesso-sub{font-size:14px;color:#B8AAB8;margin-bottom:28px;line-height:1.7}
+    .sucesso-title{font-size:24px;font-weight:800;color:${tema.text};letter-spacing:-0.03em;margin-bottom:8px}
+    .sucesso-sub{font-size:14px;color:${tema.textMuted};margin-bottom:28px;line-height:1.7}
     .sucesso-actions{display:flex;flex-direction:column;gap:10px}
     .btn-wpp{display:inline-flex;align-items:center;justify-content:center;gap:8px;background:#25D366;color:#fff;font-weight:700;padding:14px 28px;border-radius:14px;text-decoration:none;font-size:14px;transition:opacity .15s}
-    .btn-ics{display:inline-flex;align-items:center;justify-content:center;gap:8px;background:rgba(24,16,27,.88);color:#B8AAB8;font-weight:600;padding:14px 28px;border-radius:14px;font-size:14px;border:1px solid #2A1A2F;cursor:pointer;font-family:inherit}
+    .btn-ics{display:inline-flex;align-items:center;justify-content:center;gap:8px;background:${tema.surface2};color:${tema.textMuted};font-weight:600;padding:14px 28px;border-radius:14px;font-size:14px;border:1px solid ${tema.cardBorder};cursor:pointer;font-family:inherit}
     .btn-pdf{display:inline-flex;align-items:center;justify-content:center;gap:8px;background:linear-gradient(135deg,${tema.border},${tema.soft});color:${tema.accent2};font-weight:700;padding:14px 28px;border-radius:14px;font-size:14px;border:1px solid ${tema.border};cursor:pointer;font-family:inherit;transition:all .18s}
     .btn-pdf:hover{background:linear-gradient(135deg,${tema.glow},${tema.border});border-color:${tema.accent}}
-    .btn-inicio{display:inline-flex;align-items:center;justify-content:center;background:${G};color:#fff;font-weight:700;padding:14px 28px;border-radius:14px;text-decoration:none;font-size:14px;box-shadow:0 8px 24px ${tema.border}}
+    .btn-inicio{display:inline-flex;align-items:center;justify-content:center;background:${G};color:${tema.btnText};font-weight:700;padding:14px 28px;border-radius:14px;text-decoration:none;font-size:14px;box-shadow:0 8px 24px ${tema.border}}
     .erro-msg{font-size:13px;color:#EF4444;margin-top:10px}
     .horarios-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:140px;gap:8px}
     .horarios-placeholder{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:160px;gap:10px}
@@ -519,8 +519,8 @@ export default function Agendar() {
   }
 
   if (carregandoInicial) return (
-    <div style={{minHeight:'100vh',background:'radial-gradient(ellipse at top,rgba(139,92,246,.10),transparent 50%),#08060A',display:'flex',alignItems:'center',justifyContent:'center',fontFamily:'-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif'}}>
-      <p style={{color:'#B8AAB8',fontSize:'14px'}}>Carregando...</p>
+    <div style={{minHeight:'100vh',background:`radial-gradient(ellipse at top,${tema.soft},transparent 50%),${tema.bg}`,display:'flex',alignItems:'center',justifyContent:'center',fontFamily:'-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif'}}>
+      <p style={{color:tema.textMuted,fontSize:'14px'}}>Carregando...</p>
     </div>
   )
 
@@ -530,13 +530,13 @@ export default function Agendar() {
       <div className="sucesso-inner">
         <div className="sucesso-icon"><Check size={36} strokeWidth={2.5}/></div>
         <h1 className="sucesso-title">Agendamento confirmado!</h1>
-        <p className="sucesso-sub">{clienteNome ? <>Obrigado, <strong style={{color:'#F8F4F7'}}>{clienteNome}</strong>! Seu horário foi registrado com sucesso.</> : <>Seu horário foi registrado com sucesso.</>}</p>
+        <p className="sucesso-sub">{clienteNome ? <>Obrigado, <strong style={{color:tema.text}}>{clienteNome}</strong>! Seu horário foi registrado com sucesso.</> : <>Seu horário foi registrado com sucesso.</>}</p>
         <div className="resumo-card">
           <p className="resumo-card-title">Resumo do agendamento</p>
           {[
-            {label:'Atendimento',valor:servicoSelecionado?.nome,cor:'#F8F4F7'},
-            {label:'Profissional',valor:profissionalSelecionado?.nome,cor:'#F8F4F7'},
-            {label:'Data',valor:formatarData(dataSelecionada),cor:'#F8F4F7'},
+            {label:'Atendimento',valor:servicoSelecionado?.nome,cor:tema.text},
+            {label:'Profissional',valor:profissionalSelecionado?.nome,cor:tema.text},
+            {label:'Data',valor:formatarData(dataSelecionada),cor:tema.text},
             {label:'Horário',valor:horarioSelecionado,cor:tema.accent},
             {label:'Valor',valor:'R$ '+servicoSelecionado?.preco,cor:tema.accent},
           ].map((item,idx,arr)=>(
@@ -574,13 +574,13 @@ export default function Agendar() {
         {[1,2,3,4].map(n=>(
           <div key={n} style={{display:'flex',alignItems:'center',flex:n<4?1:'none'}}>
             <div className={`step-dot ${etapa>n?'done':etapa===n?'active':'idle'}`}>{etapa>n?'✓':n}</div>
-            {n<4&&<div className="step-line" style={{background:etapa>n?`linear-gradient(90deg,${tema.accent},${tema.accent2},${tema.secondary})`:'#2A1A2F'}}/>}
+            {n<4&&<div className="step-line" style={{background:etapa>n?`linear-gradient(90deg,${tema.accent},${tema.accent2},${tema.secondary})`:tema.cardBorder}}/>}
           </div>
         ))}
       </div>
       <div className="step-labels">
         {nomeEtapas.map((nome,i)=>(
-          <span key={nome} className="step-label" style={{fontWeight:etapa===i+1?700:500,color:etapa===i+1?tema.accent:'#2A1A2F',flex:i<3?1:'none',textAlign:i===0?'left':i===3?'right':'center'}}>
+          <span key={nome} className="step-label" style={{fontWeight:etapa===i+1?700:500,color:etapa===i+1?tema.accent:tema.cardBorder,flex:i<3?1:'none',textAlign:i===0?'left':i===3?'right':'center'}}>
             {nome}
           </span>
         ))}
@@ -630,7 +630,7 @@ export default function Agendar() {
             {(servicos.find(s=>s.id===servicoId)?.profissionais_ids?.length>0?profissionais.filter(p=>(servicos.find(s=>s.id===servicoId)?.profissionais_ids||[]).includes(p.id)):profissionais).map(p=>(
               <button key={p.id} onClick={()=>{setProfissionalId(p.id);setEtapa(3)}} className={'prof-card'+(profissionalId===p.id?' sel':'')}>
                 {p.foto_url
-                  ?<img src={p.foto_url} alt={p.nome} className="prof-avatar-img" style={{border:profissionalId===p.id?`2px solid ${tema.accent}`:'2px solid #2A1A2F'}}/>
+                  ?<img src={p.foto_url} alt={p.nome} className="prof-avatar-img" style={{border:profissionalId===p.id?`2px solid ${tema.accent}`:`2px solid ${tema.cardBorder}`}}/>
                   :<div className="prof-avatar-letra" style={{border:profissionalId===p.id?`2px solid ${tema.accent}`:`2px solid ${tema.border}`}}>{p.nome.charAt(0).toUpperCase()}</div>
                 }
                 <div><p className="prof-nome">{p.nome}</p><p className="prof-cargo">{p.cargo||'Profissional'}</p></div>
@@ -647,9 +647,9 @@ export default function Agendar() {
           <p className="section-sub">Escolha o melhor horário disponível</p>
           <div className="resumo-strip">
             {[
-              {label:'Atendimento',valor:servicoSelecionado?.nome,cor:'#F8F4F7'},
-              {label:'Profissional',valor:profissionalSelecionado?.nome,cor:'#F8F4F7'},
-              {label:'Duração',valor:(servicoSelecionado?.duracao_minutos||30)+' min',cor:'#F8F4F7'},
+              {label:'Atendimento',valor:servicoSelecionado?.nome,cor:tema.text},
+              {label:'Profissional',valor:profissionalSelecionado?.nome,cor:tema.text},
+              {label:'Duração',valor:(servicoSelecionado?.duracao_minutos||30)+' min',cor:tema.text},
               {label:'Valor',valor:'R$ '+servicoSelecionado?.preco,cor:tema.accent},
             ].map(item=>(
               <div key={item.label}>
@@ -683,18 +683,18 @@ export default function Agendar() {
               </div>
             </div>
             <div className="horarios-wrap">
-              {!dataSelecionada&&<div className="horarios-placeholder"><p style={{fontSize:'13px',color:'#2A1A2F',textAlign:'center',lineHeight:1.6}}>Selecione uma data<br/>para ver os horários</p></div>}
+              {!dataSelecionada&&<div className="horarios-placeholder"><p style={{fontSize:'13px',color:tema.textMuted,textAlign:'center',lineHeight:1.6}}>Selecione uma data<br/>para ver os horários</p></div>}
               {dataSelecionada&&(
                 <>
                   <p className="horarios-data-label">{formatarDataExtenso(dataSelecionada)}</p>
-                  {carregandoHorarios&&<div className="horarios-empty"><p style={{fontSize:'13px',color:'#B8AAB8'}}>Buscando horários...</p></div>}
-                  {!carregandoHorarios&&horariosDisponiveis.length===0&&<div className="horarios-empty"><CalendarX2 size={28} style={{opacity:.4,color:'#B8AAB8'}}/><p style={{fontSize:'13px',color:'#B8AAB8',textAlign:'center',lineHeight:1.6}}>Nenhum horário disponível<br/>nesta data.</p></div>}
+                  {carregandoHorarios&&<div className="horarios-empty"><p style={{fontSize:'13px',color:tema.textMuted}}>Buscando horários...</p></div>}
+                  {!carregandoHorarios&&horariosDisponiveis.length===0&&<div className="horarios-empty"><CalendarX2 size={28} style={{opacity:.4,color:tema.textMuted}}/><p style={{fontSize:'13px',color:tema.textMuted,textAlign:'center',lineHeight:1.6}}>Nenhum horário disponível<br/>nesta data.</p></div>}
                   {!carregandoHorarios&&horariosDisponiveis.length>0&&(
                     <div>
                       {[
-                        {label:'Manhã',icon:<Sun size={11} color="#B8AAB8"/>,lista:horariosManha},
-                        {label:'Tarde',icon:<Clock size={11} color="#B8AAB8"/>,lista:horariosTarde},
-                        {label:'Noite',icon:<Moon size={11} color="#B8AAB8"/>,lista:horariosNoite},
+                        {label:'Manhã',icon:<Sun size={11} color={tema.textMuted}/>,lista:horariosManha},
+                        {label:'Tarde',icon:<Clock size={11} color={tema.textMuted}/>,lista:horariosTarde},
+                        {label:'Noite',icon:<Moon size={11} color={tema.textMuted}/>,lista:horariosNoite},
                       ].filter(p=>p.lista.length>0).map(periodo=>(
                         <div key={periodo.label} style={{marginBottom:'16px'}}>
                           <div className="periodo-label-row">{periodo.icon}<span className="periodo-label">{periodo.label}</span></div>
@@ -724,9 +724,9 @@ export default function Agendar() {
           <div className="resumo-card">
             <p className="resumo-card-title">Resumo do agendamento</p>
             {[
-              {label:'Atendimento',valor:servicoSelecionado?.nome,cor:'#F8F4F7'},
-              {label:'Profissional',valor:profissionalSelecionado?.nome,cor:'#F8F4F7'},
-              {label:'Data',valor:formatarData(dataSelecionada),cor:'#F8F4F7'},
+              {label:'Atendimento',valor:servicoSelecionado?.nome,cor:tema.text},
+              {label:'Profissional',valor:profissionalSelecionado?.nome,cor:tema.text},
+              {label:'Data',valor:formatarData(dataSelecionada),cor:tema.text},
               {label:'Horário',valor:horarioSelecionado,cor:tema.accent},
               {label:'Valor',valor:'R$ '+servicoSelecionado?.preco,cor:tema.accent},
             ].map((item,idx,arr)=>(
@@ -744,8 +744,8 @@ export default function Agendar() {
             <div>
               <label className="input-label">WhatsApp *</label>
               <input type="tel" placeholder="(11) 99999-9999" value={clienteTelefone} onChange={e=>setClienteTelefone(aplicarMascaraTelefone(e.target.value))} className="input-field"/>
-              <p style={{fontSize:'12px',color:'#B8AAB8',marginTop:'6px'}}>Usado apenas para contato sobre seu agendamento.</p>
-              <p style={{fontSize:'12px',color:'#2A1A2F',marginTop:'12px',textAlign:'center',lineHeight:1.6}}>Seus dados serão usados apenas para confirmar este agendamento.</p>
+              <p style={{fontSize:'12px',color:tema.textMuted,marginTop:'6px'}}>Usado apenas para contato sobre seu agendamento.</p>
+              <p style={{fontSize:'12px',color:tema.textMuted,marginTop:'12px',textAlign:'center',lineHeight:1.6}}>Seus dados serão usados apenas para confirmar este agendamento.</p>
             </div>
           </div>
           {erro&&<p className="erro-msg" style={{marginBottom:'12px'}}>{erro}</p>}
