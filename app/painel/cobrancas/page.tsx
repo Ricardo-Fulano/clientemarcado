@@ -2,10 +2,10 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../../lib/supabase'
 import Link from 'next/link'
-import { CreditCard, AlertTriangle, Hourglass, CircleDollarSign, Search, Home, Calendar, Users, ClipboardList, Wallet, Sparkles, User, BarChart3, Settings } from 'lucide-react'
+import { CreditCard, AlertTriangle, Hourglass, CircleDollarSign, Search } from 'lucide-react'
+import PainelSidebar from '@/app/components/PainelSidebar'
 
 const G='linear-gradient(135deg,#EC4899,#D946EF,#8B5CF6)'
-const AV='linear-gradient(135deg,rgba(236,72,153,.95),rgba(139,92,246,.95))'
 
 const CSS=`
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -49,19 +49,6 @@ input,select,textarea{color-scheme:dark}
 .btn-cob:hover{border-color:rgba(236,72,153,.32)!important;background:rgba(236,72,153,.08)!important}
 `
 
-const SB_LINKS=[
-  {h:'/painel',l:'Início',I:Home},
-  {h:'/painel/agendamentos',l:'Agenda',I:Calendar},
-  {h:'/painel/clientes',l:'Clientes',I:Users},
-  {h:'/painel/orcamentos',l:'Orçamentos',I:ClipboardList},
-  {h:'/painel/cobrancas',l:'Cobranças',I:Wallet,on:true},
-  {h:'/painel/pagamentos',l:'Pagamentos',I:CreditCard},
-  {h:'/painel/servicos',l:'Serviços',I:Sparkles},
-  {h:'/painel/profissionais',l:'Profissionais',I:User},
-  {h:'/painel/relatorio',l:'Relatórios',I:BarChart3},
-  {h:'/painel/perfil',l:'Configurações',I:Settings},
-]
-
 const FILTROS=['Todas','Em aberto','Vencidas','Parciais','Pagas','Canceladas']
 
 function nrm(s:any){return String(s||'').toLowerCase().trim()}
@@ -96,7 +83,6 @@ export default function Cobrancas(){
   const [perfil,setPerfil]=useState<any>(null)
   const [cobrancas,setCobrancas]=useState<any[]>([])
   const [loading,setLoading]=useState(true)
-  const [mob,setMob]=useState(false)
   const [busca,setBusca]=useState('')
   const [filtro,setFiltro]=useState('Todas')
 
@@ -114,7 +100,6 @@ export default function Cobrancas(){
   }
 
   const nome=perfil?.nome_negocio||''
-  const ini=(nome||'C').charAt(0).toUpperCase()
 
   const aReceber=cobrancas.filter(ePendente).reduce((a,o)=>a+getSaldo(o),0)
   const vencidas=cobrancas.filter(o=>o.vencimento&&new Date(o.vencimento)<new Date()&&ePendente(o)).length
@@ -145,40 +130,13 @@ export default function Cobrancas(){
     window.open('https://wa.me/55'+tel+'?text='+encodeURIComponent(msg),'_blank')
   }
 
-  const SidebarComp=()=>(
-    <aside className="sb">
-      <div className="sb-logo">
-        <div className="sb-ic"><Calendar size={14} color="#fff"/></div>
-        <span style={{fontSize:'14px',fontWeight:800,color:'#F8F4F7',letterSpacing:'-0.02em'}}>ClienteMarcado</span>
-      </div>
-      <nav>{SB_LINKS.map(it=>(<Link key={it.l} href={it.h} className={'nl'+(it.on?' on':'')}><it.I size={16}/><span>{it.l}</span></Link>))}</nav>
-      <div className="sb-foot">
-        <div style={{display:'flex',alignItems:'center',gap:'10px',background:'rgba(24,16,27,.6)',border:'1px solid #2A1A2F',borderRadius:'10px',padding:'10px 12px'}}>
-          <div style={{width:'32px',height:'32px',borderRadius:'50%',background:AV,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'13px',fontWeight:700,color:'#fff',flexShrink:0}}>{ini}</div>
-          <div style={{minWidth:0}}><p style={{fontSize:'12px',fontWeight:600,color:'#F8F4F7',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{nome||'Meu negócio'}</p><p style={{fontSize:'10px',color:'#B8AAB8'}}>Administrador</p></div>
-        </div>
-        <button onClick={async()=>{await supabase.auth.signOut();window.location.href='/login'}} style={{width:'100%',marginTop:'8px',background:'rgba(239,68,68,.10)',border:'1px solid rgba(239,68,68,.25)',borderRadius:'10px',padding:'9px 14px',color:'#EF4444',fontSize:'13px',fontWeight:600,cursor:'pointer',fontFamily:'inherit',display:'flex',alignItems:'center',gap:'8px'}}>Sair</button>
-      </div>
-    </aside>
-  )
-
   if(loading)return(<div style={{minHeight:'100vh',background:'#08060A',display:'flex',alignItems:'center',justifyContent:'center',fontFamily:'system-ui'}}><p style={{color:'#B8AAB8',fontSize:'14px'}}>Carregando...</p></div>)
 
   return(
     <div style={{display:'flex',minHeight:'100vh',background:'#08060A',fontFamily:'-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif',overflowX:'hidden',width:'100%'}}>
       <style dangerouslySetInnerHTML={{__html:CSS}}/>
-      <div className={'ovl'+(mob?' open':'')} onClick={()=>setMob(false)}/>
-      <div className={'drw'+(mob?' open':'')}>
-        <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'16px 18px',borderBottom:'1px solid #2A1A2F'}}><span style={{fontSize:'14px',fontWeight:800,color:'#F8F4F7'}}>ClienteMarcado</span><button onClick={()=>setMob(false)} style={{background:'none',border:'none',color:'rgba(255,255,255,.5)',cursor:'pointer',fontSize:'22px',lineHeight:1}}>&times;</button></div>
-        <nav style={{flex:1,padding:'10px 8px',overflowY:'auto'}}>{SB_LINKS.map(it=>(<Link key={it.l} href={it.h} onClick={()=>setMob(false)} className={'nl'+(it.on?' on':'')} style={{fontSize:'14px'}}><it.I size={16}/><span>{it.l}</span></Link>))}</nav>
-      </div>
-      <SidebarComp/>
-      <div className="main">
-        <div className="mob-hdr">
-          <button onClick={()=>setMob(true)} style={{background:'none',border:'none',cursor:'pointer',padding:'8px',display:'flex',flexDirection:'column',gap:'5px'}}>{[22,22,16].map((w,i)=><span key={i} style={{display:'block',width:w+'px',height:'2px',background:'rgba(255,255,255,.8)',borderRadius:'2px'}}/>)}</button>
-          <span style={{fontSize:'14px',fontWeight:800,color:'#F8F4F7'}}>Cobranças</span>
-          <div style={{width:'34px',height:'34px',borderRadius:'50%',background:AV,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'13px',fontWeight:700,color:'#fff'}}>{ini}</div>
-        </div>
+      <PainelSidebar nome={nome} tituloMobile="Cobranças"/>
+      <div className="psb-main">
         <div className="pg"><div className="bdy">
 
           <div className="topo-r" style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',gap:'16px',flexWrap:'wrap',marginBottom:'24px'}}>

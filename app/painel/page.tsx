@@ -29,8 +29,8 @@ input,select,textarea{color-scheme:dark}
 .crd{background:radial-gradient(circle at top left,rgba(139,92,246,.10),transparent 38%),linear-gradient(145deg,rgba(24,16,27,.97),rgba(18,10,20,.99));border:1.5px solid #2A1A2F;border-radius:18px}
 .btn-p{background:linear-gradient(135deg,#EC4899,#D946EF,#8B5CF6);color:#fff;border:1px solid rgba(255,255,255,.12);border-radius:14px;height:46px;padding:0 20px;font-size:13px;font-weight:700;display:inline-flex;align-items:center;gap:6px;white-space:nowrap;transition:all .18s;font-family:inherit;cursor:pointer;text-decoration:none;box-shadow:0 8px 24px rgba(236,72,153,.35)}
 .btn-s{background:rgba(24,16,27,.88);color:#B8AAB8;border:1px solid #2A1A2F;border-radius:12px;height:44px;padding:0 16px;font-size:13px;font-weight:600;display:inline-flex;align-items:center;gap:6px;white-space:nowrap;font-family:inherit;cursor:pointer;text-decoration:none}
-.kpi-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px}
-.atalho-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:24px}
+.kpi-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-bottom:20px}
+.atalho-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:24px}
 .atalho{background:radial-gradient(circle at top left,rgba(139,92,246,.08),transparent 40%),linear-gradient(145deg,rgba(24,16,27,.97),rgba(18,10,20,.99));border:1.5px solid #2A1A2F;border-radius:16px;padding:18px 14px;text-decoration:none;display:flex;flex-direction:column;gap:8px;transition:all .18s}
 .atalho:hover{background:linear-gradient(145deg,rgba(32,18,36,.97),rgba(22,12,24,.99));border-color:rgba(236,72,153,.35);transform:translateY(-2px)}
 .ag-item{background:rgba(24,16,27,.72);border:1px solid #2A1A2F;border-radius:12px;padding:12px 14px;margin-bottom:6px}
@@ -38,8 +38,8 @@ input,select,textarea{color-scheme:dark}
 .kpi-card:hover{box-shadow:0 8px 24px rgba(236,72,153,.12)}
 @media(max-width:1023px){
   .psb-main .bdy{padding:14px 14px 80px!important;max-width:100%!important;width:100%!important;box-sizing:border-box!important;overflow-x:hidden!important}
-  .kpi-grid{grid-template-columns:1fr 1fr!important;gap:8px!important}
-  .atalho-grid{grid-template-columns:1fr 1fr!important;gap:8px!important}
+  .kpi-grid{grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;gap:8px!important}
+  .atalho-grid{grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;gap:8px!important}
   .mob-hide{display:none!important}
   .mob-show{display:block!important}
 }

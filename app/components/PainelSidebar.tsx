@@ -25,20 +25,20 @@ const LINKS = [
 ]
 
 const CSS = `
-.psb{width:240px;min-height:100vh;background:radial-gradient(circle at top left,rgba(139,92,246,.14),transparent 32%),linear-gradient(180deg,#120A14,#08060A);border-right:1px solid #2A1A2F;display:flex;flex-direction:column;position:fixed;top:0;left:0;z-index:30}
-.psb-logo{padding:22px 18px 16px;border-bottom:1px solid #2A1A2F;display:flex;align-items:center;gap:10px}
+.psb{width:240px;height:100vh;max-height:100vh;background:radial-gradient(circle at top left,rgba(139,92,246,.14),transparent 32%),linear-gradient(180deg,#120A14,#08060A);border-right:1px solid #2A1A2F;display:flex;flex-direction:column;position:fixed;top:0;left:0;z-index:30;overflow:hidden}
+.psb-logo{padding:22px 18px 16px;border-bottom:1px solid #2A1A2F;display:flex;align-items:center;gap:10px;flex-shrink:0}
 .psb-ic{width:30px;height:30px;border-radius:8px;background:linear-gradient(135deg,#EC4899,#D946EF,#8B5CF6);display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 0 20px rgba(236,72,153,.28)}
-.psb nav{flex:1;padding:10px 8px;overflow-y:auto}
+.psb nav{flex:1;min-height:0;padding:10px 8px;overflow-y:auto}
 .nl{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:10px;margin-bottom:2px;text-decoration:none;font-size:13px;font-weight:500;color:#B8AAB8;transition:all .15s;border:1px solid transparent;white-space:nowrap}
 .nl:hover{background:rgba(236,72,153,.10);border-color:rgba(236,72,153,.24);color:#F8F4F7}
 .nl.on{background:linear-gradient(135deg,#EC4899,#D946EF,#8B5CF6);color:#fff;font-weight:700;border-color:rgba(255,255,255,.10);box-shadow:0 0 26px rgba(236,72,153,.28),inset 0 1px 0 rgba(255,255,255,.12)}
-.psb-foot{padding:12px 10px;border-top:1px solid #2A1A2F}
+.psb-foot{padding:12px 10px;border-top:1px solid #2A1A2F;flex-shrink:0}
 .psb-mhdr{display:none;align-items:center;justify-content:space-between;padding:0 16px;height:56px;background:rgba(8,6,10,.96);backdrop-filter:blur(20px);border-bottom:1px solid #2A1A2F;position:fixed;top:0;left:0;right:0;z-index:20;width:100%}
 .psb-drw{position:fixed;top:0;left:0;bottom:0;width:280px;max-width:85vw;background:radial-gradient(circle at top left,rgba(139,92,246,.14),transparent 32%),linear-gradient(180deg,#120A14,#08060A);z-index:50;transform:translateX(-100%);transition:transform .28s ease;display:flex;flex-direction:column;border-right:1px solid #2A1A2F}
 .psb-drw.open{transform:translateX(0)}
 .psb-ovl{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:49;opacity:0;pointer-events:none;transition:opacity .28s}
 .psb-ovl.open{opacity:1;pointer-events:auto}
-.psb-main{margin-left:240px;flex:1;min-height:100vh;width:calc(100% - 240px);max-width:calc(100% - 240px);overflow-x:hidden}
+.psb-main{margin-left:240px;flex:1;min-width:0;min-height:100vh;width:calc(100% - 240px);max-width:calc(100% - 240px);overflow-x:hidden;box-sizing:border-box}
 @media(max-width:1023px){
   html,body{overflow-x:hidden!important;width:100%!important;max-width:100vw!important}
   .psb{display:none!important}
@@ -145,7 +145,7 @@ export default function PainelSidebar({ nome = '', tituloMobile = 'Painel' }: Pr
           <span style={{ fontSize: '14px', fontWeight: 800, color: '#F8F4F7' }}>ClienteMarcado</span>
           <button onClick={() => setMob(false)} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,.5)', cursor: 'pointer', fontSize: '22px', lineHeight: 1 }}>×</button>
         </div>
-        <nav style={{ flex: 1, padding: '10px 8px', overflowY: 'auto' }}>
+        <nav style={{ flex: 1, minHeight: 0, padding: '10px 8px', overflowY: 'auto' }}>
           {carregandoPapel ? <NavLinksSkeleton /> : <NavLinks onClick={() => setMob(false)} />}
         </nav>
         <div style={{ padding: '12px 10px', borderTop: '1px solid #2A1A2F' }}>

@@ -3,16 +3,10 @@ import { useEffect, useState } from 'react'
 import { supabase } from '../../../lib/supabase'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import PainelSidebar from '@/app/components/PainelSidebar'
 
 const G='linear-gradient(135deg,#EC4899,#D946EF,#8B5CF6)'
 const AV='linear-gradient(135deg,rgba(236,72,153,.95),rgba(139,92,246,.95))'
-const SB_ITEMS=[
-  {h:'/painel',l:'Início'},{h:'/painel/agendamentos',l:'Agenda',on:true},
-  {h:'/painel/clientes',l:'Clientes'},{h:'/painel/orcamentos',l:'Orçamentos'},
-  {h:'/painel/cobrancas',l:'Cobranças'},{h:'/painel/pagamentos',l:'Pagamentos'},
-  {h:'/painel/servicos',l:'Serviços'},{h:'/painel/profissionais',l:'Profissionais'},
-  {h:'/painel/relatorio',l:'Relatórios'},{h:'/painel/perfil',l:'Configurações'},
-]
 const CSS=`
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html,body{overflow-x:hidden;width:100%;max-width:100%;background:#08060A}
@@ -62,7 +56,6 @@ export default function NovoAgendamento(){
   const [clis,setClis]=useState<any[]>([])
   const [loading,setLoading]=useState(true)
   const [salvando,setSalvando]=useState(false)
-  const [mob,setMob]=useState(false)
   const [erros,setErros]=useState<string[]>([])
   const [cNome,setCNome]=useState('')
   const [cWpp,setCWpp]=useState('')
@@ -143,48 +136,15 @@ export default function NovoAgendamento(){
 
   const sug=busca.trim().length>1?clis.filter(c=>c.nome.toLowerCase().includes(busca.toLowerCase())).slice(0,6):[]
   const nome=perfil?.nome_negocio||''
-  const ini=(nome||'A').charAt(0).toUpperCase()
   const servSel=servs.find(s=>s.id===servId)
   const profSel=profs.find(p=>p.id===profId)
-  const Sb=()=>(
-    <aside className="sb">
-      <div className="sb-logo">
-        <div className="sb-ic"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
-        <span style={{fontSize:'14px',fontWeight:800,color:'#F8F4F7',letterSpacing:'-0.02em'}}>ClienteMarcado</span>
-      </div>
-      <nav>{SB_ITEMS.map(it=><Link key={it.l} href={it.h} className={'nl'+(it.on?' on':'')}>{it.l}</Link>)}</nav>
-      <div className="sb-foot">
-        <div style={{display:'flex',alignItems:'center',gap:'10px',background:'rgba(24,16,27,.6)',border:'1px solid #2A1A2F',borderRadius:'10px',padding:'10px 12px'}}>
-          <div style={{width:'32px',height:'32px',borderRadius:'50%',background:AV,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'13px',fontWeight:700,color:'#fff',flexShrink:0}}>{ini}</div>
-          <div style={{minWidth:0}}><p style={{fontSize:'12px',fontWeight:600,color:'#F8F4F7',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{nome||'Meu negócio'}</p><p style={{fontSize:'10px',color:'#B8AAB8'}}>Administrador</p></div>
-        </div>
-      </div>
-              <button onClick={sair} style={{width:'100%',marginTop:'8px',background:'rgba(239,68,68,.10)',border:'1px solid rgba(239,68,68,.25)',borderRadius:'10px',padding:'9px 14px',color:'#EF4444',fontSize:'13px',fontWeight:600,cursor:'pointer',fontFamily:'inherit',display:'flex',alignItems:'center',gap:'8px'}}>Sair</button>
-    </aside>
-  )
-  async function sair(){await supabase.auth.signOut();window.location.href='/login'}
 
   if(loading)return(<div style={{minHeight:'100vh',background:'#08060A',display:'flex',alignItems:'center',justifyContent:'center',fontFamily:'system-ui'}}><p style={{color:'#B8AAB8',fontSize:'14px'}}>Carregando...</p></div>)
   return(
     <div style={{display:'flex',minHeight:'100vh',background:'#08060A',fontFamily:'-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif',overflowX:'hidden',width:'100%',position:'relative'}}>
       <style dangerouslySetInnerHTML={{__html:CSS}}/>
-      <div className={`ovl${mob?' open':''}`} onClick={()=>setMob(false)}/>
-      <div className={`drw${mob?' open':''}`}>
-        <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'16px 18px',borderBottom:'1px solid #2A1A2F'}}>
-          <span style={{fontSize:'14px',fontWeight:800,color:'#F8F4F7'}}>ClienteMarcado</span>
-          <button onClick={()=>setMob(false)} style={{background:'none',border:'none',color:'rgba(255,255,255,.5)',cursor:'pointer',fontSize:'22px',lineHeight:1}}>×</button>
-        </div>
-        <nav style={{flex:1,padding:'10px 8px',overflowY:'auto'}}>{SB_ITEMS.map(it=><Link key={it.l} href={it.h} onClick={()=>setMob(false)} className={'nl'+(it.on?' on':'')} style={{fontSize:'14px'}}>{it.l}</Link>)}</nav>
-      </div>
-      <Sb/>
-      <div className="main">
-        <div className="mhdr">
-          <button onClick={()=>setMob(true)} style={{background:'none',border:'none',cursor:'pointer',padding:'8px',display:'flex',flexDirection:'column',gap:'5px'}}>
-            {[22,22,16].map((w,i)=><span key={i} style={{display:'block',width:`${w}px`,height:'2px',background:'rgba(255,255,255,.8)',borderRadius:'2px'}}/>)}
-          </button>
-          <span style={{fontSize:'14px',fontWeight:800,color:'#F8F4F7'}}>Novo agendamento</span>
-          <div style={{width:'34px',height:'34px',borderRadius:'50%',background:AV,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'13px',fontWeight:700,color:'#fff'}}>{ini}</div>
-        </div>
+      <PainelSidebar nome={nome} tituloMobile="Novo agendamento"/>
+      <div className="psb-main">
         <div className="pg"><div className="bdy">
           <div style={{display:'flex',alignItems:'center',gap:'12px',marginBottom:'24px',flexWrap:'wrap'}}>
             <Link href="/painel/agendamentos" className="btn-s" style={{height:'38px',padding:'0 14px',fontSize:'12px'}}>← Voltar</Link>
