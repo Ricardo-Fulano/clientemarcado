@@ -1,3 +1,4 @@
+import type { Metadata } from 'next'
 import { supabase } from '../lib/supabase'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
@@ -7,7 +8,7 @@ import { resolverTema, getTema } from '../lib/tema-publico'
 const CSS = `
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html,body{overflow-x:hidden;width:100%;max-width:100%}
-.hero{position:relative;width:100%;min-height:260px;display:block;overflow:hidden;border-radius:20px}
+.hero{position:relative;width:100%;min-height:260px;display:block;overflow:hidden;border-radius:20px;border:2px solid var(--accent);box-shadow:0 0 14px var(--accent-glow)}
 .hero.no-capa{min-height:190px}
 .hero-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center center}
 .hero-overlay{position:absolute;inset:0;background:linear-gradient(to bottom,rgba(var(--bg-rgb),0) 55%,rgba(var(--bg-rgb),.6) 100%)}
@@ -30,15 +31,21 @@ html,body{overflow-x:hidden;width:100%;max-width:100%}
 .destaque-grid.cols-2{grid-template-columns:repeat(2,1fr)}
 .destaque-grid.cols-3{grid-template-columns:repeat(3,1fr)}
 .destaque-item{display:block;width:100%;max-width:100%;min-width:0;box-sizing:border-box}
-.destaque-card{display:block;text-decoration:none;color:inherit;overflow:hidden;transition:transform .18s,box-shadow .18s;position:relative;aspect-ratio:16/9;min-height:190px;width:100%;max-width:100%;box-sizing:border-box}
-.destaque-card:hover{transform:translateY(-3px);box-shadow:0 10px 28px var(--accent-glow)}
-.destaque-btn{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:800;padding:6px 14px;border-radius:999px;max-width:100%;box-sizing:border-box}
+.destaque-card{display:flex;flex-direction:column;overflow:hidden;border-radius:16px;transition:transform .18s,box-shadow .18s,border-color .18s;width:100%;max-width:100%;box-sizing:border-box}
+.destaque-card:hover{transform:translateY(-4px);border-color:var(--accent)!important;box-shadow:0 6px 18px var(--accent-glow)}
+.destaque-img-wrap{position:relative;width:100%;aspect-ratio:16/9;overflow:hidden;flex-shrink:0}
+.destaque-img-wrap img{width:100%;height:100%;object-fit:cover;display:block}
+.destaque-body{padding:16px 18px 18px;display:flex;flex-direction:column;gap:4px}
+.destaque-action{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:800;margin-top:8px}
 .destaque-desc{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .link-card{display:flex;align-items:center;gap:14px;padding:17px 20px;box-sizing:border-box}
 .link-icon{width:46px;height:46px;border-radius:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.link-card:hover{border-color:var(--accent-border)!important;box-shadow:0 0 20px var(--accent-glow)}
+.link-card:hover{border-color:var(--accent)!important;box-shadow:0 0 12px var(--accent-glow)}
+@media(min-width:768px) and (max-width:1024px){
+  .destaque-grid.cols-3{grid-template-columns:repeat(2,1fr)}
+}
 @media(max-width:767px){
-  .hero, .hero.no-capa{height:170px!important;max-height:170px!important;min-height:170px!important;border-radius:18px!important}
+  .hero, .hero.no-capa{height:170px!important;max-height:170px!important;min-height:170px!important;border-radius:18px!important;border-width:2px!important}
   .hero-img{object-position:center center!important}
   .profile-row{margin-top:-56px;flex-direction:column;align-items:center;text-align:center}
   .avatar-pro{width:112px;height:112px}
@@ -46,8 +53,7 @@ html,body{overflow-x:hidden;width:100%;max-width:100%}
   .bio-text{margin-left:auto;margin-right:auto;text-align:center}
   .loc-text{justify-content:center}
   .benefit-grid{grid-template-columns:1fr}
-  .destaque-grid,.destaque-grid.cols-1,.destaque-grid.cols-2,.destaque-grid.cols-3{grid-template-columns:1fr!important;gap:12px!important;width:100%!important;max-width:100%!important}
-  .destaque-card{aspect-ratio:16/9!important;min-height:180px!important;max-height:220px!important;width:100%!important;max-width:100%!important}
+  .destaque-grid,.destaque-grid.cols-1,.destaque-grid.cols-2,.destaque-grid.cols-3{grid-template-columns:1fr!important;gap:14px!important;width:100%!important;max-width:100%!important}
   .link-card{padding:13px 15px!important;gap:12px!important}
   .link-icon{width:40px!important;height:40px!important}
   .hero-btns{flex-direction:column}
@@ -58,6 +64,66 @@ html,body{overflow-x:hidden;width:100%;max-width:100%}
   .wrap{padding:0 14px}
 }
 `
+
+// Domínio base do site, para montar URLs absolutas na prévia de compartilhamento.
+// Usa a mesma variável já documentada no projeto (.env.local / Vercel), com fallback pro domínio oficial.
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://clientemarcado.com.br'
+
+// Metadados dinâmicos por negócio (WhatsApp, redes sociais, etc). Cada /[slug] passa a ter
+// título, descrição e imagem próprios, em vez da prévia genérica do ClienteMarcado.
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+  const { slug } = await params
+  const { data: perfil } = await supabase
+    .from('perfis')
+    .select('*')
+    .eq('slug', slug)
+    .single()
+
+  if (!perfil) {
+    return {
+      title: 'ClienteMarcado | Página profissional para beleza e estética',
+      description: 'Agende seu horário, veja links, cursos, redes sociais e fale pelo WhatsApp.',
+    }
+  }
+
+  const nome = perfil.nome_negocio || 'ClienteMarcado'
+  const descricao = perfil.pagina_descricao_curta || perfil.descricao || 'Agende seu horário, veja links, cursos, redes sociais e fale pelo WhatsApp.'
+  const titulo = `${nome} | Página profissional`
+
+  // Mesmo fallback de capa por tipo de negócio já usado na renderização da página pública
+  let capaFallback = ''
+  if (!perfil.capa_url) {
+    const tipoNeg = (perfil.tipo_negocio || '').toLowerCase()
+    const slugRef = tipoNeg.includes('barbearia') ? 'domcorte' : (tipoNeg.includes('est') || tipoNeg.includes('sal') || tipoNeg.includes('bel') ? 'studiobella' : '')
+    if (slugRef) {
+      const { data: perfilRef } = await supabase.from('perfis').select('capa_url').eq('slug', slugRef).single()
+      capaFallback = perfilRef?.capa_url || ''
+    }
+  }
+
+  const imagemBruta = perfil.capa_url || perfil.imagem_capa || perfil.banner_url || capaFallback || perfil.foto_perfil_url || ''
+  const imagem = imagemBruta ? (imagemBruta.startsWith('http') ? imagemBruta : `${SITE_URL}${imagemBruta}`) : `${SITE_URL}/og-image.png`
+  const url = `${SITE_URL}/${slug}`
+
+  return {
+    title: titulo,
+    description: descricao,
+    openGraph: {
+      title: titulo,
+      description: descricao,
+      url,
+      siteName: 'ClienteMarcado',
+      type: 'website',
+      images: [{ url: imagem, width: 1200, height: 630, alt: `${nome} - Página profissional` }],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: titulo,
+      description: descricao,
+      images: [imagem],
+    },
+  }
+}
 
 export default async function PaginaPublica({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
@@ -221,22 +287,20 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
             <div className={`destaque-grid cols-${Math.min(destaques.length, 3)}`}>
               {destaques.map(d => {
                 const conteudo = (
-                  <div className="crd destaque-card" style={{ border: `1px solid ${tema.border}` }}>
-                    {d.imagem_url ? (
-                      <img src={d.imagem_url} alt={d.titulo} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center center' }} />
-                    ) : (
-                      <div style={{ position: 'absolute', inset: 0, background: `linear-gradient(135deg,${tema.accent},${tema.secondary})` }} />
-                    )}
-                    <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(6,3,10,.90) 0%, rgba(6,3,10,.55) 45%, rgba(6,3,10,0) 100%)' }} />
-                    <div style={{ position: 'absolute', top: '14px', left: '14px', width: '38px', height: '38px', borderRadius: '12px', background: tema.accent, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: `0 4px 16px ${tema.glow}` }}>
-                      <Sparkles size={18} color={tema.btnText} />
+                  <div className="crd destaque-card" style={{ border: `2px solid ${tema.accent}`, boxShadow: `0 0 12px ${tema.glow}` }}>
+                    <div className="destaque-img-wrap">
+                      {d.imagem_url ? (
+                        <img src={d.imagem_url} alt={d.titulo} />
+                      ) : (
+                        <div style={{ width: '100%', height: '100%', background: `linear-gradient(135deg,${tema.accent},${tema.secondary})` }} />
+                      )}
                     </div>
-                    <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, padding: '16px 18px' }}>
-                      <p style={{ fontWeight: 800, fontSize: '16px', color: '#FFFFFF', marginBottom: '4px', textShadow: '0 2px 10px rgba(0,0,0,.55)' }}>{d.titulo}</p>
-                      {d.descricao && <p className="destaque-desc" style={{ fontSize: '12px', color: '#E4D9EC', marginBottom: '10px', lineHeight: 1.4, textShadow: '0 1px 6px rgba(0,0,0,.5)' }}>{d.descricao}</p>}
+                    <div className="destaque-body">
+                      <p style={{ fontWeight: 800, fontSize: '16px', color: 'var(--text)' }}>{d.titulo}</p>
+                      {d.descricao && <p className="destaque-desc" style={{ fontSize: '12px', color: 'var(--text-muted)', lineHeight: 1.4 }}>{d.descricao}</p>}
                       {d.url && (
-                        <span className="destaque-btn" style={{ background: tema.soft, border: `1px solid ${tema.border}`, color: '#FFFFFF' }}>
-                          {d.texto_botao || 'Saiba mais'} →
+                        <span className="destaque-action" style={{ color: tema.accent }}>
+                          {d.texto_botao || 'Ver mais'} →
                         </span>
                       )}
                     </div>
@@ -259,7 +323,7 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
           <div style={{ marginBottom: '32px' }}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
               {mostrarAgendaFallback && (
-                <a href={`/${slug}/agendar`} className="crd link-card" style={{ textDecoration: 'none', color: 'inherit', border: `1px solid ${tema.border}` }}>
+                <a href={`/${slug}/agendar`} className="crd link-card" style={{ textDecoration: 'none', color: 'inherit', border: `1.5px solid ${tema.accent}`, boxShadow: `0 0 8px ${tema.glow}` }}>
                   <div className="link-icon" style={{ background: tema.accent }}>
                     <Calendar size={19} color={tema.btnText} />
                   </div>
@@ -274,7 +338,7 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
                 const cfg = iconeLink(l.tipo)
                 const hrefFinal = urlFinalLink(l)
                 return (
-                  <a key={l.id} href={hrefFinal} target={hrefFinal.startsWith('http') ? '_blank' : '_self'} rel="noopener noreferrer" className="crd link-card" style={{ textDecoration: 'none', color: 'inherit', border: `1px solid ${tema.border}` }}>
+                  <a key={l.id} href={hrefFinal} target={hrefFinal.startsWith('http') ? '_blank' : '_self'} rel="noopener noreferrer" className="crd link-card" style={{ textDecoration: 'none', color: 'inherit', border: `1.5px solid ${tema.accent}`, boxShadow: `0 0 8px ${tema.glow}` }}>
                     <div className="link-icon" style={{ background: `${cfg.color}1F`, border: `1px solid ${cfg.color}48` }}>
                       {cfg.svg ? cfg.svg : (cfg.I ? <cfg.I size={19} color={cfg.color} /> : null)}
                     </div>
