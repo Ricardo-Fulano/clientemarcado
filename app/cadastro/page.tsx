@@ -1,5 +1,6 @@
 'use client'
 import { useState } from 'react'
+import Link from 'next/link'
 import { supabase } from '../lib/supabase'
 
 const BENEFICIOS = [
@@ -50,10 +51,51 @@ export default function Cadastro() {
   const [loading, setLoading] = useState(false)
   const [aceitou, setAceitou] = useState(false)
   const [mensagem, setMensagem] = useState('')
+  // Tela pós-cadastro (confirmação de e-mail) e reenvio
+  const [fase, setFase] = useState<'form' | 'confirmar'>('form')
+  const [emailCadastrado, setEmailCadastrado] = useState('')
+  const [duplicado, setDuplicado] = useState(false)
+  const [reenviando, setReenviando] = useState(false)
+  const [reenvioMsg, setReenvioMsg] = useState('')
   async function validarCupom(c: string) {
     if (!c) { setCupomStatus('idle'); return }
     const { data } = await supabase.from('parceiros').select('id').eq('cupom', c).eq('ativo', true).single()
     setCupomStatus(data ? 'ok' : 'erro')
+  }
+  // Monta o link de confirmacao sempre com o dominio real (nunca localhost em producao).
+  // O fallback antigo apontava pra um subdominio vercel.app desatualizado; agora usa a var
+  // ja documentada do projeto (NEXT_PUBLIC_SITE_URL), com o dominio oficial como ultimo recurso.
+  function montarRedirectTo() {
+    if (typeof window !== 'undefined') return `${window.location.origin}/auth/callback`
+    return `${process.env.NEXT_PUBLIC_SITE_URL || 'https://clientemarcado.com.br'}/auth/callback`
+  }
+  // Mensagens amigaveis pro cadastro (nunca mostra erro tecnico cru pro usuario)
+  function erroCadastroAmigavel(msg: string) {
+    const m = (msg || '').toLowerCase()
+    if (m.includes('already registered') || m.includes('already exists') || m.includes('user already')) {
+      return 'Esse e-mail já possui um cadastro. Verifique sua caixa de entrada ou tente reenviar o e-mail de confirmação.'
+    }
+    if (m.includes('rate limit') || m.includes('too many requests') || m.includes('security purposes')) {
+      return 'Por segurança, aguarde alguns minutos antes de tentar novamente.'
+    }
+    if (m.includes('invalid') && m.includes('email')) {
+      return 'Confira se o e-mail foi digitado corretamente.'
+    }
+    if (m.includes('password') && (m.includes('short') || m.includes('6 char'))) {
+      return 'A senha precisa ter no mínimo 6 caracteres.'
+    }
+    return 'Não conseguimos concluir seu cadastro agora. Tente novamente ou fale com nosso suporte.'
+  }
+  // Mensagens amigaveis pro reenvio de confirmacao
+  function erroReenvioAmigavel(msg: string) {
+    const m = (msg || '').toLowerCase()
+    if (m.includes('rate limit') || m.includes('too many requests') || m.includes('security purposes')) {
+      return 'Por segurança, aguarde alguns minutos antes de tentar reenviar novamente.'
+    }
+    if (m.includes('invalid') && m.includes('email')) {
+      return 'Confira se o e-mail foi digitado corretamente.'
+    }
+    return 'Não conseguimos reenviar agora. Entre em contato com o suporte do ClienteMarcado.'
   }
   if (typeof window !== 'undefined') {
    const urlCupom = new URLSearchParams(window.location.search).get('cupom')
@@ -77,9 +119,7 @@ export default function Cadastro() {
     const planoTipo = planoSalvo === 'equipe' ? 'equipe' : 'essencial'
     setLoading(true)
     setMensagem('')
-    const redirectTo = typeof window !== 'undefined'
-      ? `${window.location.origin}/auth/callback`
-      : 'https://clientemarcado.vercel.app/auth/callback'
+    const redirectTo = montarRedirectTo()
     const { data, error } = await supabase.auth.signUp({
       email,
       password: senha,
@@ -89,7 +129,17 @@ export default function Cadastro() {
       }
     })
     if (error) {
-      setMensagem('Erro: ' + error.message)
+      const msgAmigavel = erroCadastroAmigavel(error.message)
+      // E-mail ja cadastrado: nao cria conta duplicada, mas ja oferece a tela com o botao de reenvio
+      const ehDuplicado = error.message.toLowerCase().includes('already registered') || error.message.toLowerCase().includes('already exists') || error.message.toLowerCase().includes('user already')
+      if (ehDuplicado) {
+        setEmailCadastrado(email)
+        setDuplicado(true)
+        setFase('confirmar')
+        setLoading(false)
+        return
+      }
+      setMensagem('Erro: ' + msgAmigavel)
       setLoading(false)
       return
     }
@@ -131,8 +181,28 @@ export default function Cadastro() {
         }
       } catch(e) { console.warn('Indicacao parceiro:', e) }
     }
-    setMensagem('Conta criada! Verifique seu e-mail para confirmar.')
+    setEmailCadastrado(email)
+    setDuplicado(false)
+    setFase('confirmar')
     setLoading(false)
+  }
+  async function reenviarConfirmacao() {
+    if (!emailCadastrado) return
+    setReenviando(true)
+    setReenvioMsg('')
+    const { error } = await supabase.auth.resend({
+      type: 'signup',
+      email: emailCadastrado,
+      options: { emailRedirectTo: montarRedirectTo() }
+    })
+    if (error) {
+      // Nunca loga dado sensivel (senha nunca aparece aqui); so a mensagem de erro do Supabase
+      console.warn('Erro ao reenviar confirmacao:', error.message)
+      setReenvioMsg(erroReenvioAmigavel(error.message))
+    } else {
+      setReenvioMsg('E-mail reenviado! Verifique sua caixa de entrada e spam.')
+    }
+    setReenviando(false)
   }
   const css = `
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -196,6 +266,14 @@ export default function Cadastro() {
     .msg-ok { background: rgba(34,197,94,0.08); border: 1px solid rgba(34,197,94,0.2); border-radius: 10px; padding: 11px 14px; font-size: 13px; color: #22C55E; margin-bottom: 14px; text-align: center; }
     .msg-err { background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.2); border-radius: 10px; padding: 11px 14px; font-size: 13px; color: #EF4444; margin-bottom: 14px; text-align: center; }
     .footer { text-align: center; padding: 16px; font-size: 12px; color: #B8AAB8; display: flex; align-items: center; justify-content: center; gap: 6px; }
+    .confirmar-icone { width: 56px; height: 56px; border-radius: 16px; background: rgba(34,197,94,0.10); border: 1px solid rgba(34,197,94,0.25); display: flex; align-items: center; justify-content: center; margin: 0 auto 18px; }
+    .confirmar-email { font-weight: 700; color: #F8F4F7; word-break: break-all; }
+    .btn-secundario { width: 100%; background: rgba(255,255,255,0.04); color: #F8F4F7; font-size: 14px; font-weight: 600; padding: 13px; border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: background 0.15s, opacity 0.15s; font-family: inherit; -webkit-tap-highlight-color: transparent; text-decoration: none; }
+    .btn-secundario:hover { background: rgba(255,255,255,0.07); }
+    .btn-secundario:disabled { opacity: 0.6; cursor: not-allowed; }
+    .btn-whatsapp { width: 100%; background: rgba(34,197,94,0.1); color: #22C55E; font-size: 14px; font-weight: 600; padding: 13px; border: 1px solid rgba(34,197,94,0.25); border-radius: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; text-decoration: none; font-family: inherit; transition: background 0.15s; -webkit-tap-highlight-color: transparent; }
+    .btn-whatsapp:hover { background: rgba(34,197,94,0.16); }
+    .confirmar-botoes { display: flex; flex-direction: column; gap: 10px; margin-top: 20px; }
   `
   return (
     <div className="pg">
@@ -237,6 +315,8 @@ export default function Cadastro() {
         </div>
         <div className="form-bloco">
           <div className="card">
+            {fase === 'form' ? (
+            <>
             <p className="card-titulo">Criar conta grátis</p>
             <p className="card-sub">É rápido, fácil e sem compromisso.</p>
             <div className="campos">
@@ -290,8 +370,54 @@ export default function Cadastro() {
               )}
             </button>
             <p className="link-login">
-              Já tem conta? <a href="/login">Entrar</a>
+              Já tem conta? <Link href="/login">Entrar</Link>
             </p>
+            </>
+            ) : (
+            <>
+              <div className="confirmar-icone">
+                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#22C55E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                  <polyline points="22,6 12,13 2,6"/>
+                </svg>
+              </div>
+              <p className="card-titulo" style={{textAlign:'center'}}>
+                {duplicado ? 'Esse e-mail já tem cadastro' : 'Conta criada com sucesso!'}
+              </p>
+              <p className="card-sub" style={{textAlign:'center'}}>
+                {duplicado
+                  ? 'Enviamos (ou reenviamos) o e-mail de confirmação para:'
+                  : 'Enviamos um e-mail de confirmação para:'}
+              </p>
+              <p className="confirmar-email" style={{textAlign:'center',marginBottom:'18px'}}>{emailCadastrado}</p>
+              <p style={{fontSize:'13px',color:'#B8AAB8',lineHeight:1.6,textAlign:'center',marginBottom:'6px'}}>
+                Verifique sua caixa de entrada, spam, promoções ou lixo eletrônico.
+              </p>
+              <p style={{fontSize:'13px',color:'#B8AAB8',lineHeight:1.6,textAlign:'center',marginBottom:'18px'}}>
+                Procure por <strong style={{color:'#F8F4F7'}}>ClienteMarcado</strong> ou <strong style={{color:'#F8F4F7'}}>noreply</strong>.
+              </p>
+              {reenvioMsg && (
+                <div className={reenvioMsg.startsWith('Não') || reenvioMsg.startsWith('Por segurança') || reenvioMsg.startsWith('Confira') ? 'msg-err' : 'msg-ok'}>
+                  {reenvioMsg}
+                </div>
+              )}
+              <div className="confirmar-botoes">
+                <button onClick={reenviarConfirmacao} disabled={reenviando} className="btn-criar">
+                  {reenviando ? 'Reenviando...' : 'Reenviar e-mail de confirmação'}
+                </button>
+                <Link href="/login" className="btn-secundario">Ir para login</Link>
+                <button type="button" className="btn-secundario" onClick={() => { setFase('form'); setMensagem(''); setDuplicado(false) }}>
+                  Digitou o e-mail errado? Voltar para cadastro
+                </button>
+                <a
+                  href={`https://wa.me/5511941059063?text=${encodeURIComponent('Olá! Fiz meu cadastro no ClienteMarcado, mas não recebi o e-mail de confirmação.')}`}
+                  target="_blank" rel="noreferrer" className="btn-whatsapp"
+                >
+                  Falar com o suporte
+                </a>
+              </div>
+            </>
+            )}
           </div>
         </div>
         <div className="beneficios-mobile">
