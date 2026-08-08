@@ -38,6 +38,30 @@ html,body{overflow-x:hidden;width:100%;max-width:100%}
 .destaque-body{padding:16px 18px 18px;display:flex;flex-direction:column;gap:4px}
 .destaque-action{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:800;margin-top:8px}
 .destaque-desc{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.video-grid{display:flex;flex-wrap:wrap;gap:18px;width:100%;max-width:100%;align-items:flex-start}
+.video-card{display:flex;flex-direction:column;overflow:hidden;border-radius:16px;transition:transform .18s,box-shadow .18s,border-color .18s;box-sizing:border-box}
+.video-card.fmt-horizontal,.video-card.fmt-classic{width:100%;max-width:360px;flex:1 1 320px}
+.video-card.fmt-vertical{width:100%;max-width:280px;flex:0 1 260px}
+.video-card.fmt-square{width:100%;max-width:300px;flex:1 1 260px}
+.video-card:hover{transform:translateY(-4px);border-color:var(--accent)!important}
+.video-thumb-wrap{position:relative;width:100%;overflow:hidden;flex-shrink:0;display:block;text-decoration:none;background:#000}
+.video-thumb-wrap img{width:100%;height:100%;object-fit:cover;display:block}
+.video-play{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:52px;height:52px;border-radius:999px;background:rgba(0,0,0,.55);border:1.5px solid rgba(255,255,255,.7);display:flex;align-items:center;justify-content:center;backdrop-filter:blur(2px)}
+.video-placeholder{width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:18px;text-align:center}
+.video-placeholder-play{width:52px;height:52px;border-radius:999px;background:rgba(255,255,255,.20);border:1.5px solid rgba(255,255,255,.55);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.video-placeholder-label{font-size:12px;font-weight:800;color:#fff;letter-spacing:.02em}
+.video-placeholder-title{font-size:11px;color:rgba(255,255,255,.85);line-height:1.35;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;max-width:220px}
+.video-body{padding:16px 18px 18px;display:flex;flex-direction:column;gap:4px}
+.video-desc{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.video-btns{display:flex;flex-direction:column;gap:8px;margin-top:12px}
+.video-cta{display:inline-flex;align-items:center;justify-content:center;gap:6px;font-size:13px;font-weight:800;padding:11px 16px;border-radius:11px;text-decoration:none;text-align:center}
+.video-assistir{display:inline-flex;align-items:center;justify-content:center;gap:6px;font-size:12px;font-weight:700;padding:9px 16px;border-radius:11px;text-decoration:none;text-align:center;background:transparent}
+.video-mais summary{list-style:none;cursor:pointer;display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:700;padding:11px 22px;border-radius:999px;margin:18px auto 0;width:fit-content}
+.video-mais summary::-webkit-details-marker{display:none}
+.video-mais[open] .video-mais-label-fechar{display:inline}
+.video-mais[open] .video-mais-label-abrir{display:none}
+.video-mais .video-mais-label-fechar{display:none}
+.video-mais-grid{display:flex;flex-wrap:wrap;gap:18px;margin-top:16px;align-items:flex-start}
 .link-card{display:flex;align-items:center;gap:14px;padding:17px 20px;box-sizing:border-box}
 .link-icon{width:46px;height:46px;border-radius:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .link-card:hover{border-color:var(--accent)!important;box-shadow:0 0 12px var(--accent-glow)}
@@ -54,6 +78,9 @@ html,body{overflow-x:hidden;width:100%;max-width:100%}
   .loc-text{justify-content:center}
   .benefit-grid{grid-template-columns:1fr}
   .destaque-grid,.destaque-grid.cols-1,.destaque-grid.cols-2,.destaque-grid.cols-3{grid-template-columns:1fr!important;gap:14px!important;width:100%!important;max-width:100%!important}
+  .video-grid,.video-mais-grid{gap:14px!important}
+  .video-card.fmt-horizontal,.video-card.fmt-classic,.video-card.fmt-square{max-width:100%!important;flex-basis:100%!important}
+  .video-card.fmt-vertical{max-width:280px!important;flex-basis:100%!important;margin:0 auto}
   .link-card{padding:13px 15px!important;gap:12px!important}
   .link-icon{width:40px!important;height:40px!important}
   .hero-btns{flex-direction:column}
@@ -140,11 +167,12 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
     }
   }
 
-  const [{ data: servicos }, { data: profissionais }, { data: destaques }, { data: linksRapidos }] = await Promise.all([
+  const [{ data: servicos }, { data: profissionais }, { data: destaques }, { data: linksRapidos }, { data: videos }] = await Promise.all([
     supabase.from('servicos').select('*').eq('user_id', perfil.user_id).eq('ativo', true).order('nome'),
     supabase.from('profissionais').select('*').eq('user_id', perfil.user_id).eq('ativo', true).order('nome'),
     supabase.from('pagina_destaques').select('*').eq('user_id', perfil.user_id).eq('ativo', true).order('ordem').order('created_at'),
     supabase.from('pagina_links').select('*').eq('user_id', perfil.user_id).eq('ativo', true).order('ordem').order('created_at'),
+    supabase.from('pagina_videos').select('*').eq('user_id', perfil.user_id).eq('ativo', true).order('ordem').order('created_at'),
   ])
 
   const temaId = resolverTema(perfil.public_theme || perfil.tema_publico || perfil.tema_cor || 'modelo2')
@@ -200,6 +228,27 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
     if (v.startsWith('http://') || v.startsWith('https://')) return v
     if (l.tipo === 'endereco') return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(v)}`
     return v
+  }
+
+  // Thumbnail automatica do YouTube (sem precisar de API/upload); outras plataformas caem no fallback com gradiente
+  function thumbnailVideo(v: { thumbnail_url?: string; url_video?: string }) {
+    if (v.thumbnail_url) return v.thumbnail_url
+    const m = (v.url_video || '').match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/))([a-zA-Z0-9_-]{6,})/)
+    return m ? `https://img.youtube.com/vi/${m[1]}/hqdefault.jpg` : ''
+  }
+  const FORMATO_RATIO: Record<string, string> = { '16:9': '16/9', '9:16': '9/16', '4:3': '4/3', '1:1': '1/1' }
+  function formatoClasse(f?: string) {
+    if (f === '9:16') return 'fmt-vertical'
+    if (f === '1:1') return 'fmt-square'
+    if (f === '4:3') return 'fmt-classic'
+    return 'fmt-horizontal'
+  }
+  // Rotulo amigavel do placeholder quando nao ha thumbnail (nunca aparenta "quebrado")
+  function labelPlaceholder(v: { plataforma?: string; formato?: string }) {
+    if (v.plataforma === 'instagram') return v.formato === '1:1' ? 'Post do Instagram' : 'Reels do Instagram'
+    if (v.plataforma === 'tiktok') return 'Vídeo do TikTok'
+    if (v.plataforma === 'vimeo') return 'Vídeo'
+    return 'Conteúdo em vídeo'
   }
 
   // Promocao em destaque: aparece se ativa, com titulo e preco novo, e dentro do periodo (se houver datas)
@@ -317,6 +366,68 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
             </div>
           </div>
         )}
+
+        {/* VIDEOS EM DESTAQUE: aparece somente se houver pelo menos 1 video ativo */}
+        {videos && videos.length > 0 && (() => {
+          const primeiros = videos.slice(0, 3)
+          const resto = videos.slice(3)
+          const renderVideoCard = (v: { id: string; titulo: string; descricao?: string; url_video: string; formato?: string; plataforma?: string; thumbnail_url?: string; link_destino?: string; texto_cta?: string; texto_botao_video?: string; abrir_nova_aba?: boolean }) => {
+            const thumb = thumbnailVideo(v)
+            const ratio = FORMATO_RATIO[v.formato || '16:9'] || '16/9'
+            return (
+              <div key={v.id} className={`crd video-card ${formatoClasse(v.formato)}`} style={{ border: `2px solid ${tema.accent}`, boxShadow: `0 0 16px ${tema.glow}` }}>
+                <a href={v.url_video} target={v.abrir_nova_aba === false ? '_self' : '_blank'} rel="noopener noreferrer" className="video-thumb-wrap" style={{ aspectRatio: ratio }}>
+                  {thumb ? (
+                    <>
+                      <img src={thumb} alt={v.titulo} />
+                      <div className="video-play"><PlayCircle size={26} color="#fff" /></div>
+                    </>
+                  ) : (
+                    <div className="video-placeholder" style={{ background: `radial-gradient(circle at 30% 20%,${tema.soft},transparent 60%),linear-gradient(135deg,${tema.accent},${tema.secondary})` }}>
+                      <div className="video-placeholder-play"><PlayCircle size={24} color="#fff" /></div>
+                      <span className="video-placeholder-label">{labelPlaceholder(v)}</span>
+                      {v.titulo && <span className="video-placeholder-title">{v.titulo}</span>}
+                    </div>
+                  )}
+                </a>
+                <div className="video-body">
+                  <p style={{ fontWeight: 800, fontSize: '15px', color: 'var(--text)' }}>{v.titulo}</p>
+                  {v.descricao && <p className="video-desc" style={{ fontSize: '12px', color: 'var(--text-muted)', lineHeight: 1.4 }}>{v.descricao}</p>}
+                  <div className="video-btns">
+                    {v.link_destino && (
+                      <a href={v.link_destino} target="_blank" rel="noopener noreferrer" className="video-cta" style={{ background: tema.accent, color: tema.btnText }}>
+                        {v.texto_cta || 'Saiba mais'}
+                      </a>
+                    )}
+                    <a href={v.url_video} target={v.abrir_nova_aba === false ? '_self' : '_blank'} rel="noopener noreferrer" className="video-assistir" style={{ border: `1px solid ${tema.border}`, color: tema.accent }}>
+                      {v.texto_botao_video || 'Assistir vídeo'}
+                    </a>
+                  </div>
+                </div>
+              </div>
+            )
+          }
+          return (
+            <div style={{ marginBottom: '28px' }}>
+              <p style={{ fontSize: '20px', fontWeight: 900, color: 'var(--text)', letterSpacing: '-0.02em', marginBottom: '6px' }}>Vídeos em destaque</p>
+              <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '18px' }}>Assista conteúdos, apresentações, cursos, mentorias ou novidades do negócio.</p>
+              <div className="video-grid">
+                {primeiros.map(renderVideoCard)}
+              </div>
+              {resto.length > 0 && (
+                <details className="video-mais">
+                  <summary style={{ background: tema.soft, border: `1px solid ${tema.border}`, color: tema.accent }}>
+                    <span className="video-mais-label-abrir">Ver mais vídeos</span>
+                    <span className="video-mais-label-fechar">Ver menos</span>
+                  </summary>
+                  <div className="video-mais-grid">
+                    {resto.map(renderVideoCard)}
+                  </div>
+                </details>
+              )}
+            </div>
+          )
+        })()}
 
         {/* LINKS RAPIDOS: apenas o que o cliente configurou no painel + fallback de agenda, se aplicavel */}
         {(mostrarAgendaFallback || (linksRapidos && linksRapidos.length > 0)) && (

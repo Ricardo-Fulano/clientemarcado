@@ -137,8 +137,13 @@ export default function Perfil(){
 
   const [destaques,setDestaques]=useState<any[]>([])
   const [links,setLinks]=useState<any[]>([])
+  const [videos,setVideos]=useState<any[]>([])
+  const [videosAberto,setVideosAberto]=useState(false)
   const [salvandoDestaqueId,setSalvandoDestaqueId]=useState('')
   const [salvandoLinkId,setSalvandoLinkId]=useState('')
+  const [salvandoVideoId,setSalvandoVideoId]=useState('')
+  const [uploadingVideoId,setUploadingVideoId]=useState('')
+  const videoImgRef=useRef<HTMLInputElement>(null)
   const [uploadingDestaqueId,setUploadingDestaqueId]=useState('')
   const destaqueImgRef=useRef<HTMLInputElement>(null)
 
@@ -191,12 +196,14 @@ export default function Perfil(){
       setMostrarContato(p.pagina_mostrar_contato!==false)
     }
 
-    const [{data:dst},{data:lnk}]=await Promise.all([
+    const [{data:dst},{data:lnk},{data:vid}]=await Promise.all([
       supabase.from('pagina_destaques').select('*').eq('user_id',user.id).order('ordem'),
       supabase.from('pagina_links').select('*').eq('user_id',user.id).order('ordem'),
+      supabase.from('pagina_videos').select('*').eq('user_id',user.id).order('ordem'),
     ])
     if(dst) setDestaques(dst)
     if(lnk) setLinks(lnk)
+    if(vid) setVideos(vid)
   }
 
   async function salvar(){
@@ -463,6 +470,114 @@ export default function Perfil(){
       if(error){setMsg('Erro ao excluir: '+error.message);return}
     }
     setLinks(prev=>prev.filter(l=>l.id!==id))
+  }
+
+  // ---------- VIDEOS DA PAGINA ----------
+  function detectarVideo(url:string){
+    const u=(url||'').toLowerCase()
+    if(u.includes('youtube.com/shorts/'))return {plataforma:'youtube',formato:'9:16'}
+    if(u.includes('youtu.be/')||u.includes('youtube.com'))return {plataforma:'youtube',formato:'16:9'}
+    if(u.includes('instagram.com/reel'))return {plataforma:'instagram',formato:'9:16'}
+    if(u.includes('instagram.com/p/'))return {plataforma:'instagram',formato:'1:1'}
+    if(u.includes('instagram.com'))return {plataforma:'instagram',formato:'9:16'}
+    if(u.includes('tiktok.com'))return {plataforma:'tiktok',formato:'9:16'}
+    if(u.includes('vimeo.com'))return {plataforma:'vimeo',formato:'16:9'}
+    return {plataforma:'outro',formato:'16:9'}
+  }
+  function formatoLabel(formato:string){
+    if(formato==='9:16')return 'Formato detectado: vídeo vertical'
+    if(formato==='1:1')return 'Formato detectado: vídeo quadrado'
+    if(formato==='4:3'||formato==='16:9')return 'Formato detectado: vídeo horizontal'
+    return 'Formato detectado automaticamente. Se a prévia não ficar boa, ajuste em Configurações avançadas.'
+  }
+  function thumbYoutube(url:string){
+    const m=(url||'').match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/))([a-zA-Z0-9_-]{6,})/)
+    return m?`https://img.youtube.com/vi/${m[1]}/hqdefault.jpg`:''
+  }
+  function labelPlaceholderPainel(v:{plataforma?:string;formato?:string}){
+    if(v.plataforma==='instagram')return v.formato==='1:1'?'Post do Instagram':'Reels do Instagram'
+    if(v.plataforma==='tiktok')return 'Vídeo do TikTok'
+    if(v.plataforma==='vimeo')return 'Vídeo'
+    return 'Conteúdo em vídeo'
+  }
+  const FORMATO_RATIO_PAINEL:Record<string,string>={'16:9':'16/9','9:16':'9/16','4:3':'4/3','1:1':'1/1'}
+  function novoVideo(){
+    setVideos(prev=>[...prev,{id:'novo-'+Date.now(),user_id:userId,titulo:'',descricao:'',url_video:'',plataforma:'youtube',thumbnail_url:'',formato:'16:9',link_destino:'',texto_cta:'',texto_botao_video:'Assistir vídeo',ordem:prev.length,ativo:true,_novo:true}])
+  }
+  function editarVideo(id:string,campo:string,valor:any){
+    setVideos(prev=>prev.map(v=>{
+      if(v.id!==id)return v
+      const atualizado={...v,[campo]:valor}
+      // Ao colar/editar o link, detecta plataforma E formato automaticamente.
+      // O formato so precisa ser trocado manualmente em "Configuracoes avancadas", se a previa nao ficar boa.
+      if(campo==='url_video'){
+        const det=detectarVideo(valor)
+        atualizado.plataforma=det.plataforma
+        atualizado.formato=det.formato
+      }
+      return atualizado
+    }))
+  }
+  async function salvarVideo(v:any){
+    if(!v.titulo?.trim()){setMsg('Dê um título para o vídeo.');return}
+    if(!v.url_video?.trim()||!/^https?:\/\//i.test(v.url_video.trim())){setMsg('Informe um link de vídeo válido.');return}
+    if(v.link_destino?.trim()&&!/^https?:\/\//i.test(v.link_destino.trim())){setMsg('Informe um link de destino válido.');return}
+    setSalvandoVideoId(v.id)
+    const payload={
+      user_id:userId,
+      titulo:v.titulo.trim(),
+      descricao:v.descricao?.trim()||null,
+      url_video:v.url_video.trim(),
+      plataforma:v.plataforma||detectarVideo(v.url_video).plataforma,
+      thumbnail_url:v.thumbnail_url?.trim()||null,
+      formato:v.formato||'16:9',
+      link_destino:v.link_destino?.trim()||null,
+      texto_cta:v.link_destino?.trim()?(v.texto_cta?.trim()||'Saiba mais'):null,
+      texto_botao_video:v.texto_botao_video?.trim()||'Assistir vídeo',
+      ordem:v.ordem||0,
+      ativo:!!v.ativo,
+    }
+    if(v._novo){
+      const {data,error}=await supabase.from('pagina_videos').insert(payload).select().single()
+      if(error){setMsg('Erro ao salvar vídeo: '+error.message)}
+      else{setVideos(prev=>prev.map(x=>x.id===v.id?data:x));setMsg('Vídeo salvo!')}
+    } else {
+      const {error}=await supabase.from('pagina_videos').update(payload).eq('id',v.id).eq('user_id',userId)
+      if(error){setMsg('Erro ao salvar vídeo: '+error.message)}
+      else{setMsg('Vídeo salvo!')}
+    }
+    setSalvandoVideoId('')
+    setTimeout(()=>setMsg(''),3000)
+  }
+  async function excluirVideo(id:string){
+    if(!id.startsWith('novo-')){
+      const {error}=await supabase.from('pagina_videos').delete().eq('id',id).eq('user_id',userId)
+      if(error){setMsg('Erro ao excluir: '+error.message);return}
+    }
+    setVideos(prev=>prev.filter(v=>v.id!==id))
+  }
+  async function uploadCapaVideo(e:React.ChangeEvent<HTMLInputElement>){
+    const file=e.target.files?.[0];const id=uploadingVideoId
+    if(!file||!id)return
+    const allowedTypes=['image/jpeg','image/jpg','image/png','image/webp']
+    if(!allowedTypes.includes(file.type)){setMsg('Envie uma imagem JPG, PNG ou WEBP.');return}
+    if(file.size>5*1024*1024){setMsg('A imagem deve ter no máximo 5MB.');return}
+
+    const {data:userData}=await supabase.auth.getUser()
+    if(!userData?.user){setMsg('Sua sessão expirou. Faça login novamente.');return}
+
+    const ext=file.name.split('.').pop()?.toLowerCase()||'png'
+    const path=`videos/${userId}-${Date.now()}.${ext}`
+
+    const {error:uploadError}=await supabase.storage.from('fotos').upload(path,file,{upsert:true,contentType:file.type,cacheControl:'3600'})
+    if(uploadError){setMsg('Erro no upload: '+uploadError.message);setUploadingVideoId('');if(videoImgRef.current)videoImgRef.current.value='';return}
+
+    const {data}=supabase.storage.from('fotos').getPublicUrl(path)
+    editarVideo(id,'thumbnail_url',data.publicUrl)
+    setMsg('Capa enviada! Clique em "Salvar" no vídeo pra confirmar.')
+    setTimeout(()=>setMsg(''),3500)
+    setUploadingVideoId('')
+    if(videoImgRef.current)videoImgRef.current.value=''
   }
 
   function toggleDia(i:number){setDiasAtivos(prev=>prev.map((v,j)=>j===i?!v:v))}
@@ -793,6 +908,102 @@ export default function Perfil(){
             </div>
             </>
             )}
+          </div>
+
+          <div className="crd">
+            <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:videosAberto?'4px':'0',flexWrap:'wrap',gap:'10px'}}>
+              <button type="button" onClick={()=>setVideosAberto(v=>!v)} style={{display:'flex',alignItems:'center',gap:'10px',background:'none',border:'none',cursor:'pointer',padding:0,fontFamily:'inherit',flex:1,minWidth:'200px',textAlign:'left'}}>
+                {videosAberto?<ChevronUp size={18} color="#B8AAB8"/>:<ChevronDown size={18} color="#B8AAB8"/>}
+                <span>
+                  <p style={{fontSize:'15px',fontWeight:700,color:'#F8F4F7'}}>Vídeos da página</p>
+                  {!videosAberto && <p style={{fontSize:'12px',color:'#B8AAB8',marginTop:'2px'}}>{videos.length} vídeo{videos.length!==1?'s':''} cadastrado{videos.length!==1?'s':''}</p>}
+                </span>
+              </button>
+              <button type="button" onClick={()=>{novoVideo();setVideosAberto(true)}} style={{background:G,color:'#fff',border:'1px solid rgba(255,255,255,.12)',borderRadius:'10px',padding:'8px 14px',fontSize:'12px',fontWeight:700,cursor:'pointer',fontFamily:'inherit',flexShrink:0}}>+ Novo vídeo</button>
+            </div>
+            {videosAberto && (
+            <>
+            <p style={{fontSize:'12px',color:'#B8AAB8',marginBottom:'6px',marginTop:'14px'}}>Cole o link de um vídeo do YouTube, Instagram, TikTok ou outra plataforma. O ClienteMarcado detecta automaticamente o formato ideal para exibir na sua página.</p>
+            <p style={{fontSize:'12px',color:'#B8AAB8',marginBottom:'18px'}}>Se o vídeo divulgar um curso, mentoria ou produto, adicione também um link de destino para direcionar a cliente.</p>
+
+            {videos.length===0&&<p style={{fontSize:'13px',color:'#B8AAB8',padding:'12px 0'}}>Nenhum vídeo cadastrado ainda. Adicione vídeos para destacar conteúdos, cursos, mentorias ou produtos na sua página.</p>}
+
+            <div style={{display:'flex',flexDirection:'column',gap:'12px'}}>
+              {videos.map(v=>(
+                <div key={v.id} style={{border:'1px solid rgba(229,72,184,.18)',borderRadius:'14px',padding:'16px'}}>
+                  <div style={{marginBottom:'10px'}}><label className="lbl">Título</label><input className="inp" value={v.titulo||''} onChange={e=>editarVideo(v.id,'titulo',e.target.value)} placeholder="Ex: Lançamento da Mentoria Nail Designer"/></div>
+                  <div style={{marginBottom:'10px'}}><label className="lbl">Descrição (opcional)</label><input className="inp" value={v.descricao||''} onChange={e=>editarVideo(v.id,'descricao',e.target.value)} placeholder="Ex: Veja como funciona a mentoria para profissionais da beleza."/></div>
+                  <div style={{marginBottom:'6px'}}>
+                    <label className="lbl">Link do vídeo</label>
+                    <input className="inp" value={v.url_video||''} onChange={e=>editarVideo(v.id,'url_video',e.target.value)} placeholder="https://youtube.com/... ou Reels/TikTok"/>
+                    {v.url_video && <p style={{fontSize:'11px',color:'#22C55E',marginTop:'6px'}}>✓ {formatoLabel(v.formato)}</p>}
+                    {!v.url_video && <p style={{fontSize:'11px',color:'#B8AAB8',marginTop:'6px'}}>Cole o link do YouTube, Reels, TikTok, Vimeo etc. O formato ideal é detectado automaticamente.</p>}
+                  </div>
+                  {v.url_video && (
+                    <div style={{marginBottom:'14px'}}>
+                      <p className="lbl" style={{marginBottom:'8px'}}>Prévia</p>
+                      <div style={{width: v.formato==='9:16'?'140px':v.formato==='1:1'?'170px':'240px', aspectRatio: FORMATO_RATIO_PAINEL[v.formato||'16:9'], borderRadius:'12px', overflow:'hidden', position:'relative', background:G, border:'1px solid rgba(229,72,184,.28)'}}>
+                        {(v.thumbnail_url||thumbYoutube(v.url_video)) ? (
+                          <img src={v.thumbnail_url||thumbYoutube(v.url_video)} alt="" style={{width:'100%',height:'100%',objectFit:'cover'}}/>
+                        ) : (
+                          <div style={{width:'100%',height:'100%',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:'6px',padding:'8px',textAlign:'center'}}>
+                            <div style={{width:'32px',height:'32px',borderRadius:'999px',background:'rgba(255,255,255,.22)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'13px',color:'#fff'}}>▶</div>
+                            <span style={{fontSize:'10px',color:'#fff',fontWeight:700}}>{labelPlaceholderPainel(v)}</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                  <div className="fg2" style={{marginBottom:'10px'}}>
+                    <div><label className="lbl">Texto do botão de assistir</label><input className="inp" value={v.texto_botao_video||''} onChange={e=>editarVideo(v.id,'texto_botao_video',e.target.value)} placeholder="Assistir vídeo"/></div>
+                    <div>
+                      <label className="lbl">Capa do vídeo (opcional)</label>
+                      <div style={{display:'flex',alignItems:'center',gap:'10px'}}>
+                        {v.thumbnail_url && <img src={v.thumbnail_url} alt="" style={{width:'36px',height:'36px',borderRadius:'8px',objectFit:'cover',flexShrink:0,border:'1px solid #2A1A2F'}}/>}
+                        <button type="button" onClick={()=>{setUploadingVideoId(v.id);videoImgRef.current?.click()}} style={{background:'rgba(24,16,27,.92)',border:'1px solid rgba(229,72,184,.28)',borderRadius:'10px',padding:'10px 14px',fontSize:'12px',fontWeight:600,color:'#F8F4F7',cursor:'pointer',fontFamily:'inherit',flex:1}}>
+                          {uploadingVideoId===v.id?'Enviando...':v.thumbnail_url?'Trocar capa':'Enviar capa'}
+                        </button>
+                      </div>
+                      <p style={{fontSize:'10px',color:'#B8AAB8',marginTop:'6px'}}>Para vídeos do Instagram e TikTok, envie uma capa personalizada para deixar sua página mais bonita. Vídeos do YouTube usam capa automática quando disponível.</p>
+                    </div>
+                  </div>
+                  <div className="fg2" style={{marginBottom:'10px'}}>
+                    <div><label className="lbl">Link de destino (comercial, opcional)</label><input className="inp" value={v.link_destino||''} onChange={e=>editarVideo(v.id,'link_destino',e.target.value)} placeholder="Ex: link da mentoria, curso ou WhatsApp"/></div>
+                    {v.link_destino ? (
+                      <div><label className="lbl">Texto do botão de destino (CTA)</label><input className="inp" value={v.texto_cta||''} onChange={e=>editarVideo(v.id,'texto_cta',e.target.value)} placeholder="Ex: Quero participar"/></div>
+                    ) : <div/>}
+                  </div>
+                  <details style={{marginBottom:'12px'}}>
+                    <summary style={{fontSize:'12px',fontWeight:700,color:'#B8AAB8',cursor:'pointer',userSelect:'none'}}>Configurações avançadas</summary>
+                    <div className="fg2" style={{marginTop:'12px'}}>
+                      <div>
+                        <label className="lbl">Plataforma</label>
+                        <select className="inp" style={{cursor:'pointer'}} value={v.plataforma||'outro'} onChange={e=>editarVideo(v.id,'plataforma',e.target.value)}>
+                          {['youtube','instagram','tiktok','vimeo','outro'].map(t=><option key={t} value={t}>{t}</option>)}
+                        </select>
+                      </div>
+                      <div>
+                        <label className="lbl">Formato manual</label>
+                        <select className="inp" style={{cursor:'pointer'}} value={v.formato||'16:9'} onChange={e=>editarVideo(v.id,'formato',e.target.value)}>
+                          {['16:9','9:16','4:3','1:1'].map(f=><option key={f} value={f}>{f}</option>)}
+                        </select>
+                        <p style={{fontSize:'10px',color:'#B8AAB8',marginTop:'5px'}}>Use apenas se a prévia não ficar correta.</p>
+                      </div>
+                    </div>
+                  </details>
+                  <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:'8px',flexWrap:'wrap'}}>
+                    <button type="button" onClick={()=>editarVideo(v.id,'ativo',!v.ativo)} style={{background:v.ativo?'rgba(34,197,94,.14)':'#2A1A2F',border:'1px solid '+(v.ativo?'rgba(34,197,94,.25)':'#2A1A2F'),borderRadius:10,padding:'6px 14px',fontSize:12,fontWeight:700,color:v.ativo?'#22C55E':'#B8AAB8',cursor:'pointer',fontFamily:'inherit'}}>{v.ativo?'Ativo':'Oculto'}</button>
+                    <div style={{display:'flex',gap:'8px'}}>
+                      <button type="button" onClick={()=>excluirVideo(v.id)} style={{background:'rgba(239,68,68,.10)',border:'1px solid rgba(239,68,68,.25)',color:'#EF4444',borderRadius:'8px',padding:'8px 14px',fontSize:'12px',fontWeight:600,cursor:'pointer',fontFamily:'inherit'}}>Excluir</button>
+                      <button type="button" onClick={()=>salvarVideo(v)} disabled={salvandoVideoId===v.id} style={{background:G,color:'#fff',border:'1px solid rgba(255,255,255,.12)',borderRadius:'8px',padding:'8px 16px',fontSize:'12px',fontWeight:700,cursor:'pointer',fontFamily:'inherit',opacity:salvandoVideoId===v.id?.7:1}}>{salvandoVideoId===v.id?'Salvando...':'Salvar'}</button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+            </>
+            )}
+            <input ref={videoImgRef} type="file" accept="image/*" onChange={uploadCapaVideo} style={{display:'none'}}/>
           </div>
 
           {MOSTRAR_PROMOCAO_ANTIGA && (
