@@ -367,7 +367,43 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
           </div>
         )}
 
-        {/* VIDEOS EM DESTAQUE: aparece somente se houver pelo menos 1 video ativo */}
+        {/* LINKS RAPIDOS: apenas o que o cliente configurou no painel + fallback de agenda, se aplicavel */}
+        {(mostrarAgendaFallback || (linksRapidos && linksRapidos.length > 0)) && (
+          <div style={{ marginBottom: '32px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              {mostrarAgendaFallback && (
+                <a href={`/${slug}/agendar`} className="crd link-card" style={{ textDecoration: 'none', color: 'inherit', border: `1.5px solid ${tema.accent}`, boxShadow: `0 0 8px ${tema.glow}` }}>
+                  <div className="link-icon" style={{ background: tema.accent }}>
+                    <Calendar size={19} color={tema.btnText} />
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <p style={{ fontWeight: 700, fontSize: '15px', color: 'var(--text)', marginBottom: '2px' }}>{tituloBotaoAgenda}</p>
+                    <p style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Rápido, prático e seguro</p>
+                  </div>
+                  <span style={{ fontSize: '18px', color: tema.accent, flexShrink: 0 }}>›</span>
+                </a>
+              )}
+              {linksRapidos && linksRapidos.map(l => {
+                const cfg = iconeLink(l.tipo)
+                const hrefFinal = urlFinalLink(l)
+                return (
+                  <a key={l.id} href={hrefFinal} target={hrefFinal.startsWith('http') ? '_blank' : '_self'} rel="noopener noreferrer" className="crd link-card" style={{ textDecoration: 'none', color: 'inherit', border: `1.5px solid ${tema.accent}`, boxShadow: `0 0 8px ${tema.glow}` }}>
+                    <div className="link-icon" style={{ background: `${cfg.color}1F`, border: `1px solid ${cfg.color}48` }}>
+                      {cfg.svg ? cfg.svg : (cfg.I ? <cfg.I size={19} color={cfg.color} /> : null)}
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <p style={{ fontWeight: 700, fontSize: '15px', color: 'var(--text)', marginBottom: '2px' }}>{l.titulo || (l.tipo === 'endereco' ? 'Endereço' : '')}</p>
+                      {l.descricao && <p style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{l.descricao}</p>}
+                    </div>
+                    <span style={{ fontSize: '18px', color: tema.accent, flexShrink: 0 }}>›</span>
+                  </a>
+                )
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* VIDEOS EM DESTAQUE: aparece somente se houver pelo menos 1 video ativo. Fica depois de Links Rapidos. */}
         {videos && videos.length > 0 && (() => {
           const primeiros = videos.slice(0, 3)
           const resto = videos.slice(3)
@@ -428,42 +464,6 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
             </div>
           )
         })()}
-
-        {/* LINKS RAPIDOS: apenas o que o cliente configurou no painel + fallback de agenda, se aplicavel */}
-        {(mostrarAgendaFallback || (linksRapidos && linksRapidos.length > 0)) && (
-          <div style={{ marginBottom: '32px' }}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              {mostrarAgendaFallback && (
-                <a href={`/${slug}/agendar`} className="crd link-card" style={{ textDecoration: 'none', color: 'inherit', border: `1.5px solid ${tema.accent}`, boxShadow: `0 0 8px ${tema.glow}` }}>
-                  <div className="link-icon" style={{ background: tema.accent }}>
-                    <Calendar size={19} color={tema.btnText} />
-                  </div>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <p style={{ fontWeight: 700, fontSize: '15px', color: 'var(--text)', marginBottom: '2px' }}>{tituloBotaoAgenda}</p>
-                    <p style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Rápido, prático e seguro</p>
-                  </div>
-                  <span style={{ fontSize: '18px', color: tema.accent, flexShrink: 0 }}>›</span>
-                </a>
-              )}
-              {linksRapidos && linksRapidos.map(l => {
-                const cfg = iconeLink(l.tipo)
-                const hrefFinal = urlFinalLink(l)
-                return (
-                  <a key={l.id} href={hrefFinal} target={hrefFinal.startsWith('http') ? '_blank' : '_self'} rel="noopener noreferrer" className="crd link-card" style={{ textDecoration: 'none', color: 'inherit', border: `1.5px solid ${tema.accent}`, boxShadow: `0 0 8px ${tema.glow}` }}>
-                    <div className="link-icon" style={{ background: `${cfg.color}1F`, border: `1px solid ${cfg.color}48` }}>
-                      {cfg.svg ? cfg.svg : (cfg.I ? <cfg.I size={19} color={cfg.color} /> : null)}
-                    </div>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <p style={{ fontWeight: 700, fontSize: '15px', color: 'var(--text)', marginBottom: '2px' }}>{l.titulo || (l.tipo === 'endereco' ? 'Endereço' : '')}</p>
-                      {l.descricao && <p style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{l.descricao}</p>}
-                    </div>
-                    <span style={{ fontSize: '18px', color: tema.accent, flexShrink: 0 }}>›</span>
-                  </a>
-                )
-              })}
-            </div>
-          </div>
-        )}
 
         {/* SERVICOS — desativado no novo layout premium (serviços continuam no fluxo /agendar). Codigo preservado, apenas nao renderiza. */}
         {SECOES_ANTIGAS_DESATIVADAS && mostrarServicos && servicos && servicos.length > 0 && (
