@@ -32,6 +32,27 @@ export default function NotificacoesSino({ alinhamento = 'right' }: { alinhament
   const [naoLidas, setNaoLidas] = useState(0)
   const [loading, setLoading] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
+  // Posicao calculada em tela (position:fixed), pra escapar do overflow:hidden da sidebar
+  // (o dropdown antes usava position:absolute e ficava cortado, preso dentro da sidebar).
+  const [pos, setPos] = useState<{ top: number; left?: number; right?: number }>({ top: 0 })
+
+  function atualizarPosicao() {
+    if (!ref.current) return
+    const rect = ref.current.getBoundingClientRect()
+    if (alinhamento === 'left') {
+      setPos({ top: rect.bottom + 8, left: rect.left })
+    } else {
+      setPos({ top: rect.bottom + 8, right: Math.max(8, window.innerWidth - rect.right) })
+    }
+  }
+
+  function alternarAberto() {
+    setAberto(a => {
+      const proximo = !a
+      if (proximo) atualizarPosicao()
+      return proximo
+    })
+  }
 
   async function carregar() {
     const { data: { session } } = await supabase.auth.getSession()
@@ -60,6 +81,19 @@ export default function NotificacoesSino({ alinhamento = 'right' }: { alinhament
     document.addEventListener('mousedown', fecharSeClicarFora)
     return () => document.removeEventListener('mousedown', fecharSeClicarFora)
   }, [])
+
+  // Mantem o dropdown alinhado ao sino se a tela rolar/redimensionar enquanto estiver aberto
+  useEffect(() => {
+    if (!aberto) return
+    atualizarPosicao()
+    window.addEventListener('resize', atualizarPosicao)
+    window.addEventListener('scroll', atualizarPosicao, true)
+    return () => {
+      window.removeEventListener('resize', atualizarPosicao)
+      window.removeEventListener('scroll', atualizarPosicao, true)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [aberto])
 
   async function marcarLida(id: string) {
     setNotificacoes(prev => prev.map(n => n.id === id ? { ...n, lida: true } : n))
@@ -102,7 +136,7 @@ export default function NotificacoesSino({ alinhamento = 'right' }: { alinhament
   return (
     <div ref={ref} style={{ position: 'relative' }}>
       <button
-        onClick={() => setAberto(a => !a)}
+        onClick={alternarAberto}
         aria-label="Notificações"
         style={{ position: 'relative', width: '38px', height: '38px', borderRadius: '10px', background: 'rgba(24,16,27,.85)', border: '1px solid #2A1A2F', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#B8AAB8' }}
       >
@@ -118,7 +152,7 @@ export default function NotificacoesSino({ alinhamento = 'right' }: { alinhament
       </button>
 
       {aberto && (
-        <div style={{ position: 'absolute', top: '46px', [alinhamento]: 0, width: '340px', maxWidth: '90vw', maxHeight: '440px', overflowY: 'auto', background: '#18101B', border: '1.5px solid #2A1A2F', borderRadius: '16px', boxShadow: '0 20px 48px rgba(0,0,0,.45)', zIndex: 200 } as CSSProperties}>
+        <div style={{ position: 'fixed', top: pos.top, ...(alinhamento === 'left' ? { left: pos.left } : { right: pos.right }), width: '340px', maxWidth: '90vw', maxHeight: '440px', overflowY: 'auto', background: '#18101B', border: '1.5px solid #2A1A2F', borderRadius: '16px', boxShadow: '0 20px 48px rgba(0,0,0,.45)', zIndex: 9999 } as CSSProperties}>
           <div style={{ padding: '14px 16px', borderBottom: '1px solid #2A1A2F', display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'sticky', top: 0, background: '#18101B', zIndex: 1 }}>
             <p style={{ fontSize: '14px', fontWeight: 700, color: '#F8F4F7' }}>Notificações</p>
             {naoLidas > 0 && (
