@@ -109,44 +109,6 @@ export default function Home() {
           <p style={{fontSize:'12px',color:'#B8AAB8',marginTop:'16px'}}>Teste grátis por 7 dias. Depois R$ 79,90/mês. Sem fidelidade.</p>
         </div>
       </section>
-      {/* SECAO DE DOR */}
-      <section style={{padding:'60px 24px',maxWidth:'1100px',margin:'0 auto'}}>
-        <div style={{textAlign:'center',marginBottom:'40px'}}>
-          <h2 style={{fontSize:'clamp(20px,3.5vw,30px)',fontWeight:800,color:'#F8F4F7',letterSpacing:'-0.03em',marginBottom:'12px',lineHeight:1.25}}>Você perde clientes quando sua agenda<br/>depende só do WhatsApp.</h2>
-          <p style={{fontSize:'14px',color:'#B8AAB8',maxWidth:'460px',margin:'0 auto',lineHeight:1.65}}>Mensagens se perdem, horários confundem e o atendimento parece menos profissional. O ClienteMarcado organiza tudo em um só lugar.</p>
-        </div>
-        <div className="grid-3" style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'14px'}}>
-          {dores.map((d,i)=>(
-            <div key={i} style={{background:`radial-gradient(circle at top left,${d.bg},transparent 55%),linear-gradient(145deg,rgba(24,16,27,.97),rgba(18,10,20,.99))`,border:`1px solid ${d.bd}`,borderRadius:'16px',padding:'22px 20px',display:'flex',gap:'14px',alignItems:'flex-start'}}>
-              <div style={{width:'38px',height:'38px',borderRadius:'10px',background:d.bg,border:`1px solid ${d.bd}`,display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
-                <d.I size={18} color={d.c}/>
-              </div>
-              <div>
-                <p style={{fontSize:'13px',fontWeight:700,color:'#F8F4F7',marginBottom:'5px',lineHeight:1.35}}>{d.titulo}</p>
-                <p style={{fontSize:'12px',color:'#B8AAB8',lineHeight:1.6}}>{d.texto}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
-      {/* FUNCIONALIDADES */}
-      <section style={{padding:'60px 24px 80px',maxWidth:'1100px',margin:'0 auto'}}>
-        <div style={{textAlign:'center',marginBottom:'52px'}}>
-          <h2 style={{fontSize:'clamp(22px,4vw,34px)',fontWeight:800,color:'#F8F4F7',letterSpacing:'-0.03em',marginBottom:'12px'}}>Tudo que seu negócio de beleza precisa</h2>
-          <p style={{fontSize:'15px',color:'#B8AAB8',maxWidth:'480px',margin:'0 auto',lineHeight:1.6}}>Do agendamento ao financeiro, um painel simples para organizar sua rotina.</p>
-        </div>
-        <div className="grid-3" style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'16px'}}>
-          {beneficios.map((b,i)=>(
-            <div key={i} className="card-b">
-              <div style={{width:'44px',height:'44px',borderRadius:'12px',background:b.bg,border:`1px solid ${b.bd}`,display:'flex',alignItems:'center',justifyContent:'center',marginBottom:'16px'}}>
-                <b.I size={20} color={b.c}/>
-              </div>
-              <h3 style={{fontSize:'15px',fontWeight:700,color:'#F8F4F7',marginBottom:'8px'}}>{b.titulo}</h3>
-              <p style={{fontSize:'13px',color:'#B8AAB8',lineHeight:1.65}}>{b.texto}</p>
-            </div>
-          ))}
-        </div>
-      </section>
       {/* PLANO */}
       <section id="plano" style={{padding:'80px 24px',background:'radial-gradient(ellipse at 50% 50%,rgba(139,92,246,.09),transparent 65%)'}}>
         <div style={{maxWidth:'980px',margin:'0 auto'}}>
@@ -212,7 +174,46 @@ export default function Home() {
 
           <p style={{textAlign:'center',fontSize:'13px',color:'#B8AAB8',marginTop:'32px'}}>Todos os planos incluem 7 dias grátis para testar o ClienteMarcado.</p>
         </div>
-      </section>      {/* CTA FINAL */}
+      </section>
+      {/* SECAO DE DOR */}
+      <section style={{padding:'60px 24px',maxWidth:'1100px',margin:'0 auto'}}>
+        <div style={{textAlign:'center',marginBottom:'40px'}}>
+          <h2 style={{fontSize:'clamp(20px,3.5vw,30px)',fontWeight:800,color:'#F8F4F7',letterSpacing:'-0.03em',marginBottom:'12px',lineHeight:1.25}}>Você perde clientes quando sua agenda<br/>depende só do WhatsApp.</h2>
+          <p style={{fontSize:'14px',color:'#B8AAB8',maxWidth:'460px',margin:'0 auto',lineHeight:1.65}}>Mensagens se perdem, horários confundem e o atendimento parece menos profissional. O ClienteMarcado organiza tudo em um só lugar.</p>
+        </div>
+        <div className="grid-3" style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'14px'}}>
+          {dores.map((d,i)=>(
+            <div key={i} style={{background:`radial-gradient(circle at top left,${d.bg},transparent 55%),linear-gradient(145deg,rgba(24,16,27,.97),rgba(18,10,20,.99))`,border:`1px solid ${d.bd}`,borderRadius:'16px',padding:'22px 20px',display:'flex',gap:'14px',alignItems:'flex-start'}}>
+              <div style={{width:'38px',height:'38px',borderRadius:'10px',background:d.bg,border:`1px solid ${d.bd}`,display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
+                <d.I size={18} color={d.c}/>
+              </div>
+              <div>
+                <p style={{fontSize:'13px',fontWeight:700,color:'#F8F4F7',marginBottom:'5px',lineHeight:1.35}}>{d.titulo}</p>
+                <p style={{fontSize:'12px',color:'#B8AAB8',lineHeight:1.6}}>{d.texto}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+      {/* FUNCIONALIDADES */}
+      <section style={{padding:'60px 24px 80px',maxWidth:'1100px',margin:'0 auto'}}>
+        <div style={{textAlign:'center',marginBottom:'52px'}}>
+          <h2 style={{fontSize:'clamp(22px,4vw,34px)',fontWeight:800,color:'#F8F4F7',letterSpacing:'-0.03em',marginBottom:'12px'}}>Tudo que seu negócio de beleza precisa</h2>
+          <p style={{fontSize:'15px',color:'#B8AAB8',maxWidth:'480px',margin:'0 auto',lineHeight:1.6}}>Do agendamento ao financeiro, um painel simples para organizar sua rotina.</p>
+        </div>
+        <div className="grid-3" style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'16px'}}>
+          {beneficios.map((b,i)=>(
+            <div key={i} className="card-b">
+              <div style={{width:'44px',height:'44px',borderRadius:'12px',background:b.bg,border:`1px solid ${b.bd}`,display:'flex',alignItems:'center',justifyContent:'center',marginBottom:'16px'}}>
+                <b.I size={20} color={b.c}/>
+              </div>
+              <h3 style={{fontSize:'15px',fontWeight:700,color:'#F8F4F7',marginBottom:'8px'}}>{b.titulo}</h3>
+              <p style={{fontSize:'13px',color:'#B8AAB8',lineHeight:1.65}}>{b.texto}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+      {/* CTA FINAL */}
       <section style={{padding:'80px 24px',textAlign:'center',background:'radial-gradient(ellipse at 50% 50%,rgba(139,92,246,.10),transparent 60%)'}}>
         <div style={{maxWidth:'600px',margin:'0 auto'}}>
           <h2 style={{fontSize:'clamp(22px,4vw,32px)',fontWeight:800,color:'#F8F4F7',letterSpacing:'-0.03em',marginBottom:'16px',lineHeight:1.2}}>
