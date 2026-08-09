@@ -22,6 +22,7 @@ const LINKS = [
   { h: '/painel/parceiros',     l: 'Parceiros'     },
   { h: '/painel/suporte',       l: 'Suporte'       },
   { h: '/painel/perfil',        l: 'Configurações' },
+  { h: '/painel/plano',         l: 'Meu plano'      },
 ]
 
 const CSS = `
