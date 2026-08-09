@@ -146,6 +146,18 @@ export default function Perfil(){
   const videoImgRef=useRef<HTMLInputElement>(null)
   const [uploadingDestaqueId,setUploadingDestaqueId]=useState('')
   const destaqueImgRef=useRef<HTMLInputElement>(null)
+  // Acesso da conta (transferir e-mail de login / reenviar link de senha)
+  const [emailAtual,setEmailAtual]=useState('')
+  const [souProfissional,setSouProfissional]=useState(false)
+  const [acessoAberto,setAcessoAberto]=useState(false)
+  const [novoEmailAcesso,setNovoEmailAcesso]=useState('')
+  const [transferindo,setTransferindo]=useState(false)
+  const [transferMsg,setTransferMsg]=useState('')
+  const [transferOk,setTransferOk]=useState(false)
+  const [reenviandoSenha,setReenviandoSenha]=useState(false)
+  const [senhaMsg,setSenhaMsg]=useState('')
+  const [senhaOk,setSenhaOk]=useState(false)
+  const [confirmeiEmails,setConfirmeiEmails]=useState(false)
 
   const tc = TEMA_CORES[publicTheme] ?? TEMA_CORES.modelo2
 
@@ -155,6 +167,17 @@ export default function Perfil(){
     const {data:{user}}=await supabase.auth.getUser()
     if(!user){window.location.href='/login';return}
     setUserId(user.id)
+    setEmailAtual(user.email||'')
+
+    // Esconde "Acesso da conta" se quem esta logado for uma profissional com login individual (nao a dona do negocio)
+    const {data:{session}}=await supabase.auth.getSession()
+    if(session?.access_token){
+      try{
+        const res=await fetch('/api/equipe/meu-vinculo',{headers:{'Authorization':'Bearer '+session.access_token}})
+        const vinculo=await res.json()
+        if(res.ok && vinculo?.role==='profissional' && vinculo?.ativo) setSouProfissional(true)
+      }catch(e){console.warn('Erro ao verificar vinculo de equipe:',e)}
+    }
 
     // ✅ CORRIGIDO: trocado .single() por .maybeSingle() para evitar erro 406
     const {data:p,error}=await supabase.from('perfis').select('*').eq('user_id',user.id).maybeSingle()
@@ -579,6 +602,61 @@ export default function Perfil(){
     setUploadingVideoId('')
     if(videoImgRef.current)videoImgRef.current.value=''
   }
+
+  // ---------- ACESSO DA CONTA ----------
+  function emailValido(e:string){return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e)}
+
+  // Caminho A (mais seguro): usa o metodo nativo do Supabase Auth pra trocar o e-mail
+  // da PROPRIA conta logada. O user_id nunca muda, entao slug/pagina/dados continuam
+  // exatamente os mesmos - so o login passa a ser feito pelo novo e-mail, depois de confirmado.
+  // Nao usa service role, nao roda no servidor: e uma chamada client-side segura,
+  // pois so afeta a conta de quem esta autenticado no momento.
+  async function transferirAcesso(){
+    setTransferMsg('')
+    setTransferOk(false)
+    const novo=novoEmailAcesso.trim().toLowerCase()
+    if(!novo){setTransferMsg('Informe um e-mail válido.');return}
+    if(!emailValido(novo)){setTransferMsg('Informe um e-mail válido.');return}
+    if(novo===(emailAtual||'').toLowerCase()){setTransferMsg('O novo e-mail precisa ser diferente do e-mail atual.');return}
+    setTransferindo(true)
+    const redirectTo=typeof window!=='undefined'?`${window.location.origin}/redefinir-senha`:`${process.env.NEXT_PUBLIC_SITE_URL||'https://clientemarcado.com.br'}/redefinir-senha`
+    const {error}=await supabase.auth.updateUser({email:novo},{emailRedirectTo:redirectTo})
+    setTransferindo(false)
+    if(error){
+      console.warn('Erro ao transferir acesso:',error.message)
+      setTransferMsg('Não foi possível enviar o convite. Verifique o e-mail e tente novamente.')
+      return
+    }
+    setTransferOk(true)
+    setConfirmeiEmails(false)
+    setTransferMsg('Convite enviado. Para concluir a transferência, confirme os links enviados para o e-mail atual e para o novo e-mail. Depois disso, use o botão abaixo para enviar o link de criar senha.')
+  }
+
+  // Reenvia o link de definir/redefinir senha (reaproveita o fluxo existente de /redefinir-senha).
+  // IMPORTANTE: o Supabase, por seguranca, sempre retorna sucesso no resetPasswordForEmail mesmo
+  // se o e-mail ainda nao existir/nao estiver confirmado como login da conta (evita que alguem
+  // descubra quais e-mails existem no sistema). Ou seja, NAO da pra verificar isso no cliente com
+  // 100% de certeza sem um backend com service role. Por isso pedimos confirmacao manual do admin
+  // antes de liberar o envio, em vez de fingir uma verificacao que nao existe.
+  async function enviarLinkSenha(){
+    setSenhaMsg('')
+    setSenhaOk(false)
+    if(!confirmeiEmails){setSenhaMsg('Confirme primeiro a troca de e-mail (marque a caixinha acima). Depois envie o link para criar nova senha.');return}
+    const alvo=(novoEmailAcesso.trim()||emailAtual).toLowerCase()
+    if(!alvo||!emailValido(alvo)){setSenhaMsg('Informe um e-mail válido.');return}
+    setReenviandoSenha(true)
+    const redirectTo=typeof window!=='undefined'?`${window.location.origin}/redefinir-senha`:`${process.env.NEXT_PUBLIC_SITE_URL||'https://clientemarcado.com.br'}/redefinir-senha`
+    const {error}=await supabase.auth.resetPasswordForEmail(alvo,{redirectTo})
+    setReenviandoSenha(false)
+    if(error){
+      console.warn('Erro ao enviar link de senha:',error.message)
+      setSenhaMsg('Não foi possível enviar o link agora. Tente novamente.')
+      return
+    }
+    setSenhaOk(true)
+    setSenhaMsg('Link enviado. A pessoa poderá criar uma nova senha pelo e-mail.')
+  }
+
 
   function toggleDia(i:number){setDiasAtivos(prev=>prev.map((v,j)=>j===i?!v:v))}
   function setHor(i:number,campo:'abertura'|'fechamento',val:string){setHorarios(prev=>prev.map((h,j)=>j===i?{...h,[campo]:val}:h))}
@@ -1095,6 +1173,48 @@ export default function Perfil(){
                   </div>
                 </div>
               </div>
+            )}
+          </div>
+          )}
+
+          {!souProfissional && (
+          <div className="crd">
+            <button type="button" onClick={()=>setAcessoAberto(v=>!v)} style={{display:'flex',alignItems:'center',gap:'10px',background:'none',border:'none',cursor:'pointer',padding:0,fontFamily:'inherit',width:'100%',textAlign:'left'}}>
+              {acessoAberto?<ChevronUp size={18} color="#B8AAB8"/>:<ChevronDown size={18} color="#B8AAB8"/>}
+              <span style={{fontSize:'15px',fontWeight:700,color:'#F8F4F7'}}>Acesso da conta</span>
+            </button>
+            {acessoAberto && (
+            <>
+            <p style={{fontSize:'12px',color:'#B8AAB8',marginBottom:'20px',marginTop:'14px',lineHeight:1.6}}>Transfira o acesso desta página profissional para outro e-mail. A pessoa receberá uma confirmação antes de acessar.</p>
+
+            <div style={{marginBottom:'14px'}}>
+              <label className="lbl">E-mail atual</label>
+              <input className="inp" value={emailAtual} disabled readOnly style={{opacity:.65,cursor:'not-allowed'}}/>
+            </div>
+            <div style={{marginBottom:'8px'}}>
+              <label className="lbl">Novo e-mail de acesso</label>
+              <input className="inp" type="email" value={novoEmailAcesso} onChange={e=>{setNovoEmailAcesso(e.target.value);setTransferMsg('');setSenhaMsg('')}} placeholder="influenciadora@email.com"/>
+            </div>
+
+            {transferMsg && <p style={{fontSize:'12px',marginBottom:'10px',color:transferOk?'#22C55E':'#EF4444'}}>{transferOk?'✓ ':''}{transferMsg}</p>}
+            {senhaMsg && <p style={{fontSize:'12px',marginBottom:'10px',color:senhaOk?'#22C55E':'#EF4444'}}>{senhaOk?'✓ ':''}{senhaMsg}</p>}
+
+            <div style={{display:'flex',alignItems:'flex-start',gap:'9px',marginBottom:'14px',background:'rgba(24,16,27,.6)',border:'1px solid #2A1A2F',borderRadius:'10px',padding:'12px 14px'}}>
+              <input type="checkbox" id="confirmeiEmails" checked={confirmeiEmails} onChange={e=>{setConfirmeiEmails(e.target.checked);setSenhaMsg('')}} style={{marginTop:'2px',accentColor:'#EC4899',width:'15px',height:'15px',flexShrink:0,cursor:'pointer'}}/>
+              <label htmlFor="confirmeiEmails" style={{fontSize:'12px',color:'#D8C7D8',lineHeight:1.5,cursor:'pointer'}}>Já confirmei os links enviados para o e-mail atual e para o novo e-mail (verifiquei caixa de entrada e spam dos dois).</label>
+            </div>
+
+            <div style={{display:'flex',flexDirection:'column',gap:'8px',marginBottom:'12px'}}>
+              <button type="button" onClick={transferirAcesso} disabled={transferindo} style={{width:'100%',background:G,color:'#fff',border:'1px solid rgba(255,255,255,.12)',borderRadius:'12px',padding:'12px',fontSize:'13px',fontWeight:700,cursor:transferindo?'not-allowed':'pointer',fontFamily:'inherit',opacity:transferindo?.7:1}}>
+                {transferindo?'Enviando...':'Enviar convite de acesso'}
+              </button>
+              <button type="button" onClick={enviarLinkSenha} disabled={reenviandoSenha||!confirmeiEmails} style={{width:'100%',background:'rgba(24,16,27,.92)',color:confirmeiEmails?'#F8F4F7':'#6B6070',border:'1px solid rgba(229,72,184,.28)',borderRadius:'12px',padding:'12px',fontSize:'13px',fontWeight:600,cursor:(reenviandoSenha||!confirmeiEmails)?'not-allowed':'pointer',fontFamily:'inherit',opacity:reenviandoSenha?.7:1}}>
+                {reenviandoSenha?'Enviando...':'Enviar link para criar nova senha'}
+              </button>
+            </div>
+            <p style={{fontSize:'11px',color:'#B8AAB8',lineHeight:1.6}}>Este projeto exige confirmação dos dois e-mails (o atual e o novo) antes da troca valer. Confirme os dois primeiro, marque a caixinha acima e só então envie o link de criar senha.</p>
+            <p style={{fontSize:'11px',color:'#B8AAB8',lineHeight:1.6,marginTop:'6px'}}>As ações de acesso são enviadas imediatamente e não dependem do botão Salvar perfil.</p>
+            </>
             )}
           </div>
           )}

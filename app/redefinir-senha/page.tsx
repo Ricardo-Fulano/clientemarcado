@@ -30,6 +30,7 @@ html,body{overflow-x:hidden;width:100%;max-width:100%;background:#08060A}
 export default function RedefinirSenha() {
   const [pronto, setPronto] = useState(false)
   const [linkInvalido, setLinkInvalido] = useState(false)
+  const [faltaOutroEmail, setFaltaOutroEmail] = useState(false)
   const [senha, setSenha] = useState('')
   const [confirmar, setConfirmar] = useState('')
   const [verSenha, setVerSenha] = useState(false)
@@ -39,6 +40,22 @@ export default function RedefinirSenha() {
   const [salvando, setSalvando] = useState(false)
 
   useEffect(() => {
+    const hash = typeof window !== 'undefined' ? window.location.hash : ''
+    // Se o Supabase mandou de volta um erro (link expirado, invalido ou ja usado),
+    // ele vem na propria URL (#error=...&error_code=otp_expired&...). Detectamos aqui
+    // pra mostrar direto a mensagem amigavel em portugues, sem esperar timeout e sem
+    // nunca deixar o texto cru em ingles do Supabase aparecer pro usuario.
+    if (hash.includes('error=')) {
+      setTimeout(() => setLinkInvalido(true), 0)
+      return
+    }
+    // Confirmacao dupla de e-mail (Secure email change, ligado no projeto): ao confirmar
+    // o link de UM dos dois enderecos, o Supabase avisa que falta confirmar o outro antes
+    // da troca valer de verdade. Isso NAO e erro - e so mais um passo do fluxo.
+    if (hash.includes('message=') && hash.toLowerCase().includes('other+email')) {
+      setTimeout(() => setFaltaOutroEmail(true), 0)
+      return
+    }
     const { data: listener } = supabase.auth.onAuthStateChange((event) => {
       if (event === 'PASSWORD_RECOVERY') setPronto(true)
     })
@@ -82,11 +99,19 @@ export default function RedefinirSenha() {
             <p className="titulo">Senha alterada com sucesso.</p>
             <p className="sub">Você já pode entrar com sua nova senha. Redirecionando para o login...</p>
           </>
+        ) : faltaOutroEmail ? (
+          <>
+            <p className="titulo">Confirmação quase concluída</p>
+            <p className="sub">Uma das confirmações foi aceita. Para concluir a troca de acesso, confirme também o link enviado para o outro e-mail envolvido na transferência.</p>
+            <p className="sub" style={{marginTop:'-8px'}}>Verifique a caixa de entrada e o spam dos dois e-mails. Depois que os dois forem confirmados, volte ao login e use o novo e-mail de acesso.</p>
+            <Link href="/login" className="voltar">← Voltar para o login</Link>
+          </>
         ) : linkInvalido ? (
           <>
-            <p className="titulo">Link inválido ou expirado</p>
-            <p className="sub">Solicite um novo link de redefinição na tela de login.</p>
-            <Link href="/login" className="voltar">← Voltar para o login</Link>
+            <p className="titulo">Link expirado ou inválido</p>
+            <p className="sub">Não foi possível validar este link. Isso pode acontecer se ele já foi usado, se passou do prazo de validade, ou se algum programa de segurança do seu e-mail (antivírus, filtro corporativo) abriu o link automaticamente antes de você.</p>
+            <p className="sub" style={{marginTop:'-8px'}}>Se você está tentando redefinir sua própria senha, solicite um novo link na tela de login. Se recebeu este link como parte de um convite de acesso, peça para quem enviou o convite acessar o painel e enviar um novo convite.</p>
+            <Link href="/login" className="btn-p" style={{display:'flex',alignItems:'center',justifyContent:'center',textDecoration:'none',marginTop:'6px'}}>Ir para o login</Link>
           </>
         ) : !pronto ? (
           <>
