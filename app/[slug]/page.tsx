@@ -70,7 +70,7 @@ html,body{overflow-x:hidden;width:100%;max-width:100%}
 }
 @media(max-width:767px){
   .hero, .hero.no-capa{height:170px!important;max-height:170px!important;min-height:170px!important;border-radius:18px!important;border-width:2px!important}
-  .hero-img{object-position:center center!important}
+  .hero-img{width:100%!important;height:100%!important;object-fit:cover!important;object-position:center center!important;transform:scale(1.30)!important;transform-origin:center center!important}
   .profile-row{margin-top:-56px;flex-direction:column;align-items:center;text-align:center}
   .avatar-pro{width:112px;height:112px}
   .social-row{margin-left:0;justify-content:center}
