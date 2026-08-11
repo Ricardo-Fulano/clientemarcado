@@ -420,7 +420,7 @@ export default function Perfil(){
 
   // ---------- DESTAQUES ----------
   function novoDestaque(){
-    setDestaques(prev=>[...prev,{id:'novo-'+Date.now(),user_id:userId,titulo:'',descricao:'',texto_botao:'Ver mais',url:'',imagem_url:'',ativo:true,ordem:prev.length,_novo:true}])
+    setDestaques(prev=>[{id:'novo-'+Date.now(),user_id:userId,titulo:'',descricao:'',texto_botao:'Ver mais',url:'',imagem_url:'',ativo:true,ordem:prev.length,_novo:true},...prev])
   }
   function editarDestaque(id:string,campo:string,valor:any){
     setDestaques(prev=>prev.map(d=>d.id===id?{...d,[campo]:valor}:d))
@@ -451,7 +451,7 @@ export default function Perfil(){
 
   // ---------- LINKS RÁPIDOS ----------
   function novoLink(){
-    setLinks(prev=>[...prev,{id:'novo-'+Date.now(),user_id:userId,tipo:'whatsapp',titulo:'',descricao:'',url:'',ativo:true,ordem:prev.length,_novo:true}])
+    setLinks(prev=>[{id:'novo-'+Date.now(),user_id:userId,tipo:'whatsapp',titulo:'',descricao:'',url:'',ativo:true,ordem:prev.length,_novo:true},...prev])
   }
   function editarLink(id:string,campo:string,valor:any){
     setLinks(prev=>prev.map(l=>l.id===id?{...l,[campo]:valor}:l))
@@ -531,7 +531,7 @@ export default function Perfil(){
   }
   const FORMATO_RATIO_PAINEL:Record<string,string>={'16:9':'16/9','9:16':'9/16','4:3':'4/3','1:1':'1/1'}
   function novoVideo(){
-    setVideos(prev=>[...prev,{id:'novo-'+Date.now(),user_id:userId,titulo:'',descricao:'',url_video:'',plataforma:'youtube',thumbnail_url:'',formato:'16:9',link_destino:'',texto_cta:'',texto_botao_video:'Assistir vídeo',ordem:prev.length,ativo:true,_novo:true}])
+    setVideos(prev=>[{id:'novo-'+Date.now(),user_id:userId,titulo:'',descricao:'',url_video:'',plataforma:'youtube',thumbnail_url:'',formato:'16:9',link_destino:'',texto_cta:'',texto_botao_video:'Assistir vídeo',ordem:prev.length,ativo:true,_novo:true},...prev])
   }
   function editarVideo(id:string,campo:string,valor:any){
     setVideos(prev=>prev.map(v=>{
@@ -935,7 +935,7 @@ export default function Perfil(){
               {destaques.map(d=>(
                 <div key={d.id} style={{border:'1px solid #2A1A2F',borderRadius:'14px',padding:'16px'}}>
                   <div className="fg2" style={{marginBottom:'10px'}}>
-                    <div><label className="lbl">Título</label><input className="inp" value={d.titulo||''} onChange={e=>editarDestaque(d.id,'titulo',e.target.value)} placeholder="Ex: Curso Presencial"/></div>
+                    <div><label className="lbl">Título</label><input className="inp" autoFocus={!!d._novo} value={d.titulo||''} onChange={e=>editarDestaque(d.id,'titulo',e.target.value)} placeholder="Ex: Curso Presencial"/></div>
                     <div><label className="lbl">Texto do botão</label><input className="inp" value={d.texto_botao||''} onChange={e=>editarDestaque(d.id,'texto_botao',e.target.value)} placeholder="Ex: Saiba mais"/></div>
                   </div>
                   <div style={{marginBottom:'10px'}}><label className="lbl">Descrição</label><input className="inp" value={d.descricao||''} onChange={e=>editarDestaque(d.id,'descricao',e.target.value)} placeholder="Ex: Aprenda técnicas profissionais na prática"/></div>
@@ -997,7 +997,7 @@ export default function Perfil(){
                         {['whatsapp','instagram','tiktok','youtube','shopee','mercadolivre','site','curso','mentoria','endereco','outro'].map(t=><option key={t} value={t}>{t==='endereco'?'Endereço':t}</option>)}
                       </select>
                     </div>
-                    <div><label className="lbl">Título</label><input className="inp" value={l.titulo||''} onChange={e=>editarLink(l.id,'titulo',e.target.value)} placeholder="Ex: TikTok"/></div>
+                    <div><label className="lbl">Título</label><input className="inp" autoFocus={!!l._novo} value={l.titulo||''} onChange={e=>editarLink(l.id,'titulo',e.target.value)} placeholder="Ex: TikTok"/></div>
                   </div>
                   <div style={{marginBottom:'10px'}}><label className="lbl">Descrição (opcional)</label><input className="inp" value={l.descricao||''} onChange={e=>editarLink(l.id,'descricao',e.target.value)} placeholder="Ex: @studiobellaeducadora"/></div>
                   <div style={{marginBottom:'12px'}}>
@@ -1041,7 +1041,7 @@ export default function Perfil(){
             <div style={{display:'flex',flexDirection:'column',gap:'12px'}}>
               {videos.map(v=>(
                 <div key={v.id} style={{border:'1px solid rgba(229,72,184,.18)',borderRadius:'14px',padding:'16px'}}>
-                  <div style={{marginBottom:'10px'}}><label className="lbl">Título</label><input className="inp" value={v.titulo||''} onChange={e=>editarVideo(v.id,'titulo',e.target.value)} placeholder="Ex: Lançamento da Mentoria Nail Designer"/></div>
+                  <div style={{marginBottom:'10px'}}><label className="lbl">Título</label><input className="inp" autoFocus={!!v._novo} value={v.titulo||''} onChange={e=>editarVideo(v.id,'titulo',e.target.value)} placeholder="Ex: Lançamento da Mentoria Nail Designer"/></div>
                   <div style={{marginBottom:'10px'}}><label className="lbl">Descrição (opcional)</label><input className="inp" value={v.descricao||''} onChange={e=>editarVideo(v.id,'descricao',e.target.value)} placeholder="Ex: Veja como funciona a mentoria para profissionais da beleza."/></div>
                   <div style={{marginBottom:'6px'}}>
                     <label className="lbl">Link do vídeo</label>
