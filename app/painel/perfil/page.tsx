@@ -116,6 +116,8 @@ export default function Perfil(){
   const [cidade,setCidade]=useState('')
   const [desc,setDesc]=useState('')
   const [capUrl,setCapUrl]=useState('')
+  const [bannerMobilePosicao,setBannerMobilePosicao]=useState('padrao')
+  const [bannerMobileZoom,setBannerMobileZoom]=useState('normal')
 
   const [diasAtivos,setDiasAtivos]=useState([false,true,true,true,true,true,true])
   const [horarios,setHorarios]=useState(DIAS.map(()=>({abertura:'08:00',fechamento:'18:00'})))
@@ -191,6 +193,8 @@ export default function Perfil(){
       setCidade(p.cidade||p.cidade_estado||'')
       setDesc(p.descricao||'')
       setCapUrl(p.capa_url||p.imagem_capa||'')
+      setBannerMobilePosicao(p.banner_mobile_position||'padrao')
+      setBannerMobileZoom(p.banner_mobile_zoom||'normal')
       if(p.dias_ativos) setDiasAtivos(p.dias_ativos)
       if(p.horarios) setHorarios(p.horarios)
       if(p.intervalo||p.intervalo_agenda) setIntervalo(p.intervalo||p.intervalo_agenda||'30 min')
@@ -245,6 +249,8 @@ export default function Perfil(){
     if(cidade!==undefined) payloadSeguro.cidade=cidade.trim()||null
     if(desc!==undefined) payloadSeguro.descricao=desc.trim()||null
     if(capUrl!==undefined) payloadSeguro.capa_url=capUrl||null
+    payloadSeguro.banner_mobile_position=bannerMobilePosicao
+    payloadSeguro.banner_mobile_zoom=bannerMobileZoom
 
     payloadSeguro.foto_perfil_url=fotoPerfilUrl||null
     payloadSeguro.pagina_descricao_curta=descCurta.trim()||null
@@ -807,6 +813,32 @@ export default function Perfil(){
                     {capUrl===b&&<span className="banner-sel-badge">Selecionado</span>}
                   </button>
                 ))}
+              </div>
+            </div>
+
+            <div style={{borderTop:'1px solid #2A1A2F',paddingTop:'18px',marginTop:'4px',marginBottom:'18px'}}>
+              <p style={{fontSize:'13px',fontWeight:600,color:'#B8AAB8',marginBottom:'4px'}}>Enquadramento no celular</p>
+              <p style={{fontSize:'12px',color:'#B8AAB8',marginBottom:'14px'}}>Ajuste como a imagem de capa aparece no celular. Útil quando o banner fica muito distante ou corta uma parte importante.</p>
+              <div className="fg2">
+                <div>
+                  <label className="lbl">Posição no celular</label>
+                  <select className="inp" style={{cursor:'pointer'}} value={bannerMobilePosicao} onChange={e=>setBannerMobilePosicao(e.target.value)}>
+                    <option value="padrao">Padrão</option>
+                    <option value="centro">Centro</option>
+                    <option value="topo">Topo</option>
+                    <option value="esquerda">Esquerda</option>
+                    <option value="direita">Direita</option>
+                    <option value="inferior">Inferior</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="lbl">Zoom no celular</label>
+                  <select className="inp" style={{cursor:'pointer'}} value={bannerMobileZoom} onChange={e=>setBannerMobileZoom(e.target.value)}>
+                    <option value="normal">Normal</option>
+                    <option value="medio">Médio</option>
+                    <option value="alto">Alto</option>
+                  </select>
+                </div>
               </div>
             </div>
 

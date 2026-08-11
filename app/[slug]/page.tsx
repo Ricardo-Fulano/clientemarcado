@@ -70,7 +70,6 @@ html,body{overflow-x:hidden;width:100%;max-width:100%}
 }
 @media(max-width:767px){
   .hero, .hero.no-capa{height:170px!important;max-height:170px!important;min-height:170px!important;border-radius:18px!important;border-width:2px!important;overflow:hidden!important;position:relative!important}
-  .hero-img{width:100%!important;height:100%!important;object-fit:cover!important;object-position:center center!important;transform:scale(1.35)!important;transform-origin:center center!important}
   .profile-row{margin-top:-56px;flex-direction:column;align-items:center;text-align:center}
   .avatar-pro{width:112px;height:112px}
   .social-row{margin-left:0;justify-content:center}
@@ -222,6 +221,16 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
 
   // Monta a URL final de um link rapido: endereco em texto normal vira busca no Google Maps automaticamente;
   // se ja for um link (http/https) - seja Maps ou qualquer outro - usa como esta.
+  // Enquadramento do banner no mobile, configuravel por perfil (Configuracoes > Imagem de capa).
+  // Cada negocio tem uma composicao diferente de banner, entao isso substitui o valor fixo antigo.
+  const BANNER_MOBILE_POSICAO: Record<string, string> = {
+    padrao: '50% 50%', centro: '50% 50%', topo: '50% 25%',
+    esquerda: '35% 50%', direita: '65% 50%', inferior: '50% 75%',
+  }
+  const BANNER_MOBILE_ZOOM: Record<string, number> = { normal: 1.15, medio: 1.30, alto: 1.45 }
+  const bannerMobilePos = BANNER_MOBILE_POSICAO[perfil.banner_mobile_position || 'padrao'] || '50% 50%'
+  const bannerMobileScale = BANNER_MOBILE_ZOOM[perfil.banner_mobile_zoom || 'normal'] || 1.15
+
   function urlFinalLink(l: { tipo?: string; url?: string }) {
     const v = (l.url || '').trim()
     if (!v) return ''
@@ -260,6 +269,9 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
     <main style={{ minHeight: '100vh', background: 'var(--bg)', color: 'var(--text)', fontFamily: '-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif', overflowX: 'hidden' }}>
       <style dangerouslySetInnerHTML={{ __html: CSS + `
         :root { --accent: ${tema.accent}; --accent-border: ${tema.border}; --accent-glow: ${tema.glow}; --bg: ${tema.bg}; --bg-rgb: ${tema.bgRGB}; --card: ${tema.card}; --text: ${tema.text}; --text-muted: ${tema.textMuted}; }
+        @media(max-width:767px){
+          .hero-img{width:100%!important;height:100%!important;object-fit:cover!important;object-position:${bannerMobilePos}!important;transform:scale(${bannerMobileScale})!important;transform-origin:${bannerMobilePos}!important}
+        }
       ` }} />
 
       {/* CONTEUDO */}
