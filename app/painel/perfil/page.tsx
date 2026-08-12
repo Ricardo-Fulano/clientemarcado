@@ -548,11 +548,25 @@ export default function Perfil(){
   function editarDestaque(id:string,campo:string,valor:any){
     setDestaques(prev=>prev.map(d=>d.id===id?{...d,[campo]:valor}:d))
   }
+  // Se o texto digitado parecer um numero de telefone (so digitos/espaco/traco/parenteses),
+  // converte automaticamente pra link do WhatsApp. Senao, aplica a mesma normalizacao
+  // de URL ja usada nos videos (markdown-safe, adiciona https:// se faltar).
+  function normalizarLinkDestaque(valor:string):string{
+    const v=(valor||'').trim()
+    if(!v)return ''
+    const soDigitos=v.replace(/\D/g,'')
+    const pareceTelefone=/^[\d\s()+-]+$/.test(v)&&soDigitos.length>=10&&soDigitos.length<=13
+    if(pareceTelefone){
+      const comDDI=soDigitos.length<=11?'55'+soDigitos:soDigitos
+      return `https://wa.me/${comDDI}`
+    }
+    return normalizarUrl(v)
+  }
   async function salvarDestaque(d:any){
     if(!(await validarSessaoAtual()))return
     if(!d.titulo?.trim()){setMsg('Dê um título para o destaque.');return}
     setSalvandoDestaqueId(d.id)
-    const payload={user_id:userId,titulo:d.titulo.trim(),descricao:d.descricao?.trim()||null,texto_botao:d.texto_botao?.trim()||'Ver mais',url:d.url?.trim()||null,imagem_url:d.imagem_url?.trim()||null,ativo:!!d.ativo,ordem:d.ordem||0}
+    const payload={user_id:userId,titulo:d.titulo.trim(),descricao:d.descricao?.trim()||null,texto_botao:d.texto_botao?.trim()||'Ver mais',url:normalizarLinkDestaque(d.url)||null,imagem_url:d.imagem_url?.trim()||null,ativo:!!d.ativo,ordem:d.ordem||0}
     if(d._novo){
       const {data,error}=await supabase.from('pagina_destaques').insert(payload).select().single()
       if(error){setMsg('Erro ao salvar destaque: '+error.message)}
