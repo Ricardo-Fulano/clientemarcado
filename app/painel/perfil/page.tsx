@@ -87,6 +87,7 @@ select option{background:#120A14;color:#F8F4F7}
 
 export default function Perfil(){
   const [userId,setUserId]=useState('')
+  const [semPerfil,setSemPerfil]=useState(false)
   const [salvando,setSalvando]=useState(false)
   const [promoAtiva,setPromoAtiva]=useState(false)
   // A UI de "Promoção em destaque" foi substituída por Destaques + Links Rápidos.
@@ -159,11 +160,99 @@ export default function Perfil(){
 
   const tc = TEMA_CORES[publicTheme] ?? TEMA_CORES.modelo2
 
-  useEffect(()=>{load()},[])
+  // Guarda o ultimo user_id conhecido fora do state, pra comparar dentro do listener
+  // sem sofrer de closure desatualizada (o listener e registrado uma vez so, no mount).
+  const ultimoUserIdRef=useRef<string|null>(null)
+
+  // Reset TOTAL do estado do perfil. Chamado sempre antes de um novo load() e sempre
+  // que a sessao muda (troca de conta, logout/login em outra aba etc). Garante que
+  // a tela nunca continue mostrando dados de uma sessao anterior.
+  function resetPerfilState(){
+    setUserId('')
+    setSemPerfil(false)
+    setEmailAtual('')
+    setSouProfissional(false)
+    setNome('')
+    setSlug('')
+    setEnd('')
+    setWpp('')
+    setInsta('')
+    setCidade('')
+    setDesc('')
+    setCapUrl('')
+    setBannerMobilePosicao('padrao')
+    setBannerMobileZoom('normal')
+    setDiasAtivos([false,true,true,true,true,true,true])
+    setHorarios(DIAS.map(()=>({abertura:'08:00',fechamento:'18:00'})))
+    setIntervalo('30 min')
+    setAbertura('08:00')
+    setFechamento('18:00')
+    setAntecedencia('Sem restrição')
+    setPublicTheme('modelo2')
+    setPromoAtiva(false)
+    setPromoTitulo('')
+    setPromoDesc('')
+    setPromoPrecoAnt('')
+    setPromoPrecoNovo('')
+    setPromoBotao('Agendar promoção')
+    setPromoObs('')
+    setPromoInicio('')
+    setPromoFim('')
+    setFotoPerfilUrl('')
+    setDescCurta('')
+    setTituloBotaoAgenda('')
+    setMostrarAgenda(true)
+    setMostrarServicos(true)
+    setMostrarEquipe(true)
+    setMostrarPorQueAgendar(true)
+    setMostrarContato(true)
+    setDestaques([])
+    setLinks([])
+    setVideos([])
+    setDestaquesAberto(true)
+    setLinksAberto(false)
+    setVideosAberto(false)
+    setSalvandoDestaqueId('')
+    setSalvandoLinkId('')
+    setSalvandoVideoId('')
+    setUploadingVideoId('')
+    setUploadingDestaqueId('')
+    setNovoEmailAcesso('')
+    setTransferMsg('')
+    setTransferOk(false)
+    setMsg('')
+  }
+
+  useEffect(()=>{
+    load()
+    // Detecta troca de sessao (login/logout em outra aba, token trocado, usuario mudou)
+    // e reseta/recarrega tudo do zero pra nunca deixar dado antigo na tela.
+    const {data:listener}=supabase.auth.onAuthStateChange((event,session)=>{
+      const novoId=session?.user?.id||null
+      if(event==='SIGNED_OUT'||!novoId){
+        ultimoUserIdRef.current=null
+        resetPerfilState()
+        window.location.href='/login'
+        return
+      }
+      if(novoId!==ultimoUserIdRef.current){
+        // Sessao mudou de verdade (troca de conta) - reseta tudo e recarrega do zero
+        ultimoUserIdRef.current=novoId
+        resetPerfilState()
+        load()
+      }
+      // Se for so TOKEN_REFRESHED do mesmo usuario, nao faz nada (evita recarregar
+      // a pagina toda enquanto a pessoa esta digitando, por exemplo)
+    })
+    return ()=>{listener.subscription.unsubscribe()}
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  },[])
 
   async function load(){
+    resetPerfilState()
     const {data:{user}}=await supabase.auth.getUser()
-    if(!user){window.location.href='/login';return}
+    if(!user){resetPerfilState();window.location.href='/login';return}
+    ultimoUserIdRef.current=user.id
     setUserId(user.id)
     setEmailAtual(user.email||'')
 
@@ -177,11 +266,17 @@ export default function Perfil(){
       }catch(e){console.warn('Erro ao verificar vinculo de equipe:',e)}
     }
 
-    // ✅ CORRIGIDO: trocado .single() por .maybeSingle() para evitar erro 406
     const {data:p,error}=await supabase.from('perfis').select('*').eq('user_id',user.id).maybeSingle()
     if(error){console.error('Erro ao carregar perfil:',error)}
-    if(p){
-      setNome(p.nome_negocio||'')
+
+    if(!p){
+      // Nenhum perfil pra esse user_id: NUNCA reaproveitar dado antigo, tela fica limpa/segura
+      setSemPerfil(true)
+      return
+    }
+    setSemPerfil(false)
+
+    setNome(p.nome_negocio||'')
       setSlug(p.slug||'')
       setEnd(p.endereco||'')
       setWpp(p.whatsapp||'')
@@ -217,7 +312,6 @@ export default function Perfil(){
       setMostrarEquipe(p.pagina_mostrar_equipe!==false)
       setMostrarPorQueAgendar(p.pagina_mostrar_por_que_agendar!==false)
       setMostrarContato(p.pagina_mostrar_contato!==false)
-    }
 
     const [{data:dst},{data:lnk},{data:vid}]=await Promise.all([
       supabase.from('pagina_destaques').select('*').eq('user_id',user.id).order('ordem'),
@@ -229,7 +323,36 @@ export default function Perfil(){
     if(vid) setVideos(vid)
   }
 
+  // Cria um perfil novo e limpo pro usuario logado (usado no botao "Criar meu perfil",
+  // quando o usuario ainda nao tem nenhum perfil vinculado ao seu user_id)
+  async function criarPerfilNovo(){
+    if(!userId)return
+    const slugBase='negocio'+userId.replace(/-/g,'').slice(0,8)
+    const {error}=await supabase.from('perfis').insert({user_id:userId,slug:slugBase})
+    if(error){setMsg('Erro ao criar perfil: '+error.message);return}
+    await load()
+  }
+
+  // Confirma que a sessao REAL e ativa agora e a mesma que a tela esta mostrando,
+  // antes de qualquer escrita no banco. Evita salvar/excluir dados da conta errada
+  // se a sessao mudou por baixo da pagina (outra aba, logout/login etc).
+  async function validarSessaoAtual(){
+    const {data:{user}}=await supabase.auth.getUser()
+    if(!user){
+      resetPerfilState()
+      window.location.href='/login'
+      return false
+    }
+    if(user.id!==userId){
+      resetPerfilState()
+      setMsg('A sessão mudou. Recarregue a página antes de salvar.')
+      return false
+    }
+    return true
+  }
+
   async function salvar(){
+    if(!(await validarSessaoAtual()))return
     if(!nome.trim()||!slug.trim()){setMsg('Nome e link são obrigatórios.');return}
     setSalvando(true)
     const slugFmt=slug.toLowerCase().replace(/\s+/g,'-').replace(/[^a-z0-9-]/g,'')
@@ -304,6 +427,7 @@ export default function Perfil(){
   }
 
   async function restaurarCapa() {
+    if(!(await validarSessaoAtual()))return
     const {data:{user}}=await supabase.auth.getUser();if(!user)return
     await supabase.from('perfis').update({capa_url:null}).eq('user_id',user.id)
     setCapUrl('')
@@ -313,6 +437,7 @@ export default function Perfil(){
   // ✅ CORRIGIDO: uploadCapa com validações, contentType e salvamento no perfil
   async function uploadCapa(e:React.ChangeEvent<HTMLInputElement>){
     const file=e.target.files?.[0];if(!file)return
+    if(!(await validarSessaoAtual()))return
 
     const allowedTypes=['image/jpeg','image/jpg','image/png','image/webp']
     if(!allowedTypes.includes(file.type)){
@@ -363,6 +488,7 @@ export default function Perfil(){
 
   async function uploadFotoPerfil(e:React.ChangeEvent<HTMLInputElement>){
     const file=e.target.files?.[0];if(!file)return
+    if(!(await validarSessaoAtual()))return
     const allowedTypes=['image/jpeg','image/jpg','image/png','image/webp']
     if(!allowedTypes.includes(file.type)){setMsg('Envie uma imagem JPG, PNG ou WEBP.');return}
     if(file.size>5*1024*1024){setMsg('A imagem deve ter no máximo 5MB.');return}
@@ -393,6 +519,7 @@ export default function Perfil(){
   async function uploadImagemDestaque(e:React.ChangeEvent<HTMLInputElement>){
     const file=e.target.files?.[0];const id=uploadingDestaqueId
     if(!file||!id)return
+    if(!(await validarSessaoAtual()))return
     const allowedTypes=['image/jpeg','image/jpg','image/png','image/webp']
     if(!allowedTypes.includes(file.type)){setMsg('Envie uma imagem JPG, PNG ou WEBP.');return}
     if(file.size>5*1024*1024){setMsg('A imagem deve ter no máximo 5MB.');return}
@@ -422,6 +549,7 @@ export default function Perfil(){
     setDestaques(prev=>prev.map(d=>d.id===id?{...d,[campo]:valor}:d))
   }
   async function salvarDestaque(d:any){
+    if(!(await validarSessaoAtual()))return
     if(!d.titulo?.trim()){setMsg('Dê um título para o destaque.');return}
     setSalvandoDestaqueId(d.id)
     const payload={user_id:userId,titulo:d.titulo.trim(),descricao:d.descricao?.trim()||null,texto_botao:d.texto_botao?.trim()||'Ver mais',url:d.url?.trim()||null,imagem_url:d.imagem_url?.trim()||null,ativo:!!d.ativo,ordem:d.ordem||0}
@@ -438,6 +566,7 @@ export default function Perfil(){
     setTimeout(()=>setMsg(''),3000)
   }
   async function excluirDestaque(id:string){
+    if(!(await validarSessaoAtual()))return
     if(!id.startsWith('novo-')){
       const {error}=await supabase.from('pagina_destaques').delete().eq('id',id).eq('user_id',userId)
       if(error){setMsg('Erro ao excluir: '+error.message);return}
@@ -473,6 +602,7 @@ export default function Perfil(){
     return v
   }
   async function salvarLink(l:any){
+    if(!(await validarSessaoAtual()))return
     if(!l.titulo?.trim()||!l.url?.trim()){setMsg('Preencha título e link.');return}
     setSalvandoLinkId(l.id)
     const urlFinal=l.tipo==='whatsapp'?montarLinkWhatsapp(l.url):l.url.trim()
@@ -490,6 +620,7 @@ export default function Perfil(){
     setTimeout(()=>setMsg(''),3000)
   }
   async function excluirLink(id:string){
+    if(!(await validarSessaoAtual()))return
     if(!id.startsWith('novo-')){
       const {error}=await supabase.from('pagina_links').delete().eq('id',id).eq('user_id',userId)
       if(error){setMsg('Erro ao excluir: '+error.message);return}
@@ -498,6 +629,27 @@ export default function Perfil(){
   }
 
   // ---------- VIDEOS DA PAGINA ----------
+  // Normaliza links colados de qualquer jeito (markdown, sem protocolo, com colchetes)
+  // antes de validar/salvar. Isso evita bloquear links claramente validos so por detalhe
+  // de formatacao — o mesmo link, extraido corretamente, ja passa na validacao normal.
+  function normalizarUrl(valor:string):string{
+    let v=(valor||'').trim()
+    if(!v)return ''
+    // Formato markdown: [texto](url) -> extrai so a url de dentro dos parenteses
+    const markdown=v.match(/\[([^\]]*)\]\(([^)]+)\)/)
+    if(markdown){
+      v=(markdown[2]||markdown[1]||'').trim()
+    } else {
+      // Só colchetes sobrando (ex: [https://...]) -> remove
+      v=v.replace(/^\[+|\]+$/g,'').trim()
+    }
+    if(!v)return ''
+    // Sem protocolo (com ou sem www.) -> adiciona https:// automaticamente
+    if(!/^https?:\/\//i.test(v)){
+      v='https://'+v.replace(/^\/+/,'')
+    }
+    return v
+  }
   function detectarVideo(url:string){
     const u=(url||'').toLowerCase()
     if(u.includes('youtube.com/shorts/'))return {plataforma:'youtube',formato:'9:16'}
@@ -544,20 +696,23 @@ export default function Perfil(){
     }))
   }
   async function salvarVideo(v:any){
+    if(!(await validarSessaoAtual()))return
     if(!v.titulo?.trim()){setMsg('Dê um título para o vídeo.');return}
-    if(!v.url_video?.trim()||!/^https?:\/\//i.test(v.url_video.trim())){setMsg('Informe um link de vídeo válido.');return}
-    if(v.link_destino?.trim()&&!/^https?:\/\//i.test(v.link_destino.trim())){setMsg('Informe um link de destino válido.');return}
+    const urlVideoNorm=normalizarUrl(v.url_video)
+    const linkDestinoNorm=normalizarUrl(v.link_destino)
+    if(!urlVideoNorm||!/^https?:\/\//i.test(urlVideoNorm)){setMsg('Informe um link de vídeo válido.');return}
+    if(v.link_destino?.trim()&&(!linkDestinoNorm||!/^https?:\/\//i.test(linkDestinoNorm))){setMsg('Informe um link de destino válido.');return}
     setSalvandoVideoId(v.id)
     const payload={
       user_id:userId,
       titulo:v.titulo.trim(),
       descricao:v.descricao?.trim()||null,
-      url_video:v.url_video.trim(),
-      plataforma:v.plataforma||detectarVideo(v.url_video).plataforma,
+      url_video:urlVideoNorm,
+      plataforma:v.plataforma||detectarVideo(urlVideoNorm).plataforma,
       thumbnail_url:v.thumbnail_url?.trim()||null,
       formato:v.formato||'16:9',
-      link_destino:v.link_destino?.trim()||null,
-      texto_cta:v.link_destino?.trim()?(v.texto_cta?.trim()||'Saiba mais'):null,
+      link_destino:linkDestinoNorm||null,
+      texto_cta:linkDestinoNorm?(v.texto_cta?.trim()||'Saiba mais'):null,
       texto_botao_video:v.texto_botao_video?.trim()||'Assistir vídeo',
       ordem:v.ordem||0,
       ativo:!!v.ativo,
@@ -575,6 +730,7 @@ export default function Perfil(){
     setTimeout(()=>setMsg(''),3000)
   }
   async function excluirVideo(id:string){
+    if(!(await validarSessaoAtual()))return
     if(!id.startsWith('novo-')){
       const {error}=await supabase.from('pagina_videos').delete().eq('id',id).eq('user_id',userId)
       if(error){setMsg('Erro ao excluir: '+error.message);return}
@@ -584,6 +740,7 @@ export default function Perfil(){
   async function uploadCapaVideo(e:React.ChangeEvent<HTMLInputElement>){
     const file=e.target.files?.[0];const id=uploadingVideoId
     if(!file||!id)return
+    if(!(await validarSessaoAtual()))return
     const allowedTypes=['image/jpeg','image/jpg','image/png','image/webp']
     if(!allowedTypes.includes(file.type)){setMsg('Envie uma imagem JPG, PNG ou WEBP.');return}
     if(file.size>5*1024*1024){setMsg('A imagem deve ter no máximo 5MB.');return}
@@ -658,6 +815,17 @@ export default function Perfil(){
               {msg}
             </div>
           )}
+
+          {semPerfil ? (
+            <div className="crd" style={{textAlign:'center',padding:'48px 24px',maxWidth:'480px',margin:'40px auto'}}>
+              <p style={{fontSize:'19px',fontWeight:800,color:'#F8F4F7',marginBottom:'10px'}}>Nenhum perfil encontrado para esta conta</p>
+              <p style={{fontSize:'14px',color:'#B8AAB8',lineHeight:1.6,marginBottom:'24px'}}>Esta conta ainda não possui uma página profissional. Crie um novo perfil para começar.</p>
+              <button type="button" onClick={criarPerfilNovo} style={{background:G,color:'#fff',border:'1px solid rgba(255,255,255,.12)',borderRadius:'12px',padding:'13px 28px',fontSize:'14px',fontWeight:700,cursor:'pointer',fontFamily:'inherit'}}>
+                Criar meu perfil
+              </button>
+            </div>
+          ) : (
+          <>
 
           <div className="topo-r" style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',gap:'12px',flexWrap:'wrap',marginBottom:'24px'}}>
             <div>
@@ -1218,6 +1386,9 @@ export default function Perfil(){
           <button onClick={salvar} disabled={salvando} style={{width:'100%',marginTop:24,background:G,color:'#fff',border:'1px solid rgba(255,255,255,.12)',borderRadius:'14px',height:'52px',fontSize:'15px',fontWeight:800,cursor:salvando?'not-allowed':'pointer',fontFamily:'inherit',boxShadow:'0 12px 32px rgba(236,72,153,.30),0 0 28px rgba(139,92,246,.22)',opacity:salvando?.7:1,transition:'all .18s'}}>
             {salvando?'Salvando...':'Salvar perfil'}
           </button>
+
+          </>
+          )}
 
         </div></div>
       </div>
