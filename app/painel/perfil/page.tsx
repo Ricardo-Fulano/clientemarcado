@@ -815,7 +815,9 @@ export default function Perfil(){
   function copiarLink(){navigator.clipboard.writeText(pubUrl);setCopied(true);setTimeout(()=>setCopied(false),2000)}
 
   const ini=(nome||'C').charAt(0).toUpperCase()
-  const pubUrl=`${typeof window!=='undefined'?window.location.origin:'https://clientemarcado-3p4t.vercel.app'}/${slug}`
+  // Link principal da página pública agora é o domínio curto minipage.pro/@slug
+  // (clientemarcado.com.br/slug continua funcionando normalmente, só não é mais o link sugerido).
+  const pubUrl=`https://minipage.pro/@${slug}`
 
   return(
     <div style={{display:'flex',minHeight:'100vh',background:'#08060A',fontFamily:'-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif',overflowX:'hidden',width:'100%'}}>

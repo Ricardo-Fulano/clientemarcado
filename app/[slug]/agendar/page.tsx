@@ -9,7 +9,11 @@ import { resolverTema, getTema } from '../../lib/tema-publico'
 export default function Agendar() {
   const params = useParams()
   const searchParams = useSearchParams()
-  const slug = params.slug as string
+  // Aceita tanto /gabigasparotti/agendar quanto /@gabigasparotti/agendar (link curto do
+  // minipage.pro) — mesmo perfil. IMPORTANTE: useParams() do lado do navegador pode devolver
+  // o segmento ainda codificado (ex: "%40gabigasparotti" em vez de "@gabigasparotti"), por
+  // isso decodificamos antes de remover o @ — sem isso, o "@" nunca era encontrado.
+  const slug = decodeURIComponent((params.slug as string) || '').replace(/^@/, '')
   const [perfil, setPerfil] = useState<any>(null)
   const [servicos, setServicos] = useState<any[]>([])
   const [profissionais, setProfissionais] = useState<any[]>([])
@@ -31,6 +35,12 @@ export default function Agendar() {
   useEffect(() => {
     async function carregar() {
       const { data: p } = await supabase.from('perfis').select('*').eq('slug', slug).single()
+      if (!p) {
+        console.error('[agendar] Perfil não encontrado para slug:', slug)
+        setCarregandoInicial(false)
+        setErro('Página não encontrada. Confira se o link está correto.')
+        return
+      }
       setPerfil(p)
       const { data: s } = await supabase.from('servicos').select('*').eq('user_id', p.user_id)
       setServicos(s || [])

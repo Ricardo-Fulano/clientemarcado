@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { supabase } from '../lib/supabase'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
+import { headers } from 'next/headers'
 import { Zap, CalendarDays, CheckCircle, Sparkles, GraduationCap, Crown, Globe, Link2, Music2, ShoppingBag, PlayCircle, BadgeCheck, MapPin, Calendar } from 'lucide-react'
 import { resolverTema, getTema } from '../lib/tema-publico'
 
@@ -95,10 +96,26 @@ html,body{overflow-x:hidden;width:100%;max-width:100%}
 // Usa a mesma variável já documentada no projeto (.env.local / Vercel), com fallback pro domínio oficial.
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://clientemarcado.com.br'
 
+// Detecta se a requisição veio pelo domínio minipage.pro (link curto das páginas públicas)
+// ou pelo clientemarcado.com.br (sistema principal), pra montar URL/metadata corretas nos dois.
+async function resolverDominioAtual(slugLimpo: string) {
+  let ehMinipage = false
+  try {
+    const h = await headers()
+    const host = (h.get('host') || '').toLowerCase()
+    ehMinipage = host.includes('minipage.pro')
+  } catch { /* fora de contexto de requisição (ex: build) — assume domínio padrão */ }
+  const base = ehMinipage ? 'https://minipage.pro' : SITE_URL
+  const url = ehMinipage ? `${base}/@${slugLimpo}` : `${base}/${slugLimpo}`
+  return { base, url, ehMinipage }
+}
+
 // Metadados dinâmicos por negócio (WhatsApp, redes sociais, etc). Cada /[slug] passa a ter
 // título, descrição e imagem próprios, em vez da prévia genérica do ClienteMarcado.
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
-  const { slug } = await params
+  const { slug: slugBruto } = await params
+  // Aceita tanto /gabigasparotti quanto /@gabigasparotti (link curto do minipage.pro) — mesmo perfil
+  const slug = slugBruto.startsWith('@') ? slugBruto.slice(1) : slugBruto
   const { data: perfil } = await supabase
     .from('perfis')
     .select('*')
@@ -127,9 +144,9 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     }
   }
 
+  const { base, url } = await resolverDominioAtual(slug)
   const imagemBruta = perfil.capa_url || perfil.imagem_capa || perfil.banner_url || capaFallback || perfil.foto_perfil_url || ''
-  const imagem = imagemBruta ? (imagemBruta.startsWith('http') ? imagemBruta : `${SITE_URL}${imagemBruta}`) : `${SITE_URL}/og-image.png`
-  const url = `${SITE_URL}/${slug}`
+  const imagem = imagemBruta ? (imagemBruta.startsWith('http') ? imagemBruta : `${base}${imagemBruta}`) : `${SITE_URL}/og-image.png`
 
   return {
     title: titulo,
@@ -152,7 +169,9 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 }
 
 export default async function PaginaPublica({ params }: { params: Promise<{ slug: string }> }) {
-  const { slug } = await params
+  const { slug: slugBruto } = await params
+  // Aceita tanto /gabigasparotti quanto /@gabigasparotti (link curto do minipage.pro) — mesmo perfil
+  const slug = slugBruto.startsWith('@') ? slugBruto.slice(1) : slugBruto
   const { data: perfil } = await supabase.from('perfis').select('*').eq('slug', slug).single()
   if (!perfil) return notFound()
   // Buscar capa padrao dinamicamente pelos slugs de referencia
