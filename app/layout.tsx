@@ -37,7 +37,7 @@ export const metadata: Metadata = {
     type: "website",
     images: [
       {
-        url: "/og-image.png",
+        url: "/og-image.png?v=2",
         width: 1200,
         height: 630,
         alt: "MiniPage Pro - Sua página profissional",
@@ -49,7 +49,7 @@ export const metadata: Metadata = {
     title: "MiniPage Pro | Sua página profissional com links, vídeos, agenda e gestão",
     description:
       "Transforme sua bio em uma página profissional com links, vídeos, divulgações, agenda e gestão em um só lugar.",
-    images: ["/og-image.png"],
+    images: ["/og-image.png?v=2"],
   },
 };
 

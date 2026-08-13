@@ -150,7 +150,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   // Link oficial divulgado: https://minipage.pro/slug (sem @, mais simples de compartilhar).
   const url = `https://minipage.pro/${slug}`
   const imagemBruta = perfil.capa_url || perfil.imagem_capa || perfil.banner_url || capaFallback || perfil.foto_perfil_url || ''
-  const imagem = imagemBruta ? (imagemBruta.startsWith('http') ? imagemBruta : `${base}${imagemBruta}`) : `${SITE_URL}/og-image.png`
+  const imagem = imagemBruta ? (imagemBruta.startsWith('http') ? imagemBruta : `${base}${imagemBruta}`) : `${SITE_URL}/og-image.png?v=2`
 
   return {
     title: titulo,
