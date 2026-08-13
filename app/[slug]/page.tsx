@@ -124,14 +124,14 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
   if (!perfil) {
     return {
-      title: 'ClienteMarcado | Página profissional para beleza e estética',
-      description: 'Agende seu horário, veja links, cursos, redes sociais e fale pelo WhatsApp.',
+      title: 'MiniPage Pro | Página profissional',
+      description: 'Links, vídeos, agenda e conteúdos em uma página profissional.',
     }
   }
 
-  const nome = perfil.nome_negocio || 'ClienteMarcado'
-  const descricao = perfil.pagina_descricao_curta || perfil.descricao || 'Agende seu horário, veja links, cursos, redes sociais e fale pelo WhatsApp.'
-  const titulo = `${nome} | Página profissional`
+  const nome = perfil.nome_negocio || 'MiniPage Pro'
+  const descricao = perfil.pagina_descricao_curta || perfil.descricao || 'Acesse agenda, links, vídeos e redes sociais em um só lugar.'
+  const titulo = `${nome} | MiniPage Pro`
 
   // Mesmo fallback de capa por tipo de negócio já usado na renderização da página pública
   let capaFallback = ''
@@ -144,7 +144,10 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     }
   }
 
-  const { base, url } = await resolverDominioAtual(slug)
+  const { base } = await resolverDominioAtual(slug)
+  // Link canonico da pagina publica agora e sempre o minipage.pro/@slug (o link curto oficial),
+  // independente de qual dominio serviu essa requisicao especifica.
+  const url = `https://minipage.pro/@${slug}`
   const imagemBruta = perfil.capa_url || perfil.imagem_capa || perfil.banner_url || capaFallback || perfil.foto_perfil_url || ''
   const imagem = imagemBruta ? (imagemBruta.startsWith('http') ? imagemBruta : `${base}${imagemBruta}`) : `${SITE_URL}/og-image.png`
 
@@ -155,7 +158,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
       title: titulo,
       description: descricao,
       url,
-      siteName: 'ClienteMarcado',
+      siteName: 'MiniPage Pro',
       type: 'website',
       images: [{ url: imagem, width: 1200, height: 630, alt: `${nome} - Página profissional` }],
     },

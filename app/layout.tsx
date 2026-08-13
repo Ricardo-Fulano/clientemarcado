@@ -14,9 +14,9 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://clientemarcado.com.br"),
-  title: "ClienteMarcado | Agenda online para beleza e estética",
+  title: "MiniPage Pro | Sua página profissional com links, vídeos, agenda e gestão",
   description:
-    "Agenda online e gestão simples para salões, clínicas de estética, nail designers, lash designers, profissionais da beleza e studios.",
+    "Transforme sua bio em uma página profissional com links, vídeos, divulgações, agenda e gestão em um só lugar.",
   keywords: [
     "agenda online",
     "sistema para salão de beleza",
@@ -28,11 +28,11 @@ export const metadata: Metadata = {
     "ClienteMarcado",
   ],
   openGraph: {
-    title: "ClienteMarcado | Agenda online para beleza e estética",
+    title: "MiniPage Pro | Sua página profissional com links, vídeos, agenda e gestão",
     description:
-      "Sua cliente agenda online. Você organiza agenda, clientes, equipe, cobranças e financeiro em um só painel.",
+      "Transforme sua bio em uma página profissional com links, vídeos, divulgações, agenda e gestão em um só lugar.",
     url: "https://clientemarcado.com.br",
-    siteName: "ClienteMarcado",
+    siteName: "MiniPage Pro",
     locale: "pt_BR",
     type: "website",
     images: [
@@ -40,15 +40,15 @@ export const metadata: Metadata = {
         url: "/og-image.png",
         width: 1200,
         height: 630,
-        alt: "ClienteMarcado - Agenda online para beleza e estética",
+        alt: "MiniPage Pro - Sua página profissional",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "ClienteMarcado | Agenda online para beleza e estética",
+    title: "MiniPage Pro | Sua página profissional com links, vídeos, agenda e gestão",
     description:
-      "Agenda online e gestão simples para salões, clínicas de estética, nail designers, lash designers e profissionais da beleza.",
+      "Transforme sua bio em uma página profissional com links, vídeos, divulgações, agenda e gestão em um só lugar.",
     images: ["/og-image.png"],
   },
 };
