@@ -147,7 +147,8 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const { base } = await resolverDominioAtual(slug)
   // Link canonico da pagina publica agora e sempre o minipage.pro/@slug (o link curto oficial),
   // independente de qual dominio serviu essa requisicao especifica.
-  const url = `https://minipage.pro/@${slug}`
+  // Link oficial divulgado: https://minipage.pro/slug (sem @, mais simples de compartilhar).
+  const url = `https://minipage.pro/${slug}`
   const imagemBruta = perfil.capa_url || perfil.imagem_capa || perfil.banner_url || capaFallback || perfil.foto_perfil_url || ''
   const imagem = imagemBruta ? (imagemBruta.startsWith('http') ? imagemBruta : `${base}${imagemBruta}`) : `${SITE_URL}/og-image.png`
 

@@ -817,7 +817,9 @@ export default function Perfil(){
   const ini=(nome||'C').charAt(0).toUpperCase()
   // Link principal da página pública agora é o domínio curto minipage.pro/@slug
   // (clientemarcado.com.br/slug continua funcionando normalmente, só não é mais o link sugerido).
-  const pubUrl=`https://minipage.pro/@${slug}`
+  // Link principal da página pública: https://minipage.pro/slug (sem @, padrão oficial mais simples).
+  // /@slug continua funcionando por compatibilidade, mas deixou de ser o link divulgado.
+  const pubUrl=`https://minipage.pro/${slug}`
 
   return(
     <div style={{display:'flex',minHeight:'100vh',background:'#08060A',fontFamily:'-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif',overflowX:'hidden',width:'100%'}}>
