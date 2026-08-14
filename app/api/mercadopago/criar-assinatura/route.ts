@@ -11,14 +11,24 @@ export async function POST(request: NextRequest) {
     if (authError || !user) return NextResponse.json({ error: 'Nao autorizado' }, { status: 401 })
     const userId = user.id
 
-    // Le o plano do perfil. Mesma logica de criacao pro Essencial e pro Equipe -
+    // Le o plano do perfil. Mesma logica de criacao pro MiniPage, Essencial e Equipe -
     // so mudam reason/transaction_amount. Nao usa preapproval_plan_id (isso exigiria
     // card_token_id/Bricks na Mercado Pago, que decidimos nao implementar agora).
     const { data: perfil } = await supabase.from('perfis').select('plano_tipo').eq('user_id', userId).single()
-    const planoTipo = perfil?.plano_tipo === 'equipe' ? 'equipe' : 'essencial'
+    const planoTipo = perfil?.plano_tipo === 'equipe' ? 'equipe' : perfil?.plano_tipo === 'minipage' ? 'minipage' : 'essencial'
 
-    const reason = planoTipo === 'equipe' ? 'ClienteMarcado - Plano Equipe' : 'ClienteMarcado - Plano Mensal'
-    const transactionAmount = planoTipo === 'equipe' ? 149.90 : 79.90
+    // Gate explicito pro plano MiniPage: exige MP_PLAN_ID_MINIPAGE configurada antes de
+    // aceitar cobranca de verdade. O valor em si nao e usado no payload (essa rota cria a
+    // assinatura dinamicamente, sem precisar de preapproval_plan_id), mas a presenca dessa
+    // variavel funciona como confirmacao de que o plano MiniPage ja foi validado/aprovado
+    // pra cobranca real no Mercado Pago - evita ativar cobranca de um preco ainda nao revisado.
+    if (planoTipo === 'minipage' && !process.env.MP_PLAN_ID_MINIPAGE) {
+      console.error('[MP] MP_PLAN_ID_MINIPAGE nao configurada - bloqueando criacao de assinatura MiniPage')
+      return NextResponse.json({ error: 'O plano MiniPage ainda não está disponível para cobrança automática. Fale com o suporte.' }, { status: 500 })
+    }
+
+    const reason = planoTipo === 'equipe' ? 'MiniPage Pro - Plano Equipe' : planoTipo === 'minipage' ? 'MiniPage Pro - Plano MiniPage' : 'MiniPage Pro - Plano Profissional'
+    const transactionAmount = planoTipo === 'equipe' ? 149.90 : planoTipo === 'minipage' ? 29.90 : 79.90
 
     const payload: any = {
       reason,
