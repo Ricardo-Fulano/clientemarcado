@@ -4,6 +4,7 @@ import { useRouter, usePathname } from 'next/navigation'
 import { supabase } from '../lib/supabase'
 import { Suspense } from 'react'
 import BannerPagamentoSucesso from '../components/BannerPagamentoSucesso'
+import { normalizarPlano } from '../lib/planos'
 
 const CHECKOUT_URL = "https://www.mercadopago.com.br/subscriptions/checkout?preapproval_plan_id=1a0fb25c46214e45b0eb3d21b494e5d6"
 const G = 'linear-gradient(135deg,#3B82F6,#7C3AED)'
@@ -82,7 +83,7 @@ export default function PainelLayoutClient({ children }: { children: React.React
         return
       }
 
-      setPlanoTipo(p?.plano_tipo === 'equipe' ? 'equipe' : 'essencial')
+      setPlanoTipo(normalizarPlano(p?.plano_tipo))
 
       let st = p?.status_acesso || 'ativo'
 
@@ -152,7 +153,7 @@ export default function PainelLayoutClient({ children }: { children: React.React
   return (
     <>
       {status === 'em_atraso' && (
-        <div style={{background:'rgba(245,158,11,.08)',border:'1px solid rgba(245,158,11,.28)',borderRadius:'0',padding:'12px 24px',display:'flex',alignItems:'center',justifyContent:'space-between',flexWrap:'wrap',gap:'12px',position:'sticky',top:0,zIndex:15}}>
+        <div style={{background:'rgba(245,158,11,.08)',border:'1px solid rgba(245,158,11,.28)',borderRadius:'0',padding:'12px 24px',display:'flex',alignItems:'center',justifyContent:'space-between',flexWrap:'wrap',gap:'12px',position:'sticky',top:0,zIndex:40}}>
           <p style={{fontSize:'13px',fontWeight:600,color:'#FCD34D',margin:0}}>
             ⚠️ Sua mensalidade está pendente. Regularize o pagamento para evitar o bloqueio do acesso.
           </p>
@@ -162,7 +163,7 @@ export default function PainelLayoutClient({ children }: { children: React.React
         </div>
       )}
       {diasTrial !== null && status === 'ativo' && (
-        <div style={{background:'rgba(59,130,246,.08)',border:'1px solid rgba(96,165,250,.22)',borderRadius:'0',padding:'10px 24px',display:'flex',alignItems:'center',gap:'10px',position:'sticky',top:0,zIndex:15}}>
+        <div style={{background:'rgba(59,130,246,.08)',border:'1px solid rgba(96,165,250,.22)',borderRadius:'0',padding:'10px 24px',display:'flex',alignItems:'center',gap:'10px',position:'sticky',top:0,zIndex:40}}>
           <p style={{fontSize:'13px',fontWeight:600,color:'#93C5FD',margin:0}}>
             🕐 Seu teste grátis termina em {diasTrial <= 0 ? 'menos de 1 dia' : `${diasTrial} dia${diasTrial === 1 ? '' : 's'}`}. Ative seu plano para continuar usando o ClienteMarcado.
           </p>
