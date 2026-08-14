@@ -90,8 +90,8 @@ export default function Home() {
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
             </div>
             <div style={{display:'flex',flexDirection:'column',lineHeight:1.15}}>
-              <span style={{fontSize:'15px',fontWeight:800,color:'#F8F4F7',letterSpacing:'-0.02em'}}>MiniPage Pro</span>
-              <span style={{fontSize:'10px',fontWeight:600,color:'#B8AAB8',letterSpacing:'.02em'}}>por ClienteMarcado</span>
+              <span style={{fontSize:'17px',fontWeight:800,color:'#F8F4F7',letterSpacing:'-0.02em'}}>MiniPage Pro</span>
+              <span style={{fontSize:'11px',fontWeight:600,color:'#B8AAB8',letterSpacing:'.02em'}}>por ClienteMarcado</span>
             </div>
           </div>
           <div style={{display:'flex',gap:'12px',alignItems:'center'}}>
@@ -124,26 +124,26 @@ export default function Home() {
         </div>
 
         {/* MOCKUP VISUAL DA MINIPAGE */}
-        <div style={{display:'flex',justifyContent:'center',marginTop:'64px'}}>
-          <div style={{width:'290px',background:'#0B0610',border:'1px solid rgba(236,72,153,.30)',borderRadius:'30px',padding:'14px',boxShadow:'0 30px 70px rgba(139,92,246,.20), 0 0 40px rgba(236,72,153,.12)'}}>
-            <div style={{borderRadius:'20px',overflow:'hidden',background:'#120A14'}}>
-              <div style={{position:'relative',height:'86px',background:'linear-gradient(135deg,#EC4899,#D946EF,#8B5CF6)'}} />
-              <div style={{padding:'0 16px 16px',marginTop:'-28px',position:'relative'}}>
-                <div style={{width:'56px',height:'56px',borderRadius:'999px',background:G,border:'3px solid #08060A',boxShadow:'0 0 18px rgba(236,72,153,.4)'}} />
-                <p style={{fontSize:'14px',fontWeight:800,color:'#fff',marginTop:'8px'}}>seunome</p>
-                <p style={{fontSize:'11px',color:'#EC4899',fontWeight:600,marginBottom:'12px'}}>minipage.pro/seunome</p>
-                <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'6px',marginBottom:'10px'}}>
+        <div style={{display:'flex',justifyContent:'center',marginTop:'40px'}}>
+          <div style={{width:'330px',background:'#0B0610',border:'1px solid rgba(236,72,153,.30)',borderRadius:'32px',padding:'16px',boxShadow:'0 34px 80px rgba(139,92,246,.24), 0 0 46px rgba(236,72,153,.14)'}}>
+            <div style={{borderRadius:'22px',overflow:'hidden',background:'#120A14'}}>
+              <div style={{position:'relative',height:'98px',background:'linear-gradient(135deg,#EC4899,#D946EF,#8B5CF6)'}} />
+              <div style={{padding:'0 18px 18px',marginTop:'-32px',position:'relative'}}>
+                <div style={{width:'64px',height:'64px',borderRadius:'999px',background:G,border:'3px solid #08060A',boxShadow:'0 0 20px rgba(236,72,153,.4)'}} />
+                <p style={{fontSize:'16px',fontWeight:800,color:'#fff',marginTop:'9px'}}>seunome</p>
+                <p style={{fontSize:'12px',color:'#EC4899',fontWeight:600,marginBottom:'14px'}}>minipage.pro/seunome</p>
+                <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'7px',marginBottom:'11px'}}>
                   {['Links','Vídeos','Publi'].map(t=>(
-                    <div key={t} style={{background:'rgba(255,255,255,.05)',border:'1px solid rgba(236,72,153,.22)',borderRadius:'10px',padding:'8px 6px',textAlign:'center'}}>
-                      <p style={{fontSize:'9px',fontWeight:700,color:'#fff'}}>{t}</p>
+                    <div key={t} style={{background:'rgba(255,255,255,.05)',border:'1px solid rgba(236,72,153,.22)',borderRadius:'11px',padding:'9px 7px',textAlign:'center'}}>
+                      <p style={{fontSize:'10px',fontWeight:700,color:'#fff'}}>{t}</p>
                     </div>
                   ))}
                 </div>
-                <div style={{display:'flex',flexDirection:'column',gap:'6px'}}>
-                  {[{t:'Agendar horário',c:'#EC4899'},{t:'Painel de gestão',c:'#8B5CF6'}].map(l=>(
-                    <div key={l.t} style={{display:'flex',alignItems:'center',gap:'8px',background:'rgba(255,255,255,.04)',border:'1px solid rgba(255,255,255,.07)',borderRadius:'10px',padding:'8px 10px'}}>
-                      <span style={{width:'8px',height:'8px',borderRadius:'999px',background:l.c,flexShrink:0}}/>
-                      <span style={{fontSize:'10px',fontWeight:600,color:'#fff'}}>{l.t}</span>
+                <div style={{display:'flex',flexDirection:'column',gap:'7px'}}>
+                  {[{t:'Fale no WhatsApp',c:'#22C55E'},{t:'Redes sociais',c:'#8B5CF6'}].map(l=>(
+                    <div key={l.t} style={{display:'flex',alignItems:'center',gap:'9px',background:'rgba(255,255,255,.04)',border:'1px solid rgba(255,255,255,.07)',borderRadius:'11px',padding:'9px 11px'}}>
+                      <span style={{width:'9px',height:'9px',borderRadius:'999px',background:l.c,flexShrink:0}}/>
+                      <span style={{fontSize:'11px',fontWeight:600,color:'#fff'}}>{l.t}</span>
                     </div>
                   ))}
                 </div>
@@ -240,7 +240,7 @@ export default function Home() {
 
           </div>
 
-          <p style={{textAlign:'center',fontSize:'13px',color:'#B8AAB8',marginTop:'32px'}}>Todos os planos incluem 7 dias grátis para testar o ClienteMarcado.</p>
+          <p style={{textAlign:'center',fontSize:'13px',color:'#B8AAB8',marginTop:'32px'}}>Todos os planos incluem 7 dias grátis. MiniPage Pro é uma solução ClienteMarcado.</p>
         </div>
       </section>
       {/* SECAO DE DOR */}
@@ -300,7 +300,7 @@ export default function Home() {
       <footer style={{borderTop:'1px solid #2A1A2F',padding:'32px 24px',textAlign:'center'}}>
         <p style={{fontSize:'13px',color:'#B8AAB8'}}>© 2026 ClienteMarcado. MiniPage Pro é uma solução ClienteMarcado.</p>
         <p style={{fontSize:'11px',color:'#475569',marginTop:'4px'}}>CNPJ: 31.671.616/0001-18</p>
-        <a href='https://instagram.com/clientemarcado' target='_blank' rel='noreferrer' style={{fontSize:'15px',color:'#E1306C',textDecoration:'none',marginTop:'16px',marginBottom:'60px',display:'inline-flex',alignItems:'center',gap:'6px',fontWeight:700}}><svg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='#E1306C' strokeWidth='2' strokeLinecap='round' strokeLinejoin='round'><rect x='2' y='2' width='20' height='20' rx='5' ry='5'/><path d='M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z'/><line x1='17.5' y1='6.5' x2='17.51' y2='6.5'/></svg>@clientemarcado</a>
+        <a href='https://instagram.com/minipagepro' target='_blank' rel='noreferrer' style={{fontSize:'15px',color:'#E1306C',textDecoration:'none',marginTop:'16px',marginBottom:'60px',display:'inline-flex',alignItems:'center',gap:'6px',fontWeight:700}}><svg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='#E1306C' strokeWidth='2' strokeLinecap='round' strokeLinejoin='round'><rect x='2' y='2' width='20' height='20' rx='5' ry='5'/><path d='M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z'/><line x1='17.5' y1='6.5' x2='17.51' y2='6.5'/></svg>@minipagepro</a>
       </footer>
       <AssistenteComercial checkoutUrl={CHECKOUT_URL} />
     </div>
