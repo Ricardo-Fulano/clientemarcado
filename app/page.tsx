@@ -117,7 +117,7 @@ export default function Home() {
             Crie uma página moderna para divulgar no Instagram, WhatsApp e TikTok, apresentar seus conteúdos, destacar divulgações, vender produtos e organizar contatos em um painel simples.
           </p>
           <div className="hero-btns" style={{display:'flex',gap:'12px',justifyContent:'center',flexWrap:'wrap'}}>
-            <Link href="/aceite-plano" className="btn-p">Criar minha MiniPage grátis</Link>
+            <Link href="/aceite-plano?plano=minipage" className="btn-p">Criar minha MiniPage grátis</Link>
             <Link href="/demo" className="btn-s">Ver exemplo</Link>
           </div>
           <p style={{fontSize:'12px',color:'#B8AAB8',marginTop:'16px'}}>Teste grátis por 7 dias. Planos a partir de R$ 29,90/mês. Sem fidelidade.</p>
@@ -181,7 +181,7 @@ export default function Home() {
                   </div>
                 ))}
               </div>
-              <Link href="/cadastro" className="btn-s" style={{width:'100%',justifyContent:'center',height:'50px',fontSize:'14px'}}>
+              <Link href="/aceite-plano?plano=minipage" className="btn-p" style={{width:'100%',justifyContent:'center',height:'50px',fontSize:'14px'}}>
                 Começar com a MiniPage
               </Link>
               <p style={{textAlign:'center',fontSize:'12px',color:'#B8AAB8',marginTop:'14px'}}>Ideal para divulgar links, conteúdos, produtos, publicidades e contatos.</p>
@@ -232,7 +232,7 @@ export default function Home() {
                   </div>
                 ))}
               </div>
-              <Link href="/aceite-plano?plano=equipe" className="btn-s" style={{width:'100%',justifyContent:'center',height:'50px',fontSize:'14px'}}>
+              <Link href="/aceite-plano?plano=equipe" className="btn-p" style={{width:'100%',justifyContent:'center',height:'50px',fontSize:'14px'}}>
                 Quero o Plano Equipe
               </Link>
               <p style={{textAlign:'center',fontSize:'12px',color:'#B8AAB8',marginTop:'14px'}}>Ideal para negócios que precisam dividir acessos sem perder o controle.</p>
@@ -291,7 +291,7 @@ export default function Home() {
             Comece grátis e crie uma página completa para divulgar seus links, vídeos, publicidades, produtos, serviços e agenda.
           </p>
           <div className="cta-btns" style={{display:'flex',gap:'12px',justifyContent:'center',flexWrap:'wrap'}}>
-            <Link href="/aceite-plano" className="btn-p">Criar minha MiniPage grátis</Link>
+            <Link href="/aceite-plano?plano=minipage" className="btn-p">Criar minha MiniPage grátis</Link>
             <Link href="/login" className="btn-s">Já tenho conta</Link>
           </div>
           <p style={{fontSize:'13px',color:'#B8AAB8',marginTop:'20px'}}>Teste grátis por 7 dias. Planos a partir de R$ 29,90/mês. Sem fidelidade.</p>

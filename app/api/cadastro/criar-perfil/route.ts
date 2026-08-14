@@ -40,8 +40,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'user_id invalido' }, { status: 400 })
     }
 
-    // plano_tipo so aceita 'equipe' explicitamente; qualquer outra coisa vira 'essencial'
-    const planoValido = plano_tipo === 'equipe' ? 'equipe' : 'essencial'
+    // plano_tipo aceita 'equipe' e 'minipage' explicitamente; qualquer outra coisa vira 'essencial'
+    const planoValido = plano_tipo === 'equipe' ? 'equipe' : plano_tipo === 'minipage' ? 'minipage' : 'essencial'
 
     const supabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,

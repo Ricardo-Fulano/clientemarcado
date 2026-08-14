@@ -116,7 +116,7 @@ export default function Cadastro() {
       localStorage.setItem('clienteMarcadoAceitePlano', 'true')
     }
     const planoSalvo = typeof window !== 'undefined' ? localStorage.getItem('cm_plano') : null
-    const planoTipo = planoSalvo === 'equipe' ? 'equipe' : 'essencial'
+    const planoTipo = planoSalvo === 'equipe' ? 'equipe' : planoSalvo === 'minipage' ? 'minipage' : 'essencial'
     setLoading(true)
     setMensagem('')
     const redirectTo = montarRedirectTo()

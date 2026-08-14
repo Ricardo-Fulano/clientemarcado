@@ -52,6 +52,24 @@ html,body{overflow-x:hidden;width:100%;max-width:100%;background:#08060A}
 @media(max-width:480px){.card{padding:20px 16px;border-radius:18px}.hdr{padding:18px 0 24px}}
 `
 
+const CONFIG_PLANOS = {
+  minipage: {
+    nome: 'Plano MiniPage',
+    preco: 'R$ 29,90',
+    beneficios: ['Página profissional (minipage.pro)', 'Links rápidos e cards de destaque', 'Vídeos em destaque', 'Redes sociais e WhatsApp', 'Espaço para divulgações', 'Suporte por WhatsApp'],
+  },
+  essencial: {
+    nome: 'Plano Profissional',
+    preco: 'R$ 79,90',
+    beneficios: ['Agenda e agendamento online', 'Clientes e profissionais', 'Orçamentos e cobranças', 'Pagamentos e relatórios', 'Página pública de agendamento', 'Suporte por WhatsApp'],
+  },
+  equipe: {
+    nome: 'Plano Equipe',
+    preco: 'R$ 149,90',
+    beneficios: ['Tudo do Plano Profissional', 'Até 15 profissionais cadastrados', 'Login individual por profissional', 'Área "Meu Desempenho"', 'Financeiro protegido por acesso', 'Suporte por WhatsApp'],
+  },
+} as const
+
 export default function AceitePlano() {
   return (
     <Suspense fallback={null}>
@@ -63,7 +81,8 @@ export default function AceitePlano() {
 function AceitePlanoConteudo() {
   const searchParams = useSearchParams()
   const planoParam = searchParams.get('plano')
-  const planoValido = planoParam === 'equipe' ? 'equipe' : 'essencial'
+  const planoValido = planoParam === 'equipe' ? 'equipe' : planoParam === 'minipage' ? 'minipage' : 'essencial'
+  const plano = CONFIG_PLANOS[planoValido]
   const [c1, setC1] = useState(false)
   const [c2, setC2] = useState(false)
   const [c3, setC3] = useState(false)
@@ -112,7 +131,7 @@ function AceitePlanoConteudo() {
         <div className="card">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '12px', marginBottom: '16px' }}>
             <div>
-              <p style={{ fontSize: '18px', fontWeight: 800, color: '#F8F4F7', marginBottom: '8px' }}>Plano ClienteMarcado</p>
+              <p style={{ fontSize: '18px', fontWeight: 800, color: '#F8F4F7', marginBottom: '8px' }}>{plano.nome}</p>
               <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
                 <span className="badge" style={{ background: 'rgba(34,197,94,.14)', border: '1px solid rgba(34,197,94,.28)', color: '#22C55E' }}>7 dias grátis</span>
                 <span className="badge" style={{ background: 'rgba(42,26,47,.10)', border: '1px solid rgba(42,26,47,.18)', color: '#B8AAB8' }}>Sem fidelidade</span>
@@ -120,19 +139,19 @@ function AceitePlanoConteudo() {
               </div>
             </div>
             <div style={{ textAlign: 'right' }}>
-              <p style={{ fontSize: '28px', fontWeight: 800, color: '#EC4899', letterSpacing: '-0.02em', lineHeight: 1 }}>R$ 79,90</p>
+              <p style={{ fontSize: '28px', fontWeight: 800, color: '#EC4899', letterSpacing: '-0.02em', lineHeight: 1 }}>{plano.preco}</p>
               <p style={{ fontSize: '12px', color: '#B8AAB8' }}>/mês após o teste</p>
             </div>
           </div>
           <div style={{ borderTop: '1px solid rgba(42,26,47,.10)', paddingTop: '14px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
-            {['Agenda e agendamento online', 'Clientes e profissionais', 'Orçamentos e cobranças', 'Pagamentos e relatórios', 'Página pública de agendamento', 'Suporte por WhatsApp'].map(i => (
+            {plano.beneficios.map(i => (
               <div key={i} style={{ display: 'flex', gap: '6px', alignItems: 'center', fontSize: '12px', color: '#B8AAB8' }}>
                 <span style={{ color: '#22C55E', flexShrink: 0 }}>✓</span>{i}
               </div>
             ))}
           </div>
           <div style={{ marginTop: '14px', padding: '10px 14px', background: 'rgba(245,158,11,.08)', border: '1px solid rgba(245,158,11,.22)', borderRadius: '10px', fontSize: '12px', color: '#FCD34D', lineHeight: 1.6 }}>
-            ⚠ Você poderá testar gratuitamente por 7 dias. Após esse período, poderá ser cobrado R$ 79,90/mês, caso não cancele antes.
+            ⚠ Você poderá testar gratuitamente por 7 dias. Após esse período, poderá ser cobrado {plano.preco}/mês, caso não cancele antes.
           </div>
         </div>
 
@@ -174,7 +193,7 @@ function AceitePlanoConteudo() {
             <div className={'chk-box' + (c3 ? ' on' : '')}>
               {c3 && <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>}
             </div>
-            <p style={{ fontSize: '13px', color: '#B8AAB8', lineHeight: 1.5 }}>Estou ciente de que o plano possui 7 dias grátis e, após esse período, poderei ser cobrado R$ 79,90/mês, caso não cancele antes.</p>
+            <p style={{ fontSize: '13px', color: '#B8AAB8', lineHeight: 1.5 }}>Estou ciente de que o plano possui 7 dias grátis e, após esse período, poderei ser cobrado {plano.preco}/mês, caso não cancele antes.</p>
           </div>
 
           {erro && <div className="msg-err">{erro}</div>}
