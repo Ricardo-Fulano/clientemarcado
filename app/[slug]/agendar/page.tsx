@@ -5,6 +5,7 @@ import { useParams, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { Sun, Clock, Moon, Scissors, Sparkles, ClipboardList, ClipboardCheck, CalendarCheck, FileText, HeartPulse, ShieldPlus, Stethoscope, Check, Copy, Download, CalendarX2 } from 'lucide-react'
 import { resolverTema, getTema } from '../../lib/tema-publico'
+import { ehPlanoMiniPage } from '../../lib/planos'
 
 export default function Agendar() {
   const params = useParams()
@@ -531,6 +532,16 @@ export default function Agendar() {
   if (carregandoInicial) return (
     <div style={{minHeight:'100vh',background:`radial-gradient(ellipse at top,${tema.soft},transparent 50%),${tema.bg}`,display:'flex',alignItems:'center',justifyContent:'center',fontFamily:'-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif'}}>
       <p style={{color:tema.textMuted,fontSize:'14px'}}>Carregando...</p>
+    </div>
+  )
+
+  if (perfil && ehPlanoMiniPage(perfil.plano_tipo)) return (
+    <div style={{minHeight:'100vh',background:`radial-gradient(ellipse at top,${tema.soft},transparent 50%),${tema.bg}`,display:'flex',alignItems:'center',justifyContent:'center',fontFamily:'-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif',padding:'24px'}}>
+      <div style={{maxWidth:'420px',textAlign:'center',background:'var(--card)',border:`1.5px solid ${tema.border}`,borderRadius:'22px',padding:'44px 32px'}}>
+        <p style={{fontSize:'19px',fontWeight:800,color:'var(--text)',marginBottom:'10px'}}>Agenda online não disponível nesta MiniPage.</p>
+        <p style={{fontSize:'14px',color:'var(--text-muted)',lineHeight:1.6,marginBottom:'26px'}}>Este perfil usa a MiniPage apenas como página profissional de links, vídeos e divulgações.</p>
+        <Link href={`/${slug}`} style={{display:'inline-block',background:`linear-gradient(135deg,${tema.accent},${tema.accent2},${tema.secondary})`,color:tema.btnText,border:'1px solid rgba(255,255,255,.12)',borderRadius:'12px',padding:'12px 24px',fontSize:'14px',fontWeight:700,textDecoration:'none'}}>Voltar para a MiniPage</Link>
+      </div>
     </div>
   )
 

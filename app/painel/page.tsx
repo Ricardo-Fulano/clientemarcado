@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import Link from 'next/link'
 import PainelSidebar from '@/app/components/PainelSidebar'
+import { ehPlanoMiniPage } from '../lib/planos'
 
 const G='linear-gradient(135deg,#2563EB,#3B4FD4)'
 const AV='linear-gradient(135deg,rgba(37,99,235,.97),rgba(67,56,202,.85))'
@@ -78,11 +79,63 @@ const saldo=Math.max(0,saldoRaw)
   const nome=perfil?.nome_negocio||'seu negócio'
   const slug=perfil?.slug||''
   const ini=(nome||'C').charAt(0).toUpperCase()
-  const pubUrl=slug?`${typeof window!=='undefined'?window.location.origin:''}/${slug}`:''
+  const pubUrl=slug?`https://minipage.pro/${slug}`:''
   function copiarLink(){if(pubUrl)navigator.clipboard.writeText(pubUrl);setCopied(true);setTimeout(()=>setCopied(false),2000)}
   const fmtHora=(s:string)=>new Date(s).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})
   const fmtData=(s:string)=>new Date(s).toLocaleDateString('pt-BR',{day:'2-digit',month:'short'})
   if(loading)return(<div style={{minHeight:'100vh',background:'#08060A',display:'flex',alignItems:'center',justifyContent:'center',fontFamily:'system-ui'}}><p style={{color:'#B8AAB8',fontSize:'14px'}}>Carregando...</p></div>)
+
+  if(ehPlanoMiniPage(perfil?.plano_tipo)){
+    const acoesMiniPage=[
+      {h:'/painel/perfil',l:'Editar página',I:<IcoLink c="#EC4899" s={17}/>,bg:'rgba(236,72,153,.10)'},
+      {h:'/painel/perfil',l:'Adicionar links',I:<IcoTag c="#D946EF" s={17}/>,bg:'rgba(217,70,239,.10)'},
+      {h:'/painel/perfil',l:'Adicionar vídeos',I:<IcoBar c="#8B5CF6" s={17}/>,bg:'rgba(139,92,246,.10)'},
+      {h:'/painel/plano',l:'Fazer upgrade',I:<IcoCheck c="#22C55E" s={17}/>,bg:'rgba(34,197,94,.10)'},
+    ]
+    return(
+      <div style={{display:'flex',minHeight:'100vh',background:'#08060A',fontFamily:'-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif',overflowX:'hidden',width:'100%',position:'relative'}}>
+        <style dangerouslySetInnerHTML={{__html:CSS}}/>
+        <PainelSidebar nome={nome} tituloMobile="Início"/>
+        <div className="psb-main">
+          <div className="pg"><div className="bdy">
+            <div style={{marginBottom:'24px'}}>
+              <h1 style={{fontSize:'24px',fontWeight:800,color:'#F8F4F7',letterSpacing:'-0.04em',marginBottom:'5px'}}>Sua MiniPage está ativa</h1>
+              <p style={{fontSize:'13px',color:'#B8AAB8',lineHeight:1.5}}>Edite sua página profissional, adicione links, vídeos, divulgações e compartilhe seu link.</p>
+            </div>
+            {slug&&(
+              <div className="crd" style={{padding:'16px 20px',marginBottom:'24px',display:'flex',alignItems:'center',justifyContent:'space-between',gap:'12px',flexWrap:'wrap'}}>
+                <div style={{display:'flex',alignItems:'center',gap:'10px'}}>
+                  <div style={{width:'36px',height:'36px',borderRadius:'10px',background:'rgba(217,70,239,.14)',border:'1px solid rgba(217,70,239,.28)',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}><IcoLink c="#D946EF" s={18}/></div>
+                  <div><p style={{fontSize:'13px',fontWeight:600,color:'#F8F4F7',marginBottom:'2px'}}>Sua MiniPage está no ar</p><p style={{fontSize:'11px',color:'#B8AAB8'}}>{pubUrl.replace('https://','')}</p></div>
+                </div>
+                <div style={{display:'flex',gap:'8px',flexShrink:0}}>
+                  <a href={pubUrl} target="_blank" rel="noreferrer" className="btn-s" style={{height:'36px',fontSize:'12px'}}>Ver MiniPage</a>
+                  <button onClick={copiarLink} className="btn-p" style={{height:'36px',fontSize:'12px'}}>{copied?'Copiado!':'Copiar link'}</button>
+                </div>
+              </div>
+            )}
+            <p style={{fontSize:'14px',fontWeight:700,color:'#F8F4F7',marginBottom:'12px'}}>Acesso rápido</p>
+            <div className="atalho-grid">
+              {acoesMiniPage.map((a,i)=>(
+                <Link key={i} href={a.h} className="atalho">
+                  <div style={{width:'34px',height:'34px',borderRadius:'10px',background:a.bg,display:'flex',alignItems:'center',justifyContent:'center'}}>{a.I}</div>
+                  <p style={{fontSize:'13px',fontWeight:600,color:'#B8AAB8'}}>{a.l}</p>
+                </Link>
+              ))}
+            </div>
+            <div className="crd" style={{padding:'22px 24px',marginTop:'8px',display:'flex',alignItems:'center',justifyContent:'space-between',gap:'16px',flexWrap:'wrap'}}>
+              <div>
+                <p style={{fontSize:'14px',fontWeight:700,color:'#F8F4F7',marginBottom:'4px'}}>Precisa de agenda, clientes e financeiro?</p>
+                <p style={{fontSize:'12px',color:'#B8AAB8'}}>O plano Profissional inclui tudo isso, além da sua MiniPage.</p>
+              </div>
+              <Link href="/painel/plano" className="btn-p" style={{flexShrink:0}}>Ver planos</Link>
+            </div>
+          </div></div>
+        </div>
+      </div>
+    )
+  }
+
   return(
     <div style={{display:'flex',minHeight:'100vh',background:'#08060A',fontFamily:'-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif',overflowX:'hidden',width:'100%',position:'relative'}}>
       <style dangerouslySetInnerHTML={{__html:CSS}}/>

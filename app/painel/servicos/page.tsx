@@ -1,6 +1,7 @@
 'use client'
 import { useEffect, useState } from 'react'
 import { supabase } from '../../lib/supabase'
+import { ehPlanoMiniPage } from '../../lib/planos'
 import { Sparkles, Search, Plus, Pencil, Power, Trash2, Tag } from 'lucide-react'
 import PainelSidebar from '@/app/components/PainelSidebar'
 const G='linear-gradient(135deg,#EC4899,#D946EF,#8B5CF6)'
@@ -42,6 +43,18 @@ select option{background:#120A14;color:#F8F4F7}
 type Servico={id:string;nome:string;descricao?:string;preco?:number;duracao?:number;duracao_minutos?:number;categoria?:string;profissional_nome?:string;profissionais_ids?:string[];ativo:boolean}
 type Profissional={id:string;nome:string}
 export default function Servicos(){
+  const [bloqueadoMiniPage, setBloqueadoMiniPage] = useState(false)
+  const [verificandoPlanoMiniPage, setVerificandoPlanoMiniPage] = useState(true)
+  useEffect(() => {
+    async function verificarPlanoMiniPage() {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) { setVerificandoPlanoMiniPage(false); return }
+      const { data: perfil } = await supabase.from('perfis').select('plano_tipo').eq('user_id', user.id).maybeSingle()
+      if (perfil && ehPlanoMiniPage(perfil.plano_tipo)) setBloqueadoMiniPage(true)
+      setVerificandoPlanoMiniPage(false)
+    }
+    verificarPlanoMiniPage()
+  }, [])
   const [perfil,setPerfil]=useState<any>(null)
   const [servicos,setServicos]=useState<Servico[]>([])
   const [profs,setProfs]=useState<Profissional[]>([])
@@ -137,6 +150,26 @@ export default function Servicos(){
     return passaF&&passaB
   })
   if(loading)return(<div style={{minHeight:'100vh',background:'#08060A',display:'flex',alignItems:'center',justifyContent:'center',fontFamily:'system-ui'}}><p style={{color:'#B8AAB8',fontSize:'14px'}}>Carregando...</p></div>)
+  if (!verificandoPlanoMiniPage && bloqueadoMiniPage) {
+    return (
+      <div style={{display:'flex',minHeight:'100vh',background:'#08060A'}}>
+        <PainelSidebar nome={nome} tituloMobile="Serviços"/>
+        <div className="psb-main">
+          <div style={{minHeight:'60vh',display:'flex',alignItems:'center',justifyContent:'center',padding:'24px'}}>
+            <div style={{maxWidth:'460px',textAlign:'center',background:'radial-gradient(circle at top left,rgba(139,92,246,.09),transparent 60%),linear-gradient(145deg,rgba(24,16,27,.97),rgba(18,10,20,.99))',border:'1.5px solid #2A1A2F',borderRadius:'22px',padding:'44px 32px'}}>
+              <p style={{fontSize:'19px',fontWeight:800,color:'#F8F4F7',marginBottom:'10px'}}>Este recurso está disponível no Plano Profissional.</p>
+              <p style={{fontSize:'14px',color:'#B8AAB8',lineHeight:1.6,marginBottom:'26px'}}>Sua MiniPage está ativa, mas agenda, clientes, financeiro e relatórios fazem parte de um plano com mais recursos.</p>
+              <div style={{display:'flex',gap:'10px',justifyContent:'center',flexWrap:'wrap'}}>
+                <a href="/painel/plano" style={{background:'linear-gradient(135deg,#EC4899,#D946EF,#8B5CF6)',color:'#fff',border:'1px solid rgba(255,255,255,.12)',borderRadius:'12px',padding:'12px 24px',fontSize:'14px',fontWeight:700,textDecoration:'none',display:'inline-block'}}>Ver planos</a>
+                <a href="/painel" style={{background:'rgba(24,16,27,.92)',color:'#F8F4F7',border:'1px solid rgba(229,72,184,.28)',borderRadius:'12px',padding:'12px 24px',fontSize:'14px',fontWeight:600,textDecoration:'none',display:'inline-block'}}>Voltar ao início</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   return(
     <div style={{display:'flex',minHeight:'100vh',background:'#08060A',fontFamily:'-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif',overflowX:'hidden',width:'100%'}}>
       <style dangerouslySetInnerHTML={{__html:CSS}}/>

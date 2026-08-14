@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { headers } from 'next/headers'
 import { Zap, CalendarDays, CheckCircle, Sparkles, GraduationCap, Crown, Globe, Link2, Music2, ShoppingBag, PlayCircle, BadgeCheck, MapPin, Calendar } from 'lucide-react'
 import { resolverTema, getTema } from '../lib/tema-publico'
+import { ehPlanoMiniPage } from '../lib/planos'
 
 const CSS = `
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -207,7 +208,7 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
   const fotoPerfilUrl = perfil.foto_perfil_url || ''
   const tituloBotaoAgenda = perfil.pagina_titulo_botao_agenda || 'Agendar agora'
   // Toggles: null/undefined = comportamento antigo (tudo visivel)
-  const mostrarAgenda = perfil.pagina_mostrar_agenda !== false
+  const mostrarAgenda = perfil.pagina_mostrar_agenda !== false && !ehPlanoMiniPage(perfil.plano_tipo)
   const mostrarServicos = perfil.pagina_mostrar_servicos !== false
   const mostrarEquipe = perfil.pagina_mostrar_equipe !== false
   const mostrarPorQueAgendar = perfil.pagina_mostrar_por_que_agendar !== false

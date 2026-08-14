@@ -1,6 +1,7 @@
 'use client'
 import { useEffect, useState } from 'react'
 import { supabase } from '../../lib/supabase'
+import { ehPlanoMiniPage } from '../../lib/planos'
 import Link from 'next/link'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts'
 import PainelSidebar from '@/app/components/PainelSidebar'
@@ -31,6 +32,11 @@ select option{background:#120A14;color:#F8F4F7}
 `
 
 const STATUS_REALIZADO=['realizado','Realizado','compareceu','concluido','concluído','finalizado','confirmado']
+const LABELS_CATEGORIA_RECEITA: Record<string,string> = {
+  curso: 'Curso', mentoria: 'Mentoria', produto: 'Venda de produto',
+  publicidade: 'Publicidade', palestra: 'Palestra', afiliado: 'Afiliado', outro: 'Outro',
+}
+function labelCategoriaReceita(v: string) { return LABELS_CATEGORIA_RECEITA[v] || 'Outro' }
 
 const CustomTooltip=({active,payload,label}:any)=>{
   if(active&&payload&&payload.length){
@@ -45,12 +51,25 @@ const CustomTooltip=({active,payload,label}:any)=>{
 }
 
 export default function Relatorios(){
+  const [bloqueadoMiniPage, setBloqueadoMiniPage] = useState(false)
+  const [verificandoPlanoMiniPage, setVerificandoPlanoMiniPage] = useState(true)
+  useEffect(() => {
+    async function verificarPlanoMiniPage() {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) { setVerificandoPlanoMiniPage(false); return }
+      const { data: perfil } = await supabase.from('perfis').select('plano_tipo').eq('user_id', user.id).maybeSingle()
+      if (perfil && ehPlanoMiniPage(perfil.plano_tipo)) setBloqueadoMiniPage(true)
+      setVerificandoPlanoMiniPage(false)
+    }
+    verificarPlanoMiniPage()
+  }, [])
   const [perfil,setPerfil]=useState<any>(null)
   const [profs,setProfs]=useState<any[]>([])
   const [pagamentos,setPagamentos]=useState<any[]>([])
   const [despesas,setDespesas]=useState<any[]>([])
   const [agendamentos,setAgendamentos]=useState<any[]>([])
   const [orcProcsData,setOrcProcsData]=useState<any[]>([])
+  const [receitasAdicionais,setReceitasAdicionais]=useState<any[]>([])
   const [loading,setLoading]=useState(true)
   const [mes,setMes]=useState(new Date().toISOString().slice(0,7))
   const [profSel,setProfSel]=useState<any>(null)
@@ -79,6 +98,7 @@ export default function Relatorios(){
       {data:ags},
       {data:orcPags},
       {data:orcs},
+      {data:receitasAdic},
     ]=await Promise.all([
       supabase.from('profissionais').select('id,nome,cargo,foto_url').eq(perfilId?'perfil_id':'user_id',perfilId||user.id).order('nome'),
       supabase.from('pagamentos').select('valor,data,status,orcamento_id').eq('user_id',user.id),
@@ -86,6 +106,7 @@ export default function Relatorios(){
       supabase.from('agendamentos').select('id,profissional_id,cliente_nome,servicos(id,nome,preco),data_hora,status,valor').eq('user_id',user.id).order('data_hora',{ascending:false}),
       supabase.from('orcamento_pagamentos').select('valor,data,orcamento_id').eq('user_id',user.id),
       supabase.from('orcamentos').select('id,profissional_id,procedimentos_odonto,data').eq('user_id',user.id).not('procedimentos_odonto','is',null),
+      supabase.from('receitas_adicionais').select('*').eq('user_id',user.id),
     ])
 
     // ✅ Fonte única de pagamentos: orcamento_pagamentos + pagamentos manuais
@@ -101,6 +122,7 @@ export default function Relatorios(){
     setDespesas(desp||[])
     setAgendamentos(ags||[])
     setOrcProcsData(orcProcsFlat)
+    setReceitasAdicionais(receitasAdic||[])
     setLoading(false)
   }
 
@@ -125,8 +147,14 @@ export default function Relatorios(){
   // Para evitar duplicidade: se receitaPagamentos > 0, usa pagamentos. Senão, usa agendamentos.
   const receita = receitaPagamentos > 0 ? receitaPagamentos : receitaAgendamentos
 
+  // ✅ Receitas adicionais (Financeiro 2.0): entradas manuais fora de atendimentos/pagamentos.
+  // Mantidas SEPARADAS da receita de atendimentos em toda a granularidade diária/semanal,
+  // por segurança — só entram nos totais de PERÍODO (KPIs e gráfico financeiro do período).
+  const receitasAdicionaisMes = receitasAdicionais.filter(r=>(r.data||'').startsWith(mes)).reduce((a,r)=>a+(Number(r.valor)||0),0)
+  const receitaTotal = receita + receitasAdicionaisMes
+
   const despTotal=despMes.reduce((a,d)=>a+(d.valor||0),0)
-  const lucro=receita-despTotal
+  const lucro=receitaTotal-despTotal
   const lucroPositivo=lucro>=0
 
   // ✅ Resumo por serviço — usa agendamentos realizados
@@ -158,9 +186,9 @@ export default function Relatorios(){
 
   const melhorComRec=profStats.find(p=>p.rec>0)||null
 
-  // ✅ Gráfico financeiro usa receita unificada
+  // ✅ Gráfico financeiro usa receita total do período (atendimentos + receitas adicionais)
   const chartData=[
-    {name:'Receita',valor:receita,fill:'#22C55E'},
+    {name:'Receita',valor:receitaTotal,fill:'#22C55E'},
     {name:'Despesas',valor:despTotal,fill:'#EF4444'},
     {name:'Resultado',valor:Math.abs(lucro),fill:'#EC4899'},
   ]
@@ -213,6 +241,26 @@ export default function Relatorios(){
 
   if(loading)return(<div style={{minHeight:'100vh',background:'#08060A',display:'flex',alignItems:'center',justifyContent:'center',fontFamily:'system-ui'}}><p style={{color:'#B8AAB8',fontSize:'14px'}}>Carregando relatórios...</p></div>)
 
+  if (!verificandoPlanoMiniPage && bloqueadoMiniPage) {
+    return (
+      <div style={{display:'flex',minHeight:'100vh',background:'#08060A'}}>
+        <PainelSidebar nome={perfil?.nome_negocio||''} tituloMobile="Relatórios"/>
+        <div className="psb-main">
+          <div style={{minHeight:'60vh',display:'flex',alignItems:'center',justifyContent:'center',padding:'24px'}}>
+            <div style={{maxWidth:'460px',textAlign:'center',background:'radial-gradient(circle at top left,rgba(139,92,246,.09),transparent 60%),linear-gradient(145deg,rgba(24,16,27,.97),rgba(18,10,20,.99))',border:'1.5px solid #2A1A2F',borderRadius:'22px',padding:'44px 32px'}}>
+              <p style={{fontSize:'19px',fontWeight:800,color:'#F8F4F7',marginBottom:'10px'}}>Este recurso está disponível no Plano Profissional.</p>
+              <p style={{fontSize:'14px',color:'#B8AAB8',lineHeight:1.6,marginBottom:'26px'}}>Sua MiniPage está ativa, mas agenda, clientes, financeiro e relatórios fazem parte de um plano com mais recursos.</p>
+              <div style={{display:'flex',gap:'10px',justifyContent:'center',flexWrap:'wrap'}}>
+                <a href="/painel/plano" style={{background:'linear-gradient(135deg,#EC4899,#D946EF,#8B5CF6)',color:'#fff',border:'1px solid rgba(255,255,255,.12)',borderRadius:'12px',padding:'12px 24px',fontSize:'14px',fontWeight:700,textDecoration:'none',display:'inline-block'}}>Ver planos</a>
+                <a href="/painel" style={{background:'rgba(24,16,27,.92)',color:'#F8F4F7',border:'1px solid rgba(229,72,184,.28)',borderRadius:'12px',padding:'12px 24px',fontSize:'14px',fontWeight:600,textDecoration:'none',display:'inline-block'}}>Voltar ao início</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   return(
     <div style={{display:'flex',minHeight:'100vh',background:'#08060A',fontFamily:'-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif',overflowX:'hidden',width:'100%',position:'relative'}}>
       <style dangerouslySetInnerHTML={{__html:CSS}}/>
@@ -242,7 +290,7 @@ export default function Relatorios(){
           {/* KPIs */}
           <div className="kpi-grid">
             {[
-              {l:'Receita total',d:receitaPagamentos>0?'Pagamentos confirmados':'Agendamentos realizados',v:fBRL(receita),c:'#22C55E',bg:'rgba(34,197,94,.08)',bd:'rgba(34,197,94,.20)',ico:'↑'},
+              {l:'Receita total',d:receitasAdicionaisMes>0?`Atendimentos: ${fBRL(receita)} · Adicionais: ${fBRL(receitasAdicionaisMes)}`:(receitaPagamentos>0?'Pagamentos confirmados':'Agendamentos realizados'),v:fBRL(receitaTotal),c:'#22C55E',bg:'rgba(34,197,94,.08)',bd:'rgba(34,197,94,.20)',ico:'↑'},
               {l:'Despesas',d:'Custos registrados no período',v:fBRL(despTotal),c:'#EF4444',bg:'rgba(239,68,68,.08)',bd:'rgba(239,68,68,.18)',ico:'↓'},
               {l:'Lucro estimado',d:'Receita menos despesas',v:fBRL(lucro),c:'#EC4899',bg:'rgba(236,72,153,.08)',bd:'rgba(236,72,153,.22)',ico:lucroPositivo?'✓':'⚠'},
               {l:'Melhor profissional',d:melhorComRec?fBRL(melhorComRec.rec)+' no período':'Nenhuma receita no período',v:melhorComRec?.nome||'Sem destaque ainda',c:'#C4B5FD',bg:'rgba(139,92,246,.08)',bd:'rgba(139,92,246,.18)',ico:'🏆'},
@@ -345,7 +393,7 @@ export default function Relatorios(){
           <div style={{background:'radial-gradient(circle at top left,rgba(139,92,246,.08),transparent 35%),linear-gradient(145deg,rgba(24,16,27,.97),rgba(18,10,20,.99))',border:'1.5px solid #2A1A2F',borderRadius:'20px',padding:'24px',marginBottom:'22px',boxShadow:'0 20px 48px rgba(0,0,0,.28)'}}>
             <p style={{fontSize:'16px',fontWeight:700,color:'#F8F4F7',marginBottom:'4px'}}>Desempenho financeiro do período</p>
             <p style={{fontSize:'13px',color:'#B8AAB8',marginBottom:'18px'}}>Compare receita, despesas e lucro estimado no período selecionado.</p>
-            {receita===0&&despTotal===0?(
+            {receitaTotal===0&&despTotal===0?(
               <div style={{height:'200px',display:'flex',alignItems:'center',justifyContent:'center',flexDirection:'column',gap:'8px'}}>
                 <p style={{fontSize:'13px',color:'#B8AAB8'}}>Sem dados financeiros neste período.</p>
               </div>
@@ -410,6 +458,42 @@ export default function Relatorios(){
               </>
             )}
           </div>
+
+          {/* Resumo de receitas adicionais — nao mistura com Resumo por servico nem Melhor profissional */}
+          {receitasAdicionaisMes>0&&(()=>{
+            const catMap:Record<string,{nome:string,total:number,qtd:number}>={}
+            receitasAdicionais.filter(r=>(r.data||'').startsWith(mes)).forEach((r:{categoria?:string;valor?:number})=>{
+              const cat=labelCategoriaReceita(r.categoria||'outro')
+              if(!catMap[cat])catMap[cat]={nome:cat,total:0,qtd:0}
+              catMap[cat].total+=(Number(r.valor)||0)
+              catMap[cat].qtd+=1
+            })
+            const cats=Object.values(catMap).sort((a,b)=>b.total-a.total)
+            return(
+              <div style={{marginBottom:'22px'}}>
+                <p style={{fontSize:'16px',fontWeight:700,color:'#F8F4F7',marginBottom:'4px'}}>Resumo de receitas adicionais</p>
+                <p style={{fontSize:'13px',color:'#B8AAB8',marginBottom:'16px'}}>Cursos, mentorias, produtos e outras entradas registradas manualmente no período selecionado.</p>
+                <div style={{background:'radial-gradient(circle at top left,rgba(34,197,94,.08),transparent 40%),linear-gradient(145deg,rgba(24,16,27,.97),rgba(18,10,20,.99))',border:'1.5px solid rgba(34,197,94,.22)',borderRadius:'14px',padding:'14px 18px',marginBottom:'16px',display:'flex',alignItems:'center',justifyContent:'space-between',flexWrap:'wrap' as const,gap:'10px'}}>
+                  <div>
+                    <p style={{fontSize:'10px',fontWeight:700,color:'#22C55E',textTransform:'uppercase' as const,letterSpacing:'.08em',marginBottom:'3px'}}>Total de receitas adicionais</p>
+                    <p style={{fontSize:'12px',color:'#B8AAB8'}}>{cats.reduce((a,c)=>a+c.qtd,0)} lançamento{cats.reduce((a,c)=>a+c.qtd,0)!==1?'s':''}</p>
+                  </div>
+                  <p style={{fontSize:'22px',fontWeight:800,color:'#22C55E'}}>{fBRL(receitasAdicionaisMes)}</p>
+                </div>
+                <div style={{background:'linear-gradient(145deg,rgba(24,16,27,.97),rgba(18,10,20,.99))',border:'1.5px solid #2A1A2F',borderRadius:'16px',overflow:'hidden'}}>
+                  {cats.map((cat,i)=>(
+                    <div key={cat.nome} style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:'12px',padding:'13px 18px',borderBottom:i<cats.length-1?'1px solid rgba(255,255,255,.05)':'none'}}>
+                      <div style={{minWidth:0,flex:1}}>
+                        <p style={{fontSize:'14px',fontWeight:600,color:'#F8F4F7',marginBottom:'2px'}}>{cat.nome}</p>
+                        <p style={{fontSize:'12px',color:'#B8AAB8'}}>{cat.qtd} lançamento{cat.qtd!==1?'s':''}</p>
+                      </div>
+                      <p style={{fontSize:'15px',fontWeight:800,color:'#22C55E',flexShrink:0}}>{fBRL(cat.total)}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )
+          })()}
 
           {/* Procedimentos odontológicos */}
           {orcProcsData.length>0&&(()=>{

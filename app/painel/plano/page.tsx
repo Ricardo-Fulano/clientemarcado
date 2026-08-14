@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import { CreditCard, Crown, Wallet, CheckCircle2, MessageCircle, Users } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import PainelSidebar from '../../components/PainelSidebar'
+import { normalizarPlano } from '../../lib/planos'
 
 const G = 'linear-gradient(135deg,#EC4899,#D946EF,#8B5CF6)'
 const WPP = '5511941059063'
@@ -11,28 +12,43 @@ const WPP = '5511941059063'
 const LIMITES_PROFISSIONAIS: Record<string, number> = { essencial: 3, equipe: 15 }
 
 const PLANOS = {
-  essencial: {
-    nome: 'Plano Essencial',
-    preco: 'R$ 79,90',
-    desc: 'Plano ideal para profissionais autônomas e pequenos negócios que querem organizar agenda, clientes e financeiro em um só lugar.',
+  minipage: {
+    nome: 'MiniPage',
+    preco: 'R$ 29,90',
+    desc: 'Página profissional com links, vídeos e divulgações — ideal pra quem ainda não precisa de agenda.',
     beneficios: [
-      '1 login administrador',
-      'Até 3 profissionais cadastrados',
+      'MiniPage profissional (minipage.pro/seunome)',
+      'Foto, banner e descrição',
+      'Redes sociais e links rápidos',
+      'Cards de destaque',
+      'Vídeos em destaque',
+      'Espaço para divulgações e publicidades',
+      'Botão WhatsApp',
+    ],
+  },
+  essencial: {
+    // Nome comercial atualizado pra "Profissional" (Fase 2). O valor salvo no banco
+    // continua 'essencial' por compatibilidade - so o texto exibido mudou.
+    nome: 'Profissional',
+    preco: 'R$ 79,90',
+    desc: 'Tudo da MiniPage, com agenda online, clientes e financeiro organizados em um só lugar.',
+    beneficios: [
+      'Tudo do plano MiniPage',
       'Agenda online',
-      'Página pública personalizada',
+      'Serviços e horários',
       'Cadastro de clientes',
-      'Serviços e profissionais',
-      'Controle financeiro',
       'Cobranças',
+      'Controle financeiro',
       'Relatórios',
+      'Até 3 profissionais cadastrados',
     ],
   },
   equipe: {
-    nome: 'Plano Equipe',
+    nome: 'Equipe',
     preco: 'R$ 149,90',
     desc: 'Plano ideal para salões, studios e clínicas que precisam dividir acessos sem expor o financeiro.',
     beneficios: [
-      '1 login administrador',
+      'Tudo do plano Profissional',
       'Até 15 profissionais cadastrados',
       'Login individual para cada profissional',
       'Cada profissional vê apenas a própria agenda',
@@ -40,7 +56,6 @@ const PLANOS = {
       'Administradora com acesso completo',
       'Financeiro, cobranças e relatórios protegidos',
       'Controle de equipe',
-      'Página pública personalizada',
     ],
   },
 } as const
@@ -79,18 +94,19 @@ export default function MeuPlano() {
     carregar()
   }, [])
 
-  const planoAtual = perfil?.plano_tipo === 'equipe' ? 'equipe' : 'essencial'
+  const planoNormalizado = normalizarPlano(perfil?.plano_tipo)
+  const planoAtual = planoNormalizado === 'equipe' ? 'equipe' : planoNormalizado === 'minipage' ? 'minipage' : 'essencial'
   const status = STATUS_LABEL[perfil?.status_acesso] || STATUS_LABEL.ativo
-  const limiteAtual = LIMITES_PROFISSIONAIS[planoAtual]
+  const limiteAtual = LIMITES_PROFISSIONAIS[planoAtual] || 0
   const nome = perfil?.nome_negocio || ''
 
   const linkWppUpgrade = `https://wa.me/${WPP}?text=${encodeURIComponent('Olá! Quero alterar meu plano do ClienteMarcado para o Plano Equipe.')}`
-  const linkWppDowngrade = `https://wa.me/${WPP}?text=${encodeURIComponent('Olá! Quero solicitar a mudança do meu plano do ClienteMarcado para o Plano Essencial.')}`
+  const linkWppDowngrade = `https://wa.me/${WPP}?text=${encodeURIComponent('Olá! Quero solicitar a mudança do meu plano do ClienteMarcado para o plano MiniPage.')}`
   const linkWppSuporte = `https://wa.me/${WPP}?text=${encodeURIComponent('Olá! Quero alterar meu plano do ClienteMarcado.')}`
 
   function tentarDowngrade() {
-    if (totalProfissionais > LIMITES_PROFISSIONAIS.essencial) {
-      setAvisoDowngrade(`Para voltar ao Plano Essencial, deixe no máximo ${LIMITES_PROFISSIONAIS.essencial} profissionais cadastrados.`)
+    if (totalProfissionais > 0) {
+      setAvisoDowngrade('Para voltar ao plano MiniPage, remova os profissionais cadastrados (o MiniPage não inclui agenda nem equipe).')
       return
     }
     setAvisoDowngrade('')
@@ -102,7 +118,7 @@ export default function MeuPlano() {
       <style dangerouslySetInnerHTML={{ __html: `
         .mp-card{background:radial-gradient(circle at top left,rgba(139,92,246,.09),transparent 55%),linear-gradient(145deg,rgba(24,16,27,.97),rgba(18,10,20,.99));border:1.5px solid #2A1A2F;border-radius:20px}
         .mp-card.atual{border-color:rgba(236,72,153,.45);box-shadow:0 0 40px rgba(236,72,153,.10)}
-        .mp-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:20px}
+        .mp-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:20px}
         @media(max-width:860px){.mp-grid{grid-template-columns:1fr}}
       `}} />
       <PainelSidebar nome={nome} tituloMobile="Meu plano" />
@@ -133,10 +149,12 @@ export default function MeuPlano() {
                 <p style={{ fontSize: '14px', color: '#B8AAB8', lineHeight: 1.65, marginBottom: '20px' }}>{PLANOS[planoAtual].desc}</p>
 
                 <div style={{ display: 'flex', gap: '24px', flexWrap: 'wrap', paddingTop: '16px', borderTop: '1px solid #2A1A2F' }}>
-                  <div>
-                    <p style={{ fontSize: '11px', color: '#B8AAB8', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: '4px' }}>Profissionais cadastrados</p>
-                    <p style={{ fontSize: '15px', fontWeight: 700, color: totalProfissionais >= limiteAtual ? '#F87171' : '#F8F4F7' }}>{totalProfissionais} de {limiteAtual}</p>
-                  </div>
+                  {planoAtual !== 'minipage' && (
+                    <div>
+                      <p style={{ fontSize: '11px', color: '#B8AAB8', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: '4px' }}>Profissionais cadastrados</p>
+                      <p style={{ fontSize: '15px', fontWeight: 700, color: totalProfissionais >= limiteAtual ? '#F87171' : '#F8F4F7' }}>{totalProfissionais} de {limiteAtual}</p>
+                    </div>
+                  )}
                   {perfil?.trial_ends_at && (
                     <div>
                       <p style={{ fontSize: '11px', color: '#B8AAB8', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: '4px' }}>Teste grátis até</p>
@@ -154,7 +172,7 @@ export default function MeuPlano() {
 
               {/* CARDS COMPARATIVOS */}
               <div className="mp-grid" style={{ marginBottom: '28px' }}>
-                {(['essencial', 'equipe'] as const).map(tipo => {
+                {(['minipage', 'essencial', 'equipe'] as const).map(tipo => {
                   const p = PLANOS[tipo]
                   const ehAtual = tipo === planoAtual
                   return (
@@ -178,8 +196,13 @@ export default function MeuPlano() {
                         </a>
                       )}
                       {!ehAtual && tipo === 'essencial' && (
+                        <a href={linkWppSuporte} target="_blank" rel="noopener noreferrer" style={{ background: G, color: '#fff', border: '1px solid rgba(255,255,255,.12)', borderRadius: '12px', padding: '12px', fontSize: '13px', fontWeight: 700, textAlign: 'center', textDecoration: 'none' }}>
+                          Alterar para Profissional
+                        </a>
+                      )}
+                      {!ehAtual && tipo === 'minipage' && (
                         <button type="button" onClick={tentarDowngrade} style={{ width: '100%', background: 'rgba(24,16,27,.92)', color: '#F8F4F7', border: '1px solid rgba(229,72,184,.28)', borderRadius: '12px', padding: '12px', fontSize: '13px', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
-                          Solicitar mudança para Essencial
+                          Solicitar mudança para MiniPage
                         </button>
                       )}
                     </div>
@@ -210,7 +233,7 @@ export default function MeuPlano() {
                 </div>
               )}
 
-              <p style={{ fontSize: '12px', color: '#B8AAB8', marginTop: '24px', lineHeight: 1.6 }}>Em breve você poderá alterar seu plano diretamente pelo painel. Por enquanto, fale com nosso suporte pelo WhatsApp para confirmar a troca.</p>
+              <p style={{ fontSize: '12px', color: '#B8AAB8', marginTop: '24px', lineHeight: 1.6 }}>Alterações de plano são feitas pelo suporte até a automação de cobrança estar disponível.</p>
             </>
           )}
         </div>

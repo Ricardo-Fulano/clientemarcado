@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { supabase } from '../lib/supabase'
 import NotificacoesSino from './NotificacoesSino'
+import { ehPlanoMiniPage } from '../lib/planos'
 
 const ADMIN_ID = '618aedd1-f174-4419-b4b2-b81b8dd1c47e'
 const AV = 'linear-gradient(135deg,rgba(236,72,153,.95),rgba(139,92,246,.85))'
@@ -58,10 +59,14 @@ export default function PainelSidebar({ nome = '', tituloMobile = 'Painel' }: Pr
   const [isAdmin, setIsAdmin] = useState(false)
   const [role, setRole] = useState<'loading' | 'admin' | 'profissional'>('loading')
   const [nomeProfissionalVinculo, setNomeProfissionalVinculo] = useState('')
+  const [souMiniPage, setSouMiniPage] = useState(false)
   useEffect(() => {
     supabase.auth.getUser().then(async ({ data: { user } }) => {
       if (!user) return
       if (user.id === ADMIN_ID) setIsAdmin(true)
+      // Busca o plano do perfil pra filtrar o menu (Fase 2 - suporte tecnico ao plano MiniPage)
+      const { data: perfil } = await supabase.from('perfis').select('plano_tipo').eq('user_id', user.id).maybeSingle()
+      if (perfil) setSouMiniPage(ehPlanoMiniPage(perfil.plano_tipo))
       const { data: { session } } = await supabase.auth.getSession()
       const token = session?.access_token
       if (!token) { setRole('admin'); return }
@@ -103,9 +108,17 @@ export default function PainelSidebar({ nome = '', tituloMobile = 'Painel' }: Pr
     { h: '/painel/alterar-senha', l: 'Alterar senha' },
   ]
 
+  // Plano MiniPage (R$29,90): so pagina profissional, sem agenda/financeiro/equipe
+  const LINKS_MINIPAGE = [
+    { h: '/painel',        l: 'Início'        },
+    { h: '/painel/suporte',l: 'Suporte'       },
+    { h: '/painel/perfil', l: 'Configurações' },
+    { h: '/painel/plano',  l: 'Meu plano'      },
+  ]
+
   const NavLinks = ({ onClick }: { onClick?: () => void }) => (
     <>
-      {(isProfissional ? LINKS_PROFISSIONAL : LINKS.filter(it => it.h !== '/painel/parceiros' || isAdmin)).map(it => (
+      {(isProfissional ? LINKS_PROFISSIONAL : souMiniPage ? LINKS_MINIPAGE : LINKS.filter(it => it.h !== '/painel/parceiros' || isAdmin)).map(it => (
         <Link key={it.h} href={it.h} onClick={onClick}
           className={'nl' + (ativo(it.h) ? ' on' : '')}>
           {it.l}

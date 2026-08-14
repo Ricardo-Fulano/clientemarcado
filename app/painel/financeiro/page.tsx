@@ -1,561 +1,256 @@
 'use client'
 import { useEffect, useState } from 'react'
 import { supabase } from '../../lib/supabase'
-import { Wallet, TrendingUp, TrendingDown, Clock, Search, Plus, Pencil, Trash2 } from 'lucide-react'
+import { ehPlanoMiniPage } from '../../lib/planos'
+import Link from 'next/link'
+import { CreditCard, AlertTriangle, Hourglass, CircleDollarSign, Search } from 'lucide-react'
 import PainelSidebar from '@/app/components/PainelSidebar'
 
-const G = 'linear-gradient(135deg,#EC4899,#D946EF,#8B5CF6)'
-const CATEGORIAS = ['Aluguel','Água','Luz','Internet','Produtos','Funcionários','Comissão','Manutenção','Marketing','Taxas','Outros']
-const FORMAS = ['Pix','Dinheiro','Cartão','Boleto','Transferência','Outro']
-const STATUS_REALIZADO = ['realizado','Realizado','compareceu','concluido','concluído','finalizado','confirmado']
+const G='linear-gradient(135deg,#EC4899,#D946EF,#8B5CF6)'
 
-const CSS = `
-.btn-despesa-editar:hover{background:rgba(236,72,153,.10)!important;border-color:rgba(236,72,153,.32)!important;color:#F9A8D4!important}
-.btn-despesa-excluir:hover{background:rgba(239,68,68,.10)!important;border-color:rgba(239,68,68,.28)!important;color:#FCA5A5!important}
+const CSS=`
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html,body{overflow-x:hidden;width:100%;max-width:100%;background:#08060A}
 input,select,textarea{color-scheme:dark}
-select option{background:#120A14;color:#F8F4F7}
+.sb{width:220px;min-height:100vh;background:radial-gradient(circle at top left,rgba(139,92,246,.14),transparent 32%),linear-gradient(180deg,#120A14,#08060A);border-right:1px solid #2A1A2F;display:flex;flex-direction:column;position:fixed;top:0;left:0;z-index:30}
+.sb-logo{padding:20px 16px 16px;border-bottom:1px solid #2A1A2F;display:flex;align-items:center;gap:8px}
+.sb-ic{width:28px;height:28px;border-radius:8px;background:${G};display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 0 22px rgba(236,72,153,.28)}
+.sb nav{flex:1;padding:10px 8px;overflow-y:auto}
+.nl{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:8px;margin-bottom:2px;text-decoration:none;font-size:13px;font-weight:500;color:#B8AAB8;transition:all .18s;border:1px solid transparent;white-space:nowrap}
+.nl:hover{background:rgba(236,72,153,.10);color:#F8F4F7;border-color:rgba(236,72,153,.24)}
+.nl.on{background:${G};color:#fff;font-weight:700;box-shadow:0 0 26px rgba(236,72,153,.28),inset 0 1px 0 rgba(255,255,255,.10);border-color:rgba(255,255,255,.10)}
+.sb-foot{padding:10px;border-top:1px solid #2A1A2F}
+.mob-hdr{display:none;align-items:center;justify-content:space-between;padding:0 16px;height:56px;background:rgba(8,6,10,.94);backdrop-filter:blur(20px);border-bottom:1px solid #2A1A2F;position:sticky;top:0;z-index:20;width:100%}
+.drw{position:fixed;top:0;left:0;bottom:0;width:280px;max-width:85vw;background:linear-gradient(180deg,#120A14,#08060A);z-index:50;transform:translateX(-100%);transition:transform .28s ease;display:flex;flex-direction:column;border-right:1px solid #2A1A2F}
+.drw.open{transform:translateX(0)}
+.ovl{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:49;opacity:0;pointer-events:none;transition:opacity .28s}
+.ovl.open{opacity:1;pointer-events:auto}
+.main{margin-left:220px;flex:1;min-height:100vh;width:calc(100% - 220px);max-width:calc(100% - 220px)}
 .pg{background:radial-gradient(circle at top left,rgba(139,92,246,.20),transparent 32%),radial-gradient(circle at top right,rgba(236,72,153,.14),transparent 28%),linear-gradient(135deg,#08060A 0%,#120A14 45%,#08060A 100%);min-height:100vh;overflow-x:hidden}
 .bdy{max-width:1200px;margin:0 auto;padding:28px 32px 80px;width:100%;box-sizing:border-box}
-.crd{background:radial-gradient(circle at top left,rgba(139,92,246,.08),transparent 38%),linear-gradient(145deg,rgba(24,16,27,.97),rgba(18,10,20,.99));border:1.5px solid #2A1A2F;border-radius:18px;box-shadow:0 20px 48px rgba(0,0,0,.28)}
-.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:22px}
-.tab-btn{padding:10px 20px;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;border:1.5px solid #2A1A2F;background:rgba(24,16,27,.86);color:#B8AAB8;transition:all .18s;font-family:inherit;white-space:nowrap}
-.tab-btn:hover{border-color:rgba(236,72,153,.32);color:#F8F4F7}
-.tab-btn.on{background:${G};border-color:transparent;color:#fff;box-shadow:0 4px 16px rgba(236,72,153,.25)}
-.inp{width:100%;background:rgba(24,16,27,.88);border:1.5px solid #2A1A2F;border-radius:10px;padding:10px 14px;font-size:14px;color:#F8F4F7;outline:none;font-family:inherit;box-sizing:border-box}
-.inp:focus{border-color:rgba(236,72,153,.45)}
-.lbl{font-size:11px;font-weight:700;color:#B8AAB8;text-transform:uppercase;letter-spacing:.06em;display:block;margin-bottom:6px}
-.btn-p{background:${G};color:#fff;border:none;border-radius:10px;height:44px;padding:0 20px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:6px;box-shadow:0 4px 14px rgba(236,72,153,.25)}
-.btn-s{background:rgba(24,16,27,.85);color:#B8AAB8;border:1px solid #2A1A2F;border-radius:10px;height:44px;padding:0 16px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:6px;transition:all .18s}
-.btn-s:hover{border-color:rgba(236,72,153,.32);color:#F8F4F7}
+.crd{background:radial-gradient(circle at top left,rgba(139,92,246,.10),transparent 38%),linear-gradient(145deg,rgba(24,16,27,.97),rgba(18,10,20,.99));border:1.5px solid #2A1A2F;border-radius:18px;box-shadow:0 20px 48px rgba(0,0,0,.34),inset 0 1px 0 rgba(255,255,255,.04)}
+.btn-p{background:${G};color:#fff;border:1px solid rgba(255,255,255,.12);border-radius:12px;height:44px;padding:0 20px;font-size:13px;font-weight:700;display:inline-flex;align-items:center;gap:6px;white-space:nowrap;transition:all .18s;font-family:inherit;cursor:pointer;text-decoration:none}
+.btn-p:hover{transform:translateY(-1px)}
+.btn-s{background:rgba(24,16,27,.88);color:#B8AAB8;border:1px solid #2A1A2F;border-radius:10px;height:42px;padding:0 16px;font-size:13px;font-weight:600;display:inline-flex;align-items:center;gap:6px;white-space:nowrap;transition:all .18s;font-family:inherit;cursor:pointer;text-decoration:none}
+.btn-s:hover{border-color:rgba(139,92,246,.38);color:#fff}
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px}
+.pill{padding:7px 14px;border-radius:999px;font-size:12px;font-weight:600;cursor:pointer;border:1.5px solid #2A1A2F;background:rgba(24,16,27,.86);color:#B8AAB8;white-space:nowrap;transition:all .18s;font-family:inherit}.fil-cob{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px;width:100%}.fil-cob .pill{flex:1 1 calc(33% - 8px);text-align:center;justify-content:center;display:flex;align-items:center}@media(max-width:480px){.fil-cob .pill{flex:1 1 calc(50% - 8px)}}
+.pill:hover{background:rgba(236,72,153,.10);border-color:rgba(236,72,153,.32);color:#F8F4F7}
+.pill.on{background:${G};border-color:transparent;color:#fff;box-shadow:0 0 16px rgba(236,72,153,.28)}
 @media(max-width:1023px){
-  .psb-main .bdy{padding:14px 16px 80px!important}
+  .sb{display:none!important}.main{margin-left:0!important;width:100%!important;max-width:100%!important}
+  .mob-hdr{display:flex!important}.bdy{padding:14px 16px 80px!important}
   .kpi-grid{grid-template-columns:1fr 1fr!important;gap:10px!important}
-  .tabs-row{flex-wrap:wrap!important;gap:6px!important}
-  .tabs-row .tab-btn{flex:1 1 calc(33% - 6px);justify-content:center;text-align:center}
-  .form-2col{grid-template-columns:1fr!important}
+  .topo-r{flex-direction:column!important;align-items:stretch!important;gap:10px!important}
+  .topo-btns{flex-direction:row!important;gap:8px!important}
+  .topo-btns a,.topo-btns button{flex:1!important;justify-content:center!important}
 }
-@media(max-width:480px){
-  .kpi-grid{grid-template-columns:1fr 1fr!important}
-  .tabs-row .tab-btn{flex:1 1 calc(33% - 6px);font-size:12px;padding:8px 10px}
-}
-@media(max-width:1023px){
-  .resumo-grid{grid-template-columns:1fr!important}
-  .periodo-input{font-size:12px!important;padding:6px 10px!important;min-width:0!important;width:100%!important}
-  .periodo-wrap{width:100%!important}
-  .header-fin{flex-direction:column!important;align-items:stretch!important}
-}
+@media(max-width:480px){.kpi-grid{grid-template-columns:1fr!important}}
+.btn-cob{transition:all .15s}
+.btn-cob:hover{border-color:rgba(236,72,153,.32)!important;background:rgba(236,72,153,.08)!important}
 `
 
-function fmtBRL(v: number) { return `R$ ${(v || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` }
-function fmtData(d: string) { if (!d) return ''; const [a, m, di] = d.split('-'); return `${di}/${m}/${a}` }
-function mesNome(ym: string) {
-  const [a, m] = ym.split('-')
-  const ns = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro']
-  return `${ns[parseInt(m) - 1]} de ${a}`
+const FILTROS=['Todas','Em aberto','Vencidas','Parciais','Pagas','Canceladas']
+
+function nrm(s:any){return String(s||'').toLowerCase().trim()}
+function num(v:any){const n=Number(v??0);return Number.isFinite(n)?n:0}
+function getTotal(c:any){return num(c.total??c.valor_total??c.valor??0)}
+function getPago(c:any){return num(c.valor_pago??c.pago??c.total_pago??0)}
+function getSaldo(c:any){
+  if(c.saldo_restante!=null)return num(c.saldo_restante)
+  if(c.saldo!=null)return num(c.saldo)
+  return Math.max(getTotal(c)-getPago(c),0)
 }
+function ePaga(c:any){
+  const s=nrm(c.status)
+  const total=getTotal(c),pago=getPago(c),saldo=getSaldo(c)
+  if(s==='pago'||s==='finalizado')return true
+  if(total>0&&pago>=total)return true
+  if(total>0&&saldo<=0&&pago>0)return true
+  return false
+}
+function eCancelada(c:any){return nrm(c.status).includes('cancel')}
+function ePendente(c:any){
+  if(ePaga(c)||eCancelada(c))return false
+  const saldo=getSaldo(c)
+  if(saldo>0)return true
+  const s=nrm(c.status)
+  return s==='aberto'||s==='em aberto'||s==='parcialmente pago'||s==='pendente'
+}
+function fBRL(v:number){return 'R$ '+(v||0).toLocaleString('pt-BR',{minimumFractionDigits:2})}
+function fData(d:string){if(!d)return'';const[a,m,di]=d.split('-');return di+'/'+m+'/'+a}
 
-export default function Financeiro() {
-  const [userId, setUserId] = useState('')
-  const [perfil, setPerfil] = useState<any>(null)
-  const [pagamentos, setPagamentos] = useState<any[]>([])
-  const [despesas, setDespesas] = useState<any[]>([])
-  const [orcamentos, setOrcamentos] = useState<any[]>([])
-  const [loading, setLoading] = useState(true)
-  const [aba, setAba] = useState<'resumo' | 'pagamentos' | 'despesas'>('resumo')
-  const [mes, setMes] = useState(new Date().toISOString().slice(0, 7))
-  const [busca, setBusca] = useState('')
-  const [msg, setMsg] = useState('')
-  const [pagSel, setPagSel] = useState<any>(null)
-  // Despesa form
-  const [showForm, setShowForm] = useState(false)
-  const [editId, setEditId] = useState<string | null>(null)
-  const [fDesc, setFDesc] = useState('')
-  const [fCat, setFCat] = useState('Aluguel')
-  const [fCatOutro, setFCatOutro] = useState('')
-  const [fValor, setFValor] = useState('')
-  const [fData, setFData] = useState(new Date().toISOString().split('T')[0])
-  const [fForma, setFForma] = useState('Pix')
-  const [fTipo, setFTipo] = useState('Variável')
-  const [fRepete, setFRepete] = useState(false)
-  const [fObs, setFObs] = useState('')
-  const [salvando, setSalvando] = useState(false)
+export default function Cobrancas(){
+  const [bloqueadoMiniPage, setBloqueadoMiniPage] = useState(false)
+  const [verificandoPlanoMiniPage, setVerificandoPlanoMiniPage] = useState(true)
+  useEffect(() => {
+    async function verificarPlanoMiniPage() {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) { setVerificandoPlanoMiniPage(false); return }
+      const { data: perfil } = await supabase.from('perfis').select('plano_tipo').eq('user_id', user.id).maybeSingle()
+      if (perfil && ehPlanoMiniPage(perfil.plano_tipo)) setBloqueadoMiniPage(true)
+      setVerificandoPlanoMiniPage(false)
+    }
+    verificarPlanoMiniPage()
+  }, [])
+  const [perfil,setPerfil]=useState<any>(null)
+  const [cobrancas,setCobrancas]=useState<any[]>([])
+  const [loading,setLoading]=useState(true)
+  const [busca,setBusca]=useState('')
+  const [filtro,setFiltro]=useState('Todas')
 
-  useEffect(() => { init() }, [])
-  useEffect(() => { if (userId) loadDados() }, [mes, userId])
-
-  async function init() {
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) { window.location.href = '/login'; return }
-    setUserId(user.id)
-    const { data: p } = await supabase.from('perfis').select('*').eq('user_id', user.id).maybeSingle()
-    setPerfil(p)
-  }
-
-  async function loadDados() {
-    // ✅ Mesma lógica do Relatório: buscar as 4 fontes
-    const [
-      { data: orcPags },
-      { data: pagsManuais },
-      { data: agends },
-      { data: desps },
-      { data: orcs },
-    ] = await Promise.all([
-      supabase.from('orcamento_pagamentos').select('*').eq('user_id', userId).order('data', { ascending: false }),
-      supabase.from('pagamentos').select('*').eq('user_id', userId).order('created_at', { ascending: false }),
-      supabase.from('agendamentos').select('id,cliente_nome,data_hora,status,valor,servicos(preco)').eq('user_id', userId).order('data_hora', { ascending: false }),
-      supabase.from('despesas').select('*').eq('user_id', userId).order('data', { ascending: false }),
-      supabase.from('orcamentos').select('id,saldo_restante,status,valor_pago,total').eq('user_id', userId),
+  useEffect(()=>{load()},[])
+  async function load(){
+    const {data:{user}}=await supabase.auth.getUser()
+    if(!user){window.location.href='/login';return}
+    const [{data:p},{data:orcs}]=await Promise.all([
+      supabase.from('perfis').select('*').eq('user_id',user.id).single(),
+      supabase.from('orcamentos').select('*').eq('user_id',user.id).order('created_at',{ascending:false}),
     ])
-
-    // 1. Pagamentos de orçamento (orcamento_pagamentos)
-    const pagsDeOrc = (orcPags || []).map((p: any) => ({
-      ...p,
-      origem: 'Orçamento',
-      forma: p.forma || 'Pix',
-      cliente_nome: p.cliente_nome || null,
-    }))
-
-    // 2. Pagamentos manuais sem vínculo com orçamento
-    const pagsSemOrc = (pagsManuais || [])
-      .filter((p: any) => !p.orcamento_id)
-      .map((p: any) => ({ ...p, origem: 'Manual' }))
-
-    // 3. Agendamentos realizados com valor (fallback quando não há pagamentos)
-    const pagsAgend = (agends || [])
-      .filter((a: any) => STATUS_REALIZADO.includes(a.status || '') && ((a.valor || a.servicos?.preco || 0) > 0))
-      .map((a: any) => ({
-        id: a.id,
-        cliente_nome: a.cliente_nome || null,
-        data: a.data_hora ? a.data_hora.split('T')[0] : null,
-        valor: Number(a.valor || a.servicos?.preco || 0),
-        forma: 'Pix',
-        origem: 'Agendamento',
-        orcamento_id: null,
-      }))
-
-    // ✅ Combinar TODAS as fontes sem fallback
-    const todosPags = [...pagsDeOrc, ...pagsSemOrc, ...pagsAgend]
-      .sort((a: any, b: any) => (b.data || '').localeCompare(a.data || ''))
-
-    setPagamentos(todosPags)
-    setDespesas(desps || [])
-    setOrcamentos(orcs || [])
+    setPerfil(p)
+    setCobrancas(orcs||[])
     setLoading(false)
   }
 
-  // ✅ Filtro de período por data do pagamento
-  const pagMes = pagamentos.filter(p => {
-    const data = p.data || p.data_pagamento || ''
-    return data.startsWith(mes)
-  })
-  const despMes = despesas.filter(d => (d.data || '').startsWith(mes))
+  const nome=perfil?.nome_negocio||''
 
-  // ✅ Mesma lógica do Relatório: pagamentos reais (Manual + Orçamento) têm prioridade;
-  // só usa agendamentos realizados como fallback quando não há nenhum pagamento no mês
-  const receitaPagamentosMes = pagMes.filter(p => p.origem !== 'Agendamento').reduce((a, p) => a + (Number(p.valor) || 0), 0)
-  const receitaAgendamentosMes = pagMes.filter(p => p.origem === 'Agendamento').reduce((a, p) => a + (Number(p.valor) || 0), 0)
-  const recebidoMes = receitaPagamentosMes > 0 ? receitaPagamentosMes : receitaAgendamentosMes
-  const despesasMes = despMes.reduce((a, d) => a + (Number(d.valor) || 0), 0)
-  const resultado = recebidoMes - despesasMes
+  const aReceber=cobrancas.filter(ePendente).reduce((a,o)=>a+getSaldo(o),0)
+  const vencidas=cobrancas.filter(o=>o.vencimento&&new Date(o.vencimento)<new Date()&&ePendente(o)).length
+  const parciais=cobrancas.filter(o=>ePendente(o)&&getPago(o)>0&&getSaldo(o)>0).length
+  const emAberto=cobrancas.filter(o=>ePendente(o)&&nrm(o.status)==='aberto').length
 
-  // ✅ A receber = saldo pendente excluindo Pago/Finalizado/Cancelado
-  const aReceber = (orcamentos || [])
-    .filter((o: any) => {
-      const status = String(o.status || '').toLowerCase()
-      const saldo = Number(o.saldo_restante || 0)
-      return !['pago', 'finalizado', 'cancelado'].includes(status) && saldo > 0
-    })
-    .reduce((a: number, o: any) => a + Number(o.saldo_restante || 0), 0)
-
-  function resetForm() {
-    setFDesc(''); setFCat('Aluguel'); setFCatOutro(''); setFValor('')
-    setFData(new Date().toISOString().split('T')[0]); setFForma('Pix')
-    setFTipo('Variável'); setFRepete(false); setFObs(''); setEditId(null)
-  }
-
-  function abrirEditar(d: any) {
-    setEditId(d.id); setFDesc(d.descricao || ''); setFCat(d.categoria || 'Aluguel')
-    setFCatOutro(d.categoria_outros || ''); setFValor(d.valor ? String(d.valor) : '')
-    setFData(d.data || new Date().toISOString().split('T')[0]); setFForma(d.forma_pagamento || 'Pix')
-    setFTipo(d.tipo_despesa || 'Variável'); setFRepete(d.repetir_mensalmente || false)
-    setFObs(d.observacao || ''); setShowForm(true); window.scrollTo({ top: 0, behavior: 'smooth' })
-  }
-
-  async function salvarDespesa() {
-    if (!fDesc.trim()) { setMsg('Informe a descrição.'); return }
-    if (fCat === 'Outros' && !fCatOutro.trim()) { setMsg('Especifique a despesa.'); return }
-    if (!fValor || parseFloat(fValor.replace(',', '.')) <= 0) { setMsg('Informe o valor.'); return }
-    setSalvando(true)
-    const payload = {
-      user_id: userId,
-      descricao: fDesc.trim(),
-      categoria: fCat,
-      categoria_outros: fCat === 'Outros' ? fCatOutro.trim() : null,
-      valor: parseFloat(fValor.replace(',', '.')) || 0,
-      data: fData,
-      forma_pagamento: fForma,
-      tipo_despesa: fTipo,
-      repetir_mensalmente: fRepete,
-      observacao: fObs.trim() || null,
-      updated_at: new Date().toISOString(),
-    }
-    if (editId) {
-      await supabase.from('despesas').update(payload).eq('id', editId)
-    } else {
-      await supabase.from('despesas').insert(payload)
-    }
-    await loadDados(); resetForm(); setShowForm(false); setSalvando(false)
-    setMsg(editId ? 'Despesa atualizada!' : 'Despesa cadastrada!')
-    setTimeout(() => setMsg(''), 3000)
-  }
-
-  async function excluirDespesa(id: string) {
-    if (!confirm('Excluir esta despesa?')) return
-    await supabase.from('despesas').delete().eq('id', id)
-    await loadDados()
-  }
-
-  const nome = perfil?.nome_negocio || ''
-  const pagFiltrados = pagMes.filter(p => {
-    return !busca || [p.cliente_nome, p.forma, p.descricao, p.origem].some((v: any) => String(v || '').toLowerCase().includes(busca.toLowerCase()))
-  })
-  const despFiltradas = despMes.filter(d => {
-    return !busca || [d.descricao, d.categoria].some((v: any) => String(v || '').toLowerCase().includes(busca.toLowerCase()))
+  const filtradas=cobrancas.filter(o=>{
+    const s=nrm(o.status)
+    const pago=getPago(o),saldo=getSaldo(o)
+    const passaF=
+      filtro==='Todas'?ePendente(o):
+      filtro==='Em aberto'?(ePendente(o)&&(s==='aberto'||s==='em aberto')):
+      filtro==='Vencidas'?(ePendente(o)&&!!o.vencimento&&new Date(o.vencimento)<new Date()):
+      filtro==='Parciais'?(ePendente(o)&&pago>0&&saldo>0):
+      filtro==='Pagas'?ePaga(o):
+      filtro==='Canceladas'?eCancelada(o):
+      ePendente(o)
+    const passaB=!busca||[o.cliente_nome,o.cliente_whatsapp,o.tipo].some((v:string)=>String(v||'').toLowerCase().includes(busca.toLowerCase()))
+    return passaF&&passaB
   })
 
-  if (loading) return (
-    <div style={{ minHeight: '100vh', background: '#08060A', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'system-ui' }}>
-      <p style={{ color: '#B8AAB8', fontSize: '14px' }}>Carregando...</p>
-    </div>
-  )
+  function enviarWpp(orc:any){
+    const tel=(orc.cliente_whatsapp||'').replace(/\D/g,'')
+    if(!tel)return
+    const nome_cliente=orc.cliente_nome||''
+    const saldo=fBRL(getSaldo(orc))
+    const msg='Olá, '+nome_cliente+'! Identificamos um saldo pendente conosco no valor de '+saldo+'. Para manter seus atendimentos em dia, por favor entre em contato para regularizar. Obrigado!'
+    window.open('https://wa.me/55'+tel+'?text='+encodeURIComponent(msg),'_blank')
+  }
 
-  return (
-    <div style={{ display: 'flex', minHeight: '100vh', background: '#08060A', fontFamily: '-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif', overflowX: 'hidden', width: '100%' }}>
-      <style dangerouslySetInnerHTML={{ __html: CSS }} />
-      <PainelSidebar nome={nome} tituloMobile="Financeiro" />
+  if(loading)return(<div style={{minHeight:'100vh',background:'#08060A',display:'flex',alignItems:'center',justifyContent:'center',fontFamily:'system-ui'}}><p style={{color:'#B8AAB8',fontSize:'14px'}}>Carregando...</p></div>)
+
+  if (!verificandoPlanoMiniPage && bloqueadoMiniPage) {
+    return (
+      <div style={{display:'flex',minHeight:'100vh',background:'#08060A'}}>
+        <PainelSidebar nome={nome} tituloMobile="Cobranças"/>
+        <div className="psb-main">
+          <div style={{minHeight:'60vh',display:'flex',alignItems:'center',justifyContent:'center',padding:'24px'}}>
+            <div style={{maxWidth:'460px',textAlign:'center',background:'radial-gradient(circle at top left,rgba(139,92,246,.09),transparent 60%),linear-gradient(145deg,rgba(24,16,27,.97),rgba(18,10,20,.99))',border:'1.5px solid #2A1A2F',borderRadius:'22px',padding:'44px 32px'}}>
+              <p style={{fontSize:'19px',fontWeight:800,color:'#F8F4F7',marginBottom:'10px'}}>Este recurso está disponível no Plano Profissional.</p>
+              <p style={{fontSize:'14px',color:'#B8AAB8',lineHeight:1.6,marginBottom:'26px'}}>Sua MiniPage está ativa, mas agenda, clientes, financeiro e relatórios fazem parte de um plano com mais recursos.</p>
+              <div style={{display:'flex',gap:'10px',justifyContent:'center',flexWrap:'wrap'}}>
+                <a href="/painel/plano" style={{background:'linear-gradient(135deg,#EC4899,#D946EF,#8B5CF6)',color:'#fff',border:'1px solid rgba(255,255,255,.12)',borderRadius:'12px',padding:'12px 24px',fontSize:'14px',fontWeight:700,textDecoration:'none',display:'inline-block'}}>Ver planos</a>
+                <a href="/painel" style={{background:'rgba(24,16,27,.92)',color:'#F8F4F7',border:'1px solid rgba(229,72,184,.28)',borderRadius:'12px',padding:'12px 24px',fontSize:'14px',fontWeight:600,textDecoration:'none',display:'inline-block'}}>Voltar ao início</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  return(
+    <div style={{display:'flex',minHeight:'100vh',background:'#08060A',fontFamily:'-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif',overflowX:'hidden',width:'100%'}}>
+      <style dangerouslySetInnerHTML={{__html:CSS}}/>
+      <PainelSidebar nome={nome} tituloMobile="Cobranças"/>
       <div className="psb-main">
         <div className="pg"><div className="bdy">
 
-          {msg && <div style={{ position: 'fixed', top: '72px', left: '50%', transform: 'translateX(-50%)', background: 'rgba(24,16,27,.96)', border: '1px solid rgba(236,72,153,.35)', borderRadius: '10px', padding: '10px 20px', fontSize: '13px', fontWeight: 600, color: '#F8F4F7', zIndex: 99, whiteSpace: 'nowrap', boxShadow: '0 8px 24px rgba(0,0,0,.5)' }}>{msg}</div>}
-
-          {/* Header */}
-          <div className="header-fin" style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '16px', flexWrap: 'wrap', marginBottom: '24px' }}>
+          <div className="topo-r" style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',gap:'16px',flexWrap:'wrap',marginBottom:'24px'}}>
             <div>
-              <h1 style={{ fontSize: '22px', fontWeight: 800, color: '#F8F4F7', letterSpacing: '-0.04em', marginBottom: '5px' }}>Financeiro</h1>
-              <p style={{ fontSize: '13px', color: '#B8AAB8' }}>Acompanhe recebimentos, despesas e o resultado do seu negócio.</p>
-            </div>
-            <div className="periodo-wrap" style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
-              <div style={{ width: '100%' }}>
-                <p style={{ fontSize: '10px', fontWeight: 700, color: '#B8AAB8', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: '4px' }}>Período</p>
-                <input type="month" value={mes} onChange={e => setMes(e.target.value)} className="periodo-input"
-                  style={{ background: 'rgba(24,16,27,.88)', border: '1.5px solid #2A1A2F', borderRadius: '10px', padding: '8px 12px', fontSize: '13px', color: '#F8F4F7', outline: 'none', fontFamily: 'inherit', width: '100%', boxSizing: 'border-box' as any }} />
-              </div>
+              <h1 style={{fontSize:'22px',fontWeight:800,color:'#F8F4F7',letterSpacing:'-0.04em',marginBottom:'5px'}}>Cobranças</h1>
+              <p style={{fontSize:'13px',color:'#B8AAB8'}}>Veja quem ainda precisa pagar e envie cobranças com rapidez.</p>
             </div>
           </div>
 
-          {/* ✅ Aviso sobre fonte de receita (mesmo padrao do Relatorio) */}
-          {receitaPagamentosMes===0 && receitaAgendamentosMes>0 && (
-            <div style={{background:'rgba(250,204,21,.10)',border:'1px solid rgba(250,204,21,.28)',borderRadius:'10px',padding:'10px 16px',fontSize:'12px',color:'#FACC15',marginBottom:'16px'}}>
-              💡 Receita calculada a partir de agendamentos realizados. Para usar pagamentos confirmados, registre-os na aba Pagamentos.
-            </div>
-          )}
-
-          {/* KPIs */}
           <div className="kpi-grid">
             {[
-              { l: 'Recebido no mês', v: fmtBRL(recebidoMes), c: '#22C55E', bg: 'rgba(34,197,94,.08)', bd: 'rgba(34,197,94,.20)', I: TrendingUp },
-              { l: 'Despesas do mês', v: fmtBRL(despesasMes), c: '#EF4444', bg: 'rgba(239,68,68,.08)', bd: 'rgba(239,68,68,.18)', I: TrendingDown },
-              { l: 'Resultado estimado', v: fmtBRL(resultado), c: '#EC4899', bg: 'rgba(236,72,153,.08)', bd: 'rgba(236,72,153,.22)', I: Wallet },
-              { l: 'A receber', v: fmtBRL(aReceber), c: '#F8F4F7', bg: '#2A1A2F', bd: '#2A1A2F', I: Clock },
-            ].map(k => (
-              <div key={k.l} className="crd" style={{ padding: '18px 16px', background: `radial-gradient(circle at top left,${k.bg},transparent 60%),linear-gradient(145deg,rgba(24,16,27,.97),rgba(18,10,20,.99))`, border: `1.5px solid ${k.bd}` }}>
-                <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: k.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '10px' }}><k.I size={18} color={k.c} /></div>
-                <p style={{ fontSize: '10px', fontWeight: 700, color: '#B8AAB8', textTransform: 'uppercase' as const, letterSpacing: '.08em', marginBottom: '3px' }}>{k.l}</p>
-                <p style={{ fontSize: '22px', fontWeight: 800, color: k.c, lineHeight: 1 }}>{k.v}</p>
+              {l:'A RECEBER',sub:'Total pendente',v:fBRL(aReceber),c:'#F8F4F7',bg:'#2A1A2F',bd:'#2A1A2F',I:CreditCard},
+              {l:'VENCIDAS',sub:'Cobranças em atraso',v:String(vencidas),c:'#EF4444',bg:'rgba(239,68,68,.08)',bd:'rgba(239,68,68,.18)',I:AlertTriangle},
+              {l:'PARCIAIS',sub:'Pagas em parte',v:String(parciais),c:'#8B5CF6',bg:'rgba(139,92,246,.08)',bd:'rgba(139,92,246,.18)',I:CircleDollarSign},
+              {l:'EM ABERTO',sub:'Aguardando pagamento',v:String(emAberto),c:'#FACC15',bg:'rgba(250,204,21,.08)',bd:'rgba(250,204,21,.18)',I:Hourglass},
+            ].map(k=>(
+              <div key={k.l} className="crd" style={{padding:'18px 16px',background:'radial-gradient(circle at top left,'+k.bg+',transparent 60%),linear-gradient(145deg,rgba(24,16,27,.97),rgba(18,10,20,.99))',border:'1.5px solid '+k.bd}}>
+                <div style={{width:'36px',height:'36px',borderRadius:'10px',background:k.bg,display:'flex',alignItems:'center',justifyContent:'center',marginBottom:'10px'}}><k.I size={18} color={k.c}/></div>
+                <p style={{fontSize:'10px',fontWeight:700,color:'#B8AAB8',textTransform:'uppercase',letterSpacing:'.08em',marginBottom:'3px'}}>{k.l}</p>
+                <p style={{fontSize:'11px',color:'#B8AAB8',marginBottom:'6px'}}>{k.sub}</p>
+                <p style={{fontSize:'22px',fontWeight:800,color:k.c,lineHeight:1}}>{k.v}</p>
               </div>
             ))}
           </div>
 
-          {/* Abas */}
-          <div className="tabs-row" style={{ display: 'flex', gap: '8px', marginBottom: '24px' }}>
-            {(['resumo', 'pagamentos', 'despesas'] as const).map(a => (
-              <button key={a} onClick={() => { setAba(a); setBusca('') }} className={`tab-btn${aba === a ? ' on' : ''}`}>
-                {a === 'resumo' ? 'Resumo' : a === 'pagamentos' ? 'Pagamentos' : 'Despesas'}
-              </button>
-            ))}
+          <div style={{position:'relative',marginBottom:'12px'}}>
+            <Search size={15} color="#B8AAB8" style={{position:'absolute',left:'14px',top:'50%',transform:'translateY(-50%)',pointerEvents:'none'}}/>
+            <input type="text" placeholder="Buscar cliente, serviço, WhatsApp ou cobrança..." value={busca} onChange={e=>setBusca(e.target.value)}
+              style={{width:'100%',background:'rgba(24,16,27,.88)',border:'1.5px solid #2A1A2F',borderRadius:'12px',padding:'11px 16px 11px 42px',fontSize:'13px',color:'#F8F4F7',outline:'none',fontFamily:'inherit',boxSizing:'border-box'}}/>
           </div>
 
-          {/* ABA RESUMO */}
-          {aba === 'resumo' && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              <div className="resumo-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-                <div className="crd" style={{ padding: '20px' }}>
-                  <p style={{ fontSize: '14px', fontWeight: 700, color: '#F8F4F7', marginBottom: '14px' }}>Pagamentos recentes</p>
-                  {pagMes.length === 0 ? (
-                    <p style={{ fontSize: '13px', color: '#B8AAB8' }}>Nenhum pagamento em {mesNome(mes)}.</p>
-                  ) : pagMes.slice(0, 5).map((p, i) => (
-                    <div key={p.id || i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderBottom: '1px solid rgba(255,255,255,.06)' }}>
-                      <div>
-                        <p style={{ fontSize: '13px', fontWeight: 600, color: '#F8F4F7' }}>{p.cliente_nome || p.descricao || '—'}</p>
-                        <p style={{ fontSize: '11px', color: '#B8AAB8' }}>{p.forma || p.forma_pagamento} · {fmtData(p.data)}{p.origem ? ` · ${p.origem}` : ''}</p>
-                      </div>
-                      <p style={{ fontSize: '14px', fontWeight: 700, color: '#22C55E' }}>{fmtBRL(Number(p.valor))}</p>
-                    </div>
-                  ))}
-                  {pagMes.length > 5 && <p style={{ fontSize: '12px', marginTop: '8px', cursor: 'pointer', color: '#EC4899' }} onClick={() => setAba('pagamentos')}>Ver todos ({pagMes.length})</p>}
-                </div>
-                <div className="crd" style={{ padding: '20px' }}>
-                  <p style={{ fontSize: '14px', fontWeight: 700, color: '#F8F4F7', marginBottom: '14px' }}>Últimas despesas</p>
-                  {despMes.length === 0 ? (
-                    <p style={{ fontSize: '13px', color: '#B8AAB8' }}>Nenhuma despesa em {mesNome(mes)}.</p>
-                  ) : despMes.slice(0, 5).map(d => (
-                    <div key={d.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderBottom: '1px solid rgba(255,255,255,.06)' }}>
-                      <div>
-                        <p style={{ fontSize: '13px', fontWeight: 600, color: '#F8F4F7' }}>{d.descricao}</p>
-                        <p style={{ fontSize: '11px', color: '#B8AAB8' }}>{d.categoria} · {fmtData(d.data)}</p>
-                      </div>
-                      <p style={{ fontSize: '14px', fontWeight: 700, color: '#EF4444' }}>{fmtBRL(Number(d.valor))}</p>
-                    </div>
-                  ))}
-                  {despMes.length > 5 && <p style={{ fontSize: '12px', cursor: 'pointer', color: '#EC4899', marginTop: '8px' }} onClick={() => setAba('despesas')}>Ver todas ({despMes.length})</p>}
-                </div>
-              </div>
+          <div className="fil-cob">
+            {FILTROS.map(f=>(<button key={f} onClick={()=>setFiltro(f)} className={'pill'+(filtro===f?' on':'')}>{f}</button>))}
+          </div>
+
+          {filtradas.length===0?(
+            <div className="crd" style={{padding:'56px 24px',textAlign:'center'}}>
+              <div style={{width:'56px',height:'56px',borderRadius:'16px',background:'rgba(236,72,153,.14)',border:'1px solid rgba(236,72,153,.28)',display:'flex',alignItems:'center',justifyContent:'center',margin:'0 auto 16px'}}><CreditCard size={24} color="#EC4899"/></div>
+              <p style={{fontSize:'16px',fontWeight:700,color:'#F8F4F7',marginBottom:'8px'}}>
+                {filtro==='Todas'?'Nenhuma cobrança pendente':filtro==='Pagas'?'Nenhuma cobrança paga':filtro==='Canceladas'?'Nenhuma cobrança cancelada':'Nenhuma cobrança encontrada'}
+              </p>
+              <p style={{fontSize:'13px',color:'#B8AAB8',lineHeight:1.6,marginBottom:'6px'}}>
+                {filtro==='Todas'?'Quando houver orçamento pendente ou saldo restante, aparecerá aqui.':'Tente outro filtro ou limpe a busca.'}
+              </p>
+              {filtro==='Todas'&&<Link href="/painel/orcamentos/novo" className="btn-p" style={{display:'inline-flex',marginTop:'12px'}}>+ Nova cobrança</Link>}
             </div>
-          )}
-
-          {/* ABA PAGAMENTOS */}
-          {aba === 'pagamentos' && (
-            <div>
-              <div style={{ position: 'relative', marginBottom: '16px' }}>
-                <Search size={15} color="#B8AAB8" style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
-                <input type="text" placeholder="Buscar pagamento, cliente ou forma..." value={busca} onChange={e => setBusca(e.target.value)}
-                  style={{ width: '100%', background: 'rgba(24,16,27,.88)', border: '1.5px solid #2A1A2F', borderRadius: '12px', padding: '11px 16px 11px 42px', fontSize: '13px', color: '#F8F4F7', outline: 'none', fontFamily: 'inherit', boxSizing: 'border-box' as any }} />
-              </div>
-              {pagFiltrados.length === 0 ? (
-                <div className="crd" style={{ padding: '48px 24px', textAlign: 'center' }}>
-                  <div style={{ width: '56px', height: '56px', borderRadius: '16px', background: 'rgba(34,197,94,.10)', border: '1px solid rgba(34,197,94,.25)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
-                    <TrendingUp size={24} color="#22C55E" />
-                  </div>
-                  <p style={{ fontSize: '15px', fontWeight: 700, color: '#F8F4F7', marginBottom: '8px' }}>Nenhum pagamento em {mesNome(mes)}</p>
-                  <p style={{ fontSize: '13px', color: '#B8AAB8' }}>Pagamentos confirmados em orçamentos aparecerão aqui.</p>
-                </div>
-              ) : (
-                <div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 16px', background: 'rgba(34,197,94,.08)', border: '1px solid rgba(34,197,94,.18)', borderRadius: '12px', marginBottom: '16px' }}>
-                    <p style={{ fontSize: '12px', color: '#B8AAB8' }}>{pagFiltrados.length} pagamento{pagFiltrados.length !== 1 ? 's' : ''}</p>
-                    <p style={{ fontSize: '15px', fontWeight: 800, color: '#22C55E' }}>Total: {fmtBRL(pagFiltrados.reduce((a, p) => a + (Number(p.valor) || 0), 0))}</p>
-                  </div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                    {pagFiltrados.map((p, i) => (
-                      <div key={p.id || i} className="crd" style={{ padding: '16px 20px' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '12px', flexWrap: 'wrap' }}>
-                          <div style={{ flex: 1, minWidth: 0 }}>
-                            <p style={{ fontSize: '14px', fontWeight: 700, color: '#F8F4F7', marginBottom: '4px' }}>{p.cliente_nome || p.descricao || 'Pagamento'}</p>
-                            <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', alignItems: 'center', marginBottom: '10px' }}>
-                              {p.data && <span style={{ fontSize: '12px', color: '#B8AAB8' }}>{fmtData(p.data)}</span>}
-                              {(p.forma || p.forma_pagamento) && <span style={{ fontSize: '12px', color: '#B8AAB8' }}>· {p.forma || p.forma_pagamento}</span>}
-                              {p.origem && <span style={{ fontSize: '11px', color: '#B8AAB8', background: 'rgba(255,255,255,.05)', padding: '2px 8px', borderRadius: '999px', border: '1px solid rgba(255,255,255,.08)' }}>{p.origem}</span>}
-                            </div>
-                            <button onClick={() => setPagSel(p)}
-                              style={{ background: 'rgba(236,72,153,.10)', border: '1px solid rgba(236,72,153,.22)', borderRadius: '8px', padding: '6px 12px', fontSize: '12px', fontWeight: 600, color: '#EC4899', cursor: 'pointer', fontFamily: 'inherit' }}>
-                              Ver detalhes
-                            </button>
-                          </div>
-                          <p style={{ fontSize: '20px', fontWeight: 800, color: '#22C55E', lineHeight: 1 }}>{fmtBRL(Number(p.valor))}</p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* ABA DESPESAS */}
-          {aba === 'despesas' && (
-            <div>
-              {showForm && (
-                <div className="crd" style={{ padding: '24px', marginBottom: '20px', border: '1.5px solid rgba(139,92,246,.28)' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '18px' }}>
-                    <p style={{ fontSize: '15px', fontWeight: 700, color: '#C4B5FD' }}>{editId ? 'Editar despesa' : 'Nova despesa'}</p>
-                    <button onClick={() => { resetForm(); setShowForm(false) }} style={{ background: 'none', border: 'none', color: '#B8AAB8', cursor: 'pointer', fontSize: '22px', lineHeight: 1 }}>×</button>
-                  </div>
-                  <div className="form-2col" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', marginBottom: '14px' }}>
-                    <div style={{ gridColumn: '1/-1' }}>
-                      <label className="lbl">Descrição *</label>
-                      <input className="inp" type="text" placeholder="Ex: Aluguel da sala" value={fDesc} onChange={e => setFDesc(e.target.value)} />
-                    </div>
-                    <div>
-                      <label className="lbl">Categoria</label>
-                      <select className="inp" value={fCat} onChange={e => setFCat(e.target.value)} style={{ cursor: 'pointer' }}>
-                        {CATEGORIAS.map(c => <option key={c}>{c}</option>)}
-                      </select>
-                    </div>
-                    {fCat === 'Outros' && (
+          ):(
+            <div style={{display:'flex',flexDirection:'column',gap:'10px'}}>
+              {filtradas.map(orc=>{
+                const saldoVal=getSaldo(orc)
+                const saldoC=saldoVal>0?'#F9A8D4':'#22C55E'
+                const statusC=ePaga(orc)?{bg:'rgba(34,197,94,.08)',c:'#22C55E',bd:'rgba(34,197,94,.22)'}:orc.status==='Parcialmente pago'?{bg:'rgba(250,204,21,.08)',c:'#FACC15',bd:'rgba(250,204,21,.20)'}:eCancelada(orc)?{bg:'rgba(239,68,68,.10)',c:'#EF4444',bd:'rgba(239,68,68,.22)'}:{bg:'rgba(250,204,21,.08)',c:'#FACC15',bd:'rgba(250,204,21,.20)'}
+                return(
+                  <div key={orc.id} className="crd" style={{padding:'18px 20px'}}>
+                    <div style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',gap:'12px',marginBottom:'14px',flexWrap:'wrap'}}>
                       <div>
-                        <label className="lbl">Especifique *</label>
-                        <input className="inp" type="text" placeholder="Ex: manutenção da cadeira" value={fCatOutro} onChange={e => setFCatOutro(e.target.value)} />
+                        <p style={{fontSize:'15px',fontWeight:700,color:'#F8F4F7',marginBottom:'3px'}}>{orc.cliente_nome}</p>
+                        <p style={{fontSize:'12px',color:'#B8AAB8'}}>{orc.tipo||'Orçamento'} · {fData(orc.data||orc.created_at||'')}{orc.cliente_whatsapp?' · '+orc.cliente_whatsapp:''}</p>
                       </div>
-                    )}
-                    <div>
-                      <label className="lbl">Valor (R$) *</label>
-                      <input className="inp" type="number" min="0" step="0.01" placeholder="0,00" value={fValor} onChange={e => setFValor(e.target.value)} />
+                      <span style={{fontSize:'11px',fontWeight:700,padding:'4px 12px',borderRadius:'999px',background:statusC.bg,color:statusC.c,border:'1px solid '+statusC.bd,flexShrink:0,whiteSpace:'nowrap'}}>{orc.status}</span>
                     </div>
-                    <div>
-                      <label className="lbl">Data</label>
-                      <input className="inp" type="date" value={fData} onChange={e => setFData(e.target.value)} />
-                    </div>
-                    <div>
-                      <label className="lbl">Forma de pagamento</label>
-                      <select className="inp" value={fForma} onChange={e => setFForma(e.target.value)} style={{ cursor: 'pointer' }}>
-                        {FORMAS.map(f => <option key={f}>{f}</option>)}
-                      </select>
-                    </div>
-                    <div>
-                      <label className="lbl">Tipo</label>
-                      <select className="inp" value={fTipo} onChange={e => setFTipo(e.target.value)} style={{ cursor: 'pointer' }}>
-                        <option>Fixa</option>
-                        <option>Variável</option>
-                      </select>
-                    </div>
-                    <div style={{ gridColumn: '1/-1', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                      <button onClick={() => setFRepete(!fRepete)}
-                        style={{ width: '36px', height: '20px', borderRadius: '999px', border: 'none', cursor: 'pointer', position: 'relative', background: fRepete ? '#EC4899' : '#2A1A2F', flexShrink: 0 }}>
-                        <span style={{ position: 'absolute', top: '2px', left: fRepete ? '18px' : '2px', width: '16px', height: '16px', borderRadius: '50%', background: '#fff', transition: 'left .2s' }} />
-                      </button>
-                      <span style={{ fontSize: '13px', color: '#B8AAB8' }}>Repetir todo mês</span>
-                    </div>
-                    <div style={{ gridColumn: '1/-1' }}>
-                      <label className="lbl">Observação (opcional)</label>
-                      <input className="inp" type="text" placeholder="Informações adicionais..." value={fObs} onChange={e => setFObs(e.target.value)} />
-                    </div>
-                  </div>
-                  {msg && <div style={{ background: 'rgba(239,68,68,.12)', border: '1px solid rgba(239,68,68,.25)', borderRadius: '8px', padding: '10px 14px', fontSize: '13px', color: '#EF4444', marginBottom: '12px' }}>{msg}</div>}
-                  <div style={{ display: 'flex', gap: '10px' }}>
-                    <button onClick={salvarDespesa} disabled={salvando} className="btn-p" style={{ opacity: salvando ? 0.7 : 1 }}>
-                      {salvando ? 'Salvando...' : editId ? 'Salvar alterações' : 'Cadastrar despesa'}
-                    </button>
-                    <button onClick={() => { resetForm(); setShowForm(false) }} className="btn-s">Cancelar</button>
-                  </div>
-                </div>
-              )}
-
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', marginBottom: '16px', flexWrap: 'wrap' }}>
-                <div style={{ position: 'relative', flex: 1, minWidth: '200px' }}>
-                  <Search size={15} color="#B8AAB8" style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
-                  <input type="text" placeholder="Buscar despesa ou categoria..." value={busca} onChange={e => setBusca(e.target.value)}
-                    style={{ width: '100%', background: 'rgba(24,16,27,.88)', border: '1.5px solid #2A1A2F', borderRadius: '12px', padding: '11px 16px 11px 42px', fontSize: '13px', color: '#F8F4F7', outline: 'none', fontFamily: 'inherit', boxSizing: 'border-box' as any }} />
-                </div>
-                {!showForm && (
-                  <button onClick={() => { resetForm(); setShowForm(true) }} className="btn-p">
-                    <Plus size={15} /> Adicionar despesa
-                  </button>
-                )}
-              </div>
-
-              {despFiltradas.length === 0 ? (
-                <div className="crd" style={{ padding: '48px 24px', textAlign: 'center' }}>
-                  <div style={{ width: '56px', height: '56px', borderRadius: '16px', background: 'rgba(239,68,68,.10)', border: '1px solid rgba(239,68,68,.25)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
-                    <TrendingDown size={24} color="#EF4444" />
-                  </div>
-                  <p style={{ fontSize: '15px', fontWeight: 700, color: '#F8F4F7', marginBottom: '8px' }}>Nenhuma despesa em {mesNome(mes)}</p>
-                  <p style={{ fontSize: '13px', color: '#B8AAB8', marginBottom: '20px', lineHeight: 1.6 }}>Adicione despesas como aluguel, água, luz, internet, produtos ou manutenção.</p>
-                  <button onClick={() => { resetForm(); setShowForm(true) }} className="btn-p" style={{ display: 'inline-flex' }}>
-                    <Plus size={15} /> Adicionar despesa
-                  </button>
-                </div>
-              ) : (
-                <div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 16px', background: 'rgba(239,68,68,.08)', border: '1px solid rgba(239,68,68,.18)', borderRadius: '12px', marginBottom: '16px' }}>
-                    <p style={{ fontSize: '12px', color: '#B8AAB8' }}>{despFiltradas.length} despesa{despFiltradas.length !== 1 ? 's' : ''}</p>
-                    <p style={{ fontSize: '15px', fontWeight: 800, color: '#EF4444' }}>Total: {fmtBRL(despFiltradas.reduce((a, d) => a + (Number(d.valor) || 0), 0))}</p>
-                  </div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                    {despFiltradas.map(d => (
-                      <div key={d.id} className="crd" style={{ padding: '16px 20px' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '12px', flexWrap: 'wrap' }}>
-                          <div style={{ flex: 1, minWidth: 0 }}>
-                            <p style={{ fontSize: '14px', fontWeight: 700, color: '#F8F4F7', marginBottom: '4px' }}>{d.descricao}</p>
-                            <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginBottom: '8px' }}>
-                              <span style={{ fontSize: '11px', color: '#B8AAB8', background: 'rgba(255,255,255,.05)', padding: '2px 8px', borderRadius: '999px', border: '1px solid rgba(255,255,255,.08)' }}>{d.categoria === 'Outros' ? d.categoria_outros || 'Outros' : d.categoria}</span>
-                              <span style={{ fontSize: '11px', color: '#B8AAB8', background: 'rgba(255,255,255,.05)', padding: '2px 8px', borderRadius: '999px', border: '1px solid rgba(255,255,255,.08)' }}>{d.tipo_despesa || 'Variável'}</span>
-                              {d.forma_pagamento && <span style={{ fontSize: '11px', color: '#B8AAB8', background: 'rgba(255,255,255,.05)', padding: '2px 8px', borderRadius: '999px', border: '1px solid rgba(255,255,255,.08)' }}>{d.forma_pagamento}</span>}
-                              {d.repetir_mensalmente && <span style={{ fontSize: '11px', color: '#FACC15', background: 'rgba(250,204,21,.10)', padding: '2px 8px', borderRadius: '999px', border: '1px solid rgba(250,204,21,.22)' }}>Mensal</span>}
-                              <span style={{ fontSize: '11px', color: '#B8AAB8' }}>{fmtData(d.data)}</span>
-                            </div>
-                            {d.observacao && <p style={{ fontSize: '12px', color: '#B8AAB8', fontStyle: 'italic' }}>{d.observacao}</p>}
-                          </div>
-                          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '8px', flexShrink: 0 }}>
-                            <p style={{ fontSize: '20px', fontWeight: 800, color: '#EF4444', lineHeight: 1 }}>{fmtBRL(Number(d.valor))}</p>
-                            <div style={{ display: 'flex', gap: '6px' }}>
-                              <button onClick={() => abrirEditar(d)} className="btn-despesa-editar"
-                                style={{ background: 'rgba(24,16,27,.65)', border: '1px solid #2A1A2F', borderRadius: '8px', padding: '6px 10px', fontSize: '11px', fontWeight: 600, color: '#F8F4F7', cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                <Pencil size={12} /> Editar
-                              </button>
-                              <button onClick={() => excluirDespesa(d.id)} className="btn-despesa-excluir"
-                                style={{ background: 'rgba(24,16,27,.65)', border: '1px solid #2A1A2F', borderRadius: '8px', padding: '6px 10px', fontSize: '11px', fontWeight: 600, color: '#F8F4F7', cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                <Trash2 size={12} /> Excluir
-                              </button>
-                            </div>
-                          </div>
+                    <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'10px',marginBottom:'14px'}}>
+                      {[{l:'Total',v:fBRL(getTotal(orc)),c:'#F8F4F7'},{l:'Pago',v:fBRL(getPago(orc)),c:'#22C55E'},{l:'Saldo',v:fBRL(saldoVal),c:saldoC}].map(f=>(
+                        <div key={f.l} style={{background:'rgba(24,16,27,.6)',borderRadius:'10px',padding:'10px 12px',border:'1px solid #2A1A2F'}}>
+                          <p style={{fontSize:'10px',fontWeight:700,color:'#B8AAB8',textTransform:'uppercase',letterSpacing:'.05em',marginBottom:'3px'}}>{f.l}</p>
+                          <p style={{fontSize:'14px',fontWeight:800,color:f.c}}>{f.v}</p>
                         </div>
-                      </div>
-                    ))}
+                      ))}
+                    </div>
+                    <div style={{display:'flex',gap:'8px',flexWrap:'wrap'}}>
+                      {orc.cliente_whatsapp&&ePendente(orc)&&<button onClick={()=>enviarWpp(orc)} className="btn-cob" style={{flex:1,minWidth:'100px',background:'rgba(24,16,27,.85)',border:'1px solid #2A1A2F',borderRadius:'8px',height:'38px',fontSize:'12px',fontWeight:600,color:'#F8F4F7',cursor:'pointer',fontFamily:'inherit',display:'flex',alignItems:'center',justifyContent:'center',gap:'5px'}}>Cobrar no WhatsApp</button>}
+                      <Link href="/painel/orcamentos" className="btn-cob" style={{flex:1,minWidth:'100px',background:'rgba(24,16,27,.85)',border:'1px solid #2A1A2F',borderRadius:'8px',height:'38px',fontSize:'12px',fontWeight:600,color:'#F8F4F7',display:'flex',alignItems:'center',justifyContent:'center',gap:'5px',textDecoration:'none'}}>Ver detalhes</Link>
+                    </div>
                   </div>
-                </div>
-              )}
+                )
+              })}
             </div>
           )}
 
         </div></div>
       </div>
-    {pagSel&&(
-      <>
-        <div onClick={()=>setPagSel(null)} style={{position:'fixed',inset:0,background:'rgba(0,0,0,.7)',backdropFilter:'blur(6px)',zIndex:80}}/>
-        <div style={{position:'fixed',zIndex:90,background:'linear-gradient(145deg,#120A14,#18101B)',border:'1px solid rgba(236,72,153,.22)',borderRadius:'24px',padding:'28px',boxShadow:'0 24px 80px rgba(0,0,0,.6)',left:'50%',top:'50%',transform:'translate(-50%,-50%)',width:'min(92vw,480px)',maxHeight:'90vh',overflowY:'auto'}}>
-          <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:'20px'}}>
-            <div>
-              <p style={{fontSize:'11px',fontWeight:700,color:'#EC4899',textTransform:'uppercase' as const,letterSpacing:'.08em',marginBottom:'4px'}}>Financeiro</p>
-              <p style={{fontSize:'18px',fontWeight:800,color:'#F8F4F7',letterSpacing:'-0.02em'}}>Detalhes do pagamento</p>
-            </div>
-            <button onClick={()=>setPagSel(null)} style={{background:'none',border:'none',color:'#B8AAB8',cursor:'pointer',fontSize:'22px',lineHeight:1}}>×</button>
-          </div>
-          <div style={{background:'rgba(34,197,94,.08)',border:'1px solid rgba(34,197,94,.20)',borderRadius:'14px',padding:'16px',marginBottom:'20px',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
-            <span style={{fontSize:'13px',color:'#B8AAB8'}}>Valor recebido</span>
-            <span style={{fontSize:'24px',fontWeight:800,color:'#22C55E'}}>{fmtBRL(Number(pagSel.valor))}</span>
-          </div>
-          <div style={{display:'flex',flexDirection:'column' as const,gap:'12px',marginBottom:'24px'}}>
-            {[
-              {l:'Cliente', v:pagSel.cliente_nome||'Não informado'},
-              {l:'Data', v:pagSel.data?fmtData(pagSel.data):'Não informada'},
-              {l:'Forma de pagamento', v:pagSel.forma||pagSel.forma_pagamento||'Não informada'},
-              {l:'Origem', v:pagSel.origem||'Manual'},
-              {l:'Status', v:'Confirmado', c:'#22C55E'},
-              ...(pagSel.observacao?[{l:'Observação', v:pagSel.observacao}]:[]),
-            ].map(({l,v,c:cor}:any)=>(
-              <div key={l} style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',gap:'12px',padding:'10px 0',borderBottom:'1px solid rgba(255,255,255,.06)'}}>
-                <span style={{fontSize:'13px',color:'#B8AAB8',flexShrink:0}}>{l}</span>
-                <span style={{fontSize:'13px',fontWeight:600,color:cor||'#F8F4F7',textAlign:'right' as const}}>{v}</span>
-              </div>
-            ))}
-          </div>
-          <div style={{display:'flex',gap:'10px'}}>
-            <button onClick={()=>setPagSel(null)}
-              style={{flex:1,background:'rgba(24,16,27,.85)',border:'1px solid #2A1A2F',borderRadius:'14px',padding:'14px',color:'#B8AAB8',fontSize:'14px',fontWeight:600,cursor:'pointer',fontFamily:'inherit'}}>
-              Fechar
-            </button>
-            {pagSel.orcamento_id&&(
-              <button onClick={()=>{window.location.href='/painel/orcamentos';setPagSel(null)}}
-                style={{flex:1,background:'rgba(236,72,153,.15)',border:'1px solid rgba(236,72,153,.30)',borderRadius:'14px',padding:'14px',color:'#EC4899',fontSize:'14px',fontWeight:700,cursor:'pointer',fontFamily:'inherit'}}>
-                Ver orçamento
-              </button>
-            )}
-          </div>
-        </div>
-      </>
-    )}
     </div>
   )
 }
