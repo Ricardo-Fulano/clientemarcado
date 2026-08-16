@@ -6,18 +6,18 @@ import { supabase } from '../lib/supabase'
 const BENEFICIOS = [
   {
     icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>,
-    titulo: 'Página de agendamento pronta',
-    desc: 'Seu negócio de beleza online em minutos, com sua cara e seus horários.',
+    titulo: 'Sua MiniPage pronta',
+    desc: 'Crie sua página profissional com seus links, conteúdos e serviços.',
   },
   {
     icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>,
-    titulo: 'Agenda organizada',
-    desc: 'Receba agendamentos, evite conflitos e nunca mais perca horários.',
+    titulo: 'Tudo em um só lugar',
+    desc: 'Redes sociais, vídeos, eventos, serviços e muito mais.',
   },
   {
     icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>,
-    titulo: 'Painel simples para acompanhar',
-    desc: 'Veja agendamentos, clientes e resultados de forma clara e prática.',
+    titulo: 'Fácil de personalizar',
+    desc: 'Escolha cores, banner, links e deixe a página com a sua identidade.',
   },
 ]
 const CalIcon = () => (
@@ -40,8 +40,6 @@ const EyeOffIcon = () => (
   </svg>
 )
 export default function Cadastro() {
-  const [nomeNegocio, setNomeNegocio] = useState('')
-  const tipoNegocio = 'Estética e beleza'
   const [cupom, setCupom] = useState('')
   const [cupomStatus, setCupomStatus] = useState<'idle'|'ok'|'erro'>('idle')
   const [nomeUsuario, setNomeUsuario] = useState('')
@@ -125,7 +123,7 @@ export default function Cadastro() {
       password: senha,
       options: {
         emailRedirectTo: redirectTo,
-        data: { nome_negocio: nomeNegocio, tipo_negocio: tipoNegocio, nome_usuario: nomeUsuario, cupom_indicacao: cupom || null, plano_tipo: planoTipo }
+        data: { nome_negocio: nomeUsuario, nome_usuario: nomeUsuario, cupom_indicacao: cupom || null, plano_tipo: planoTipo }
       }
     })
     if (error) {
@@ -150,7 +148,7 @@ export default function Cadastro() {
         await fetch('/api/cadastro/criar-perfil', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ user_id: data.user.id, nome_negocio: nomeNegocio, tipo_negocio: tipoNegocio, plano_tipo: planoTipo })
+          body: JSON.stringify({ user_id: data.user.id, nome_negocio: nomeUsuario, plano_tipo: planoTipo })
         })
       } catch (e) { console.warn('Erro ao gravar perfil inicial:', e) }
     }
@@ -169,7 +167,7 @@ export default function Cadastro() {
           await supabase.from('indicacoes_parceiros').upsert({
             parceiro_id: parceiro.id,
             cupom_codigo: cupomFmt,
-            nome_negocio: nomeNegocio || null,
+            nome_negocio: null,
             nome_responsavel: nomeUsuario || null,
             email: email.toLowerCase().trim(),
             status: 'cadastrado',
@@ -286,11 +284,11 @@ export default function Cadastro() {
           </div>
           <div>
             <h1 className="desk-hero-titulo">
-              Crie sua conta no<br /><span>ClienteMarcado</span>
+              Crie sua página profissional<br />com a <span>MiniPage Pro</span>
             </h1>
             <p className="desk-hero-sub">
-              Seu cliente agenda sozinho.<br />
-              Você organiza sua rotina pelo painel.
+              Seus links, conteúdos e serviços<br />
+              em uma página profissional.
             </p>
           </div>
           <div className="desk-beneficios">
@@ -320,11 +318,6 @@ export default function Cadastro() {
             <p className="card-titulo">Criar conta grátis</p>
             <p className="card-sub">É rápido, fácil e sem compromisso.</p>
             <div className="campos">
-              <div>
-
-                <label className="label">Nome do negócio</label>
-                <input type="text" placeholder="Ex: Studio Bella Beauty" value={nomeNegocio} onChange={e => setNomeNegocio(e.target.value)} className="input" />
-              </div>
               <div>
                 <label className="label">Seu nome</label>
                 <input type="text" placeholder="Ex: Ana Carolina" value={nomeUsuario} onChange={e => setNomeUsuario(e.target.value)} className="input" />
