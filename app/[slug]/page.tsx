@@ -315,11 +315,10 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
     const m = (v.url_video || '').match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/))([a-zA-Z0-9_-]{6,})/)
     return m ? `https://img.youtube.com/vi/${m[1]}/hqdefault.jpg` : ''
   }
-  const FORMATO_RATIO: Record<string, string> = { '16:9': '16/9', '9:16': '9/16', '4:3': '4/3', '1:1': '1/1' }
-  function formatoClasse(f?: string) {
-    if (f === '9:16') return 'fmt-vertical'
-    if (f === '1:1') return 'fmt-square'
-    if (f === '4:3') return 'fmt-classic'
+  // Padronizado em 16:9 pra todo mundo - independente da plataforma/formato detectado na origem
+  // do video (Reels e TikTok, por exemplo, tendem a ser verticais). Decisao deliberada pra manter
+  // consistencia visual dos cards, com object-fit:cover cuidando do enquadramento.
+  function formatoClasse(_f?: string) {
     return 'fmt-horizontal'
   }
   // Rotulo amigavel do placeholder quando nao ha thumbnail (nunca aparenta "quebrado")
@@ -491,7 +490,7 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
           const resto = videos.slice(3)
           const renderVideoCard = (v: { id: string; titulo: string; descricao?: string; url_video: string; formato?: string; plataforma?: string; thumbnail_url?: string; link_destino?: string; texto_cta?: string; texto_botao_video?: string; abrir_nova_aba?: boolean }) => {
             const thumb = thumbnailVideo(v)
-            const ratio = FORMATO_RATIO[v.formato || '16:9'] || '16/9'
+            const ratio = '16/9'
             return (
               <div key={v.id} className={`crd video-card ${formatoClasse(v.formato)}`} style={{ border: `1px solid ${iconeBorder}` }}>
                 <a href={v.url_video} target={v.abrir_nova_aba === false ? '_self' : '_blank'} rel="noopener noreferrer" className="video-thumb-wrap" style={{ aspectRatio: ratio }}>
