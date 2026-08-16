@@ -2,7 +2,7 @@
 import { useEffect, useState, useRef } from 'react'
 import { supabase } from '../../lib/supabase'
 import Link from 'next/link'
-import { Copy, Check, ExternalLink, ChevronDown, ChevronUp } from 'lucide-react'
+import { Copy, Check, ExternalLink, ChevronDown, ChevronUp, UploadCloud } from 'lucide-react'
 import PainelSidebar from '@/app/components/PainelSidebar'
 
 const G='linear-gradient(135deg,#EC4899,#D946EF,#8B5CF6)'
@@ -16,23 +16,35 @@ function resolverTema(id:string){ return TEMA_LEGADO[id] || id }
 
 const TEMAS=[
   {id:'modelo1',nome:'Modelo 1',desc:'Rosa vibrante, moderno e marcante.',p:'#FF4FA3',s:'#D946EF'},
-  {id:'modelo2',nome:'Modelo 2',desc:'Rosa blush claro, moderno e delicado.',p:'#FF4FA3',s:'#D946EF'},
-  {id:'modelo3',nome:'Modelo 3',desc:'Preto e dourado, visual luxuoso e de alto padrão.',p:'#D4AF37',s:'#9C7A2F'},
-  {id:'modelo4',nome:'Modelo 4',desc:'Lilás e roxo, delicado, moderno e sofisticado.',p:'#A78BFA',s:'#7C3AED'},
-  {id:'modelo5',nome:'Modelo 5',desc:'Nude e champagne, visual natural e acolhedor.',p:'#D6A77A',s:'#A47148'},
-  {id:'modelo6',nome:'Modelo 6',desc:'Champagne claro, elegante e sofisticado.',p:'#B8875A',s:'#D6A77A'},
+  {id:'modelo2',nome:'Modelo 2',desc:'Preto e grafite, premium e minimalista.',p:'#EDEDF0',s:'#A1A1AA'},
+  {id:'modelo3',nome:'Modelo 3',desc:'Grafite e preto, moderno e sofisticado.',p:'#1C1C1F',s:'#0A0A0B'},
+  {id:'modelo4',nome:'Modelo 4',desc:'Preto e dourado, visual luxuoso e de alto padrão.',p:'#D4AF37',s:'#9C7A2F'},
+  {id:'modelo5',nome:'Modelo 5',desc:'Cinza claro e branco, clean e editorial.',p:'#C97B93',s:'#8B5D73'},
+  {id:'modelo6',nome:'Modelo 6',desc:'Branco e cinza suave, refinado e elegante.',p:'#5FA8A0',s:'#3D7871'},
+  {id:'modelo7',nome:'Modelo 7',desc:'Rosa blush premium, ideal para beleza e estética.',p:'#F5C3D6',s:'#E83E8C'},
+  {id:'modelo8',nome:'Modelo 8',desc:'Champagne rosé, natural e sofisticado.',p:'#D4967A',s:'#B8724F'},
+  {id:'modelo9',nome:'Modelo 9',desc:'Lilás profundo, sofisticado e marcante.',p:'#B69AF0',s:'#8B6FD9'},
+  {id:'modelo10',nome:'Modelo 10',desc:'Nude e mocha, acolhedor e refinado.',p:'#A67C52',s:'#7A5A3A'},
+  {id:'modelo11',nome:'Modelo 11',desc:'Bordô profundo, elegante e marcante.',p:'#D4A574',s:'#A67849'},
+  {id:'modelo12',nome:'Modelo 12',desc:'Azul-meia-noite, premium e versátil.',p:'#7C9CF0',s:'#5878D0'},
 ]
 
 const TEMA_CORES: Record<string, {primary:string;secondary:string;accent:string;border:string;bg:string;text:string;btnText:string}> = {
   modelo1: {primary:'#FF4FA3',secondary:'#D946EF',accent:'#EC4899',border:'rgba(255,79,163,.38)', bg:'rgba(255,79,163,.10)', text:'#FF8FC4', btnText:'#fff'},
-  modelo2: {primary:'#FF4FA3',secondary:'#D946EF',accent:'#EC4899',border:'rgba(255,79,163,.38)', bg:'rgba(255,79,163,.10)', text:'#FF8FC4', btnText:'#fff'},
-  modelo3: {primary:'#D4AF37',secondary:'#9C7A2F',accent:'#F0D98A',border:'rgba(212,175,55,.38)', bg:'rgba(212,175,55,.10)', text:'#F0D98A', btnText:'#1A140A'},
-  modelo4: {primary:'#A78BFA',secondary:'#7C3AED',accent:'#C084FC',border:'rgba(167,139,250,.38)',bg:'rgba(167,139,250,.10)',text:'#C4B5FD', btnText:'#fff'},
-  modelo5: {primary:'#D6A77A',secondary:'#A47148',accent:'#E8C39E',border:'rgba(214,167,122,.38)',bg:'rgba(214,167,122,.10)',text:'#E8C39E', btnText:'#2A1810'},
-  modelo6: {primary:'#B8875A',secondary:'#D6A77A',accent:'#E8C39E',border:'rgba(184,135,90,.38)', bg:'rgba(184,135,90,.10)', text:'#E8C39E', btnText:'#fff'},
+  modelo2: {primary:'#EDEDF0',secondary:'#A1A1AA',accent:'#D4D4D8',border:'rgba(237,237,240,.30)', bg:'rgba(237,237,240,.10)', text:'#EDEDF0', btnText:'#0A0A0B'},
+  modelo3: {primary:'#E8A672',secondary:'#B87D4E',accent:'#F0C29A',border:'rgba(232,166,114,.34)', bg:'rgba(232,166,114,.10)', text:'#F0C29A', btnText:'#1A0F06'},
+  modelo4: {primary:'#D4AF37',secondary:'#9C7A2F',accent:'#F0D98A',border:'rgba(212,175,55,.38)', bg:'rgba(212,175,55,.10)', text:'#F0D98A', btnText:'#1A140A'},
+  modelo5: {primary:'#C97B93',secondary:'#8B5D73',accent:'#DDA0B3',border:'rgba(201,123,147,.38)',bg:'rgba(201,123,147,.10)',text:'#DDA0B3', btnText:'#fff'},
+  modelo6: {primary:'#5FA8A0',secondary:'#3D7871',accent:'#84C2BB',border:'rgba(95,168,160,.38)', bg:'rgba(95,168,160,.10)', text:'#84C2BB', btnText:'#fff'},
+  modelo7: {primary:'#E83E8C',secondary:'#C23F6C',accent:'#F06BA8',border:'rgba(232,62,140,.38)', bg:'rgba(232,62,140,.10)', text:'#F06BA8', btnText:'#fff'},
+  modelo8: {primary:'#D4967A',secondary:'#B8724F',accent:'#E8B79C',border:'rgba(212,150,122,.38)',bg:'rgba(212,150,122,.10)',text:'#E8B79C', btnText:'#fff'},
+  modelo9: {primary:'#B69AF0',secondary:'#8B6FD9',accent:'#D4C2FF',border:'rgba(182,154,240,.38)',bg:'rgba(182,154,240,.10)',text:'#D4C2FF', btnText:'#fff'},
+  modelo10:{primary:'#A67C52',secondary:'#7A5A3A',accent:'#C9A578',border:'rgba(166,124,82,.38)', bg:'rgba(166,124,82,.10)', text:'#C9A578', btnText:'#fff'},
+  modelo11:{primary:'#D4A574',secondary:'#A67849',accent:'#E8C39E',border:'rgba(212,165,116,.38)',bg:'rgba(212,165,116,.10)',text:'#E8C39E', btnText:'#2A1408'},
+  modelo12:{primary:'#7C9CF0',secondary:'#5878D0',accent:'#A5BDFF',border:'rgba(124,156,240,.38)',bg:'rgba(124,156,240,.10)',text:'#A5BDFF', btnText:'#fff'},
 }
 
-const BANNERS_PRONTOS=Array.from({length:14},(_,i)=>`/banners/beauty/banner-${String(i+1).padStart(2,'0')}.webp`)
+const BANNERS_PRONTOS=Array.from({length:14},(_,i)=>`/banners/prontos/banner-${String(i+1).padStart(2,'0')}.webp`)
 
 const CSS=`
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -646,7 +658,7 @@ export default function Perfil(){
               <div style={{position:'relative',borderRadius:'14px',overflow:'hidden',marginBottom:'16px',border:'1px solid #2A1A2F'}}>
                 <img src={capUrl} alt="Capa" style={{width:'100%',height:'200px',objectFit:'cover',display:'block'}}/>
                 <div style={{position:'absolute',top:'10px',right:'10px',display:'flex',gap:'6px'}}>
-                  <button onClick={()=>imgRef.current?.click()} style={{background:'rgba(24,16,27,.9)',border:'1px solid #2A1A2F',color:'#B8AAB8',borderRadius:'8px',padding:'6px 12px',fontSize:'12px',fontWeight:600,cursor:'pointer',fontFamily:'inherit'}}>Trocar</button>
+                  <button onClick={()=>imgRef.current?.click()} style={{background:'rgba(24,16,27,.9)',border:'1px solid #2A1A2F',color:'#B8AAB8',borderRadius:'8px',padding:'6px 12px',fontSize:'12px',fontWeight:600,cursor:'pointer',fontFamily:'inherit',display:'inline-flex',alignItems:'center',gap:'5px'}}><UploadCloud size={13}/> Enviar imagem</button>
                   <button onClick={()=>setCapUrl('')} style={{background:'rgba(24,16,27,.9)',border:'1px solid #2A1A2F',color:'#EF4444',borderRadius:'8px',padding:'6px 12px',fontSize:'12px',fontWeight:600,cursor:'pointer',fontFamily:'inherit'}}>Remover</button>
                 </div>
               </div>
