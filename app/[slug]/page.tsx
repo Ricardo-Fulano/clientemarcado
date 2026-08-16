@@ -4,7 +4,7 @@ import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { headers } from 'next/headers'
 import { Inter } from 'next/font/google'
-import { Zap, CalendarDays, CheckCircle, Sparkles, GraduationCap, Crown, Globe, Link2, Music2, ShoppingBag, PlayCircle, BadgeCheck, MapPin, Calendar } from 'lucide-react'
+import { Zap, CalendarDays, CheckCircle, Sparkles, GraduationCap, Crown, Globe, Link2, Music2, ShoppingBag, PlayCircle, BadgeCheck, MapPin, Calendar, Lock } from 'lucide-react'
 import { resolverTema, getTema } from '../lib/tema-publico'
 import { ehPlanoMiniPage } from '../lib/planos'
 
@@ -282,6 +282,7 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
       case 'curso': return { color:tema.accent, I:GraduationCap }
       case 'mentoria': return { color:tema.accent, I:Crown }
       case 'endereco': return { color:tema.accent, I:MapPin }
+      case 'secreto': return { color:tema.accent, I:Lock }
       default: return { color:tema.accent, I:Link2 }
     }
   }
