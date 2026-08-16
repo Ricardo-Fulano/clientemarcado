@@ -77,6 +77,10 @@ html,body{overflow-x:hidden;width:100%;max-width:100%}
 .link-title{font-size:16px;font-weight:600;color:var(--text);margin-bottom:2px;line-height:1.25}
 .link-sub{font-size:13px;font-weight:400;color:var(--text-muted);line-height:1.3}
 .link-arrow{font-size:16px;flex-shrink:0;opacity:.5}
+.evento-card{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:22px 18px;box-sizing:border-box;border-radius:16px}
+.evento-card:hover{border-color:var(--accent)!important}
+.evento-titulo{font-size:14px;font-weight:600;color:var(--text);line-height:1.3;letter-spacing:.01em}
+.evento-menu{font-size:16px;flex-shrink:0;opacity:.5;letter-spacing:1px}
 @media(min-width:640px){
   .link-grid{grid-template-columns:repeat(2,1fr)}
 }
@@ -229,12 +233,13 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
     }
   }
 
-  const [{ data: servicos }, { data: profissionais }, { data: destaques }, { data: linksRapidos }, { data: videos }] = await Promise.all([
+  const [{ data: servicos }, { data: profissionais }, { data: destaques }, { data: linksRapidos }, { data: videos }, { data: eventos }] = await Promise.all([
     supabase.from('servicos').select('*').eq('user_id', perfil.user_id).eq('ativo', true).order('nome'),
     supabase.from('profissionais').select('*').eq('user_id', perfil.user_id).eq('ativo', true).order('nome'),
     supabase.from('pagina_destaques').select('*').eq('user_id', perfil.user_id).eq('ativo', true).order('ordem').order('created_at'),
     supabase.from('pagina_links').select('*').eq('user_id', perfil.user_id).eq('ativo', true).order('ordem').order('created_at'),
     supabase.from('pagina_videos').select('*').eq('user_id', perfil.user_id).eq('ativo', true).order('ordem').order('created_at'),
+    supabase.from('pagina_eventos').select('*').eq('user_id', perfil.user_id).eq('ativo', true).order('ordem').order('created_at'),
   ])
 
   const temaId = resolverTema(perfil.public_theme || perfil.tema_publico || perfil.tema_cor || 'modelo2')
@@ -480,6 +485,21 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
                   </a>
                 )
               })}
+            </div>
+          </div>
+        )}
+
+        {/* AGENDA / EVENTOS: aparece so se houver pelo menos 1 evento ativo. Fica entre Links Rapidos e Videos. */}
+        {eventos && eventos.length > 0 && (
+          <div style={{ marginBottom: '28px' }}>
+            <p style={{ fontSize: '20px', fontWeight: 900, color: 'var(--text)', letterSpacing: '-0.02em', marginBottom: '14px' }}>Agenda / Eventos</p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              {eventos.map((ev: { id: string; titulo: string; url: string }) => (
+                <a key={ev.id} href={ev.url} target="_blank" rel="noopener noreferrer" className="crd evento-card" style={{ textDecoration: 'none', color: 'inherit', border: `1px solid ${iconeBorder}` }}>
+                  <span className="evento-titulo">{ev.titulo}</span>
+                  <span className="evento-menu" style={{ color: setaCor }}>⋮</span>
+                </a>
+              ))}
             </div>
           </div>
         )}

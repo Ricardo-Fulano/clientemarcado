@@ -9,8 +9,6 @@ const G='linear-gradient(135deg,#EC4899,#D946EF,#8B5CF6)'
 const AV='linear-gradient(135deg,rgba(236,72,153,.95),rgba(139,92,246,.95))'
 
 const DIAS=['Dom','Seg','Ter','Qua','Qui','Sex','Sáb']
-const INTERVALOS=['15 min','30 min','45 min','1 hora']
-const ANTECEDENCIAS=['Sem restrição','1 hora antes','2 horas antes','4 horas antes','1 dia antes']
 
 // Compatibilidade com valores antigos salvos no banco (nao apaga dados, so traduz visualmente)
 const TEMA_LEGADO: Record<string,string> = {padrao:'modelo1', beleza:'modelo2', barbearia:'modelo3', minimal:'modelo4', saude:'modelo5'}
@@ -95,8 +93,6 @@ export default function Perfil(){
   const MOSTRAR_PROMOCAO_ANTIGA = false as boolean
   // Destaques comeca aberto (primeira coisa que a pessoa costuma preencher), Links comeca fechado
   // pra reduzir a sensacao de pagina infinita. Pode expandir/recolher a qualquer momento.
-  const [destaquesAberto, setDestaquesAberto] = useState(true)
-  const [linksAberto, setLinksAberto] = useState(false)
   const [promoTitulo,setPromoTitulo]=useState('')
   const [promoDesc,setPromoDesc]=useState('')
   const [promoPrecoAnt,setPromoPrecoAnt]=useState('')
@@ -141,14 +137,7 @@ export default function Perfil(){
   const [destaques,setDestaques]=useState<any[]>([])
   const [links,setLinks]=useState<any[]>([])
   const [videos,setVideos]=useState<any[]>([])
-  const [videosAberto,setVideosAberto]=useState(false)
-  const [salvandoDestaqueId,setSalvandoDestaqueId]=useState('')
-  const [salvandoLinkId,setSalvandoLinkId]=useState('')
-  const [salvandoVideoId,setSalvandoVideoId]=useState('')
-  const [uploadingVideoId,setUploadingVideoId]=useState('')
-  const videoImgRef=useRef<HTMLInputElement>(null)
-  const [uploadingDestaqueId,setUploadingDestaqueId]=useState('')
-  const destaqueImgRef=useRef<HTMLInputElement>(null)
+  const [eventos,setEventos]=useState<any[]>([])
   // Acesso da conta (transferir e-mail de login / reenviar link de senha)
   const [emailAtual,setEmailAtual]=useState('')
   const [souProfissional,setSouProfissional]=useState(false)
@@ -209,14 +198,6 @@ export default function Perfil(){
     setDestaques([])
     setLinks([])
     setVideos([])
-    setDestaquesAberto(true)
-    setLinksAberto(false)
-    setVideosAberto(false)
-    setSalvandoDestaqueId('')
-    setSalvandoLinkId('')
-    setSalvandoVideoId('')
-    setUploadingVideoId('')
-    setUploadingDestaqueId('')
     setNovoEmailAcesso('')
     setTransferMsg('')
     setTransferOk(false)
@@ -313,14 +294,16 @@ export default function Perfil(){
       setMostrarPorQueAgendar(p.pagina_mostrar_por_que_agendar!==false)
       setMostrarContato(p.pagina_mostrar_contato!==false)
 
-    const [{data:dst},{data:lnk},{data:vid}]=await Promise.all([
+    const [{data:dst},{data:lnk},{data:vid},{data:evt}]=await Promise.all([
       supabase.from('pagina_destaques').select('*').eq('user_id',user.id).order('ordem'),
       supabase.from('pagina_links').select('*').eq('user_id',user.id).order('ordem'),
       supabase.from('pagina_videos').select('*').eq('user_id',user.id).order('ordem'),
+      supabase.from('pagina_eventos').select('*').eq('user_id',user.id).order('ordem'),
     ])
     if(dst) setDestaques(dst)
     if(lnk) setLinks(lnk)
     if(vid) setVideos(vid)
+    if(evt) setEventos(evt)
   }
 
   // Cria um perfil novo e limpo pro usuario logado (usado no botao "Criar meu perfil",
@@ -512,270 +495,6 @@ export default function Perfil(){
     setTimeout(()=>setMsg(''),3000)
   }
 
-  function abrirUploadDestaque(id:string){
-    setUploadingDestaqueId(id)
-    destaqueImgRef.current?.click()
-  }
-  async function uploadImagemDestaque(e:React.ChangeEvent<HTMLInputElement>){
-    const file=e.target.files?.[0];const id=uploadingDestaqueId
-    if(!file||!id)return
-    if(!(await validarSessaoAtual()))return
-    const allowedTypes=['image/jpeg','image/jpg','image/png','image/webp']
-    if(!allowedTypes.includes(file.type)){setMsg('Envie uma imagem JPG, PNG ou WEBP.');return}
-    if(file.size>5*1024*1024){setMsg('A imagem deve ter no máximo 5MB.');return}
-
-    const {data:userData}=await supabase.auth.getUser()
-    if(!userData?.user){setMsg('Sua sessão expirou. Faça login novamente.');return}
-
-    const ext=file.name.split('.').pop()?.toLowerCase()||'png'
-    const path=`destaques/${userId}-${Date.now()}.${ext}`
-
-    const {error:uploadError}=await supabase.storage.from('fotos').upload(path,file,{upsert:true,contentType:file.type,cacheControl:'3600'})
-    if(uploadError){setMsg('Erro no upload: '+uploadError.message);setUploadingDestaqueId('');if(destaqueImgRef.current)destaqueImgRef.current.value='';return}
-
-    const {data}=supabase.storage.from('fotos').getPublicUrl(path)
-    editarDestaque(id,'imagem_url',data.publicUrl)
-    setMsg('Imagem enviada! Clique em "Salvar" no destaque pra confirmar.')
-    setTimeout(()=>setMsg(''),3500)
-    setUploadingDestaqueId('')
-    if(destaqueImgRef.current)destaqueImgRef.current.value=''
-  }
-
-  // ---------- DESTAQUES ----------
-  function novoDestaque(){
-    setDestaques(prev=>[{id:'novo-'+Date.now(),user_id:userId,titulo:'',descricao:'',texto_botao:'Ver mais',url:'',imagem_url:'',ativo:true,ordem:prev.length,_novo:true},...prev])
-  }
-  function editarDestaque(id:string,campo:string,valor:any){
-    setDestaques(prev=>prev.map(d=>d.id===id?{...d,[campo]:valor}:d))
-  }
-  // Se o texto digitado parecer um numero de telefone (so digitos/espaco/traco/parenteses),
-  // converte automaticamente pra link do WhatsApp. Senao, aplica a mesma normalizacao
-  // de URL ja usada nos videos (markdown-safe, adiciona https:// se faltar).
-  function normalizarLinkDestaque(valor:string):string{
-    const v=(valor||'').trim()
-    if(!v)return ''
-    const soDigitos=v.replace(/\D/g,'')
-    const pareceTelefone=/^[\d\s()+-]+$/.test(v)&&soDigitos.length>=10&&soDigitos.length<=13
-    if(pareceTelefone){
-      const comDDI=soDigitos.length<=11?'55'+soDigitos:soDigitos
-      return `https://wa.me/${comDDI}`
-    }
-    return normalizarUrl(v)
-  }
-  async function salvarDestaque(d:any){
-    if(!(await validarSessaoAtual()))return
-    if(!d.titulo?.trim()){setMsg('Dê um título para o destaque.');return}
-    setSalvandoDestaqueId(d.id)
-    const payload={user_id:userId,titulo:d.titulo.trim(),descricao:d.descricao?.trim()||null,texto_botao:d.texto_botao?.trim()||'Ver mais',url:normalizarLinkDestaque(d.url)||null,imagem_url:d.imagem_url?.trim()||null,ativo:!!d.ativo,ordem:d.ordem||0}
-    if(d._novo){
-      const {data,error}=await supabase.from('pagina_destaques').insert(payload).select().single()
-      if(error){setMsg('Erro ao salvar destaque: '+error.message)}
-      else{setDestaques(prev=>prev.map(x=>x.id===d.id?data:x));setMsg('Destaque salvo!')}
-    } else {
-      const {error}=await supabase.from('pagina_destaques').update(payload).eq('id',d.id).eq('user_id',userId)
-      if(error){setMsg('Erro ao salvar destaque: '+error.message)}
-      else{setMsg('Destaque salvo!')}
-    }
-    setSalvandoDestaqueId('')
-    setTimeout(()=>setMsg(''),3000)
-  }
-  async function excluirDestaque(id:string){
-    if(!(await validarSessaoAtual()))return
-    if(!id.startsWith('novo-')){
-      const {error}=await supabase.from('pagina_destaques').delete().eq('id',id).eq('user_id',userId)
-      if(error){setMsg('Erro ao excluir: '+error.message);return}
-    }
-    setDestaques(prev=>prev.filter(d=>d.id!==id))
-  }
-
-  // ---------- LINKS RÁPIDOS ----------
-  function novoLink(){
-    setLinks(prev=>[{id:'novo-'+Date.now(),user_id:userId,tipo:'whatsapp',titulo:'',descricao:'',url:'',ativo:true,ordem:prev.length,_novo:true},...prev])
-  }
-  function editarLink(id:string,campo:string,valor:any){
-    setLinks(prev=>prev.map(l=>l.id===id?{...l,[campo]:valor}:l))
-  }
-  // Monta o link final do WhatsApp a partir do que a pessoa digitou:
-  // - já é um link (começa com http) -> usa como está
-  // - só tem dígitos (número, com ou sem DDI) -> monta wa.me/55DDDNUMERO
-  // - tem letras (nome de usuário, com ou sem @) -> monta wa.me/usuario
-  function montarLinkWhatsapp(valor:string){
-    const v=(valor||'').trim()
-    if(!v)return ''
-    if(v.startsWith('http://')||v.startsWith('https://'))return v
-    const somenteDigitos=v.replace(/\D/g,'')
-    const temLetra=/[a-zA-Z]/.test(v)
-    if(temLetra){
-      const usuario=v.replace('@','').trim()
-      return `https://wa.me/${usuario}`
-    }
-    if(somenteDigitos){
-      const numero=somenteDigitos.startsWith('55')?somenteDigitos:`55${somenteDigitos}`
-      return `https://wa.me/${numero}`
-    }
-    return v
-  }
-  async function salvarLink(l:any){
-    if(!(await validarSessaoAtual()))return
-    if(!l.titulo?.trim()||!l.url?.trim()){setMsg('Preencha título e link.');return}
-    setSalvandoLinkId(l.id)
-    const urlFinal=l.tipo==='whatsapp'?montarLinkWhatsapp(l.url):l.url.trim()
-    const payload={user_id:userId,tipo:l.tipo||'outro',titulo:l.titulo.trim(),descricao:l.descricao?.trim()||null,url:urlFinal,ativo:!!l.ativo,ordem:l.ordem||0}
-    if(l._novo){
-      const {data,error}=await supabase.from('pagina_links').insert(payload).select().single()
-      if(error){setMsg('Erro ao salvar link: '+error.message)}
-      else{setLinks(prev=>prev.map(x=>x.id===l.id?data:x));setMsg('Link salvo!')}
-    } else {
-      const {error}=await supabase.from('pagina_links').update(payload).eq('id',l.id).eq('user_id',userId)
-      if(error){setMsg('Erro ao salvar link: '+error.message)}
-      else{setMsg('Link salvo!')}
-    }
-    setSalvandoLinkId('')
-    setTimeout(()=>setMsg(''),3000)
-  }
-  async function excluirLink(id:string){
-    if(!(await validarSessaoAtual()))return
-    if(!id.startsWith('novo-')){
-      const {error}=await supabase.from('pagina_links').delete().eq('id',id).eq('user_id',userId)
-      if(error){setMsg('Erro ao excluir: '+error.message);return}
-    }
-    setLinks(prev=>prev.filter(l=>l.id!==id))
-  }
-
-  // ---------- VIDEOS DA PAGINA ----------
-  // Normaliza links colados de qualquer jeito (markdown, sem protocolo, com colchetes)
-  // antes de validar/salvar. Isso evita bloquear links claramente validos so por detalhe
-  // de formatacao — o mesmo link, extraido corretamente, ja passa na validacao normal.
-  function normalizarUrl(valor:string):string{
-    let v=(valor||'').trim()
-    if(!v)return ''
-    // Formato markdown: [texto](url) -> extrai so a url de dentro dos parenteses
-    const markdown=v.match(/\[([^\]]*)\]\(([^)]+)\)/)
-    if(markdown){
-      v=(markdown[2]||markdown[1]||'').trim()
-    } else {
-      // Só colchetes sobrando (ex: [https://...]) -> remove
-      v=v.replace(/^\[+|\]+$/g,'').trim()
-    }
-    if(!v)return ''
-    // Sem protocolo (com ou sem www.) -> adiciona https:// automaticamente
-    if(!/^https?:\/\//i.test(v)){
-      v='https://'+v.replace(/^\/+/,'')
-    }
-    return v
-  }
-  function detectarVideo(url:string){
-    const u=(url||'').toLowerCase()
-    if(u.includes('youtube.com/shorts/'))return {plataforma:'youtube',formato:'9:16'}
-    if(u.includes('youtu.be/')||u.includes('youtube.com'))return {plataforma:'youtube',formato:'16:9'}
-    if(u.includes('instagram.com/reel'))return {plataforma:'instagram',formato:'9:16'}
-    if(u.includes('instagram.com/p/'))return {plataforma:'instagram',formato:'1:1'}
-    if(u.includes('instagram.com'))return {plataforma:'instagram',formato:'9:16'}
-    if(u.includes('tiktok.com'))return {plataforma:'tiktok',formato:'9:16'}
-    if(u.includes('vimeo.com'))return {plataforma:'vimeo',formato:'16:9'}
-    return {plataforma:'outro',formato:'16:9'}
-  }
-  function formatoLabel(formato:string){
-    if(formato==='9:16')return 'Formato detectado: vídeo vertical'
-    if(formato==='1:1')return 'Formato detectado: vídeo quadrado'
-    if(formato==='4:3'||formato==='16:9')return 'Formato detectado: vídeo horizontal'
-    return 'Formato detectado automaticamente. Se a prévia não ficar boa, ajuste em Configurações avançadas.'
-  }
-  function thumbYoutube(url:string){
-    const m=(url||'').match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/))([a-zA-Z0-9_-]{6,})/)
-    return m?`https://img.youtube.com/vi/${m[1]}/hqdefault.jpg`:''
-  }
-  function labelPlaceholderPainel(v:{plataforma?:string;formato?:string}){
-    if(v.plataforma==='instagram')return v.formato==='1:1'?'Post do Instagram':'Reels do Instagram'
-    if(v.plataforma==='tiktok')return 'Vídeo do TikTok'
-    if(v.plataforma==='vimeo')return 'Vídeo'
-    return 'Conteúdo em vídeo'
-  }
-  const FORMATO_RATIO_PAINEL:Record<string,string>={'16:9':'16/9','9:16':'9/16','4:3':'4/3','1:1':'1/1'}
-  function novoVideo(){
-    setVideos(prev=>[{id:'novo-'+Date.now(),user_id:userId,titulo:'',descricao:'',url_video:'',plataforma:'youtube',thumbnail_url:'',formato:'16:9',link_destino:'',texto_cta:'',texto_botao_video:'Assistir vídeo',ordem:prev.length,ativo:true,_novo:true},...prev])
-  }
-  function editarVideo(id:string,campo:string,valor:any){
-    setVideos(prev=>prev.map(v=>{
-      if(v.id!==id)return v
-      const atualizado={...v,[campo]:valor}
-      // Ao colar/editar o link, detecta plataforma E formato automaticamente.
-      // O formato so precisa ser trocado manualmente em "Configuracoes avancadas", se a previa nao ficar boa.
-      if(campo==='url_video'){
-        const det=detectarVideo(valor)
-        atualizado.plataforma=det.plataforma
-        atualizado.formato=det.formato
-      }
-      return atualizado
-    }))
-  }
-  async function salvarVideo(v:any){
-    if(!(await validarSessaoAtual()))return
-    if(!v.titulo?.trim()){setMsg('Dê um título para o vídeo.');return}
-    const urlVideoNorm=normalizarUrl(v.url_video)
-    const linkDestinoNorm=normalizarUrl(v.link_destino)
-    if(!urlVideoNorm||!/^https?:\/\//i.test(urlVideoNorm)){setMsg('Informe um link de vídeo válido.');return}
-    if(v.link_destino?.trim()&&(!linkDestinoNorm||!/^https?:\/\//i.test(linkDestinoNorm))){setMsg('Informe um link de destino válido.');return}
-    setSalvandoVideoId(v.id)
-    const payload={
-      user_id:userId,
-      titulo:v.titulo.trim(),
-      descricao:v.descricao?.trim()||null,
-      url_video:urlVideoNorm,
-      plataforma:v.plataforma||detectarVideo(urlVideoNorm).plataforma,
-      thumbnail_url:v.thumbnail_url?.trim()||null,
-      formato:v.formato||'16:9',
-      link_destino:linkDestinoNorm||null,
-      texto_cta:linkDestinoNorm?(v.texto_cta?.trim()||'Saiba mais'):null,
-      texto_botao_video:v.texto_botao_video?.trim()||'Assistir vídeo',
-      ordem:v.ordem||0,
-      ativo:!!v.ativo,
-    }
-    if(v._novo){
-      const {data,error}=await supabase.from('pagina_videos').insert(payload).select().single()
-      if(error){setMsg('Erro ao salvar vídeo: '+error.message)}
-      else{setVideos(prev=>prev.map(x=>x.id===v.id?data:x));setMsg('Vídeo salvo!')}
-    } else {
-      const {error}=await supabase.from('pagina_videos').update(payload).eq('id',v.id).eq('user_id',userId)
-      if(error){setMsg('Erro ao salvar vídeo: '+error.message)}
-      else{setMsg('Vídeo salvo!')}
-    }
-    setSalvandoVideoId('')
-    setTimeout(()=>setMsg(''),3000)
-  }
-  async function excluirVideo(id:string){
-    if(!(await validarSessaoAtual()))return
-    if(!id.startsWith('novo-')){
-      const {error}=await supabase.from('pagina_videos').delete().eq('id',id).eq('user_id',userId)
-      if(error){setMsg('Erro ao excluir: '+error.message);return}
-    }
-    setVideos(prev=>prev.filter(v=>v.id!==id))
-  }
-  async function uploadCapaVideo(e:React.ChangeEvent<HTMLInputElement>){
-    const file=e.target.files?.[0];const id=uploadingVideoId
-    if(!file||!id)return
-    if(!(await validarSessaoAtual()))return
-    const allowedTypes=['image/jpeg','image/jpg','image/png','image/webp']
-    if(!allowedTypes.includes(file.type)){setMsg('Envie uma imagem JPG, PNG ou WEBP.');return}
-    if(file.size>5*1024*1024){setMsg('A imagem deve ter no máximo 5MB.');return}
-
-    const {data:userData}=await supabase.auth.getUser()
-    if(!userData?.user){setMsg('Sua sessão expirou. Faça login novamente.');return}
-
-    const ext=file.name.split('.').pop()?.toLowerCase()||'png'
-    const path=`videos/${userId}-${Date.now()}.${ext}`
-
-    const {error:uploadError}=await supabase.storage.from('fotos').upload(path,file,{upsert:true,contentType:file.type,cacheControl:'3600'})
-    if(uploadError){setMsg('Erro no upload: '+uploadError.message);setUploadingVideoId('');if(videoImgRef.current)videoImgRef.current.value='';return}
-
-    const {data}=supabase.storage.from('fotos').getPublicUrl(path)
-    editarVideo(id,'thumbnail_url',data.publicUrl)
-    setMsg('Capa enviada! Clique em "Salvar" no vídeo pra confirmar.')
-    setTimeout(()=>setMsg(''),3500)
-    setUploadingVideoId('')
-    if(videoImgRef.current)videoImgRef.current.value=''
-  }
-
   // ---------- ACESSO DA CONTA (Caminho B) ----------
   function emailValido(e:string){return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e)}
 
@@ -810,8 +529,7 @@ export default function Perfil(){
   }
 
 
-  function toggleDia(i:number){setDiasAtivos(prev=>prev.map((v,j)=>j===i?!v:v))}
-  function setHor(i:number,campo:'abertura'|'fechamento',val:string){setHorarios(prev=>prev.map((h,j)=>j===i?{...h,[campo]:val}:h))}
+
   function copiarLink(){navigator.clipboard.writeText(pubUrl);setCopied(true);setTimeout(()=>setCopied(false),2000)}
 
   const ini=(nome||'C').charAt(0).toUpperCase()
@@ -871,17 +589,17 @@ export default function Perfil(){
           )}
 
           <div className="crd">
-            <p style={{fontSize:'15px',fontWeight:700,color:'#F8F4F7',marginBottom:'4px'}}>Informações do negócio</p>
-            <p style={{fontSize:'12px',color:'#B8AAB8',marginBottom:'18px'}}>Dados principais que identificam seu negócio.</p>
+            <p style={{fontSize:'15px',fontWeight:700,color:'#F8F4F7',marginBottom:'4px'}}>Informações da página</p>
+            <p style={{fontSize:'12px',color:'#B8AAB8',marginBottom:'18px'}}>Defina o nome, link e informações principais da sua MiniPage.</p>
             <div style={{marginBottom:'14px'}}>
-              <label className="lbl">Nome do negócio *</label>
-              <input className="inp" type="text" placeholder="Ex: Nome do seu negócio" value={nome} onChange={e=>setNome(e.target.value)}/>
+              <label className="lbl">Nome exibido na página *</label>
+              <input className="inp" type="text" placeholder="Ex: Nome da sua página" value={nome} onChange={e=>setNome(e.target.value)}/>
             </div>
             <div style={{marginBottom:'14px'}}>
               <label className="lbl">Link personalizado *</label>
               <div style={{display:'flex',alignItems:'center',background:'rgba(24,16,27,.88)',border:'1.5px solid #2A1A2F',borderRadius:'12px',overflow:'hidden',transition:'border-color .2s'}} onFocusCapture={e=>(e.currentTarget.style.borderColor='rgba(236,72,153,.55)')} onBlurCapture={e=>(e.currentTarget.style.borderColor='#2A1A2F')}>
-                <span style={{padding:'0 12px',fontSize:'12px',color:'#B8AAB8',whiteSpace:'nowrap',borderRight:'1px solid #2A1A2F',height:'48px',display:'flex',alignItems:'center',background:'rgba(255,255,255,.03)',flexShrink:0}}>clientemarcado.vercel.app/</span>
-                <input type="text" value={slug} onChange={e=>setSlug(e.target.value.toLowerCase().replace(/\s+/g,'-').replace(/[^a-z0-9-]/g,''))} placeholder="seu-negocio" style={{flex:1,background:'transparent',border:'none',outline:'none',padding:'0 14px',height:'48px',fontSize:'14px',color:'#F8F4F7',fontFamily:'inherit'}}/>
+                <span style={{padding:'0 12px',fontSize:'12px',color:'#B8AAB8',whiteSpace:'nowrap',borderRight:'1px solid #2A1A2F',height:'48px',display:'flex',alignItems:'center',background:'rgba(255,255,255,.03)',flexShrink:0}}>minipage.pro/</span>
+                <input type="text" value={slug} onChange={e=>setSlug(e.target.value.toLowerCase().replace(/\s+/g,'-').replace(/[^a-z0-9-]/g,''))} placeholder="seunome" style={{flex:1,background:'transparent',border:'none',outline:'none',padding:'0 14px',height:'48px',fontSize:'14px',color:'#F8F4F7',fontFamily:'inherit'}}/>
               </div>
             </div>
             <div>
@@ -891,10 +609,10 @@ export default function Perfil(){
           </div>
 
           <div className="crd">
-            <p style={{fontSize:'15px',fontWeight:700,color:'#F8F4F7',marginBottom:'4px'}}>Dados públicos do negócio</p>
-            <p style={{fontSize:'12px',color:'#B8AAB8',marginBottom:'18px'}}>Informações que aparecem na sua página de agendamento.</p>
+            <p style={{fontSize:'15px',fontWeight:700,color:'#F8F4F7',marginBottom:'4px'}}>Informações públicas da MiniPage</p>
+            <p style={{fontSize:'12px',color:'#B8AAB8',marginBottom:'18px'}}>Esses dados aparecem para quem acessa sua página.</p>
             <div className="fg2" style={{marginBottom:'14px'}}>
-              <div><label className="lbl">WhatsApp do negócio</label><input className="inp" type="tel" placeholder="(11) 99999-9999" value={wpp} onChange={e=>setWpp(e.target.value)}/></div>
+              <div><label className="lbl">WhatsApp de contato</label><input className="inp" type="tel" placeholder="(11) 99999-9999" value={wpp} onChange={e=>setWpp(e.target.value)}/></div>
               <div><label className="lbl">Instagram</label><input className="inp" type="text" placeholder="@seunegocio" value={insta} onChange={e=>setInsta(e.target.value)}/></div>
             </div>
             <div style={{marginBottom:'14px'}}>
@@ -902,52 +620,28 @@ export default function Perfil(){
               <input className="inp" type="text" placeholder="Ex: São Paulo - SP" value={cidade} onChange={e=>setCidade(e.target.value)}/>
             </div>
             <div>
-              <label className="lbl">Descrição curta do negócio</label>
+              <label className="lbl">Bio da página</label>
               <textarea value={desc} onChange={e=>setDesc(e.target.value.slice(0,180))} placeholder="Ex: Atendimento com horário marcado, ambiente confortável e profissionais especializados." style={{width:'100%',background:'rgba(24,16,27,.88)',border:'1.5px solid #2A1A2F',borderRadius:'12px',padding:'12px 14px',fontSize:'14px',color:'#F8F4F7',outline:'none',fontFamily:'inherit',resize:'none',height:'90px',lineHeight:1.5,boxSizing:'border-box',transition:'border-color .2s'}} onFocus={e=>(e.target.style.borderColor='rgba(236,72,153,.55)')} onBlur={e=>(e.target.style.borderColor='#2A1A2F')}/>
               <p style={{fontSize:'11px',color:'#B8AAB8',textAlign:'right',marginTop:'4px'}}>{desc.length}/180</p>
             </div>
           </div>
 
           <div className="crd">
-            <p style={{fontSize:'15px',fontWeight:700,color:'#F8F4F7',marginBottom:'4px'}}>Funcionamento do negócio</p>
-            <p style={{fontSize:'12px',color:'#B8AAB8',marginBottom:'18px'}}>Defina os dias e horários em que seus clientes podem agendar.</p>
-            <div style={{display:'flex',gap:'6px',flexWrap:'wrap',marginBottom:'18px'}}>
-              {DIAS.map((d,i)=>(
-                <button key={d} onClick={()=>toggleDia(i)} className={`dia-btn${diasAtivos[i]?' on':''}`}>{d}</button>
-              ))}
-            </div>
-            {DIAS.map((d,i)=>{
-              if(!diasAtivos[i])return null
-              return(
-                <div key={d} style={{display:'flex',alignItems:'center',gap:'12px',marginBottom:'10px',padding:'12px 14px',background:'rgba(255,255,255,.03)',borderRadius:'10px',border:'1px solid rgba(255,255,255,.06)',flexWrap:'wrap'}}>
-                  <span style={{fontSize:'12px',fontWeight:700,color:'#C4B5FD',width:'32px',flexShrink:0}}>{d}</span>
-                  <input type="time" value={horarios[i]?.abertura||'08:00'} onChange={e=>setHor(i,'abertura',e.target.value)} style={{background:'rgba(24,16,27,.88)',border:'1px solid #2A1A2F',borderRadius:'8px',padding:'6px 10px',fontSize:'13px',color:'#F8F4F7',outline:'none',fontFamily:'inherit',cursor:'pointer'}}/>
-                  <span style={{fontSize:'12px',color:'#B8AAB8'}}>até</span>
-                  <input type="time" value={horarios[i]?.fechamento||'18:00'} onChange={e=>setHor(i,'fechamento',e.target.value)} style={{background:'rgba(24,16,27,.88)',border:'1px solid #2A1A2F',borderRadius:'8px',padding:'6px 10px',fontSize:'13px',color:'#F8F4F7',outline:'none',fontFamily:'inherit',cursor:'pointer'}}/>
-                </div>
-              )
-            })}
-          </div>
-
-          <div className="crd">
-            <p style={{fontSize:'15px',fontWeight:700,color:'#F8F4F7',marginBottom:'4px'}}>Configurações da agenda</p>
-            <p style={{fontSize:'12px',color:'#B8AAB8',marginBottom:'18px'}}>Controle como o agendamento público funciona.</p>
-            <div className="fg2" style={{marginBottom:'14px'}}>
-              <div><label className="lbl">Intervalo entre horários</label><select className="inp" style={{cursor:'pointer'}} value={intervalo} onChange={e=>setIntervalo(e.target.value)}>{INTERVALOS.map(v=><option key={v}>{v}</option>)}</select></div>
-              <div><label className="lbl">Antecedência mínima</label><select className="inp" style={{cursor:'pointer'}} value={antecedencia} onChange={e=>setAntecedencia(e.target.value)}>{ANTECEDENCIAS.map(v=><option key={v}>{v}</option>)}</select></div>
-            </div>
-            <div className="fg2">
-              <div><label className="lbl">Abertura geral</label><input className="inp" type="time" value={abertura} onChange={e=>setAbertura(e.target.value)}/></div>
-              <div><label className="lbl">Fechamento geral</label><input className="inp" type="time" value={fechamento} onChange={e=>setFechamento(e.target.value)}/></div>
+            <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',flexWrap:'wrap',gap:'12px'}}>
+              <div>
+                <p style={{fontSize:'15px',fontWeight:700,color:'#F8F4F7',marginBottom:'2px'}}>Agenda e horários</p>
+                <p style={{fontSize:'12px',color:'#B8AAB8'}}>Configure dias de atendimento, horários, intervalo entre horários e antecedência mínima.</p>
+              </div>
+              <Link href="/painel/perfil/agenda" style={{background:G,color:'#fff',border:'1px solid rgba(255,255,255,.12)',borderRadius:'10px',padding:'10px 18px',fontSize:'13px',fontWeight:700,textDecoration:'none',flexShrink:0}}>Gerenciar agenda</Link>
             </div>
           </div>
 
           <div className="crd">
-            <p style={{fontSize:'15px',fontWeight:700,color:'#F8F4F7',marginBottom:'4px'}}>Aparência da página pública</p>
-            <p style={{fontSize:'12px',color:'#B8AAB8',marginBottom:'18px'}}>Personalize a página que seus clientes acessam para agendar.</p>
+            <p style={{fontSize:'15px',fontWeight:700,color:'#F8F4F7',marginBottom:'4px'}}>Aparência da MiniPage</p>
+            <p style={{fontSize:'12px',color:'#B8AAB8',marginBottom:'18px'}}>Personalize o visual da página que seus visitantes acessam.</p>
 
             <p style={{fontSize:'13px',fontWeight:600,color:'#B8AAB8',marginBottom:'8px'}}>Imagem de capa</p>
-            <p style={{fontSize:'12px',color:'#B8AAB8',marginBottom:'12px'}}>Aparece no topo da sua página de agendamento. Use uma imagem horizontal (16:9).</p>
+            <p style={{fontSize:'12px',color:'#B8AAB8',marginBottom:'12px'}}>Aparece no topo da sua MiniPage. Use uma imagem horizontal (16:9).</p>
             {capUrl?(
               <div style={{position:'relative',borderRadius:'14px',overflow:'hidden',marginBottom:'16px',border:'1px solid #2A1A2F'}}>
                 <img src={capUrl} alt="Capa" style={{width:'100%',height:'200px',objectFit:'cover',display:'block'}}/>
@@ -966,7 +660,7 @@ export default function Perfil(){
 
             <div style={{borderTop:'1px solid #2A1A2F',paddingTop:'18px',marginTop:'4px',marginBottom:'18px'}}>
               <p style={{fontSize:'13px',fontWeight:600,color:'#B8AAB8',marginBottom:'4px'}}>Escolha um banner pronto</p>
-              <p style={{fontSize:'12px',color:'#B8AAB8',marginBottom:'14px'}}>Selecione uma imagem pronta para combinar com o estilo do seu negócio.</p>
+              <p style={{fontSize:'12px',color:'#B8AAB8',marginBottom:'14px'}}>Selecione uma imagem pronta para combinar com o estilo da sua página.</p>
               <div className="banner-grid">
                 {BANNERS_PRONTOS.map(b=>(
                   <button key={b} type="button" onClick={()=>setCapUrl(b)} className={`banner-thumb${capUrl===b?' sel':''}`}>
@@ -1075,207 +769,46 @@ export default function Perfil(){
             </div>
           </div>
 
-          <div className="crd">
-            <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:destaquesAberto?'4px':'0',flexWrap:'wrap',gap:'10px'}}>
-              <button type="button" onClick={()=>setDestaquesAberto(v=>!v)} style={{display:'flex',alignItems:'center',gap:'10px',background:'none',border:'none',cursor:'pointer',padding:0,fontFamily:'inherit',flex:1,minWidth:'200px',textAlign:'left'}}>
-                {destaquesAberto?<ChevronUp size={18} color="#B8AAB8"/>:<ChevronDown size={18} color="#B8AAB8"/>}
-                <span>
-                  <p style={{fontSize:'15px',fontWeight:700,color:'#F8F4F7'}}>Destaques da página</p>
-                  {!destaquesAberto && <p style={{fontSize:'12px',color:'#B8AAB8',marginTop:'2px'}}>{destaques.length} destaque{destaques.length!==1?'s':''} cadastrado{destaques.length!==1?'s':''}</p>}
-                </span>
-              </button>
-              <button type="button" onClick={()=>{novoDestaque();setDestaquesAberto(true)}} style={{background:G,color:'#fff',border:'1px solid rgba(255,255,255,.12)',borderRadius:'10px',padding:'8px 14px',fontSize:'12px',fontWeight:700,cursor:'pointer',fontFamily:'inherit',flexShrink:0}}>+ Novo destaque</button>
+          <div className="crd" style={{padding:'20px'}}>
+            <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',flexWrap:'wrap',gap:'12px'}}>
+              <div>
+                <p style={{fontSize:'15px',fontWeight:700,color:'#F8F4F7',marginBottom:'2px'}}>Destaques da página</p>
+                <p style={{fontSize:'12px',color:'#B8AAB8'}}>{destaques.length} destaque{destaques.length!==1?'s':''} cadastrado{destaques.length!==1?'s':''}</p>
+              </div>
+              <Link href="/painel/perfil/destaques" style={{background:G,color:'#fff',border:'1px solid rgba(255,255,255,.12)',borderRadius:'10px',padding:'10px 18px',fontSize:'13px',fontWeight:700,textDecoration:'none',flexShrink:0}}>Gerenciar destaques</Link>
             </div>
-            {destaquesAberto && (
-            <>
-            <p style={{fontSize:'12px',color:'#B8AAB8',marginBottom:'18px',marginTop:'14px'}}>Cards grandes como &quot;Curso Presencial&quot;, &quot;Mentoria VIP&quot; ou &quot;Produtos Indicados&quot;.</p>
-
-            {destaques.length===0&&<p style={{fontSize:'13px',color:'#B8AAB8',padding:'12px 0'}}>Nenhum destaque cadastrado ainda.</p>}
-
-            <div style={{display:'flex',flexDirection:'column',gap:'12px'}}>
-              {destaques.map(d=>(
-                <div key={d.id} style={{border:'1px solid #2A1A2F',borderRadius:'14px',padding:'16px'}}>
-                  <div className="fg2" style={{marginBottom:'10px'}}>
-                    <div><label className="lbl">Título</label><input className="inp" autoFocus={!!d._novo} value={d.titulo||''} onChange={e=>editarDestaque(d.id,'titulo',e.target.value)} placeholder="Ex: Curso Presencial"/></div>
-                    <div><label className="lbl">Texto do botão</label><input className="inp" value={d.texto_botao||''} onChange={e=>editarDestaque(d.id,'texto_botao',e.target.value)} placeholder="Ex: Saiba mais"/></div>
-                  </div>
-                  <div style={{marginBottom:'10px'}}><label className="lbl">Descrição</label><input className="inp" value={d.descricao||''} onChange={e=>editarDestaque(d.id,'descricao',e.target.value)} placeholder="Ex: Aprenda técnicas profissionais na prática"/></div>
-                  <div style={{marginBottom:'12px'}}><label className="lbl">Link (URL)</label><input className="inp" value={d.url||''} onChange={e=>editarDestaque(d.id,'url',e.target.value)} placeholder="https://..."/></div>
-                  <div style={{marginBottom:'12px'}}>
-                    <label className="lbl">Imagem de fundo do card</label>
-                    <p style={{fontSize:'11px',color:'#B8AAB8',marginBottom:'8px'}}>Recomendado: 800x600px (proporção 4:3). Imagem horizontal funciona melhor.</p>
-                    <div style={{display:'flex',alignItems:'center',gap:'12px',flexWrap:'wrap'}}>
-                      {d.imagem_url?(
-                        <img src={d.imagem_url} alt="Imagem do destaque" style={{width:'88px',height:'66px',borderRadius:'10px',objectFit:'cover',border:'1px solid #2A1A2F',flexShrink:0}}/>
-                      ):(
-                        <div style={{width:'88px',height:'66px',borderRadius:'10px',background:'rgba(24,16,27,.72)',border:'1px dashed #2A1A2F',flexShrink:0}}/>
-                      )}
-                      <div style={{display:'flex',gap:'8px',flexWrap:'wrap'}}>
-                        <button type="button" onClick={()=>abrirUploadDestaque(d.id)} disabled={uploadingDestaqueId===d.id} style={{background:'rgba(24,16,27,.9)',border:'1px solid #2A1A2F',color:'#B8AAB8',borderRadius:'8px',padding:'8px 14px',fontSize:'12px',fontWeight:600,cursor:'pointer',fontFamily:'inherit'}}>{uploadingDestaqueId===d.id?'Enviando...':(d.imagem_url?'Trocar imagem':'Enviar imagem')}</button>
-                        {d.imagem_url&&<button type="button" onClick={()=>editarDestaque(d.id,'imagem_url','')} style={{background:'rgba(24,16,27,.9)',border:'1px solid #2A1A2F',color:'#EF4444',borderRadius:'8px',padding:'8px 14px',fontSize:'12px',fontWeight:600,cursor:'pointer',fontFamily:'inherit'}}>Remover</button>}
-                      </div>
-                    </div>
-                  </div>
-                  <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:'8px',flexWrap:'wrap'}}>
-                    <button type="button" onClick={()=>editarDestaque(d.id,'ativo',!d.ativo)} style={{background:d.ativo?'rgba(34,197,94,.14)':'#2A1A2F',border:'1px solid '+(d.ativo?'rgba(34,197,94,.25)':'#2A1A2F'),borderRadius:10,padding:'6px 14px',fontSize:12,fontWeight:700,color:d.ativo?'#22C55E':'#B8AAB8',cursor:'pointer',fontFamily:'inherit'}}>{d.ativo?'Ativo':'Oculto'}</button>
-                    <div style={{display:'flex',gap:'8px'}}>
-                      <button type="button" onClick={()=>excluirDestaque(d.id)} style={{background:'rgba(239,68,68,.10)',border:'1px solid rgba(239,68,68,.25)',color:'#EF4444',borderRadius:'8px',padding:'8px 14px',fontSize:'12px',fontWeight:600,cursor:'pointer',fontFamily:'inherit'}}>Excluir</button>
-                      <button type="button" onClick={()=>salvarDestaque(d)} disabled={salvandoDestaqueId===d.id} style={{background:G,color:'#fff',border:'1px solid rgba(255,255,255,.12)',borderRadius:'8px',padding:'8px 16px',fontSize:'12px',fontWeight:700,cursor:'pointer',fontFamily:'inherit',opacity:salvandoDestaqueId===d.id?.7:1}}>{salvandoDestaqueId===d.id?'Salvando...':'Salvar'}</button>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-            </>
-            )}
-            <input ref={destaqueImgRef} type="file" accept="image/*" onChange={uploadImagemDestaque} style={{display:'none'}}/>
           </div>
 
-          <div className="crd">
-            <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:linksAberto?'4px':'0',flexWrap:'wrap',gap:'10px'}}>
-              <button type="button" onClick={()=>setLinksAberto(v=>!v)} style={{display:'flex',alignItems:'center',gap:'10px',background:'none',border:'none',cursor:'pointer',padding:0,fontFamily:'inherit',flex:1,minWidth:'200px',textAlign:'left'}}>
-                {linksAberto?<ChevronUp size={18} color="#B8AAB8"/>:<ChevronDown size={18} color="#B8AAB8"/>}
-                <span>
-                  <p style={{fontSize:'15px',fontWeight:700,color:'#F8F4F7'}}>Links rápidos</p>
-                  {!linksAberto && <p style={{fontSize:'12px',color:'#B8AAB8',marginTop:'2px'}}>{links.length} link{links.length!==1?'s':''} cadastrado{links.length!==1?'s':''}</p>}
-                </span>
-              </button>
-              <button type="button" onClick={()=>{novoLink();setLinksAberto(true)}} style={{background:G,color:'#fff',border:'1px solid rgba(255,255,255,.12)',borderRadius:'10px',padding:'8px 14px',fontSize:'12px',fontWeight:700,cursor:'pointer',fontFamily:'inherit',flexShrink:0}}>+ Novo link</button>
+          <div className="crd" style={{padding:'20px'}}>
+            <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',flexWrap:'wrap',gap:'12px'}}>
+              <div>
+                <p style={{fontSize:'15px',fontWeight:700,color:'#F8F4F7',marginBottom:'2px'}}>Links rápidos</p>
+                <p style={{fontSize:'12px',color:'#B8AAB8'}}>{links.length} link{links.length!==1?'s':''} cadastrado{links.length!==1?'s':''}</p>
+              </div>
+              <Link href="/painel/perfil/links" style={{background:G,color:'#fff',border:'1px solid rgba(255,255,255,.12)',borderRadius:'10px',padding:'10px 18px',fontSize:'13px',fontWeight:700,textDecoration:'none',flexShrink:0}}>Gerenciar links</Link>
             </div>
-            {linksAberto && (
-            <>
-            <p style={{fontSize:'12px',color:'#B8AAB8',marginBottom:'18px',marginTop:'14px'}}>TikTok, YouTube, Shopee, site, grupo VIP e outros links da sua bio.</p>
-
-            {links.length===0&&<p style={{fontSize:'13px',color:'#B8AAB8',padding:'12px 0'}}>Nenhum link cadastrado ainda.</p>}
-
-            <div style={{display:'flex',flexDirection:'column',gap:'12px'}}>
-              {links.map(l=>(
-                <div key={l.id} style={{border:'1px solid #2A1A2F',borderRadius:'14px',padding:'16px'}}>
-                  <div className="fg2" style={{marginBottom:'10px'}}>
-                    <div>
-                      <label className="lbl">Tipo</label>
-                      <select className="inp" style={{cursor:'pointer'}} value={l.tipo||'outro'} onChange={e=>editarLink(l.id,'tipo',e.target.value)}>
-                        {['whatsapp','instagram','tiktok','youtube','shopee','mercadolivre','site','curso','mentoria','endereco','outro'].map(t=><option key={t} value={t}>{t==='endereco'?'Endereço':t}</option>)}
-                      </select>
-                    </div>
-                    <div><label className="lbl">Título</label><input className="inp" autoFocus={!!l._novo} value={l.titulo||''} onChange={e=>editarLink(l.id,'titulo',e.target.value)} placeholder="Ex: TikTok"/></div>
-                  </div>
-                  <div style={{marginBottom:'10px'}}><label className="lbl">Descrição (opcional)</label><input className="inp" value={l.descricao||''} onChange={e=>editarLink(l.id,'descricao',e.target.value)} placeholder="Ex: @studiobellaeducadora"/></div>
-                  <div style={{marginBottom:'12px'}}>
-                    <label className="lbl">{l.tipo==='whatsapp'?'Número (com DDD) ou @usuário do WhatsApp':l.tipo==='endereco'?'Endereço para abrir no Google Maps':'Link (URL)'}</label>
-                    <input className="inp" value={l.url||''} onChange={e=>editarLink(l.id,'url',e.target.value)} placeholder={l.tipo==='whatsapp'?'(11) 99999-9999 ou @studiobella':l.tipo==='endereco'?'Ex: Avenida Atlântica, 156 - São Paulo, SP':'https://...'}/>
-                    {l.tipo==='whatsapp'&&<p style={{fontSize:'11px',color:'#B8AAB8',marginTop:'6px'}}>Pode digitar só o número com DDD (sem link pronto) ou seu @usuário do WhatsApp, se você já tiver criado um. O link completo é montado sozinho ao salvar.</p>}
-                    {l.tipo==='endereco'&&<p style={{fontSize:'11px',color:'#B8AAB8',marginTop:'6px'}}>Digite o endereço completo. O ClienteMarcado abrirá esse local no Google Maps. Também aceita um link do Google Maps já pronto, se preferir colar um.</p>}
-                  </div>
-                  <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:'8px',flexWrap:'wrap'}}>
-                    <button type="button" onClick={()=>editarLink(l.id,'ativo',!l.ativo)} style={{background:l.ativo?'rgba(34,197,94,.14)':'#2A1A2F',border:'1px solid '+(l.ativo?'rgba(34,197,94,.25)':'#2A1A2F'),borderRadius:10,padding:'6px 14px',fontSize:12,fontWeight:700,color:l.ativo?'#22C55E':'#B8AAB8',cursor:'pointer',fontFamily:'inherit'}}>{l.ativo?'Ativo':'Oculto'}</button>
-                    <div style={{display:'flex',gap:'8px'}}>
-                      <button type="button" onClick={()=>excluirLink(l.id)} style={{background:'rgba(239,68,68,.10)',border:'1px solid rgba(239,68,68,.25)',color:'#EF4444',borderRadius:'8px',padding:'8px 14px',fontSize:'12px',fontWeight:600,cursor:'pointer',fontFamily:'inherit'}}>Excluir</button>
-                      <button type="button" onClick={()=>salvarLink(l)} disabled={salvandoLinkId===l.id} style={{background:G,color:'#fff',border:'1px solid rgba(255,255,255,.12)',borderRadius:'8px',padding:'8px 16px',fontSize:'12px',fontWeight:700,cursor:'pointer',fontFamily:'inherit',opacity:salvandoLinkId===l.id?.7:1}}>{salvandoLinkId===l.id?'Salvando...':'Salvar'}</button>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-            </>
-            )}
           </div>
 
-          <div className="crd">
-            <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:videosAberto?'4px':'0',flexWrap:'wrap',gap:'10px'}}>
-              <button type="button" onClick={()=>setVideosAberto(v=>!v)} style={{display:'flex',alignItems:'center',gap:'10px',background:'none',border:'none',cursor:'pointer',padding:0,fontFamily:'inherit',flex:1,minWidth:'200px',textAlign:'left'}}>
-                {videosAberto?<ChevronUp size={18} color="#B8AAB8"/>:<ChevronDown size={18} color="#B8AAB8"/>}
-                <span>
-                  <p style={{fontSize:'15px',fontWeight:700,color:'#F8F4F7'}}>Vídeos da página</p>
-                  {!videosAberto && <p style={{fontSize:'12px',color:'#B8AAB8',marginTop:'2px'}}>{videos.length} vídeo{videos.length!==1?'s':''} cadastrado{videos.length!==1?'s':''}</p>}
-                </span>
-              </button>
-              <button type="button" onClick={()=>{novoVideo();setVideosAberto(true)}} style={{background:G,color:'#fff',border:'1px solid rgba(255,255,255,.12)',borderRadius:'10px',padding:'8px 14px',fontSize:'12px',fontWeight:700,cursor:'pointer',fontFamily:'inherit',flexShrink:0}}>+ Novo vídeo</button>
+          <div className="crd" style={{padding:'20px'}}>
+            <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',flexWrap:'wrap',gap:'12px'}}>
+              <div>
+                <p style={{fontSize:'15px',fontWeight:700,color:'#F8F4F7',marginBottom:'2px'}}>Agenda / Eventos</p>
+                <p style={{fontSize:'12px',color:'#B8AAB8'}}>{eventos.length} evento{eventos.length!==1?'s':''} cadastrado{eventos.length!==1?'s':''}</p>
+              </div>
+              <Link href="/painel/perfil/eventos" style={{background:G,color:'#fff',border:'1px solid rgba(255,255,255,.12)',borderRadius:'10px',padding:'10px 18px',fontSize:'13px',fontWeight:700,textDecoration:'none',flexShrink:0}}>Gerenciar eventos</Link>
             </div>
-            {videosAberto && (
-            <>
-            <p style={{fontSize:'12px',color:'#B8AAB8',marginBottom:'6px',marginTop:'14px'}}>Cole o link de um vídeo do YouTube, Instagram, TikTok ou outra plataforma. O ClienteMarcado detecta automaticamente o formato ideal para exibir na sua página.</p>
-            <p style={{fontSize:'12px',color:'#B8AAB8',marginBottom:'18px'}}>Se o vídeo divulgar um curso, mentoria ou produto, adicione também um link de destino para direcionar a cliente.</p>
-
-            {videos.length===0&&<p style={{fontSize:'13px',color:'#B8AAB8',padding:'12px 0'}}>Nenhum vídeo cadastrado ainda. Adicione vídeos para destacar conteúdos, cursos, mentorias ou produtos na sua página.</p>}
-
-            <div style={{display:'flex',flexDirection:'column',gap:'12px'}}>
-              {videos.map(v=>(
-                <div key={v.id} style={{border:'1px solid rgba(229,72,184,.18)',borderRadius:'14px',padding:'16px'}}>
-                  <div style={{marginBottom:'10px'}}><label className="lbl">Título</label><input className="inp" autoFocus={!!v._novo} value={v.titulo||''} onChange={e=>editarVideo(v.id,'titulo',e.target.value)} placeholder="Ex: Lançamento da Mentoria Nail Designer"/></div>
-                  <div style={{marginBottom:'10px'}}><label className="lbl">Descrição (opcional)</label><input className="inp" value={v.descricao||''} onChange={e=>editarVideo(v.id,'descricao',e.target.value)} placeholder="Ex: Veja como funciona a mentoria para profissionais da beleza."/></div>
-                  <div style={{marginBottom:'6px'}}>
-                    <label className="lbl">Link do vídeo</label>
-                    <input className="inp" value={v.url_video||''} onChange={e=>editarVideo(v.id,'url_video',e.target.value)} placeholder="https://youtube.com/... ou Reels/TikTok"/>
-                    {v.url_video && <p style={{fontSize:'11px',color:'#22C55E',marginTop:'6px'}}>✓ {formatoLabel(v.formato)}</p>}
-                    {!v.url_video && <p style={{fontSize:'11px',color:'#B8AAB8',marginTop:'6px'}}>Cole o link do YouTube, Reels, TikTok, Vimeo etc. O formato ideal é detectado automaticamente.</p>}
-                  </div>
-                  {v.url_video && (
-                    <div style={{marginBottom:'14px'}}>
-                      <p className="lbl" style={{marginBottom:'8px'}}>Prévia</p>
-                      <div style={{width: v.formato==='9:16'?'140px':v.formato==='1:1'?'170px':'240px', aspectRatio: FORMATO_RATIO_PAINEL[v.formato||'16:9'], borderRadius:'12px', overflow:'hidden', position:'relative', background:G, border:'1px solid rgba(229,72,184,.28)'}}>
-                        {(v.thumbnail_url||thumbYoutube(v.url_video)) ? (
-                          <img src={v.thumbnail_url||thumbYoutube(v.url_video)} alt="" style={{width:'100%',height:'100%',objectFit:'cover'}}/>
-                        ) : (
-                          <div style={{width:'100%',height:'100%',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:'6px',padding:'8px',textAlign:'center'}}>
-                            <div style={{width:'32px',height:'32px',borderRadius:'999px',background:'rgba(255,255,255,.22)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'13px',color:'#fff'}}>▶</div>
-                            <span style={{fontSize:'10px',color:'#fff',fontWeight:700}}>{labelPlaceholderPainel(v)}</span>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  )}
-                  <div className="fg2" style={{marginBottom:'10px'}}>
-                    <div><label className="lbl">Texto do botão de assistir</label><input className="inp" value={v.texto_botao_video||''} onChange={e=>editarVideo(v.id,'texto_botao_video',e.target.value)} placeholder="Assistir vídeo"/></div>
-                    <div>
-                      <label className="lbl">Capa do vídeo (opcional)</label>
-                      <div style={{display:'flex',alignItems:'center',gap:'10px'}}>
-                        {v.thumbnail_url && <img src={v.thumbnail_url} alt="" style={{width:'36px',height:'36px',borderRadius:'8px',objectFit:'cover',flexShrink:0,border:'1px solid #2A1A2F'}}/>}
-                        <button type="button" onClick={()=>{setUploadingVideoId(v.id);videoImgRef.current?.click()}} style={{background:'rgba(24,16,27,.92)',border:'1px solid rgba(229,72,184,.28)',borderRadius:'10px',padding:'10px 14px',fontSize:'12px',fontWeight:600,color:'#F8F4F7',cursor:'pointer',fontFamily:'inherit',flex:1}}>
-                          {uploadingVideoId===v.id?'Enviando...':v.thumbnail_url?'Trocar capa':'Enviar capa'}
-                        </button>
-                      </div>
-                      <p style={{fontSize:'10px',color:'#B8AAB8',marginTop:'6px'}}>Para vídeos do Instagram e TikTok, envie uma capa personalizada para deixar sua página mais bonita. Vídeos do YouTube usam capa automática quando disponível.</p>
-                    </div>
-                  </div>
-                  <div className="fg2" style={{marginBottom:'10px'}}>
-                    <div><label className="lbl">Link de destino (comercial, opcional)</label><input className="inp" value={v.link_destino||''} onChange={e=>editarVideo(v.id,'link_destino',e.target.value)} placeholder="Ex: link da mentoria, curso ou WhatsApp"/></div>
-                    {v.link_destino ? (
-                      <div><label className="lbl">Texto do botão de destino (CTA)</label><input className="inp" value={v.texto_cta||''} onChange={e=>editarVideo(v.id,'texto_cta',e.target.value)} placeholder="Ex: Quero participar"/></div>
-                    ) : <div/>}
-                  </div>
-                  <details style={{marginBottom:'12px'}}>
-                    <summary style={{fontSize:'12px',fontWeight:700,color:'#B8AAB8',cursor:'pointer',userSelect:'none'}}>Configurações avançadas</summary>
-                    <div className="fg2" style={{marginTop:'12px'}}>
-                      <div>
-                        <label className="lbl">Plataforma</label>
-                        <select className="inp" style={{cursor:'pointer'}} value={v.plataforma||'outro'} onChange={e=>editarVideo(v.id,'plataforma',e.target.value)}>
-                          {['youtube','instagram','tiktok','vimeo','outro'].map(t=><option key={t} value={t}>{t}</option>)}
-                        </select>
-                      </div>
-                      <div>
-                        <label className="lbl">Formato manual</label>
-                        <select className="inp" style={{cursor:'pointer'}} value={v.formato||'16:9'} onChange={e=>editarVideo(v.id,'formato',e.target.value)}>
-                          {['16:9','9:16','4:3','1:1'].map(f=><option key={f} value={f}>{f}</option>)}
-                        </select>
-                        <p style={{fontSize:'10px',color:'#B8AAB8',marginTop:'5px'}}>Use apenas se a prévia não ficar correta.</p>
-                      </div>
-                    </div>
-                  </details>
-                  <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:'8px',flexWrap:'wrap'}}>
-                    <button type="button" onClick={()=>editarVideo(v.id,'ativo',!v.ativo)} style={{background:v.ativo?'rgba(34,197,94,.14)':'#2A1A2F',border:'1px solid '+(v.ativo?'rgba(34,197,94,.25)':'#2A1A2F'),borderRadius:10,padding:'6px 14px',fontSize:12,fontWeight:700,color:v.ativo?'#22C55E':'#B8AAB8',cursor:'pointer',fontFamily:'inherit'}}>{v.ativo?'Ativo':'Oculto'}</button>
-                    <div style={{display:'flex',gap:'8px'}}>
-                      <button type="button" onClick={()=>excluirVideo(v.id)} style={{background:'rgba(239,68,68,.10)',border:'1px solid rgba(239,68,68,.25)',color:'#EF4444',borderRadius:'8px',padding:'8px 14px',fontSize:'12px',fontWeight:600,cursor:'pointer',fontFamily:'inherit'}}>Excluir</button>
-                      <button type="button" onClick={()=>salvarVideo(v)} disabled={salvandoVideoId===v.id} style={{background:G,color:'#fff',border:'1px solid rgba(255,255,255,.12)',borderRadius:'8px',padding:'8px 16px',fontSize:'12px',fontWeight:700,cursor:'pointer',fontFamily:'inherit',opacity:salvandoVideoId===v.id?.7:1}}>{salvandoVideoId===v.id?'Salvando...':'Salvar'}</button>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-            </>
-            )}
-            <input ref={videoImgRef} type="file" accept="image/*" onChange={uploadCapaVideo} style={{display:'none'}}/>
           </div>
+
+          <div className="crd" style={{padding:'20px'}}>
+            <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',flexWrap:'wrap',gap:'12px'}}>
+              <div>
+                <p style={{fontSize:'15px',fontWeight:700,color:'#F8F4F7',marginBottom:'2px'}}>Vídeos da página</p>
+                <p style={{fontSize:'12px',color:'#B8AAB8'}}>{videos.length} vídeo{videos.length!==1?'s':''} cadastrado{videos.length!==1?'s':''}</p>
+              </div>
+              <Link href="/painel/perfil/videos" style={{background:G,color:'#fff',border:'1px solid rgba(255,255,255,.12)',borderRadius:'10px',padding:'10px 18px',fontSize:'13px',fontWeight:700,textDecoration:'none',flexShrink:0}}>Gerenciar vídeos</Link>
+            </div>
+          </div>
+
 
           {MOSTRAR_PROMOCAO_ANTIGA && (
           <div style={{
