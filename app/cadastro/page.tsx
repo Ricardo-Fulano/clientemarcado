@@ -141,6 +141,17 @@ export default function Cadastro() {
       setLoading(false)
       return
     }
+    // Caso "silencioso": o Supabase, por seguranca, NAO retorna erro quando o e-mail ja existe
+    // (confirmado ou nao) - so devolve o usuario com identities vazio. Sem essa checagem, a tela
+    // seguia pra "confirme seu e-mail" normalmente, mas nenhum e-mail novo era enviado de verdade.
+    const identitiesVazio = Array.isArray(data?.user?.identities) && data.user.identities.length === 0
+    if (identitiesVazio) {
+      setEmailCadastrado(email)
+      setDuplicado(true)
+      setFase('confirmar')
+      setLoading(false)
+      return
+    }
     // Garante que nome_negocio/tipo_negocio/plano_tipo cheguem em `perfis`
     // (nao existe trigger no banco que faca essa copia automaticamente)
     if (data?.user?.id) {
