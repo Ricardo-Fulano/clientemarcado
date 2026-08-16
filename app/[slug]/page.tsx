@@ -3,14 +3,17 @@ import { supabase } from '../lib/supabase'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { headers } from 'next/headers'
+import { Inter } from 'next/font/google'
 import { Zap, CalendarDays, CheckCircle, Sparkles, GraduationCap, Crown, Globe, Link2, Music2, ShoppingBag, PlayCircle, BadgeCheck, MapPin, Calendar } from 'lucide-react'
 import { resolverTema, getTema } from '../lib/tema-publico'
 import { ehPlanoMiniPage } from '../lib/planos'
 
+const inter = Inter({ subsets: ['latin'], weight: ['400', '500', '600', '700'], display: 'swap' })
+
 const CSS = `
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html,body{overflow-x:hidden;width:100%;max-width:100%}
-.hero{position:relative;width:100%;min-height:260px;display:block;overflow:hidden;border-radius:20px;border:2px solid var(--accent);box-shadow:0 0 14px var(--accent-glow)}
+.hero{position:relative;width:100%;min-height:260px;display:block;overflow:hidden;border-radius:20px;border:1px solid rgba(255,255,255,.08);box-shadow:0 18px 50px rgba(0,0,0,.22)}
 .hero.no-capa{min-height:190px}
 .hero-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center center}
 .hero-overlay{position:absolute;inset:0;background:linear-gradient(to bottom,rgba(var(--bg-rgb),0) 55%,rgba(var(--bg-rgb),.6) 100%)}
@@ -25,71 +28,107 @@ html,body{overflow-x:hidden;width:100%;max-width:100%}
 .avatar-pro{width:96px;height:96px;border-radius:999px;object-fit:cover;flex-shrink:0}
 .social-row{display:flex;gap:8px;margin-left:auto;flex-wrap:wrap}
 .social-ic{width:38px;height:38px;border-radius:999px;display:flex;align-items:center;justify-content:center;flex-shrink:0;text-decoration:none;transition:transform .18s}
-.social-ic:hover{transform:translateY(-2px)}
+.social-ic:hover{transform:translateY(-2px);border-color:var(--accent)!important;box-shadow:0 0 10px var(--accent-glow)}
 .bio-text{font-size:15px;color:var(--text-muted);max-width:560px;line-height:1.5;margin-bottom:6px}
 .loc-text{font-size:13px;color:var(--text-muted);display:flex;align-items:center;gap:5px;margin-bottom:4px}
-.destaque-grid{display:grid;gap:16px;width:100%;max-width:100%}
-.destaque-grid.cols-1{grid-template-columns:1fr}
+.destaque-grid{display:grid;gap:12px;width:100%;max-width:100%}
+.destaque-grid.cols-1{grid-template-columns:1fr;max-width:420px;margin:0 auto}
 .destaque-grid.cols-2{grid-template-columns:repeat(2,1fr)}
 .destaque-grid.cols-3{grid-template-columns:repeat(3,1fr)}
 .destaque-item{display:block;width:100%;max-width:100%;min-width:0;box-sizing:border-box}
 .destaque-card{display:flex;flex-direction:column;overflow:hidden;border-radius:16px;transition:transform .18s,box-shadow .18s,border-color .18s;width:100%;max-width:100%;box-sizing:border-box}
 .destaque-card:hover{transform:translateY(-4px);border-color:var(--accent)!important;box-shadow:0 6px 18px var(--accent-glow)}
+.destaque-card:hover .destaque-action{color:var(--accent)}
 .destaque-img-wrap{position:relative;width:100%;aspect-ratio:16/9;overflow:hidden;flex-shrink:0}
 .destaque-img-wrap img{width:100%;height:100%;object-fit:cover;display:block}
-.destaque-body{padding:16px 18px 18px;display:flex;flex-direction:column;gap:4px}
-.destaque-action{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:800;margin-top:8px}
-.destaque-desc{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-.video-grid{display:flex;flex-wrap:wrap;gap:18px;width:100%;max-width:100%;align-items:flex-start}
-.video-card{display:flex;flex-direction:column;overflow:hidden;border-radius:16px;transition:transform .18s,box-shadow .18s,border-color .18s;box-sizing:border-box}
-.video-card.fmt-horizontal,.video-card.fmt-classic{width:100%;max-width:360px;flex:1 1 320px}
-.video-card.fmt-vertical{width:100%;max-width:280px;flex:0 1 260px}
-.video-card.fmt-square{width:100%;max-width:300px;flex:1 1 260px}
+.destaque-body{padding:12px 14px 14px;display:flex;flex-direction:column;gap:3px}
+.destaque-action{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;margin-top:3px;opacity:.85}
+.destaque-desc{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font-size:11px!important}
+.video-grid{display:flex;flex-wrap:wrap;gap:12px;width:100%;max-width:100%;align-items:flex-start;justify-content:flex-start}
+.video-card{display:flex;flex-direction:column;overflow:hidden;border-radius:13px;transition:transform .18s,box-shadow .18s,border-color .18s;box-sizing:border-box}
+.video-card.fmt-horizontal,.video-card.fmt-classic{width:100%;max-width:230px;flex:1 1 210px}
+.video-card.fmt-vertical{width:100%;max-width:170px;flex:0 1 160px}
+.video-card.fmt-square{width:100%;max-width:200px;flex:1 1 180px}
 .video-card:hover{transform:translateY(-4px);border-color:var(--accent)!important}
+.video-card:hover .video-assistir{color:var(--accent);border-color:var(--accent)!important}
 .video-thumb-wrap{position:relative;width:100%;overflow:hidden;flex-shrink:0;display:block;text-decoration:none;background:#000}
 .video-thumb-wrap img{width:100%;height:100%;object-fit:cover;display:block}
-.video-play{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:52px;height:52px;border-radius:999px;background:rgba(0,0,0,.55);border:1.5px solid rgba(255,255,255,.7);display:flex;align-items:center;justify-content:center;backdrop-filter:blur(2px)}
-.video-placeholder{width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:18px;text-align:center}
-.video-placeholder-play{width:52px;height:52px;border-radius:999px;background:rgba(255,255,255,.20);border:1.5px solid rgba(255,255,255,.55);display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.video-placeholder-label{font-size:12px;font-weight:800;color:#fff;letter-spacing:.02em}
-.video-placeholder-title{font-size:11px;color:rgba(255,255,255,.85);line-height:1.35;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;max-width:220px}
-.video-body{padding:16px 18px 18px;display:flex;flex-direction:column;gap:4px}
-.video-desc{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-.video-btns{display:flex;flex-direction:column;gap:8px;margin-top:12px}
-.video-cta{display:inline-flex;align-items:center;justify-content:center;gap:6px;font-size:13px;font-weight:800;padding:11px 16px;border-radius:11px;text-decoration:none;text-align:center}
-.video-assistir{display:inline-flex;align-items:center;justify-content:center;gap:6px;font-size:12px;font-weight:700;padding:9px 16px;border-radius:11px;text-decoration:none;text-align:center;background:transparent}
+.video-play{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:44px;height:44px;border-radius:999px;background:rgba(0,0,0,.55);border:1.5px solid rgba(255,255,255,.7);display:flex;align-items:center;justify-content:center;backdrop-filter:blur(2px)}
+.video-placeholder{width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:14px;text-align:center}
+.video-placeholder-play{width:44px;height:44px;border-radius:999px;background:rgba(255,255,255,.20);border:1.5px solid rgba(255,255,255,.55);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.video-placeholder-label{font-size:11px;font-weight:700;color:#fff;letter-spacing:.02em}
+.video-placeholder-title{font-size:10px;color:rgba(255,255,255,.85);line-height:1.35;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;max-width:200px}
+.video-body{padding:9px 12px 11px;display:flex;flex-direction:column;gap:2px}
+.video-title{font-size:14px;font-weight:600;color:var(--text);line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.video-desc{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font-size:11px!important}
+.video-btns{display:flex;flex-direction:column;gap:6px;margin-top:6px}
+.video-cta{display:inline-flex;align-items:center;justify-content:center;gap:5px;font-size:12px;font-weight:700;padding:8px 14px;border-radius:9px;text-decoration:none;text-align:center}
+.video-assistir{display:inline-flex;align-items:center;justify-content:center;gap:5px;font-size:11px;font-weight:600;padding:7px 14px;border-radius:9px;text-decoration:none;text-align:center;background:transparent}
 .video-mais summary{list-style:none;cursor:pointer;display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:700;padding:11px 22px;border-radius:999px;margin:18px auto 0;width:fit-content}
 .video-mais summary::-webkit-details-marker{display:none}
 .video-mais[open] .video-mais-label-fechar{display:inline}
 .video-mais[open] .video-mais-label-abrir{display:none}
 .video-mais .video-mais-label-fechar{display:none}
 .video-mais-grid{display:flex;flex-wrap:wrap;gap:18px;margin-top:16px;align-items:flex-start}
-.link-card{display:flex;align-items:center;gap:14px;padding:17px 20px;box-sizing:border-box}
-.link-icon{width:46px;height:46px;border-radius:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.link-card:hover{border-color:var(--accent)!important;box-shadow:0 0 12px var(--accent-glow)}
+.link-card{display:flex;align-items:center;gap:14px;padding:16px 18px;box-sizing:border-box;border-radius:16px}
+.link-icon{width:54px;height:54px;border-radius:16px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.link-card:hover{border-color:var(--accent)!important;box-shadow:0 0 10px var(--accent-glow)}
+.link-grid{display:grid;grid-template-columns:1fr;gap:11px;width:100%}
+.link-title{font-size:16px;font-weight:600;color:var(--text);margin-bottom:2px;line-height:1.25}
+.link-sub{font-size:13px;font-weight:400;color:var(--text-muted);line-height:1.3}
+.link-arrow{font-size:16px;flex-shrink:0;opacity:.5}
+@media(min-width:640px){
+  .link-grid{grid-template-columns:repeat(2,1fr)}
+}
 @media(min-width:768px) and (max-width:1024px){
   .destaque-grid.cols-3{grid-template-columns:repeat(2,1fr)}
 }
 @media(max-width:767px){
-  .hero, .hero.no-capa{height:170px!important;max-height:170px!important;min-height:170px!important;border-radius:18px!important;border-width:2px!important;overflow:hidden!important;position:relative!important}
+  .hero, .hero.no-capa{height:170px!important;max-height:170px!important;min-height:170px!important;border-radius:18px!important;overflow:hidden!important;position:relative!important}
   .profile-row{margin-top:-56px;flex-direction:column;align-items:center;text-align:center}
   .avatar-pro{width:112px;height:112px}
   .social-row{margin-left:0;justify-content:center}
   .bio-text{margin-left:auto;margin-right:auto;text-align:center}
   .loc-text{justify-content:center}
   .benefit-grid{grid-template-columns:1fr}
-  .destaque-grid,.destaque-grid.cols-1,.destaque-grid.cols-2,.destaque-grid.cols-3{grid-template-columns:1fr!important;gap:14px!important;width:100%!important;max-width:100%!important}
-  .video-grid,.video-mais-grid{gap:14px!important}
-  .video-card.fmt-horizontal,.video-card.fmt-classic,.video-card.fmt-square{max-width:100%!important;flex-basis:100%!important}
-  .video-card.fmt-vertical{max-width:280px!important;flex-basis:100%!important;margin:0 auto}
-  .link-card{padding:13px 15px!important;gap:12px!important}
-  .link-icon{width:40px!important;height:40px!important}
+  .destaque-grid,.destaque-grid.cols-1,.destaque-grid.cols-2,.destaque-grid.cols-3{grid-template-columns:1fr!important;gap:12px!important;width:100%!important;max-width:100%!important}
+  .destaque-body{padding:10px 14px 12px!important}
+  .video-grid,.video-mais-grid{gap:10px!important}
+  .video-card.fmt-horizontal,.video-card.fmt-classic,.video-card.fmt-square,.video-card.fmt-vertical{max-width:100%!important;width:100%!important;flex-basis:100%!important;margin:0!important}
+  .video-body{padding:9px 11px 11px!important}
+  .video-assistir{display:none!important}
+  .link-grid{grid-template-columns:1fr!important;gap:10px!important}
   .hero-btns{flex-direction:column}
   .hero-btns a{width:100%;justify-content:center;text-align:center}
   .cta-inner{flex-direction:column!important;gap:16px!important}
   .cta-btns{width:100%!important;flex-direction:column!important}
   .cta-btns a{width:100%!important;justify-content:center!important}
+  .wrap{padding:0 18px}
+}
+/* Breakpoint mobile estrito - valores explicitos e definitivos pra altura dos cards.
+   Usa !important deliberadamente aqui: tentativas anteriores mais "suaves" nao foram
+   suficientes, entao esse bloco garante que nada mais no arquivo consiga vencer essas
+   regras especificas de altura/padding no celular. */
+@media(max-width:480px){
+  .link-card{height:76px!important;min-height:0!important;max-height:78px!important;padding:10px 14px!important;gap:12px!important;border-radius:16px!important}
+  .link-icon{width:44px!important;height:44px!important;min-width:44px!important;border-radius:12px!important}
+  .link-title{font-size:16px!important;font-weight:600!important;line-height:1.2!important;margin-bottom:0!important}
+  .link-sub{font-size:13px!important;font-weight:400!important;line-height:1.25!important;margin-top:2px!important}
+  .link-grid{gap:10px!important}
+
+  .destaque-img-wrap{aspect-ratio:auto!important;height:170px!important;max-height:170px!important;min-height:0!important}
+  .destaque-body{padding:12px 14px 11px!important;gap:2px!important}
+  .destaque-action{font-size:13px!important;margin-top:5px!important}
+
+  .video-thumb-wrap{aspect-ratio:auto!important;height:155px!important;max-height:155px!important;min-height:0!important}
+  .video-play{width:42px!important;height:42px!important}
+  .video-body{padding:10px 12px 12px!important;gap:2px!important}
+  .video-title{font-size:15px!important;line-height:1.25!important}
+}
+@media(max-width:340px){
   .wrap{padding:0 14px}
+  .destaque-img-wrap{height:160px!important;max-height:160px!important}
+  .video-thumb-wrap{height:145px!important;max-height:145px!important}
 }
 `
 
@@ -200,6 +239,12 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
 
   const temaId = resolverTema(perfil.public_theme || perfil.tema_publico || perfil.tema_cor || 'modelo2')
   const tema = getTema(temaId)
+  // Icones/setas neutros (nao usam mais a cor forte de cada rede social) - se adaptam
+  // automaticamente pro tema claro/champagne ou escuro, mantendo o visual premium consistente.
+  const iconeBg = tema.mode === 'light' ? 'rgba(255,255,255,.45)' : 'rgba(255,255,255,.06)'
+  const iconeBorder = tema.mode === 'light' ? 'rgba(0,0,0,.08)' : 'rgba(255,255,255,.10)'
+  const iconeCor = 'var(--text)'
+  const setaCor = 'var(--text-muted)'
 
   const nomeBusiness = perfil.nome_negocio || 'Agendamento Online'
   const bioCurta = perfil.pagina_descricao_curta || perfil.descricao || ''
@@ -227,8 +272,8 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
   // Icone/cor de cada tipo de link rapido
   function iconeLink(tipo:string){
     switch(tipo){
-      case 'whatsapp': return { color:'#22C55E', svg:(<svg width="18" height="18" viewBox="0 0 24 24" fill="#22C55E"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>) }
-      case 'instagram': return { color:'#EC4899', svg:(<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#EC4899" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1112.63 8 4 4 0 0116 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>) }
+      case 'whatsapp': return { color:'#22C55E', svg:(<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>) }
+      case 'instagram': return { color:'#EC4899', svg:(<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1112.63 8 4 4 0 0116 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>) }
       case 'tiktok': return { color:tema.text, I:Music2 }
       case 'youtube': return { color:'#FF3B30', I:PlayCircle }
       case 'shopee': return { color:'#EE4D2D', I:ShoppingBag }
@@ -290,7 +335,7 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
   const promoVisivel = !!(perfil.promocao_ativa && perfil.promocao_titulo && perfil.promocao_preco_novo && promoDentroPeriodo)
 
   return (
-    <main style={{ minHeight: '100vh', background: 'var(--bg)', color: 'var(--text)', fontFamily: '-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif', overflowX: 'hidden' }}>
+    <main className={inter.className} style={{ minHeight: '100vh', background: 'var(--bg)', color: 'var(--text)', overflowX: 'hidden' }}>
       <style dangerouslySetInnerHTML={{ __html: CSS + `
         :root { --accent: ${tema.accent}; --accent-border: ${tema.border}; --accent-glow: ${tema.glow}; --bg: ${tema.bg}; --bg-rgb: ${tema.bgRGB}; --card: ${tema.card}; --text: ${tema.text}; --text-muted: ${tema.textMuted}; }
         @media(max-width:767px){
@@ -330,8 +375,8 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
               {linksSociais.map(l => {
                 const cfg = iconeLink(l.tipo)
                 return (
-                  <a key={l.id} href={l.url} target={l.url && l.url.startsWith('http') ? '_blank' : '_self'} rel="noopener noreferrer" className="social-ic" style={{ background: `${cfg.color}1F`, border: `1px solid ${cfg.color}48` }} aria-label={l.titulo}>
-                    {cfg.svg ? cfg.svg : (cfg.I ? <cfg.I size={16} color={cfg.color} /> : null)}
+                  <a key={l.id} href={l.url} target={l.url && l.url.startsWith('http') ? '_blank' : '_self'} rel="noopener noreferrer" className="social-ic" style={{ background: iconeBg, border: `1px solid ${iconeBorder}`, color: iconeCor }} aria-label={l.titulo}>
+                    {cfg.svg ? cfg.svg : (cfg.I ? <cfg.I size={16} color={iconeCor} /> : null)}
                   </a>
                 )
               })}
@@ -372,7 +417,7 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
             <div className={`destaque-grid cols-${Math.min(destaques.length, 3)}`}>
               {destaques.map(d => {
                 const conteudo = (
-                  <div className="crd destaque-card" style={{ border: `2px solid ${tema.accent}`, boxShadow: `0 0 12px ${tema.glow}` }}>
+                  <div className="crd destaque-card" style={{ border: `1px solid ${iconeBorder}` }}>
                     <div className="destaque-img-wrap">
                       {d.imagem_url ? (
                         <img src={d.imagem_url} alt={d.titulo} />
@@ -381,10 +426,10 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
                       )}
                     </div>
                     <div className="destaque-body">
-                      <p style={{ fontWeight: 800, fontSize: '16px', color: 'var(--text)' }}>{d.titulo}</p>
+                      <p style={{ fontWeight: 600, fontSize: '16px', color: 'var(--text)' }}>{d.titulo}</p>
                       {d.descricao && <p className="destaque-desc" style={{ fontSize: '12px', color: 'var(--text-muted)', lineHeight: 1.4 }}>{d.descricao}</p>}
                       {d.url && (
-                        <span className="destaque-action" style={{ color: tema.accent }}>
+                        <span className="destaque-action" style={{ color: iconeCor }}>
                           {d.texto_botao || 'Ver mais'} →
                         </span>
                       )}
@@ -406,32 +451,32 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
         {/* LINKS RAPIDOS: apenas o que o cliente configurou no painel + fallback de agenda, se aplicavel */}
         {(mostrarAgendaFallback || (linksRapidos && linksRapidos.length > 0)) && (
           <div style={{ marginBottom: '32px' }}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            <div className="link-grid">
               {mostrarAgendaFallback && (
-                <a href={`/${slug}/agendar`} className="crd link-card" style={{ textDecoration: 'none', color: 'inherit', border: `1.5px solid ${tema.accent}`, boxShadow: `0 0 8px ${tema.glow}` }}>
-                  <div className="link-icon" style={{ background: tema.accent }}>
-                    <Calendar size={19} color={tema.btnText} />
+                <a href={`/${slug}/agendar`} className="crd link-card" style={{ textDecoration: 'none', color: 'inherit', border: `1px solid ${iconeBorder}` }}>
+                  <div className="link-icon" style={{ background: iconeBg, border: `1px solid ${iconeBorder}` }}>
+                    <Calendar size={21} color={iconeCor} />
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <p style={{ fontWeight: 700, fontSize: '15px', color: 'var(--text)', marginBottom: '2px' }}>{tituloBotaoAgenda}</p>
-                    <p style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Rápido, prático e seguro</p>
+                    <p className="link-title">{tituloBotaoAgenda}</p>
+                    <p className="link-sub">Rápido, prático e seguro</p>
                   </div>
-                  <span style={{ fontSize: '18px', color: tema.accent, flexShrink: 0 }}>›</span>
+                  <span className="link-arrow" style={{ color: setaCor }}>›</span>
                 </a>
               )}
               {linksRapidos && linksRapidos.map(l => {
                 const cfg = iconeLink(l.tipo)
                 const hrefFinal = urlFinalLink(l)
                 return (
-                  <a key={l.id} href={hrefFinal} target={hrefFinal.startsWith('http') ? '_blank' : '_self'} rel="noopener noreferrer" className="crd link-card" style={{ textDecoration: 'none', color: 'inherit', border: `1.5px solid ${tema.accent}`, boxShadow: `0 0 8px ${tema.glow}` }}>
-                    <div className="link-icon" style={{ background: `${cfg.color}1F`, border: `1px solid ${cfg.color}48` }}>
-                      {cfg.svg ? cfg.svg : (cfg.I ? <cfg.I size={19} color={cfg.color} /> : null)}
+                  <a key={l.id} href={hrefFinal} target={hrefFinal.startsWith('http') ? '_blank' : '_self'} rel="noopener noreferrer" className="crd link-card" style={{ textDecoration: 'none', color: 'inherit', border: `1px solid ${iconeBorder}` }}>
+                    <div className="link-icon" style={{ background: iconeBg, border: `1px solid ${iconeBorder}`, color: iconeCor }}>
+                      {cfg.svg ? cfg.svg : (cfg.I ? <cfg.I size={21} color={iconeCor} /> : null)}
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <p style={{ fontWeight: 700, fontSize: '15px', color: 'var(--text)', marginBottom: '2px' }}>{l.titulo || (l.tipo === 'endereco' ? 'Endereço' : '')}</p>
-                      {l.descricao && <p style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{l.descricao}</p>}
+                      <p className="link-title">{l.titulo || (l.tipo === 'endereco' ? 'Endereço' : '')}</p>
+                      {l.descricao && <p className="link-sub">{l.descricao}</p>}
                     </div>
-                    <span style={{ fontSize: '18px', color: tema.accent, flexShrink: 0 }}>›</span>
+                    <span className="link-arrow" style={{ color: setaCor }}>›</span>
                   </a>
                 )
               })}
@@ -447,23 +492,23 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
             const thumb = thumbnailVideo(v)
             const ratio = FORMATO_RATIO[v.formato || '16:9'] || '16/9'
             return (
-              <div key={v.id} className={`crd video-card ${formatoClasse(v.formato)}`} style={{ border: `2px solid ${tema.accent}`, boxShadow: `0 0 16px ${tema.glow}` }}>
+              <div key={v.id} className={`crd video-card ${formatoClasse(v.formato)}`} style={{ border: `1px solid ${iconeBorder}` }}>
                 <a href={v.url_video} target={v.abrir_nova_aba === false ? '_self' : '_blank'} rel="noopener noreferrer" className="video-thumb-wrap" style={{ aspectRatio: ratio }}>
                   {thumb ? (
                     <>
                       <img src={thumb} alt={v.titulo} />
-                      <div className="video-play"><PlayCircle size={26} color="#fff" /></div>
+                      <div className="video-play"><PlayCircle size={18} color="#fff" /></div>
                     </>
                   ) : (
                     <div className="video-placeholder" style={{ background: `radial-gradient(circle at 30% 20%,${tema.soft},transparent 60%),linear-gradient(135deg,${tema.accent},${tema.secondary})` }}>
-                      <div className="video-placeholder-play"><PlayCircle size={24} color="#fff" /></div>
+                      <div className="video-placeholder-play"><PlayCircle size={20} color="#fff" /></div>
                       <span className="video-placeholder-label">{labelPlaceholder(v)}</span>
                       {v.titulo && <span className="video-placeholder-title">{v.titulo}</span>}
                     </div>
                   )}
                 </a>
                 <div className="video-body">
-                  <p style={{ fontWeight: 800, fontSize: '15px', color: 'var(--text)' }}>{v.titulo}</p>
+                  <p className="video-title">{v.titulo}</p>
                   {v.descricao && <p className="video-desc" style={{ fontSize: '12px', color: 'var(--text-muted)', lineHeight: 1.4 }}>{v.descricao}</p>}
                   <div className="video-btns">
                     {v.link_destino && (
@@ -471,7 +516,7 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
                         {v.texto_cta || 'Saiba mais'}
                       </a>
                     )}
-                    <a href={v.url_video} target={v.abrir_nova_aba === false ? '_self' : '_blank'} rel="noopener noreferrer" className="video-assistir" style={{ border: `1px solid ${tema.border}`, color: tema.accent }}>
+                    <a href={v.url_video} target={v.abrir_nova_aba === false ? '_self' : '_blank'} rel="noopener noreferrer" className="video-assistir" style={{ border: `1px solid ${iconeBorder}`, color: iconeCor }}>
                       {v.texto_botao_video || 'Assistir vídeo'}
                     </a>
                   </div>
@@ -482,7 +527,7 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
           return (
             <div style={{ marginBottom: '28px' }}>
               <p style={{ fontSize: '20px', fontWeight: 900, color: 'var(--text)', letterSpacing: '-0.02em', marginBottom: '6px' }}>Vídeos em destaque</p>
-              <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '18px' }}>Assista conteúdos, apresentações, cursos, mentorias ou novidades do negócio.</p>
+              <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '18px' }}>Veja conteúdos, vídeos, apresentações e novidades em destaque.</p>
               <div className="video-grid">
                 {primeiros.map(renderVideoCard)}
               </div>
@@ -597,9 +642,12 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
             </div>
           </div>
         )}
-        <p style={{ textAlign: 'center', fontSize: '11px', color: 'var(--text-muted)', marginTop: '24px' }}>
-          Página criada com <span style={{ color: tema.accent, fontWeight: 700 }}>ClienteMarcado</span>
-        </p>
+        <div style={{ display: 'flex', justifyContent: 'center', marginTop: '32px', marginBottom: '8px' }}>
+          <a href="https://clientemarcado.com.br" target="_blank" rel="noopener noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', textDecoration: 'none', padding: '9px 18px', borderRadius: '999px', background: 'var(--card)', border: `1px solid ${tema.accent}22` }}>
+            <span style={{ fontSize: '12px', fontWeight: 700, color: tema.accent }}>Crie sua MiniPage Pro</span>
+            <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>· uma solução ClienteMarcado</span>
+          </a>
+        </div>
       </div>
     </main>
   )
