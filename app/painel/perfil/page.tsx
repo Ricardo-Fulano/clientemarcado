@@ -22,11 +22,11 @@ const TEMAS=[
   {id:'modelo5',nome:'Modelo 5',desc:'Cinza claro e branco, clean e editorial.',p:'#C97B93',s:'#8B5D73'},
   {id:'modelo6',nome:'Modelo 6',desc:'Branco e cinza suave, refinado e elegante.',p:'#5FA8A0',s:'#3D7871'},
   {id:'modelo7',nome:'Modelo 7',desc:'Rosa blush premium, ideal para beleza e estética.',p:'#F5C3D6',s:'#E83E8C'},
-  {id:'modelo8',nome:'Modelo 8',desc:'Champagne rosé, natural e sofisticado.',p:'#D4967A',s:'#B8724F'},
+  {id:'modelo8',nome:'Modelo 8',desc:'Rosa forte premium, marcante e feminino.',p:'#F1B6CF',s:'#C2185B'},
   {id:'modelo9',nome:'Modelo 9',desc:'Lilás profundo, sofisticado e marcante.',p:'#B69AF0',s:'#8B6FD9'},
   {id:'modelo10',nome:'Modelo 10',desc:'Nude e mocha, acolhedor e refinado.',p:'#A67C52',s:'#7A5A3A'},
-  {id:'modelo11',nome:'Modelo 11',desc:'Bordô profundo, elegante e marcante.',p:'#D4A574',s:'#A67849'},
-  {id:'modelo12',nome:'Modelo 12',desc:'Azul-meia-noite, premium e versátil.',p:'#7C9CF0',s:'#5878D0'},
+  {id:'modelo11',nome:'Modelo 11',desc:'Bordô profundo, elegante e marcante.',p:'#7F1D1D',s:'#BE123C'},
+  {id:'modelo12',nome:'Modelo 12',desc:'Azul-meia-noite, premium e versátil.',p:'#3B82F6',s:'#10243D'},
 ]
 
 const TEMA_CORES: Record<string, {primary:string;secondary:string;accent:string;border:string;bg:string;text:string;btnText:string}> = {
@@ -37,11 +37,11 @@ const TEMA_CORES: Record<string, {primary:string;secondary:string;accent:string;
   modelo5: {primary:'#C97B93',secondary:'#8B5D73',accent:'#DDA0B3',border:'rgba(201,123,147,.38)',bg:'rgba(201,123,147,.10)',text:'#DDA0B3', btnText:'#fff'},
   modelo6: {primary:'#5FA8A0',secondary:'#3D7871',accent:'#84C2BB',border:'rgba(95,168,160,.38)', bg:'rgba(95,168,160,.10)', text:'#84C2BB', btnText:'#fff'},
   modelo7: {primary:'#E83E8C',secondary:'#C23F6C',accent:'#F06BA8',border:'rgba(232,62,140,.38)', bg:'rgba(232,62,140,.10)', text:'#F06BA8', btnText:'#fff'},
-  modelo8: {primary:'#D4967A',secondary:'#B8724F',accent:'#E8B79C',border:'rgba(212,150,122,.38)',bg:'rgba(212,150,122,.10)',text:'#E8B79C', btnText:'#fff'},
+  modelo8: {primary:'#C2185B',secondary:'#9D174D',accent:'#E83E8C',border:'rgba(194,24,91,.42)',bg:'rgba(194,24,91,.12)',text:'#E83E8C', btnText:'#fff'},
   modelo9: {primary:'#B69AF0',secondary:'#8B6FD9',accent:'#D4C2FF',border:'rgba(182,154,240,.38)',bg:'rgba(182,154,240,.10)',text:'#D4C2FF', btnText:'#fff'},
   modelo10:{primary:'#A67C52',secondary:'#7A5A3A',accent:'#C9A578',border:'rgba(166,124,82,.38)', bg:'rgba(166,124,82,.10)', text:'#C9A578', btnText:'#fff'},
   modelo11:{primary:'#D4A574',secondary:'#A67849',accent:'#E8C39E',border:'rgba(212,165,116,.38)',bg:'rgba(212,165,116,.10)',text:'#E8C39E', btnText:'#2A1408'},
-  modelo12:{primary:'#7C9CF0',secondary:'#5878D0',accent:'#A5BDFF',border:'rgba(124,156,240,.38)',bg:'rgba(124,156,240,.10)',text:'#A5BDFF', btnText:'#fff'},
+  modelo12:{primary:'#3B82F6',secondary:'#2563EB',accent:'#60A5FA',border:'rgba(59,130,246,.38)',bg:'rgba(59,130,246,.10)',text:'#60A5FA', btnText:'#fff'},
 }
 
 const BANNERS_PRONTOS=Array.from({length:14},(_,i)=>`/banners/prontos/banner-${String(i+1).padStart(2,'0')}.webp`)

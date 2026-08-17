@@ -107,15 +107,15 @@ export function getTema(temaPublico: string): TemaTokens {
         text:'#3D1F2A', textMuted:'#805663',
         cardBorder:'rgba(232,62,140,.28)', surface2:'#FBDCE9', headerBg:'rgba(245,195,214,.92)',
       }
-    case 'modelo8': // Rose Champagne - corrige o contraste bg/card da versao antiga
+    case 'modelo8': // Rosa Forte Premium - rosa marcante e feminino, mais intenso e "presente" que o Modelo 7 (blush suave)
       return {
         mode:'light',
-        accent:'#D4967A', accent2:'#E8B79C', secondary:'#B8724F',
-        soft:'rgba(212,150,122,.13)', border:'rgba(212,150,122,.32)', glow:'rgba(212,150,122,.15)',
+        accent:'#C2185B', accent2:'#E83E8C', secondary:'#9D174D',
+        soft:'rgba(194,24,91,.16)', border:'rgba(217,119,167,.60)', glow:'rgba(194,24,91,.20)',
         btnText:'#fff',
-        bg:'linear-gradient(180deg,#F3E0D6 0%,#F7E8DC 50%,#FCF1E6 100%)', bgRGB:'243,224,214', card:'linear-gradient(145deg,#FFFBF5,#FFF6EC)',
-        text:'#4A2F1E', textMuted:'#8A6B54',
-        cardBorder:'rgba(212,150,122,.30)', surface2:'#F5E5D8', headerBg:'rgba(243,224,214,.92)',
+        bg:'linear-gradient(180deg,#F8D4E4 0%,#F6C4DB 50%,#F4BDD6 100%)', bgRGB:'248,212,228', card:'linear-gradient(145deg,#F1B6CF,#EFA9C8)',
+        text:'#3D182B', textMuted:'#6E3A53',
+        cardBorder:'#D977A7', surface2:'#F2BAD3', headerBg:'rgba(248,212,228,.92)',
       }
     case 'modelo9': // Lilac Premium - dark, roxo/lilas sofisticado
       return {
@@ -147,15 +147,15 @@ export function getTema(temaPublico: string): TemaTokens {
         text:'#F5E8EA', textMuted:'#D4B0BA',
         cardBorder:'#3D1420', surface2:'rgba(43,10,20,.88)', headerBg:'rgba(22,4,8,.96)',
       }
-    case 'modelo12': // Blue Midnight - azul-marinho, premium e versatil
+    case 'modelo12': // Blue Midnight - azul-marinho com presenca real, premium e versatil
       return {
         mode:'dark',
-        accent:'#7C9CF0', accent2:'#A5BDFF', secondary:'#5878D0',
-        soft:'rgba(124,156,240,.13)', border:'rgba(124,156,240,.26)', glow:'rgba(124,156,240,.15)',
+        accent:'#3B82F6', accent2:'#60A5FA', secondary:'#2563EB',
+        soft:'rgba(59,130,246,.14)', border:'rgba(59,130,246,.28)', glow:'rgba(59,130,246,.17)',
         btnText:'#fff',
-        bg:'#050810', bgRGB:'5,8,16', card:'linear-gradient(145deg,#141C2E,#0F1622)',
-        text:'#FFFFFF', textMuted:'#B8C2D4',
-        cardBorder:'#243048', surface2:'rgba(20,28,46,.88)', headerBg:'rgba(5,8,16,.96)',
+        bg:'linear-gradient(180deg,#020617 0%,#06111F 55%,#0B1B33 100%)', bgRGB:'2,6,23', card:'linear-gradient(145deg,#10243D,#0F1E33)',
+        text:'#F8FAFC', textMuted:'#CBD5E1',
+        cardBorder:'#1D4ED8', surface2:'rgba(15,30,51,.88)', headerBg:'rgba(2,6,23,.96)',
       }
     default:
       return MODELO1
