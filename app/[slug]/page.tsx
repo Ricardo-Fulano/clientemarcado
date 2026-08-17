@@ -4,7 +4,8 @@ import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { headers } from 'next/headers'
 import { Inter } from 'next/font/google'
-import { Zap, CalendarDays, CheckCircle, Sparkles, GraduationCap, Crown, Globe, Link2, Music2, ShoppingBag, PlayCircle, BadgeCheck, MapPin, Calendar, Lock } from 'lucide-react'
+import { Zap, CalendarDays, CheckCircle, Sparkles, GraduationCap, Crown, Globe, Link2, Music2, ShoppingBag, PlayCircle, BadgeCheck, MapPin, Calendar, Lock, Mail } from 'lucide-react'
+import EmailLinkCard from '../components/EmailLinkCard'
 import { resolverTema, getTema } from '../lib/tema-publico'
 import { ehPlanoMiniPage } from '../lib/planos'
 
@@ -288,8 +289,30 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
       case 'mentoria': return { color:tema.accent, I:Crown }
       case 'endereco': return { color:tema.accent, I:MapPin }
       case 'secreto': return { color:tema.accent, I:Lock }
+      case 'email': return { color:tema.accent, I:Mail }
+      case 'spotify': return { color:'#1DB954', svg:(<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" strokeWidth="1.6"/><path d="M7 10.6c2.8-.8 5.9-.6 8.3.7M7.4 13.4c2.3-.6 4.9-.5 6.9.6M7.8 16c1.8-.4 3.7-.3 5.2.5" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>) }
+      case 'facebook': return { color:'#1877F2', svg:(<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M13.5 21v-7.8h2.6l.4-3h-3v-1.9c0-.87.24-1.46 1.5-1.46H16.6V4.14C16.3 4.1 15.3 4 14.1 4c-2.4 0-4.1 1.47-4.1 4.17V10.2H7.4v3h2.6V21h3.5z"/></svg>) }
+      case 'x': return { color:tema.text, svg:(<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>) }
       default: return { color:tema.accent, I:Link2 }
     }
+  }
+
+  // Reconhece a plataforma automaticamente pela URL, mesmo que o tipo salvo no banco seja
+  // generico ("outro"/"site"/etc). So retorna algo quando reconhece com confianca; caso
+  // contrario retorna null e quem chamou usa o tipo salvo manualmente, como fallback.
+  function detectarTipoPorUrl(url?: string): string | null {
+    const u = (url || '').trim()
+    if (!u) return null
+    const uMin = u.toLowerCase()
+    if (uMin.startsWith('mailto:') || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(u)) return 'email'
+    if (uMin.includes('open.spotify.com') || uMin.includes('spotify.com')) return 'spotify'
+    if (uMin.includes('instagram.com')) return 'instagram'
+    if (uMin.includes('tiktok.com')) return 'tiktok'
+    if (uMin.includes('youtube.com') || uMin.includes('youtu.be')) return 'youtube'
+    if (uMin.includes('wa.me') || uMin.includes('api.whatsapp.com') || uMin.includes('whatsapp.com')) return 'whatsapp'
+    if (uMin.includes('facebook.com') || uMin.includes('fb.com')) return 'facebook'
+    if (uMin.includes('x.com') || uMin.includes('twitter.com')) return 'x'
+    return null
   }
 
   const fBRL = (v: number) => `R$ ${(v || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`
@@ -378,7 +401,7 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
           {linksSociais.length > 0 && (
             <div className="social-row">
               {linksSociais.map(l => {
-                const cfg = iconeLink(l.tipo)
+                const cfg = iconeLink(detectarTipoPorUrl(l.url) || l.tipo)
                 return (
                   <a key={l.id} href={l.url} target={l.url && l.url.startsWith('http') ? '_blank' : '_self'} rel="noopener noreferrer" className="social-ic" style={{ background: iconeBg, border: `1px solid ${iconeBorder}`, color: iconeCor }} aria-label={l.titulo}>
                     {cfg.svg ? cfg.svg : (cfg.I ? <cfg.I size={16} color={iconeCor} /> : null)}
@@ -470,7 +493,14 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
                 </a>
               )}
               {linksRapidos && linksRapidos.map(l => {
-                const cfg = iconeLink(l.tipo)
+                const tipoEfetivo = detectarTipoPorUrl(l.url) || l.tipo
+                if (tipoEfetivo === 'email') {
+                  const emailPuro = (l.url || '').replace(/^mailto:/i, '').trim()
+                  return (
+                    <EmailLinkCard key={l.id} email={emailPuro} titulo={l.titulo || 'E-mail'} descricao={l.descricao} iconeBg={iconeBg} iconeBorder={iconeBorder} iconeCor={iconeCor} setaCor={setaCor} />
+                  )
+                }
+                const cfg = iconeLink(tipoEfetivo)
                 const hrefFinal = urlFinalLink(l)
                 return (
                   <a key={l.id} href={hrefFinal} target={hrefFinal.startsWith('http') ? '_blank' : '_self'} rel="noopener noreferrer" className="crd link-card" style={{ textDecoration: 'none', color: 'inherit', border: `1px solid ${iconeBorder}` }}>
