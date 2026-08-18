@@ -6,7 +6,7 @@ import { Mail } from 'lucide-react'
 // diferente dos outros links (que so abrem um href), esse aqui copia o e-mail pro
 // clipboard e mostra um toast - isso exige onClick/useState, que Server Component nao permite.
 export default function EmailLinkCard({
-  email, titulo, descricao, iconeBg, iconeBorder, iconeCor, setaCor,
+  email, titulo, descricao, iconeBg, iconeBorder, iconeCor, setaCor, textoCopiado,
 }: {
   email: string
   titulo: string
@@ -15,6 +15,7 @@ export default function EmailLinkCard({
   iconeBorder: string
   iconeCor: string
   setaCor: string
+  textoCopiado?: string
 }) {
   const [copiado, setCopiado] = useState(false)
 
@@ -41,7 +42,7 @@ export default function EmailLinkCard({
       </div>
       <div style={{ flex: 1, minWidth: 0 }}>
         <p className="link-title">{titulo}</p>
-        <p className="link-sub">{copiado ? 'E-mail copiado!' : (descricao || email)}</p>
+        <p className="link-sub">{copiado ? (textoCopiado || 'E-mail copiado!') : (descricao || email)}</p>
       </div>
       <span className="link-arrow" style={{ color: setaCor }}>{copiado ? '✓' : '›'}</span>
     </button>

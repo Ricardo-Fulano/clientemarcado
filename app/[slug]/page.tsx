@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import type { ReactNode } from 'react'
 import { Fragment } from 'react'
+import { detectarIdiomaHeader, getDicionario } from '../lib/i18n-publico'
 import { supabase } from '../lib/supabase'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
@@ -221,6 +222,15 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
 export default async function PaginaPublica({ params }: { params: Promise<{ slug: string }> }) {
   const { slug: slugBruto } = await params
+  // Idioma do visitante, detectado pelo header enviado pelo navegador (server-side - o HTML
+  // ja nasce traduzido, sem nenhuma logica no cliente, entao nao ha risco de hidratacao).
+  // So traduz textos FIXOS do sistema; nada do conteudo cadastrado pelo cliente e afetado.
+  let idiomaVisitante: 'pt' | 'en' | 'es' = 'pt'
+  try {
+    const h = await headers()
+    idiomaVisitante = detectarIdiomaHeader(h.get('accept-language'))
+  } catch { /* fora de contexto de requisicao (ex: build) - mantem portugues */ }
+  const t = getDicionario(idiomaVisitante)
   // Aceita tanto /gabigasparotti quanto /@gabigasparotti (link curto do minipage.pro) — mesmo perfil
   const slug = slugBruto.startsWith('@') ? slugBruto.slice(1) : slugBruto
   const { data: perfil } = await supabase.from('perfis').select('*').eq('slug', slug).single()
@@ -258,12 +268,12 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
   const cardBorderFinal = tema.isNeon ? `1px solid ${tema.accent}61` : `1px solid ${iconeBorder}`
   const cardShadowNeon = tema.isNeon ? `0 0 18px ${tema.glow}, inset 0 0 18px ${tema.soft}` : undefined
 
-  const nomeBusiness = perfil.nome_negocio || 'Agendamento Online'
+  const nomeBusiness = perfil.nome_negocio || t.agendamentoOnline
   const bioCurta = perfil.pagina_descricao_curta || perfil.descricao || ''
   const endereco = perfil.endereco || perfil.cidade || ''
   const capaUrl = perfil.capa_url || perfil.imagem_capa || perfil.banner_url || capaFallback || ''
   const fotoPerfilUrl = perfil.foto_perfil_url || ''
-  const tituloBotaoAgenda = perfil.pagina_titulo_botao_agenda || 'Agendar agora'
+  const tituloBotaoAgenda = perfil.pagina_titulo_botao_agenda || t.agendarAgora
   // Toggles: null/undefined = comportamento antigo (tudo visivel)
   const mostrarAgenda = perfil.pagina_mostrar_agenda !== false && !ehPlanoMiniPage(perfil.plano_tipo)
   const mostrarServicos = perfil.pagina_mostrar_servicos !== false
@@ -357,10 +367,10 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
   }
   // Rotulo amigavel do placeholder quando nao ha thumbnail (nunca aparenta "quebrado")
   function labelPlaceholder(v: { plataforma?: string; formato?: string }) {
-    if (v.plataforma === 'instagram') return v.formato === '1:1' ? 'Post do Instagram' : 'Reels do Instagram'
-    if (v.plataforma === 'tiktok') return 'Vídeo do TikTok'
-    if (v.plataforma === 'vimeo') return 'Vídeo'
-    return 'Conteúdo em vídeo'
+    if (v.plataforma === 'instagram') return v.formato === '1:1' ? t.postDoInstagram : t.reelsDoInstagram
+    if (v.plataforma === 'tiktok') return t.videoDoTiktok
+    if (v.plataforma === 'vimeo') return t.video
+    return t.conteudoEmVideo
   }
 
   // Promocao em destaque: aparece se ativa, com titulo e preco novo, e dentro do periodo (se houver datas)
@@ -430,7 +440,7 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
         {SECOES_ANTIGAS_DESATIVADAS && promoVisivel && (
           <div style={{ marginBottom: '28px', background: `radial-gradient(circle at top right,${tema.soft},transparent 40%),var(--card)`, border: `1.5px solid ${tema.border}`, borderRadius: '18px', padding: '22px 24px', boxShadow: `0 0 32px ${tema.glow}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '20px', flexWrap: 'wrap' }}>
             <div style={{ flex: 1, minWidth: '200px' }}>
-              <p style={{ fontSize: '11px', fontWeight: 800, color: tema.accent, letterSpacing: '.12em', textTransform: 'uppercase', marginBottom: '6px' }}>Oferta da semana</p>
+              <p style={{ fontSize: '11px', fontWeight: 800, color: tema.accent, letterSpacing: '.12em', textTransform: 'uppercase', marginBottom: '6px' }}>{t.ofertaDaSemana}</p>
               <p style={{ fontSize: '19px', fontWeight: 900, color: 'var(--text)', marginBottom: '4px' }}>{perfil.promocao_titulo}</p>
               {perfil.promocao_descricao && <p style={{ fontSize: '13px', color: 'var(--text-muted)' }}>{perfil.promocao_descricao}</p>}
               {perfil.promocao_observacao && <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '6px' }}>{perfil.promocao_observacao}</p>}
@@ -439,7 +449,7 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
               {perfil.promocao_preco_antigo && <p style={{ fontSize: '12px', color: 'var(--text-muted)', textDecoration: 'line-through', margin: 0 }}>De {fBRL(parseFloat(perfil.promocao_preco_antigo))}</p>}
               <p style={{ fontSize: '24px', fontWeight: 900, color: tema.accent, margin: 0 }}>{fBRL(parseFloat(perfil.promocao_preco_novo))}</p>
               <Link href={`/${slug}/agendar`} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: `linear-gradient(135deg,${tema.accent},${tema.accent2},${tema.secondary})`, color: tema.btnText, fontWeight: 800, padding: '11px 22px', borderRadius: '12px', textDecoration: 'none', fontSize: '14px', boxShadow: `0 8px 24px ${tema.glow}`, whiteSpace: 'nowrap' }}>
-                {perfil.promocao_botao_texto || 'Agendar promoção'} →
+                {perfil.promocao_botao_texto || t.agendarPromocao} →
               </Link>
             </div>
           </div>
@@ -477,7 +487,7 @@ destaques && destaques.length > 0 && (
                       {d.descricao && <p className="destaque-desc" style={{ fontSize: '12px', color: 'var(--text-muted)', lineHeight: 1.4 }}>{d.descricao}</p>}
                       {d.url && (
                         <span className="destaque-action" style={{ color: iconeCor }}>
-                          {d.texto_botao || 'Ver mais'} →
+                          {d.texto_botao || t.verMais} →
                         </span>
                       )}
                     </div>
@@ -507,7 +517,7 @@ destaques && destaques.length > 0 && (
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <p className="link-title">{tituloBotaoAgenda}</p>
-                    <p className="link-sub">Rápido, prático e seguro</p>
+                    <p className="link-sub">{t.rapidoPraticoSeguro}</p>
                   </div>
                   <span className="link-arrow" style={{ color: setaCor }}>›</span>
                 </a>
@@ -517,7 +527,7 @@ destaques && destaques.length > 0 && (
                 if (tipoEfetivo === 'email') {
                   const emailPuro = (l.url || '').replace(/^mailto:/i, '').trim()
                   return (
-                    <EmailLinkCard key={l.id} email={emailPuro} titulo={l.titulo || 'E-mail'} descricao={l.descricao} iconeBg={iconeBg} iconeBorder={iconeBorder} iconeCor={iconeCor} setaCor={setaCor} />
+                    <EmailLinkCard key={l.id} email={emailPuro} titulo={l.titulo || 'E-mail'} descricao={l.descricao} iconeBg={iconeBg} iconeBorder={iconeBorder} iconeCor={iconeCor} setaCor={setaCor} textoCopiado={t.emailCopiado} />
                   )
                 }
                 const cfg = iconeLink(tipoEfetivo)
@@ -528,7 +538,7 @@ destaques && destaques.length > 0 && (
                       {cfg.svg ? cfg.svg : (cfg.I ? <cfg.I size={21} color={iconeCor} /> : null)}
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <p className="link-title">{l.titulo || (l.tipo === 'endereco' ? 'Endereço' : '')}</p>
+                      <p className="link-title">{l.titulo || (l.tipo === 'endereco' ? t.endereco : '')}</p>
                       {l.descricao && <p className="link-sub">{l.descricao}</p>}
                     </div>
                     <span className="link-arrow" style={{ color: setaCor }}>›</span>
@@ -543,7 +553,7 @@ destaques && destaques.length > 0 && (
 // * AGENDA / EVENTOS: aparece so se houver pelo menos 1 evento ativo. Fica entre Links Rapidos e Videos.
 eventos && eventos.length > 0 && (
           <div style={{ marginBottom: '28px' }}>
-            <p style={{ fontSize: '20px', fontWeight: 900, color: 'var(--text)', letterSpacing: '-0.02em', marginBottom: '14px' }}>Agenda / Eventos</p>
+            <p style={{ fontSize: '20px', fontWeight: 900, color: 'var(--text)', letterSpacing: '-0.02em', marginBottom: '14px' }}>{t.agendaEventos}</p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
               {eventos.map((ev: { id: string; titulo: string; url: string }) => (
                 <a key={ev.id} href={ev.url} target="_blank" rel="noopener noreferrer" className="crd evento-card" style={{ textDecoration: 'none', color: 'inherit', border: cardBorderFinal, boxShadow: cardShadowNeon }}>
@@ -585,11 +595,11 @@ videos && videos.length > 0 && (() => {
                   <div className="video-btns">
                     {v.link_destino && (
                       <a href={v.link_destino} target="_blank" rel="noopener noreferrer" className="video-cta" style={{ background: tema.accent, color: tema.btnText }}>
-                        {v.texto_cta || 'Saiba mais'}
+                        {v.texto_cta || t.saibaMais}
                       </a>
                     )}
                     <a href={v.url_video} target={v.abrir_nova_aba === false ? '_self' : '_blank'} rel="noopener noreferrer" className="video-assistir" style={{ border: `1px solid ${iconeBorder}`, color: iconeCor }}>
-                      {v.texto_botao_video || 'Assistir vídeo'}
+                      {v.texto_botao_video || t.assistirVideo}
                     </a>
                   </div>
                 </div>
@@ -598,7 +608,7 @@ videos && videos.length > 0 && (() => {
           }
           return (
             <div style={{ marginBottom: '28px' }}>
-              <p style={{ fontSize: '20px', fontWeight: 900, color: 'var(--text)', letterSpacing: '-0.02em', marginBottom: '6px' }}>Vídeos em destaque</p>
+              <p style={{ fontSize: '20px', fontWeight: 900, color: 'var(--text)', letterSpacing: '-0.02em', marginBottom: '6px' }}>{t.videosEmDestaque}</p>
               <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '18px' }}>Veja conteúdos, vídeos, apresentações e novidades em destaque.</p>
               <div className="video-grid">
                 {primeiros.map(renderVideoCard)}
@@ -606,8 +616,8 @@ videos && videos.length > 0 && (() => {
               {resto.length > 0 && (
                 <details className="video-mais">
                   <summary style={{ background: tema.soft, border: `1px solid ${tema.border}`, color: tema.accent }}>
-                    <span className="video-mais-label-abrir">Ver mais vídeos</span>
-                    <span className="video-mais-label-fechar">Ver menos</span>
+                    <span className="video-mais-label-abrir">{t.verMaisVideos}</span>
+                    <span className="video-mais-label-fechar">{t.verMenos}</span>
                   </summary>
                   <div className="video-mais-grid">
                     {resto.map(renderVideoCard)}
@@ -628,8 +638,8 @@ videos && videos.length > 0 && (() => {
         {/* SERVICOS — desativado no novo layout premium (serviços continuam no fluxo /agendar). Codigo preservado, apenas nao renderiza. */}
         {SECOES_ANTIGAS_DESATIVADAS && mostrarServicos && servicos && servicos.length > 0 && (
           <div style={{ marginBottom: '32px' }}>
-            <p className="sec-title">Serviços</p>
-            <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '-8px', marginBottom: '14px' }}>Escolha um serviço para agendar</p>
+            <p className="sec-title">{t.servicos}</p>
+            <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '-8px', marginBottom: '14px' }}>{t.escolhaUmServicoParaAgendar}</p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
               {servicos.map(s => (
                 <Link key={s.id} href={`/${slug}/agendar?servico=${s.id}`} className="crd svc-card" style={{ border: `1px solid ${tema.border}` }}>
@@ -655,7 +665,7 @@ videos && videos.length > 0 && (() => {
         {/* EQUIPE — desativado no novo layout premium (equipe continua no fluxo /agendar). Codigo preservado, apenas nao renderiza. */}
         {SECOES_ANTIGAS_DESATIVADAS && mostrarEquipe && profissionais && profissionais.length > 0 && (
           <div style={{ marginBottom: '32px' }}>
-            <p className="sec-title">Equipe</p>
+            <p className="sec-title">{t.equipe}</p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
               {profissionais.map(p => (
                 <div key={p.id} className="crd" style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '14px 16px' }}>
@@ -668,7 +678,7 @@ videos && videos.length > 0 && (() => {
                   )}
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <p style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text)', marginBottom: '2px' }}>{p.nome}</p>
-                    <p style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{p.cargo || 'Profissional'}</p>
+                    <p style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{p.cargo || t.profissional}</p>
                   </div>
                   <span style={{ fontSize: '18px', color: tema.accent }}>›</span>
                 </div>
@@ -680,12 +690,12 @@ videos && videos.length > 0 && (() => {
         {/* POR QUE AGENDAR — desativado no novo layout premium (não combina com a bio profissional). Codigo preservado, apenas nao renderiza. */}
         {SECOES_ANTIGAS_DESATIVADAS && mostrarPorQueAgendar && (
         <div style={{ marginBottom: '32px' }}>
-          <p className="sec-title">Por que agendar aqui?</p>
+          <p className="sec-title">{t.porQueAgendarAqui}</p>
           <div className="benefit-grid">
             {[
-              { I: Zap, titulo: 'Agende em segundos', desc: 'Sem ligação. Sem espera.' },
-              { I: CalendarDays, titulo: 'Horários reais', desc: 'Veja apenas horários disponíveis.' },
-              { I: CheckCircle, titulo: 'Tudo registrado', desc: 'Sua agenda fica organizada.' },
+              { I: Zap, titulo: t.agendeEmSegundos, desc: t.semLigacaoSemEspera },
+              { I: CalendarDays, titulo: t.horariosReais, desc: t.vejaApenasHorariosDisponiveis },
+              { I: CheckCircle, titulo: t.tudoRegistrado, desc: t.suaAgendaFicaOrganizada },
             ].map(b => (
               <div key={b.titulo} className="crd" style={{ padding: '18px 16px', display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
                 <div style={{ width: '34px', height: '34px', borderRadius: '10px', background: tema.soft, border: `1px solid ${tema.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
@@ -704,27 +714,27 @@ videos && videos.length > 0 && (() => {
         {/* FALE COM O NEGOCIO — desativado no novo layout premium (contato agora e via links rapidos configurados). Codigo preservado, apenas nao renderiza. */}
         {SECOES_ANTIGAS_DESATIVADAS && mostrarContato && !!(perfil.whatsapp||perfil.instagram||perfil.endereco||perfil.cidade)&&(
           <div style={{marginBottom:'32px'}}>
-            <p className="sec-title">Fale com o neg&#xF3;cio</p>
+            <p className="sec-title">{t.faleComONegocio}</p>
             <div style={{display:'flex',flexDirection:'column',gap:'8px'}}>
               {perfil.whatsapp&&<a href={'https://wa.me/'+(String(perfil.whatsapp).replace(/\D/g,'').startsWith('55')?String(perfil.whatsapp).replace(/\D/g,''):'55'+String(perfil.whatsapp).replace(/\D/g,''))} target="_blank" rel="noopener noreferrer" className="crd" style={{display:'flex',alignItems:'center',gap:'14px',padding:'16px 18px',textDecoration:'none',color:'inherit',border:'1px solid rgba(34,197,94,.22)'}}>
                 <div style={{width:'42px',height:'42px',borderRadius:'12px',background:'rgba(34,197,94,.12)',border:'1px solid rgba(34,197,94,.28)',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}><svg width="20" height="20" viewBox="0 0 24 24" fill="#22C55E"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg></div>
-                <div style={{flex:1,minWidth:0}}><p style={{fontWeight:700,fontSize:'14px',color:'#22C55E',marginBottom:'2px'}}>Chamar no WhatsApp</p></div>
+                <div style={{flex:1,minWidth:0}}><p style={{fontWeight:700,fontSize:'14px',color:'#22C55E',marginBottom:'2px'}}>{t.chamarNoWhatsapp}</p></div>
               </a>}
               {perfil.instagram&&<a href={(()=>{const r=String(perfil.instagram||'').trim();return r.startsWith('http')?r:'https://instagram.com/'+r.replace('@','')})() } target="_blank" rel="noopener noreferrer" className="crd" style={{display:'flex',alignItems:'center',gap:'14px',padding:'16px 18px',textDecoration:'none',color:'inherit',border:'1px solid rgba(236,72,153,.22)'}}>
                 <div style={{width:'42px',height:'42px',borderRadius:'12px',background:'rgba(236,72,153,.12)',border:'1px solid rgba(236,72,153,.28)',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#EC4899" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1112.63 8 4 4 0 0116 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg></div>
-                <div style={{flex:1,minWidth:0}}><p style={{fontWeight:700,fontSize:'14px',color:'#EC4899',marginBottom:'2px'}}>Ver no Instagram</p><p style={{fontSize:'12px',color:'var(--text-muted)'}}>{String(perfil.instagram||'').startsWith('@')?String(perfil.instagram):'@'+String(perfil.instagram).replace('@','')}</p></div>
+                <div style={{flex:1,minWidth:0}}><p style={{fontWeight:700,fontSize:'14px',color:'#EC4899',marginBottom:'2px'}}>{t.verNoInstagram}</p><p style={{fontSize:'12px',color:'var(--text-muted)'}}>{String(perfil.instagram||'').startsWith('@')?String(perfil.instagram):'@'+String(perfil.instagram).replace('@','')}</p></div>
               </a>}
               {(perfil.endereco||perfil.cidade)&&<div className="crd" style={{display:'flex',alignItems:'center',gap:'14px',padding:'16px 18px'}}>
                 <div style={{width:'42px',height:'42px',borderRadius:'12px',background:tema.soft,border:`1px solid ${tema.border}`,display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={tema.accent} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg></div>
-                <div style={{flex:1,minWidth:0}}><p style={{fontWeight:700,fontSize:'14px',color:'var(--text)',marginBottom:'2px'}}>Endere&#xE7;o</p><p style={{fontSize:'12px',color:'var(--text-muted)'}}>{String(perfil.endereco||perfil.cidade||'')}</p></div>
+                <div style={{flex:1,minWidth:0}}><p style={{fontWeight:700,fontSize:'14px',color:'var(--text)',marginBottom:'2px'}}>{t.endereco}</p><p style={{fontSize:'12px',color:'var(--text-muted)'}}>{String(perfil.endereco||perfil.cidade||'')}</p></div>
               </div>}
             </div>
           </div>
         )}
         <div style={{ display: 'flex', justifyContent: 'center', marginTop: '32px', marginBottom: '8px' }}>
           <a href="https://clientemarcado.com.br" target="_blank" rel="noopener noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', textDecoration: 'none', padding: '9px 18px', borderRadius: '999px', background: 'var(--card)', border: `1px solid ${tema.accent}22` }}>
-            <span style={{ fontSize: '12px', fontWeight: 700, color: tema.accent }}>Crie sua MiniPage Pro</span>
-            <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>· uma solução ClienteMarcado</span>
+            <span style={{ fontSize: '12px', fontWeight: 700, color: tema.accent }}>{t.crieSuaMiniPagePro}</span>
+            <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>{t.umaSolucaoClienteMarcado}</span>
           </a>
         </div>
       </div>

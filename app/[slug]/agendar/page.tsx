@@ -1,6 +1,7 @@
 'use client'
 import { useEffect, useState } from 'react'
 import { supabase } from '../../lib/supabase'
+import { detectarIdiomaNavegador, getDicionario, type Idioma } from '../../lib/i18n-publico'
 import { useParams, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { Sun, Clock, Moon, Scissors, Sparkles, ClipboardList, ClipboardCheck, CalendarCheck, FileText, HeartPulse, ShieldPlus, Stethoscope, Check, Copy, Download, CalendarX2 } from 'lucide-react'
@@ -8,6 +9,13 @@ import { resolverTema, getTema } from '../../lib/tema-publico'
 import { ehPlanoMiniPage } from '../../lib/planos'
 
 export default function Agendar() {
+  // Comeca sempre em 'pt' (mesmo valor que o SSR usaria) e so troca de idioma DEPOIS de montar
+  // no navegador - isso evita qualquer erro de hidratacao (o HTML inicial do servidor e do
+  // cliente sempre batem; o idioma correto so "pisca" pra dentro uma fracao de segundo depois).
+  const [idioma, setIdioma] = useState<Idioma>('pt')
+  useEffect(() => { setIdioma(detectarIdiomaNavegador()) }, [])
+  const t = getDicionario(idioma)
+
   const params = useParams()
   const searchParams = useSearchParams()
   // Aceita tanto /gabigasparotti/agendar quanto /@gabigasparotti/agendar (link curto do
@@ -39,7 +47,7 @@ export default function Agendar() {
       if (!p) {
         console.error('[agendar] Perfil não encontrado para slug:', slug)
         setCarregandoInicial(false)
-        setErro('Página não encontrada. Confira se o link está correto.')
+        setErro(t.paginaNaoEncontrada)
         return
       }
       setPerfil(p)
@@ -108,8 +116,8 @@ export default function Agendar() {
 
   async function handleAgendar() {
     setErro('')
-    if (!clienteNome) { setErro('Informe seu nome.'); return }
-    if (!clienteTelefone || clienteTelefone.replace(/\D/g,'').length < 10) { setErro('Informe seu WhatsApp com DDD.'); return }
+    if (!clienteNome) { setErro(t.informeSeuNome); return }
+    if (!clienteTelefone || clienteTelefone.replace(/\D/g,'').length < 10) { setErro(t.informeSeuWhatsapp); return }
     setLoading(true)
     const { error } = await supabase.from('agendamentos').insert({
       user_id: perfil.user_id, servico_id: servicoId, profissional_id: profissionalId,
@@ -117,7 +125,7 @@ export default function Agendar() {
       cliente_nome: clienteNome, cliente_telefone: clienteTelefone,
     })
     setLoading(false)
-    if (error) { setErro('Erro ao agendar. Tente novamente.'); return }
+    if (error) { setErro(t.erroAoAgendar); return }
     setSucesso(true)
     // Notificacao (best-effort): se falhar, nao afeta o agendamento, que ja foi criado acima
     fetch('/api/publico/notificar-agendamento', {
@@ -148,7 +156,7 @@ export default function Agendar() {
     const dataEmissao = new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' })
     const horaEmissao = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
     const agora = new Date().toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })
-    const nomeNegocio = perfil?.nome_negocio || 'Estabelecimento'
+    const nomeNegocio = perfil?.nome_negocio || t.estabelecimento
     const endereco = perfil?.endereco || ''
     const wppRaw = (perfil?.whatsapp || '').replace(/\D/g, '')
     const whatsapp = wppRaw ? `(${wppRaw.slice(0,2)}) ${wppRaw.slice(2,7)}-${wppRaw.slice(7)}` : ''
@@ -220,11 +228,11 @@ export default function Agendar() {
     <div class="hdr-inner">
       <div class="hdr-left">
         <h1>${nomeNegocio}</h1>
-        <div class="doc-type">Comprovante de agendamento</div>
-        <span class="status-badge"><span class="status-dot"></span>Agendamento confirmado</span>
+        <div class="doc-type">${t.comprovanteDeAgendamento}</div>
+        <span class="status-badge"><span class="status-dot"></span>{t.agendamentoConfirmado}</span>
       </div>
       <div class="hdr-right">
-        <div class="doc-label">Emitido em</div>
+        <div class="doc-label">${t.emitidoEm}</div>
         <div class="doc-date">${dataEmissao}</div>
         <div class="doc-time">${horaEmissao}</div>
       </div>
@@ -234,34 +242,34 @@ export default function Agendar() {
   <div class="body">
 
     <div class="section">
-      <div class="section-title">Data e hor\u00e1rio do atendimento</div>
+      <div class="section-title">${t.dataEHorarioDoAtendimento}</div>
       <div class="highlight-box">
         <div>
-          <div class="hl-label">Data e hor\u00e1rio</div>
+          <div class="hl-label">${t.dataEHorario}</div>
           <div class="hl-value">${dataFormatada} \u00b7 ${horarioSelecionado}</div>
           <div class="hl-sub">${servNome}</div>
         </div>
-        ${valor ? `<div><div class="valor-label">Valor</div><div class="valor-value">${valor}</div></div>` : ''}
+        ${valor ? `<div><div class="valor-label">${t.valor}</div><div class="valor-value">${valor}</div></div>` : ''}
       </div>
     </div>
 
     <div class="section">
-      <div class="section-title">Informa\u00e7\u00f5es do agendamento</div>
+      <div class="section-title">${t.informacoesDoAgendamento}</div>
       <div class="info-grid">
         <div class="info-cell">
-          <div class="info-label">Cliente</div>
+          <div class="info-label">${t.cliente}</div>
           <div class="info-value">${nomeCliente}</div>
         </div>
         <div class="info-cell">
-          <div class="info-label">WhatsApp</div>
+          <div class="info-label">${t.whatsapp}</div>
           <div class="info-value">${clienteTelefone || '\u2014'}</div>
         </div>
         <div class="info-cell">
-          <div class="info-label">Servi\u00e7o</div>
+          <div class="info-label">${t.servico}</div>
           <div class="info-value purple">${servNome}</div>
         </div>
         <div class="info-cell">
-          <div class="info-label">Profissional</div>
+          <div class="info-label">${t.profissional}</div>
           <div class="info-value">${profNome || '\u2014'}</div>
         </div>
         <div class="info-cell">
@@ -269,18 +277,18 @@ export default function Agendar() {
           <div class="info-value blue">${dataFormatada}</div>
         </div>
         <div class="info-cell">
-          <div class="info-label">Hor\u00e1rio</div>
+          <div class="info-label">${t.horario}</div>
           <div class="info-value blue">${horarioSelecionado}</div>
         </div>
         ${valor ? `<div class="info-cell" style="grid-column:1/-1">
-          <div class="info-label">Valor do servi\u00e7o</div>
+          <div class="info-label">${t.valorDoServico}</div>
           <div class="info-value green">${valor}</div>
         </div>` : ''}
       </div>
     </div>
 
     <div class="section">
-      <div class="section-title">Estabelecimento</div>
+      <div class="section-title">${t.estabelecimento}</div>
       <div class="estab-box">
         <div class="estab-nome">${nomeNegocio}</div>
         ${endereco ? `<div class="estab-row"><span>\ud83d\udccd</span><span>${endereco}</span></div>` : ''}
@@ -299,13 +307,13 @@ export default function Agendar() {
         <div>
           <div style="border-top:1.5px solid #CBD5E1;padding-top:8px">
             <div style="font-size:11px;color:#94A3B8">${nomeNegocio}</div>
-            <div style="font-size:10px;color:#CBD5E1;margin-top:2px">Assinatura / Carimbo</div>
+            <div style="font-size:10px;color:#CBD5E1;margin-top:2px">${t.assinaturaCarimbo}</div>
           </div>
         </div>
         <div>
           <div style="border-top:1.5px solid #CBD5E1;padding-top:8px">
             <div style="font-size:11px;color:#94A3B8">${nomeCliente}</div>
-            <div style="font-size:10px;color:#CBD5E1;margin-top:2px">Assinatura do cliente</div>
+            <div style="font-size:10px;color:#CBD5E1;margin-top:2px">${t.assinaturaDoCliente}</div>
           </div>
         </div>
       </div>
@@ -370,7 +378,7 @@ export default function Agendar() {
   const horariosManha = horariosDisponiveis.filter(h => parseInt(h) < 12)
   const horariosTarde = horariosDisponiveis.filter(h => parseInt(h) >= 12 && parseInt(h) < 18)
   const horariosNoite = horariosDisponiveis.filter(h => parseInt(h) >= 18)
-  const nomeEtapas = ['Atendimento','Profissional','Data e hora','Seus dados']
+  const nomeEtapas = [t.atendimento,t.profissional,t.dataEHorario,t.seusDados]
 
   const css = `
     *{box-sizing:border-box;margin:0;padding:0}
@@ -486,19 +494,19 @@ export default function Agendar() {
 
   function copiarConfirmacao() {
     const texto = [
-      'Agendamento confirmado!',
+      t.agendamentoConfirmado,
       '',
-      'Nome: ' + clienteNome,
-      'Serviço: ' + (servicoSelecionado?.nome||''),
-      'Profissional: ' + (profissionalSelecionado?.nome||''),
-      'Data: ' + formatarData(dataSelecionada),
-      'Horário: ' + horarioSelecionado,
-      servicoSelecionado?.preco ? 'Valor: R$ ' + servicoSelecionado.preco : '',
+      t.cliente + ': ' + clienteNome,
+      t.servico + ': ' + (servicoSelecionado?.nome||''),
+      t.profissional + ': ' + (profissionalSelecionado?.nome||''),
+      t.data + ': ' + formatarData(dataSelecionada),
+      t.horario + ': ' + horarioSelecionado,
+      servicoSelecionado?.preco ? t.valor + ': R$ ' + servicoSelecionado.preco : '',
       '',
       perfil?.nome_negocio || '',
       perfil?.endereco ? perfil.endereco : '',
       '',
-      'Agendamento feito pelo ClienteMarcado.',
+      t.agendamentoFeitoPeloClienteMarcado,
     ].filter(Boolean).join('\n')
     navigator.clipboard.writeText(texto)
       .then(() => { setCopiado(true); setTimeout(() => setCopiado(false), 2500) })
@@ -531,16 +539,16 @@ export default function Agendar() {
 
   if (carregandoInicial) return (
     <div style={{minHeight:'100vh',background:`radial-gradient(ellipse at top,${tema.soft},transparent 50%),${tema.bg}`,display:'flex',alignItems:'center',justifyContent:'center',fontFamily:'-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif'}}>
-      <p style={{color:tema.textMuted,fontSize:'14px'}}>Carregando...</p>
+      <p style={{color:tema.textMuted,fontSize:'14px'}}>{t.carregando}</p>
     </div>
   )
 
   if (perfil && ehPlanoMiniPage(perfil.plano_tipo)) return (
     <div style={{minHeight:'100vh',background:`radial-gradient(ellipse at top,${tema.soft},transparent 50%),${tema.bg}`,display:'flex',alignItems:'center',justifyContent:'center',fontFamily:'-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif',padding:'24px'}}>
       <div style={{maxWidth:'420px',textAlign:'center',background:'var(--card)',border:`1.5px solid ${tema.border}`,borderRadius:'22px',padding:'44px 32px'}}>
-        <p style={{fontSize:'19px',fontWeight:800,color:'var(--text)',marginBottom:'10px'}}>Agenda online não disponível nesta MiniPage.</p>
+        <p style={{fontSize:'19px',fontWeight:800,color:'var(--text)',marginBottom:'10px'}}>{t.agendaNaoDisponivel}</p>
         <p style={{fontSize:'14px',color:'var(--text-muted)',lineHeight:1.6,marginBottom:'26px'}}>Este perfil usa a MiniPage apenas como página profissional de links, vídeos e divulgações.</p>
-        <Link href={`/${slug}`} style={{display:'inline-block',background:`linear-gradient(135deg,${tema.accent},${tema.accent2},${tema.secondary})`,color:tema.btnText,border:'1px solid rgba(255,255,255,.12)',borderRadius:'12px',padding:'12px 24px',fontSize:'14px',fontWeight:700,textDecoration:'none'}}>Voltar para a MiniPage</Link>
+        <Link href={`/${slug}`} style={{display:'inline-block',background:`linear-gradient(135deg,${tema.accent},${tema.accent2},${tema.secondary})`,color:tema.btnText,border:'1px solid rgba(255,255,255,.12)',borderRadius:'12px',padding:'12px 24px',fontSize:'14px',fontWeight:700,textDecoration:'none'}}>{t.voltarParaMinipage}</Link>
       </div>
     </div>
   )
@@ -550,16 +558,16 @@ export default function Agendar() {
       <style>{css}</style>
       <div className="sucesso-inner">
         <div className="sucesso-icon"><Check size={36} strokeWidth={2.5}/></div>
-        <h1 className="sucesso-title">Agendamento confirmado!</h1>
-        <p className="sucesso-sub">{clienteNome ? <>Obrigado, <strong style={{color:tema.text}}>{clienteNome}</strong>! Seu horário foi registrado com sucesso.</> : <>Seu horário foi registrado com sucesso.</>}</p>
+        <h1 className="sucesso-title">{t.agendamentoConfirmado}</h1>
+        <p className="sucesso-sub">{clienteNome ? <>{t.obrigado} <strong style={{color:tema.text}}>{clienteNome}</strong>! Seu horário foi registrado com sucesso.</> : <>{t.horarioRegistradoComSucesso}</>}</p>
         <div className="resumo-card">
-          <p className="resumo-card-title">Resumo do agendamento</p>
+          <p className="resumo-card-title">{t.resumoDoAgendamento}</p>
           {[
-            {label:'Atendimento',valor:servicoSelecionado?.nome,cor:tema.text},
-            {label:'Profissional',valor:profissionalSelecionado?.nome,cor:tema.text},
-            {label:'Data',valor:formatarData(dataSelecionada),cor:tema.text},
-            {label:'Horário',valor:horarioSelecionado,cor:tema.accent},
-            {label:'Valor',valor:'R$ '+servicoSelecionado?.preco,cor:tema.accent},
+            {label:t.atendimento,valor:servicoSelecionado?.nome,cor:tema.text},
+            {label:t.profissional,valor:profissionalSelecionado?.nome,cor:tema.text},
+            {label:t.data,valor:formatarData(dataSelecionada),cor:tema.text},
+            {label:t.horario,valor:horarioSelecionado,cor:tema.accent},
+            {label:t.valor,valor:'R$ '+servicoSelecionado?.preco,cor:tema.accent},
           ].map((item,idx,arr)=>(
             <div key={item.label}>
               <div className="resumo-row">
@@ -583,7 +591,7 @@ export default function Agendar() {
           <button onClick={baixarConfirmacaoPDF} className="btn-pdf">
             <Download size={16}/> Baixar comprovante
           </button>
-          <Link href={'/'+slug} className="btn-inicio">Voltar ao início</Link>
+          <Link href={'/'+slug} className="btn-inicio">{t.voltarAoInicio}</Link>
         </div>
       </div>
     </div>
@@ -613,14 +621,14 @@ export default function Agendar() {
     <main className="page">
       <style>{css}</style>
       <div className="header">
-        <Link href={'/'+slug} className="header-back">Voltar</Link>
+        <Link href={'/'+slug} className="header-back">{t.voltar}</Link>
         <p className="header-title">{perfil?.nome_negocio}</p>
         <div className="header-spacer"/>
       </div>
       {etapa===1&&(
         <div className="container">
           <Steps/>
-          <h2 className="section-title">Selecione o atendimento</h2>
+          <h2 className="section-title">{t.selecioneOAtendimento}</h2>
           <p className="section-sub">Escolha um serviço, procedimento ou consulta para continuar.</p>
           <div className="servico-list">
             {servicos.map(s=>(
@@ -629,7 +637,7 @@ export default function Agendar() {
                 <div className="servico-icon" style={{color:tema.accent}}>{getServicoIcone(s)}</div>
                 <div style={{flex:1,minWidth:0}}>
                   <p className="servico-nome">{s.nome}</p>
-                  <p className="servico-desc">{s.descricao||'Selecione para ver profissionais e horários disponíveis'}</p>
+                  <p className="servico-desc">{s.descricao||t.selecioneParaVerProfissionaisEHorarios}</p>
                   <div className="servico-meta">
                     {s.duracao_minutos&&(<span className="servico-dur"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>{s.duracao_minutos} min</span>)}
                     {s.duracao_minutos&&s.preco&&<span className="servico-meta-sep"/>}
@@ -645,8 +653,8 @@ export default function Agendar() {
       {etapa===2&&(
         <div className="container">
           <Steps/>
-          <h2 className="section-title">Escolha o profissional</h2>
-          <p className="section-sub">Com quem deseja ser atendido?</p>
+          <h2 className="section-title">{t.escolhaOProfissional}</h2>
+          <p className="section-sub">{t.comQuemDesejaSerAtendido}</p>
           <div className="prof-grid">
             {(servicos.find(s=>s.id===servicoId)?.profissionais_ids?.length>0?profissionais.filter(p=>(servicos.find(s=>s.id===servicoId)?.profissionais_ids||[]).includes(p.id)):profissionais).map(p=>(
               <button key={p.id} onClick={()=>{setProfissionalId(p.id);setEtapa(3)}} className={'prof-card'+(profissionalId===p.id?' sel':'')}>
@@ -654,24 +662,24 @@ export default function Agendar() {
                   ?<img src={p.foto_url} alt={p.nome} className="prof-avatar-img" style={{border:profissionalId===p.id?`2px solid ${tema.accent}`:`2px solid ${tema.cardBorder}`}}/>
                   :<div className="prof-avatar-letra" style={{border:profissionalId===p.id?`2px solid ${tema.accent}`:`2px solid ${tema.border}`}}>{p.nome.charAt(0).toUpperCase()}</div>
                 }
-                <div><p className="prof-nome">{p.nome}</p><p className="prof-cargo">{p.cargo||'Profissional'}</p></div>
+                <div><p className="prof-nome">{p.nome}</p><p className="prof-cargo">{p.cargo||t.profissional}</p></div>
               </button>
             ))}
           </div>
-          <button onClick={()=>setEtapa(1)} className="btn-link-voltar">Voltar</button>
+          <button onClick={()=>setEtapa(1)} className="btn-link-voltar">{t.voltar}</button>
         </div>
       )}
       {etapa===3&&(
         <div className="container-wide">
           <Steps/>
-          <h2 className="section-title">Data e horário</h2>
-          <p className="section-sub">Escolha o melhor horário disponível</p>
+          <h2 className="section-title">{t.dataEHorario}</h2>
+          <p className="section-sub">{t.escolhaOMelhorHorarioDisponivel}</p>
           <div className="resumo-strip">
             {[
-              {label:'Atendimento',valor:servicoSelecionado?.nome,cor:tema.text},
-              {label:'Profissional',valor:profissionalSelecionado?.nome,cor:tema.text},
-              {label:'Duração',valor:(servicoSelecionado?.duracao_minutos||30)+' min',cor:tema.text},
-              {label:'Valor',valor:'R$ '+servicoSelecionado?.preco,cor:tema.accent},
+              {label:t.atendimento,valor:servicoSelecionado?.nome,cor:tema.text},
+              {label:t.profissional,valor:profissionalSelecionado?.nome,cor:tema.text},
+              {label:t.duracao,valor:(servicoSelecionado?.duracao_minutos||30)+' min',cor:tema.text},
+              {label:t.valor,valor:'R$ '+servicoSelecionado?.preco,cor:tema.accent},
             ].map(item=>(
               <div key={item.label}>
                 <p className="resumo-label">{item.label}</p>
@@ -704,18 +712,18 @@ export default function Agendar() {
               </div>
             </div>
             <div className="horarios-wrap">
-              {!dataSelecionada&&<div className="horarios-placeholder"><p style={{fontSize:'13px',color:tema.textMuted,textAlign:'center',lineHeight:1.6}}>Selecione uma data<br/>para ver os horários</p></div>}
+              {!dataSelecionada&&<div className="horarios-placeholder"><p style={{fontSize:'13px',color:tema.textMuted,textAlign:'center',lineHeight:1.6}}>{t.selecioneUmaData}<br/>para ver os horários</p></div>}
               {dataSelecionada&&(
                 <>
                   <p className="horarios-data-label">{formatarDataExtenso(dataSelecionada)}</p>
-                  {carregandoHorarios&&<div className="horarios-empty"><p style={{fontSize:'13px',color:tema.textMuted}}>Buscando horários...</p></div>}
-                  {!carregandoHorarios&&horariosDisponiveis.length===0&&<div className="horarios-empty"><CalendarX2 size={28} style={{opacity:.4,color:tema.textMuted}}/><p style={{fontSize:'13px',color:tema.textMuted,textAlign:'center',lineHeight:1.6}}>Nenhum horário disponível<br/>nesta data.</p></div>}
+                  {carregandoHorarios&&<div className="horarios-empty"><p style={{fontSize:'13px',color:tema.textMuted}}>{t.buscandoHorarios}</p></div>}
+                  {!carregandoHorarios&&horariosDisponiveis.length===0&&<div className="horarios-empty"><CalendarX2 size={28} style={{opacity:.4,color:tema.textMuted}}/><p style={{fontSize:'13px',color:tema.textMuted,textAlign:'center',lineHeight:1.6}}>{t.nenhumHorarioDisponivel}<br/>nesta data.</p></div>}
                   {!carregandoHorarios&&horariosDisponiveis.length>0&&(
                     <div>
                       {[
-                        {label:'Manhã',icon:<Sun size={11} color={tema.textMuted}/>,lista:horariosManha},
-                        {label:'Tarde',icon:<Clock size={11} color={tema.textMuted}/>,lista:horariosTarde},
-                        {label:'Noite',icon:<Moon size={11} color={tema.textMuted}/>,lista:horariosNoite},
+                        {label:t.manha,icon:<Sun size={11} color={tema.textMuted}/>,lista:horariosManha},
+                        {label:t.tarde,icon:<Clock size={11} color={tema.textMuted}/>,lista:horariosTarde},
+                        {label:t.noite,icon:<Moon size={11} color={tema.textMuted}/>,lista:horariosNoite},
                       ].filter(p=>p.lista.length>0).map(periodo=>(
                         <div key={periodo.label} style={{marginBottom:'16px'}}>
                           <div className="periodo-label-row">{periodo.icon}<span className="periodo-label">{periodo.label}</span></div>
@@ -731,8 +739,8 @@ export default function Agendar() {
             </div>
           </div>
           <div className="nav-row">
-            <button onClick={()=>setEtapa(2)} className="btn-voltar">Voltar</button>
-            <button onClick={()=>{if(!dataSelecionada||!horarioSelecionado){setErro('Selecione data e horário.');return}setErro('');setEtapa(4)}} disabled={!dataSelecionada||!horarioSelecionado} className={'btn-continuar '+(dataSelecionada&&horarioSelecionado?'on':'off')}>Continuar</button>
+            <button onClick={()=>setEtapa(2)} className="btn-voltar">{t.voltar}</button>
+            <button onClick={()=>{if(!dataSelecionada||!horarioSelecionado){setErro(t.selecioneDataEHorario);return}setErro('');setEtapa(4)}} disabled={!dataSelecionada||!horarioSelecionado} className={'btn-continuar '+(dataSelecionada&&horarioSelecionado?'on':'off')}>{t.continuar}</button>
           </div>
           {erro&&<p className="erro-msg">{erro}</p>}
         </div>
@@ -740,16 +748,16 @@ export default function Agendar() {
       {etapa===4&&(
         <div className="container">
           <Steps/>
-          <h2 className="section-title">Seus dados</h2>
-          <p className="section-sub">Finalize seu agendamento preenchendo seus dados</p>
+          <h2 className="section-title">{t.seusDados}</h2>
+          <p className="section-sub">{t.finalizeSeuAgendamento}</p>
           <div className="resumo-card">
-            <p className="resumo-card-title">Resumo do agendamento</p>
+            <p className="resumo-card-title">{t.resumoDoAgendamento}</p>
             {[
-              {label:'Atendimento',valor:servicoSelecionado?.nome,cor:tema.text},
-              {label:'Profissional',valor:profissionalSelecionado?.nome,cor:tema.text},
-              {label:'Data',valor:formatarData(dataSelecionada),cor:tema.text},
-              {label:'Horário',valor:horarioSelecionado,cor:tema.accent},
-              {label:'Valor',valor:'R$ '+servicoSelecionado?.preco,cor:tema.accent},
+              {label:t.atendimento,valor:servicoSelecionado?.nome,cor:tema.text},
+              {label:t.profissional,valor:profissionalSelecionado?.nome,cor:tema.text},
+              {label:t.data,valor:formatarData(dataSelecionada),cor:tema.text},
+              {label:t.horario,valor:horarioSelecionado,cor:tema.accent},
+              {label:t.valor,valor:'R$ '+servicoSelecionado?.preco,cor:tema.accent},
             ].map((item,idx,arr)=>(
               <div key={item.label}>
                 <div className="resumo-row"><span className="resumo-row-label">{item.label}</span><span className="resumo-row-valor" style={{color:item.cor}}>{item.valor}</span></div>
@@ -759,20 +767,20 @@ export default function Agendar() {
           </div>
           <div style={{display:'flex',flexDirection:'column',gap:'18px',marginBottom:'24px'}}>
             <div>
-              <label className="input-label">Seu nome *</label>
+              <label className="input-label">{t.seuNome} *</label>
               <input type="text" placeholder="Ex: Maria Silva" value={clienteNome} onChange={e=>setClienteNome(e.target.value)} className="input-field"/>
             </div>
             <div>
-              <label className="input-label">WhatsApp *</label>
+              <label className="input-label">{t.whatsapp} *</label>
               <input type="tel" placeholder="(11) 99999-9999" value={clienteTelefone} onChange={e=>setClienteTelefone(aplicarMascaraTelefone(e.target.value))} className="input-field"/>
-              <p style={{fontSize:'12px',color:tema.textMuted,marginTop:'6px'}}>Usado apenas para contato sobre seu agendamento.</p>
+              <p style={{fontSize:'12px',color:tema.textMuted,marginTop:'6px'}}>{t.usadoApenasParaContato}</p>
               <p style={{fontSize:'12px',color:tema.textMuted,marginTop:'12px',textAlign:'center',lineHeight:1.6}}>Seus dados serão usados apenas para confirmar este agendamento.</p>
             </div>
           </div>
           {erro&&<p className="erro-msg" style={{marginBottom:'12px'}}>{erro}</p>}
           <div className="nav-row">
-            <button onClick={()=>setEtapa(3)} className="btn-voltar">Voltar</button>
-            <button onClick={handleAgendar} disabled={loading} className="btn-confirmar" style={{opacity:loading ? 0.7 : 1}}>{loading?'Confirmando...':'Confirmar agendamento'}</button>
+            <button onClick={()=>setEtapa(3)} className="btn-voltar">{t.voltar}</button>
+            <button onClick={handleAgendar} disabled={loading} className="btn-confirmar" style={{opacity:loading ? 0.7 : 1}}>{loading?t.confirmando:t.confirmarAgendamento}</button>
           </div>
         </div>
       )}
