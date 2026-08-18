@@ -1,4 +1,6 @@
 import type { Metadata } from 'next'
+import type { ReactNode } from 'react'
+import { Fragment } from 'react'
 import { supabase } from '../lib/supabase'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
@@ -439,8 +441,21 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
           </div>
         )}
 
-        {/* DESTAQUES DA PAGINA */}
-        {destaques && destaques.length > 0 && (
+        {/* ORDEM DAS SECOES PUBLICAS: destaques/links/agenda/videos podem ser reordenados pelo
+            cliente em /painel/perfil. Cada secao individual (conteudo, condicao de exibir, estilo)
+            continua exatamente igual - so a ORDEM de renderizacao delas muda, via ordemSecoes. */}
+        {(() => {
+          const ORDEM_PADRAO_SECOES = ['destaques', 'links', 'agenda', 'videos']
+          const ordemSalva = (perfil as { ordem_secoes_publicas?: unknown }).ordem_secoes_publicas
+          const ordemValida = Array.isArray(ordemSalva)
+            && ordemSalva.length === ORDEM_PADRAO_SECOES.length
+            && ORDEM_PADRAO_SECOES.every(s => ordemSalva.includes(s))
+          const ordemSecoes: string[] = ordemValida ? (ordemSalva as string[]) : ORDEM_PADRAO_SECOES
+
+          const secoesMap: Record<string, ReactNode> = {
+            destaques: (
+// * DESTAQUES DA PAGINA
+destaques && destaques.length > 0 && (
           <div style={{ marginBottom: '28px' }}>
             <div className={`destaque-grid cols-${Math.min(destaques.length, 3)}`}>
               {destaques.map(d => {
@@ -474,10 +489,11 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
               })}
             </div>
           </div>
-        )}
-
-        {/* LINKS RAPIDOS: apenas o que o cliente configurou no painel + fallback de agenda, se aplicavel */}
-        {(mostrarAgendaFallback || (linksRapidos && linksRapidos.length > 0)) && (
+        )
+            ),
+            links: (
+// * LINKS RAPIDOS: apenas o que o cliente configurou no painel + fallback de agenda, se aplicavel
+(mostrarAgendaFallback || (linksRapidos && linksRapidos.length > 0)) && (
           <div style={{ marginBottom: '32px' }}>
             <div className="link-grid">
               {mostrarAgendaFallback && (
@@ -517,10 +533,11 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
               })}
             </div>
           </div>
-        )}
-
-        {/* AGENDA / EVENTOS: aparece so se houver pelo menos 1 evento ativo. Fica entre Links Rapidos e Videos. */}
-        {eventos && eventos.length > 0 && (
+        )
+            ),
+            agenda: (
+// * AGENDA / EVENTOS: aparece so se houver pelo menos 1 evento ativo. Fica entre Links Rapidos e Videos.
+eventos && eventos.length > 0 && (
           <div style={{ marginBottom: '28px' }}>
             <p style={{ fontSize: '20px', fontWeight: 900, color: 'var(--text)', letterSpacing: '-0.02em', marginBottom: '14px' }}>Agenda / Eventos</p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -532,10 +549,11 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
               ))}
             </div>
           </div>
-        )}
-
-        {/* VIDEOS EM DESTAQUE: aparece somente se houver pelo menos 1 video ativo. Fica depois de Links Rapidos. */}
-        {videos && videos.length > 0 && (() => {
+        )
+            ),
+            videos: (
+// * VIDEOS EM DESTAQUE: aparece somente se houver pelo menos 1 video ativo. Fica depois de Links Rapidos.
+videos && videos.length > 0 && (() => {
           const primeiros = videos.slice(0, 3)
           const resto = videos.slice(3)
           const renderVideoCard = (v: { id: string; titulo: string; descricao?: string; url_video: string; formato?: string; plataforma?: string; thumbnail_url?: string; link_destino?: string; texto_cta?: string; texto_botao_video?: string; abrir_nova_aba?: boolean }) => {
@@ -594,6 +612,13 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
               )}
             </div>
           )
+        })()
+            ),
+          }
+
+          return ordemSecoes.map(chave => (
+            <Fragment key={chave}>{secoesMap[chave]}</Fragment>
+          ))
         })()}
 
         {/* SERVICOS — desativado no novo layout premium (serviços continuam no fluxo /agendar). Codigo preservado, apenas nao renderiza. */}

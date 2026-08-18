@@ -2,7 +2,7 @@
 import { useEffect, useState, useRef } from 'react'
 import { supabase } from '../../lib/supabase'
 import Link from 'next/link'
-import { Copy, Check, ExternalLink, ChevronDown, ChevronUp, UploadCloud } from 'lucide-react'
+import { Copy, Check, ExternalLink, ChevronDown, ChevronUp, UploadCloud, ArrowUp, ArrowDown } from 'lucide-react'
 import PainelSidebar from '@/app/components/PainelSidebar'
 
 const G='linear-gradient(135deg,#EC4899,#D946EF,#8B5CF6)'
@@ -150,6 +150,8 @@ export default function Perfil(){
   const [links,setLinks]=useState<any[]>([])
   const [videos,setVideos]=useState<any[]>([])
   const [eventos,setEventos]=useState<any[]>([])
+  const ORDEM_PADRAO_SECOES=['destaques','links','agenda','videos']
+  const [ordemSecoes,setOrdemSecoes]=useState<string[]>(ORDEM_PADRAO_SECOES)
   // Acesso da conta (transferir e-mail de login / reenviar link de senha)
   const [emailAtual,setEmailAtual]=useState('')
   const [souProfissional,setSouProfissional]=useState(false)
@@ -301,6 +303,9 @@ export default function Perfil(){
       setDescCurta(p.pagina_descricao_curta||'')
       setTituloBotaoAgenda(p.pagina_titulo_botao_agenda||'')
       setMostrarAgenda(p.pagina_mostrar_agenda!==false)
+      const ordemSalva=p.ordem_secoes_publicas
+      const ordemValida=Array.isArray(ordemSalva)&&ordemSalva.length===ORDEM_PADRAO_SECOES.length&&ORDEM_PADRAO_SECOES.every(s=>ordemSalva.includes(s))
+      setOrdemSecoes(ordemValida?ordemSalva:ORDEM_PADRAO_SECOES)
       setMostrarServicos(p.pagina_mostrar_servicos!==false)
       setMostrarEquipe(p.pagina_mostrar_equipe!==false)
       setMostrarPorQueAgendar(p.pagina_mostrar_por_que_agendar!==false)
@@ -374,6 +379,7 @@ export default function Perfil(){
     payloadSeguro.pagina_mostrar_equipe=mostrarEquipe
     payloadSeguro.pagina_mostrar_por_que_agendar=mostrarPorQueAgendar
     payloadSeguro.pagina_mostrar_contato=mostrarContato
+    payloadSeguro.ordem_secoes_publicas=ordemSecoes
 
     payloadSeguro.promocao_ativa=promoAtiva
     payloadSeguro.promocao_titulo=promoTitulo.trim()||null
@@ -509,6 +515,15 @@ export default function Perfil(){
 
   // ---------- ACESSO DA CONTA (Caminho B) ----------
   function emailValido(e:string){return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e)}
+  function moverSecao(indice:number,direcao:'up'|'down'){
+    const novoIndice=direcao==='up'?indice-1:indice+1
+    if(novoIndice<0||novoIndice>=ordemSecoes.length)return
+    setOrdemSecoes(prev=>{
+      const copia=[...prev]
+      ;[copia[indice],copia[novoIndice]]=[copia[novoIndice],copia[indice]]
+      return copia
+    })
+  }
 
   // Caminho B: convite proprio, com token controlado por nos.
   // A pessoa cria a PROPRIA senha na pagina /convite/[token] - o admin atual nunca
@@ -778,6 +793,26 @@ export default function Perfil(){
                   </div>
                 ))}
               </div>
+            </div>
+          </div>
+
+          <div className="crd" style={{padding:'20px'}}>
+            <p style={{fontSize:'15px',fontWeight:700,color:'#F8F4F7',marginBottom:'4px'}}>Ordem da página pública</p>
+            <p style={{fontSize:'12px',color:'#B8AAB8',marginBottom:'16px'}}>Altere a ordem em que as seções aparecem na sua MiniPage Pro.</p>
+            <div style={{display:'flex',flexDirection:'column',gap:'8px'}}>
+              {ordemSecoes.map((chave,i)=>{
+                const rotulos:Record<string,string>={destaques:'Destaques da página',links:'Links rápidos',agenda:'Agenda / Eventos',videos:'Vídeos da página'}
+                return (
+                  <div key={chave} style={{display:'flex',alignItems:'center',gap:'12px',padding:'10px 14px',background:'rgba(24,16,27,.72)',border:'1px solid #2A1A2F',borderRadius:'10px'}}>
+                    <span style={{fontSize:'12px',fontWeight:700,color:'#B8AAB8',width:'18px',flexShrink:0}}>{i+1}</span>
+                    <span style={{fontSize:'13px',fontWeight:600,color:'#F8F4F7',flex:1}}>{rotulos[chave]||chave}</span>
+                    <div style={{display:'flex',gap:'6px',flexShrink:0}}>
+                      <button type="button" onClick={()=>moverSecao(i,'up')} disabled={i===0} style={{width:'28px',height:'28px',borderRadius:'8px',background:'rgba(24,16,27,.9)',border:'1px solid #2A1A2F',color:i===0?'#4A3F4E':'#B8AAB8',cursor:i===0?'not-allowed':'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}><ArrowUp size={14}/></button>
+                      <button type="button" onClick={()=>moverSecao(i,'down')} disabled={i===ordemSecoes.length-1} style={{width:'28px',height:'28px',borderRadius:'8px',background:'rgba(24,16,27,.9)',border:'1px solid #2A1A2F',color:i===ordemSecoes.length-1?'#4A3F4E':'#B8AAB8',cursor:i===ordemSecoes.length-1?'not-allowed':'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}><ArrowDown size={14}/></button>
+                    </div>
+                  </div>
+                )
+              })}
             </div>
           </div>
 
