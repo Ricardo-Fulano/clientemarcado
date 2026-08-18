@@ -30,6 +30,7 @@ export type TemaTokens = {
   cardBorder: string
   surface2: string
   headerBg: string
+  isNeon?: boolean
 }
 
 // MODELO 1 - Dark Pink Premium. Referencia de qualidade - NAO ALTERADO.
@@ -157,6 +158,72 @@ export function getTema(temaPublico: string): TemaTokens {
         text:'#F8FAFC', textMuted:'#CBD5E1',
         cardBorder:'#1D4ED8', surface2:'rgba(15,30,51,.88)', headerBg:'rgba(2,6,23,.96)',
       }
+    case 'modelo13': // Vermelho Neon - intenso, moderno e impactante (glow real, nao "vinho apagado")
+      return {
+        mode:'dark',
+        isNeon:true,
+        accent:'#FF1744', accent2:'#FF6B85', secondary:'#D6001C',
+        soft:'rgba(255,23,68,.18)', border:'rgba(255,23,68,.34)', glow:'rgba(255,23,68,.32)',
+        btnText:'#fff',
+        bg:'radial-gradient(circle at top,rgba(255,23,68,.20),transparent 38%),#050004', bgRGB:'5,0,4', card:'rgba(24,8,12,.92)',
+        text:'#FFFFFF', textMuted:'#E8AEB4',
+        cardBorder:'rgba(255,23,68,.30)', surface2:'rgba(24,8,12,.88)', headerBg:'rgba(5,0,4,.96)',
+      }
+    case 'modelo14': // Verde Neon - vibrante, moderno e tecnologico (glow real)
+      return {
+        mode:'dark',
+        isNeon:true,
+        accent:'#00FF85', accent2:'#6FFFB0', secondary:'#00C46B',
+        soft:'rgba(0,255,133,.18)', border:'rgba(0,255,133,.34)', glow:'rgba(0,255,133,.32)',
+        btnText:'#042A16',
+        bg:'radial-gradient(circle at top,rgba(0,255,133,.20),transparent 38%),#020805', bgRGB:'2,8,5', card:'rgba(6,26,17,.92)',
+        text:'#FFFFFF', textMuted:'#A8E8C4',
+        cardBorder:'rgba(0,255,133,.30)', surface2:'rgba(6,26,17,.88)', headerBg:'rgba(2,8,5,.96)',
+      }
+    case 'modelo15': // Azul Neon - marcante, sofisticado e digital (glow real)
+      return {
+        mode:'dark',
+        isNeon:true,
+        accent:'#00BFFF', accent2:'#66D9FF', secondary:'#0096D6',
+        soft:'rgba(0,191,255,.18)', border:'rgba(0,191,255,.34)', glow:'rgba(0,191,255,.32)',
+        btnText:'#02202E',
+        bg:'radial-gradient(circle at top,rgba(0,191,255,.20),transparent 38%),#020509', bgRGB:'2,5,9', card:'rgba(6,20,34,.92)',
+        text:'#FFFFFF', textMuted:'#A8D9F0',
+        cardBorder:'rgba(0,191,255,.30)', surface2:'rgba(6,20,34,.88)', headerBg:'rgba(2,5,9,.96)',
+      }
+    case 'modelo16': // Rosa Neon - forte, feminino e super marcante (mais intenso que Modelos 1/7/8)
+      return {
+        mode:'dark',
+        isNeon:true,
+        accent:'#FF2DAA', accent2:'#FF7ACB', secondary:'#D6008C',
+        soft:'rgba(255,45,170,.18)', border:'rgba(255,45,170,.34)', glow:'rgba(255,45,170,.32)',
+        btnText:'#fff',
+        bg:'radial-gradient(circle at top,rgba(255,45,170,.20),transparent 38%),#090106', bgRGB:'9,1,6', card:'rgba(30,7,22,.92)',
+        text:'#FFFFFF', textMuted:'#F0AED8',
+        cardBorder:'rgba(255,45,170,.30)', surface2:'rgba(30,7,22,.88)', headerBg:'rgba(9,1,6,.96)',
+      }
+    case 'modelo17': // Laranja Neon - energetico, criativo e ousado (glow real)
+      return {
+        mode:'dark',
+        isNeon:true,
+        accent:'#FF7A00', accent2:'#FFB066', secondary:'#E86200',
+        soft:'rgba(255,122,0,.18)', border:'rgba(255,122,0,.34)', glow:'rgba(255,122,0,.32)',
+        btnText:'#2E1400',
+        bg:'radial-gradient(circle at top,rgba(255,122,0,.20),transparent 38%),#090400', bgRGB:'9,4,0', card:'rgba(30,15,4,.92)',
+        text:'#FFFFFF', textMuted:'#F0C8A0',
+        cardBorder:'rgba(255,122,0,.30)', surface2:'rgba(30,15,4,.88)', headerBg:'rgba(9,4,0,.96)',
+      }
+    case 'modelo18': // Dourado Neon - luxuoso, intenso e premium (preto + dourado eletrico real)
+      return {
+        mode:'dark',
+        isNeon:true,
+        accent:'#FFD700', accent2:'#FFEB80', secondary:'#E6BE00',
+        soft:'rgba(255,215,0,.18)', border:'rgba(255,215,0,.32)', glow:'rgba(255,215,0,.30)',
+        btnText:'#2E2600',
+        bg:'radial-gradient(circle at top,rgba(255,215,0,.20),transparent 38%),#090700', bgRGB:'9,7,0', card:'rgba(30,25,4,.92)',
+        text:'#FFFFFF', textMuted:'#F0E4A0',
+        cardBorder:'rgba(255,215,0,.28)', surface2:'rgba(30,25,4,.88)', headerBg:'rgba(9,7,0,.96)',
+      }
     default:
       return MODELO1
   }
@@ -170,9 +237,15 @@ export const MODELOS_DISPONIVEIS = [
   { id:'modelo5', nome:'Modelo 5', desc:'Cinza claro e branco, clean e editorial.' },
   { id:'modelo6', nome:'Modelo 6', desc:'Branco e cinza suave, refinado e elegante.' },
   { id:'modelo7', nome:'Modelo 7', desc:'Rosa blush premium, ideal para beleza e estética.' },
-  { id:'modelo8', nome:'Modelo 8', desc:'Champagne rosé, natural e sofisticado.' },
+  { id:'modelo8', nome:'Modelo 8', desc:'Rosa forte premium, marcante e feminino.' },
   { id:'modelo9', nome:'Modelo 9', desc:'Lilás profundo, sofisticado e marcante.' },
   { id:'modelo10', nome:'Modelo 10', desc:'Nude e mocha, acolhedor e refinado.' },
   { id:'modelo11', nome:'Modelo 11', desc:'Bordô profundo, elegante e marcante.' },
   { id:'modelo12', nome:'Modelo 12', desc:'Azul-meia-noite, premium e versátil.' },
+  { id:'modelo13', nome:'Modelo 13', desc:'Vermelho neon, intenso, moderno e impactante.' },
+  { id:'modelo14', nome:'Modelo 14', desc:'Verde neon, vibrante, moderno e tecnológico.' },
+  { id:'modelo15', nome:'Modelo 15', desc:'Azul neon, marcante, sofisticado e digital.' },
+  { id:'modelo16', nome:'Modelo 16', desc:'Rosa neon, forte, feminino e super marcante.' },
+  { id:'modelo17', nome:'Modelo 17', desc:'Laranja neon, energético, criativo e ousado.' },
+  { id:'modelo18', nome:'Modelo 18', desc:'Dourado neon, luxuoso, intenso e premium.' },
 ]

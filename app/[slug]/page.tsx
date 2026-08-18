@@ -253,6 +253,10 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
   const iconeBorder = tema.mode === 'light' ? 'rgba(0,0,0,.08)' : 'rgba(255,255,255,.10)'
   const iconeCor = 'var(--text)'
   const setaCor = 'var(--text-muted)'
+  // Nos temas neon, os CARDS (nao os icones - esses continuam neutros por decisao de design
+  // anterior) ganham borda colorida com glow real. Nos demais temas, mantem a borda neutra.
+  const cardBorderFinal = tema.isNeon ? `1px solid ${tema.accent}61` : `1px solid ${iconeBorder}`
+  const cardShadowNeon = tema.isNeon ? `0 0 18px ${tema.glow}, inset 0 0 18px ${tema.soft}` : undefined
 
   const nomeBusiness = perfil.nome_negocio || 'Agendamento Online'
   const bioCurta = perfil.pagina_descricao_curta || perfil.descricao || ''
@@ -460,7 +464,7 @@ destaques && destaques.length > 0 && (
             <div className={`destaque-grid cols-${Math.min(destaques.length, 3)}`}>
               {destaques.map(d => {
                 const conteudo = (
-                  <div className="crd destaque-card" style={{ border: `1px solid ${iconeBorder}` }}>
+                  <div className="crd destaque-card" style={{ border: cardBorderFinal, boxShadow: cardShadowNeon }}>
                     <div className="destaque-img-wrap">
                       {d.imagem_url ? (
                         <img src={d.imagem_url} alt={d.titulo} />
@@ -497,7 +501,7 @@ destaques && destaques.length > 0 && (
           <div style={{ marginBottom: '32px' }}>
             <div className="link-grid">
               {mostrarAgendaFallback && (
-                <a href={`/${slug}/agendar`} className="crd link-card" style={{ textDecoration: 'none', color: 'inherit', border: `1px solid ${iconeBorder}` }}>
+                <a href={`/${slug}/agendar`} className="crd link-card" style={{ textDecoration: 'none', color: 'inherit', border: cardBorderFinal, boxShadow: cardShadowNeon }}>
                   <div className="link-icon" style={{ background: iconeBg, border: `1px solid ${iconeBorder}` }}>
                     <Calendar size={21} color={iconeCor} />
                   </div>
@@ -519,7 +523,7 @@ destaques && destaques.length > 0 && (
                 const cfg = iconeLink(tipoEfetivo)
                 const hrefFinal = urlFinalLink(l)
                 return (
-                  <a key={l.id} href={hrefFinal} target={hrefFinal.startsWith('http') ? '_blank' : '_self'} rel="noopener noreferrer" className="crd link-card" style={{ textDecoration: 'none', color: 'inherit', border: `1px solid ${iconeBorder}` }}>
+                  <a key={l.id} href={hrefFinal} target={hrefFinal.startsWith('http') ? '_blank' : '_self'} rel="noopener noreferrer" className="crd link-card" style={{ textDecoration: 'none', color: 'inherit', border: cardBorderFinal, boxShadow: cardShadowNeon }}>
                     <div className="link-icon" style={{ background: iconeBg, border: `1px solid ${iconeBorder}`, color: iconeCor }}>
                       {cfg.svg ? cfg.svg : (cfg.I ? <cfg.I size={21} color={iconeCor} /> : null)}
                     </div>
@@ -542,7 +546,7 @@ eventos && eventos.length > 0 && (
             <p style={{ fontSize: '20px', fontWeight: 900, color: 'var(--text)', letterSpacing: '-0.02em', marginBottom: '14px' }}>Agenda / Eventos</p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
               {eventos.map((ev: { id: string; titulo: string; url: string }) => (
-                <a key={ev.id} href={ev.url} target="_blank" rel="noopener noreferrer" className="crd evento-card" style={{ textDecoration: 'none', color: 'inherit', border: `1px solid ${iconeBorder}` }}>
+                <a key={ev.id} href={ev.url} target="_blank" rel="noopener noreferrer" className="crd evento-card" style={{ textDecoration: 'none', color: 'inherit', border: cardBorderFinal, boxShadow: cardShadowNeon }}>
                   <span className="evento-titulo">{ev.titulo}</span>
                   <span className="evento-menu" style={{ color: setaCor }}>⋮</span>
                 </a>
@@ -560,7 +564,7 @@ videos && videos.length > 0 && (() => {
             const thumb = thumbnailVideo(v)
             const ratio = '16/9'
             return (
-              <div key={v.id} className={`crd video-card ${formatoClasse(v.formato)}`} style={{ border: `1px solid ${iconeBorder}` }}>
+              <div key={v.id} className={`crd video-card ${formatoClasse(v.formato)}`} style={{ border: cardBorderFinal, boxShadow: cardShadowNeon }}>
                 <a href={v.url_video} target={v.abrir_nova_aba === false ? '_self' : '_blank'} rel="noopener noreferrer" className="video-thumb-wrap" style={{ aspectRatio: ratio }}>
                   {thumb ? (
                     <>
