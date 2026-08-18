@@ -14,21 +14,6 @@ const DIAS=['Dom','Seg','Ter','Qua','Qui','Sex','Sáb']
 const TEMA_LEGADO: Record<string,string> = {padrao:'modelo1', beleza:'modelo2', barbearia:'modelo3', minimal:'modelo4', saude:'modelo5'}
 function resolverTema(id:string){ return TEMA_LEGADO[id] || id }
 
-const TEMAS=[
-  {id:'modelo1',nome:'Modelo 1',desc:'Rosa vibrante, moderno e marcante.',p:'#FF4FA3',s:'#D946EF'},
-  {id:'modelo2',nome:'Modelo 2',desc:'Preto e grafite, premium e minimalista.',p:'#EDEDF0',s:'#A1A1AA'},
-  {id:'modelo3',nome:'Modelo 3',desc:'Grafite e preto, moderno e sofisticado.',p:'#1C1C1F',s:'#0A0A0B'},
-  {id:'modelo4',nome:'Modelo 4',desc:'Preto e dourado, visual luxuoso e de alto padrão.',p:'#D4AF37',s:'#9C7A2F'},
-  {id:'modelo5',nome:'Modelo 5',desc:'Cinza claro e branco, clean e editorial.',p:'#C97B93',s:'#8B5D73'},
-  {id:'modelo6',nome:'Modelo 6',desc:'Branco e cinza suave, refinado e elegante.',p:'#5FA8A0',s:'#3D7871'},
-  {id:'modelo7',nome:'Modelo 7',desc:'Rosa blush premium, ideal para beleza e estética.',p:'#F5C3D6',s:'#E83E8C'},
-  {id:'modelo8',nome:'Modelo 8',desc:'Rosa forte premium, marcante e feminino.',p:'#F1B6CF',s:'#C2185B'},
-  {id:'modelo9',nome:'Modelo 9',desc:'Lilás profundo, sofisticado e marcante.',p:'#B69AF0',s:'#8B6FD9'},
-  {id:'modelo10',nome:'Modelo 10',desc:'Nude e mocha, acolhedor e refinado.',p:'#A67C52',s:'#7A5A3A'},
-  {id:'modelo11',nome:'Modelo 11',desc:'Bordô profundo, elegante e marcante.',p:'#7F1D1D',s:'#BE123C'},
-  {id:'modelo12',nome:'Modelo 12',desc:'Azul-meia-noite, premium e versátil.',p:'#3B82F6',s:'#10243D'},
-]
-
 const TEMA_CORES: Record<string, {primary:string;secondary:string;accent:string;border:string;bg:string;text:string;btnText:string}> = {
   modelo1: {primary:'#FF4FA3',secondary:'#D946EF',accent:'#EC4899',border:'rgba(255,79,163,.38)', bg:'rgba(255,79,163,.10)', text:'#FF8FC4', btnText:'#fff'},
   modelo2: {primary:'#EDEDF0',secondary:'#A1A1AA',accent:'#D4D4D8',border:'rgba(237,237,240,.30)', bg:'rgba(237,237,240,.10)', text:'#EDEDF0', btnText:'#0A0A0B'},
@@ -43,8 +28,6 @@ const TEMA_CORES: Record<string, {primary:string;secondary:string;accent:string;
   modelo11:{primary:'#D4A574',secondary:'#A67849',accent:'#E8C39E',border:'rgba(212,165,116,.38)',bg:'rgba(212,165,116,.10)',text:'#E8C39E', btnText:'#2A1408'},
   modelo12:{primary:'#3B82F6',secondary:'#2563EB',accent:'#60A5FA',border:'rgba(59,130,246,.38)',bg:'rgba(59,130,246,.10)',text:'#60A5FA', btnText:'#fff'},
 }
-
-const BANNERS_PRONTOS=Array.from({length:14},(_,i)=>`/banners/prontos/banner-${String(i+1).padStart(2,'0')}.webp`)
 
 const CSS=`
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -115,7 +98,6 @@ export default function Perfil(){
   const [promoFim,setPromoFim]=useState('')
   const [msg,setMsg]=useState('')
   const [copied,setCopied]=useState(false)
-  const imgRef=useRef<HTMLInputElement>(null)
 
   const [nome,setNome]=useState('')
   const [slug,setSlug]=useState('')
@@ -127,6 +109,7 @@ export default function Perfil(){
   const [capUrl,setCapUrl]=useState('')
   const [bannerMobilePosicao,setBannerMobilePosicao]=useState('padrao')
   const [bannerMobileZoom,setBannerMobileZoom]=useState('normal')
+  const [publicTheme,setPublicTheme]=useState('modelo2')
 
   const [diasAtivos,setDiasAtivos]=useState([false,true,true,true,true,true,true])
   const [horarios,setHorarios]=useState(DIAS.map(()=>({abertura:'08:00',fechamento:'18:00'})))
@@ -134,7 +117,6 @@ export default function Perfil(){
   const [abertura,setAbertura]=useState('08:00')
   const [fechamento,setFechamento]=useState('18:00')
   const [antecedencia,setAntecedencia]=useState('Sem restrição')
-  const [publicTheme,setPublicTheme]=useState('modelo2')
 
   const [fotoPerfilUrl,setFotoPerfilUrl]=useState('')
   const [descCurta,setDescCurta]=useState('')
@@ -427,66 +409,6 @@ export default function Perfil(){
     setTimeout(()=>setMsg(''),3000)
   }
 
-  async function restaurarCapa() {
-    if(!(await validarSessaoAtual()))return
-    const {data:{user}}=await supabase.auth.getUser();if(!user)return
-    await supabase.from('perfis').update({capa_url:null}).eq('user_id',user.id)
-    setCapUrl('')
-    setMsg('Imagem padrão restaurada!')
-    setTimeout(()=>setMsg(''),3000)
-  }
-  // ✅ CORRIGIDO: uploadCapa com validações, contentType e salvamento no perfil
-  async function uploadCapa(e:React.ChangeEvent<HTMLInputElement>){
-    const file=e.target.files?.[0];if(!file)return
-    if(!(await validarSessaoAtual()))return
-
-    const allowedTypes=['image/jpeg','image/jpg','image/png','image/webp']
-    if(!allowedTypes.includes(file.type)){
-      setMsg('Envie uma imagem JPG, PNG ou WEBP.')
-      return
-    }
-    if(file.size>5*1024*1024){
-      setMsg('A imagem deve ter no máximo 5MB.')
-      return
-    }
-
-    const {data:userData}=await supabase.auth.getUser()
-    if(!userData?.user){
-      setMsg('Sua sessão expirou. Faça login novamente.')
-      return
-    }
-
-    const ext=file.name.split('.').pop()?.toLowerCase()||'png'
-    const path=`capas/${userId}-${Date.now()}.${ext}`
-
-    const {error:uploadError}=await supabase.storage.from('fotos').upload(path,file,{
-      upsert:true,
-      contentType:file.type,
-      cacheControl:'3600',
-    })
-
-    if(uploadError){
-      console.error('Erro no upload:',uploadError)
-      setMsg('Erro no upload: '+uploadError.message)
-      return
-    }
-
-    const {data}=supabase.storage.from('fotos').getPublicUrl(path)
-    const imageUrl=data.publicUrl
-    setCapUrl(imageUrl)
-
-    // ✅ Salva a URL da capa direto no perfil após o upload
-    const {error:updateError}=await supabase.from('perfis').update({capa_url:imageUrl}).eq('user_id',userId)
-    if(updateError){
-      console.error('Erro ao salvar capa no perfil:',updateError)
-      setMsg('Imagem enviada, mas erro ao salvar no perfil: '+updateError.message)
-      return
-    }
-
-    setMsg('Imagem de capa salva com sucesso!')
-    setTimeout(()=>setMsg(''),3000)
-  }
-
   async function uploadFotoPerfil(e:React.ChangeEvent<HTMLInputElement>){
     const file=e.target.files?.[0];if(!file)return
     if(!(await validarSessaoAtual()))return
@@ -663,86 +585,13 @@ export default function Perfil(){
             </div>
           </div>
 
-          <div className="crd">
-            <p style={{fontSize:'15px',fontWeight:700,color:'#F8F4F7',marginBottom:'4px'}}>Aparência da MiniPage</p>
-            <p style={{fontSize:'12px',color:'#B8AAB8',marginBottom:'18px'}}>Personalize o visual da página que seus visitantes acessam.</p>
-
-            <p style={{fontSize:'13px',fontWeight:600,color:'#B8AAB8',marginBottom:'8px'}}>Imagem de capa</p>
-            <p style={{fontSize:'12px',color:'#B8AAB8',marginBottom:'12px'}}>Aparece no topo da sua MiniPage. Use uma imagem horizontal (16:9).</p>
-            {capUrl?(
-              <div style={{position:'relative',borderRadius:'14px',overflow:'hidden',marginBottom:'16px',border:'1px solid #2A1A2F'}}>
-                <img src={capUrl} alt="Capa" style={{width:'100%',height:'200px',objectFit:'cover',display:'block'}}/>
-                <div style={{position:'absolute',top:'10px',right:'10px',display:'flex',gap:'6px'}}>
-                  <button onClick={()=>imgRef.current?.click()} style={{background:'rgba(24,16,27,.9)',border:'1px solid #2A1A2F',color:'#B8AAB8',borderRadius:'8px',padding:'6px 12px',fontSize:'12px',fontWeight:600,cursor:'pointer',fontFamily:'inherit',display:'inline-flex',alignItems:'center',gap:'5px'}}><UploadCloud size={13}/> Enviar imagem</button>
-                  <button onClick={()=>setCapUrl('')} style={{background:'rgba(24,16,27,.9)',border:'1px solid #2A1A2F',color:'#EF4444',borderRadius:'8px',padding:'6px 12px',fontSize:'12px',fontWeight:600,cursor:'pointer',fontFamily:'inherit'}}>Remover</button>
-                </div>
+          <div className="crd" style={{padding:'20px'}}>
+            <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',flexWrap:'wrap',gap:'12px'}}>
+              <div>
+                <p style={{fontSize:'15px',fontWeight:700,color:'#F8F4F7',marginBottom:'2px'}}>Aparência da MiniPage</p>
+                <p style={{fontSize:'12px',color:'#B8AAB8'}}>Banner, foto, cores e visual da página pública.</p>
               </div>
-            ):(
-              <div onClick={()=>imgRef.current?.click()} style={{border:'2px dashed #2A1A2F',borderRadius:'14px',padding:'32px',textAlign:'center',cursor:'pointer',marginBottom:'16px',transition:'border-color .18s'}} onMouseEnter={e=>(e.currentTarget.style.borderColor='rgba(236,72,153,.40)')} onMouseLeave={e=>(e.currentTarget.style.borderColor='#2A1A2F')}>
-                <p style={{fontSize:'14px',color:'#B8AAB8',marginBottom:'4px'}}>Clique para adicionar imagem de capa</p>
-                <p style={{fontSize:'12px',color:'#B8AAB8'}}>Recomendado: 1200x400px, formato JPG ou PNG</p>
-              </div>
-            )}
-            <input ref={imgRef} type="file" accept="image/*" onChange={uploadCapa} style={{display:'none'}}/>
-
-            <div style={{borderTop:'1px solid #2A1A2F',paddingTop:'18px',marginTop:'4px',marginBottom:'18px'}}>
-              <p style={{fontSize:'13px',fontWeight:600,color:'#B8AAB8',marginBottom:'4px'}}>Escolha um banner pronto</p>
-              <p style={{fontSize:'12px',color:'#B8AAB8',marginBottom:'14px'}}>Selecione uma imagem pronta para combinar com o estilo da sua página.</p>
-              <div className="banner-grid">
-                {BANNERS_PRONTOS.map(b=>(
-                  <button key={b} type="button" onClick={()=>setCapUrl(b)} className={`banner-thumb${capUrl===b?' sel':''}`}>
-                    <img src={b} alt="Banner pronto" loading="lazy"/>
-                    {capUrl===b&&<span className="banner-sel-badge">Selecionado</span>}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div style={{borderTop:'1px solid #2A1A2F',paddingTop:'18px',marginTop:'4px',marginBottom:'18px'}}>
-              <p style={{fontSize:'13px',fontWeight:600,color:'#B8AAB8',marginBottom:'4px'}}>Enquadramento no celular</p>
-              <p style={{fontSize:'12px',color:'#B8AAB8',marginBottom:'14px'}}>Ajuste como a imagem de capa aparece no celular. Útil quando o banner fica muito distante ou corta uma parte importante.</p>
-              <div className="fg2">
-                <div>
-                  <label className="lbl">Posição no celular</label>
-                  <select className="inp" style={{cursor:'pointer'}} value={bannerMobilePosicao} onChange={e=>setBannerMobilePosicao(e.target.value)}>
-                    <option value="padrao">Padrão</option>
-                    <option value="centro">Centro</option>
-                    <option value="topo">Topo</option>
-                    <option value="esquerda">Esquerda</option>
-                    <option value="direita">Direita</option>
-                    <option value="inferior">Inferior</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="lbl">Zoom no celular</label>
-                  <select className="inp" style={{cursor:'pointer'}} value={bannerMobileZoom} onChange={e=>setBannerMobileZoom(e.target.value)}>
-                    <option value="normal">Normal</option>
-                    <option value="medio">Médio</option>
-                    <option value="alto">Alto</option>
-                  </select>
-                </div>
-              </div>
-            </div>
-
-            <div style={{borderTop:'1px solid #2A1A2F',paddingTop:'18px',marginTop:'4px'}}>
-              <p style={{fontSize:'13px',fontWeight:600,color:'#B8AAB8',marginBottom:'4px'}}>Cor de destaque</p>
-              <p style={{fontSize:'12px',color:'#B8AAB8',marginBottom:'14px'}}>Escolha uma cor pronta para combinar com o estilo do seu negócio. Afeta apenas a página pública.</p>
-              <div className="temas-grid" style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'10px'}}>
-                {TEMAS.map(t=>(
-                  <button key={t.id} onClick={()=>setPublicTheme(t.id)} className={`tema-card${publicTheme===t.id?' on':''}`}
-                    style={publicTheme===t.id?{borderColor:t.p,background:`${t.p}1A`,boxShadow:`0 0 18px ${t.p}30`}:undefined}>
-                    <div style={{display:'flex',alignItems:'center',gap:'8px',marginBottom:'8px'}}>
-                      <div style={{display:'flex',gap:'4px'}}>
-                        <div style={{width:'16px',height:'16px',borderRadius:'50%',background:t.p,flexShrink:0}}/>
-                        <div style={{width:'16px',height:'16px',borderRadius:'50%',background:t.s,flexShrink:0}}/>
-                      </div>
-                      {publicTheme===t.id&&<span style={{fontSize:'10px',fontWeight:700,color:t.p,background:`${t.p}24`,borderRadius:'6px',padding:'2px 7px',marginLeft:'auto'}}>Ativo</span>}
-                    </div>
-                    <p style={{fontSize:'12px',fontWeight:700,color:publicTheme===t.id?'#F8F4F7':'#B8AAB8',marginBottom:'3px'}}>{t.nome}</p>
-                    <p style={{fontSize:'11px',color:'#B8AAB8',lineHeight:1.4}}>{t.desc}</p>
-                  </button>
-                ))}
-              </div>
+              <Link href="/painel/perfil/aparencia" style={{background:G,color:'#fff',border:'1px solid rgba(255,255,255,.12)',borderRadius:'10px',padding:'10px 18px',fontSize:'13px',fontWeight:700,textDecoration:'none',flexShrink:0}}>Gerenciar aparência</Link>
             </div>
           </div>
 
