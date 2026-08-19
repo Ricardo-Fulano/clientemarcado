@@ -8,6 +8,10 @@ import { normalizarPlano } from '../lib/planos'
 
 const CHECKOUT_URL = "https://www.mercadopago.com.br/subscriptions/checkout?preapproval_plan_id=1a0fb25c46214e45b0eb3d21b494e5d6"
 const G = 'linear-gradient(135deg,#3B82F6,#7C3AED)'
+// Nomes amigaveis pra mensagem de erro refletir o plano real da pessoa (antes ficava fixo
+// dizendo "Plano Equipe", mesmo quando o problema era com o MiniPage).
+const NOME_PLANO_AMIGAVEL: Record<string, string> = { minipage: 'MiniPage', essencial: 'Profissional', equipe: 'Equipe' }
+function nomePlanoAtual(planoTipo: string) { return NOME_PLANO_AMIGAVEL[planoTipo] || 'atual' }
 
 export default function PainelLayoutClient({ children }: { children: React.ReactNode }) {
   const [status, setStatus] = useState<string>('ativo')
@@ -26,7 +30,7 @@ export default function PainelLayoutClient({ children }: { children: React.React
       const { data: { session } } = await supabase.auth.getSession()
       const token = session?.access_token
       if (!token) {
-        if (planoTipo !== 'equipe') window.location.href = CHECKOUT_URL
+        if (planoTipo === 'essencial') window.location.href = CHECKOUT_URL
         else alert('Sessão expirada. Faça login novamente para regularizar o pagamento.')
         return
       }
@@ -37,15 +41,15 @@ export default function PainelLayoutClient({ children }: { children: React.React
       const data = await res.json()
       if (data.init_point) {
         window.location.href = data.init_point
-      } else if (planoTipo !== 'equipe') {
-        // Fallback antigo: so vale pro Essencial, nunca pro Equipe
+      } else if (planoTipo === 'essencial') {
+        // Fallback antigo: so vale pro Essencial (unico com link fixo configurado no Mercado Pago)
         window.location.href = CHECKOUT_URL
       } else {
-        alert('Não foi possível gerar o link de pagamento do Plano Equipe. Tente novamente em instantes ou entre em contato com o suporte.')
+        alert(`Não foi possível gerar o link de pagamento do Plano ${nomePlanoAtual(planoTipo)}. Tente novamente em instantes ou entre em contato com o suporte.`)
       }
     } catch {
-      if (planoTipo !== 'equipe') window.location.href = CHECKOUT_URL
-      else alert('Não foi possível gerar o link de pagamento do Plano Equipe. Tente novamente em instantes ou entre em contato com o suporte.')
+      if (planoTipo === 'essencial') window.location.href = CHECKOUT_URL
+      else alert(`Não foi possível gerar o link de pagamento do Plano ${nomePlanoAtual(planoTipo)}. Tente novamente em instantes ou entre em contato com o suporte.`)
     } finally {
       setLoadingPag(false)
     }
