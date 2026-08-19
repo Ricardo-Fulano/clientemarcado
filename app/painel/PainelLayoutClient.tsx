@@ -17,6 +17,7 @@ export default function PainelLayoutClient({ children }: { children: React.React
   const [status, setStatus] = useState<string>('ativo')
   const [planoTipo, setPlanoTipo] = useState<string>('essencial')
   const [diasTrial, setDiasTrial] = useState<number|null>(null)
+  const [diasAtraso, setDiasAtraso] = useState<number|null>(null)
   const [loadingPag, setLoadingPag] = useState(false)
   const [loading, setLoading] = useState(true)
   const [isProfissional, setIsProfissional] = useState(false)
@@ -112,6 +113,15 @@ export default function PainelLayoutClient({ children }: { children: React.React
             await supabase.from('perfis').update({ status_acesso: 'em_atraso' }).eq('user_id', user.id)
           }
         }
+
+        // Dias de atraso: usa a data de fim do plano pago como referencia (mais precisa pra
+        // quem ja pagou antes e teve a assinatura vencida); se nunca pagou, usa o fim do trial.
+        // Nao inventa campo novo no banco - reaproveita o que ja existe.
+        if (st === 'em_atraso') {
+          const dataReferencia = fimPlano || fimTrial
+          const diasDesde = Math.floor((agora.getTime() - dataReferencia.getTime()) / (1000 * 60 * 60 * 24))
+          setDiasAtraso(Math.max(0, diasDesde))
+        }
       }
 
       setStatus(st)
@@ -132,6 +142,28 @@ export default function PainelLayoutClient({ children }: { children: React.React
       <p style={{color:'#475569',fontSize:'14px'}}>Carregando...</p>
     </div>
   )
+
+  // Bloqueio progressivo por mensalidade em atraso (so aplica quando status==='em_atraso'):
+  // ate 3 dias = aviso leve | 4-7 dias = aviso forte | 8-14 dias = bloqueio parcial (algumas
+  // rotas de criacao/gerenciamento ficam indisponiveis) | 15+ dias = bloqueio quase total
+  // (so Inicio/Meu plano/Suporte continuam acessiveis). diasAtraso null (sem data confiavel)
+  // cai no nivel mais brando (leve), nunca bloqueia sem certeza.
+  const nivelAtraso: 'leve'|'forte'|'parcial'|'total'|null =
+    status !== 'em_atraso' ? null
+    : diasAtraso === null ? 'leve'
+    : diasAtraso <= 3 ? 'leve'
+    : diasAtraso <= 7 ? 'forte'
+    : diasAtraso <= 14 ? 'parcial'
+    : 'total'
+
+  // Bloqueio TOTAL (15+ dias): so essas rotas continuam acessiveis
+  const ROTAS_PERMITIDAS_BLOQUEIO_TOTAL = ['/painel', '/painel/plano', '/painel/suporte']
+  // Bloqueio PARCIAL (8-14 dias): essas rotas de criacao/gerenciamento ficam bloqueadas
+  // (o restante do painel - agenda, clientes, financeiro em modo leitura, etc - continua acessivel)
+  const PREFIXOS_BLOQUEADOS_PARCIAL = ['/painel/agendamentos/novo', '/painel/orcamentos/novo', '/painel/servicos', '/painel/profissionais', '/painel/perfil']
+
+  const bloqueadoTotal = nivelAtraso === 'total' && !ROTAS_PERMITIDAS_BLOQUEIO_TOTAL.includes(pathname)
+  const bloqueadoParcial = nivelAtraso === 'parcial' && PREFIXOS_BLOQUEADOS_PARCIAL.some(p => pathname === p || pathname.startsWith(p + '/'))
 
   // Profissional tentando acessar rota administrativa: nao renderiza nada ate o redirecionamento
   if (isProfissional && pathname !== '/painel/minha-agenda' && pathname !== '/painel/alterar-senha' && pathname !== '/painel/meu-desempenho') return (
@@ -154,12 +186,65 @@ export default function PainelLayoutClient({ children }: { children: React.React
     </div>
   )
 
+  // Bloqueio TOTAL por atraso (15+ dias): mesmo estilo visual do bloqueio manual acima, so que
+  // disparado automaticamente pelos dias calculados, com links pras 3 rotas ainda permitidas.
+  if (bloqueadoTotal) return (
+    <div style={{minHeight:'100vh',background:'linear-gradient(180deg,#060C18,#050B16)',display:'flex',alignItems:'center',justifyContent:'center',padding:'24px',fontFamily:'system-ui'}}>
+      <div style={{maxWidth:'440px',width:'100%',background:'rgba(15,23,42,.95)',border:'1px solid rgba(239,68,68,.30)',borderRadius:'20px',padding:'40px 32px',textAlign:'center'}}>
+        <div style={{fontSize:'36px',marginBottom:'16px'}}>🔒</div>
+        <h2 style={{fontSize:'20px',fontWeight:800,color:'#F8FAFC',marginBottom:'12px'}}>Acesso temporariamente bloqueado</h2>
+        <p style={{fontSize:'14px',color:'#94A3B8',marginBottom:'28px',lineHeight:1.6}}>Seu acesso está temporariamente bloqueado por mensalidade pendente. Regularize o pagamento para reativar sua conta.</p>
+        <button onClick={abrirCheckout} disabled={loadingPag} style={{display:'flex',width:'100%',alignItems:'center',justifyContent:'center',height:'48px',background:G,color:'#fff',border:'none',borderRadius:'12px',textDecoration:'none',fontSize:'14px',fontWeight:700,cursor:loadingPag?'wait':'pointer',opacity:loadingPag?.7:1,fontFamily:'inherit',marginBottom:'14px'}}>{loadingPag?'Gerando...':'Regularizar pagamento'}</button>
+        <div style={{display:'flex',gap:'16px',justifyContent:'center',flexWrap:'wrap'}}>
+          <a href="/painel" style={{fontSize:'12px',color:'#64748B',textDecoration:'underline'}}>Início</a>
+          <a href="/painel/plano" style={{fontSize:'12px',color:'#64748B',textDecoration:'underline'}}>Meu plano</a>
+          <a href="/painel/suporte" style={{fontSize:'12px',color:'#64748B',textDecoration:'underline'}}>Suporte</a>
+        </div>
+      </div>
+    </div>
+  )
+
+  // Bloqueio PARCIAL por atraso (8-14 dias): mostra a tela so no lugar do conteudo da rota
+  // bloqueada, mas mantem o restante da navegacao do painel intacto (o cliente pode voltar
+  // pro Inicio ou outras areas nao-bloqueadas normalmente).
+  if (bloqueadoParcial) return (
+    <div style={{minHeight:'70vh',display:'flex',alignItems:'center',justifyContent:'center',padding:'24px',fontFamily:'system-ui'}}>
+      <div style={{maxWidth:'440px',width:'100%',background:'rgba(15,23,42,.95)',border:'1px solid rgba(245,158,11,.30)',borderRadius:'20px',padding:'40px 32px',textAlign:'center'}}>
+        <div style={{fontSize:'36px',marginBottom:'16px'}}>⚠️</div>
+        <h2 style={{fontSize:'20px',fontWeight:800,color:'#F8FAFC',marginBottom:'12px'}}>Recurso indisponível</h2>
+        <p style={{fontSize:'14px',color:'#94A3B8',marginBottom:'28px',lineHeight:1.6}}>Seu acesso está limitado por mensalidade pendente. Regularize o pagamento para voltar a usar todos os recursos.</p>
+        <button onClick={abrirCheckout} disabled={loadingPag} style={{display:'flex',width:'100%',alignItems:'center',justifyContent:'center',height:'48px',background:G,color:'#fff',border:'none',borderRadius:'12px',textDecoration:'none',fontSize:'14px',fontWeight:700,cursor:loadingPag?'wait':'pointer',opacity:loadingPag?.7:1,fontFamily:'inherit',marginBottom:'14px'}}>{loadingPag?'Gerando...':'Regularizar pagamento'}</button>
+        <a href="/painel" style={{fontSize:'12px',color:'#64748B',textDecoration:'underline'}}>Voltar para o Início</a>
+      </div>
+    </div>
+  )
+
   return (
     <>
-      {status === 'em_atraso' && (
+      {nivelAtraso === 'leve' && (
         <div style={{background:'rgba(245,158,11,.08)',border:'1px solid rgba(245,158,11,.28)',borderRadius:'0',padding:'12px 24px',display:'flex',alignItems:'center',justifyContent:'space-between',flexWrap:'wrap',gap:'12px',position:'sticky',top:0,zIndex:40}}>
           <p style={{fontSize:'13px',fontWeight:600,color:'#FCD34D',margin:0}}>
-            ⚠️ Sua mensalidade está pendente. Regularize o pagamento para evitar o bloqueio do acesso.
+            ⚠️ Sua mensalidade está pendente. Regularize para evitar bloqueio do acesso.
+          </p>
+          <button onClick={abrirCheckout} disabled={loadingPag} style={{display:'inline-flex',alignItems:'center',height:'32px',padding:'0 16px',background:G,color:'#fff',borderRadius:'8px',border:'none',fontSize:'12px',fontWeight:700,whiteSpace:'nowrap',flexShrink:0,cursor:loadingPag?'wait':'pointer',opacity:loadingPag?.7:1,fontFamily:'inherit'}}>
+            {loadingPag ? 'Gerando...' : 'Regularizar'}
+          </button>
+        </div>
+      )}
+      {nivelAtraso === 'forte' && (
+        <div style={{background:'rgba(239,68,68,.10)',border:'1px solid rgba(239,68,68,.32)',borderRadius:'0',padding:'12px 24px',display:'flex',alignItems:'center',justifyContent:'space-between',flexWrap:'wrap',gap:'12px',position:'sticky',top:0,zIndex:40}}>
+          <p style={{fontSize:'13px',fontWeight:700,color:'#FCA5A5',margin:0}}>
+            ⚠️ Sua mensalidade está pendente há alguns dias. Regularize para evitar limitações no painel.
+          </p>
+          <button onClick={abrirCheckout} disabled={loadingPag} style={{display:'inline-flex',alignItems:'center',height:'32px',padding:'0 16px',background:G,color:'#fff',borderRadius:'8px',border:'none',fontSize:'12px',fontWeight:700,whiteSpace:'nowrap',flexShrink:0,cursor:loadingPag?'wait':'pointer',opacity:loadingPag?.7:1,fontFamily:'inherit'}}>
+            {loadingPag ? 'Gerando...' : 'Regularizar'}
+          </button>
+        </div>
+      )}
+      {(nivelAtraso === 'parcial' || nivelAtraso === 'total') && (
+        <div style={{background:'rgba(239,68,68,.12)',border:'1px solid rgba(239,68,68,.36)',borderRadius:'0',padding:'12px 24px',display:'flex',alignItems:'center',justifyContent:'space-between',flexWrap:'wrap',gap:'12px',position:'sticky',top:0,zIndex:40}}>
+          <p style={{fontSize:'13px',fontWeight:700,color:'#FCA5A5',margin:0}}>
+            🔒 {nivelAtraso === 'total' ? 'Seu acesso está temporariamente bloqueado por mensalidade pendente. Regularize o pagamento para reativar sua conta.' : 'Seu acesso está limitado por mensalidade pendente. Regularize o pagamento para voltar a usar todos os recursos.'}
           </p>
           <button onClick={abrirCheckout} disabled={loadingPag} style={{display:'inline-flex',alignItems:'center',height:'32px',padding:'0 16px',background:G,color:'#fff',borderRadius:'8px',border:'none',fontSize:'12px',fontWeight:700,whiteSpace:'nowrap',flexShrink:0,cursor:loadingPag?'wait':'pointer',opacity:loadingPag?.7:1,fontFamily:'inherit'}}>
             {loadingPag ? 'Gerando...' : 'Regularizar'}
