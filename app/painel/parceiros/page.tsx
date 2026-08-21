@@ -39,13 +39,18 @@ html,body{overflow-x:hidden;width:100%;background:#08060A}
 const TIPOS = ['Influencer', 'Página local', 'Cliente indicador', 'Parceiro comercial', 'Outro']
 
 // Regra comercial: comissao unica de 50% sobre a 1a mensalidade paga (nao recorrente).
-// Fallback: plano_tipo nulo/vazio/invalido sempre vira 'essencial'.
-const PLANOS_COMISSAO: Record<string, { mensalidade: number; comissao: number }> = {
-  essencial: { mensalidade: 79.90, comissao: 39.95 },
-  equipe: { mensalidade: 149.90, comissao: 74.95 },
+// 'essencial' e o nome interno no banco pro plano comercialmente chamado de "Profissional"
+// (nao mexemos no banco, so tratamos a exibicao/calculo). Fallback: plano_tipo nulo/vazio/
+// invalido sempre vira 'essencial' (Profissional), igual ao comportamento anterior.
+const PLANOS_COMISSAO: Record<string, { mensalidade: number; comissao: number; nomeComercial: string }> = {
+  minipage: { mensalidade: 29.90, comissao: 14.95, nomeComercial: 'MiniPage' },
+  essencial: { mensalidade: 79.90, comissao: 39.95, nomeComercial: 'Profissional' },
+  equipe: { mensalidade: 149.90, comissao: 74.95, nomeComercial: 'Equipe' },
 }
 function planoValido(pt: string | null | undefined) {
-  return pt === 'equipe' ? 'equipe' : 'essencial'
+  if (pt === 'minipage') return 'minipage'
+  if (pt === 'equipe') return 'equipe'
+  return 'essencial' // essencial, profissional (se algum dia vier assim), nulo ou qualquer outro -> Profissional
 }
 function comissaoDoIndicado(ind: any) {
   return PLANOS_COMISSAO[planoValido(ind?.plano_tipo)].comissao
@@ -182,7 +187,7 @@ export default function Parceiros() {
               <button className="btn-p" onClick={() => { resetForm(); setShowModal(true) }}>+ Novo parceiro</button>
             </div>
 
-            <p style={{ fontSize: '12px', color: '#C4B5FD', marginBottom: '20px' }}>Comissão: 50% da 1ª mensalidade paga pelo cliente indicado — Essencial R$39,95 · Equipe R$74,95</p>
+            <p style={{ fontSize: '12px', color: '#C4B5FD', marginBottom: '20px' }}>Comissão: 50% da 1ª mensalidade paga pelo cliente indicado — MiniPage R$14,95 · Profissional R$39,95 · Equipe R$74,95</p>
 
             {msg && <div style={{ background: 'rgba(34,197,94,.12)', border: '1px solid rgba(34,197,94,.28)', borderRadius: '10px', padding: '10px 14px', fontSize: '13px', color: '#22C55E', marginBottom: '16px' }}>{msg}</div>}
 
@@ -296,7 +301,7 @@ export default function Parceiros() {
                           <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', alignItems: 'center' }}>
                             <span style={{ fontSize: '11px', fontWeight: 800, color: '#EC4899', background: 'rgba(236,72,153,.12)', border: '1px solid rgba(236,72,153,.28)', padding: '2px 8px', borderRadius: '6px' }}>{ind.cupom_codigo}</span>
                             {par && <span style={{ fontSize: '11px', color: '#B8AAB8' }}>→ {par.nome}</span>}
-                            <span className="badge" style={{ background: 'rgba(139,92,246,.12)', border: '1px solid rgba(139,92,246,.26)', color: '#C4B5FD' }}>{planoTipo === 'equipe' ? 'Plano Equipe' : 'Plano Essencial'}</span>
+                            <span className="badge" style={{ background: 'rgba(139,92,246,.12)', border: '1px solid rgba(139,92,246,.26)', color: '#C4B5FD' }}>Plano {infoPlano.nomeComercial}</span>
                             <span className="badge" style={{ background: ehPagante(ind) ? 'rgba(34,197,94,.12)' : 'rgba(236,72,153,.12)', border: `1px solid ${ehPagante(ind) ? 'rgba(34,197,94,.24)' : 'rgba(236,72,153,.24)'}`, color: ehPagante(ind) ? '#22C55E' : '#EC4899' }}>{ehPagante(ind) ? 'Pagante' : 'Cadastro'}</span>
                             {ehPagante(ind) && (
                               <span className="badge" style={{ background: ind.comissao_status === 'paga' ? 'rgba(34,197,94,.10)' : 'rgba(250,204,21,.12)', border: `1px solid ${ind.comissao_status === 'paga' ? 'rgba(34,197,94,.22)' : 'rgba(250,204,21,.28)'}`, color: ind.comissao_status === 'paga' ? '#22C55E' : '#FACC15' }}>{ind.comissao_status === 'paga' ? 'Comissão paga' : 'Comissão pendente'}</span>
@@ -349,7 +354,7 @@ export default function Parceiros() {
                   {TIPOS.map(t => <option key={t} value={t}>{t}</option>)}
                 </select>
               </div>
-              <p style={{ fontSize: '12px', color: '#B8AAB8', background: 'rgba(139,92,246,.08)', border: '1px solid rgba(139,92,246,.20)', borderRadius: '10px', padding: '10px 12px' }}>Comissão: 50% da 1ª mensalidade paga pelo cliente indicado (Essencial R$39,95 · Equipe R$74,95). Regra fixa, aplicada a todos os parceiros.</p>
+              <p style={{ fontSize: '12px', color: '#B8AAB8', background: 'rgba(139,92,246,.08)', border: '1px solid rgba(139,92,246,.20)', borderRadius: '10px', padding: '10px 12px' }}>Comissão: 50% da 1ª mensalidade paga pelo cliente indicado (MiniPage R$14,95 · Profissional R$39,95 · Equipe R$74,95). Regra fixa, aplicada a todos os parceiros.</p>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <button onClick={() => setAtivo(!ativo)} style={{ width: '36px', height: '20px', borderRadius: '999px', border: 'none', cursor: 'pointer', position: 'relative', background: ativo ? '#EC4899' : '#2A1A2F' }}>
                   <span style={{ position: 'absolute', top: '2px', left: ativo ? '18px' : '2px', width: '16px', height: '16px', borderRadius: '50%', background: '#fff', transition: 'left .2s' }} />
