@@ -27,6 +27,12 @@ const TEMA_CORES: Record<string, {primary:string;secondary:string;accent:string;
   modelo10:{primary:'#A67C52',secondary:'#7A5A3A',accent:'#C9A578',border:'rgba(166,124,82,.38)', bg:'rgba(166,124,82,.10)', text:'#C9A578', btnText:'#fff'},
   modelo11:{primary:'#D4A574',secondary:'#A67849',accent:'#E8C39E',border:'rgba(212,165,116,.38)',bg:'rgba(212,165,116,.10)',text:'#E8C39E', btnText:'#2A1408'},
   modelo12:{primary:'#3B82F6',secondary:'#2563EB',accent:'#60A5FA',border:'rgba(59,130,246,.38)',bg:'rgba(59,130,246,.10)',text:'#60A5FA', btnText:'#fff'},
+  modelo13:{primary:'#FF1744',secondary:'#D6001C',accent:'#FF6B85',border:'rgba(255,23,68,.42)',bg:'rgba(255,23,68,.14)',text:'#FF6B85', btnText:'#fff'},
+  modelo14:{primary:'#00FF85',secondary:'#00C46B',accent:'#6FFFB0',border:'rgba(0,255,133,.40)',bg:'rgba(0,255,133,.14)',text:'#6FFFB0', btnText:'#042A16'},
+  modelo15:{primary:'#00BFFF',secondary:'#0096D6',accent:'#66D9FF',border:'rgba(0,191,255,.40)',bg:'rgba(0,191,255,.14)',text:'#66D9FF', btnText:'#02202E'},
+  modelo16:{primary:'#FF2DAA',secondary:'#D6008C',accent:'#FF7ACB',border:'rgba(255,45,170,.42)',bg:'rgba(255,45,170,.14)',text:'#FF7ACB', btnText:'#fff'},
+  modelo17:{primary:'#FF7A00',secondary:'#E86200',accent:'#FFB066',border:'rgba(255,122,0,.42)',bg:'rgba(255,122,0,.14)',text:'#FFB066', btnText:'#2E1400'},
+  modelo18:{primary:'#FFD700',secondary:'#E6BE00',accent:'#FFEB80',border:'rgba(255,215,0,.40)',bg:'rgba(255,215,0,.14)',text:'#FFEB80', btnText:'#2E2600'},
 }
 
 const CSS=`
@@ -309,8 +315,23 @@ export default function Perfil(){
   // quando o usuario ainda nao tem nenhum perfil vinculado ao seu user_id)
   async function criarPerfilNovo(){
     if(!userId)return
+    // Confirma que a sessao ainda e a mesma antes de criar - nunca cria perfil pra
+    // um user_id que nao seja o da sessao ativa agora.
+    const {data:{user}}=await supabase.auth.getUser()
+    if(!user){window.location.href='/login';return}
+    if(user.id!==userId){setMsg('A sessão mudou. Recarregue a página antes de continuar.');return}
+
+    // Reconfere que ainda nao existe (evita duplicar se outra aba/tela ja criou nesse meio-tempo)
+    const {data:jaExiste}=await supabase.from('perfis').select('id').eq('user_id',userId).maybeSingle()
+    if(jaExiste){await load();return}
+
+    const metadata:any=user.user_metadata||{}
+    const nomeNegocio=metadata.nome_negocio||metadata.nome_usuario||'Meu negócio'
+    const planoMeta=metadata.plano_tipo
+    const planoTipo=planoMeta==='equipe'?'equipe':planoMeta==='minipage'?'minipage':'essencial'
     const slugBase='negocio'+userId.replace(/-/g,'').slice(0,8)
-    const {error}=await supabase.from('perfis').insert({user_id:userId,slug:slugBase})
+
+    const {error}=await supabase.from('perfis').insert({user_id:userId,nome_negocio:nomeNegocio,slug:slugBase,plano_tipo:planoTipo})
     if(error){setMsg('Erro ao criar perfil: '+error.message);return}
     await load()
   }

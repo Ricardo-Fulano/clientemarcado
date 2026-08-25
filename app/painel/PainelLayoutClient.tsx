@@ -13,6 +13,53 @@ const G = 'linear-gradient(135deg,#3B82F6,#7C3AED)'
 const NOME_PLANO_AMIGAVEL: Record<string, string> = { minipage: 'MiniPage', essencial: 'Profissional', equipe: 'Equipe' }
 function nomePlanoAtual(planoTipo: string) { return NOME_PLANO_AMIGAVEL[planoTipo] || 'atual' }
 
+// Mesma normalizacao usada em app/api/cadastro/criar-perfil/route.ts (fonte original desse
+// slug). Repetida aqui porque essa e uma tela client-side, sem acesso direto ao helper da rota.
+function gerarSlugBase(nome: string, userId: string) {
+  const limpo = (nome || '')
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, '')
+    .slice(0, 30)
+  return limpo || ('negocio' + userId.replace(/-/g, '').slice(0, 8))
+}
+
+// Cria um perfil inicial seguro pra uma conta que existe no Auth mas nao tem linha em
+// `perfis` ainda (bug de cadastro: a chamada original pra /api/cadastro/criar-perfil e
+// "dispara e esquece", sem checar sucesso - se falhar por qualquer motivo, a conta fica
+// sem perfil pra sempre, sem ninguem perceber). Usa SEMPRE o auth.uid() da sessao atual
+// (nunca busca por e-mail, nunca reaproveita perfil de outra pessoa). Reconfere com
+// select antes de inserir, pra nao duplicar se outra aba/effect ja criou nesse meio-tempo.
+async function criarPerfilAutomatico(userId: string, metadata: any) {
+  const { data: jaExiste } = await supabase.from('perfis').select('id').eq('user_id', userId).maybeSingle()
+  if (jaExiste) return { criado: false }
+
+  const nomeNegocio = metadata?.nome_negocio || metadata?.nome_usuario || 'Meu negócio'
+  const planoMeta = metadata?.plano_tipo
+  const planoTipo = planoMeta === 'equipe' ? 'equipe' : planoMeta === 'minipage' ? 'minipage' : 'essencial'
+  const slugBase = gerarSlugBase(nomeNegocio, userId)
+
+  let slugTentativa = slugBase
+  for (let tentativa = 0; tentativa < 3; tentativa++) {
+    const { error } = await supabase.from('perfis').insert({
+      user_id: userId,
+      nome_negocio: nomeNegocio,
+      slug: slugTentativa,
+      plano_tipo: planoTipo,
+    })
+    if (!error) return { criado: true, slug: slugTentativa }
+    if (error.code === '23505') {
+      // slug colidiu: tenta de novo com sufixo curto do user_id
+      const sufixo = userId.replace(/-/g, '').slice(tentativa * 4, tentativa * 4 + 4)
+      slugTentativa = `${slugBase}${sufixo}`
+      continue
+    }
+    console.warn('[criarPerfilAutomatico] Erro ao criar perfil:', error.message)
+    return { criado: false, erro: error.message }
+  }
+  return { criado: false, erro: 'Não foi possível gerar um link único.' }
+}
+
 export default function PainelLayoutClient({ children }: { children: React.ReactNode }) {
   const [status, setStatus] = useState<string>('ativo')
   const [planoTipo, setPlanoTipo] = useState<string>('essencial')
@@ -82,7 +129,13 @@ export default function PainelLayoutClient({ children }: { children: React.React
             }
           } catch (e) { console.warn('Erro ao verificar vinculo de equipe:', e) }
         }
-        // Sem perfil e sem vinculo: comportamento atual (trata como admin, ex: perfil ainda nao criado)
+        // Sem perfil e sem vinculo: tenta criar automaticamente um perfil inicial seguro
+        // (usa sempre o auth.uid() da sessao atual - nunca busca por e-mail, nunca reaproveita
+        // perfil de outra pessoa). Cobre o caso da chamada original de cadastro ter falhado
+        // silenciosamente. Se a criacao falhar por qualquer motivo, mantem o comportamento
+        // anterior (deixa passar como ativo) - a tela de /painel/perfil ainda tem o botao
+        // manual "Criar meu perfil" como rede de seguranca final.
+        await criarPerfilAutomatico(user.id, user.user_metadata)
         setStatus('ativo')
         setLoading(false)
         return
