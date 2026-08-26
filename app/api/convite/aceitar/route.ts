@@ -59,7 +59,7 @@ export async function POST(request: NextRequest) {
 
     if (!novoUserId) return NextResponse.json({ error: 'Erro ao identificar o novo dono.' }, { status: 500 })
 
-    // Transfere o perfil e TUDO que esta vinculado por user_id (destaques, links, videos).
+    // Transfere o perfil e TUDO que esta vinculado por user_id (destaques, links, videos, eventos).
     // profissionais ja usa perfil_id, entao nao precisa transferir - continua vinculado
     // automaticamente assim que o perfil muda de dono.
     // IMPORTANTE: filtramos por convite.user_id_atual (o dono exato no momento do convite),
@@ -72,14 +72,16 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Não foi possível concluir a transferência agora. Fale com o suporte.' }, { status: 500 })
     }
 
-    const [destaquesRes, linksRes, videosRes] = await Promise.all([
+    const [destaquesRes, linksRes, videosRes, eventosRes] = await Promise.all([
       supabase.from('pagina_destaques').update({ user_id: novoUserId }).eq('user_id', userIdAntigo),
       supabase.from('pagina_links').update({ user_id: novoUserId }).eq('user_id', userIdAntigo),
       supabase.from('pagina_videos').update({ user_id: novoUserId }).eq('user_id', userIdAntigo),
+      supabase.from('pagina_eventos').update({ user_id: novoUserId }).eq('user_id', userIdAntigo),
     ])
     if (destaquesRes.error) console.error('[convite/aceitar] Erro ao transferir destaques:', destaquesRes.error.message)
     if (linksRes.error) console.error('[convite/aceitar] Erro ao transferir links:', linksRes.error.message)
     if (videosRes.error) console.error('[convite/aceitar] Erro ao transferir vídeos:', videosRes.error.message)
+    if (eventosRes.error) console.error('[convite/aceitar] Erro ao transferir eventos:', eventosRes.error.message)
 
     await supabase.from('convites_transferencia').update({ status: 'aceito', aceito_em: new Date().toISOString() }).eq('id', convite.id)
 
