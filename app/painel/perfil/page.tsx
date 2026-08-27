@@ -138,7 +138,7 @@ export default function Perfil(){
   const [links,setLinks]=useState<any[]>([])
   const [videos,setVideos]=useState<any[]>([])
   const [eventos,setEventos]=useState<any[]>([])
-  const [catalogoItens,setCatalogoItens]=useState<any[]>([])
+  const [catalogos,setCatalogos]=useState<any[]>([])
   const ORDEM_PADRAO_SECOES=['destaques','links','agenda','catalogo','videos']
   const [ordemSecoes,setOrdemSecoes]=useState<string[]>(ORDEM_PADRAO_SECOES)
   // Acesso da conta (transferir e-mail de login / reenviar link de senha)
@@ -305,13 +305,13 @@ export default function Perfil(){
       supabase.from('pagina_links').select('*').eq('user_id',user.id).order('ordem'),
       supabase.from('pagina_videos').select('*').eq('user_id',user.id).order('ordem'),
       supabase.from('pagina_eventos').select('*').eq('user_id',user.id).order('ordem'),
-      supabase.from('pagina_catalogo_itens').select('*').eq('user_id',user.id).order('ordem'),
+      supabase.from('pagina_catalogos').select('*').eq('user_id',user.id).order('ordem'),
     ])
     if(dst) setDestaques(dst)
     if(lnk) setLinks(lnk)
     if(vid) setVideos(vid)
     if(evt) setEventos(evt)
-    if(cat) setCatalogoItens(cat)
+    if(cat) setCatalogos(cat)
   }
 
   // Cria um perfil novo e limpo pro usuario logado (usado no botao "Criar meu perfil",
@@ -733,10 +733,10 @@ export default function Perfil(){
           <div className="crd" style={{padding:'20px'}}>
             <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',flexWrap:'wrap',gap:'12px'}}>
               <div>
-                <p style={{fontSize:'15px',fontWeight:700,color:'#F8F4F7',marginBottom:'2px'}}>Catálogo</p>
-                <p style={{fontSize:'12px',color:'#B8AAB8'}}>{catalogoItens.length} ite{catalogoItens.length!==1?'ns':'m'} cadastrado{catalogoItens.length!==1?'s':''}</p>
+                <p style={{fontSize:'15px',fontWeight:700,color:'#F8F4F7',marginBottom:'2px'}}>Catálogos</p>
+                <p style={{fontSize:'12px',color:'#B8AAB8'}}>{catalogos.length} catálogo{catalogos.length!==1?'s':''} cadastrado{catalogos.length!==1?'s':''}</p>
               </div>
-              <Link href="/painel/perfil/catalogo" style={{background:G,color:'#fff',border:'1px solid rgba(255,255,255,.12)',borderRadius:'10px',padding:'10px 18px',fontSize:'13px',fontWeight:700,textDecoration:'none',flexShrink:0}}>Gerenciar catálogo</Link>
+              <Link href="/painel/perfil/catalogo" style={{background:G,color:'#fff',border:'1px solid rgba(255,255,255,.12)',borderRadius:'10px',padding:'10px 18px',fontSize:'13px',fontWeight:700,textDecoration:'none',flexShrink:0}}>Gerenciar catálogos</Link>
             </div>
           </div>
 

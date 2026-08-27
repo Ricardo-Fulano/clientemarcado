@@ -256,15 +256,22 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
     }
   }
 
-  const [{ data: servicos }, { data: profissionais }, { data: destaques }, { data: linksRapidos }, { data: videos }, { data: eventos }, { data: catalogoItens }] = await Promise.all([
+  const [{ data: servicos }, { data: profissionais }, { data: destaques }, { data: linksRapidos }, { data: videos }, { data: eventos }, { data: catalogosAtivos }, { data: catalogoItensTodos }] = await Promise.all([
     supabase.from('servicos').select('*').eq('user_id', perfil.user_id).eq('ativo', true).order('nome'),
     supabase.from('profissionais').select('*').eq('user_id', perfil.user_id).eq('ativo', true).order('nome'),
     supabase.from('pagina_destaques').select('*').eq('user_id', perfil.user_id).eq('ativo', true).order('ordem').order('created_at'),
     supabase.from('pagina_links').select('*').eq('user_id', perfil.user_id).eq('ativo', true).order('ordem').order('created_at'),
     supabase.from('pagina_videos').select('*').eq('user_id', perfil.user_id).eq('ativo', true).order('ordem').order('created_at'),
     supabase.from('pagina_eventos').select('*').eq('user_id', perfil.user_id).eq('ativo', true).order('ordem').order('created_at'),
+    supabase.from('pagina_catalogos').select('*').eq('user_id', perfil.user_id).eq('ativo', true).order('ordem'),
     supabase.from('pagina_catalogo_itens').select('*').eq('user_id', perfil.user_id).eq('ativo', true).order('ordem').order('created_at'),
   ])
+
+  // Agrupa os itens (ja filtrados por ativo=true) por catalogo, e mantem so os catalogos
+  // que realmente tem pelo menos 1 item pra mostrar - catalogo vazio nao ocupa espaco.
+  const catalogosComItens = (catalogosAtivos || [])
+    .map((cat: any) => ({ ...cat, itens: (catalogoItensTodos || []).filter((it: any) => it.catalogo_id === cat.id) }))
+    .filter((cat: any) => cat.itens.length > 0)
 
   const temaId = resolverTema(perfil.public_theme || perfil.tema_publico || perfil.tema_cor || 'modelo2')
   const tema = getTema(temaId)
@@ -640,26 +647,30 @@ videos && videos.length > 0 && (() => {
         })()
             ),
             catalogo: (
-              catalogoItens && catalogoItens.length > 0 && (
-                <div style={{ marginBottom: '32px' }}>
-                  <p className="sec-title" style={{ marginBottom: perfil.catalogo_subtitulo ? '2px' : '14px' }}>Catálogo</p>
-                  {perfil.catalogo_subtitulo && (
-                    <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '14px' }}>{perfil.catalogo_subtitulo}</p>
-                  )}
-                  <div className="catalogo-scroll">
-                    {catalogoItens.map((item: any) => (
-                      <CatalogoItemCard
-                        key={item.id}
-                        item={item}
-                        iconeBorder={iconeBorder}
-                        accent={tema.accent}
-                        text={tema.text}
-                        textMuted={tema.textMuted}
-                        cardBg={tema.card}
-                      />
-                    ))}
-                  </div>
-                </div>
+              catalogosComItens.length > 0 && (
+                <>
+                  {catalogosComItens.map((cat: any) => (
+                    <div key={cat.id} style={{ marginBottom: '32px' }}>
+                      <p className="sec-title" style={{ marginBottom: cat.subtitulo ? '2px' : '14px' }}>{cat.titulo || 'Catálogo'}</p>
+                      {cat.subtitulo && (
+                        <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '14px' }}>{cat.subtitulo}</p>
+                      )}
+                      <div className="catalogo-scroll">
+                        {cat.itens.map((item: any) => (
+                          <CatalogoItemCard
+                            key={item.id}
+                            item={item}
+                            iconeBorder={iconeBorder}
+                            accent={tema.accent}
+                            text={tema.text}
+                            textMuted={tema.textMuted}
+                            cardBg={tema.card}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </>
               )
             ),
           }
