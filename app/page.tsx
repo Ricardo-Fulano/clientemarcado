@@ -120,7 +120,7 @@ export default function Home() {
             <Link href="/aceite-plano?plano=minipage" className="btn-p">Criar minha MiniPage grátis</Link>
             <Link href="/demo" className="btn-s">Ver exemplo</Link>
           </div>
-          <p style={{fontSize:'12px',color:'#B8AAB8',marginTop:'16px'}}>Teste grátis por 7 dias. Planos a partir de R$ 29,90/mês. Sem fidelidade.</p>
+          <p style={{fontSize:'12px',color:'#B8AAB8',marginTop:'16px'}}>Teste grátis por 7 dias. Planos a partir de R$ 39,90/mês. Sem fidelidade.</p>
         </div>
 
         {/* MOCKUP VISUAL DA MINIPAGE */}
@@ -168,7 +168,7 @@ export default function Home() {
                 <h3 style={{fontSize:'19px',fontWeight:800,color:'#F8F4F7',marginBottom:'6px'}}>MiniPage</h3>
                 <p style={{fontSize:'13px',color:'#B8AAB8',lineHeight:1.5,marginBottom:'18px',minHeight:'55px'}}>Para criadores, influencers, profissionais e pequenos negócios que querem uma página profissional na bio.</p>
                 <div style={{marginBottom:'8px'}}>
-                  <span style={{fontSize:'40px',fontWeight:900,color:'#F8F4F7',letterSpacing:'-0.03em'}}>R$ 29</span>
+                  <span style={{fontSize:'40px',fontWeight:900,color:'#F8F4F7',letterSpacing:'-0.03em'}}>R$ 39</span>
                   <span style={{fontSize:'19px',fontWeight:700,color:'#F8F4F7'}}>,90</span>
                   <span style={{fontSize:'14px',color:'#B8AAB8'}}>/mês</span>
                 </div>
@@ -294,7 +294,7 @@ export default function Home() {
             <Link href="/aceite-plano?plano=minipage" className="btn-p">Criar minha MiniPage grátis</Link>
             <Link href="/login" className="btn-s">Já tenho conta</Link>
           </div>
-          <p style={{fontSize:'13px',color:'#B8AAB8',marginTop:'20px'}}>Teste grátis por 7 dias. Planos a partir de R$ 29,90/mês. Sem fidelidade.</p>
+          <p style={{fontSize:'13px',color:'#B8AAB8',marginTop:'20px'}}>Teste grátis por 7 dias. Planos a partir de R$ 39,90/mês. Sem fidelidade.</p>
         </div>
       </section>
       <footer style={{borderTop:'1px solid #2A1A2F',padding:'32px 24px',textAlign:'center'}}>

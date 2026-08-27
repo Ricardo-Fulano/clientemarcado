@@ -55,7 +55,7 @@ html,body{overflow-x:hidden;width:100%;max-width:100%;background:#08060A}
 const CONFIG_PLANOS = {
   minipage: {
     nome: 'Plano MiniPage',
-    preco: 'R$ 29,90',
+    preco: 'R$ 39,90',
     beneficios: ['Página profissional (minipage.pro)', 'Links rápidos e cards de destaque', 'Vídeos em destaque', 'Redes sociais e WhatsApp', 'Espaço para divulgações', 'Suporte por WhatsApp'],
   },
   essencial: {

@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
     }
 
     const reason = planoTipo === 'equipe' ? 'MiniPage Pro - Plano Equipe' : planoTipo === 'minipage' ? 'MiniPage Pro - Plano MiniPage' : 'MiniPage Pro - Plano Profissional'
-    const transactionAmount = planoTipo === 'equipe' ? 149.90 : planoTipo === 'minipage' ? 29.90 : 79.90
+    const transactionAmount = planoTipo === 'equipe' ? 149.90 : planoTipo === 'minipage' ? 39.90 : 79.90
 
     const payload: any = {
       reason,

@@ -14,7 +14,7 @@ const LIMITES_PROFISSIONAIS: Record<string, number> = { essencial: 3, equipe: 15
 const PLANOS = {
   minipage: {
     nome: 'MiniPage',
-    preco: 'R$ 29,90',
+    preco: 'R$ 39,90',
     desc: 'Página profissional com links, vídeos e divulgações — ideal pra quem ainda não precisa de agenda.',
     beneficios: [
       'MiniPage profissional (minipage.pro/seunome)',
