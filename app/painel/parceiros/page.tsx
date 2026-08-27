@@ -32,6 +32,8 @@ html,body{overflow-x:hidden;width:100%;background:#08060A}
   .bdy{padding:14px 14px 80px!important;max-width:100%!important;width:100%!important;box-sizing:border-box!important;overflow-x:hidden!important}
   .kpi{grid-template-columns:1fr 1fr!important}
   .btn-p,.btn-s,.btn-g{white-space:normal!important;font-size:11px!important;padding:6px 8px!important}
+  .resumo-plano-grid{grid-template-columns:1fr!important}
+  .modal{padding:20px!important}
 }
 @media(max-width:480px){.kpi{grid-template-columns:1fr}}
 `
@@ -65,6 +67,16 @@ export default function Parceiros() {
   const [editando, setEditando] = useState<any>(null)
   const [msg, setMsg] = useState('')
   const [aba, setAba] = useState<'parceiros' | 'indicacoes'>('parceiros')
+  const [verDetalhes, setVerDetalhes] = useState<any>(null)
+  const [filtroPeriodo, setFiltroPeriodo] = useState<'hoje'|'semana'|'mes'|'mes_passado'|'tudo'|'personalizado'>('tudo')
+  const [dataIni, setDataIni] = useState('')
+  const [dataFim, setDataFim] = useState('')
+  // Filtros da aba geral "Indicações" (separados dos filtros do modal de detalhes por parceiro)
+  const [filtroParceiroId, setFiltroParceiroId] = useState('')
+  const [filtroPlano, setFiltroPlano] = useState('')
+  const [filtroPeriodoGeral, setFiltroPeriodoGeral] = useState<'hoje'|'semana'|'mes'|'mes_passado'|'tudo'|'personalizado'>('tudo')
+  const [dataIniGeral, setDataIniGeral] = useState('')
+  const [dataFimGeral, setDataFimGeral] = useState('')
 
   // Form
   const [nome, setNome] = useState('')
@@ -98,6 +110,64 @@ export default function Parceiros() {
 
   function indicacoesDoParceiro(parceiroId: string) {
     return indicacoes.filter(ind => ind.parceiro_id === parceiroId)
+  }
+
+  // Calcula o intervalo [inicio, fim] de datas pro filtro escolhido. 'tudo' devolve null
+  // (sem filtro nenhum, todas as indicacoes entram). Parametrizada pra servir tanto o modal
+  // de detalhes do parceiro quanto os filtros da aba geral "Indicações", sem duplicar logica.
+  function calcularIntervalo(periodo: string, ini: string, fim: string): { inicio: Date; fim: Date } | null {
+    const agora = new Date()
+    const hojeInicio = new Date(agora.getFullYear(), agora.getMonth(), agora.getDate(), 0, 0, 0)
+    const hojeFim = new Date(agora.getFullYear(), agora.getMonth(), agora.getDate(), 23, 59, 59)
+    if (periodo === 'hoje') return { inicio: hojeInicio, fim: hojeFim }
+    if (periodo === 'semana') {
+      const diaSemana = agora.getDay()
+      const inicioSemana = new Date(hojeInicio)
+      inicioSemana.setDate(hojeInicio.getDate() - diaSemana)
+      return { inicio: inicioSemana, fim: hojeFim }
+    }
+    if (periodo === 'mes') {
+      return { inicio: new Date(agora.getFullYear(), agora.getMonth(), 1, 0, 0, 0), fim: hojeFim }
+    }
+    if (periodo === 'mes_passado') {
+      return {
+        inicio: new Date(agora.getFullYear(), agora.getMonth() - 1, 1, 0, 0, 0),
+        fim: new Date(agora.getFullYear(), agora.getMonth(), 0, 23, 59, 59),
+      }
+    }
+    if (periodo === 'personalizado' && ini && fim) {
+      const [ai, am, ad] = ini.split('-').map(Number)
+      const [bi, bm, bd] = fim.split('-').map(Number)
+      return { inicio: new Date(ai, am - 1, ad, 0, 0, 0), fim: new Date(bi, bm - 1, bd, 23, 59, 59) }
+    }
+    return null // 'tudo' ou personalizado incompleto
+  }
+  function intervaloDoFiltro(): { inicio: Date; fim: Date } | null {
+    return calcularIntervalo(filtroPeriodo, dataIni, dataFim)
+  }
+
+  function indicacoesNoPeriodo(lista: any[]) {
+    const intervalo = intervaloDoFiltro()
+    if (!intervalo) return lista
+    return lista.filter(ind => {
+      if (!ind.created_at) return false
+      const d = new Date(ind.created_at)
+      return d >= intervalo.inicio && d <= intervalo.fim
+    })
+  }
+
+  // Resumo por plano (cadastros/pagantes/comissao), usado dentro do modal de detalhes.
+  // Indicacoes SEM plano_tipo definido ficam de fora dos 3 grupos comerciais (senao o
+  // fallback de planoValido as contaria erradamente como "Profissional").
+  function resumoPorPlano(inds: any[]) {
+    const comPlanoDefinido = inds.filter(i => i.plano_tipo !== null && i.plano_tipo !== undefined && i.plano_tipo !== '')
+    const chaves = ['minipage', 'essencial', 'equipe'] as const
+    return chaves.map(chave => {
+      const doPlano = comPlanoDefinido.filter(i => planoValido(i.plano_tipo) === chave)
+      const pagantesDoPlano = doPlano.filter(ehPagante)
+      const comissao = pagantesDoPlano.reduce((a, i) => a + comissaoDoIndicado(i), 0)
+      return { chave, nome: PLANOS_COMISSAO[chave].nomeComercial, cadastros: doPlano.length, pagantes: pagantesDoPlano.length, comissao }
+    })
   }
 
   function resetForm() {
@@ -153,6 +223,14 @@ export default function Parceiros() {
     const url = `${window.location.origin}/cadastro?cupom=${c}`
     navigator.clipboard.writeText(url)
     setMsg('Link copiado!')
+    setTimeout(() => setMsg(''), 3000)
+  }
+
+  function copiarPainelParceiro(c: string) {
+    const base = process.env.NEXT_PUBLIC_SITE_URL || window.location.origin
+    const url = `${base}/parceiro/${c}`
+    navigator.clipboard.writeText(url)
+    setMsg('Link do painel do parceiro copiado!')
     setTimeout(() => setMsg(''), 3000)
   }
 
@@ -268,7 +346,9 @@ export default function Parceiros() {
                       </div>
 
                       <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                        <button className="btn-s" onClick={() => { setVerDetalhes(p); setFiltroPeriodo('tudo') }}>Ver detalhes</button>
                         <button className="btn-s" onClick={() => copiarLink(p.cupom)}>Copiar link</button>
+                        <button className="btn-s" onClick={() => copiarPainelParceiro(p.cupom)}>Copiar painel do parceiro</button>
                         <button className="btn-s" onClick={() => abrirEditar(p)}>Editar</button>
                         <button className={p.ativo ? 'btn-s btn-desativar' : 'btn-s'} onClick={() => toggleAtivo(p)}>{p.ativo ? 'Desativar' : 'Ativar'}</button>
                       </div>
@@ -279,14 +359,61 @@ export default function Parceiros() {
             )}
 
             {/* ABA INDICAÇÕES */}
-            {aba === 'indicacoes' && (
+            {aba === 'indicacoes' && (() => {
+              const intervaloGeral = calcularIntervalo(filtroPeriodoGeral, dataIniGeral, dataFimGeral)
+              const indicacoesFiltradas = indicacoes.filter(ind => {
+                if (filtroParceiroId && ind.parceiro_id !== filtroParceiroId) return false
+                if (filtroPlano && planoValido(ind.plano_tipo) !== filtroPlano) return false
+                if (intervaloGeral) {
+                  if (!ind.created_at) return false
+                  const d = new Date(ind.created_at)
+                  if (d < intervaloGeral.inicio || d > intervaloGeral.fim) return false
+                }
+                return true
+              })
+              return (
               <div>
                 <p style={{ fontSize: '14px', fontWeight: 700, color: '#F8F4F7', marginBottom: '12px' }}>Clientes indicados</p>
-                {indicacoes.length === 0 ? (
-                  <div className="card" style={{ padding: '48px', textAlign: 'center' }}>
-                    <p style={{ fontSize: '14px', color: '#B8AAB8' }}>Nenhuma indicação registrada ainda.</p>
+
+                {/* Filtros da aba geral */}
+                <div className="card" style={{ padding: '16px', marginBottom: '16px' }}>
+                  <div className="fg2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '10px' }}>
+                    <div>
+                      <label className="lbl">Parceiro</label>
+                      <select className="inp" style={{ cursor: 'pointer' }} value={filtroParceiroId} onChange={e => setFiltroParceiroId(e.target.value)}>
+                        <option value="">Todos os parceiros</option>
+                        {parceiros.map(p => <option key={p.id} value={p.id}>{p.nome} ({p.cupom})</option>)}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="lbl">Plano</label>
+                      <select className="inp" style={{ cursor: 'pointer' }} value={filtroPlano} onChange={e => setFiltroPlano(e.target.value)}>
+                        <option value="">Todos os planos</option>
+                        <option value="minipage">MiniPage</option>
+                        <option value="essencial">Profissional</option>
+                        <option value="equipe">Equipe</option>
+                      </select>
+                    </div>
                   </div>
-                ) : indicacoes.map(ind => {
+                  <label className="lbl">Período</label>
+                  <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginBottom: filtroPeriodoGeral === 'personalizado' ? '10px' : 0 }}>
+                    {([['hoje', 'Hoje'], ['semana', 'Esta semana'], ['mes', 'Este mês'], ['mes_passado', 'Mês passado'], ['tudo', 'Todo período'], ['personalizado', 'Personalizado']] as const).map(([v, l]) => (
+                      <button key={v} onClick={() => setFiltroPeriodoGeral(v)} style={{ padding: '6px 12px', borderRadius: '8px', border: filtroPeriodoGeral === v ? 'none' : '1px solid #2A1A2F', cursor: 'pointer', fontFamily: 'inherit', fontSize: '12px', fontWeight: 600, background: filtroPeriodoGeral === v ? 'linear-gradient(135deg,#EC4899,#8B5CF6)' : 'rgba(24,16,27,.88)', color: filtroPeriodoGeral === v ? '#fff' : '#B8AAB8' }}>{l}</button>
+                    ))}
+                  </div>
+                  {filtroPeriodoGeral === 'personalizado' && (
+                    <div className="fg2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                      <div><label className="lbl">De</label><input type="date" className="inp" value={dataIniGeral} onChange={e => setDataIniGeral(e.target.value)} /></div>
+                      <div><label className="lbl">Até</label><input type="date" className="inp" value={dataFimGeral} onChange={e => setDataFimGeral(e.target.value)} /></div>
+                    </div>
+                  )}
+                </div>
+
+                {indicacoesFiltradas.length === 0 ? (
+                  <div className="card" style={{ padding: '48px', textAlign: 'center' }}>
+                    <p style={{ fontSize: '14px', color: '#B8AAB8' }}>{indicacoes.length === 0 ? 'Nenhuma indicação registrada ainda.' : 'Nenhuma indicação encontrada com esses filtros.'}</p>
+                  </div>
+                ) : indicacoesFiltradas.map(ind => {
                   const planoTipo = planoValido(ind.plano_tipo)
                   const infoPlano = PLANOS_COMISSAO[planoTipo]
                   const comissao = comissaoDoIndicado(ind)
@@ -327,11 +454,120 @@ export default function Parceiros() {
                   )
                 })}
               </div>
-            )}
+              )
+            })()}
 
           </div>
         </div>
       </div>
+
+      {/* MODAL DE DETALHES DO PARCEIRO */}
+      {verDetalhes && (() => {
+        const todasDoParceiro = indicacoesDoParceiro(verDetalhes.id)
+        const indsFiltradas = indicacoesNoPeriodo(todasDoParceiro)
+        const pagsFiltradas = indsFiltradas.filter(ehPagante)
+        const pendenteFiltrado = pagsFiltradas.filter(i => i.comissao_status !== 'paga').reduce((a, i) => a + comissaoDoIndicado(i), 0)
+        const pagoFiltrado = indsFiltradas.filter(i => i.comissao_status === 'paga').reduce((a, i) => a + comissaoDoIndicado(i), 0)
+        const resumo = resumoPorPlano(indsFiltradas)
+
+        return (
+          <div className="modal-bg" onClick={() => setVerDetalhes(null)}>
+            <div className="modal" onClick={e => e.stopPropagation()} style={{ maxWidth: '760px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '12px', marginBottom: '4px' }}>
+                <div>
+                  <p style={{ fontSize: '19px', fontWeight: 800, color: '#F8F4F7', marginBottom: '4px' }}>{verDetalhes.nome}</p>
+                  <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', alignItems: 'center' }}>
+                    <span style={{ fontSize: '12px', fontWeight: 800, color: '#EC4899', background: 'rgba(236,72,153,.12)', border: '1px solid rgba(236,72,153,.28)', padding: '2px 8px', borderRadius: '6px' }}>{verDetalhes.cupom}</span>
+                    <span style={{ fontSize: '11px', color: '#B8AAB8' }}>{verDetalhes.tipo}</span>
+                    <span className="badge" style={{ background: verDetalhes.ativo ? 'rgba(34,197,94,.14)' : 'rgba(239,68,68,.14)', border: `1px solid ${verDetalhes.ativo ? 'rgba(34,197,94,.28)' : 'rgba(239,68,68,.28)'}`, color: verDetalhes.ativo ? '#22C55E' : '#EF4444' }}>{verDetalhes.ativo ? 'Ativo' : 'Inativo'}</span>
+                  </div>
+                </div>
+                <button className="btn-s" onClick={() => setVerDetalhes(null)} style={{ flexShrink: 0 }}>Fechar</button>
+              </div>
+
+              {/* Filtro de periodo */}
+              <div style={{ marginTop: '18px', marginBottom: '16px' }}>
+                <label className="lbl">Período</label>
+                <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginBottom: dataIni || filtroPeriodo === 'personalizado' ? '10px' : 0 }}>
+                  {([['hoje', 'Hoje'], ['semana', 'Esta semana'], ['mes', 'Este mês'], ['mes_passado', 'Mês passado'], ['tudo', 'Todo período'], ['personalizado', 'Personalizado']] as const).map(([v, l]) => (
+                    <button key={v} onClick={() => setFiltroPeriodo(v)} style={{ padding: '6px 12px', borderRadius: '8px', border: filtroPeriodo === v ? 'none' : '1px solid #2A1A2F', cursor: 'pointer', fontFamily: 'inherit', fontSize: '12px', fontWeight: 600, background: filtroPeriodo === v ? 'linear-gradient(135deg,#EC4899,#8B5CF6)' : 'rgba(24,16,27,.88)', color: filtroPeriodo === v ? '#fff' : '#B8AAB8' }}>{l}</button>
+                  ))}
+                </div>
+                {filtroPeriodo === 'personalizado' && (
+                  <div className="fg2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                    <div><label className="lbl">De</label><input type="date" className="inp" value={dataIni} onChange={e => setDataIni(e.target.value)} /></div>
+                    <div><label className="lbl">Até</label><input type="date" className="inp" value={dataFim} onChange={e => setDataFim(e.target.value)} /></div>
+                  </div>
+                )}
+              </div>
+
+              {/* KPIs filtrados */}
+              <div className="kpi" style={{ gridTemplateColumns: 'repeat(4,1fr)', marginBottom: '18px' }}>
+                {[
+                  { l: 'Cadastros', v: String(indsFiltradas.length), c: '#B8AAB8' },
+                  { l: 'Pagantes', v: String(pagsFiltradas.length), c: '#22C55E' },
+                  { l: 'Comissão pendente', v: fBRL(pendenteFiltrado), c: '#FACC15' },
+                  { l: 'Comissão paga', v: fBRL(pagoFiltrado), c: '#22C55E' },
+                ].map(k => (
+                  <div key={k.l} style={{ background: '#18101B', border: '1.5px solid #2A1A2F', borderRadius: '14px', padding: '12px 10px' }}>
+                    <p style={{ fontSize: '9px', fontWeight: 700, color: '#B8AAB8', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: '4px' }}>{k.l}</p>
+                    <p style={{ fontSize: '16px', fontWeight: 800, color: k.c }}>{k.v}</p>
+                  </div>
+                ))}
+              </div>
+
+              {/* Resumo por plano */}
+              <p style={{ fontSize: '13px', fontWeight: 700, color: '#F8F4F7', marginBottom: '10px' }}>Resumo por plano</p>
+              <div className="resumo-plano-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '10px', marginBottom: '22px' }}>
+                {resumo.map(r => (
+                  <div key={r.chave} style={{ background: 'rgba(139,92,246,.06)', border: '1px solid rgba(139,92,246,.20)', borderRadius: '12px', padding: '12px 10px' }}>
+                    <p style={{ fontSize: '11px', fontWeight: 800, color: '#C4B5FD', marginBottom: '8px' }}>{r.nome}</p>
+                    <p style={{ fontSize: '11px', color: '#B8AAB8', marginBottom: '2px' }}>Cadastros: <span style={{ color: '#F8F4F7', fontWeight: 700 }}>{r.cadastros}</span></p>
+                    <p style={{ fontSize: '11px', color: '#B8AAB8', marginBottom: '2px' }}>Pagantes: <span style={{ color: '#22C55E', fontWeight: 700 }}>{r.pagantes}</span></p>
+                    <p style={{ fontSize: '11px', color: '#B8AAB8' }}>Comissão: <span style={{ color: '#EC4899', fontWeight: 700 }}>{fBRL(r.comissao)}</span></p>
+                  </div>
+                ))}
+              </div>
+
+              {/* Lista de indicacoes (mesmo padrao visual de card empilhado da aba Indicacoes - ja responsivo por natureza) */}
+              <p style={{ fontSize: '13px', fontWeight: 700, color: '#F8F4F7', marginBottom: '10px' }}>Indicações no período ({indsFiltradas.length})</p>
+              {indsFiltradas.length === 0 ? (
+                <p style={{ fontSize: '13px', color: '#B8AAB8', padding: '16px 0', textAlign: 'center' }}>Nenhuma indicação neste período.</p>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                  {indsFiltradas.map(ind => {
+                    const infoPlano = PLANOS_COMISSAO[planoValido(ind.plano_tipo)]
+                    const temPlanoDefinido = ind.plano_tipo !== null && ind.plano_tipo !== undefined && ind.plano_tipo !== ''
+                    const comissao = temPlanoDefinido ? comissaoDoIndicado(ind) : 0
+                    return (
+                      <div key={ind.id} style={{ padding: '14px', border: '1px solid #2A1A2F', borderRadius: '12px', background: 'rgba(24,16,27,.5)' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px' }}>
+                          <div style={{ minWidth: 0 }}>
+                            <p style={{ fontSize: '13px', fontWeight: 700, color: '#F8F4F7', marginBottom: '2px' }}>{ind.nome_negocio || ind.nome_responsavel || '—'}</p>
+                            {ind.slug && <p style={{ fontSize: '11px', color: '#B8AAB8', marginBottom: '1px' }}>minipage.pro/{ind.slug}</p>}
+                            {ind.email && <p style={{ fontSize: '11px', color: '#B8AAB8', marginBottom: '6px' }}>{ind.email}</p>}
+                            <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap' }}>
+                              <span className="badge" style={{ background: 'rgba(139,92,246,.12)', border: '1px solid rgba(139,92,246,.26)', color: '#C4B5FD' }}>{temPlanoDefinido ? infoPlano.nomeComercial : 'Não definido'}</span>
+                              <span className="badge" style={{ background: ehPagante(ind) ? 'rgba(34,197,94,.12)' : 'rgba(236,72,153,.12)', border: `1px solid ${ehPagante(ind) ? 'rgba(34,197,94,.24)' : 'rgba(236,72,153,.24)'}`, color: ehPagante(ind) ? '#22C55E' : '#EC4899' }}>{ehPagante(ind) ? 'Pagante' : 'Cadastro'}</span>
+                              {ind.status_acesso && <span className="badge" style={{ background: 'rgba(148,163,184,.12)', border: '1px solid rgba(148,163,184,.24)', color: '#94A3B8' }}>{ind.status_acesso}</span>}
+                            </div>
+                          </div>
+                          <div style={{ textAlign: 'right' as const, flexShrink: 0 }}>
+                            <p style={{ fontSize: '10px', color: '#B8AAB8', marginBottom: '2px' }}>{ind.created_at ? new Date(ind.created_at).toLocaleDateString('pt-BR') : '—'}</p>
+                            {ind.data_pagamento && <p style={{ fontSize: '10px', color: '#B8AAB8', marginBottom: '4px' }}>1º pgto: {new Date(ind.data_pagamento).toLocaleDateString('pt-BR')}</p>}
+                            <p style={{ fontSize: '13px', color: '#EC4899', fontWeight: 800 }}>{fBRL(comissao)}</p>
+                            {ehPagante(ind) && <p style={{ fontSize: '10px', color: ind.comissao_status === 'paga' ? '#22C55E' : '#FACC15' }}>{ind.comissao_status === 'paga' ? 'Paga' : 'Pendente'}</p>}
+                          </div>
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
+            </div>
+          </div>
+        )
+      })()}
 
       {/* MODAL */}
       {showModal && (

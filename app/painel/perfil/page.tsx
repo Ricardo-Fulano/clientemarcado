@@ -138,7 +138,8 @@ export default function Perfil(){
   const [links,setLinks]=useState<any[]>([])
   const [videos,setVideos]=useState<any[]>([])
   const [eventos,setEventos]=useState<any[]>([])
-  const ORDEM_PADRAO_SECOES=['destaques','links','agenda','videos']
+  const [catalogoItens,setCatalogoItens]=useState<any[]>([])
+  const ORDEM_PADRAO_SECOES=['destaques','links','agenda','catalogo','videos']
   const [ordemSecoes,setOrdemSecoes]=useState<string[]>(ORDEM_PADRAO_SECOES)
   // Acesso da conta (transferir e-mail de login / reenviar link de senha)
   const [emailAtual,setEmailAtual]=useState('')
@@ -299,16 +300,18 @@ export default function Perfil(){
       setMostrarPorQueAgendar(p.pagina_mostrar_por_que_agendar!==false)
       setMostrarContato(p.pagina_mostrar_contato!==false)
 
-    const [{data:dst},{data:lnk},{data:vid},{data:evt}]=await Promise.all([
+    const [{data:dst},{data:lnk},{data:vid},{data:evt},{data:cat}]=await Promise.all([
       supabase.from('pagina_destaques').select('*').eq('user_id',user.id).order('ordem'),
       supabase.from('pagina_links').select('*').eq('user_id',user.id).order('ordem'),
       supabase.from('pagina_videos').select('*').eq('user_id',user.id).order('ordem'),
       supabase.from('pagina_eventos').select('*').eq('user_id',user.id).order('ordem'),
+      supabase.from('pagina_catalogo_itens').select('*').eq('user_id',user.id).order('ordem'),
     ])
     if(dst) setDestaques(dst)
     if(lnk) setLinks(lnk)
     if(vid) setVideos(vid)
     if(evt) setEventos(evt)
+    if(cat) setCatalogoItens(cat)
   }
 
   // Cria um perfil novo e limpo pro usuario logado (usado no botao "Criar meu perfil",
@@ -671,7 +674,7 @@ export default function Perfil(){
             <p style={{fontSize:'12px',color:'#B8AAB8',marginBottom:'16px'}}>Altere a ordem em que as seções aparecem na sua MiniPage Pro.</p>
             <div style={{display:'flex',flexDirection:'column',gap:'8px'}}>
               {ordemSecoes.map((chave,i)=>{
-                const rotulos:Record<string,string>={destaques:'Destaques da página',links:'Links rápidos',agenda:'Agenda / Eventos',videos:'Vídeos da página'}
+                const rotulos:Record<string,string>={destaques:'Destaques da página',links:'Links rápidos',agenda:'Agenda / Eventos',catalogo:'Catálogo',videos:'Vídeos da página'}
                 return (
                   <div key={chave} style={{display:'flex',alignItems:'center',gap:'12px',padding:'10px 14px',background:'rgba(24,16,27,.72)',border:'1px solid #2A1A2F',borderRadius:'10px'}}>
                     <span style={{fontSize:'12px',fontWeight:700,color:'#B8AAB8',width:'18px',flexShrink:0}}>{i+1}</span>
@@ -723,6 +726,17 @@ export default function Perfil(){
                 <p style={{fontSize:'12px',color:'#B8AAB8'}}>{videos.length} vídeo{videos.length!==1?'s':''} cadastrado{videos.length!==1?'s':''}</p>
               </div>
               <Link href="/painel/perfil/videos" style={{background:G,color:'#fff',border:'1px solid rgba(255,255,255,.12)',borderRadius:'10px',padding:'10px 18px',fontSize:'13px',fontWeight:700,textDecoration:'none',flexShrink:0}}>Gerenciar vídeos</Link>
+            </div>
+          </div>
+
+
+          <div className="crd" style={{padding:'20px'}}>
+            <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',flexWrap:'wrap',gap:'12px'}}>
+              <div>
+                <p style={{fontSize:'15px',fontWeight:700,color:'#F8F4F7',marginBottom:'2px'}}>Catálogo</p>
+                <p style={{fontSize:'12px',color:'#B8AAB8'}}>{catalogoItens.length} ite{catalogoItens.length!==1?'ns':'m'} cadastrado{catalogoItens.length!==1?'s':''}</p>
+              </div>
+              <Link href="/painel/perfil/catalogo" style={{background:G,color:'#fff',border:'1px solid rgba(255,255,255,.12)',borderRadius:'10px',padding:'10px 18px',fontSize:'13px',fontWeight:700,textDecoration:'none',flexShrink:0}}>Gerenciar catálogo</Link>
             </div>
           </div>
 

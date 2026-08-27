@@ -9,6 +9,7 @@ import { headers } from 'next/headers'
 import { Inter } from 'next/font/google'
 import { Zap, CalendarDays, CheckCircle, Sparkles, GraduationCap, Crown, Globe, Link2, Music2, ShoppingBag, PlayCircle, BadgeCheck, MapPin, Calendar, Lock, Mail } from 'lucide-react'
 import EmailLinkCard from '../components/EmailLinkCard'
+import CatalogoItemCard from '../components/CatalogoItemCard'
 import { resolverTema, getTema } from '../lib/tema-publico'
 import { ehPlanoMiniPage } from '../lib/planos'
 
@@ -68,6 +69,15 @@ html,body{overflow-x:hidden;width:100%;max-width:100%}
 .video-btns{display:flex;flex-direction:column;gap:6px;margin-top:6px}
 .video-cta{display:inline-flex;align-items:center;justify-content:center;gap:5px;font-size:12px;font-weight:700;padding:8px 14px;border-radius:9px;text-decoration:none;text-align:center}
 .video-assistir{display:inline-flex;align-items:center;justify-content:center;gap:5px;font-size:11px;font-weight:600;padding:7px 14px;border-radius:9px;text-decoration:none;text-align:center;background:transparent}
+.catalogo-scroll{display:flex;gap:12px;overflow-x:auto;overflow-y:hidden;padding-bottom:6px;scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch}
+.catalogo-scroll::-webkit-scrollbar{height:5px}
+.catalogo-scroll::-webkit-scrollbar-thumb{background:var(--accent-border);border-radius:99px}
+.catalogo-card{width:140px;flex-shrink:0;border-radius:16px;overflow:hidden;scroll-snap-align:start;transition:border-color .18s}
+.catalogo-card-img{width:100%;aspect-ratio:1/1;background:rgba(0,0,0,.15);overflow:hidden}
+.catalogo-card-img img{width:100%;height:100%;object-fit:cover;display:block}
+.catalogo-card-titulo{font-size:12px;font-weight:700;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:31px}
+.catalogo-card-desc{font-size:11px;line-height:1.3;margin-top:3px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+@media(min-width:768px){.catalogo-card{width:170px}}
 .video-mais summary{list-style:none;cursor:pointer;display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:700;padding:11px 22px;border-radius:999px;margin:18px auto 0;width:fit-content}
 .video-mais summary::-webkit-details-marker{display:none}
 .video-mais[open] .video-mais-label-fechar{display:inline}
@@ -246,13 +256,14 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
     }
   }
 
-  const [{ data: servicos }, { data: profissionais }, { data: destaques }, { data: linksRapidos }, { data: videos }, { data: eventos }] = await Promise.all([
+  const [{ data: servicos }, { data: profissionais }, { data: destaques }, { data: linksRapidos }, { data: videos }, { data: eventos }, { data: catalogoItens }] = await Promise.all([
     supabase.from('servicos').select('*').eq('user_id', perfil.user_id).eq('ativo', true).order('nome'),
     supabase.from('profissionais').select('*').eq('user_id', perfil.user_id).eq('ativo', true).order('nome'),
     supabase.from('pagina_destaques').select('*').eq('user_id', perfil.user_id).eq('ativo', true).order('ordem').order('created_at'),
     supabase.from('pagina_links').select('*').eq('user_id', perfil.user_id).eq('ativo', true).order('ordem').order('created_at'),
     supabase.from('pagina_videos').select('*').eq('user_id', perfil.user_id).eq('ativo', true).order('ordem').order('created_at'),
     supabase.from('pagina_eventos').select('*').eq('user_id', perfil.user_id).eq('ativo', true).order('ordem').order('created_at'),
+    supabase.from('pagina_catalogo_itens').select('*').eq('user_id', perfil.user_id).eq('ativo', true).order('ordem').order('created_at'),
   ])
 
   const temaId = resolverTema(perfil.public_theme || perfil.tema_publico || perfil.tema_cor || 'modelo2')
@@ -459,7 +470,7 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
             cliente em /painel/perfil. Cada secao individual (conteudo, condicao de exibir, estilo)
             continua exatamente igual - so a ORDEM de renderizacao delas muda, via ordemSecoes. */}
         {(() => {
-          const ORDEM_PADRAO_SECOES = ['destaques', 'links', 'agenda', 'videos']
+          const ORDEM_PADRAO_SECOES = ['destaques', 'links', 'agenda', 'catalogo', 'videos']
           const ordemSalva = (perfil as { ordem_secoes_publicas?: unknown }).ordem_secoes_publicas
           const ordemValida = Array.isArray(ordemSalva)
             && ordemSalva.length === ORDEM_PADRAO_SECOES.length
@@ -627,6 +638,29 @@ videos && videos.length > 0 && (() => {
             </div>
           )
         })()
+            ),
+            catalogo: (
+              catalogoItens && catalogoItens.length > 0 && (
+                <div style={{ marginBottom: '32px' }}>
+                  <p className="sec-title" style={{ marginBottom: perfil.catalogo_subtitulo ? '2px' : '14px' }}>Catálogo</p>
+                  {perfil.catalogo_subtitulo && (
+                    <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '14px' }}>{perfil.catalogo_subtitulo}</p>
+                  )}
+                  <div className="catalogo-scroll">
+                    {catalogoItens.map((item: any) => (
+                      <CatalogoItemCard
+                        key={item.id}
+                        item={item}
+                        iconeBorder={iconeBorder}
+                        accent={tema.accent}
+                        text={tema.text}
+                        textMuted={tema.textMuted}
+                        cardBg={tema.card}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )
             ),
           }
 
