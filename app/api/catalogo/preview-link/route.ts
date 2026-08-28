@@ -91,7 +91,10 @@ export async function POST(request: Request) {
             tipo_destino: tipoDestino,
             titulo: dados.title || null,
             descricao: null,
-            imagem_url: `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`,
+            // mqdefault.jpg e genuinamente 16:9, sem faixa preta "assada" na imagem (diferente
+            // do hqdefault.jpg, que e um canvas 4:3 com letterbox embutido em muitos videos -
+            // isso deixava os cards do catalogo com uma tarja preta estranha).
+            imagem_url: `https://img.youtube.com/vi/${videoId}/mqdefault.jpg`,
             url: urlLimpa,
           })
         }
@@ -102,7 +105,7 @@ export async function POST(request: Request) {
         tipo_destino: tipoDestino,
         titulo: null,
         descricao: null,
-        imagem_url: `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`,
+        imagem_url: `https://img.youtube.com/vi/${videoId}/mqdefault.jpg`,
         url: urlLimpa,
       })
     }

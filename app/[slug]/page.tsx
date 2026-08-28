@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import type { ReactNode } from 'react'
-import { Fragment } from 'react'
+import { Fragment, cache } from 'react'
 import { detectarIdiomaHeader, getDicionario } from '../lib/i18n-publico'
 import { supabase } from '../lib/supabase'
 import { notFound } from 'next/navigation'
@@ -74,7 +74,7 @@ html,body{overflow-x:hidden;width:100%;max-width:100%}
 .catalogo-scroll::-webkit-scrollbar-thumb{background:var(--accent-border);border-radius:99px}
 .catalogo-card{width:140px;flex-shrink:0;border-radius:16px;overflow:hidden;scroll-snap-align:start;transition:border-color .18s}
 .catalogo-card-img{width:100%;aspect-ratio:1/1;background:rgba(0,0,0,.15);overflow:hidden}
-.catalogo-card-img img{width:100%;height:100%;object-fit:cover;display:block}
+.catalogo-card-img img{width:100%;height:100%;object-fit:cover;object-position:center center;display:block}
 .catalogo-card-titulo{font-size:12px;font-weight:700;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:31px}
 .catalogo-card-desc{font-size:11px;line-height:1.3;margin-top:3px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 @media(min-width:768px){.catalogo-card{width:170px}}
@@ -170,15 +170,24 @@ async function resolverDominioAtual(slugLimpo: string) {
 
 // Metadados dinâmicos por negócio (WhatsApp, redes sociais, etc). Cada /[slug] passa a ter
 // título, descrição e imagem próprios, em vez da prévia genérica do ClienteMarcado.
+// Memoizado com cache() do React: generateMetadata() e o componente da pagina rodam
+// como funcoes SEPARADAS pra cada requisicao, mas cache() garante que, se as duas pedirem
+// o MESMO slug, so uma consulta real acontece no banco (a segunda chamada reaproveita o
+// resultado). Isso corta pela metade a busca de perfil em toda visita a pagina publica.
+const buscarPerfilPorSlug = cache(async (slug: string) => {
+  const { data } = await supabase.from('perfis').select('*').eq('slug', slug).single()
+  return data
+})
+const buscarCapaFallback = cache(async (slugRef: string) => {
+  const { data } = await supabase.from('perfis').select('capa_url').eq('slug', slugRef).single()
+  return data?.capa_url || ''
+})
+
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug: slugBruto } = await params
   // Aceita tanto /gabigasparotti quanto /@gabigasparotti (link curto do minipage.pro) — mesmo perfil
   const slug = slugBruto.startsWith('@') ? slugBruto.slice(1) : slugBruto
-  const { data: perfil } = await supabase
-    .from('perfis')
-    .select('*')
-    .eq('slug', slug)
-    .single()
+  const perfil = await buscarPerfilPorSlug(slug)
 
   if (!perfil) {
     return {
@@ -197,8 +206,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     const tipoNeg = (perfil.tipo_negocio || '').toLowerCase()
     const slugRef = tipoNeg.includes('barbearia') ? 'domcorte' : (tipoNeg.includes('est') || tipoNeg.includes('sal') || tipoNeg.includes('bel') ? 'studiobella' : '')
     if (slugRef) {
-      const { data: perfilRef } = await supabase.from('perfis').select('capa_url').eq('slug', slugRef).single()
-      capaFallback = perfilRef?.capa_url || ''
+      capaFallback = await buscarCapaFallback(slugRef)
     }
   }
 
@@ -243,7 +251,7 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
   const t = getDicionario(idiomaVisitante)
   // Aceita tanto /gabigasparotti quanto /@gabigasparotti (link curto do minipage.pro) — mesmo perfil
   const slug = slugBruto.startsWith('@') ? slugBruto.slice(1) : slugBruto
-  const { data: perfil } = await supabase.from('perfis').select('*').eq('slug', slug).single()
+  const perfil = await buscarPerfilPorSlug(slug)
   if (!perfil) return notFound()
   // Buscar capa padrao dinamicamente pelos slugs de referencia
   let capaFallback = ''
@@ -251,8 +259,7 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
     const tipoNeg = (perfil.tipo_negocio || '').toLowerCase()
     const slugRef = tipoNeg.includes('barbearia') ? 'domcorte' : (tipoNeg.includes('est') || tipoNeg.includes('sal') || tipoNeg.includes('bel') ? 'studiobella' : '')
     if (slugRef) {
-      const { data: perfilRef } = await supabase.from('perfis').select('capa_url').eq('slug', slugRef).single()
-      capaFallback = perfilRef?.capa_url || ''
+      capaFallback = await buscarCapaFallback(slugRef)
     }
   }
 
@@ -263,8 +270,8 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
     supabase.from('pagina_links').select('*').eq('user_id', perfil.user_id).eq('ativo', true).order('ordem').order('created_at'),
     supabase.from('pagina_videos').select('*').eq('user_id', perfil.user_id).eq('ativo', true).order('ordem').order('created_at'),
     supabase.from('pagina_eventos').select('*').eq('user_id', perfil.user_id).eq('ativo', true).order('ordem').order('created_at'),
-    supabase.from('pagina_catalogos').select('*').eq('user_id', perfil.user_id).eq('ativo', true).order('ordem'),
-    supabase.from('pagina_catalogo_itens').select('*').eq('user_id', perfil.user_id).eq('ativo', true).order('ordem').order('created_at'),
+    supabase.from('pagina_catalogos').select('id,titulo,subtitulo').eq('user_id', perfil.user_id).eq('ativo', true).order('ordem'),
+    supabase.from('pagina_catalogo_itens').select('id,catalogo_id,titulo,descricao_curta,descricao_completa,preco,imagem_url,botao_texto,tipo_destino,destino_url,whatsapp').eq('user_id', perfil.user_id).eq('ativo', true).order('ordem').order('created_at'),
   ])
 
   // Agrupa os itens (ja filtrados por ativo=true) por catalogo, e mantem so os catalogos
@@ -410,7 +417,7 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
 
         {/* HERO / BANNER */}
         <div className={`hero${capaUrl ? '' : ' no-capa'}`}>
-          {capaUrl && <img src={capaUrl} alt={nomeBusiness} className="hero-img"/>}
+          {capaUrl && <img src={capaUrl} alt={nomeBusiness} className="hero-img" decoding="async" fetchPriority="high"/>}
           {!capaUrl && <div style={{ position: 'absolute', inset: 0, background: `radial-gradient(circle at top left,${tema.soft},transparent 40%),var(--card)` }}/>}
           <div className="hero-overlay"/>
         </div>
@@ -418,7 +425,7 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
         {/* PERFIL: avatar, nome, redes sociais */}
         <div className="profile-row">
           {fotoPerfilUrl ? (
-            <img src={fotoPerfilUrl} alt={nomeBusiness} className="avatar-pro" style={{ border: `3px solid ${tema.accent}`, boxShadow: `0 0 24px ${tema.glow}` }} />
+            <img src={fotoPerfilUrl} alt={nomeBusiness} className="avatar-pro" decoding="async" fetchPriority="high" style={{ border: `3px solid ${tema.accent}`, boxShadow: `0 0 24px ${tema.glow}` }} />
           ) : (
             <div className="avatar-pro" style={{ background: `linear-gradient(135deg,${tema.accent},${tema.secondary})`, border: `3px solid ${tema.accent}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '34px', fontWeight: 800, color: tema.btnText, boxShadow: `0 0 24px ${tema.glow}` }}>
               {nomeBusiness.charAt(0).toUpperCase()}
@@ -495,7 +502,7 @@ destaques && destaques.length > 0 && (
                   <div className="crd destaque-card" style={{ border: cardBorderFinal, boxShadow: cardShadowNeon }}>
                     <div className="destaque-img-wrap">
                       {d.imagem_url ? (
-                        <img src={d.imagem_url} alt={d.titulo} />
+                        <img src={d.imagem_url} alt={d.titulo} loading="lazy" decoding="async" />
                       ) : (
                         <div style={{ width: '100%', height: '100%', background: `linear-gradient(135deg,${tema.accent},${tema.secondary})` }} />
                       )}
@@ -596,7 +603,7 @@ videos && videos.length > 0 && (() => {
                 <a href={v.url_video} target={v.abrir_nova_aba === false ? '_self' : '_blank'} rel="noopener noreferrer" className="video-thumb-wrap" style={{ aspectRatio: ratio }}>
                   {thumb ? (
                     <>
-                      <img src={thumb} alt={v.titulo} />
+                      <img src={thumb} alt={v.titulo} loading="lazy" decoding="async" />
                       <div className="video-play"><PlayCircle size={18} color="#fff" /></div>
                     </>
                   ) : (
