@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import type { ReactNode } from 'react'
-import { Fragment, cache } from 'react'
+import { Fragment } from 'react'
 import { detectarIdiomaHeader, getDicionario } from '../lib/i18n-publico'
 import { supabase } from '../lib/supabase'
 import { notFound } from 'next/navigation'
@@ -10,6 +10,7 @@ import { Inter } from 'next/font/google'
 import { Zap, CalendarDays, CheckCircle, Sparkles, GraduationCap, Crown, Globe, Link2, Music2, ShoppingBag, PlayCircle, BadgeCheck, MapPin, Calendar, Lock, Mail } from 'lucide-react'
 import EmailLinkCard from '../components/EmailLinkCard'
 import CatalogoItemCard from '../components/CatalogoItemCard'
+import VideoItemCard from '../components/VideoItemCard'
 import { resolverTema, getTema } from '../lib/tema-publico'
 import { ehPlanoMiniPage } from '../lib/planos'
 
@@ -49,11 +50,11 @@ html,body{overflow-x:hidden;width:100%;max-width:100%}
 .destaque-body{padding:12px 14px 14px;display:flex;flex-direction:column;gap:3px}
 .destaque-action{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;margin-top:3px;opacity:.85}
 .destaque-desc{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font-size:11px!important}
-.video-grid{display:flex;flex-wrap:wrap;gap:12px;width:100%;max-width:100%;align-items:flex-start;justify-content:flex-start}
+.video-grid{display:flex;flex-wrap:nowrap;overflow-x:auto;overflow-y:hidden;gap:12px;width:100%;max-width:100%;align-items:flex-start;padding-bottom:6px;scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch}
+.video-grid::-webkit-scrollbar{height:5px}
+.video-grid::-webkit-scrollbar-thumb{background:var(--accent-border);border-radius:99px}
 .video-card{display:flex;flex-direction:column;overflow:hidden;border-radius:13px;transition:transform .18s,box-shadow .18s,border-color .18s;box-sizing:border-box}
-.video-card.fmt-horizontal,.video-card.fmt-classic{width:100%;max-width:230px;flex:1 1 210px}
-.video-card.fmt-vertical{width:100%;max-width:170px;flex:0 1 160px}
-.video-card.fmt-square{width:100%;max-width:200px;flex:1 1 180px}
+.video-card.fmt-horizontal{width:230px;flex-shrink:0;scroll-snap-align:start}
 .video-card:hover{transform:translateY(-4px);border-color:var(--accent)!important}
 .video-card:hover .video-assistir{color:var(--accent);border-color:var(--accent)!important}
 .video-thumb-wrap{position:relative;width:100%;overflow:hidden;flex-shrink:0;display:block;text-decoration:none;background:#000}
@@ -111,10 +112,9 @@ html,body{overflow-x:hidden;width:100%;max-width:100%}
   .benefit-grid{grid-template-columns:1fr}
   .destaque-grid,.destaque-grid.cols-1,.destaque-grid.cols-2,.destaque-grid.cols-3{grid-template-columns:1fr!important;gap:12px!important;width:100%!important;max-width:100%!important}
   .destaque-body{padding:10px 14px 12px!important}
-  .video-grid,.video-mais-grid{gap:10px!important}
-  .video-card.fmt-horizontal,.video-card.fmt-classic,.video-card.fmt-square,.video-card.fmt-vertical{max-width:100%!important;width:100%!important;flex-basis:100%!important;margin:0!important}
+  .video-grid{gap:10px!important}
+  .video-card.fmt-horizontal{width:210px!important}
   .video-body{padding:9px 11px 11px!important}
-  .video-assistir{display:none!important}
   .link-grid{grid-template-columns:1fr!important;gap:10px!important}
   .hero-btns{flex-direction:column}
   .hero-btns a{width:100%;justify-content:center;text-align:center}
@@ -138,15 +138,12 @@ html,body{overflow-x:hidden;width:100%;max-width:100%}
   .destaque-body{padding:12px 14px 11px!important;gap:2px!important}
   .destaque-action{font-size:13px!important;margin-top:5px!important}
 
-  .video-thumb-wrap{aspect-ratio:auto!important;height:155px!important;max-height:155px!important;min-height:0!important}
-  .video-play{width:42px!important;height:42px!important}
   .video-body{padding:10px 12px 12px!important;gap:2px!important}
   .video-title{font-size:15px!important;line-height:1.25!important}
 }
 @media(max-width:340px){
   .wrap{padding:0 14px}
   .destaque-img-wrap{height:160px!important;max-height:160px!important}
-  .video-thumb-wrap{height:145px!important;max-height:145px!important}
 }
 `
 
@@ -170,24 +167,16 @@ async function resolverDominioAtual(slugLimpo: string) {
 
 // Metadados dinâmicos por negócio (WhatsApp, redes sociais, etc). Cada /[slug] passa a ter
 // título, descrição e imagem próprios, em vez da prévia genérica do ClienteMarcado.
-// Memoizado com cache() do React: generateMetadata() e o componente da pagina rodam
-// como funcoes SEPARADAS pra cada requisicao, mas cache() garante que, se as duas pedirem
-// o MESMO slug, so uma consulta real acontece no banco (a segunda chamada reaproveita o
-// resultado). Isso corta pela metade a busca de perfil em toda visita a pagina publica.
-const buscarPerfilPorSlug = cache(async (slug: string) => {
-  const { data } = await supabase.from('perfis').select('*').eq('slug', slug).single()
-  return data
-})
-const buscarCapaFallback = cache(async (slugRef: string) => {
-  const { data } = await supabase.from('perfis').select('capa_url').eq('slug', slugRef).single()
-  return data?.capa_url || ''
-})
+// REVERTIDO: a otimizacao com cache() do React causou 404 generalizado em producao/dev
+// (paginas publicas reais deixaram de carregar). Priorizando "sempre funcionar" acima do
+// ganho de performance - volta pra busca direta e simples, sem memoizacao entre
+// generateMetadata e o componente da pagina.
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug: slugBruto } = await params
   // Aceita tanto /gabigasparotti quanto /@gabigasparotti (link curto do minipage.pro) — mesmo perfil
   const slug = slugBruto.startsWith('@') ? slugBruto.slice(1) : slugBruto
-  const perfil = await buscarPerfilPorSlug(slug)
+  const { data: perfil } = await supabase.from('perfis').select('*').eq('slug', slug).single()
 
   if (!perfil) {
     return {
@@ -206,7 +195,8 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     const tipoNeg = (perfil.tipo_negocio || '').toLowerCase()
     const slugRef = tipoNeg.includes('barbearia') ? 'domcorte' : (tipoNeg.includes('est') || tipoNeg.includes('sal') || tipoNeg.includes('bel') ? 'studiobella' : '')
     if (slugRef) {
-      capaFallback = await buscarCapaFallback(slugRef)
+      const { data: perfilRef } = await supabase.from('perfis').select('capa_url').eq('slug', slugRef).single()
+      capaFallback = perfilRef?.capa_url || ''
     }
   }
 
@@ -251,7 +241,8 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
   const t = getDicionario(idiomaVisitante)
   // Aceita tanto /gabigasparotti quanto /@gabigasparotti (link curto do minipage.pro) — mesmo perfil
   const slug = slugBruto.startsWith('@') ? slugBruto.slice(1) : slugBruto
-  const perfil = await buscarPerfilPorSlug(slug)
+  const { data: perfil, error: erroPerfilDebug } = await supabase.from('perfis').select('*').eq('slug', slug).single()
+  console.log('[DEBUG PERFIL]', { slug, temPerfil: !!perfil, erro: erroPerfilDebug })
   if (!perfil) return notFound()
   // Buscar capa padrao dinamicamente pelos slugs de referencia
   let capaFallback = ''
@@ -259,7 +250,8 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
     const tipoNeg = (perfil.tipo_negocio || '').toLowerCase()
     const slugRef = tipoNeg.includes('barbearia') ? 'domcorte' : (tipoNeg.includes('est') || tipoNeg.includes('sal') || tipoNeg.includes('bel') ? 'studiobella' : '')
     if (slugRef) {
-      capaFallback = await buscarCapaFallback(slugRef)
+      const { data: perfilRef } = await supabase.from('perfis').select('capa_url').eq('slug', slugRef).single()
+      capaFallback = perfilRef?.capa_url || ''
     }
   }
 
@@ -382,7 +374,14 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
   function thumbnailVideo(v: { thumbnail_url?: string; url_video?: string }) {
     if (v.thumbnail_url) return v.thumbnail_url
     const m = (v.url_video || '').match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/))([a-zA-Z0-9_-]{6,})/)
-    return m ? `https://img.youtube.com/vi/${m[1]}/hqdefault.jpg` : ''
+    // mqdefault.jpg e genuinamente 16:9, sem faixa preta "assada" na imagem (diferente do
+    // hqdefault.jpg, que e um canvas 4:3 com letterbox embutido em muitos videos).
+    return m ? `https://img.youtube.com/vi/${m[1]}/mqdefault.jpg` : ''
+  }
+  // ID do video do YouTube, quando aplicavel - usado pro player embutido no modal (click-to-load)
+  function extrairYoutubeId(url?: string): string | null {
+    const m = (url || '').match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/))([a-zA-Z0-9_-]{6,})/)
+    return m ? m[1] : null
   }
   // Padronizado em 16:9 pra todo mundo - independente da plataforma/formato detectado na origem
   // do video (Reels e TikTok, por exemplo, tendem a ser verticais). Decisao deliberada pra manter
@@ -593,62 +592,28 @@ eventos && eventos.length > 0 && (
             videos: (
 // * VIDEOS EM DESTAQUE: aparece somente se houver pelo menos 1 video ativo. Fica depois de Links Rapidos.
 videos && videos.length > 0 && (() => {
-          const primeiros = videos.slice(0, 3)
-          const resto = videos.slice(3)
-          const renderVideoCard = (v: { id: string; titulo: string; descricao?: string; url_video: string; formato?: string; plataforma?: string; thumbnail_url?: string; link_destino?: string; texto_cta?: string; texto_botao_video?: string; abrir_nova_aba?: boolean }) => {
-            const thumb = thumbnailVideo(v)
-            const ratio = '16/9'
-            return (
-              <div key={v.id} className={`crd video-card ${formatoClasse(v.formato)}`} style={{ border: cardBorderFinal, boxShadow: cardShadowNeon }}>
-                <a href={v.url_video} target={v.abrir_nova_aba === false ? '_self' : '_blank'} rel="noopener noreferrer" className="video-thumb-wrap" style={{ aspectRatio: ratio }}>
-                  {thumb ? (
-                    <>
-                      <img src={thumb} alt={v.titulo} loading="lazy" decoding="async" />
-                      <div className="video-play"><PlayCircle size={18} color="#fff" /></div>
-                    </>
-                  ) : (
-                    <div className="video-placeholder" style={{ background: `radial-gradient(circle at 30% 20%,${tema.soft},transparent 60%),linear-gradient(135deg,${tema.accent},${tema.secondary})` }}>
-                      <div className="video-placeholder-play"><PlayCircle size={20} color="#fff" /></div>
-                      <span className="video-placeholder-label">{labelPlaceholder(v)}</span>
-                      {v.titulo && <span className="video-placeholder-title">{v.titulo}</span>}
-                    </div>
-                  )}
-                </a>
-                <div className="video-body">
-                  <p className="video-title">{v.titulo}</p>
-                  {v.descricao && <p className="video-desc" style={{ fontSize: '12px', color: 'var(--text-muted)', lineHeight: 1.4 }}>{v.descricao}</p>}
-                  <div className="video-btns">
-                    {v.link_destino && (
-                      <a href={v.link_destino} target="_blank" rel="noopener noreferrer" className="video-cta" style={{ background: tema.accent, color: tema.btnText }}>
-                        {v.texto_cta || t.saibaMais}
-                      </a>
-                    )}
-                    <a href={v.url_video} target={v.abrir_nova_aba === false ? '_self' : '_blank'} rel="noopener noreferrer" className="video-assistir" style={{ border: `1px solid ${iconeBorder}`, color: iconeCor }}>
-                      {v.texto_botao_video || t.assistirVideo}
-                    </a>
-                  </div>
-                </div>
-              </div>
-            )
-          }
           return (
             <div style={{ marginBottom: '28px' }}>
               <p style={{ fontSize: '20px', fontWeight: 900, color: 'var(--text)', letterSpacing: '-0.02em', marginBottom: '6px' }}>{t.videosEmDestaque}</p>
               <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '18px' }}>Veja conteúdos, vídeos, apresentações e novidades em destaque.</p>
               <div className="video-grid">
-                {primeiros.map(renderVideoCard)}
+                {videos.map((v: any) => (
+                  <VideoItemCard
+                    key={v.id}
+                    v={v}
+                    thumb={thumbnailVideo(v)}
+                    youtubeId={extrairYoutubeId(v.url_video)}
+                    iconeBorder={iconeBorder}
+                    cardBorderFinal={cardBorderFinal}
+                    cardShadowNeon={cardShadowNeon}
+                    tema={tema}
+                    iconeCor={iconeCor}
+                    textoAssistir={t.assistirVideo}
+                    textoSaibaMais={t.saibaMais}
+                    labelPlaceholder={labelPlaceholder(v)}
+                  />
+                ))}
               </div>
-              {resto.length > 0 && (
-                <details className="video-mais">
-                  <summary style={{ background: tema.soft, border: `1px solid ${tema.border}`, color: tema.accent }}>
-                    <span className="video-mais-label-abrir">{t.verMaisVideos}</span>
-                    <span className="video-mais-label-fechar">{t.verMenos}</span>
-                  </summary>
-                  <div className="video-mais-grid">
-                    {resto.map(renderVideoCard)}
-                  </div>
-                </details>
-              )}
             </div>
           )
         })()

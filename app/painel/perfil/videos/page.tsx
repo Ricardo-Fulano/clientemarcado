@@ -30,6 +30,7 @@ export default function GerenciarVideos(){
   const [msg,setMsg]=useState('')
   const [salvandoId,setSalvandoId]=useState('')
   const [uploadingId,setUploadingId]=useState('')
+  const [gerandoCapaId,setGerandoCapaId]=useState('')
   const imgRef=useRef<HTMLInputElement>(null)
 
   useEffect(()=>{load()},[])
@@ -101,6 +102,29 @@ export default function GerenciarVideos(){
       }
       return atualizado
     }))
+  }
+
+  // Reaproveita a mesma API criada pro Catalogo (ja detecta YouTube/Vimeo/Open Graph
+  // generico). Pra YouTube isso ja acontece automaticamente sem precisar de botao (via
+  // thumbYoutube), entao esse botao ajuda principalmente Vimeo e paginas com Open Graph -
+  // Instagram/TikTok tendem a bloquear e continuam precisando de capa manual mesmo assim.
+  async function gerarCapaAutomatica(v:any){
+    if(!v.url_video?.trim()){setMsg('Cole o link do vídeo antes de gerar a capa.');return}
+    setGerandoCapaId(v.id)
+    try{
+      const res=await fetch('/api/catalogo/preview-link',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({url:v.url_video.trim()})})
+      const dados=await res.json()
+      if(!dados.success||!dados.imagem_url){
+        setMsg('Não foi possível gerar a capa automaticamente. Você pode enviar uma manualmente.')
+      }else{
+        editarVideo(v.id,'thumbnail_url',dados.imagem_url)
+        setMsg('Capa encontrada! Revise antes de salvar.')
+      }
+    }catch{
+      setMsg('Não foi possível gerar a capa automaticamente. Você pode enviar uma manualmente.')
+    }
+    setGerandoCapaId('')
+    setTimeout(()=>setMsg(''),5000)
   }
   async function salvarVideo(v:any){
     if(!(await validarSessao()))return
@@ -239,13 +263,15 @@ export default function GerenciarVideos(){
                     <div><label className="lbl">Texto do botão de assistir</label><input className="inp" value={v.texto_botao_video||''} onChange={e=>editarVideo(v.id,'texto_botao_video',e.target.value)} placeholder="Assistir vídeo"/></div>
                     <div>
                       <label className="lbl">Capa do vídeo (opcional)</label>
-                      <div style={{display:'flex',alignItems:'center',gap:'10px'}}>
+                      <div style={{display:'flex',alignItems:'center',gap:'10px',marginBottom:'8px'}}>
                         {v.thumbnail_url && <img src={v.thumbnail_url} alt="" style={{width:'36px',height:'36px',borderRadius:'8px',objectFit:'cover',flexShrink:0,border:'1px solid #2A1A2F'}}/>}
                         <button type="button" onClick={()=>{setUploadingId(v.id);imgRef.current?.click()}} style={{background:'rgba(24,16,27,.92)',border:'1px solid rgba(229,72,184,.28)',borderRadius:'10px',padding:'10px 14px',fontSize:'12px',fontWeight:600,color:'#F8F4F7',cursor:'pointer',fontFamily:'inherit',flex:1}}>
                           {uploadingId===v.id?'Enviando...':v.thumbnail_url?'Trocar capa':'Enviar capa'}
                         </button>
                       </div>
-                      <p style={{fontSize:'10px',color:'#B8AAB8',marginTop:'6px'}}>Para vídeos do Instagram e TikTok, envie uma capa personalizada para deixar sua página mais bonita. Vídeos do YouTube usam capa automática quando disponível.</p>
+                      <button type="button" onClick={()=>gerarCapaAutomatica(v)} disabled={gerandoCapaId===v.id} style={{background:'rgba(139,92,246,.12)',border:'1px solid rgba(139,92,246,.28)',color:'#C4B5FD',borderRadius:'8px',padding:'7px 14px',fontSize:'12px',fontWeight:700,cursor:gerandoCapaId===v.id?'wait':'pointer',fontFamily:'inherit',opacity:gerandoCapaId===v.id?.7:1,width:'100%'}}>{gerandoCapaId===v.id?'Buscando capa...':'Gerar capa automática pelo link'}</button>
+                      <p style={{fontSize:'10px',color:'#B8AAB8',marginTop:'8px'}}>Recomendado: imagem na proporção 16:9 (ex: 1280x720px), com boa resolução, pra preencher o card sem cortes estranhos.</p>
+                      <p style={{fontSize:'10px',color:'#B8AAB8',marginTop:'4px'}}>Algumas plataformas podem não carregar a capa automaticamente. Se isso acontecer, envie uma capa manualmente.</p>
                     </div>
                   </div>
                   <div className="fg2" style={{marginBottom:'10px'}}>
