@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { normalizarPlano, obterReasonMercadoPago, obterPrecoPlano } from '../../../lib/planos'
 
 export async function POST(request: NextRequest) {
   try {
@@ -15,7 +16,7 @@ export async function POST(request: NextRequest) {
     // so mudam reason/transaction_amount. Nao usa preapproval_plan_id (isso exigiria
     // card_token_id/Bricks na Mercado Pago, que decidimos nao implementar agora).
     const { data: perfil } = await supabase.from('perfis').select('plano_tipo').eq('user_id', userId).single()
-    const planoTipo = perfil?.plano_tipo === 'equipe' ? 'equipe' : perfil?.plano_tipo === 'minipage' ? 'minipage' : 'essencial'
+    const planoTipo = normalizarPlano(perfil?.plano_tipo)
 
     // Gate explicito pro plano MiniPage: exige MP_PLAN_ID_MINIPAGE configurada antes de
     // aceitar cobranca de verdade. O valor em si nao e usado no payload (essa rota cria a
@@ -27,8 +28,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'O plano MiniPage ainda não está disponível para cobrança automática. Fale com o suporte.' }, { status: 500 })
     }
 
-    const reason = planoTipo === 'equipe' ? 'MiniPage Pro - Plano Equipe' : planoTipo === 'minipage' ? 'MiniPage Pro - Plano MiniPage' : 'MiniPage Pro - Plano Profissional'
-    const transactionAmount = planoTipo === 'equipe' ? 149.90 : planoTipo === 'minipage' ? 39.90 : 79.90
+    const reason = obterReasonMercadoPago(planoTipo)
+    const transactionAmount = obterPrecoPlano(planoTipo)
 
     const payload: any = {
       reason,

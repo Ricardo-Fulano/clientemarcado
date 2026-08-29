@@ -108,7 +108,7 @@ export default function PainelSidebar({ nome = '', tituloMobile = 'Painel' }: Pr
     { h: '/painel/alterar-senha', l: 'Alterar senha' },
   ]
 
-  // Plano MiniPage (R$29,90): so pagina profissional, sem agenda/financeiro/equipe
+  // Plano MiniPage: so pagina profissional, sem agenda/financeiro/equipe
   const LINKS_MINIPAGE = [
     { h: '/painel',        l: 'Início'        },
     { h: '/painel/suporte',l: 'Suporte'       },

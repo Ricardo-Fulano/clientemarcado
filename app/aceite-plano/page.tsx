@@ -2,6 +2,7 @@
 import { useState, Suspense } from 'react'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
+import { normalizarPlano, obterNomePlano, obterPrecoPlano } from '../lib/planos'
 
 const CLAUSULAS = [
   { t: '1. Contratante', c: 'Pessoa física ou jurídica que realiza o cadastro e utiliza a plataforma ClienteMarcado.' },
@@ -52,23 +53,11 @@ html,body{overflow-x:hidden;width:100%;max-width:100%;background:#08060A}
 @media(max-width:480px){.card{padding:20px 16px;border-radius:18px}.hdr{padding:18px 0 24px}}
 `
 
-const CONFIG_PLANOS = {
-  minipage: {
-    nome: 'Plano MiniPage',
-    preco: 'R$ 39,90',
-    beneficios: ['Página profissional (minipage.pro)', 'Links rápidos e cards de destaque', 'Vídeos em destaque', 'Redes sociais e WhatsApp', 'Espaço para divulgações', 'Suporte por WhatsApp'],
-  },
-  essencial: {
-    nome: 'Plano Profissional',
-    preco: 'R$ 79,90',
-    beneficios: ['Agenda e agendamento online', 'Clientes e profissionais', 'Orçamentos e cobranças', 'Pagamentos e relatórios', 'Página pública de agendamento', 'Suporte por WhatsApp'],
-  },
-  equipe: {
-    nome: 'Plano Equipe',
-    preco: 'R$ 149,90',
-    beneficios: ['Tudo do Plano Profissional', 'Até 15 profissionais cadastrados', 'Login individual por profissional', 'Área "Meu Desempenho"', 'Financeiro protegido por acesso', 'Suporte por WhatsApp'],
-  },
-} as const
+const BENEFICIOS_POR_PLANO: Record<'minipage'|'essencial'|'equipe', string[]> = {
+  minipage: ['Página profissional (minipage.pro)', 'Links rápidos e cards de destaque', 'Vídeos em destaque', 'Redes sociais e WhatsApp', 'Espaço para divulgações', 'Suporte por WhatsApp'],
+  essencial: ['Agenda e agendamento online', 'Clientes e profissionais', 'Orçamentos e cobranças', 'Pagamentos e relatórios', 'Página pública de agendamento', 'Suporte por WhatsApp'],
+  equipe: ['Tudo do Plano Profissional', 'Até 15 profissionais cadastrados', 'Login individual por profissional', 'Área "Meu Desempenho"', 'Financeiro protegido por acesso', 'Suporte por WhatsApp'],
+}
 
 export default function AceitePlano() {
   return (
@@ -81,8 +70,12 @@ export default function AceitePlano() {
 function AceitePlanoConteudo() {
   const searchParams = useSearchParams()
   const planoParam = searchParams.get('plano')
-  const planoValido = planoParam === 'equipe' ? 'equipe' : planoParam === 'minipage' ? 'minipage' : 'essencial'
-  const plano = CONFIG_PLANOS[planoValido]
+  const planoValido = normalizarPlano(planoParam)
+  const plano = {
+    nome: `Plano ${obterNomePlano(planoValido)}`,
+    preco: `R$ ${obterPrecoPlano(planoValido).toLocaleString('pt-BR', { minimumFractionDigits: 2 }).replace('.', ',')}`,
+    beneficios: BENEFICIOS_POR_PLANO[planoValido],
+  }
   const [c1, setC1] = useState(false)
   const [c2, setC2] = useState(false)
   const [c3, setC3] = useState(false)

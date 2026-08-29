@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../../lib/supabase'
 import PainelSidebar from '@/app/components/PainelSidebar'
+import { normalizarPlano, obterNomePlano, obterPrecoPlano } from '../../lib/planos'
 
 const ADMIN_ID = '618aedd1-f174-4419-b4b2-b81b8dd1c47e'
 
@@ -44,18 +45,16 @@ const TIPOS = ['Influencer', 'Página local', 'Cliente indicador', 'Parceiro com
 // 'essencial' e o nome interno no banco pro plano comercialmente chamado de "Profissional"
 // (nao mexemos no banco, so tratamos a exibicao/calculo). Fallback: plano_tipo nulo/vazio/
 // invalido sempre vira 'essencial' (Profissional), igual ao comportamento anterior.
-const PLANOS_COMISSAO: Record<string, { mensalidade: number; comissao: number; nomeComercial: string }> = {
-  minipage: { mensalidade: 29.90, comissao: 14.95, nomeComercial: 'MiniPage' },
-  essencial: { mensalidade: 79.90, comissao: 39.95, nomeComercial: 'Profissional' },
-  equipe: { mensalidade: 149.90, comissao: 74.95, nomeComercial: 'Equipe' },
-}
-function planoValido(pt: string | null | undefined) {
-  if (pt === 'minipage') return 'minipage'
-  if (pt === 'equipe') return 'equipe'
-  return 'essencial' // essencial, profissional (se algum dia vier assim), nulo ou qualquer outro -> Profissional
+// Comissao = 50% da 1a mensalidade paga pelo cliente indicado. Calculada dinamicamente a
+// partir do preco REAL e atual de cada plano (app/lib/planos.ts) - antes esses valores
+// estavam duplicados aqui com o preco antigo do MiniPage (R$29,90), o que deixava a
+// comissao do MiniPage desatualizada mesmo depois do preco real ja ter mudado pra R$39,90.
+function infoDoPlano(chave: 'minipage' | 'essencial' | 'equipe') {
+  const mensalidade = obterPrecoPlano(chave)
+  return { mensalidade, comissao: mensalidade * 0.5, nomeComercial: obterNomePlano(chave) }
 }
 function comissaoDoIndicado(ind: any) {
-  return PLANOS_COMISSAO[planoValido(ind?.plano_tipo)].comissao
+  return infoDoPlano(normalizarPlano(ind?.plano_tipo)).comissao
 }
 
 export default function Parceiros() {
@@ -163,10 +162,10 @@ export default function Parceiros() {
     const comPlanoDefinido = inds.filter(i => i.plano_tipo !== null && i.plano_tipo !== undefined && i.plano_tipo !== '')
     const chaves = ['minipage', 'essencial', 'equipe'] as const
     return chaves.map(chave => {
-      const doPlano = comPlanoDefinido.filter(i => planoValido(i.plano_tipo) === chave)
+      const doPlano = comPlanoDefinido.filter(i => normalizarPlano(i.plano_tipo) === chave)
       const pagantesDoPlano = doPlano.filter(ehPagante)
       const comissao = pagantesDoPlano.reduce((a, i) => a + comissaoDoIndicado(i), 0)
-      return { chave, nome: PLANOS_COMISSAO[chave].nomeComercial, cadastros: doPlano.length, pagantes: pagantesDoPlano.length, comissao }
+      return { chave, nome: infoDoPlano(chave).nomeComercial, cadastros: doPlano.length, pagantes: pagantesDoPlano.length, comissao }
     })
   }
 
@@ -265,7 +264,7 @@ export default function Parceiros() {
               <button className="btn-p" onClick={() => { resetForm(); setShowModal(true) }}>+ Novo parceiro</button>
             </div>
 
-            <p style={{ fontSize: '12px', color: '#C4B5FD', marginBottom: '20px' }}>Comissão: 50% da 1ª mensalidade paga pelo cliente indicado — MiniPage R$14,95 · Profissional R$39,95 · Equipe R$74,95</p>
+            <p style={{ fontSize: '12px', color: '#C4B5FD', marginBottom: '20px' }}>Comissão: 50% da 1ª mensalidade paga pelo cliente indicado — MiniPage {fBRL(infoDoPlano('minipage').comissao)} · Profissional {fBRL(infoDoPlano('essencial').comissao)} · Equipe {fBRL(infoDoPlano('equipe').comissao)}</p>
 
             {msg && <div style={{ background: 'rgba(34,197,94,.12)', border: '1px solid rgba(34,197,94,.28)', borderRadius: '10px', padding: '10px 14px', fontSize: '13px', color: '#22C55E', marginBottom: '16px' }}>{msg}</div>}
 
@@ -363,7 +362,7 @@ export default function Parceiros() {
               const intervaloGeral = calcularIntervalo(filtroPeriodoGeral, dataIniGeral, dataFimGeral)
               const indicacoesFiltradas = indicacoes.filter(ind => {
                 if (filtroParceiroId && ind.parceiro_id !== filtroParceiroId) return false
-                if (filtroPlano && planoValido(ind.plano_tipo) !== filtroPlano) return false
+                if (filtroPlano && normalizarPlano(ind.plano_tipo) !== filtroPlano) return false
                 if (intervaloGeral) {
                   if (!ind.created_at) return false
                   const d = new Date(ind.created_at)
@@ -414,8 +413,8 @@ export default function Parceiros() {
                     <p style={{ fontSize: '14px', color: '#B8AAB8' }}>{indicacoes.length === 0 ? 'Nenhuma indicação registrada ainda.' : 'Nenhuma indicação encontrada com esses filtros.'}</p>
                   </div>
                 ) : indicacoesFiltradas.map(ind => {
-                  const planoTipo = planoValido(ind.plano_tipo)
-                  const infoPlano = PLANOS_COMISSAO[planoTipo]
+                  const planoTipo = normalizarPlano(ind.plano_tipo)
+                  const infoPlano = infoDoPlano(planoTipo)
                   const comissao = comissaoDoIndicado(ind)
                   const par = parceiros.find((pc: any) => pc.id === ind.parceiro_id)
                   return (
@@ -536,7 +535,7 @@ export default function Parceiros() {
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                   {indsFiltradas.map(ind => {
-                    const infoPlano = PLANOS_COMISSAO[planoValido(ind.plano_tipo)]
+                    const infoPlano = infoDoPlano(normalizarPlano(ind.plano_tipo))
                     const temPlanoDefinido = ind.plano_tipo !== null && ind.plano_tipo !== undefined && ind.plano_tipo !== ''
                     const comissao = temPlanoDefinido ? comissaoDoIndicado(ind) : 0
                     return (
@@ -590,7 +589,7 @@ export default function Parceiros() {
                   {TIPOS.map(t => <option key={t} value={t}>{t}</option>)}
                 </select>
               </div>
-              <p style={{ fontSize: '12px', color: '#B8AAB8', background: 'rgba(139,92,246,.08)', border: '1px solid rgba(139,92,246,.20)', borderRadius: '10px', padding: '10px 12px' }}>Comissão: 50% da 1ª mensalidade paga pelo cliente indicado (MiniPage R$14,95 · Profissional R$39,95 · Equipe R$74,95). Regra fixa, aplicada a todos os parceiros.</p>
+              <p style={{ fontSize: '12px', color: '#B8AAB8', background: 'rgba(139,92,246,.08)', border: '1px solid rgba(139,92,246,.20)', borderRadius: '10px', padding: '10px 12px' }}>Comissão: 50% da 1ª mensalidade paga pelo cliente indicado (MiniPage {fBRL(infoDoPlano('minipage').comissao)} · Profissional {fBRL(infoDoPlano('essencial').comissao)} · Equipe {fBRL(infoDoPlano('equipe').comissao)}). Regra fixa, aplicada a todos os parceiros.</p>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <button onClick={() => setAtivo(!ativo)} style={{ width: '36px', height: '20px', borderRadius: '999px', border: 'none', cursor: 'pointer', position: 'relative', background: ativo ? '#EC4899' : '#2A1A2F' }}>
                   <span style={{ position: 'absolute', top: '2px', left: ativo ? '18px' : '2px', width: '16px', height: '16px', borderRadius: '50%', background: '#fff', transition: 'left .2s' }} />

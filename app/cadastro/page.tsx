@@ -2,6 +2,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { supabase } from '../lib/supabase'
+import { normalizarPlano } from '../lib/planos'
 
 const BENEFICIOS = [
   {
@@ -114,7 +115,7 @@ export default function Cadastro() {
       localStorage.setItem('clienteMarcadoAceitePlano', 'true')
     }
     const planoSalvo = typeof window !== 'undefined' ? localStorage.getItem('cm_plano') : null
-    const planoTipo = planoSalvo === 'equipe' ? 'equipe' : planoSalvo === 'minipage' ? 'minipage' : 'essencial'
+    const planoTipo = normalizarPlano(planoSalvo)
     setLoading(true)
     setMensagem('')
     const redirectTo = montarRedirectTo()

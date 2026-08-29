@@ -3,18 +3,16 @@ import { useEffect, useState } from 'react'
 import { CreditCard, Crown, Wallet, CheckCircle2, MessageCircle, Users } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import PainelSidebar from '../../components/PainelSidebar'
-import { normalizarPlano } from '../../lib/planos'
+import { normalizarPlano, obterNomePlano, obterPrecoPlano, obterLimiteProfissionais } from '../../lib/planos'
 
 const G = 'linear-gradient(135deg,#EC4899,#D946EF,#8B5CF6)'
 const WPP = '5511941059063'
-
-// Mesmos limites já usados em /painel/profissionais — reaproveitados aqui pra nao divergir
-const LIMITES_PROFISSIONAIS: Record<string, number> = { essencial: 3, equipe: 15 }
+function formatarPreco(tipo: 'minipage'|'essencial'|'equipe') {
+  return `R$ ${obterPrecoPlano(tipo).toLocaleString('pt-BR', { minimumFractionDigits: 2 }).replace('.', ',')}`
+}
 
 const PLANOS = {
   minipage: {
-    nome: 'MiniPage',
-    preco: 'R$ 39,90',
     desc: 'Página profissional com links, vídeos e divulgações — ideal pra quem ainda não precisa de agenda.',
     beneficios: [
       'MiniPage profissional (minipage.pro/seunome)',
@@ -27,10 +25,6 @@ const PLANOS = {
     ],
   },
   essencial: {
-    // Nome comercial atualizado pra "Profissional" (Fase 2). O valor salvo no banco
-    // continua 'essencial' por compatibilidade - so o texto exibido mudou.
-    nome: 'Profissional',
-    preco: 'R$ 79,90',
     desc: 'Tudo da MiniPage, com agenda online, clientes e financeiro organizados em um só lugar.',
     beneficios: [
       'Tudo do plano MiniPage',
@@ -44,8 +38,6 @@ const PLANOS = {
     ],
   },
   equipe: {
-    nome: 'Equipe',
-    preco: 'R$ 149,90',
     desc: 'Plano ideal para salões, studios e clínicas que precisam dividir acessos sem expor o financeiro.',
     beneficios: [
       'Tudo do plano Profissional',
@@ -97,7 +89,7 @@ export default function MeuPlano() {
   const planoNormalizado = normalizarPlano(perfil?.plano_tipo)
   const planoAtual = planoNormalizado === 'equipe' ? 'equipe' : planoNormalizado === 'minipage' ? 'minipage' : 'essencial'
   const status = STATUS_LABEL[perfil?.status_acesso] || STATUS_LABEL.ativo
-  const limiteAtual = LIMITES_PROFISSIONAIS[planoAtual] || 0
+  const limiteAtual = obterLimiteProfissionais(planoAtual)
   const nome = perfil?.nome_negocio || ''
 
   const linkWppUpgrade = `https://wa.me/${WPP}?text=${encodeURIComponent('Olá! Quero alterar meu plano do ClienteMarcado para o Plano Equipe.')}`
@@ -139,8 +131,8 @@ export default function MeuPlano() {
                       {planoAtual === 'equipe' ? <Crown size={22} color="#fff" /> : <CreditCard size={22} color="#fff" />}
                     </div>
                     <div>
-                      <p style={{ fontSize: '19px', fontWeight: 800, color: '#F8F4F7' }}>{PLANOS[planoAtual].nome}</p>
-                      <p style={{ fontSize: '13px', color: '#B8AAB8' }}>{PLANOS[planoAtual].preco}/mês</p>
+                      <p style={{ fontSize: '19px', fontWeight: 800, color: '#F8F4F7' }}>{obterNomePlano(planoAtual)}</p>
+                      <p style={{ fontSize: '13px', color: '#B8AAB8' }}>{formatarPreco(planoAtual)}/mês</p>
                     </div>
                   </div>
                   <span style={{ fontSize: '12px', fontWeight: 700, color: status.cor, background: status.bg, border: `1px solid ${status.cor}40`, borderRadius: '999px', padding: '6px 14px' }}>{status.texto}</span>
@@ -178,10 +170,10 @@ export default function MeuPlano() {
                   return (
                     <div key={tipo} className={`mp-card${ehAtual ? ' atual' : ''}`} style={{ padding: '26px 24px', display: 'flex', flexDirection: 'column' }}>
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
-                        <p style={{ fontSize: '16px', fontWeight: 800, color: '#F8F4F7' }}>{p.nome}</p>
+                        <p style={{ fontSize: '16px', fontWeight: 800, color: '#F8F4F7' }}>{obterNomePlano(tipo)}</p>
                         {ehAtual && <span style={{ fontSize: '11px', fontWeight: 700, color: '#EC4899', background: 'rgba(236,72,153,.12)', border: '1px solid rgba(236,72,153,.30)', borderRadius: '999px', padding: '4px 10px' }}>Plano atual</span>}
                       </div>
-                      <p style={{ fontSize: '22px', fontWeight: 900, color: '#F8F4F7', marginBottom: '16px' }}>{p.preco}<span style={{ fontSize: '13px', fontWeight: 500, color: '#B8AAB8' }}>/mês</span></p>
+                      <p style={{ fontSize: '22px', fontWeight: 900, color: '#F8F4F7', marginBottom: '16px' }}>{formatarPreco(tipo)}<span style={{ fontSize: '13px', fontWeight: 500, color: '#B8AAB8' }}>/mês</span></p>
                       <div style={{ marginBottom: '20px', flex: 1 }}>
                         {p.beneficios.map((b, i) => (
                           <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', marginBottom: '9px' }}>

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { normalizarPlano } from '../../../lib/planos'
 
 // UUID v4-like check (aceita qualquer versao de UUID valido, formato padrao)
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
@@ -41,7 +42,7 @@ export async function POST(request: NextRequest) {
     }
 
     // plano_tipo aceita 'equipe' e 'minipage' explicitamente; qualquer outra coisa vira 'essencial'
-    const planoValido = plano_tipo === 'equipe' ? 'equipe' : plano_tipo === 'minipage' ? 'minipage' : 'essencial'
+    const planoValido = normalizarPlano(plano_tipo)
 
     const supabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,

@@ -4,18 +4,14 @@ import { supabase } from '../../../lib/supabase'
 import Link from 'next/link'
 import { ArrowLeft, ArrowUp, ArrowDown } from 'lucide-react'
 import PainelSidebar from '@/app/components/PainelSidebar'
+import { normalizarPlano, obterNomePlano, obterLimiteCatalogos } from '../../../lib/planos'
 
 const G='linear-gradient(135deg,#EC4899,#D946EF,#8B5CF6)'
 
-// Limite de catalogos por plano. plano_tipo continua salvo como 'essencial' no banco pro
-// plano comercialmente chamado de "Profissional" - nao mexemos nisso, so na regra de limite.
-const LIMITE_POR_PLANO: Record<string, number> = { minipage: 3, essencial: 6, equipe: 10 }
-function limiteDoPlano(planoTipo: string | null | undefined) {
-  return LIMITE_POR_PLANO[planoTipo || ''] ?? LIMITE_POR_PLANO.essencial
-}
 function proximoPlanoSugestao(planoTipo: string | null | undefined) {
-  if (planoTipo === 'minipage') return 'Profissional'
-  if (planoTipo === 'essencial') return 'Equipe'
+  const p = normalizarPlano(planoTipo)
+  if (p === 'minipage') return obterNomePlano('essencial')
+  if (p === 'essencial') return obterNomePlano('equipe')
   return null // ja esta no Equipe, nao ha proximo
 }
 
@@ -76,7 +72,7 @@ export default function ListaCatalogos(){
   }
 
   function abrirNovo(){
-    const limite=limiteDoPlano(planoTipo)
+    const limite=obterLimiteCatalogos(planoTipo)
     if(catalogos.length>=limite){
       const proximo=proximoPlanoSugestao(planoTipo)
       setMsg(`Seu plano permite até ${limite} catálogos.${proximo?` Para criar mais catálogos, altere para o plano ${proximo}.`:''}`)
@@ -103,7 +99,7 @@ export default function ListaCatalogos(){
     if(!tituloForm.trim()){setMsg('Dê um título para o catálogo.');return}
     setSalvando(true)
     if(editando.novo){
-      const limite=limiteDoPlano(planoTipo)
+      const limite=obterLimiteCatalogos(planoTipo)
       if(catalogos.length>=limite){
         const proximo=proximoPlanoSugestao(planoTipo)
         setMsg(`Seu plano permite até ${limite} catálogos.${proximo?` Para criar mais catálogos, altere para o plano ${proximo}.`:''}`)
@@ -159,7 +155,7 @@ export default function ListaCatalogos(){
 
   if(carregando)return(<div style={{minHeight:'100vh',background:'#08060A',display:'flex',alignItems:'center',justifyContent:'center',fontFamily:'system-ui'}}><p style={{color:'#B8AAB8',fontSize:'14px'}}>Carregando...</p></div>)
 
-  const limite=limiteDoPlano(planoTipo)
+  const limite=obterLimiteCatalogos(planoTipo)
 
   return(
     <div style={{display:'flex',minHeight:'100vh',background:'#08060A',fontFamily:'-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif',overflowX:'hidden',width:'100%'}}>
