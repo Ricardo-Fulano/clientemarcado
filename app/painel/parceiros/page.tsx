@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../../lib/supabase'
 import PainelSidebar from '@/app/components/PainelSidebar'
-import { normalizarPlano, obterNomePlano, obterPrecoPlano } from '../../lib/planos'
+import { normalizarPlano, obterNomePlano, obterPrecoPlano, type PlanoTipo } from '../../lib/planos'
 
 const ADMIN_ID = '618aedd1-f174-4419-b4b2-b81b8dd1c47e'
 
@@ -49,7 +49,7 @@ const TIPOS = ['Influencer', 'Página local', 'Cliente indicador', 'Parceiro com
 // partir do preco REAL e atual de cada plano (app/lib/planos.ts) - antes esses valores
 // estavam duplicados aqui com o preco antigo do MiniPage (R$29,90), o que deixava a
 // comissao do MiniPage desatualizada mesmo depois do preco real ja ter mudado pra R$39,90.
-function infoDoPlano(chave: 'minipage' | 'essencial' | 'equipe') {
+function infoDoPlano(chave: PlanoTipo) {
   const mensalidade = obterPrecoPlano(chave)
   return { mensalidade, comissao: mensalidade * 0.5, nomeComercial: obterNomePlano(chave) }
 }

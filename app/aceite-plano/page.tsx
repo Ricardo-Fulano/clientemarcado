@@ -2,7 +2,7 @@
 import { useState, Suspense } from 'react'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
-import { normalizarPlano, obterNomePlano, obterPrecoPlano } from '../lib/planos'
+import { normalizarPlano, obterNomePlano, obterPrecoPlano, type PlanoTipo } from '../lib/planos'
 
 const CLAUSULAS = [
   { t: '1. Contratante', c: 'Pessoa física ou jurídica que realiza o cadastro e utiliza a plataforma ClienteMarcado.' },
@@ -53,7 +53,7 @@ html,body{overflow-x:hidden;width:100%;max-width:100%;background:#08060A}
 @media(max-width:480px){.card{padding:20px 16px;border-radius:18px}.hdr{padding:18px 0 24px}}
 `
 
-const BENEFICIOS_POR_PLANO: Record<'minipage'|'essencial'|'equipe', string[]> = {
+const BENEFICIOS_POR_PLANO: Partial<Record<PlanoTipo, string[]>> = {
   minipage: ['Página profissional (minipage.pro)', 'Links rápidos e cards de destaque', 'Vídeos em destaque', 'Redes sociais e WhatsApp', 'Espaço para divulgações', 'Suporte por WhatsApp'],
   essencial: ['Agenda e agendamento online', 'Clientes e profissionais', 'Orçamentos e cobranças', 'Pagamentos e relatórios', 'Página pública de agendamento', 'Suporte por WhatsApp'],
   equipe: ['Tudo do Plano Profissional', 'Até 15 profissionais cadastrados', 'Login individual por profissional', 'Área "Meu Desempenho"', 'Financeiro protegido por acesso', 'Suporte por WhatsApp'],
@@ -74,7 +74,7 @@ function AceitePlanoConteudo() {
   const plano = {
     nome: `Plano ${obterNomePlano(planoValido)}`,
     preco: `R$ ${obterPrecoPlano(planoValido).toLocaleString('pt-BR', { minimumFractionDigits: 2 }).replace('.', ',')}`,
-    beneficios: BENEFICIOS_POR_PLANO[planoValido],
+    beneficios: BENEFICIOS_POR_PLANO[planoValido] || [],
   }
   const [c1, setC1] = useState(false)
   const [c2, setC2] = useState(false)
@@ -137,7 +137,7 @@ function AceitePlanoConteudo() {
             </div>
           </div>
           <div style={{ borderTop: '1px solid rgba(42,26,47,.10)', paddingTop: '14px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
-            {plano.beneficios.map(i => (
+            {plano.beneficios.map((i: string) => (
               <div key={i} style={{ display: 'flex', gap: '6px', alignItems: 'center', fontSize: '12px', color: '#B8AAB8' }}>
                 <span style={{ color: '#22C55E', flexShrink: 0 }}>✓</span>{i}
               </div>
