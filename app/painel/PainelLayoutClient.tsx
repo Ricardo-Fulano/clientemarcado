@@ -4,7 +4,8 @@ import { useRouter, usePathname } from 'next/navigation'
 import { supabase } from '../lib/supabase'
 import { Suspense } from 'react'
 import BannerPagamentoSucesso from '../components/BannerPagamentoSucesso'
-import { normalizarPlano } from '../lib/planos'
+import BloqueioPorPlano from '../components/BloqueioPorPlano'
+import { normalizarPlano, ehPlanoComGestao, permiteEquipe, ehPlanoFree } from '../lib/planos'
 
 const CHECKOUT_URL = "https://www.mercadopago.com.br/subscriptions/checkout?preapproval_plan_id=1a0fb25c46214e45b0eb3d21b494e5d6"
 const G = 'linear-gradient(135deg,#3B82F6,#7C3AED)'
@@ -145,8 +146,10 @@ export default function PainelLayoutClient({ children }: { children: React.React
 
       let st = p?.status_acesso || 'ativo'
 
-      // Clientes legados (trial_ends_at null): nao aplicar regra automatica
-      if (p?.trial_ends_at) {
+      // Free nunca tem cobranca - nao faz sentido avaliar atraso nem marcar em_atraso pra essas
+      // contas, mesmo que o trial de 7 dias (dado a todo cadastro, independente do plano
+      // escolhido depois) ja tenha vencido.
+      if (p?.trial_ends_at && !ehPlanoFree(p?.plano_tipo)) {
         const agora = new Date()
         const fimTrial = new Date(p.trial_ends_at)
         const fimPlano = p?.plano_ativo_ate ? new Date(p.plano_ativo_ate) : null
@@ -202,7 +205,8 @@ export default function PainelLayoutClient({ children }: { children: React.React
   // (so Inicio/Meu plano/Suporte continuam acessiveis). diasAtraso null (sem data confiavel)
   // cai no nivel mais brando (leve), nunca bloqueia sem certeza.
   const nivelAtraso: 'leve'|'forte'|'parcial'|'total'|null =
-    status !== 'em_atraso' ? null
+    ehPlanoFree(planoTipo) ? null
+    : status !== 'em_atraso' ? null
     : diasAtraso === null ? 'leve'
     : diasAtraso <= 3 ? 'leve'
     : diasAtraso <= 7 ? 'forte'
@@ -217,6 +221,16 @@ export default function PainelLayoutClient({ children }: { children: React.React
 
   const bloqueadoTotal = nivelAtraso === 'total' && !ROTAS_PERMITIDAS_BLOQUEIO_TOTAL.includes(pathname)
   const bloqueadoParcial = nivelAtraso === 'parcial' && PREFIXOS_BLOQUEADOS_PARCIAL.some(p => pathname === p || pathname.startsWith(p + '/'))
+
+  // Bloqueio por PLANO (nao por atraso de pagamento): algumas rotas so fazem sentido pros
+  // planos com gestao completa (Pro/Equipe) ou exclusivamente pro plano Equipe. Sempre via
+  // funcoes centralizadas de app/lib/planos.ts - nunca comparacao solta tipo plano==='x'.
+  const planoAtual = normalizarPlano(planoTipo)
+  const ROTAS_GESTAO = ['/painel/agendamentos', '/painel/clientes', '/painel/orcamentos', '/painel/cobrancas', '/painel/financeiro', '/painel/servicos', '/painel/relatorio', '/painel/perfil/agenda']
+  const ROTAS_EQUIPE = ['/painel/profissionais']
+  const precisaGestao = ROTAS_GESTAO.some(r => pathname === r || pathname.startsWith(r + '/'))
+  const precisaEquipe = ROTAS_EQUIPE.some(r => pathname === r || pathname.startsWith(r + '/'))
+  const bloqueadoPorPlano = (precisaGestao && !ehPlanoComGestao(planoAtual)) || (precisaEquipe && !permiteEquipe(planoAtual))
 
   // Profissional tentando acessar rota administrativa: nao renderiza nada ate o redirecionamento
   if (isProfissional && pathname !== '/painel/minha-agenda' && pathname !== '/painel/alterar-senha' && pathname !== '/painel/meu-desempenho') return (
@@ -270,6 +284,18 @@ export default function PainelLayoutClient({ children }: { children: React.React
         <a href="/painel" style={{fontSize:'12px',color:'#64748B',textDecoration:'underline'}}>Voltar para o Início</a>
       </div>
     </div>
+  )
+
+  // Bloqueio por PLANO: a rota exige gestao completa ou o plano Equipe, e a conta nao tem
+  // essa permissao. So chega aqui se nao houver nenhum bloqueio de pagamento pendente antes.
+  if (bloqueadoPorPlano) return (
+    <BloqueioPorPlano
+      permitido={false}
+      titulo="Recurso disponível no MiniPage Pro"
+      descricao="Este recurso faz parte dos planos com gestão completa. Faça upgrade para usar agenda, clientes, cobranças, financeiro e relatórios."
+    >
+      {null}
+    </BloqueioPorPlano>
   )
 
   return (

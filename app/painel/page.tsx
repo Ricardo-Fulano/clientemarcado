@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import Link from 'next/link'
 import PainelSidebar from '@/app/components/PainelSidebar'
-import { ehPlanoMiniPage } from '../lib/planos'
+import { ehPlanoComGestao, obterNomePlano, obterLimiteCatalogos, permiteEquipe } from '../lib/planos'
 
 const G='linear-gradient(135deg,#2563EB,#3B4FD4)'
 const AV='linear-gradient(135deg,rgba(37,99,235,.97),rgba(67,56,202,.85))'
@@ -53,19 +53,36 @@ export default function Home(){
   const [agendamentos,setAgendamentos]=useState<any[]>([])
   const [orcamentos,setOrcamentos]=useState<any[]>([])
   const [pagamentos,setPagamentos]=useState<any[]>([])
+  const [resumoSimples,setResumoSimples]=useState({links:0,destaques:0,videos:0,catalogos:0})
   const [loading,setLoading]=useState(true)
   const [copied,setCopied]=useState(false)
   useEffect(()=>{load()},[])
   async function load(){
     const {data:{user}}=await supabase.auth.getUser()
     if(!user){window.location.href='/login';return}
-    const [{data:p},{data:ags},{data:orcs},{data:pags}]=await Promise.all([
-      supabase.from('perfis').select('*').eq('user_id',user.id).single(),
-      supabase.from('agendamentos').select('*').eq('user_id',user.id).order('data_hora'),
-      supabase.from('orcamentos').select('*').eq('user_id',user.id),
-      supabase.from('pagamentos').select('valor,data').eq('user_id',user.id),
-    ])
-    setPerfil(p);setAgendamentos(ags||[]);setOrcamentos(orcs||[]);setPagamentos(pags||[]);setLoading(false)
+    const {data:p}=await supabase.from('perfis').select('*').eq('user_id',user.id).single()
+    setPerfil(p)
+    if(ehPlanoComGestao(p?.plano_tipo)){
+      const [{data:ags},{data:orcs},{data:pags}]=await Promise.all([
+        supabase.from('agendamentos').select('*').eq('user_id',user.id).order('data_hora'),
+        supabase.from('orcamentos').select('*').eq('user_id',user.id),
+        supabase.from('pagamentos').select('valor,data').eq('user_id',user.id),
+      ])
+      setAgendamentos(ags||[]);setOrcamentos(orcs||[]);setPagamentos(pags||[])
+    } else {
+      // Plano simples (Free/MiniPage/Loja): resumo leve em vez dos dados de gestao,
+      // que esse plano nem usa - evita consultas desnecessarias.
+      const [{count:cLinks},{count:cDestaques},{count:cVideos},{count:cCatalogos}]=await Promise.all([
+        supabase.from('pagina_links').select('*',{count:'exact',head:true}).eq('user_id',user.id),
+        supabase.from('pagina_destaques').select('*',{count:'exact',head:true}).eq('user_id',user.id),
+        supabase.from('pagina_videos').select('*',{count:'exact',head:true}).eq('user_id',user.id),
+        obterLimiteCatalogos(p?.plano_tipo)>0
+          ? supabase.from('pagina_catalogos').select('*',{count:'exact',head:true}).eq('user_id',user.id)
+          : Promise.resolve({count:0}),
+      ])
+      setResumoSimples({links:cLinks||0,destaques:cDestaques||0,videos:cVideos||0,catalogos:cCatalogos||0})
+    }
+    setLoading(false)
   }
   const hoje=new Date().toISOString().split('T')[0]
   const agsHoje=agendamentos.filter(a=>a.data_hora?.startsWith(hoje))
@@ -85,13 +102,15 @@ const saldo=Math.max(0,saldoRaw)
   const fmtData=(s:string)=>new Date(s).toLocaleDateString('pt-BR',{day:'2-digit',month:'short'})
   if(loading)return(<div style={{minHeight:'100vh',background:'#08060A',display:'flex',alignItems:'center',justifyContent:'center',fontFamily:'system-ui'}}><p style={{color:'#B8AAB8',fontSize:'14px'}}>Carregando...</p></div>)
 
-  if(ehPlanoMiniPage(perfil?.plano_tipo)){
+  if(!ehPlanoComGestao(perfil?.plano_tipo)){
     const acoesMiniPage=[
-      {h:'/painel/perfil',l:'Editar página',I:<IcoLink c="#EC4899" s={17}/>,bg:'rgba(236,72,153,.10)'},
+      {h:'/painel/perfil',l:'Editar minha MiniPage',I:<IcoLink c="#EC4899" s={17}/>,bg:'rgba(236,72,153,.10)'},
       {h:'/painel/perfil',l:'Adicionar links',I:<IcoTag c="#D946EF" s={17}/>,bg:'rgba(217,70,239,.10)'},
-      {h:'/painel/perfil',l:'Adicionar vídeos',I:<IcoBar c="#8B5CF6" s={17}/>,bg:'rgba(139,92,246,.10)'},
-      {h:'/painel/plano',l:'Fazer upgrade',I:<IcoCheck c="#22C55E" s={17}/>,bg:'rgba(34,197,94,.10)'},
+      {h:'/painel/plano',l:'Meu plano',I:<IcoCheck c="#22C55E" s={17}/>,bg:'rgba(34,197,94,.10)'},
+      {h:'/painel/suporte',l:'Suporte',I:<IcoBar c="#8B5CF6" s={17}/>,bg:'rgba(139,92,246,.10)'},
     ]
+    const nomePlanoAtual=obterNomePlano(perfil?.plano_tipo)
+    const mostraCatalogoNoResumo=obterLimiteCatalogos(perfil?.plano_tipo)>0
     return(
       <div style={{display:'flex',minHeight:'100vh',background:'#08060A',fontFamily:'-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif',overflowX:'hidden',width:'100%',position:'relative'}}>
         <style dangerouslySetInnerHTML={{__html:CSS}}/>
@@ -99,21 +118,37 @@ const saldo=Math.max(0,saldoRaw)
         <div className="psb-main">
           <div className="pg"><div className="bdy">
             <div style={{marginBottom:'24px'}}>
-              <h1 style={{fontSize:'24px',fontWeight:800,color:'#F8F4F7',letterSpacing:'-0.04em',marginBottom:'5px'}}>Sua MiniPage está ativa</h1>
-              <p style={{fontSize:'13px',color:'#B8AAB8',lineHeight:1.5}}>Edite sua página profissional, adicione links, vídeos, divulgações e compartilhe seu link.</p>
+              <h1 style={{fontSize:'24px',fontWeight:800,color:'#F8F4F7',letterSpacing:'-0.04em',marginBottom:'5px'}}>Olá, {nome}!</h1>
+              <p style={{fontSize:'13px',color:'#B8AAB8',lineHeight:1.5}}>Sua MiniPage está ativa. Edite sua página, adicione links e compartilhe com o mundo.</p>
             </div>
             {slug&&(
-              <div className="crd" style={{padding:'16px 20px',marginBottom:'24px',display:'flex',alignItems:'center',justifyContent:'space-between',gap:'12px',flexWrap:'wrap'}}>
+              <div className="crd" style={{padding:'16px 20px',marginBottom:'16px',display:'flex',alignItems:'center',justifyContent:'space-between',gap:'12px',flexWrap:'wrap'}}>
                 <div style={{display:'flex',alignItems:'center',gap:'10px'}}>
                   <div style={{width:'36px',height:'36px',borderRadius:'10px',background:'rgba(217,70,239,.14)',border:'1px solid rgba(217,70,239,.28)',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}><IcoLink c="#D946EF" s={18}/></div>
                   <div><p style={{fontSize:'13px',fontWeight:600,color:'#F8F4F7',marginBottom:'2px'}}>Sua MiniPage está no ar</p><p style={{fontSize:'11px',color:'#B8AAB8'}}>{pubUrl.replace('https://','')}</p></div>
                 </div>
                 <div style={{display:'flex',gap:'8px',flexShrink:0}}>
-                  <a href={pubUrl} target="_blank" rel="noreferrer" className="btn-s" style={{height:'36px',fontSize:'12px'}}>Ver MiniPage</a>
+                  <a href={pubUrl} target="_blank" rel="noreferrer" className="btn-s" style={{height:'36px',fontSize:'12px'}}>Ver página</a>
                   <button onClick={copiarLink} className="btn-p" style={{height:'36px',fontSize:'12px'}}>{copied?'Copiado!':'Copiar link'}</button>
                 </div>
               </div>
             )}
+            <div className="crd" style={{padding:'16px 20px',marginBottom:'24px',display:'flex',alignItems:'center',justifyContent:'space-between',gap:'12px',flexWrap:'wrap'}}>
+              <div>
+                <p style={{fontSize:'11px',fontWeight:700,color:'#B8AAB8',textTransform:'uppercase',letterSpacing:'.05em',marginBottom:'2px'}}>Plano atual</p>
+                <p style={{fontSize:'16px',fontWeight:800,color:'#F8F4F7'}}>{nomePlanoAtual}</p>
+              </div>
+              <Link href="/painel/plano" className="btn-s" style={{height:'36px',fontSize:'12px'}}>Meu plano</Link>
+            </div>
+            <p style={{fontSize:'14px',fontWeight:700,color:'#F8F4F7',marginBottom:'12px'}}>Resumo da sua página</p>
+            <div className="atalho-grid" style={{marginBottom:'24px'}}>
+              <div className="crd" style={{padding:'16px'}}><p style={{fontSize:'20px',fontWeight:800,color:'#F8F4F7'}}>{resumoSimples.links}</p><p style={{fontSize:'12px',color:'#B8AAB8'}}>Links cadastrados</p></div>
+              <div className="crd" style={{padding:'16px'}}><p style={{fontSize:'20px',fontWeight:800,color:'#F8F4F7'}}>{resumoSimples.destaques}</p><p style={{fontSize:'12px',color:'#B8AAB8'}}>Destaques cadastrados</p></div>
+              <div className="crd" style={{padding:'16px'}}><p style={{fontSize:'20px',fontWeight:800,color:'#F8F4F7'}}>{resumoSimples.videos}</p><p style={{fontSize:'12px',color:'#B8AAB8'}}>Vídeos cadastrados</p></div>
+              {mostraCatalogoNoResumo&&(
+                <div className="crd" style={{padding:'16px'}}><p style={{fontSize:'20px',fontWeight:800,color:'#F8F4F7'}}>{resumoSimples.catalogos}</p><p style={{fontSize:'12px',color:'#B8AAB8'}}>Catálogos cadastrados</p></div>
+              )}
+            </div>
             <p style={{fontSize:'14px',fontWeight:700,color:'#F8F4F7',marginBottom:'12px'}}>Acesso rápido</p>
             <div className="atalho-grid">
               {acoesMiniPage.map((a,i)=>(
@@ -123,7 +158,7 @@ const saldo=Math.max(0,saldoRaw)
                 </Link>
               ))}
             </div>
-            <div className="crd" style={{padding:'22px 24px',marginTop:'8px',display:'flex',alignItems:'center',justifyContent:'space-between',gap:'16px',flexWrap:'wrap'}}>
+            <div className="crd" style={{padding:'22px 24px',marginTop:'20px',display:'flex',alignItems:'center',justifyContent:'space-between',gap:'16px',flexWrap:'wrap'}}>
               <div>
                 <p style={{fontSize:'14px',fontWeight:700,color:'#F8F4F7',marginBottom:'4px'}}>Precisa de agenda, clientes e financeiro?</p>
                 <p style={{fontSize:'12px',color:'#B8AAB8'}}>O plano Profissional inclui tudo isso, além da sua MiniPage.</p>
@@ -215,7 +250,7 @@ const saldo=Math.max(0,saldoRaw)
               {h:'/painel/cobrancas',l:'Cobranças',I:<IcoWallet c="#8B5CF6" s={17}/>,bg:'rgba(139,92,246,.10)'},
               {h:'/painel/pagamentos',l:'Pagamentos',I:<IcoCheck c="#22C55E" s={17}/>,bg:'rgba(34,197,94,.10)'},
               {h:'/painel/servicos',l:'Serviços',I:<IcoTag c="#D946EF" s={17}/>,bg:'rgba(217,70,239,.10)'},
-              {h:'/painel/profissionais',l:'Profissionais',I:<IcoUser c="#C4B5FD" s={17}/>,bg:'rgba(139,92,246,.10)'},
+              ...(permiteEquipe(perfil?.plano_tipo)?[{h:'/painel/profissionais',l:'Profissionais',I:<IcoUser c="#C4B5FD" s={17}/>,bg:'rgba(139,92,246,.10)'}]:[]),
               {h:'/painel/relatorio',l:'Relatórios',I:<IcoBar c="#8B5CF6" s={17}/>,bg:'rgba(139,92,246,.10)'},
             ] as any[]).map((a:any)=>(
               <Link key={a.h} href={a.h} className="atalho">
