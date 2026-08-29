@@ -5,6 +5,7 @@ import { supabase } from '../../../../lib/supabase'
 import Link from 'next/link'
 import { ArrowLeft, ArrowUp, ArrowDown, UploadCloud } from 'lucide-react'
 import PainelSidebar from '@/app/components/PainelSidebar'
+import { normalizarPlano, permiteCatalogoWhatsapp } from '../../../../lib/planos'
 
 const G='linear-gradient(135deg,#EC4899,#D946EF,#8B5CF6)'
 
@@ -35,6 +36,7 @@ export default function GerenciarItensDoCatalogo(){
   const catalogoId = String(params?.catalogoId || '')
 
   const [userId,setUserId]=useState('')
+  const [planoTipo,setPlanoTipo]=useState('essencial')
   const [catalogo,setCatalogo]=useState<any>(null)
   const [itens,setItens]=useState<any[]>([])
   const [carregando,setCarregando]=useState(true)
@@ -51,7 +53,11 @@ export default function GerenciarItensDoCatalogo(){
     const {data:{user}}=await supabase.auth.getUser()
     if(!user){window.location.href='/login';return}
     setUserId(user.id)
-    const {data:cat}=await supabase.from('pagina_catalogos').select('*').eq('id',catalogoId).eq('user_id',user.id).maybeSingle()
+    const [{data:cat},{data:perfil}]=await Promise.all([
+      supabase.from('pagina_catalogos').select('*').eq('id',catalogoId).eq('user_id',user.id).maybeSingle(),
+      supabase.from('perfis').select('plano_tipo').eq('user_id',user.id).maybeSingle(),
+    ])
+    if(perfil?.plano_tipo) setPlanoTipo(perfil.plano_tipo)
     if(!cat){setNaoEncontrado(true);setCarregando(false);return}
     setCatalogo(cat)
     const {data:its}=await supabase.from('pagina_catalogo_itens').select('*').eq('catalogo_id',catalogoId).eq('user_id',user.id).order('ordem')
@@ -67,10 +73,27 @@ export default function GerenciarItensDoCatalogo(){
   }
 
   function novoItem(){
-    setItens(prev=>[...prev,{id:'novo-'+Date.now(),user_id:userId,catalogo_id:catalogoId,titulo:'',descricao_curta:'',descricao_completa:'',preco:'',imagem_url:'',botao_texto:'Ver mais',tipo_destino:'link',destino_url:'',whatsapp:'',ativo:true,ordem:prev.length,_novo:true}])
+    setItens(prev=>[...prev,{id:'novo-'+Date.now(),user_id:userId,catalogo_id:catalogoId,titulo:'',descricao_curta:'',descricao_completa:'',preco:'',imagem_url:'',botao_texto:'Ver mais',tipo_destino:'link',destino_url:'',whatsapp:'',mensagem_whatsapp:'',ativo:true,ordem:prev.length,_novo:true}])
+  }
+  function mensagemPadrao(titulo:string){
+    return `Olá! Quero saber mais sobre: ${titulo||''}`
   }
   function editarItem(id:string,campo:string,valor:any){
-    setItens(prev=>prev.map(it=>it.id===id?{...it,[campo]:valor}:it))
+    setItens(prev=>prev.map(it=>{
+      if(it.id!==id)return it
+      const atualizado={...it,[campo]:valor}
+      // Se o titulo mudou e a mensagem ainda esta "no automatico" (vazia ou igual ao padrao
+      // gerado com o titulo ANTIGO), atualiza a mensagem junto. Se o usuario ja customizou a
+      // mensagem manualmente (digitou algo diferente do padrao), nunca sobrescreve.
+      if(campo==='titulo'){
+        const mensagemAtual=(it.mensagem_whatsapp||'').trim()
+        const aindaEhAutomatica=!mensagemAtual||mensagemAtual===mensagemPadrao(it.titulo).trim()
+        if(aindaEhAutomatica){
+          atualizado.mensagem_whatsapp=mensagemPadrao(valor)
+        }
+      }
+      return atualizado
+    }))
   }
 
   async function gerarPrevia(it:any){
@@ -141,6 +164,7 @@ export default function GerenciarItensDoCatalogo(){
       tipo_destino:it.tipo_destino||'link',
       destino_url:it.tipo_destino==='whatsapp'?null:(it.destino_url?.trim()||null),
       whatsapp:it.tipo_destino==='whatsapp'?(it.whatsapp?.trim()||null):null,
+      mensagem_whatsapp:it.tipo_destino==='whatsapp'?(it.mensagem_whatsapp?.trim()||null):null,
       ativo:!!it.ativo,
       ordem:it.ordem||0,
     }
@@ -254,8 +278,14 @@ export default function GerenciarItensDoCatalogo(){
                     <div>
                       <label className="lbl">Tipo de destino</label>
                       <select className="inp" style={{cursor:'pointer'}} value={it.tipo_destino||'link'} onChange={e=>editarItem(it.id,'tipo_destino',e.target.value)}>
-                        {TIPOS_DESTINO.map(t=><option key={t} value={t}>{NOME_TIPO[t]}</option>)}
+                        {TIPOS_DESTINO
+                          .filter(t=>t!=='whatsapp'||permiteCatalogoWhatsapp(planoTipo)||it.tipo_destino==='whatsapp')
+                          .map(t=><option key={t} value={t}>{NOME_TIPO[t]}</option>)}
                       </select>
+                      <p style={{fontSize:'10px',color:'#B8AAB8',marginTop:'6px'}}>Escolha <strong>WhatsApp</strong> se quiser que a pessoa fale direto com você sobre esse item. Escolha um dos outros tipos se o item já tem uma página própria (produto, curso, link de afiliado, etc.).</p>
+                      {!permiteCatalogoWhatsapp(planoTipo) && (
+                        <p style={{fontSize:'10px',color:'#B8AAB8',marginTop:'6px'}}>WhatsApp no catálogo está disponível nos planos Loja, Pro e Equipe.</p>
+                      )}
                     </div>
                     <div><label className="lbl">Texto do botão</label><input className="inp" value={it.botao_texto||''} onChange={e=>editarItem(it.id,'botao_texto',e.target.value)} placeholder="Ver mais"/></div>
                   </div>
@@ -265,12 +295,17 @@ export default function GerenciarItensDoCatalogo(){
                       <>
                         <label className="lbl">Número de WhatsApp</label>
                         <input className="inp" value={it.whatsapp||''} onChange={e=>editarItem(it.id,'whatsapp',e.target.value)} placeholder="(11) 99999-9999"/>
-                        <p style={{fontSize:'11px',color:'#B8AAB8',marginTop:'6px'}}>Ao clicar, abre o WhatsApp com a mensagem: &quot;Olá! Quero saber mais sobre: {it.titulo||'(título do item)'}&quot;</p>
+                        <label className="lbl" style={{marginTop:'12px'}}>Mensagem automática</label>
+                        <textarea className="inp" value={it.mensagem_whatsapp||''} onChange={e=>editarItem(it.id,'mensagem_whatsapp',e.target.value)} placeholder={mensagemPadrao(it.titulo||'(título do item)')} rows={2}/>
+                        <p style={{fontSize:'11px',color:'#B8AAB8',marginTop:'6px'}}>Preenchida automaticamente com o título do item — você pode editar como quiser.</p>
                       </>
                     ):(
                       <>
                         <label className="lbl">Link do produto, música, vídeo ou página</label>
                         <input className="inp" value={it.destino_url||''} onChange={e=>editarItem(it.id,'destino_url',e.target.value)} placeholder="https://..."/>
+                        {/wa\.me|whatsapp\.com/i.test(it.destino_url||'') && (
+                          <p style={{fontSize:'11px',color:'#FACC15',marginTop:'6px'}}>Para rastrear como clique no WhatsApp e enviar mensagem automática, escolha o tipo WhatsApp.</p>
+                        )}
                         <button type="button" onClick={()=>gerarPrevia(it)} disabled={gerandoPreviaId===it.id} style={{marginTop:'8px',background:'rgba(139,92,246,.12)',border:'1px solid rgba(139,92,246,.28)',color:'#C4B5FD',borderRadius:'8px',padding:'7px 14px',fontSize:'12px',fontWeight:700,cursor:gerandoPreviaId===it.id?'wait':'pointer',fontFamily:'inherit',opacity:gerandoPreviaId===it.id?.7:1}}>{gerandoPreviaId===it.id?'Buscando prévia...':'Gerar prévia pelo link'}</button>
                         <p style={{fontSize:'11px',color:'#B8AAB8',marginTop:'6px'}}>Tenta preencher título, descrição, imagem e tipo automaticamente. Você pode editar tudo depois.</p>
                       </>

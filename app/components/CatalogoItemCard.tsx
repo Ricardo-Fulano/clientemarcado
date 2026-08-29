@@ -1,10 +1,11 @@
 'use client'
 import { useState } from 'react'
+import { registrarEvento } from '../lib/analyticsClient'
 
 // Card compacto do carrossel + modal de detalhes ao clicar. Client Component porque a
 // pagina publica (app/[slug]/page.tsx) e Server Component e nao pode ter onClick/useState.
 export default function CatalogoItemCard({
-  item, iconeBorder, accent, text, textMuted, cardBg,
+  item, iconeBorder, accent, text, textMuted, cardBg, perfilId,
 }: {
   item: {
     id: string
@@ -17,28 +18,56 @@ export default function CatalogoItemCard({
     tipo_destino?: string | null
     destino_url?: string | null
     whatsapp?: string | null
+    mensagem_whatsapp?: string | null
   }
   iconeBorder: string
   accent: string
   text: string
   textMuted: string
   cardBg: string
+  perfilId: string
 }) {
   const [aberto, setAberto] = useState(false)
   const [imgComErro, setImgComErro] = useState(false)
 
   const fBRL = (v: number) => `R$ ${v.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`
 
-  function montarLinkWhatsapp(numero: string, titulo: string) {
+  function montarLinkWhatsapp(numero: string, titulo: string, mensagemCustomizada?: string | null) {
     const somenteDigitos = (numero || '').replace(/\D/g, '')
     const comDDI = somenteDigitos.startsWith('55') ? somenteDigitos : `55${somenteDigitos}`
-    const mensagem = encodeURIComponent(`Olá! Quero saber mais sobre: ${titulo}`)
+    const textoBase = mensagemCustomizada?.trim() || `Olá! Quero saber mais sobre: ${titulo}`
+    const mensagem = encodeURIComponent(textoBase)
     return `https://wa.me/${comDDI}?text=${mensagem}`
   }
 
   function abrirDestino() {
-    if (item.tipo_destino === 'whatsapp' && item.whatsapp) {
-      window.open(montarLinkWhatsapp(item.whatsapp, item.titulo), '_blank')
+    const ehWhatsapp = item.tipo_destino === 'whatsapp' && !!item.whatsapp
+    const linkWpp = ehWhatsapp ? montarLinkWhatsapp(item.whatsapp!, item.titulo, item.mensagem_whatsapp) : null
+
+    // 1 catalogo_click sempre, representando o clique no botao principal do item.
+    registrarEvento({
+      perfil_id: perfilId,
+      tipo_evento: 'catalogo_click',
+      item_id: item.id,
+      item_titulo: item.titulo,
+      item_url: ehWhatsapp ? (linkWpp || undefined) : (item.destino_url || undefined),
+      origem: 'pagina_publica',
+      metadata: { acao: 'botao_principal', preco: item.preco ?? null, tipo_destino: item.tipo_destino || null },
+    })
+
+    if (ehWhatsapp && linkWpp) {
+      // Evento ADICIONAL especifico de WhatsApp - nao substitui o catalogo_click acima,
+      // soma a ele (permite medir cliques gerais no catalogo E cliques especificos no WhatsApp).
+      registrarEvento({
+        perfil_id: perfilId,
+        tipo_evento: 'whatsapp_click',
+        item_id: item.id,
+        item_titulo: item.titulo,
+        item_url: linkWpp,
+        origem: 'catalogo',
+        metadata: { acao: 'whatsapp_catalogo', preco: item.preco ?? null, tipo_destino: 'whatsapp' },
+      })
+      window.open(linkWpp, '_blank')
       return
     }
     if (item.destino_url) {
@@ -50,7 +79,18 @@ export default function CatalogoItemCard({
     <>
       <button
         type="button"
-        onClick={() => setAberto(true)}
+        onClick={() => {
+          setAberto(true)
+          registrarEvento({
+            perfil_id: perfilId,
+            tipo_evento: 'catalogo_click',
+            item_id: item.id,
+            item_titulo: item.titulo,
+            item_url: item.destino_url || undefined,
+            origem: 'pagina_publica',
+            metadata: { acao: 'abrir_card', preco: item.preco ?? null, tipo_destino: item.tipo_destino || null },
+          })
+        }}
         className="catalogo-card"
         style={{ border: `1px solid ${iconeBorder}`, background: cardBg, textAlign: 'left', cursor: 'pointer', font: 'inherit', color: 'inherit', padding: 0, flexShrink: 0 }}
       >

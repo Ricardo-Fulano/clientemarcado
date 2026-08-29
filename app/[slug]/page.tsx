@@ -264,7 +264,7 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
     supabase.from('pagina_videos').select('*').eq('user_id', perfil.user_id).eq('ativo', true).order('ordem').order('created_at'),
     supabase.from('pagina_eventos').select('*').eq('user_id', perfil.user_id).eq('ativo', true).order('ordem').order('created_at'),
     supabase.from('pagina_catalogos').select('id,titulo,subtitulo').eq('user_id', perfil.user_id).eq('ativo', true).order('ordem'),
-    supabase.from('pagina_catalogo_itens').select('id,catalogo_id,titulo,descricao_curta,descricao_completa,preco,imagem_url,botao_texto,tipo_destino,destino_url,whatsapp').eq('user_id', perfil.user_id).eq('ativo', true).order('ordem').order('created_at'),
+    supabase.from('pagina_catalogo_itens').select('id,catalogo_id,titulo,descricao_curta,descricao_completa,preco,imagem_url,botao_texto,tipo_destino,destino_url,whatsapp,mensagem_whatsapp').eq('user_id', perfil.user_id).eq('ativo', true).order('ordem').order('created_at'),
   ])
 
   // Agrupa os itens (ja filtrados por ativo=true) por catalogo, e mantem so os catalogos
@@ -646,6 +646,7 @@ videos && videos.length > 0 && permiteVideos(perfil.plano_tipo) && (() => {
                             text={tema.text}
                             textMuted={tema.textMuted}
                             cardBg={tema.card}
+                            perfilId={perfil.id}
                           />
                         ))}
                       </div>
