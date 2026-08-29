@@ -6,8 +6,9 @@ import { Mail } from 'lucide-react'
 // diferente dos outros links (que so abrem um href), esse aqui copia o e-mail pro
 // clipboard e mostra um toast - isso exige onClick/useState, que Server Component nao permite.
 export default function EmailLinkCard({
-  email, titulo, descricao, iconeBg, iconeBorder, iconeCor, setaCor, textoCopiado,
+  itemId, email, titulo, descricao, iconeBg, iconeBorder, iconeCor, setaCor, textoCopiado,
 }: {
+  itemId?: string
   email: string
   titulo: string
   descricao?: string | null
@@ -36,7 +37,7 @@ export default function EmailLinkCard({
   }
 
   return (
-    <button type="button" onClick={copiarEmail} className="crd link-card" style={{ textDecoration: 'none', color: 'inherit', border: `1px solid ${iconeBorder}`, width: '100%', textAlign: 'left', cursor: 'pointer', font: 'inherit', margin: 0 }}>
+    <button type="button" onClick={copiarEmail} className="crd link-card" style={{ textDecoration: 'none', color: 'inherit', border: `1px solid ${iconeBorder}`, width: '100%', textAlign: 'left', cursor: 'pointer', font: 'inherit', margin: 0 }} data-track-tipo="link_rapido_click" data-track-item-id={itemId} data-track-item-titulo={titulo} data-track-item-url={`mailto:${email}`}>
       <div className="link-icon" style={{ background: iconeBg, border: `1px solid ${iconeBorder}`, color: iconeCor }}>
         <Mail size={21} color={iconeCor} />
       </div>

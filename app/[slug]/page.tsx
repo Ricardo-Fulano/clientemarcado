@@ -11,8 +11,10 @@ import { Zap, CalendarDays, CheckCircle, Sparkles, GraduationCap, Crown, Globe, 
 import EmailLinkCard from '../components/EmailLinkCard'
 import CatalogoItemCard from '../components/CatalogoItemCard'
 import VideoItemCard from '../components/VideoItemCard'
+import RegistrarPageView from '../components/RegistrarPageView'
+import RegistradorDeCliques from '../components/RegistradorDeCliques'
 import { resolverTema, getTema } from '../lib/tema-publico'
-import { ehPlanoMiniPage } from '../lib/planos'
+import { ehPlanoComGestao, permiteVideos, permiteDestaques, permiteAgendaEventos, obterLimiteCatalogos, obterLimiteLinksRapidos } from '../lib/planos'
 
 const inter = Inter({ subsets: ['latin'], weight: ['400', '500', '600', '700'], display: 'swap' })
 
@@ -241,8 +243,7 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
   const t = getDicionario(idiomaVisitante)
   // Aceita tanto /gabigasparotti quanto /@gabigasparotti (link curto do minipage.pro) — mesmo perfil
   const slug = slugBruto.startsWith('@') ? slugBruto.slice(1) : slugBruto
-  const { data: perfil, error: erroPerfilDebug } = await supabase.from('perfis').select('*').eq('slug', slug).single()
-  console.log('[DEBUG PERFIL]', { slug, temPerfil: !!perfil, erro: erroPerfilDebug })
+  const { data: perfil } = await supabase.from('perfis').select('*').eq('slug', slug).single()
   if (!perfil) return notFound()
   // Buscar capa padrao dinamicamente pelos slugs de referencia
   let capaFallback = ''
@@ -268,9 +269,14 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
 
   // Agrupa os itens (ja filtrados por ativo=true) por catalogo, e mantem so os catalogos
   // que realmente tem pelo menos 1 item pra mostrar - catalogo vazio nao ocupa espaco.
+  // Depois, respeita o limite de catalogos do plano atual na EXIBICAO publica (mesma regra
+  // ja usada pra bloquear criacao no painel) - nunca apaga/desativa dado nenhum no banco,
+  // so nao renderiza catalogos alem do que o plano permite mostrar.
+  const limiteCatalogosPublico = obterLimiteCatalogos(perfil.plano_tipo)
   const catalogosComItens = (catalogosAtivos || [])
     .map((cat: any) => ({ ...cat, itens: (catalogoItensTodos || []).filter((it: any) => it.catalogo_id === cat.id) }))
     .filter((cat: any) => cat.itens.length > 0)
+    .slice(0, limiteCatalogosPublico)
 
   const temaId = resolverTema(perfil.public_theme || perfil.tema_publico || perfil.tema_cor || 'modelo2')
   const tema = getTema(temaId)
@@ -292,7 +298,7 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
   const fotoPerfilUrl = perfil.foto_perfil_url || ''
   const tituloBotaoAgenda = perfil.pagina_titulo_botao_agenda || t.agendarAgora
   // Toggles: null/undefined = comportamento antigo (tudo visivel)
-  const mostrarAgenda = perfil.pagina_mostrar_agenda !== false && !ehPlanoMiniPage(perfil.plano_tipo)
+  const mostrarAgenda = perfil.pagina_mostrar_agenda !== false && ehPlanoComGestao(perfil.plano_tipo)
   const mostrarServicos = perfil.pagina_mostrar_servicos !== false
   const mostrarEquipe = perfil.pagina_mostrar_equipe !== false
   const mostrarPorQueAgendar = perfil.pagina_mostrar_por_que_agendar !== false
@@ -411,6 +417,9 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
         }
       ` }} />
 
+      <RegistrarPageView perfilId={perfil.id} />
+      <RegistradorDeCliques perfilId={perfil.id} />
+
       {/* CONTEUDO */}
       <div className="wrap" style={{ paddingTop: '20px', paddingBottom: '60px' }}>
 
@@ -443,7 +452,7 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
               {linksSociais.map(l => {
                 const cfg = iconeLink(detectarTipoPorUrl(l.url) || l.tipo)
                 return (
-                  <a key={l.id} href={l.url} target={l.url && l.url.startsWith('http') ? '_blank' : '_self'} rel="noopener noreferrer" className="social-ic" style={{ background: iconeBg, border: `1px solid ${iconeBorder}`, color: iconeCor }} aria-label={l.titulo}>
+                  <a key={l.id} href={l.url} target={l.url && l.url.startsWith('http') ? '_blank' : '_self'} rel="noopener noreferrer" className="social-ic" style={{ background: iconeBg, border: `1px solid ${iconeBorder}`, color: iconeCor }} aria-label={l.titulo} data-track-tipo="social_click" data-track-item-titulo={l.titulo} data-track-item-url={l.url}>
                     {cfg.svg ? cfg.svg : (cfg.I ? <cfg.I size={16} color={iconeCor} /> : null)}
                   </a>
                 )
@@ -472,7 +481,7 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
               {perfil.promocao_preco_antigo && <p style={{ fontSize: '12px', color: 'var(--text-muted)', textDecoration: 'line-through', margin: 0 }}>De {fBRL(parseFloat(perfil.promocao_preco_antigo))}</p>}
               <p style={{ fontSize: '24px', fontWeight: 900, color: tema.accent, margin: 0 }}>{fBRL(parseFloat(perfil.promocao_preco_novo))}</p>
-              <Link href={`/${slug}/agendar`} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: `linear-gradient(135deg,${tema.accent},${tema.accent2},${tema.secondary})`, color: tema.btnText, fontWeight: 800, padding: '11px 22px', borderRadius: '12px', textDecoration: 'none', fontSize: '14px', boxShadow: `0 8px 24px ${tema.glow}`, whiteSpace: 'nowrap' }}>
+              <Link href={`/${slug}/agendar`} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: `linear-gradient(135deg,${tema.accent},${tema.accent2},${tema.secondary})`, color: tema.btnText, fontWeight: 800, padding: '11px 22px', borderRadius: '12px', textDecoration: 'none', fontSize: '14px', boxShadow: `0 8px 24px ${tema.glow}`, whiteSpace: 'nowrap' }} data-track-tipo="agendar_click" data-track-item-titulo={perfil.promocao_botao_texto || t.agendarPromocao} data-track-item-url={`/${slug}/agendar`}>
                 {perfil.promocao_botao_texto || t.agendarPromocao} →
               </Link>
             </div>
@@ -493,7 +502,7 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
           const secoesMap: Record<string, ReactNode> = {
             destaques: (
 // * DESTAQUES DA PAGINA
-destaques && destaques.length > 0 && (
+destaques && destaques.length > 0 && permiteDestaques(perfil.plano_tipo) && (
           <div style={{ marginBottom: '28px' }}>
             <div className={`destaque-grid cols-${Math.min(destaques.length, 3)}`}>
               {destaques.map(d => {
@@ -535,7 +544,7 @@ destaques && destaques.length > 0 && (
           <div style={{ marginBottom: '32px' }}>
             <div className="link-grid">
               {mostrarAgendaFallback && (
-                <a href={`/${slug}/agendar`} className="crd link-card" style={{ textDecoration: 'none', color: 'inherit', border: cardBorderFinal, boxShadow: cardShadowNeon }}>
+                <a href={`/${slug}/agendar`} className="crd link-card" style={{ textDecoration: 'none', color: 'inherit', border: cardBorderFinal, boxShadow: cardShadowNeon }} data-track-tipo="agendar_click" data-track-item-titulo={tituloBotaoAgenda} data-track-item-url={`/${slug}/agendar`}>
                   <div className="link-icon" style={{ background: iconeBg, border: `1px solid ${iconeBorder}` }}>
                     <Calendar size={21} color={iconeCor} />
                   </div>
@@ -546,18 +555,18 @@ destaques && destaques.length > 0 && (
                   <span className="link-arrow" style={{ color: setaCor }}>›</span>
                 </a>
               )}
-              {linksRapidos && linksRapidos.map(l => {
+              {linksRapidos && linksRapidos.slice(0, obterLimiteLinksRapidos(perfil.plano_tipo)).map(l => {
                 const tipoEfetivo = detectarTipoPorUrl(l.url) || l.tipo
                 if (tipoEfetivo === 'email') {
                   const emailPuro = (l.url || '').replace(/^mailto:/i, '').trim()
                   return (
-                    <EmailLinkCard key={l.id} email={emailPuro} titulo={l.titulo || 'E-mail'} descricao={l.descricao} iconeBg={iconeBg} iconeBorder={iconeBorder} iconeCor={iconeCor} setaCor={setaCor} textoCopiado={t.emailCopiado} />
+                    <EmailLinkCard key={l.id} itemId={l.id} email={emailPuro} titulo={l.titulo || 'E-mail'} descricao={l.descricao} iconeBg={iconeBg} iconeBorder={iconeBorder} iconeCor={iconeCor} setaCor={setaCor} textoCopiado={t.emailCopiado} />
                   )
                 }
                 const cfg = iconeLink(tipoEfetivo)
                 const hrefFinal = urlFinalLink(l)
                 return (
-                  <a key={l.id} href={hrefFinal} target={hrefFinal.startsWith('http') ? '_blank' : '_self'} rel="noopener noreferrer" className="crd link-card" style={{ textDecoration: 'none', color: 'inherit', border: cardBorderFinal, boxShadow: cardShadowNeon }}>
+                  <a key={l.id} href={hrefFinal} target={hrefFinal.startsWith('http') ? '_blank' : '_self'} rel="noopener noreferrer" className="crd link-card" style={{ textDecoration: 'none', color: 'inherit', border: cardBorderFinal, boxShadow: cardShadowNeon }} data-track-tipo="link_rapido_click" data-track-item-id={l.id} data-track-item-titulo={l.titulo || ''} data-track-item-url={hrefFinal}>
                     <div className="link-icon" style={{ background: iconeBg, border: `1px solid ${iconeBorder}`, color: iconeCor }}>
                       {cfg.svg ? cfg.svg : (cfg.I ? <cfg.I size={21} color={iconeCor} /> : null)}
                     </div>
@@ -575,7 +584,7 @@ destaques && destaques.length > 0 && (
             ),
             agenda: (
 // * AGENDA / EVENTOS: aparece so se houver pelo menos 1 evento ativo. Fica entre Links Rapidos e Videos.
-eventos && eventos.length > 0 && (
+eventos && eventos.length > 0 && permiteAgendaEventos(perfil.plano_tipo) && (
           <div style={{ marginBottom: '28px' }}>
             <p style={{ fontSize: '20px', fontWeight: 900, color: 'var(--text)', letterSpacing: '-0.02em', marginBottom: '14px' }}>{t.agendaEventos}</p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -591,7 +600,7 @@ eventos && eventos.length > 0 && (
             ),
             videos: (
 // * VIDEOS EM DESTAQUE: aparece somente se houver pelo menos 1 video ativo. Fica depois de Links Rapidos.
-videos && videos.length > 0 && (() => {
+videos && videos.length > 0 && permiteVideos(perfil.plano_tipo) && (() => {
           return (
             <div style={{ marginBottom: '28px' }}>
               <p style={{ fontSize: '20px', fontWeight: 900, color: 'var(--text)', letterSpacing: '-0.02em', marginBottom: '6px' }}>{t.videosEmDestaque}</p>
