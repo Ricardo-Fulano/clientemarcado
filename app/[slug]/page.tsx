@@ -527,7 +527,7 @@ destaques && destaques.length > 0 && permiteDestaques(perfil.plano_tipo) && (
                   </div>
                 )
                 return d.url ? (
-                  <a key={d.id} href={d.url} target={d.url.startsWith('http') ? '_blank' : '_self'} rel="noopener noreferrer" className="destaque-item" style={{ textDecoration: 'none', color: 'inherit' }}>
+                  <a key={d.id} href={d.url} target={d.url.startsWith('http') ? '_blank' : '_self'} rel="noopener noreferrer" className="destaque-item" style={{ textDecoration: 'none', color: 'inherit' }} data-track-tipo="destaque_click" data-track-item-id={d.id} data-track-item-titulo={d.titulo || ''} data-track-item-url={d.url}>
                     {conteudo}
                   </a>
                 ) : (

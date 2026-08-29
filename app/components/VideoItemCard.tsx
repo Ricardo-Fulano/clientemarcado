@@ -37,7 +37,7 @@ export default function VideoItemCard({
   return (
     <>
       <div className="crd video-card fmt-horizontal" style={{ border: cardBorderFinal, boxShadow: cardShadowNeon }}>
-        <a href={v.url_video} target={v.abrir_nova_aba === false ? '_self' : '_blank'} rel="noopener noreferrer" className="video-thumb-wrap" style={{ aspectRatio: '16/9' }} onClick={abrirCard}>
+        <a href={v.url_video} target={v.abrir_nova_aba === false ? '_self' : '_blank'} rel="noopener noreferrer" className="video-thumb-wrap" style={{ aspectRatio: '16/9' }} onClick={abrirCard} data-track-tipo="video_click" data-track-item-id={v.id} data-track-item-titulo={v.titulo || ''} data-track-item-url={v.url_video}>
           {thumb ? (
             <img src={thumb} alt={v.titulo} loading="lazy" decoding="async" />
           ) : (
@@ -53,11 +53,11 @@ export default function VideoItemCard({
           {v.descricao && <p className="video-desc" style={{ fontSize: '12px', color: 'var(--text-muted)', lineHeight: 1.4 }}>{v.descricao}</p>}
           <div className="video-btns">
             {v.link_destino && (
-              <a href={v.link_destino} target="_blank" rel="noopener noreferrer" className="video-cta" style={{ background: tema.accent, color: tema.btnText }}>
+              <a href={v.link_destino} target="_blank" rel="noopener noreferrer" className="video-cta" style={{ background: tema.accent, color: tema.btnText }} data-track-tipo="video_click" data-track-item-id={v.id} data-track-item-titulo={v.titulo || ''} data-track-item-url={v.link_destino}>
                 {v.texto_cta || textoSaibaMais}
               </a>
             )}
-            <a href={v.url_video} target={v.abrir_nova_aba === false ? '_self' : '_blank'} rel="noopener noreferrer" className="video-assistir" style={{ border: `1px solid ${iconeBorder}`, color: iconeCor }}>
+            <a href={v.url_video} target={v.abrir_nova_aba === false ? '_self' : '_blank'} rel="noopener noreferrer" className="video-assistir" style={{ border: `1px solid ${iconeBorder}`, color: iconeCor }} data-track-tipo="video_click" data-track-item-id={v.id} data-track-item-titulo={v.titulo || ''} data-track-item-url={v.url_video}>
               {v.texto_botao_video || textoAssistir}
             </a>
           </div>
