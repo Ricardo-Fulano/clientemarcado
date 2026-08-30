@@ -1,25 +1,8 @@
 'use client'
-import { useState, Suspense } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
-import { normalizarPlano, obterNomePlano, obterPrecoPlano, type PlanoTipo } from '../lib/planos'
-
-const CLAUSULAS = [
-  { t: '1. Contratante', c: 'Pessoa física ou jurídica que realiza o cadastro e utiliza a plataforma ClienteMarcado.' },
-  { t: '2. Contratada', c: 'ClienteMarcado, plataforma digital de gestão para pequenos negócios.' },
-  { t: '3. Objeto', c: 'Disponibilização de acesso a plataforma ClienteMarcado para gestão de agenda, clientes, servicos, profissionais, orçamentos, cobranças, pagamentos, relatórios e página pública de agendamento.' },
-  { t: '4. Plano', c: 'Plano ClienteMarcado no valor de R$ 79,90/mês, com 7 dias grátis, sem fidelidade.' },
-  { t: '5. Teste grátis', c: 'O contratante poderá utilizar a plataforma por 7 dias gratuitamente. Após esse período, poderá ocorrer cobranca da assinatura mensal, caso o cancelamento não seja realizado.' },
-  { t: '6. Pagamento', c: 'O pagamento da assinatura sera feito conforme a forma de pagamento escolhida no momento da contratação.' },
-  { t: '7. Cancelamento', c: 'O contratante poderá cancelar a assinatura quando desejar, respeitando as regras apresentadas no fluxo de contratação.' },
-  { t: '8. Uso da plataforma', c: 'O contratante deve utilizar a plataforma de forma lícita, correta e responsável, mantendo seus dados atualizados.' },
-  { t: '9. Dados cadastrados', c: 'O contratante e responsável pelos dados dos clientes, pacientes, profissionais, servicos, valores, horários, orçamentos e pagamentos inseridos no sistema.' },
-  { t: '10. Limitacao de responsabilidade', c: 'O ClienteMarcado e uma ferramenta de organização e gestão. A plataforma não substitui consultoria contábil, jurídica, fiscal, odontológica, medica ou financeira.' },
-  { t: '11. Suporte', c: 'O suporte sera fornecido conforme os canais disponíveis pela plataforma.' },
-  { t: '12. Aceite eletronico', c: 'O aceite eletronico por checkbox, botao de confirmacao ou continuidade no cadastro tera validade como manifestação de concordância com este contrato.' },
-  { t: '13. Atualizacoes', c: 'O ClienteMarcado poderá atualizar este contrato, funcionalidades e condições da plataforma.' },
-  { t: '14. Foro', c: 'As partes elegem o foro competente conforme a legislacao aplicável, salvo disposição legal em contrário.' },
-]
+import { normalizarPlano, obterNomePlano, obterPrecoPlano, ehPlanoFree, type PlanoTipo } from '../lib/planos'
 
 const CSS = `
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -71,11 +54,39 @@ function AceitePlanoConteudo() {
   const searchParams = useSearchParams()
   const planoParam = searchParams.get('plano')
   const planoValido = normalizarPlano(planoParam)
+
+  // Free nunca tem cobranca, trial nem contrato de plano pago - nao faz sentido passar por
+  // essa tela. Redireciona direto pro cadastro, sem exibir nada do fluxo de aceite pago.
+  useEffect(() => {
+    if (ehPlanoFree(planoValido)) {
+      window.location.href = '/cadastro?plano=free'
+    }
+  }, [planoValido])
+
   const plano = {
     nome: `Plano ${obterNomePlano(planoValido)}`,
     preco: `R$ ${obterPrecoPlano(planoValido).toLocaleString('pt-BR', { minimumFractionDigits: 2 }).replace('.', ',')}`,
     beneficios: BENEFICIOS_POR_PLANO[planoValido] || [],
   }
+
+  // Contrato dinamico: nome/preco corretos conforme o plano, sempre um plano PAGO nesse ponto
+  // (Free ja foi redirecionado acima antes de chegar aqui).
+  const CLAUSULAS = [
+    { t: '1. Contratante', c: 'Pessoa física ou jurídica que realiza o cadastro e utiliza a plataforma MiniPage Pro.' },
+    { t: '2. Contratada', c: 'MiniPage Pro, uma solução ClienteMarcado, plataforma digital para criação de página profissional e gestão de pequenos negócios.' },
+    { t: '3. Objeto', c: 'Disponibilização de acesso à plataforma MiniPage Pro, uma solução ClienteMarcado, para criação de página profissional, divulgação de links, redes sociais, conteúdos, vídeos, catálogos, contatos, análise de desempenho e, conforme o plano contratado, recursos de agenda, clientes, cobranças, financeiro, relatórios e equipe.' },
+    { t: '4. Plano', c: `${plano.nome} no valor de ${plano.preco}/mês, com 7 dias grátis, sem fidelidade.` },
+    { t: '5. Teste grátis', c: 'O contratante poderá utilizar a plataforma por 7 dias gratuitamente. Após esse período, poderá ocorrer cobranca da assinatura mensal, caso o cancelamento não seja realizado.' },
+    { t: '6. Pagamento', c: 'O pagamento da assinatura sera feito conforme a forma de pagamento escolhida no momento da contratação.' },
+    { t: '7. Cancelamento', c: 'O contratante poderá cancelar a assinatura quando desejar, respeitando as regras apresentadas no fluxo de contratação.' },
+    { t: '8. Uso da plataforma', c: 'O contratante deve utilizar a plataforma de forma lícita, correta e responsável, mantendo seus dados atualizados.' },
+    { t: '9. Dados cadastrados', c: 'O contratante é responsável pelos dados, links, imagens, descrições, produtos, conteúdos, contatos, clientes, serviços, valores, horários, orçamentos e pagamentos inseridos na plataforma, conforme os recursos disponíveis em seu plano.' },
+    { t: '10. Limitacao de responsabilidade', c: 'O ClienteMarcado e uma ferramenta de organização e gestão. A plataforma não substitui consultoria contábil, jurídica, fiscal, odontológica, medica ou financeira.' },
+    { t: '11. Suporte', c: 'O suporte sera fornecido conforme os canais disponíveis pela plataforma.' },
+    { t: '12. Aceite eletronico', c: 'O aceite eletronico por checkbox, botao de confirmacao ou continuidade no cadastro tera validade como manifestação de concordância com este contrato.' },
+    { t: '13. Atualizacoes', c: 'O ClienteMarcado poderá atualizar este contrato, funcionalidades e condições da plataforma.' },
+    { t: '14. Foro', c: 'As partes elegem o foro competente conforme a legislacao aplicável, salvo disposição legal em contrário.' },
+  ]
   const [c1, setC1] = useState(false)
   const [c2, setC2] = useState(false)
   const [c3, setC3] = useState(false)
@@ -94,6 +105,10 @@ function AceitePlanoConteudo() {
     } catch (_) {}
     window.location.href = '/cadastro'
   }
+
+  // Enquanto redireciona o Free (useEffect acima), nao renderiza nada do fluxo de aceite
+  // pago - evita qualquer flash do contrato/aviso de cobranca antes do redirect completar.
+  if (ehPlanoFree(planoValido)) return null
 
   return (
     <div className="pg">

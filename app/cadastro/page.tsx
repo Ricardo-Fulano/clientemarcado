@@ -114,7 +114,11 @@ export default function Cadastro() {
     if (aceitou && typeof window !== 'undefined') {
       localStorage.setItem('clienteMarcadoAceitePlano', 'true')
     }
-    const planoSalvo = typeof window !== 'undefined' ? localStorage.getItem('cm_plano') : null
+    // Le o plano tanto da URL (?plano=X - usado pelo fluxo novo do Free, que vai direto pro
+    // cadastro sem passar por /aceite-plano) quanto do localStorage (fluxo de planos pagos,
+    // que passa por /aceite-plano antes) - a URL tem prioridade quando presente.
+    const planoDaUrl = typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('plano') : null
+    const planoSalvo = planoDaUrl || (typeof window !== 'undefined' ? localStorage.getItem('cm_plano') : null)
     const planoTipo = normalizarPlano(planoSalvo)
     setLoading(true)
     setMensagem('')

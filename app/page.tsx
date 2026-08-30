@@ -186,7 +186,7 @@ export default function Home() {
                   </div>
                 ))}
               </div>
-              <Link href="/aceite-plano?plano=free" className="btn-s" style={{width:'100%',justifyContent:'center',height:'46px',fontSize:'13px'}}>
+              <Link href="/cadastro?plano=free" className="btn-s" style={{width:'100%',justifyContent:'center',height:'46px',fontSize:'13px'}}>
                 Começar grátis
               </Link>
             </div>
