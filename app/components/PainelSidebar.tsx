@@ -5,22 +5,24 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { supabase } from '../lib/supabase'
 import NotificacoesSino from './NotificacoesSino'
-import { ehPlanoMiniPage } from '../lib/planos'
+import { normalizarPlano, ehPlanoComGestao, permiteEquipe, obterLimiteCatalogos } from '../lib/planos'
 
 const ADMIN_ID = '618aedd1-f174-4419-b4b2-b81b8dd1c47e'
 const AV = 'linear-gradient(135deg,rgba(236,72,153,.95),rgba(139,92,246,.85))'
 
 const LINKS = [
   { h: '/painel',               l: 'Início'        },
-  { h: '/painel/agendamentos',  l: 'Agenda'        },
-  { h: '/painel/clientes',      l: 'Clientes'      },
-  { h: '/painel/orcamentos',    l: 'Orçamentos'    },
-  { h: '/painel/cobrancas',     l: 'Cobranças'     },
-  { h: '/painel/financeiro',    l: 'Financeiro'    },
-  { h: '/painel/servicos',      l: 'Serviços'      },
-  { h: '/painel/profissionais', l: 'Profissionais' },
-  { h: '/painel/relatorio',     l: 'Relatórios'    },
-  { h: '/painel/parceiros',     l: 'Parceiros'     },
+  { h: '/painel/desempenho',    l: 'Desempenho'    },
+  { h: '/painel/agendamentos',  l: 'Agenda',        requerGestao: true },
+  { h: '/painel/clientes',      l: 'Clientes',      requerGestao: true },
+  { h: '/painel/orcamentos',    l: 'Orçamentos',    requerGestao: true },
+  { h: '/painel/cobrancas',     l: 'Cobranças',     requerGestao: true },
+  { h: '/painel/financeiro',    l: 'Financeiro',    requerGestao: true },
+  { h: '/painel/servicos',      l: 'Serviços',      requerGestao: true },
+  { h: '/painel/profissionais', l: 'Profissionais', requerEquipe: true },
+  { h: '/painel/relatorio',     l: 'Relatórios',    requerGestao: true },
+  { h: '/painel/perfil/catalogo', l: 'Catálogo',    requerCatalogo: true },
+  { h: '/painel/parceiros',     l: 'Parceiros',     apenasAdmin: true },
   { h: '/painel/suporte',       l: 'Suporte'       },
   { h: '/painel/perfil',        l: 'Configurações' },
   { h: '/painel/plano',         l: 'Meu plano'      },
@@ -59,14 +61,14 @@ export default function PainelSidebar({ nome = '', tituloMobile = 'Painel' }: Pr
   const [isAdmin, setIsAdmin] = useState(false)
   const [role, setRole] = useState<'loading' | 'admin' | 'profissional'>('loading')
   const [nomeProfissionalVinculo, setNomeProfissionalVinculo] = useState('')
-  const [souMiniPage, setSouMiniPage] = useState(false)
+  const [planoAtual, setPlanoAtual] = useState('essencial')
   useEffect(() => {
     supabase.auth.getUser().then(async ({ data: { user } }) => {
       if (!user) return
       if (user.id === ADMIN_ID) setIsAdmin(true)
       // Busca o plano do perfil pra filtrar o menu (Fase 2 - suporte tecnico ao plano MiniPage)
       const { data: perfil } = await supabase.from('perfis').select('plano_tipo').eq('user_id', user.id).maybeSingle()
-      if (perfil) setSouMiniPage(ehPlanoMiniPage(perfil.plano_tipo))
+      if (perfil) setPlanoAtual(normalizarPlano(perfil.plano_tipo))
       const { data: { session } } = await supabase.auth.getSession()
       const token = session?.access_token
       if (!token) { setRole('admin'); return }
@@ -108,17 +110,19 @@ export default function PainelSidebar({ nome = '', tituloMobile = 'Painel' }: Pr
     { h: '/painel/alterar-senha', l: 'Alterar senha' },
   ]
 
-  // Plano MiniPage: so pagina profissional, sem agenda/financeiro/equipe
-  const LINKS_MINIPAGE = [
-    { h: '/painel',        l: 'Início'        },
-    { h: '/painel/suporte',l: 'Suporte'       },
-    { h: '/painel/perfil', l: 'Configurações' },
-    { h: '/painel/plano',  l: 'Meu plano'      },
-  ]
+  // Menu do dono da conta, filtrado dinamicamente conforme o plano - sempre via funcoes
+  // centralizadas de app/lib/planos.ts, nunca comparacao solta tipo plano==='minipage'.
+  const linksDoDono = LINKS.filter(it => {
+    if (it.apenasAdmin) return isAdmin
+    if (it.requerGestao) return ehPlanoComGestao(planoAtual)
+    if (it.requerEquipe) return permiteEquipe(planoAtual)
+    if (it.requerCatalogo) return obterLimiteCatalogos(planoAtual) > 0
+    return true
+  })
 
   const NavLinks = ({ onClick }: { onClick?: () => void }) => (
     <>
-      {(isProfissional ? LINKS_PROFISSIONAL : souMiniPage ? LINKS_MINIPAGE : LINKS.filter(it => it.h !== '/painel/parceiros' || isAdmin)).map(it => (
+      {(isProfissional ? LINKS_PROFISSIONAL : linksDoDono).map(it => (
         <Link key={it.h} href={it.h} onClick={onClick}
           className={'nl' + (ativo(it.h) ? ' on' : '')}>
           {it.l}
