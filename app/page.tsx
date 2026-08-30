@@ -1,57 +1,54 @@
 'use client'
 import Link from 'next/link'
 import { useState, useEffect } from 'react'
-import { CalendarDays, Link2, Users, BarChart3, MessageCircle, Globe, PlayCircle, Megaphone } from 'lucide-react'
 import AssistenteComercial from '@/app/components/AssistenteComercial'
+import { obterNomePlano, obterPrecoPlano } from './lib/planos'
 const CHECKOUT_URL = "https://www.mercadopago.com.br/subscriptions/checkout?preapproval_plan_id=1a0fb25c46214e45b0eb3d21b494e5d6"
 const G = 'linear-gradient(135deg,#EC4899,#D946EF,#8B5CF6)'
-const beneficios = [
-  { I:Globe, c:'#EC4899', bg:'rgba(236,72,153,.10)', bd:'rgba(236,72,153,.22)', titulo:'Página profissional', texto:'Crie uma página moderna com foto, banner, descrição, redes sociais e links importantes.' },
-  { I:Link2, c:'#C4B5FD', bg:'rgba(139,92,246,.10)', bd:'rgba(139,92,246,.22)', titulo:'Links rápidos', texto:'Adicione WhatsApp, Instagram, TikTok, YouTube, cursos, produtos, grupos e muito mais.' },
-  { I:Megaphone, c:'#FB923C', bg:'rgba(251,146,60,.10)', bd:'rgba(251,146,60,.22)', titulo:'Divulgações e publicidades', texto:'Destaque marcas, campanhas, parceiros, publis e links patrocinados na sua página.' },
-  { I:PlayCircle, c:'#4ADE80', bg:'rgba(34,197,94,.10)', bd:'rgba(34,197,94,.22)', titulo:'Vídeos em destaque', texto:'Mostre conteúdos, aulas, depoimentos, bastidores, resultados ou apresentações.' },
-  { I:CalendarDays, c:'#8B5CF6', bg:'rgba(139,92,246,.10)', bd:'rgba(139,92,246,.22)', titulo:'Agenda online', texto:'Permita que clientes escolham serviço, profissional e horário pelo link.' },
-  { I:BarChart3, c:'#FBBF24', bg:'rgba(245,158,11,.10)', bd:'rgba(245,158,11,.22)', titulo:'Painel de gestão', texto:'Acompanhe clientes, agendamentos, cobranças, contatos e resultados em um só lugar.' },
-  { I:Users, c:'#F472B6', bg:'rgba(236,72,153,.10)', bd:'rgba(236,72,153,.22)', titulo:'Equipe profissional', texto:'Controle profissionais e acessos quando seu negócio crescer.' },
-]
-const dores = [
-  { I:Link2, c:'#F87171', bg:'rgba(239,68,68,.10)', bd:'rgba(239,68,68,.20)', titulo:'Links espalhados', texto:'Seu público não encontra WhatsApp, redes, cursos, produtos, serviços e campanhas em um só lugar.' },
-  { I:Megaphone, c:'#FBBF24', bg:'rgba(245,158,11,.10)', bd:'rgba(245,158,11,.20)', titulo:'Divulgações sem destaque', texto:'Publicidades, parcerias e links de venda podem passar despercebidos quando ficam perdidos nos stories ou na bio.' },
-  { I:MessageCircle, c:'#C4B5FD', bg:'rgba(139,92,246,.10)', bd:'rgba(139,92,246,.20)', titulo:'Atendimento desorganizado', texto:'Mensagens, contatos, agendamentos e cobranças ficam espalhados em conversas antigas.' },
+function fPreco(tipo: 'free'|'minipage'|'loja'|'essencial'|'equipe') {
+  const p = obterPrecoPlano(tipo)
+  const [inteiro, decimal] = p.toFixed(2).split('.')
+  return { inteiro, decimal }
+}
+const inclusosFree = [
+  'Até 5 links rápidos',
+  'Foto, bio e redes sociais',
+  'Modelos básicos',
+  'Desempenho básico',
 ]
 const inclusosMiniPage = [
-  'MiniPage profissional',
-  'Link minipage.pro/seunome',
-  'Foto, banner e descrição',
-  'Redes sociais',
-  'Links rápidos',
-  'Cards de destaque',
-  'Vídeos em destaque',
-  'Espaço para divulgações e publicidades',
-  'Botão WhatsApp',
-  '7 dias grátis',
+  'Links ilimitados',
+  'Destaques',
+  'Vídeos',
+  'Agenda/Eventos',
+  '1 catálogo',
+  'Desempenho da página',
+]
+const inclusosLoja = [
+  'Tudo do MiniPage',
+  'Catálogos ilimitados',
+  'WhatsApp no catálogo',
+  'Mensagem automática por item',
+  'Links de venda e achadinhos',
+  'Desempenho por produto/link',
 ]
 const inclusosProfissional = [
-  'Tudo do plano MiniPage',
-  'Agenda online',
-  'Serviços e horários',
-  'Cadastro de clientes',
+  'Tudo do Loja',
+  'Agenda de atendimento',
+  'Clientes',
+  'Orçamentos',
   'Cobranças',
-  'Controle financeiro',
+  'Financeiro',
   'Relatórios',
-  'Até 3 profissionais cadastrados',
-  '7 dias grátis',
+  'Até 3 profissionais',
 ]
 const inclusosEquipe = [
-  'Tudo do plano Profissional',
-  'Até 15 profissionais cadastrados',
-  'Login individual para cada profissional',
-  'Cada profissional vê apenas a própria agenda',
-  'Área "Meu Desempenho" para profissionais',
-  'Administradora com acesso completo',
-  'Financeiro, cobranças e relatórios protegidos',
+  'Tudo do Pro',
+  'Até 15 profissionais',
+  'Login individual por profissional',
+  'Minha agenda',
+  'Meu desempenho',
   'Controle de equipe',
-  '7 dias grátis',
 ]
 export default function Home() {
   const [scrolled, setScrolled] = useState(false)
@@ -118,9 +115,10 @@ export default function Home() {
           </p>
           <div className="hero-btns" style={{display:'flex',gap:'12px',justifyContent:'center',flexWrap:'wrap'}}>
             <Link href="/aceite-plano?plano=minipage" className="btn-p">Criar minha MiniPage grátis</Link>
-            <Link href="/demo" className="btn-s">Ver exemplo</Link>
+            <a href="https://minipage.pro/modelos" className="btn-s">Ver exemplo</a>
           </div>
-          <p style={{fontSize:'12px',color:'#B8AAB8',marginTop:'16px'}}>Teste grátis por 7 dias. Planos a partir de R$ 39,90/mês. Sem fidelidade.</p>
+          <p style={{fontSize:'13px',color:'#B8AAB8',marginTop:'18px'}}>Quer ver exemplos antes de criar? <a href="https://minipage.pro/modelos" style={{color:'#EC4899',fontWeight:600,textDecoration:'none'}}>Veja os melhores modelos</a>.</p>
+          <p style={{fontSize:'12px',color:'#B8AAB8',marginTop:'10px'}}>Teste grátis por 7 dias. Planos a partir de R$ 39,90/mês. Sem fidelidade.</p>
         </div>
 
         {/* MOCKUP VISUAL DA MINIPAGE */}
@@ -152,6 +150,14 @@ export default function Home() {
           </div>
         </div>
       </section>
+      {/* CHAMADA PARA MODELOS REAIS */}
+      <section style={{padding:'60px 24px',textAlign:'center'}}>
+        <div style={{maxWidth:'560px',margin:'0 auto'}}>
+          <h2 style={{fontSize:'clamp(20px,3.5vw,28px)',fontWeight:800,color:'#F8F4F7',letterSpacing:'-0.03em',marginBottom:'12px'}}>Veja a MiniPage funcionando na prática</h2>
+          <p style={{fontSize:'14px',color:'#B8AAB8',lineHeight:1.65,marginBottom:'28px'}}>Explore modelos de páginas para lojas, criadores, artistas, achadinhos, serviços e profissionais.</p>
+          <a href="https://minipage.pro/modelos" className="btn-p">Ver modelos de MiniPage</a>
+        </div>
+      </section>
       {/* PLANO */}
       <section id="plano" style={{padding:'80px 24px',background:'radial-gradient(ellipse at 50% 50%,rgba(139,92,246,.09),transparent 65%)'}}>
         <div style={{maxWidth:'1100px',margin:'0 auto'}}>
@@ -160,125 +166,131 @@ export default function Home() {
             <p style={{fontSize:'15px',color:'#B8AAB8',lineHeight:1.6,maxWidth:'560px',margin:'0 auto'}}>Comece com uma MiniPage para divulgar seu trabalho ou escolha um plano com agenda e gestão para organizar seus atendimentos.</p>
           </div>
 
-          <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(290px,1fr))',gap:'22px',alignItems:'start'}}>
+          <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(230px,1fr))',gap:'18px',alignItems:'start'}}>
+
+            {/* PLANO FREE */}
+            <div style={{background:'radial-gradient(ellipse at top,rgba(139,92,246,.10),transparent 55%),rgba(24,16,27,.97)',border:'1.5px solid #2A1A2F',borderRadius:'22px',padding:'30px 22px',position:'relative' as const}}>
+              <div style={{textAlign:'center',marginBottom:'20px'}}>
+                <h3 style={{fontSize:'17px',fontWeight:800,color:'#F8F4F7',marginBottom:'6px'}}>{obterNomePlano('free')}</h3>
+                <p style={{fontSize:'12px',color:'#B8AAB8',lineHeight:1.5,marginBottom:'16px',minHeight:'50px'}}>Ideal para começar sua página profissional com links básicos.</p>
+                <div style={{marginBottom:'8px'}}>
+                  <span style={{fontSize:'34px',fontWeight:900,color:'#F8F4F7',letterSpacing:'-0.03em'}}>R$ {fPreco('free').inteiro}</span>
+                  <span style={{fontSize:'14px',color:'#B8AAB8'}}>/mês</span>
+                </div>
+              </div>
+              <div style={{marginBottom:'22px'}}>
+                {inclusosFree.map((item,i)=>(
+                  <div key={i} style={{display:'flex',alignItems:'center',gap:'9px',marginBottom:'11px'}}>
+                    <span style={{color:'#22C55E',fontSize:'13px',flexShrink:0,fontWeight:700}}>✓</span>
+                    <span style={{fontSize:'12px',color:'#B8AAB8'}}>{item}</span>
+                  </div>
+                ))}
+              </div>
+              <Link href="/aceite-plano?plano=free" className="btn-s" style={{width:'100%',justifyContent:'center',height:'46px',fontSize:'13px'}}>
+                Começar grátis
+              </Link>
+            </div>
 
             {/* PLANO MINIPAGE */}
-            <div style={{background:'radial-gradient(ellipse at top,rgba(139,92,246,.10),transparent 55%),rgba(24,16,27,.97)',border:'1.5px solid #2A1A2F',borderRadius:'22px',padding:'36px 28px',position:'relative' as const}}>
-              <div style={{textAlign:'center',marginBottom:'22px'}}>
-                <h3 style={{fontSize:'19px',fontWeight:800,color:'#F8F4F7',marginBottom:'6px'}}>MiniPage</h3>
-                <p style={{fontSize:'13px',color:'#B8AAB8',lineHeight:1.5,marginBottom:'18px',minHeight:'55px'}}>Para criadores, influencers, profissionais e pequenos negócios que querem uma página profissional na bio.</p>
+            <div style={{background:'radial-gradient(ellipse at top,rgba(139,92,246,.10),transparent 55%),rgba(24,16,27,.97)',border:'1.5px solid #2A1A2F',borderRadius:'22px',padding:'30px 22px',position:'relative' as const}}>
+              <div style={{textAlign:'center',marginBottom:'20px'}}>
+                <h3 style={{fontSize:'17px',fontWeight:800,color:'#F8F4F7',marginBottom:'6px'}}>{obterNomePlano('minipage')}</h3>
+                <p style={{fontSize:'12px',color:'#B8AAB8',lineHeight:1.5,marginBottom:'16px',minHeight:'50px'}}>Página profissional com links, destaques, vídeos e catálogo básico.</p>
                 <div style={{marginBottom:'8px'}}>
-                  <span style={{fontSize:'40px',fontWeight:900,color:'#F8F4F7',letterSpacing:'-0.03em'}}>R$ 39</span>
-                  <span style={{fontSize:'19px',fontWeight:700,color:'#F8F4F7'}}>,90</span>
+                  <span style={{fontSize:'34px',fontWeight:900,color:'#F8F4F7',letterSpacing:'-0.03em'}}>R$ {fPreco('minipage').inteiro}</span>
+                  <span style={{fontSize:'16px',fontWeight:700,color:'#F8F4F7'}}>,{fPreco('minipage').decimal}</span>
                   <span style={{fontSize:'14px',color:'#B8AAB8'}}>/mês</span>
                 </div>
               </div>
-              <div style={{marginBottom:'26px'}}>
+              <div style={{marginBottom:'22px'}}>
                 {inclusosMiniPage.map((item,i)=>(
-                  <div key={i} style={{display:'flex',alignItems:'center',gap:'10px',marginBottom:'12px'}}>
-                    <span style={{color:'#22C55E',fontSize:'14px',flexShrink:0,fontWeight:700}}>✓</span>
-                    <span style={{fontSize:'13px',color:'#B8AAB8'}}>{item}</span>
+                  <div key={i} style={{display:'flex',alignItems:'center',gap:'9px',marginBottom:'11px'}}>
+                    <span style={{color:'#22C55E',fontSize:'13px',flexShrink:0,fontWeight:700}}>✓</span>
+                    <span style={{fontSize:'12px',color:'#B8AAB8'}}>{item}</span>
                   </div>
                 ))}
               </div>
-              <Link href="/aceite-plano?plano=minipage" className="btn-p" style={{width:'100%',justifyContent:'center',height:'50px',fontSize:'14px'}}>
+              <Link href="/aceite-plano?plano=minipage" className="btn-p" style={{width:'100%',justifyContent:'center',height:'46px',fontSize:'13px'}}>
                 Começar com a MiniPage
               </Link>
-              <p style={{textAlign:'center',fontSize:'12px',color:'#B8AAB8',marginTop:'14px'}}>Ideal para divulgar links, conteúdos, produtos, publicidades e contatos.</p>
             </div>
 
-            {/* PLANO PROFISSIONAL */}
-            <div style={{background:'radial-gradient(ellipse at top,rgba(236,72,153,.16),transparent 55%),rgba(24,16,27,.97)',border:'1.5px solid rgba(236,72,153,.50)',borderRadius:'22px',padding:'36px 28px',boxShadow:'0 0 64px rgba(236,72,153,.14)',position:'relative' as const}}>
+            {/* PLANO LOJA */}
+            <div style={{background:'radial-gradient(ellipse at top,rgba(139,92,246,.10),transparent 55%),rgba(24,16,27,.97)',border:'1.5px solid #2A1A2F',borderRadius:'22px',padding:'30px 22px',position:'relative' as const}}>
+              <div style={{textAlign:'center',marginBottom:'20px'}}>
+                <h3 style={{fontSize:'17px',fontWeight:800,color:'#F8F4F7',marginBottom:'6px'}}>{obterNomePlano('loja')}</h3>
+                <p style={{fontSize:'12px',color:'#B8AAB8',lineHeight:1.5,marginBottom:'16px',minHeight:'50px'}}>Vitrine para produtos, achadinhos, músicas, cursos e divulgações.</p>
+                <div style={{marginBottom:'8px'}}>
+                  <span style={{fontSize:'34px',fontWeight:900,color:'#F8F4F7',letterSpacing:'-0.03em'}}>R$ {fPreco('loja').inteiro}</span>
+                  <span style={{fontSize:'16px',fontWeight:700,color:'#F8F4F7'}}>,{fPreco('loja').decimal}</span>
+                  <span style={{fontSize:'14px',color:'#B8AAB8'}}>/mês</span>
+                </div>
+              </div>
+              <div style={{marginBottom:'22px'}}>
+                {inclusosLoja.map((item,i)=>(
+                  <div key={i} style={{display:'flex',alignItems:'center',gap:'9px',marginBottom:'11px'}}>
+                    <span style={{color:'#22C55E',fontSize:'13px',flexShrink:0,fontWeight:700}}>✓</span>
+                    <span style={{fontSize:'12px',color:'#B8AAB8'}}>{item}</span>
+                  </div>
+                ))}
+              </div>
+              <Link href="/aceite-plano?plano=loja" className="btn-p" style={{width:'100%',justifyContent:'center',height:'46px',fontSize:'13px'}}>
+                Quero o MiniPage Loja
+              </Link>
+            </div>
+
+            {/* PLANO PRO (interno: essencial) */}
+            <div style={{background:'radial-gradient(ellipse at top,rgba(236,72,153,.16),transparent 55%),rgba(24,16,27,.97)',border:'1.5px solid rgba(236,72,153,.50)',borderRadius:'22px',padding:'30px 22px',boxShadow:'0 0 64px rgba(236,72,153,.14)',position:'relative' as const}}>
               <div style={{position:'absolute' as const,top:'-13px',left:'50%',transform:'translateX(-50%)',background:G,borderRadius:'999px',padding:'4px 18px',fontSize:'11px',fontWeight:700,color:'#fff',whiteSpace:'nowrap' as const}}>Mais escolhido</div>
-              <div style={{textAlign:'center',marginBottom:'22px'}}>
-                <h3 style={{fontSize:'19px',fontWeight:800,color:'#F8F4F7',marginBottom:'6px'}}>Profissional</h3>
-                <p style={{fontSize:'13px',color:'#B8AAB8',lineHeight:1.5,marginBottom:'18px',minHeight:'55px'}}>Para profissionais e negócios que querem MiniPage completa com agenda, clientes e gestão.</p>
+              <div style={{textAlign:'center',marginBottom:'20px'}}>
+                <h3 style={{fontSize:'17px',fontWeight:800,color:'#F8F4F7',marginBottom:'6px'}}>{obterNomePlano('essencial')}</h3>
+                <p style={{fontSize:'12px',color:'#B8AAB8',lineHeight:1.5,marginBottom:'16px',minHeight:'50px'}}>MiniPage completa com agenda, clientes e gestão.</p>
                 <div style={{marginBottom:'8px'}}>
-                  <span style={{fontSize:'40px',fontWeight:900,color:'#F8F4F7',letterSpacing:'-0.03em'}}>R$ 79</span>
-                  <span style={{fontSize:'19px',fontWeight:700,color:'#F8F4F7'}}>,90</span>
+                  <span style={{fontSize:'34px',fontWeight:900,color:'#F8F4F7',letterSpacing:'-0.03em'}}>R$ {fPreco('essencial').inteiro}</span>
+                  <span style={{fontSize:'16px',fontWeight:700,color:'#F8F4F7'}}>,{fPreco('essencial').decimal}</span>
                   <span style={{fontSize:'14px',color:'#B8AAB8'}}>/mês</span>
                 </div>
               </div>
-              <div style={{marginBottom:'26px'}}>
+              <div style={{marginBottom:'22px'}}>
                 {inclusosProfissional.map((item,i)=>(
-                  <div key={i} style={{display:'flex',alignItems:'center',gap:'10px',marginBottom:'12px'}}>
-                    <span style={{color:'#22C55E',fontSize:'14px',flexShrink:0,fontWeight:700}}>✓</span>
-                    <span style={{fontSize:'13px',color:'#B8AAB8'}}>{item}</span>
+                  <div key={i} style={{display:'flex',alignItems:'center',gap:'9px',marginBottom:'11px'}}>
+                    <span style={{color:'#22C55E',fontSize:'13px',flexShrink:0,fontWeight:700}}>✓</span>
+                    <span style={{fontSize:'12px',color:'#B8AAB8'}}>{item}</span>
                   </div>
                 ))}
               </div>
-              <Link href="/aceite-plano?plano=essencial" className="btn-p" style={{width:'100%',justifyContent:'center',height:'50px',fontSize:'14px'}}>
-                Começar com o Profissional
+              <Link href="/aceite-plano?plano=essencial" className="btn-p" style={{width:'100%',justifyContent:'center',height:'46px',fontSize:'13px'}}>
+                Começar com o {obterNomePlano('essencial')}
               </Link>
-              <p style={{textAlign:'center',fontSize:'12px',color:'#B8AAB8',marginTop:'14px'}}>Ideal para quem atende clientes e precisa organizar agenda, valores e contatos.</p>
             </div>
 
-            {/* PLANO EQUIPE */}
-            <div style={{background:'radial-gradient(ellipse at top,rgba(139,92,246,.16),transparent 55%),rgba(24,16,27,.97)',border:'1.5px solid #2A1A2F',borderRadius:'22px',padding:'36px 28px',position:'relative' as const}}>
-              <div style={{textAlign:'center',marginBottom:'22px'}}>
-                <h3 style={{fontSize:'19px',fontWeight:800,color:'#F8F4F7',marginBottom:'6px'}}>Equipe</h3>
-                <p style={{fontSize:'13px',color:'#B8AAB8',lineHeight:1.5,marginBottom:'18px',minHeight:'55px'}}>Para negócios com equipe, agenda compartilhada e controle de atendimentos.</p>
+            {/* PLANO EQUIPE (interno: equipe) */}
+            <div style={{background:'radial-gradient(ellipse at top,rgba(139,92,246,.16),transparent 55%),rgba(24,16,27,.97)',border:'1.5px solid #2A1A2F',borderRadius:'22px',padding:'30px 22px',position:'relative' as const}}>
+              <div style={{textAlign:'center',marginBottom:'20px'}}>
+                <h3 style={{fontSize:'17px',fontWeight:800,color:'#F8F4F7',marginBottom:'6px'}}>{obterNomePlano('equipe')}</h3>
+                <p style={{fontSize:'12px',color:'#B8AAB8',lineHeight:1.5,marginBottom:'16px',minHeight:'50px'}}>Para negócios com equipe, agenda compartilhada e controle.</p>
                 <div style={{marginBottom:'8px'}}>
-                  <span style={{fontSize:'40px',fontWeight:900,color:'#F8F4F7',letterSpacing:'-0.03em'}}>R$ 149</span>
-                  <span style={{fontSize:'19px',fontWeight:700,color:'#F8F4F7'}}>,90</span>
+                  <span style={{fontSize:'34px',fontWeight:900,color:'#F8F4F7',letterSpacing:'-0.03em'}}>R$ {fPreco('equipe').inteiro}</span>
+                  <span style={{fontSize:'16px',fontWeight:700,color:'#F8F4F7'}}>,{fPreco('equipe').decimal}</span>
                   <span style={{fontSize:'14px',color:'#B8AAB8'}}>/mês</span>
                 </div>
               </div>
-              <div style={{marginBottom:'26px'}}>
+              <div style={{marginBottom:'22px'}}>
                 {inclusosEquipe.map((item,i)=>(
-                  <div key={i} style={{display:'flex',alignItems:'center',gap:'10px',marginBottom:'12px'}}>
-                    <span style={{color:'#22C55E',fontSize:'14px',flexShrink:0,fontWeight:700}}>✓</span>
-                    <span style={{fontSize:'13px',color:'#B8AAB8'}}>{item}</span>
+                  <div key={i} style={{display:'flex',alignItems:'center',gap:'9px',marginBottom:'11px'}}>
+                    <span style={{color:'#22C55E',fontSize:'13px',flexShrink:0,fontWeight:700}}>✓</span>
+                    <span style={{fontSize:'12px',color:'#B8AAB8'}}>{item}</span>
                   </div>
                 ))}
               </div>
-              <Link href="/aceite-plano?plano=equipe" className="btn-p" style={{width:'100%',justifyContent:'center',height:'50px',fontSize:'14px'}}>
-                Quero o Plano Equipe
+              <Link href="/aceite-plano?plano=equipe" className="btn-p" style={{width:'100%',justifyContent:'center',height:'46px',fontSize:'13px'}}>
+                Quero o {obterNomePlano('equipe')}
               </Link>
-              <p style={{textAlign:'center',fontSize:'12px',color:'#B8AAB8',marginTop:'14px'}}>Ideal para negócios que precisam dividir acessos sem perder o controle.</p>
             </div>
 
           </div>
 
-          <p style={{textAlign:'center',fontSize:'13px',color:'#B8AAB8',marginTop:'32px'}}>Todos os planos incluem 7 dias grátis. MiniPage Pro é uma solução ClienteMarcado.</p>
-        </div>
-      </section>
-      {/* SECAO DE DOR */}
-      <section style={{padding:'60px 24px',maxWidth:'1100px',margin:'0 auto'}}>
-        <div style={{textAlign:'center',marginBottom:'40px'}}>
-          <h2 style={{fontSize:'clamp(20px,3.5vw,30px)',fontWeight:800,color:'#F8F4F7',letterSpacing:'-0.03em',marginBottom:'12px',lineHeight:1.25}}>Você perde oportunidades quando sua bio<br/>não mostra tudo o que você oferece.</h2>
-          <p style={{fontSize:'14px',color:'#B8AAB8',maxWidth:'460px',margin:'0 auto',lineHeight:1.65}}>Links se perdem, divulgações passam despercebidas e o atendimento fica menos profissional quando tudo depende de mensagens soltas.</p>
-        </div>
-        <div className="grid-3" style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'14px'}}>
-          {dores.map((d,i)=>(
-            <div key={i} style={{background:`radial-gradient(circle at top left,${d.bg},transparent 55%),linear-gradient(145deg,rgba(24,16,27,.97),rgba(18,10,20,.99))`,border:`1px solid ${d.bd}`,borderRadius:'16px',padding:'22px 20px',display:'flex',gap:'14px',alignItems:'flex-start'}}>
-              <div style={{width:'38px',height:'38px',borderRadius:'10px',background:d.bg,border:`1px solid ${d.bd}`,display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
-                <d.I size={18} color={d.c}/>
-              </div>
-              <div>
-                <p style={{fontSize:'13px',fontWeight:700,color:'#F8F4F7',marginBottom:'5px',lineHeight:1.35}}>{d.titulo}</p>
-                <p style={{fontSize:'12px',color:'#B8AAB8',lineHeight:1.6}}>{d.texto}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
-      {/* FUNCIONALIDADES */}
-      <section style={{padding:'60px 24px 80px',maxWidth:'1100px',margin:'0 auto'}}>
-        <div style={{textAlign:'center',marginBottom:'52px'}}>
-          <h2 style={{fontSize:'clamp(22px,4vw,34px)',fontWeight:800,color:'#F8F4F7',letterSpacing:'-0.03em',marginBottom:'12px'}}>Tudo que sua MiniPage precisa para divulgar, vender e parecer profissional</h2>
-          <p style={{fontSize:'15px',color:'#B8AAB8',maxWidth:'480px',margin:'0 auto',lineHeight:1.6}}>Uma página completa para transformar visitantes em contatos, clientes e oportunidades.</p>
-        </div>
-        <div className="grid-3" style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'16px'}}>
-          {beneficios.map((b,i)=>(
-            <div key={i} className="card-b">
-              <div style={{width:'44px',height:'44px',borderRadius:'12px',background:b.bg,border:`1px solid ${b.bd}`,display:'flex',alignItems:'center',justifyContent:'center',marginBottom:'16px'}}>
-                <b.I size={20} color={b.c}/>
-              </div>
-              <h3 style={{fontSize:'15px',fontWeight:700,color:'#F8F4F7',marginBottom:'8px'}}>{b.titulo}</h3>
-              <p style={{fontSize:'13px',color:'#B8AAB8',lineHeight:1.65}}>{b.texto}</p>
-            </div>
-          ))}
+          <p style={{textAlign:'center',fontSize:'13px',color:'#B8AAB8',marginTop:'32px'}}>Todos os planos pagos incluem 7 dias grátis. MiniPage Pro é uma solução ClienteMarcado.</p>
         </div>
       </section>
       {/* CTA FINAL */}
