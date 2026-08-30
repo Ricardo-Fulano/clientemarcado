@@ -87,14 +87,20 @@ export default function PainelLayoutClient({ children }: { children: React.React
         method: 'POST',
         headers: { 'Authorization': 'Bearer ' + token },
       })
-      const data = await res.json()
-      if (data.init_point) {
+      const data = await res.json().catch(() => null)
+      const mensagemGenerica = `Não foi possível gerar o link de pagamento do Plano ${nomePlanoAtual(planoTipo)}. Tente novamente em instantes ou entre em contato com o suporte.`
+      if (data?.init_point) {
         window.location.href = data.init_point
+      } else if (!res.ok) {
+        // Mostra o motivo especifico que a API retornou (ex: "Plano Free nao gera
+        // assinatura.") em vez de sempre a mensagem generica - a mensagem generica
+        // continua como fallback, se a API nao mandar nada util.
+        alert(data?.error || data?.message || mensagemGenerica)
       } else if (planoTipo === 'essencial') {
         // Fallback antigo: so vale pro Essencial (unico com link fixo configurado no Mercado Pago)
         window.location.href = CHECKOUT_URL
       } else {
-        alert(`Não foi possível gerar o link de pagamento do Plano ${nomePlanoAtual(planoTipo)}. Tente novamente em instantes ou entre em contato com o suporte.`)
+        alert(mensagemGenerica)
       }
     } catch {
       if (planoTipo === 'essencial') window.location.href = CHECKOUT_URL

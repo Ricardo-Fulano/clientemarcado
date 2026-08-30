@@ -61,9 +61,9 @@ export function obterReasonMercadoPago(planoTipo?: string | null): string {
   const p = normalizarPlano(planoTipo)
   if (p === 'free') return 'MiniPage Pro - Plano Free'
   if (p === 'minipage') return 'MiniPage Pro - Plano MiniPage'
-  if (p === 'loja') return 'MiniPage Pro - Plano Loja'
-  if (p === 'equipe') return 'MiniPage Pro - Plano Equipe'
-  return 'MiniPage Pro - Plano Pro'
+  if (p === 'loja') return 'MiniPage Pro - Plano MiniPage Loja'
+  if (p === 'equipe') return 'MiniPage Pro - Plano MiniPage Equipe'
+  return 'MiniPage Pro - Plano MiniPage Pro'
 }
 
 export function ehPlanoFree(planoTipo?: string | null): boolean {
@@ -130,4 +130,55 @@ export function obterLimiteProfissionais(planoTipo?: string | null): number {
   if (p === 'equipe') return 15
   if (p === 'essencial') return 3
   return 0 // free, minipage, loja
+}
+
+// ===================================================================
+// Limites de recursos da propria pagina (Destaques, Links, Videos,
+// Agenda/Eventos) - o Free e uma AMOSTRA limitada, nao um plano funcional
+// completo. A partir do MiniPage, esses recursos ficam liberados (uso
+// pratico ilimitado - Infinity).
+// ===================================================================
+
+/** Quantos links rapidos o plano permite. Free precisa ser uma pagina basica USAVEL (nao so
+ *  uma demonstracao travada) pra competir com ferramentas tipo Linktree - por isso 5, nao 2. */
+export function obterLimiteLinksRapidos(planoTipo?: string | null): number {
+  return normalizarPlano(planoTipo) === 'free' ? 5 : Infinity
+}
+export function permiteLinksRapidos(planoTipo?: string | null): boolean {
+  return obterLimiteLinksRapidos(planoTipo) > 0
+}
+
+/** Quantos destaques o plano permite. Free bloqueado (0) - opcao mais segura, evita a
+ *  ambiguidade de um limite de "1" (o que fazer se ja existir mais de 1 numa conta antiga?). */
+export function obterLimiteDestaques(planoTipo?: string | null): number {
+  return normalizarPlano(planoTipo) === 'free' ? 0 : Infinity
+}
+export function permiteDestaques(planoTipo?: string | null): boolean {
+  return obterLimiteDestaques(planoTipo) > 0
+}
+
+/** Quantos videos em destaque o plano permite. Free bloqueado (0). */
+export function obterLimiteVideos(planoTipo?: string | null): number {
+  return normalizarPlano(planoTipo) === 'free' ? 0 : Infinity
+}
+export function permiteVideos(planoTipo?: string | null): boolean {
+  return obterLimiteVideos(planoTipo) > 0
+}
+
+/** Quantos eventos de Agenda/Eventos (secao da propria pagina, nao a agenda de atendimento
+ *  completa) o plano permite. Free bloqueado (0). */
+export function obterLimiteAgendaEventos(planoTipo?: string | null): number {
+  return normalizarPlano(planoTipo) === 'free' ? 0 : Infinity
+}
+export function permiteAgendaEventos(planoTipo?: string | null): boolean {
+  return obterLimiteAgendaEventos(planoTipo) > 0
+}
+
+/** Quantos modelos de cor (tema visual da pagina publica) o plano permite escolher.
+ *  Free ve so os 6 primeiros (amostra); demais planos tem os 18 completos. */
+export function obterLimiteModelosCor(planoTipo?: string | null): number {
+  return normalizarPlano(planoTipo) === 'free' ? 6 : Infinity
+}
+export function permiteTodosModelosDeCor(planoTipo?: string | null): boolean {
+  return obterLimiteModelosCor(planoTipo) >= 18
 }

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
-import { normalizarPlano, obterReasonMercadoPago, obterPrecoPlano } from '../../../lib/planos'
+import { normalizarPlano, obterReasonMercadoPago, obterPrecoPlano, ehPlanoFree } from '../../../lib/planos'
 
 export async function POST(request: NextRequest) {
   try {
@@ -16,7 +16,26 @@ export async function POST(request: NextRequest) {
     // so mudam reason/transaction_amount. Nao usa preapproval_plan_id (isso exigiria
     // card_token_id/Bricks na Mercado Pago, que decidimos nao implementar agora).
     const { data: perfil } = await supabase.from('perfis').select('plano_tipo').eq('user_id', userId).single()
-    const planoTipo = normalizarPlano(perfil?.plano_tipo)
+    const planoTipoOriginal = perfil?.plano_tipo
+
+    // BLOQUEIO 1: Free nunca gera assinatura - nunca chama o Mercado Pago, nunca tenta
+    // transaction_amount 0. Verifica o valor original (nao normalizado) pra nao depender
+    // do fallback do normalizarPlano().
+    if (ehPlanoFree(planoTipoOriginal)) {
+      return NextResponse.json({ error: 'Plano Free não gera assinatura.' }, { status: 400 })
+    }
+
+    // BLOQUEIO 2: valida que o plano_tipo salvo e um dos 4 planos pagos conhecidos - NAO
+    // confia no fallback silencioso do normalizarPlano() (que cairia em 'essencial'/R$79,90
+    // pra qualquer valor nulo/invalido). Nesta rota especifica, que gera cobranca real,
+    // um plano desconhecido bloqueia em vez de assumir um valor por padrao.
+    const PLANOS_PAGOS_VALIDOS = ['minipage', 'loja', 'essencial', 'equipe']
+    if (!planoTipoOriginal || !PLANOS_PAGOS_VALIDOS.includes(planoTipoOriginal)) {
+      console.error('[MP] plano_tipo invalido/desconhecido:', planoTipoOriginal, '- bloqueando por seguranca, sem chamar o Mercado Pago')
+      return NextResponse.json({ error: 'Não foi possível identificar seu plano. Entre em contato com o suporte.' }, { status: 400 })
+    }
+
+    const planoTipo = normalizarPlano(planoTipoOriginal)
 
     // Gate explicito pro plano MiniPage: exige MP_PLAN_ID_MINIPAGE configurada antes de
     // aceitar cobranca de verdade. O valor em si nao e usado no payload (essa rota cria a
@@ -26,6 +45,13 @@ export async function POST(request: NextRequest) {
     if (planoTipo === 'minipage' && !process.env.MP_PLAN_ID_MINIPAGE) {
       console.error('[MP] MP_PLAN_ID_MINIPAGE nao configurada - bloqueando criacao de assinatura MiniPage')
       return NextResponse.json({ error: 'O plano MiniPage ainda não está disponível para cobrança automática. Fale com o suporte.' }, { status: 500 })
+    }
+
+    // Mesmo gate, agora pro plano Loja (novo, ainda sem confirmacao de que a cobranca real
+    // foi testada/aprovada) - mesmo padrao ja usado acima pro MiniPage.
+    if (planoTipo === 'loja' && !process.env.MP_PLAN_ID_LOJA) {
+      console.error('[MP] MP_PLAN_ID_LOJA nao configurada - bloqueando criacao de assinatura Loja')
+      return NextResponse.json({ error: 'Plano MiniPage Loja ainda não está habilitado para cobrança automática.' }, { status: 500 })
     }
 
     const reason = obterReasonMercadoPago(planoTipo)
