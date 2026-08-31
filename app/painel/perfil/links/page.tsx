@@ -4,6 +4,7 @@ import { supabase } from '../../../lib/supabase'
 import Link from 'next/link'
 import { ArrowLeft, ArrowUp, ArrowDown } from 'lucide-react'
 import PainelSidebar from '@/app/components/PainelSidebar'
+import { obterLimiteLinksRapidos } from '../../../lib/planos'
 
 const G='linear-gradient(135deg,#EC4899,#D946EF,#8B5CF6)'
 
@@ -23,6 +24,7 @@ input,select,textarea{color-scheme:dark}
 
 export default function GerenciarLinks(){
   const [userId,setUserId]=useState('')
+  const [planoTipo,setPlanoTipo]=useState('essencial')
   const [links,setLinks]=useState<any[]>([])
   const [carregando,setCarregando]=useState(true)
   const [msg,setMsg]=useState('')
@@ -34,7 +36,11 @@ export default function GerenciarLinks(){
     const {data:{user}}=await supabase.auth.getUser()
     if(!user){window.location.href='/login';return}
     setUserId(user.id)
-    const {data}=await supabase.from('pagina_links').select('*').eq('user_id',user.id).order('ordem')
+    const [{data},{data:perfil}]=await Promise.all([
+      supabase.from('pagina_links').select('*').eq('user_id',user.id).order('ordem'),
+      supabase.from('perfis').select('plano_tipo').eq('user_id',user.id).maybeSingle(),
+    ])
+    if(perfil?.plano_tipo) setPlanoTipo(perfil.plano_tipo)
     // Pro tipo email, a URL fica salva como "mailto:..." no banco (formato final que o link publico
     // usa) - mas na tela de edicao o usuario so deve ver/mexer no email puro, sem esse prefixo.
     const tratados=(data||[]).map((l:any)=> l.tipo==='email' && l.url?.startsWith('mailto:') ? {...l,url:l.url.replace('mailto:','')} : l)
@@ -50,6 +56,12 @@ export default function GerenciarLinks(){
   }
 
   function novoLink(){
+    const limite=obterLimiteLinksRapidos(planoTipo)
+    if(links.length>=limite){
+      setMsg(`Seu plano Free permite até ${limite} links rápidos. Faça upgrade para liberar links ilimitados e recursos premium.`)
+      setTimeout(()=>setMsg(''),5000)
+      return
+    }
     setLinks(prev=>[{id:'novo-'+Date.now(),user_id:userId,tipo:'whatsapp',titulo:'',descricao:'',url:'',ativo:true,ordem:prev.length,_novo:true},...prev])
   }
   function editarLink(id:string,campo:string,valor:any){

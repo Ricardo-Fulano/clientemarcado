@@ -13,6 +13,7 @@ import CatalogoItemCard from '../components/CatalogoItemCard'
 import VideoItemCard from '../components/VideoItemCard'
 import RegistrarPageView from '../components/RegistrarPageView'
 import RegistradorDeCliques from '../components/RegistradorDeCliques'
+import DestaqueItemCard from '../components/DestaqueItemCard'
 import { resolverTema, getTema } from '../lib/tema-publico'
 import { ehPlanoComGestao, permiteVideos, permiteDestaques, permiteAgendaEventos, obterLimiteCatalogos, obterLimiteLinksRapidos } from '../lib/planos'
 
@@ -44,6 +45,9 @@ html,body{overflow-x:hidden;width:100%;max-width:100%}
 .destaque-grid.cols-2{grid-template-columns:repeat(2,1fr)}
 .destaque-grid.cols-3{grid-template-columns:repeat(3,1fr)}
 .destaque-item{display:block;width:100%;max-width:100%;min-width:0;box-sizing:border-box}
+.destaque-scroll{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px;width:100%;max-width:100%}
+.destaque-scroll::-webkit-scrollbar{height:5px}
+.destaque-scroll::-webkit-scrollbar-thumb{background:var(--accent-border);border-radius:99px}
 .destaque-card{display:flex;flex-direction:column;overflow:hidden;border-radius:16px;transition:transform .18s,box-shadow .18s,border-color .18s;width:100%;max-width:100%;box-sizing:border-box}
 .destaque-card:hover{transform:translateY(-4px);border-color:var(--accent)!important;box-shadow:0 6px 18px var(--accent-glow)}
 .destaque-card:hover .destaque-action{color:var(--accent)}
@@ -51,7 +55,8 @@ html,body{overflow-x:hidden;width:100%;max-width:100%}
 .destaque-img-wrap img{width:100%;height:100%;object-fit:cover;display:block}
 .destaque-body{padding:12px 14px 14px;display:flex;flex-direction:column;gap:3px}
 .destaque-action{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;margin-top:3px;opacity:.85}
-.destaque-desc{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font-size:11px!important}
+.destaque-desc{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font-size:11px!important;min-height:30px}
+.destaque-titulo{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:42px}
 .video-grid{display:flex;flex-wrap:nowrap;overflow-x:auto;overflow-y:hidden;gap:12px;width:100%;max-width:100%;align-items:flex-start;padding-bottom:6px;scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch}
 .video-grid::-webkit-scrollbar{height:5px}
 .video-grid::-webkit-scrollbar-thumb{background:var(--accent-border);border-radius:99px}
@@ -78,8 +83,9 @@ html,body{overflow-x:hidden;width:100%;max-width:100%}
 .catalogo-card{width:140px;flex-shrink:0;border-radius:16px;overflow:hidden;scroll-snap-align:start;transition:border-color .18s}
 .catalogo-card-img{width:100%;aspect-ratio:1/1;background:rgba(0,0,0,.15);overflow:hidden}
 .catalogo-card-img img{width:100%;height:100%;object-fit:cover;object-position:center center;display:block}
-.catalogo-card-titulo{font-size:12px;font-weight:700;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:31px}
-.catalogo-card-desc{font-size:11px;line-height:1.3;margin-top:3px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.scroll-hint{display:none;font-size:11px;color:var(--text-muted);margin:-10px 0 12px;font-weight:600}
+@media(max-width:767px){.scroll-hint{display:block}}
+.catalogo-card-titulo{font-size:12px;font-weight:700;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 @media(min-width:768px){.catalogo-card{width:170px}}
 .video-mais summary{list-style:none;cursor:pointer;display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:700;padding:11px 22px;border-radius:999px;margin:18px auto 0;width:fit-content}
 .video-mais summary::-webkit-details-marker{display:none}
@@ -114,6 +120,10 @@ html,body{overflow-x:hidden;width:100%;max-width:100%}
   .benefit-grid{grid-template-columns:1fr}
   .destaque-grid,.destaque-grid.cols-1,.destaque-grid.cols-2,.destaque-grid.cols-3{grid-template-columns:1fr!important;gap:12px!important;width:100%!important;max-width:100%!important}
   .destaque-body{padding:10px 14px 12px!important}
+  .destaque-scroll{display:flex!important;grid-template-columns:none!important;gap:16px!important;overflow-x:auto!important;overflow-y:hidden!important;padding-bottom:6px;scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch}
+  .destaque-item-h{flex:0 0 82vw!important;max-width:360px!important;min-width:0!important;scroll-snap-align:start}
+  .destaque-card-horizontal .destaque-img-wrap{aspect-ratio:auto!important;height:180px!important}
+  .destaque-card-horizontal .destaque-body{padding:12px 14px 14px!important}
   .video-grid{gap:10px!important}
   .video-card.fmt-horizontal{width:210px!important}
   .video-body{padding:9px 11px 11px!important}
@@ -499,42 +509,46 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
             && ORDEM_PADRAO_SECOES.every(s => ordemSalva.includes(s))
           const ordemSecoes: string[] = ordemValida ? (ordemSalva as string[]) : ORDEM_PADRAO_SECOES
 
+          const destaquesFormato = perfil.destaques_formato === 'horizontal' ? 'horizontal' : 'vertical'
+
           const secoesMap: Record<string, ReactNode> = {
             destaques: (
 // * DESTAQUES DA PAGINA
 destaques && destaques.length > 0 && permiteDestaques(perfil.plano_tipo) && (
           <div style={{ marginBottom: '28px' }}>
-            <div className={`destaque-grid cols-${Math.min(destaques.length, 3)}`}>
-              {destaques.map(d => {
-                const conteudo = (
-                  <div className="crd destaque-card" style={{ border: cardBorderFinal, boxShadow: cardShadowNeon }}>
-                    <div className="destaque-img-wrap">
-                      {d.imagem_url ? (
-                        <img src={d.imagem_url} alt={d.titulo} loading="lazy" decoding="async" />
-                      ) : (
-                        <div style={{ width: '100%', height: '100%', background: `linear-gradient(135deg,${tema.accent},${tema.secondary})` }} />
-                      )}
-                    </div>
-                    <div className="destaque-body">
-                      <p style={{ fontWeight: 600, fontSize: '16px', color: 'var(--text)' }}>{d.titulo}</p>
-                      {d.descricao && <p className="destaque-desc" style={{ fontSize: '12px', color: 'var(--text-muted)', lineHeight: 1.4 }}>{d.descricao}</p>}
-                      {d.url && (
-                        <span className="destaque-action" style={{ color: iconeCor }}>
-                          {d.texto_botao || t.verMais} →
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                )
-                return d.url ? (
-                  <a key={d.id} href={d.url} target={d.url.startsWith('http') ? '_blank' : '_self'} rel="noopener noreferrer" className="destaque-item" style={{ textDecoration: 'none', color: 'inherit' }} data-track-tipo="destaque_click" data-track-item-id={d.id} data-track-item-titulo={d.titulo || ''} data-track-item-url={d.url}>
-                    {conteudo}
-                  </a>
-                ) : (
-                  <div key={d.id} className="destaque-item">{conteudo}</div>
-                )
-              })}
-            </div>
+            {destaquesFormato === 'horizontal' ? (
+              <>
+                <p className="scroll-hint">Deslize para ver mais →</p>
+                <div className="destaque-scroll">
+                  {destaques.map(d => (
+                    <DestaqueItemCard
+                      key={d.id}
+                      d={d}
+                      tema={tema}
+                      iconeCor={iconeCor}
+                      textoVerMais={t.verMais}
+                      cardBorderFinal={cardBorderFinal}
+                      cardShadowNeon={cardShadowNeon}
+                      horizontal
+                    />
+                  ))}
+                </div>
+              </>
+            ) : (
+              <div className={`destaque-grid cols-${Math.min(destaques.length, 3)}`}>
+                {destaques.map(d => (
+                  <DestaqueItemCard
+                    key={d.id}
+                    d={d}
+                    tema={tema}
+                    iconeCor={iconeCor}
+                    textoVerMais={t.verMais}
+                    cardBorderFinal={cardBorderFinal}
+                    cardShadowNeon={cardShadowNeon}
+                  />
+                ))}
+              </div>
+            )}
           </div>
         )
             ),
@@ -604,7 +618,8 @@ videos && videos.length > 0 && permiteVideos(perfil.plano_tipo) && (() => {
           return (
             <div style={{ marginBottom: '28px' }}>
               <p style={{ fontSize: '20px', fontWeight: 900, color: 'var(--text)', letterSpacing: '-0.02em', marginBottom: '6px' }}>{t.videosEmDestaque}</p>
-              <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '18px' }}>Veja conteúdos, vídeos, apresentações e novidades em destaque.</p>
+              <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '10px' }}>Veja conteúdos, vídeos, apresentações e novidades em destaque.</p>
+              <p className="scroll-hint">Deslize para ver mais →</p>
               <div className="video-grid">
                 {videos.map((v: any) => (
                   <VideoItemCard
@@ -634,8 +649,9 @@ videos && videos.length > 0 && permiteVideos(perfil.plano_tipo) && (() => {
                     <div key={cat.id} style={{ marginBottom: '32px' }}>
                       <p className="sec-title" style={{ marginBottom: cat.subtitulo ? '2px' : '14px' }}>{cat.titulo || 'Catálogo'}</p>
                       {cat.subtitulo && (
-                        <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '14px' }}>{cat.subtitulo}</p>
+                        <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '10px' }}>{cat.subtitulo}</p>
                       )}
+                      <p className="scroll-hint">Deslize para ver mais →</p>
                       <div className="catalogo-scroll">
                         {cat.itens.map((item: any) => (
                           <CatalogoItemCard
@@ -643,6 +659,8 @@ videos && videos.length > 0 && permiteVideos(perfil.plano_tipo) && (() => {
                             item={item}
                             iconeBorder={iconeBorder}
                             accent={tema.accent}
+                            secondary={tema.secondary}
+                            btnText={tema.btnText}
                             text={tema.text}
                             textMuted={tema.textMuted}
                             cardBg={tema.card}
@@ -759,7 +777,7 @@ videos && videos.length > 0 && permiteVideos(perfil.plano_tipo) && (() => {
           </div>
         )}
         <div style={{ display: 'flex', justifyContent: 'center', marginTop: '32px', marginBottom: '8px' }}>
-          <a href="https://clientemarcado.com.br" target="_blank" rel="noopener noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', textDecoration: 'none', padding: '9px 18px', borderRadius: '999px', background: 'var(--card)', border: `1px solid ${tema.accent}22` }}>
+          <a href="https://minipage.pro/modelos" target="_blank" rel="noopener noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', textDecoration: 'none', padding: '9px 18px', borderRadius: '999px', background: 'var(--card)', border: `1px solid ${tema.accent}22` }}>
             <span style={{ fontSize: '12px', fontWeight: 700, color: tema.accent }}>{t.crieSuaMiniPagePro}</span>
             <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>{t.umaSolucaoClienteMarcado}</span>
           </a>

@@ -42,7 +42,6 @@ export default function VideoItemCard({
             <img src={thumb} alt={v.titulo} loading="lazy" decoding="async" />
           ) : (
             <div className="video-placeholder" style={{ background: `radial-gradient(circle at 30% 20%,${tema.soft},transparent 60%),linear-gradient(135deg,${tema.accent},${tema.secondary})` }}>
-              <div className="video-placeholder-play"><PlayCircle size={20} color="#fff" /></div>
               <span className="video-placeholder-label">{labelPlaceholder}</span>
               {v.titulo && <span className="video-placeholder-title">{v.titulo}</span>}
             </div>
@@ -66,7 +65,15 @@ export default function VideoItemCard({
 
       {modalAberto && (
         <div onClick={() => setModalAberto(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.78)', zIndex: 60, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
-          <div onClick={e => e.stopPropagation()} style={{ width: '100%', maxWidth: '640px' }}>
+          <div onClick={e => e.stopPropagation()} style={{ width: '100%', maxWidth: '640px', position: 'relative' }}>
+            <button
+              type="button"
+              onClick={() => setModalAberto(false)}
+              aria-label="Fechar"
+              style={{ position: 'absolute', top: '-14px', right: '-6px', width: '38px', height: '38px', borderRadius: '999px', background: 'rgba(0,0,0,.72)', border: '1.5px solid rgba(255,255,255,.35)', color: '#fff', fontSize: '18px', lineHeight: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', zIndex: 2 }}
+            >
+              ✕
+            </button>
             <div style={{ position: 'relative', width: '100%', aspectRatio: '16/9', borderRadius: '16px', overflow: 'hidden', background: '#000' }}>
               {playerCarregado ? (
                 <iframe
@@ -85,11 +92,11 @@ export default function VideoItemCard({
                 </button>
               )}
             </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '12px', flexWrap: 'wrap', gap: '8px' }}>
-              <p style={{ color: '#fff', fontSize: '14px', fontWeight: 700 }}>{v.titulo}</p>
-              <div style={{ display: 'flex', gap: '10px' }}>
-                <a href={v.url_video} target="_blank" rel="noopener noreferrer" style={{ color: 'rgba(255,255,255,.7)', fontSize: '12px', textDecoration: 'underline' }}>Abrir no YouTube</a>
-                <button type="button" onClick={() => setModalAberto(false)} style={{ background: 'transparent', border: 'none', color: 'rgba(255,255,255,.7)', fontSize: '12px', cursor: 'pointer', fontFamily: 'inherit' }}>Fechar</button>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '14px', flexWrap: 'wrap', gap: '10px' }}>
+              <p style={{ color: '#fff', fontSize: '14px', fontWeight: 700, flex: 1, minWidth: '120px' }}>{v.titulo}</p>
+              <div style={{ display: 'flex', gap: '8px', flexShrink: 0 }}>
+                <a href={v.url_video} target="_blank" rel="noopener noreferrer" style={{ background: tema.accent, color: tema.btnText, fontSize: '12px', fontWeight: 700, padding: '9px 14px', borderRadius: '9px', textDecoration: 'none', whiteSpace: 'nowrap' }}>Abrir no YouTube</a>
+                <button type="button" onClick={() => setModalAberto(false)} style={{ background: 'rgba(255,255,255,.12)', border: '1px solid rgba(255,255,255,.28)', color: '#fff', fontSize: '12px', fontWeight: 600, padding: '9px 14px', borderRadius: '9px', cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap' }}>Fechar</button>
               </div>
             </div>
           </div>

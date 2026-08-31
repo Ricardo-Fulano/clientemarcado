@@ -10,9 +10,15 @@ const G='linear-gradient(135deg,#EC4899,#D946EF,#8B5CF6)'
 
 function proximoPlanoSugestao(planoTipo: string | null | undefined) {
   const p = normalizarPlano(planoTipo)
-  if (p === 'minipage') return obterNomePlano('essencial')
-  if (p === 'essencial') return obterNomePlano('equipe')
-  return null // ja esta no Equipe, nao ha proximo
+  if (p === 'free') return obterNomePlano('minipage')
+  if (p === 'minipage') return obterNomePlano('loja')
+  return null // loja, essencial (Pro) e equipe ja tem catalogos ilimitados, nao ha proximo por esse motivo
+}
+
+function mensagemLimiteCatalogo(limite: number, proximo: string | null) {
+  const sugestao = proximo ? ` Para criar${limite === 0 ? '' : ' mais'} catálogos, altere para o plano ${proximo}.` : ''
+  if (limite === 0) return `Seu plano atual não inclui catálogos.${sugestao}`
+  return `Seu plano permite até ${limite} catálogo${limite === 1 ? '' : 's'}.${sugestao}`
 }
 
 const CSS=`
@@ -75,7 +81,7 @@ export default function ListaCatalogos(){
     const limite=obterLimiteCatalogos(planoTipo)
     if(catalogos.length>=limite){
       const proximo=proximoPlanoSugestao(planoTipo)
-      setMsg(`Seu plano permite até ${limite} catálogos.${proximo?` Para criar mais catálogos, altere para o plano ${proximo}.`:''}`)
+      setMsg(mensagemLimiteCatalogo(limite, proximo))
       setTimeout(()=>setMsg(''),6000)
       return
     }
@@ -102,7 +108,7 @@ export default function ListaCatalogos(){
       const limite=obterLimiteCatalogos(planoTipo)
       if(catalogos.length>=limite){
         const proximo=proximoPlanoSugestao(planoTipo)
-        setMsg(`Seu plano permite até ${limite} catálogos.${proximo?` Para criar mais catálogos, altere para o plano ${proximo}.`:''}`)
+        setMsg(mensagemLimiteCatalogo(limite, proximo))
         setSalvando(false)
         return
       }

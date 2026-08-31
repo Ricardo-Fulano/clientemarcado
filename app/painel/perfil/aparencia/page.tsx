@@ -2,8 +2,9 @@
 import { useEffect, useState, useRef } from 'react'
 import { supabase } from '../../../lib/supabase'
 import Link from 'next/link'
-import { ArrowLeft, UploadCloud } from 'lucide-react'
+import { ArrowLeft, UploadCloud, Lock } from 'lucide-react'
 import PainelSidebar from '@/app/components/PainelSidebar'
+import { obterLimiteModelosCor } from '../../../lib/planos'
 
 const G='linear-gradient(135deg,#EC4899,#D946EF,#8B5CF6)'
 
@@ -24,6 +25,12 @@ const TEMAS=[
   {id:'modelo10',nome:'Modelo 10',desc:'Nude e mocha, acolhedor e refinado.',p:'#A67C52',s:'#7A5A3A'},
   {id:'modelo11',nome:'Modelo 11',desc:'Bordô profundo, elegante e marcante.',p:'#7F1D1D',s:'#BE123C'},
   {id:'modelo12',nome:'Modelo 12',desc:'Azul-meia-noite, premium e versátil.',p:'#3B82F6',s:'#10243D'},
+  {id:'modelo13',nome:'Modelo 13',desc:'Vermelho neon, intenso, moderno e impactante.',p:'#FF1744',s:'#FF6B85'},
+  {id:'modelo14',nome:'Modelo 14',desc:'Verde neon, vibrante, moderno e tecnológico.',p:'#00FF85',s:'#6FFFB0'},
+  {id:'modelo15',nome:'Modelo 15',desc:'Azul neon, marcante, sofisticado e digital.',p:'#00BFFF',s:'#66D9FF'},
+  {id:'modelo16',nome:'Modelo 16',desc:'Rosa neon, forte, feminino e super marcante.',p:'#FF2DAA',s:'#FF7ACB'},
+  {id:'modelo17',nome:'Modelo 17',desc:'Laranja neon, energético, criativo e ousado.',p:'#FF7A00',s:'#FFB066'},
+  {id:'modelo18',nome:'Modelo 18',desc:'Dourado neon, luxuoso, intenso e premium.',p:'#FFD700',s:'#FFEB80'},
 ]
 
 const BANNERS_PRONTOS=Array.from({length:14},(_,i)=>`/banners/prontos/banner-${String(i+1).padStart(2,'0')}.webp`)
@@ -57,6 +64,7 @@ input,select,textarea{color-scheme:dark}
 
 export default function GerenciarAparencia(){
   const [userId,setUserId]=useState('')
+  const [planoTipo,setPlanoTipo]=useState('essencial')
   const [carregando,setCarregando]=useState(true)
   const [salvando,setSalvando]=useState(false)
   const [msg,setMsg]=useState('')
@@ -76,6 +84,7 @@ export default function GerenciarAparencia(){
     const {data:p,error}=await supabase.from('perfis').select('*').eq('user_id',user.id).maybeSingle()
     if(error){setMsg('Erro ao carregar: '+error.message)}
     if(p){
+      setPlanoTipo(p.plano_tipo||'essencial')
       setCapUrl(p.capa_url||p.imagem_capa||'')
       setBannerMobilePosicao(p.banner_mobile_position||'padrao')
       setBannerMobileZoom(p.banner_mobile_zoom||'normal')
@@ -214,20 +223,28 @@ export default function GerenciarAparencia(){
               <p style={{fontSize:'13px',fontWeight:600,color:'#B8AAB8',marginBottom:'4px'}}>Cor de destaque</p>
               <p style={{fontSize:'12px',color:'#B8AAB8',marginBottom:'14px'}}>Escolha uma cor pronta para combinar com o estilo do seu negócio. Afeta apenas a página pública.</p>
               <div className="temas-grid">
-                {TEMAS.map(t=>(
-                  <button key={t.id} onClick={()=>setPublicTheme(t.id)} className={`tema-card${publicTheme===t.id?' on':''}`}
-                    style={publicTheme===t.id?{borderColor:t.p,background:`${t.p}1A`,boxShadow:`0 0 18px ${t.p}30`}:undefined}>
+                {TEMAS.map(t=>{
+                  const numeroModelo=parseInt(t.id.replace('modelo',''),10)||0
+                  // O tema JA selecionado nunca fica bloqueado (nao apaga escolha antiga de
+                  // conta que testou um modelo premium antes do limite existir) - so modelos
+                  // DIFERENTES do atual, acima do limite do plano, ficam bloqueados.
+                  const bloqueado=numeroModelo>obterLimiteModelosCor(planoTipo)&&publicTheme!==t.id
+                  return (
+                  <button key={t.id} onClick={()=>{if(!bloqueado)setPublicTheme(t.id)}} className={`tema-card${publicTheme===t.id?' on':''}`}
+                    style={{...(publicTheme===t.id?{borderColor:t.p,background:`${t.p}1A`,boxShadow:`0 0 18px ${t.p}30`}:undefined),...(bloqueado?{opacity:.45,cursor:'not-allowed'}:undefined)}}>
                     <div style={{display:'flex',alignItems:'center',gap:'8px',marginBottom:'8px'}}>
                       <div style={{display:'flex',gap:'4px'}}>
                         <div style={{width:'16px',height:'16px',borderRadius:'50%',background:t.p,flexShrink:0}}/>
                         <div style={{width:'16px',height:'16px',borderRadius:'50%',background:t.s,flexShrink:0}}/>
                       </div>
                       {publicTheme===t.id&&<span style={{fontSize:'10px',fontWeight:700,color:t.p,background:`${t.p}24`,borderRadius:'6px',padding:'2px 7px',marginLeft:'auto'}}>Ativo</span>}
+                      {bloqueado&&<span style={{fontSize:'10px',fontWeight:700,color:'#B8AAB8',background:'rgba(184,170,184,.14)',borderRadius:'6px',padding:'2px 7px',marginLeft:'auto',display:'flex',alignItems:'center',gap:'3px'}}><Lock size={9}/> MiniPage</span>}
                     </div>
                     <p style={{fontSize:'12px',fontWeight:700,color:publicTheme===t.id?'#F8F4F7':'#B8AAB8',marginBottom:'3px'}}>{t.nome}</p>
                     <p style={{fontSize:'11px',color:'#B8AAB8',lineHeight:1.4}}>{t.desc}</p>
                   </button>
-                ))}
+                  )
+                })}
               </div>
             </div>
           </div>

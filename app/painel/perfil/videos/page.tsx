@@ -4,6 +4,8 @@ import { supabase } from '../../../lib/supabase'
 import Link from 'next/link'
 import { ArrowLeft, ArrowUp, ArrowDown } from 'lucide-react'
 import PainelSidebar from '@/app/components/PainelSidebar'
+import BloqueioPorPlano from '@/app/components/BloqueioPorPlano'
+import { permiteVideos } from '../../../lib/planos'
 
 const G='linear-gradient(135deg,#EC4899,#D946EF,#8B5CF6)'
 
@@ -25,6 +27,7 @@ const FORMATO_RATIO_PAINEL:Record<string,string>={'16:9':'16/9','9:16':'9/16','4
 
 export default function GerenciarVideos(){
   const [userId,setUserId]=useState('')
+  const [planoTipo,setPlanoTipo]=useState('essencial')
   const [videos,setVideos]=useState<any[]>([])
   const [carregando,setCarregando]=useState(true)
   const [msg,setMsg]=useState('')
@@ -39,7 +42,11 @@ export default function GerenciarVideos(){
     const {data:{user}}=await supabase.auth.getUser()
     if(!user){window.location.href='/login';return}
     setUserId(user.id)
-    const {data}=await supabase.from('pagina_videos').select('*').eq('user_id',user.id).order('ordem')
+    const [{data},{data:perfil}]=await Promise.all([
+      supabase.from('pagina_videos').select('*').eq('user_id',user.id).order('ordem'),
+      supabase.from('perfis').select('plano_tipo').eq('user_id',user.id).maybeSingle(),
+    ])
+    if(perfil?.plano_tipo) setPlanoTipo(perfil.plano_tipo)
     setVideos(data||[])
     setCarregando(false)
   }
@@ -210,6 +217,7 @@ export default function GerenciarVideos(){
       <PainelSidebar tituloMobile="Vídeos"/>
       <div className="psb-main">
         <div className="pg"><div className="bdy">
+        <BloqueioPorPlano permitido={permiteVideos(planoTipo)} titulo="Vídeos disponível a partir do plano MiniPage" descricao="O plano Free é uma amostra limitada da MiniPage Pro. Faça upgrade para usar Vídeos em destaque na sua página.">
 
           {msg&&(
             <div style={{position:'fixed',top:'20px',left:'50%',transform:'translateX(-50%)',background:msg.includes('rro')?'rgba(239,68,68,.16)':'rgba(34,197,94,.16)',border:`1px solid ${msg.includes('rro')?'rgba(239,68,68,.36)':'rgba(34,197,94,.36)'}`,borderRadius:'10px',padding:'10px 20px',zIndex:99,color:msg.includes('rro')?'#EF4444':'#22C55E',fontSize:'13px',fontWeight:700,backdropFilter:'blur(20px)',whiteSpace:'nowrap'}}>
@@ -270,7 +278,7 @@ export default function GerenciarVideos(){
                         </button>
                       </div>
                       <button type="button" onClick={()=>gerarCapaAutomatica(v)} disabled={gerandoCapaId===v.id} style={{background:'rgba(139,92,246,.12)',border:'1px solid rgba(139,92,246,.28)',color:'#C4B5FD',borderRadius:'8px',padding:'7px 14px',fontSize:'12px',fontWeight:700,cursor:gerandoCapaId===v.id?'wait':'pointer',fontFamily:'inherit',opacity:gerandoCapaId===v.id?.7:1,width:'100%'}}>{gerandoCapaId===v.id?'Buscando capa...':'Gerar capa automática pelo link'}</button>
-                      <p style={{fontSize:'10px',color:'#B8AAB8',marginTop:'8px'}}>Recomendado: imagem na proporção 16:9 (ex: 1280x720px), com boa resolução, pra preencher o card sem cortes estranhos.</p>
+                      <p style={{fontSize:'10px',color:'#B8AAB8',marginTop:'8px'}}>Envie uma capa no mesmo formato do vídeo. Reels, Shorts e TikTok: vertical 9:16. YouTube horizontal: 16:9. Use boa resolução, pra preencher o card sem cortes estranhos.</p>
                       <p style={{fontSize:'10px',color:'#B8AAB8',marginTop:'4px'}}>Algumas plataformas podem não carregar a capa automaticamente. Se isso acontecer, envie uma capa manualmente.</p>
                     </div>
                   </div>
@@ -293,6 +301,7 @@ export default function GerenciarVideos(){
           </div>
           <input ref={imgRef} type="file" accept="image/*" onChange={uploadCapaVideo} style={{display:'none'}}/>
 
+        </BloqueioPorPlano>
         </div></div>
       </div>
     </div>

@@ -1,6 +1,7 @@
 'use client'
 import { useEffect, useState, useRef } from 'react'
 import { supabase } from '../../lib/supabase'
+import { permiteDestaques, permiteVideos, permiteAgendaEventos, obterLimiteLinksRapidos, obterLimiteCatalogos, permiteAgenda } from '../../lib/planos'
 import Link from 'next/link'
 import { Copy, Check, ExternalLink, ChevronDown, ChevronUp, UploadCloud, ArrowUp, ArrowDown } from 'lucide-react'
 import PainelSidebar from '@/app/components/PainelSidebar'
@@ -87,6 +88,7 @@ select option{background:#120A14;color:#F8F4F7}
 export default function Perfil(){
   const [userId,setUserId]=useState('')
   const [semPerfil,setSemPerfil]=useState(false)
+  const [planoTipo,setPlanoTipo]=useState('essencial')
   const [salvando,setSalvando]=useState(false)
   const [promoAtiva,setPromoAtiva]=useState(false)
   // A UI de "Promoção em destaque" foi substituída por Destaques + Links Rápidos.
@@ -259,6 +261,7 @@ export default function Perfil(){
       return
     }
     setSemPerfil(false)
+    setPlanoTipo(p.plano_tipo||'essencial')
 
     setNome(p.nome_negocio||'')
       setSlug(p.slug||'')
@@ -605,7 +608,11 @@ export default function Perfil(){
                 <p style={{fontSize:'15px',fontWeight:700,color:'#F8F4F7',marginBottom:'2px'}}>Agenda e horários</p>
                 <p style={{fontSize:'12px',color:'#B8AAB8'}}>Configure dias de atendimento, horários, intervalo entre horários e antecedência mínima.</p>
               </div>
-              <Link href="/painel/perfil/agenda" style={{background:G,color:'#fff',border:'1px solid rgba(255,255,255,.12)',borderRadius:'10px',padding:'10px 18px',fontSize:'13px',fontWeight:700,textDecoration:'none',flexShrink:0}}>Gerenciar agenda</Link>
+              {permiteAgenda(planoTipo) ? (
+                <Link href="/painel/perfil/agenda" style={{background:G,color:'#fff',border:'1px solid rgba(255,255,255,.12)',borderRadius:'10px',padding:'10px 18px',fontSize:'13px',fontWeight:700,textDecoration:'none',flexShrink:0}}>Gerenciar agenda</Link>
+              ) : (
+                <Link href="/painel/plano" style={{background:'rgba(24,16,27,.92)',color:'#B8AAB8',border:'1px solid #2A1A2F',borderRadius:'10px',padding:'10px 18px',fontSize:'13px',fontWeight:700,textDecoration:'none',flexShrink:0}}>🔒 Disponível no MiniPage Pro</Link>
+              )}
             </div>
           </div>
 
@@ -695,7 +702,11 @@ export default function Perfil(){
                 <p style={{fontSize:'15px',fontWeight:700,color:'#F8F4F7',marginBottom:'2px'}}>Destaques da página</p>
                 <p style={{fontSize:'12px',color:'#B8AAB8'}}>{destaques.length} destaque{destaques.length!==1?'s':''} cadastrado{destaques.length!==1?'s':''}</p>
               </div>
-              <Link href="/painel/perfil/destaques" style={{background:G,color:'#fff',border:'1px solid rgba(255,255,255,.12)',borderRadius:'10px',padding:'10px 18px',fontSize:'13px',fontWeight:700,textDecoration:'none',flexShrink:0}}>Gerenciar destaques</Link>
+              {permiteDestaques(planoTipo) ? (
+                <Link href="/painel/perfil/destaques" style={{background:G,color:'#fff',border:'1px solid rgba(255,255,255,.12)',borderRadius:'10px',padding:'10px 18px',fontSize:'13px',fontWeight:700,textDecoration:'none',flexShrink:0}}>Gerenciar destaques</Link>
+              ) : (
+                <Link href="/painel/plano" style={{background:'rgba(24,16,27,.92)',color:'#B8AAB8',border:'1px solid #2A1A2F',borderRadius:'10px',padding:'10px 18px',fontSize:'13px',fontWeight:700,textDecoration:'none',flexShrink:0}}>🔒 Disponível no MiniPage</Link>
+              )}
             </div>
           </div>
 
@@ -703,7 +714,7 @@ export default function Perfil(){
             <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',flexWrap:'wrap',gap:'12px'}}>
               <div>
                 <p style={{fontSize:'15px',fontWeight:700,color:'#F8F4F7',marginBottom:'2px'}}>Links rápidos</p>
-                <p style={{fontSize:'12px',color:'#B8AAB8'}}>{links.length} link{links.length!==1?'s':''} cadastrado{links.length!==1?'s':''}</p>
+                <p style={{fontSize:'12px',color:'#B8AAB8'}}>{links.length}{obterLimiteLinksRapidos(planoTipo)!==Infinity?` de ${obterLimiteLinksRapidos(planoTipo)}`:''} link{links.length!==1?'s':''} cadastrado{links.length!==1?'s':''}</p>
               </div>
               <Link href="/painel/perfil/links" style={{background:G,color:'#fff',border:'1px solid rgba(255,255,255,.12)',borderRadius:'10px',padding:'10px 18px',fontSize:'13px',fontWeight:700,textDecoration:'none',flexShrink:0}}>Gerenciar links</Link>
             </div>
@@ -715,7 +726,11 @@ export default function Perfil(){
                 <p style={{fontSize:'15px',fontWeight:700,color:'#F8F4F7',marginBottom:'2px'}}>Agenda / Eventos</p>
                 <p style={{fontSize:'12px',color:'#B8AAB8'}}>{eventos.length} evento{eventos.length!==1?'s':''} cadastrado{eventos.length!==1?'s':''}</p>
               </div>
-              <Link href="/painel/perfil/eventos" style={{background:G,color:'#fff',border:'1px solid rgba(255,255,255,.12)',borderRadius:'10px',padding:'10px 18px',fontSize:'13px',fontWeight:700,textDecoration:'none',flexShrink:0}}>Gerenciar eventos</Link>
+              {permiteAgendaEventos(planoTipo) ? (
+                <Link href="/painel/perfil/eventos" style={{background:G,color:'#fff',border:'1px solid rgba(255,255,255,.12)',borderRadius:'10px',padding:'10px 18px',fontSize:'13px',fontWeight:700,textDecoration:'none',flexShrink:0}}>Gerenciar eventos</Link>
+              ) : (
+                <Link href="/painel/plano" style={{background:'rgba(24,16,27,.92)',color:'#B8AAB8',border:'1px solid #2A1A2F',borderRadius:'10px',padding:'10px 18px',fontSize:'13px',fontWeight:700,textDecoration:'none',flexShrink:0}}>🔒 Disponível no MiniPage</Link>
+              )}
             </div>
           </div>
 
@@ -725,7 +740,11 @@ export default function Perfil(){
                 <p style={{fontSize:'15px',fontWeight:700,color:'#F8F4F7',marginBottom:'2px'}}>Vídeos da página</p>
                 <p style={{fontSize:'12px',color:'#B8AAB8'}}>{videos.length} vídeo{videos.length!==1?'s':''} cadastrado{videos.length!==1?'s':''}</p>
               </div>
-              <Link href="/painel/perfil/videos" style={{background:G,color:'#fff',border:'1px solid rgba(255,255,255,.12)',borderRadius:'10px',padding:'10px 18px',fontSize:'13px',fontWeight:700,textDecoration:'none',flexShrink:0}}>Gerenciar vídeos</Link>
+              {permiteVideos(planoTipo) ? (
+                <Link href="/painel/perfil/videos" style={{background:G,color:'#fff',border:'1px solid rgba(255,255,255,.12)',borderRadius:'10px',padding:'10px 18px',fontSize:'13px',fontWeight:700,textDecoration:'none',flexShrink:0}}>Gerenciar vídeos</Link>
+              ) : (
+                <Link href="/painel/plano" style={{background:'rgba(24,16,27,.92)',color:'#B8AAB8',border:'1px solid #2A1A2F',borderRadius:'10px',padding:'10px 18px',fontSize:'13px',fontWeight:700,textDecoration:'none',flexShrink:0}}>🔒 Disponível no MiniPage</Link>
+              )}
             </div>
           </div>
 
@@ -736,7 +755,11 @@ export default function Perfil(){
                 <p style={{fontSize:'15px',fontWeight:700,color:'#F8F4F7',marginBottom:'2px'}}>Catálogos</p>
                 <p style={{fontSize:'12px',color:'#B8AAB8'}}>{catalogos.length} catálogo{catalogos.length!==1?'s':''} cadastrado{catalogos.length!==1?'s':''}</p>
               </div>
-              <Link href="/painel/perfil/catalogo" style={{background:G,color:'#fff',border:'1px solid rgba(255,255,255,.12)',borderRadius:'10px',padding:'10px 18px',fontSize:'13px',fontWeight:700,textDecoration:'none',flexShrink:0}}>Gerenciar catálogos</Link>
+              {obterLimiteCatalogos(planoTipo)>0 ? (
+                <Link href="/painel/perfil/catalogo" style={{background:G,color:'#fff',border:'1px solid rgba(255,255,255,.12)',borderRadius:'10px',padding:'10px 18px',fontSize:'13px',fontWeight:700,textDecoration:'none',flexShrink:0}}>Gerenciar catálogos</Link>
+              ) : (
+                <Link href="/painel/plano" style={{background:'rgba(24,16,27,.92)',color:'#B8AAB8',border:'1px solid #2A1A2F',borderRadius:'10px',padding:'10px 18px',fontSize:'13px',fontWeight:700,textDecoration:'none',flexShrink:0}}>🔒 Disponível no MiniPage</Link>
+              )}
             </div>
           </div>
 

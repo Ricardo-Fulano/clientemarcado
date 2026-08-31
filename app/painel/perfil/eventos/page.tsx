@@ -4,6 +4,8 @@ import { supabase } from '../../../lib/supabase'
 import Link from 'next/link'
 import { ArrowLeft, ArrowUp, ArrowDown } from 'lucide-react'
 import PainelSidebar from '@/app/components/PainelSidebar'
+import BloqueioPorPlano from '@/app/components/BloqueioPorPlano'
+import { permiteAgendaEventos } from '../../../lib/planos'
 
 const G='linear-gradient(135deg,#EC4899,#D946EF,#8B5CF6)'
 
@@ -22,6 +24,7 @@ input,select,textarea{color-scheme:dark}
 
 export default function GerenciarEventos(){
   const [userId,setUserId]=useState('')
+  const [planoTipo,setPlanoTipo]=useState('essencial')
   const [eventos,setEventos]=useState<any[]>([])
   const [carregando,setCarregando]=useState(true)
   const [msg,setMsg]=useState('')
@@ -33,7 +36,11 @@ export default function GerenciarEventos(){
     const {data:{user}}=await supabase.auth.getUser()
     if(!user){window.location.href='/login';return}
     setUserId(user.id)
-    const {data}=await supabase.from('pagina_eventos').select('*').eq('user_id',user.id).order('ordem')
+    const [{data},{data:perfil}]=await Promise.all([
+      supabase.from('pagina_eventos').select('*').eq('user_id',user.id).order('ordem'),
+      supabase.from('perfis').select('plano_tipo').eq('user_id',user.id).maybeSingle(),
+    ])
+    if(perfil?.plano_tipo) setPlanoTipo(perfil.plano_tipo)
     setEventos(data||[])
     setCarregando(false)
   }
@@ -108,6 +115,7 @@ export default function GerenciarEventos(){
       <PainelSidebar tituloMobile="Eventos"/>
       <div className="psb-main">
         <div className="pg"><div className="bdy">
+        <BloqueioPorPlano permitido={permiteAgendaEventos(planoTipo)} titulo="Agenda/Eventos disponível a partir do plano MiniPage" descricao="O plano Free é uma amostra limitada da MiniPage Pro. Faça upgrade para usar Agenda/Eventos na sua página.">
 
           {msg&&(
             <div style={{position:'fixed',top:'20px',left:'50%',transform:'translateX(-50%)',background:msg.includes('rro')?'rgba(239,68,68,.16)':'rgba(34,197,94,.16)',border:`1px solid ${msg.includes('rro')?'rgba(239,68,68,.36)':'rgba(34,197,94,.36)'}`,borderRadius:'10px',padding:'10px 20px',zIndex:99,color:msg.includes('rro')?'#EF4444':'#22C55E',fontSize:'13px',fontWeight:700,backdropFilter:'blur(20px)',whiteSpace:'nowrap'}}>
@@ -153,6 +161,7 @@ export default function GerenciarEventos(){
             ))}
           </div>
 
+        </BloqueioPorPlano>
         </div></div>
       </div>
     </div>

@@ -9,6 +9,7 @@ const TIMEOUT_MS = 6000
 
 function detectarPlataforma(url: string): string {
   const u = url.toLowerCase()
+  if (u.includes('wa.me/') || u.includes('whatsapp.com')) return 'whatsapp'
   if (u.includes('youtube.com/shorts/')) return 'youtube_shorts'
   if (u.includes('youtube.com/watch') || u.includes('youtu.be/')) return 'youtube'
   if (u.includes('open.spotify.com') || u.includes('spotify.com')) return 'spotify'
