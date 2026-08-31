@@ -13,6 +13,8 @@ export default function CatalogoItemCard({
     descricao_curta?: string | null
     descricao_completa?: string | null
     preco?: number | null
+    preco_exibicao?: string | null
+    preco_texto_personalizado?: string | null
     imagem_url?: string | null
     botao_texto?: string | null
     tipo_destino?: string | null
@@ -41,6 +43,16 @@ export default function CatalogoItemCard({
     : (item.imagem_url ? [{ id: 'legado', imagem_url: item.imagem_url }] : [])
 
   const fBRL = (v: number) => `R$ ${v.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`
+
+  // Decide o que aparece no lugar do preco: valor numerico (modo padrao "mostrar", tambem o
+  // fallback de itens antigos que nunca tiveram esse campo preenchido), texto personalizado
+  // (qualquer chamada livre - "Sob consulta", "Ouca agora", etc), ou nada.
+  function infoPreco(): string | null {
+    const modo = item.preco_exibicao || 'mostrar'
+    if (modo === 'nao_mostrar') return null
+    if (modo === 'texto_personalizado') return item.preco_texto_personalizado?.trim() || null
+    return item.preco != null && item.preco !== undefined ? fBRL(item.preco) : null
+  }
 
   function montarLinkWhatsapp(numero: string, titulo: string, mensagemCustomizada?: string | null) {
     const somenteDigitos = (numero || '').replace(/\D/g, '')
@@ -140,9 +152,7 @@ export default function CatalogoItemCard({
         </div>
         <div style={{ padding: '10px 12px' }}>
           <p className="catalogo-card-titulo" style={{ color: text }}>{item.titulo}</p>
-          {item.preco != null && item.preco !== undefined && (
-            <p style={{ fontSize: '14px', fontWeight: 800, color: accent, marginTop: '4px', whiteSpace: 'nowrap' }}>{fBRL(item.preco)}</p>
-          )}
+          <p className="catalogo-card-preco" style={{ color: accent }}>{infoPreco() || ''}</p>
         </div>
       </button>
 
@@ -192,8 +202,8 @@ export default function CatalogoItemCard({
             <div style={{ padding: '20px' }}>
               <p style={{ fontSize: '17px', fontWeight: 800, color: text, marginBottom: '8px' }}>{item.titulo}</p>
               {(item.descricao_completa || item.descricao_curta) && <p style={{ fontSize: '13px', color: textMuted, lineHeight: 1.6, marginBottom: '12px', whiteSpace: 'pre-wrap' }}>{item.descricao_completa || item.descricao_curta}</p>}
-              {item.preco != null && item.preco !== undefined && (
-                <p style={{ fontSize: '18px', fontWeight: 800, color: accent, marginBottom: '16px' }}>{fBRL(item.preco)}</p>
+              {infoPreco() && (
+                <p style={{ fontSize: '18px', fontWeight: 800, color: accent, marginBottom: '16px' }}>{infoPreco()}</p>
               )}
               <button
                 type="button"

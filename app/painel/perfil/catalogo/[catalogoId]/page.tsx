@@ -89,7 +89,7 @@ export default function GerenciarItensDoCatalogo(){
   }
 
   function novoItem(){
-    setItens(prev=>[...prev,{id:'novo-'+Date.now(),user_id:userId,catalogo_id:catalogoId,titulo:'',descricao_curta:'',descricao_completa:'',preco:'',imagem_url:'',botao_texto:'Ver mais',tipo_destino:'link',destino_url:'',whatsapp:'',mensagem_whatsapp:'',ativo:true,ordem:prev.length,_novo:true}])
+    setItens(prev=>[...prev,{id:'novo-'+Date.now(),user_id:userId,catalogo_id:catalogoId,titulo:'',descricao_curta:'',descricao_completa:'',preco:'',preco_exibicao:'mostrar',preco_texto_personalizado:'',imagem_url:'',botao_texto:'Ver mais',tipo_destino:'link',destino_url:'',whatsapp:'',mensagem_whatsapp:'',ativo:true,ordem:prev.length,_novo:true}])
   }
   function mensagemPadrao(titulo:string){
     return `Olá! Quero saber mais sobre ${titulo||''}`
@@ -362,6 +362,8 @@ export default function GerenciarItensDoCatalogo(){
       descricao_curta:it.descricao_curta?.trim()||null,
       descricao_completa:it.descricao_completa?.trim()||null,
       preco: it.preco!==''&&it.preco!==null&&it.preco!==undefined ? parseFloat(String(it.preco).replace(',','.'))||null : null,
+      preco_exibicao: it.preco_exibicao||'mostrar',
+      preco_texto_personalizado: it.preco_exibicao==='texto_personalizado' ? (it.preco_texto_personalizado?.trim()||null) : null,
       imagem_url:it.imagem_url||null,
       botao_texto:it.botao_texto?.trim()||'Ver mais',
       tipo_destino:it.tipo_destino||'link',
@@ -503,7 +505,27 @@ export default function GerenciarItensDoCatalogo(){
 
                   <div className="fg2" style={{marginBottom:'10px'}}>
                     <div><label className="lbl">Título *</label><input className="inp" autoFocus={!!it._novo} value={it.titulo||''} onChange={e=>editarItem(it.id,'titulo',e.target.value)} placeholder="Ex: Curso de Alongamento em Gel"/></div>
-                    <div><label className="lbl">Preço (opcional)</label><input className="inp" value={it.preco||''} onChange={e=>editarItem(it.id,'preco',e.target.value)} placeholder="Ex: 97,00"/></div>
+                    <div>
+                      <label className="lbl">Exibição do preço</label>
+                      <select className="inp" style={{cursor:'pointer'}} value={it.preco_exibicao||'mostrar'} onChange={e=>editarItem(it.id,'preco_exibicao',e.target.value)}>
+                        <option value="mostrar">Mostrar preço</option>
+                        <option value="texto_personalizado">Texto personalizado</option>
+                        <option value="nao_mostrar">Não mostrar</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div style={{marginBottom:'12px'}}>
+                    {it.preco_exibicao==='texto_personalizado'?(
+                      <>
+                        <label className="lbl">Texto personalizado no lugar do preço</label>
+                        <input className="inp" value={it.preco_texto_personalizado||''} onChange={e=>editarItem(it.id,'preco_texto_personalizado',e.target.value)} placeholder="Ex: Sob consulta, Ouça agora, A partir de R$ 99"/>
+                        <p style={{fontSize:'10px',color:'#B8AAB8',marginTop:'6px'}}>Aparece no lugar do preço, no card e no modal. Use pra produtos, músicas, cursos, eventos, serviços ou qualquer chamada que não seja um valor fixo.</p>
+                      </>
+                    ):it.preco_exibicao==='nao_mostrar'?(
+                      <p style={{fontSize:'11px',color:'#B8AAB8'}}>Nenhum preço ou texto será exibido para este item.</p>
+                    ):(
+                      <div><label className="lbl">Preço (opcional)</label><input className="inp" value={it.preco||''} onChange={e=>editarItem(it.id,'preco',e.target.value)} placeholder="Ex: 97,00"/></div>
+                    )}
                   </div>
                   <div style={{marginBottom:'12px'}}>
                     <label className="lbl">Descrição longa</label>

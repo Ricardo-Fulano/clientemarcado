@@ -80,12 +80,13 @@ html,body{overflow-x:hidden;width:100%;max-width:100%}
 .catalogo-scroll{display:flex;gap:12px;overflow-x:auto;overflow-y:hidden;padding-bottom:6px;scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch}
 .catalogo-scroll::-webkit-scrollbar{height:5px}
 .catalogo-scroll::-webkit-scrollbar-thumb{background:var(--accent-border);border-radius:99px}
-.catalogo-card{width:140px;flex-shrink:0;border-radius:16px;overflow:hidden;scroll-snap-align:start;transition:border-color .18s}
-.catalogo-card-img{width:100%;aspect-ratio:1/1;background:rgba(0,0,0,.15);overflow:hidden}
+.catalogo-card{width:140px;flex-shrink:0;border-radius:16px;overflow:hidden;scroll-snap-align:start;transition:border-color .18s;display:flex;flex-direction:column}
+.catalogo-card-img{width:100%;aspect-ratio:1/1;background:rgba(0,0,0,.15);overflow:hidden;border-radius:16px 16px 0 0;flex-shrink:0}
 .catalogo-card-img img{width:100%;height:100%;object-fit:cover;object-position:center center;display:block}
 .scroll-hint{display:none;font-size:11px;color:var(--text-muted);margin:-10px 0 12px;font-weight:600}
 @media(max-width:767px){.scroll-hint{display:block}}
-.catalogo-card-titulo{font-size:12px;font-weight:700;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.catalogo-card-titulo{font-size:12px;font-weight:700;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:31px}
+.catalogo-card-preco{font-size:14px;font-weight:800;margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-height:18px}
 @media(min-width:768px){.catalogo-card{width:170px}}
 .video-mais summary{list-style:none;cursor:pointer;display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:700;padding:11px 22px;border-radius:999px;margin:18px auto 0;width:fit-content}
 .video-mais summary::-webkit-details-marker{display:none}
@@ -274,7 +275,7 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
     supabase.from('pagina_videos').select('*').eq('user_id', perfil.user_id).eq('ativo', true).order('ordem').order('created_at'),
     supabase.from('pagina_eventos').select('*').eq('user_id', perfil.user_id).eq('ativo', true).order('ordem').order('created_at'),
     supabase.from('pagina_catalogos').select('id,titulo,subtitulo').eq('user_id', perfil.user_id).eq('ativo', true).order('ordem'),
-    supabase.from('pagina_catalogo_itens').select('id,catalogo_id,titulo,descricao_curta,descricao_completa,preco,imagem_url,botao_texto,tipo_destino,destino_url,whatsapp,mensagem_whatsapp').eq('user_id', perfil.user_id).eq('ativo', true).order('ordem').order('created_at'),
+    supabase.from('pagina_catalogo_itens').select('id,catalogo_id,titulo,descricao_curta,descricao_completa,preco,preco_exibicao,preco_texto_personalizado,imagem_url,botao_texto,tipo_destino,destino_url,whatsapp,mensagem_whatsapp').eq('user_id', perfil.user_id).eq('ativo', true).order('ordem').order('created_at'),
     supabase.from('catalogo_item_imagens').select('id,item_id,imagem_url,ordem,is_capa').eq('user_id', perfil.user_id).order('ordem'),
   ])
 
