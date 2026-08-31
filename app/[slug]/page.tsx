@@ -266,7 +266,7 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
     }
   }
 
-  const [{ data: servicos }, { data: profissionais }, { data: destaques }, { data: linksRapidos }, { data: videos }, { data: eventos }, { data: catalogosAtivos }, { data: catalogoItensTodos }] = await Promise.all([
+  const [{ data: servicos }, { data: profissionais }, { data: destaques }, { data: linksRapidos }, { data: videos }, { data: eventos }, { data: catalogosAtivos }, { data: catalogoItensTodos }, { data: catalogoImagensTodas }] = await Promise.all([
     supabase.from('servicos').select('*').eq('user_id', perfil.user_id).eq('ativo', true).order('nome'),
     supabase.from('profissionais').select('*').eq('user_id', perfil.user_id).eq('ativo', true).order('nome'),
     supabase.from('pagina_destaques').select('*').eq('user_id', perfil.user_id).eq('ativo', true).order('ordem').order('created_at'),
@@ -275,6 +275,7 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
     supabase.from('pagina_eventos').select('*').eq('user_id', perfil.user_id).eq('ativo', true).order('ordem').order('created_at'),
     supabase.from('pagina_catalogos').select('id,titulo,subtitulo').eq('user_id', perfil.user_id).eq('ativo', true).order('ordem'),
     supabase.from('pagina_catalogo_itens').select('id,catalogo_id,titulo,descricao_curta,descricao_completa,preco,imagem_url,botao_texto,tipo_destino,destino_url,whatsapp,mensagem_whatsapp').eq('user_id', perfil.user_id).eq('ativo', true).order('ordem').order('created_at'),
+    supabase.from('catalogo_item_imagens').select('id,item_id,imagem_url,ordem,is_capa').eq('user_id', perfil.user_id).order('ordem'),
   ])
 
   // Agrupa os itens (ja filtrados por ativo=true) por catalogo, e mantem so os catalogos
@@ -284,7 +285,20 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
   // so nao renderiza catalogos alem do que o plano permite mostrar.
   const limiteCatalogosPublico = obterLimiteCatalogos(perfil.plano_tipo)
   const catalogosComItens = (catalogosAtivos || [])
-    .map((cat: any) => ({ ...cat, itens: (catalogoItensTodos || []).filter((it: any) => it.catalogo_id === cat.id) }))
+    .map((cat: any) => ({
+      ...cat,
+      itens: (catalogoItensTodos || []).filter((it: any) => it.catalogo_id === cat.id).map((it: any) => {
+        // Galeria efetiva: se o item tem imagens reais na tabela nova, usa elas (ordenadas,
+        // capa primeiro). Senao, sintetiza 1 unica imagem a partir do campo imagem_url de
+        // sempre - garante que item antigo (nunca editado na galeria nova) continua
+        // funcionando exatamente como antes, sem nenhuma migracao de dados necessaria.
+        const imagensReais = (catalogoImagensTodas || []).filter((img: any) => img.item_id === it.id)
+        const galeria = imagensReais.length > 0
+          ? [...imagensReais].sort((a: any, b: any) => (b.is_capa ? 1 : 0) - (a.is_capa ? 1 : 0) || a.ordem - b.ordem)
+          : (it.imagem_url ? [{ id: 'legado', imagem_url: it.imagem_url, is_capa: true }] : [])
+        return { ...it, galeria }
+      }),
+    }))
     .filter((cat: any) => cat.itens.length > 0)
     .slice(0, limiteCatalogosPublico)
 

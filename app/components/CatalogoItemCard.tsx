@@ -19,6 +19,7 @@ export default function CatalogoItemCard({
     destino_url?: string | null
     whatsapp?: string | null
     mensagem_whatsapp?: string | null
+    galeria?: { id: string; imagem_url: string; is_capa?: boolean }[]
   }
   iconeBorder: string
   accent: string
@@ -31,6 +32,13 @@ export default function CatalogoItemCard({
 }) {
   const [aberto, setAberto] = useState(false)
   const [imgComErro, setImgComErro] = useState(false)
+  const [imagemAtivaIdx, setImagemAtivaIdx] = useState(0)
+
+  // Galeria efetiva: usa a que vier do banco, ou sintetiza 1 imagem so a partir do campo de
+  // sempre (imagem_url) - cobre 100% dos itens antigos, que nunca tiveram galeria cadastrada.
+  const galeria = item.galeria && item.galeria.length > 0
+    ? item.galeria
+    : (item.imagem_url ? [{ id: 'legado', imagem_url: item.imagem_url }] : [])
 
   const fBRL = (v: number) => `R$ ${v.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`
 
@@ -109,6 +117,7 @@ export default function CatalogoItemCard({
         type="button"
         onClick={() => {
           setAberto(true)
+          setImagemAtivaIdx(0)
           registrarEvento({
             perfil_id: perfilId,
             tipo_evento: 'catalogo_click',
@@ -154,8 +163,31 @@ export default function CatalogoItemCard({
             >
               ✕
             </button>
-            {item.imagem_url && !imgComErro && (
-              <img src={item.imagem_url} alt={item.titulo} loading="lazy" decoding="async" onError={() => setImgComErro(true)} style={{ width: '100%', aspectRatio: '4/3', objectFit: 'cover', objectPosition: 'center center', borderRadius: '20px 20px 0 0', display: 'block' }} />
+            {galeria.length > 0 && !imgComErro && (
+              <>
+                <img
+                  src={galeria[Math.min(imagemAtivaIdx, galeria.length - 1)].imagem_url}
+                  alt={item.titulo}
+                  loading="lazy"
+                  decoding="async"
+                  onError={() => setImgComErro(true)}
+                  style={{ width: '100%', aspectRatio: '4/3', objectFit: 'cover', objectPosition: 'center center', borderRadius: '20px 20px 0 0', display: 'block' }}
+                />
+                {galeria.length > 1 && (
+                  <div style={{ display: 'flex', gap: '7px', overflowX: 'auto', padding: '10px 20px 0', WebkitOverflowScrolling: 'touch' }}>
+                    {galeria.map((img, idx) => (
+                      <button
+                        key={img.id}
+                        type="button"
+                        onClick={() => setImagemAtivaIdx(idx)}
+                        style={{ flexShrink: 0, width: '48px', height: '48px', borderRadius: '8px', overflow: 'hidden', padding: 0, cursor: 'pointer', border: idx === imagemAtivaIdx ? `2px solid ${accent}` : `1px solid ${iconeBorder}`, opacity: idx === imagemAtivaIdx ? 1 : 0.6 }}
+                      >
+                        <img src={img.imagem_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </>
             )}
             <div style={{ padding: '20px' }}>
               <p style={{ fontSize: '17px', fontWeight: 800, color: text, marginBottom: '8px' }}>{item.titulo}</p>

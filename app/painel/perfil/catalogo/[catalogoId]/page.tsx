@@ -39,6 +39,8 @@ export default function GerenciarItensDoCatalogo(){
   const [planoTipo,setPlanoTipo]=useState('essencial')
   const [catalogo,setCatalogo]=useState<any>(null)
   const [itens,setItens]=useState<any[]>([])
+  const [galerias,setGalerias]=useState<Record<string,any[]>>({}) // item_id -> [{id,imagem_url,ordem,is_capa}]
+  const [enviandoGaleriaId,setEnviandoGaleriaId]=useState('')
   const [carregando,setCarregando]=useState(true)
   const [naoEncontrado,setNaoEncontrado]=useState(false)
   const [msg,setMsg]=useState('')
@@ -47,6 +49,7 @@ export default function GerenciarItensDoCatalogo(){
   const [gerandoPreviaId,setGerandoPreviaId]=useState('')
   const [avancadoAbertoIds,setAvancadoAbertoIds]=useState<Set<string>>(new Set())
   const fileRefs = useRef<Record<string,HTMLInputElement|null>>({})
+  const galeriaFileRefs = useRef<Record<string,HTMLInputElement|null>>({})
 
   useEffect(()=>{ if(catalogoId) load() },[catalogoId])
 
@@ -63,6 +66,18 @@ export default function GerenciarItensDoCatalogo(){
     setCatalogo(cat)
     const {data:its}=await supabase.from('pagina_catalogo_itens').select('*').eq('catalogo_id',catalogoId).eq('user_id',user.id).order('ordem')
     setItens(its||[])
+    // Busca a galeria de TODOS os itens desse catalogo de uma vez (evita 1 consulta por item).
+    // Itens sem nenhuma linha aqui continuam funcionando normalmente - so nao mostram galeria
+    // extra, tratando a imagem_url de sempre como unica/capa.
+    if(its&&its.length>0){
+      const {data:imgs}=await supabase.from('catalogo_item_imagens').select('*').in('item_id',its.map((i:any)=>i.id)).eq('user_id',user.id).order('ordem')
+      const agrupado:Record<string,any[]>={}
+      ;(imgs||[]).forEach((img:any)=>{
+        if(!agrupado[img.item_id])agrupado[img.item_id]=[]
+        agrupado[img.item_id].push(img)
+      })
+      setGalerias(agrupado)
+    }
     setCarregando(false)
   }
 
@@ -220,6 +235,120 @@ export default function GerenciarItensDoCatalogo(){
     if(fileRefs.current[id])fileRefs.current[id]!.value=''
   }
 
+  // Galeria efetiva de um item: se ja tem linhas reais em catalogo_item_imagens, usa elas.
+  // Senao, "sintetiza" uma entrada unica a partir da imagem_url de sempre (item antigo, nunca
+  // editado na galeria nova) - assim a tela sempre tem algo consistente pra mostrar, sem
+  // precisar de nenhuma migracao de dados.
+  function galeriaEfetiva(item:any):any[]{
+    const real=galerias[item.id]
+    if(real&&real.length>0)return real
+    if(item.imagem_url)return [{id:'legado',imagem_url:item.imagem_url,ordem:0,is_capa:true,_legado:true}]
+    return []
+  }
+
+  async function adicionarImagemGaleria(item:any,e:React.ChangeEvent<HTMLInputElement>){
+    const file=e.target.files?.[0];if(!file)return
+    if(!(await validarSessao()))return
+    if(item.id.startsWith('novo-')){setMsg('Salve o item pelo menos uma vez antes de adicionar mais imagens.');return}
+    const galeriaAtual=galeriaEfetiva(item)
+    if(galeriaAtual.length>=8){setMsg('Cada item pode ter no máximo 8 imagens.');return}
+    const allowedTypes=['image/jpeg','image/jpg','image/png','image/webp']
+    if(!allowedTypes.includes(file.type)){setMsg('Envie uma imagem JPG, PNG ou WEBP.');return}
+    if(file.size>5*1024*1024){setMsg('A imagem deve ter no máximo 5MB.');return}
+    setEnviandoGaleriaId(item.id)
+    const ext=file.name.split('.').pop()?.toLowerCase()||'jpg'
+    const path=`catalogo/${userId}-${Date.now()}.${ext}`
+    const {error:uploadError}=await supabase.storage.from('fotos').upload(path,file,{upsert:true,contentType:file.type,cacheControl:'3600'})
+    if(uploadError){setMsg('Erro no upload: '+uploadError.message);setEnviandoGaleriaId('');return}
+    const {data:pub}=supabase.storage.from('fotos').getPublicUrl(path)
+
+    // Se a galeria ainda era "legado" (so a imagem_url antiga, sem linha real na tabela nova),
+    // materializa ela como a primeira linha real antes de inserir a nova - assim o item passa
+    // a ter uma galeria de verdade, sem perder a capa que ja existia.
+    const eraLegado=galeriaAtual.length===1&&galeriaAtual[0]._legado
+    if(eraLegado){
+      const {data:capaReal,error:erroCapa}=await supabase.from('catalogo_item_imagens').insert({
+        item_id:item.id,user_id:userId,imagem_url:galeriaAtual[0].imagem_url,ordem:0,is_capa:true,
+      }).select().single()
+      if(erroCapa){setMsg('Erro ao preparar a galeria: '+erroCapa.message);setEnviandoGaleriaId('');return}
+      const {data:novaImg,error:erroNova}=await supabase.from('catalogo_item_imagens').insert({
+        item_id:item.id,user_id:userId,imagem_url:pub.publicUrl,ordem:1,is_capa:false,
+      }).select().single()
+      if(erroNova){setMsg('Erro ao salvar imagem: '+erroNova.message);setEnviandoGaleriaId('');return}
+      setGalerias(prev=>({...prev,[item.id]:[capaReal,novaImg]}))
+    } else {
+      const proximaOrdem=galeriaAtual.length>0?Math.max(...galeriaAtual.map(g=>g.ordem))+1:0
+      const {data:novaImg,error:erroNova}=await supabase.from('catalogo_item_imagens').insert({
+        item_id:item.id,user_id:userId,imagem_url:pub.publicUrl,ordem:proximaOrdem,is_capa:galeriaAtual.length===0,
+      }).select().single()
+      if(erroNova){setMsg('Erro ao salvar imagem: '+erroNova.message);setEnviandoGaleriaId('');return}
+      setGalerias(prev=>({...prev,[item.id]:[...(prev[item.id]||[]),novaImg]}))
+      // Se essa foi a primeira imagem real (item nunca teve nenhuma), ela vira a capa tambem
+      // no campo antigo, pra manter tudo sincronizado.
+      if(galeriaAtual.length===0){
+        await supabase.from('pagina_catalogo_itens').update({imagem_url:pub.publicUrl}).eq('id',item.id).eq('user_id',userId)
+        editarItem(item.id,'imagem_url',pub.publicUrl)
+      }
+    }
+    setEnviandoGaleriaId('')
+    if(galeriaFileRefs.current[item.id])galeriaFileRefs.current[item.id]!.value=''
+  }
+
+  async function removerImagemGaleria(item:any,imagem:any){
+    if(!(await validarSessao()))return
+    if(imagem._legado){
+      // Remover a unica imagem "legado" e so limpar o campo mesmo, sem tabela nova envolvida.
+      await supabase.from('pagina_catalogo_itens').update({imagem_url:null}).eq('id',item.id).eq('user_id',userId)
+      editarItem(item.id,'imagem_url','')
+      return
+    }
+    const {error}=await supabase.from('catalogo_item_imagens').delete().eq('id',imagem.id).eq('user_id',userId)
+    if(error){setMsg('Erro ao remover: '+error.message);return}
+    const restantes=(galerias[item.id]||[]).filter(g=>g.id!==imagem.id)
+    // Se a imagem removida era a capa e ainda sobrou pelo menos 1 imagem, promove a primeira
+    // restante como nova capa - o item nunca fica sem capa se tiver alguma imagem disponivel.
+    if(imagem.is_capa&&restantes.length>0){
+      const novaCapa=restantes[0]
+      await supabase.from('catalogo_item_imagens').update({is_capa:true}).eq('id',novaCapa.id).eq('user_id',userId)
+      await supabase.from('pagina_catalogo_itens').update({imagem_url:novaCapa.imagem_url}).eq('id',item.id).eq('user_id',userId)
+      editarItem(item.id,'imagem_url',novaCapa.imagem_url)
+      setGalerias(prev=>({...prev,[item.id]:restantes.map(g=>g.id===novaCapa.id?{...g,is_capa:true}:g)}))
+    } else if(imagem.is_capa){
+      await supabase.from('pagina_catalogo_itens').update({imagem_url:null}).eq('id',item.id).eq('user_id',userId)
+      editarItem(item.id,'imagem_url','')
+      setGalerias(prev=>({...prev,[item.id]:restantes}))
+    } else {
+      setGalerias(prev=>({...prev,[item.id]:restantes}))
+    }
+  }
+
+  async function definirComoCapa(item:any,imagem:any){
+    if(!(await validarSessao()))return
+    if(imagem._legado||imagem.is_capa)return // ja e a capa, nada a fazer
+    const atual=galerias[item.id]||[]
+    await Promise.all([
+      supabase.from('catalogo_item_imagens').update({is_capa:false}).eq('item_id',item.id).eq('user_id',userId),
+      supabase.from('catalogo_item_imagens').update({is_capa:true}).eq('id',imagem.id).eq('user_id',userId),
+    ])
+    await supabase.from('pagina_catalogo_itens').update({imagem_url:imagem.imagem_url}).eq('id',item.id).eq('user_id',userId)
+    editarItem(item.id,'imagem_url',imagem.imagem_url)
+    setGalerias(prev=>({...prev,[item.id]:atual.map(g=>({...g,is_capa:g.id===imagem.id}))}))
+  }
+
+  async function moverImagemGaleria(item:any,imagem:any,direcao:'up'|'down'){
+    const lista=[...(galerias[item.id]||[])].sort((a,b)=>a.ordem-b.ordem)
+    const idx=lista.findIndex(g=>g.id===imagem.id)
+    const novoIdx=direcao==='up'?idx-1:idx+1
+    if(novoIdx<0||novoIdx>=lista.length)return
+    const a=lista[idx],b=lista[novoIdx]
+    ;[a.ordem,b.ordem]=[b.ordem,a.ordem]
+    setGalerias(prev=>({...prev,[item.id]:lista}))
+    await Promise.all([
+      supabase.from('catalogo_item_imagens').update({ordem:a.ordem}).eq('id',a.id).eq('user_id',userId),
+      supabase.from('catalogo_item_imagens').update({ordem:b.ordem}).eq('id',b.id).eq('user_id',userId),
+    ])
+  }
+
   async function salvarItem(it:any){
     if(!(await validarSessao()))return
     if(!it.titulo?.trim()){setMsg('Dê um título para o item.');return}
@@ -339,6 +468,37 @@ export default function GerenciarItensDoCatalogo(){
                       <button type="button" onClick={()=>fileRefs.current[it.id]?.click()} disabled={enviandoImgId===it.id} style={{background:'rgba(24,16,27,.9)',border:'1px dashed #2A1A2F',color:'#B8AAB8',borderRadius:'10px',padding:'10px 14px',fontSize:'12px',fontWeight:600,cursor:'pointer',fontFamily:'inherit',display:'inline-flex',alignItems:'center',gap:'6px'}}><UploadCloud size={14}/> {enviandoImgId===it.id?'Enviando...':'Enviar imagem'}</button>
                     )}
                     <input ref={el=>{fileRefs.current[it.id]=el}} type="file" accept="image/*" onChange={e=>uploadImagem(it.id,e)} style={{display:'none'}}/>
+                  </div>
+
+                  <div style={{marginBottom:'12px'}}>
+                    <label className="lbl">Galeria de imagens do item</label>
+                    <p style={{fontSize:'11px',color:'#B8AAB8',marginBottom:'8px'}}>A imagem marcada como capa aparece no card fechado. As outras imagens aparecem na galeria quando o visitante abre o item. Você pode adicionar até 8 imagens.</p>
+                    {it.id.startsWith('novo-')?(
+                      <p style={{fontSize:'11px',color:'#FACC15'}}>Salve o item pelo menos uma vez antes de adicionar mais imagens.</p>
+                    ):(
+                      <>
+                        <div style={{display:'flex',flexWrap:'wrap',gap:'8px',marginBottom:'8px'}}>
+                          {galeriaEfetiva(it).sort((a:any,b:any)=>a.ordem-b.ordem).map((img:any,idx:number,arr:any[])=>(
+                            <div key={img.id} style={{width:'76px',flexShrink:0}}>
+                              <div style={{position:'relative',width:'76px',height:'76px',borderRadius:'10px',overflow:'hidden',border:img.is_capa?'2px solid #EC4899':'1px solid #2A1A2F'}}>
+                                <img src={img.imagem_url} alt="" style={{width:'100%',height:'100%',objectFit:'cover'}}/>
+                                {img.is_capa&&<span style={{position:'absolute',top:'2px',left:'2px',background:'#EC4899',color:'#fff',fontSize:'8px',fontWeight:700,borderRadius:'4px',padding:'1px 4px'}}>Capa</span>}
+                              </div>
+                              <div style={{display:'flex',gap:'2px',marginTop:'4px',justifyContent:'center'}}>
+                                <button type="button" onClick={()=>moverImagemGaleria(it,img,'up')} disabled={idx===0||img._legado} title="Mover pra esquerda" style={{width:'20px',height:'20px',borderRadius:'5px',background:'rgba(24,16,27,.9)',border:'1px solid #2A1A2F',color:idx===0||img._legado?'#4A3F4E':'#B8AAB8',cursor:idx===0||img._legado?'not-allowed':'pointer',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'10px'}}>←</button>
+                                <button type="button" onClick={()=>moverImagemGaleria(it,img,'down')} disabled={idx===arr.length-1||img._legado} title="Mover pra direita" style={{width:'20px',height:'20px',borderRadius:'5px',background:'rgba(24,16,27,.9)',border:'1px solid #2A1A2F',color:idx===arr.length-1||img._legado?'#4A3F4E':'#B8AAB8',cursor:idx===arr.length-1||img._legado?'not-allowed':'pointer',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'10px'}}>→</button>
+                              </div>
+                              {!img.is_capa&&(
+                                <button type="button" onClick={()=>definirComoCapa(it,img)} style={{width:'100%',marginTop:'3px',background:'rgba(139,92,246,.12)',border:'1px solid rgba(139,92,246,.28)',color:'#C4B5FD',borderRadius:'6px',padding:'3px',fontSize:'9px',fontWeight:700,cursor:'pointer',fontFamily:'inherit'}}>Definir capa</button>
+                              )}
+                              <button type="button" onClick={()=>removerImagemGaleria(it,img)} style={{width:'100%',marginTop:'3px',background:'rgba(239,68,68,.10)',border:'1px solid rgba(239,68,68,.25)',color:'#EF4444',borderRadius:'6px',padding:'3px',fontSize:'9px',fontWeight:600,cursor:'pointer',fontFamily:'inherit'}}>Remover</button>
+                            </div>
+                          ))}
+                        </div>
+                        <button type="button" onClick={()=>galeriaFileRefs.current[it.id]?.click()} disabled={enviandoGaleriaId===it.id||galeriaEfetiva(it).length>=8} style={{background:'rgba(24,16,27,.9)',border:'1px dashed #2A1A2F',color:galeriaEfetiva(it).length>=8?'#4A3F4E':'#B8AAB8',borderRadius:'8px',padding:'8px 14px',fontSize:'12px',fontWeight:600,cursor:galeriaEfetiva(it).length>=8?'not-allowed':'pointer',fontFamily:'inherit',display:'inline-flex',alignItems:'center',gap:'5px'}}><UploadCloud size={13}/> {enviandoGaleriaId===it.id?'Enviando...':galeriaEfetiva(it).length>=8?'Limite de 8 imagens atingido':'Adicionar imagens'}</button>
+                        <input ref={el=>{galeriaFileRefs.current[it.id]=el}} type="file" accept="image/*" onChange={e=>adicionarImagemGaleria(it,e)} style={{display:'none'}}/>
+                      </>
+                    )}
                   </div>
 
                   <div className="fg2" style={{marginBottom:'10px'}}>
