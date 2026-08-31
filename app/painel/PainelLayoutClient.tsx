@@ -66,6 +66,7 @@ export default function PainelLayoutClient({ children }: { children: React.React
   const [planoTipo, setPlanoTipo] = useState<string>('essencial')
   const [diasTrial, setDiasTrial] = useState<number|null>(null)
   const [diasAtraso, setDiasAtraso] = useState<number|null>(null)
+  const [temAssinaturaAutorizada, setTemAssinaturaAutorizada] = useState(true) // otimista ate confirmar - nunca bloqueia por engano antes da consulta terminar
   const [loadingPag, setLoadingPag] = useState(false)
   const [loading, setLoading] = useState(true)
   const [isProfissional, setIsProfissional] = useState(false)
@@ -95,6 +96,11 @@ export default function PainelLayoutClient({ children }: { children: React.React
         // Mostra o motivo especifico que a API retornou (ex: "Plano Free nao gera
         // assinatura.") em vez de sempre a mensagem generica - a mensagem generica
         // continua como fallback, se a API nao mandar nada util.
+        if (data?.mp_status || data?.mp_data) {
+          // So existe fora de producao (a propria API so inclui isso em dev) - ajuda a
+          // debugar direto no console do navegador, sem precisar ficar olhando o terminal.
+          console.error('[MP] Detalhe do erro (dev only):', data.mp_status, data.mp_data)
+        }
         alert(data?.error || data?.message || mensagemGenerica)
       } else if (planoTipo === 'essencial') {
         // Fallback antigo: so vale pro Essencial (unico com link fixo configurado no Mercado Pago)
@@ -117,7 +123,7 @@ export default function PainelLayoutClient({ children }: { children: React.React
 
       const { data: p, error: perfilError } = await supabase
         .from('perfis')
-        .select('status_acesso, trial_ends_at, plano_ativo_ate, plano_tipo')
+        .select('status_acesso, trial_ends_at, plano_ativo_ate, plano_tipo, mp_subscription_id')
         .eq('user_id', user.id)
         .single()
 
@@ -149,6 +155,7 @@ export default function PainelLayoutClient({ children }: { children: React.React
       }
 
       setPlanoTipo(normalizarPlano(p?.plano_tipo))
+      setTemAssinaturaAutorizada(!!p?.mp_subscription_id)
 
       let st = p?.status_acesso || 'ativo'
 
@@ -218,6 +225,13 @@ export default function PainelLayoutClient({ children }: { children: React.React
     : diasAtraso <= 7 ? 'forte'
     : diasAtraso <= 14 ? 'parcial'
     : 'total'
+
+  // So mostra a tela "Finalize sua assinatura" quando o trial JA venceu (status em_atraso,
+  // ou seja, ja caiu em algum nivelAtraso) E a pessoa NUNCA autorizou nenhuma assinatura de
+  // verdade no Mercado Pago (mp_subscription_id nunca foi preenchido pelo webhook). Nao
+  // bloqueia ninguem ainda dentro do trial, nem quem ja pagou normalmente antes - so o caso
+  // especifico "trial acabou e nunca chegou a autorizar nada".
+  const precisaFinalizarAssinatura = nivelAtraso !== null && !temAssinaturaAutorizada
 
   // Bloqueio TOTAL (15+ dias): so essas rotas continuam acessiveis
   const ROTAS_PERMITIDAS_BLOQUEIO_TOTAL = ['/painel', '/painel/plano', '/painel/suporte']
@@ -309,30 +323,32 @@ export default function PainelLayoutClient({ children }: { children: React.React
       {nivelAtraso === 'leve' && (
         <div style={{background:'rgba(245,158,11,.08)',border:'1px solid rgba(245,158,11,.28)',borderRadius:'0',padding:'12px 24px',display:'flex',alignItems:'center',justifyContent:'space-between',flexWrap:'wrap',gap:'12px',position:'sticky',top:0,zIndex:40}}>
           <p style={{fontSize:'13px',fontWeight:600,color:'#FCD34D',margin:0}}>
-            ⚠️ Sua mensalidade está pendente. Regularize para evitar bloqueio do acesso.
+            {precisaFinalizarAssinatura ? '⚠️ Seu período grátis acabou e você ainda não finalizou sua assinatura. Finalize agora para continuar usando sua MiniPage.' : '⚠️ Sua mensalidade está pendente. Regularize para evitar bloqueio do acesso.'}
           </p>
           <button onClick={abrirCheckout} disabled={loadingPag} style={{display:'inline-flex',alignItems:'center',height:'32px',padding:'0 16px',background:G,color:'#fff',borderRadius:'8px',border:'none',fontSize:'12px',fontWeight:700,whiteSpace:'nowrap',flexShrink:0,cursor:loadingPag?'wait':'pointer',opacity:loadingPag?.7:1,fontFamily:'inherit'}}>
-            {loadingPag ? 'Gerando...' : 'Regularizar'}
+            {loadingPag ? 'Gerando...' : precisaFinalizarAssinatura ? 'Finalizar assinatura' : 'Regularizar'}
           </button>
         </div>
       )}
       {nivelAtraso === 'forte' && (
         <div style={{background:'rgba(239,68,68,.10)',border:'1px solid rgba(239,68,68,.32)',borderRadius:'0',padding:'12px 24px',display:'flex',alignItems:'center',justifyContent:'space-between',flexWrap:'wrap',gap:'12px',position:'sticky',top:0,zIndex:40}}>
           <p style={{fontSize:'13px',fontWeight:700,color:'#FCA5A5',margin:0}}>
-            ⚠️ Sua mensalidade está pendente há alguns dias. Regularize para evitar limitações no painel.
+            {precisaFinalizarAssinatura ? '⚠️ Você ainda não finalizou sua assinatura há alguns dias. Finalize para evitar limitações no painel.' : '⚠️ Sua mensalidade está pendente há alguns dias. Regularize para evitar limitações no painel.'}
           </p>
           <button onClick={abrirCheckout} disabled={loadingPag} style={{display:'inline-flex',alignItems:'center',height:'32px',padding:'0 16px',background:G,color:'#fff',borderRadius:'8px',border:'none',fontSize:'12px',fontWeight:700,whiteSpace:'nowrap',flexShrink:0,cursor:loadingPag?'wait':'pointer',opacity:loadingPag?.7:1,fontFamily:'inherit'}}>
-            {loadingPag ? 'Gerando...' : 'Regularizar'}
+            {loadingPag ? 'Gerando...' : precisaFinalizarAssinatura ? 'Finalizar assinatura' : 'Regularizar'}
           </button>
         </div>
       )}
       {(nivelAtraso === 'parcial' || nivelAtraso === 'total') && (
         <div style={{background:'rgba(239,68,68,.12)',border:'1px solid rgba(239,68,68,.36)',borderRadius:'0',padding:'12px 24px',display:'flex',alignItems:'center',justifyContent:'space-between',flexWrap:'wrap',gap:'12px',position:'sticky',top:0,zIndex:40}}>
           <p style={{fontSize:'13px',fontWeight:700,color:'#FCA5A5',margin:0}}>
-            🔒 {nivelAtraso === 'total' ? 'Seu acesso está temporariamente bloqueado por mensalidade pendente. Regularize o pagamento para reativar sua conta.' : 'Seu acesso está limitado por mensalidade pendente. Regularize o pagamento para voltar a usar todos os recursos.'}
+            🔒 {precisaFinalizarAssinatura
+              ? (nivelAtraso === 'total' ? 'Seu acesso está temporariamente bloqueado. Finalize sua assinatura no Mercado Pago para reativar sua conta.' : 'Seu acesso está limitado porque a assinatura ainda não foi finalizada. Finalize para voltar a usar todos os recursos.')
+              : (nivelAtraso === 'total' ? 'Seu acesso está temporariamente bloqueado por mensalidade pendente. Regularize o pagamento para reativar sua conta.' : 'Seu acesso está limitado por mensalidade pendente. Regularize o pagamento para voltar a usar todos os recursos.')}
           </p>
           <button onClick={abrirCheckout} disabled={loadingPag} style={{display:'inline-flex',alignItems:'center',height:'32px',padding:'0 16px',background:G,color:'#fff',borderRadius:'8px',border:'none',fontSize:'12px',fontWeight:700,whiteSpace:'nowrap',flexShrink:0,cursor:loadingPag?'wait':'pointer',opacity:loadingPag?.7:1,fontFamily:'inherit'}}>
-            {loadingPag ? 'Gerando...' : 'Regularizar'}
+            {loadingPag ? 'Gerando...' : precisaFinalizarAssinatura ? 'Finalizar assinatura' : 'Regularizar'}
           </button>
         </div>
       )}

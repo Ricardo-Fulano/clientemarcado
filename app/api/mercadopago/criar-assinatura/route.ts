@@ -57,14 +57,35 @@ export async function POST(request: NextRequest) {
     const reason = obterReasonMercadoPago(planoTipo)
     const transactionAmount = obterPrecoPlano(planoTipo)
 
+    // APENAS PARA TESTE LOCAL: se NAO estivermos em producao E a variavel MP_TEST_PAYER_EMAIL
+    // estiver definida no .env.local, usa ela como payer_email. Isso serve exclusivamente pra
+    // testar o fluxo com uma conta VENDEDORA de teste do Mercado Pago, que exige que o
+    // comprador tambem seja uma conta de teste (senao o MP recusa com "Both payer and
+    // collector must be real or test users"). Em producao, SEMPRE usa o email real do
+    // usuario - essa variavel nunca deve existir no ambiente da Vercel/producao.
+    const payerEmail = (process.env.NODE_ENV !== 'production' && process.env.MP_TEST_PAYER_EMAIL)
+      ? process.env.MP_TEST_PAYER_EMAIL
+      : user.email
+
     const payload: any = {
       reason,
       external_reference: userId,
-      payer_email: user.email,
+      payer_email: payerEmail,
       back_url: (process.env.NEXT_PUBLIC_SITE_URL || 'https://clientemarcado.com.br') + '/painel?pagamento=sucesso',
-      auto_recurring: { frequency: 1, frequency_type: 'months', transaction_amount: transactionAmount, currency_id: 'BRL' },
+      auto_recurring: {
+        frequency: 1,
+        frequency_type: 'months',
+        transaction_amount: transactionAmount,
+        currency_id: 'BRL',
+        // Trial de 7 dias GARANTIDO pelo proprio Mercado Pago - antes disso, o "trial" so
+        // existia no nosso banco (trial_ends_at), sem nenhuma cobranca real programada. Com
+        // isso, quem autorizar o checkout so e cobrado de verdade depois de 7 dias, e a
+        // cobranca acontece sozinha (o MP que controla, nao dependemos de cron nem de acao
+        // manual nossa).
+        free_trial: { frequency: 7, frequency_type: 'days' },
+      },
     }
-    console.log('[MP] user_id:', userId, '| plano_tipo:', planoTipo, '| valor:', transactionAmount)
+    console.log('[MP] user_id:', userId, '| plano_tipo:', planoTipo, '| valor:', transactionAmount, '| payer_email:', payerEmail, payerEmail !== user.email ? '(TESTE - diferente do email real)' : '')
     const mpResponse = await fetch('https://api.mercadopago.com/preapproval', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + process.env.MP_ACCESS_TOKEN },
@@ -72,7 +93,14 @@ export async function POST(request: NextRequest) {
     })
     const mpData = await mpResponse.json()
     console.log('[MP] status:', mpResponse.status, JSON.stringify(mpData))
-    if (!mpResponse.ok || !mpData.init_point) return NextResponse.json({ error: 'Erro MP', plano_tipo: planoTipo }, { status: 500 })
+    if (!mpResponse.ok || !mpData.init_point) {
+      // Fora de producao, devolve o status/corpo completo do MP na propria resposta - ajuda a
+      // debugar direto no console do navegador, sem precisar ficar alternando pro terminal do
+      // servidor toda hora. Em producao, mantem a resposta generica de sempre (nunca expoe
+      // detalhes internos da integracao pro publico).
+      const detalhesDev = process.env.NODE_ENV !== 'production' ? { mp_status: mpResponse.status, mp_data: mpData } : {}
+      return NextResponse.json({ error: 'Erro MP', plano_tipo: planoTipo, ...detalhesDev }, { status: 500 })
+    }
     return NextResponse.json({ init_point: mpData.init_point, id: mpData.id })
   } catch (err) {
     console.error('[MP] Erro interno:', err)
