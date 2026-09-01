@@ -4,7 +4,7 @@ import { supabase } from '../../../lib/supabase'
 import Link from 'next/link'
 import { ArrowLeft, UploadCloud, Lock } from 'lucide-react'
 import PainelSidebar from '@/app/components/PainelSidebar'
-import { obterLimiteModelosCor } from '../../../lib/planos'
+import { obterLimiteModelosCor, ehPlanoFree } from '../../../lib/planos'
 
 const G='linear-gradient(135deg,#EC4899,#D946EF,#8B5CF6)'
 
@@ -72,8 +72,13 @@ export default function GerenciarAparencia(){
   const [capUrl,setCapUrl]=useState('')
   const [bannerMobilePosicao,setBannerMobilePosicao]=useState('padrao')
   const [bannerMobileZoom,setBannerMobileZoom]=useState('normal')
+  const [bannerTipo,setBannerTipo]=useState('imagem') // 'imagem' | 'video'
+  const [bannerVideoUrl,setBannerVideoUrl]=useState('')
   const [publicTheme,setPublicTheme]=useState('modelo2')
   const imgRef=useRef<HTMLInputElement>(null)
+  const videoRef=useRef<HTMLInputElement>(null)
+  const [enviandoVideo,setEnviandoVideo]=useState(false)
+  const [avancadoVideoAberto,setAvancadoVideoAberto]=useState(false)
 
   useEffect(()=>{load()},[])
 
@@ -88,6 +93,8 @@ export default function GerenciarAparencia(){
       setCapUrl(p.capa_url||p.imagem_capa||'')
       setBannerMobilePosicao(p.banner_mobile_position||'padrao')
       setBannerMobileZoom(p.banner_mobile_zoom||'normal')
+      setBannerTipo(p.banner_tipo||'imagem')
+      setBannerVideoUrl(p.banner_video_url||'')
       if(p.public_theme||p.tema_publico||p.tema_cor) setPublicTheme(resolverTema(p.public_theme||p.tema_publico||p.tema_cor||'modelo2'))
     }
     setCarregando(false)
@@ -126,14 +133,43 @@ export default function GerenciarAparencia(){
     if(imgRef.current)imgRef.current.value=''
   }
 
+  async function uploadCapaVideo(e:React.ChangeEvent<HTMLInputElement>){
+    const file=e.target.files?.[0];if(!file)return
+    if(!(await validarSessao()))return
+
+    // So aceita MP4 (o formato que a capa em video foi pensada pra usar - outros formatos/
+    // origens como YouTube/Instagram/TikTok ficam pra "Videos em destaque", que ja tem seu
+    // proprio fluxo separado).
+    if(file.type!=='video/mp4'){setMsg('Envie um vídeo no formato MP4.');return}
+    // Limite generoso o suficiente pra um video curto (10-15s) em boa qualidade, mas que
+    // protege a pagina de ficar lenta com arquivos gigantes.
+    if(file.size>25*1024*1024){setMsg('O vídeo deve ter no máximo 25MB. Tente comprimir ou encurtar o vídeo.');return}
+
+    setEnviandoVideo(true)
+    const path=`capas/${userId}-${Date.now()}.mp4`
+    const {error:uploadError}=await supabase.storage.from('fotos').upload(path,file,{upsert:true,contentType:'video/mp4',cacheControl:'3600'})
+    if(uploadError){setMsg('Erro no upload do vídeo: '+uploadError.message);setEnviandoVideo(false);return}
+
+    const {data}=supabase.storage.from('fotos').getPublicUrl(path)
+    setBannerVideoUrl(data.publicUrl)
+    setEnviandoVideo(false)
+    if(videoRef.current)videoRef.current.value=''
+  }
+
   async function salvarAparencia(){
     if(!(await validarSessao()))return
     setSalvando(true)
+    // Protecao extra: mesmo que o state tenha ficado com 'video' por algum motivo (ex: o
+    // cliente era pago e virou Free depois), nunca salva video pra conta Free - sempre
+    // forca 'imagem' nesse caso, protegendo contra o bloqueio ser so visual.
+    const bannerTipoFinal = ehPlanoFree(planoTipo) ? 'imagem' : bannerTipo
     const {error}=await supabase.from('perfis').update({
       capa_url:capUrl||null,
       banner_mobile_position:bannerMobilePosicao,
       banner_mobile_zoom:bannerMobileZoom,
       public_theme:publicTheme,
+      banner_tipo:bannerTipoFinal,
+      banner_video_url:bannerTipoFinal==='video'?(bannerVideoUrl.trim()||null):null,
     }).eq('user_id',userId)
     setSalvando(false)
     if(error){setMsg('Erro ao salvar: '+error.message);return}
@@ -162,40 +198,91 @@ export default function GerenciarAparencia(){
           <p style={{fontSize:'13px',color:'#B8AAB8',marginBottom:'24px'}}>Personalize o visual da página que seus visitantes acessam.</p>
 
           <div className="crd">
-            <p style={{fontSize:'13px',fontWeight:600,color:'#B8AAB8',marginBottom:'8px'}}>Imagem de capa</p>
-            <p style={{fontSize:'12px',color:'#B8AAB8',marginBottom:'12px'}}>Aparece no topo da sua MiniPage. Use uma imagem horizontal (16:9).</p>
-            {capUrl?(
-              <div style={{position:'relative',borderRadius:'14px',overflow:'hidden',marginBottom:'16px',border:'1px solid #2A1A2F'}}>
-                <img src={capUrl} alt="Capa" style={{width:'100%',height:'200px',objectFit:'cover',display:'block'}}/>
-                <div style={{position:'absolute',top:'10px',right:'10px',display:'flex',gap:'6px'}}>
-                  <button onClick={()=>imgRef.current?.click()} style={{background:'rgba(24,16,27,.9)',border:'1px solid #2A1A2F',color:'#B8AAB8',borderRadius:'8px',padding:'6px 12px',fontSize:'12px',fontWeight:600,cursor:'pointer',fontFamily:'inherit',display:'inline-flex',alignItems:'center',gap:'5px'}}><UploadCloud size={13}/> Enviar imagem</button>
-                  <button onClick={()=>setCapUrl('')} style={{background:'rgba(24,16,27,.9)',border:'1px solid #2A1A2F',color:'#EF4444',borderRadius:'8px',padding:'6px 12px',fontSize:'12px',fontWeight:600,cursor:'pointer',fontFamily:'inherit'}}>Remover</button>
+            <p style={{fontSize:'13px',fontWeight:600,color:'#B8AAB8',marginBottom:'8px'}}>Tipo de capa</p>
+            <div style={{display:'flex',gap:'8px',marginBottom:'18px',flexWrap:'wrap'}}>
+              <button type="button" onClick={()=>setBannerTipo('imagem')} style={{background:bannerTipo==='imagem'?G:'rgba(24,16,27,.9)',color:bannerTipo==='imagem'?'#fff':'#B8AAB8',border:bannerTipo==='imagem'?'1px solid rgba(255,255,255,.12)':'1px solid #2A1A2F',borderRadius:'10px',padding:'9px 16px',fontSize:'13px',fontWeight:600,cursor:'pointer',fontFamily:'inherit'}}>Imagem</button>
+              <button type="button" onClick={()=>{if(ehPlanoFree(planoTipo))return;setBannerTipo('video')}} disabled={ehPlanoFree(planoTipo)} style={{background:bannerTipo==='video'?G:'rgba(24,16,27,.9)',color:bannerTipo==='video'?'#fff':ehPlanoFree(planoTipo)?'#4A3F4E':'#B8AAB8',border:bannerTipo==='video'?'1px solid rgba(255,255,255,.12)':'1px solid #2A1A2F',borderRadius:'10px',padding:'9px 16px',fontSize:'13px',fontWeight:600,cursor:ehPlanoFree(planoTipo)?'not-allowed':'pointer',fontFamily:'inherit',display:'inline-flex',alignItems:'center',gap:'6px'}}>
+                {ehPlanoFree(planoTipo)&&<Lock size={12}/>} Vídeo
+              </button>
+            </div>
+            {ehPlanoFree(planoTipo)&&(
+              <p style={{fontSize:'12px',color:'#B8AAB8',marginBottom:'18px'}}>🔒 Capa em vídeo disponível no plano MiniPage Pro.</p>
+            )}
+
+            {bannerTipo==='video'&&!ehPlanoFree(planoTipo)?(
+              <div style={{marginBottom:'18px'}}>
+                <div style={{background:'rgba(139,92,246,.08)',border:'1px solid rgba(139,92,246,.24)',borderRadius:'12px',padding:'14px 16px',marginBottom:'16px'}}>
+                  <p style={{fontSize:'13px',fontWeight:600,color:'#F8F4F7',marginBottom:'4px'}}>Use um vídeo curto em MP4, de preferência com até 10–15 segundos. O vídeo aparecerá sem som, em loop e com reprodução automática no topo da sua MiniPage.</p>
+                  <p style={{fontSize:'11px',color:'#B8AAB8'}}>Para vídeos do YouTube, Instagram ou TikTok, use a seção Vídeos em destaque.</p>
                 </div>
+
+                <p style={{fontSize:'13px',fontWeight:600,color:'#B8AAB8',marginBottom:'4px'}}>Vídeo da capa</p>
+                <p style={{fontSize:'12px',color:'#B8AAB8',marginBottom:'12px'}}>Escolha um vídeo curto em MP4 para aparecer no topo da sua MiniPage.</p>
+
+                {bannerVideoUrl?(
+                  <div style={{position:'relative',borderRadius:'14px',overflow:'hidden',marginBottom:'12px',border:'1px solid #2A1A2F'}}>
+                    <video src={bannerVideoUrl} muted loop autoPlay playsInline controls={false} style={{width:'100%',height:'200px',objectFit:'cover',display:'block'}}/>
+                    <div style={{position:'absolute',top:'10px',right:'10px',display:'flex',gap:'6px'}}>
+                      <button onClick={()=>videoRef.current?.click()} disabled={enviandoVideo} style={{background:'rgba(24,16,27,.9)',border:'1px solid #2A1A2F',color:'#B8AAB8',borderRadius:'8px',padding:'6px 12px',fontSize:'12px',fontWeight:600,cursor:enviandoVideo?'wait':'pointer',fontFamily:'inherit',display:'inline-flex',alignItems:'center',gap:'5px'}}><UploadCloud size={13}/> {enviandoVideo?'Enviando...':'Trocar vídeo'}</button>
+                      <button onClick={()=>setBannerVideoUrl('')} style={{background:'rgba(24,16,27,.9)',border:'1px solid #2A1A2F',color:'#EF4444',borderRadius:'8px',padding:'6px 12px',fontSize:'12px',fontWeight:600,cursor:'pointer',fontFamily:'inherit'}}>Remover vídeo</button>
+                    </div>
+                  </div>
+                ):(
+                  <div onClick={()=>videoRef.current?.click()} style={{border:'2px dashed #2A1A2F',borderRadius:'14px',padding:'32px',textAlign:'center',cursor:enviandoVideo?'wait':'pointer',marginBottom:'12px',transition:'border-color .18s'}} onMouseEnter={e=>(e.currentTarget.style.borderColor='rgba(236,72,153,.40)')} onMouseLeave={e=>(e.currentTarget.style.borderColor='#2A1A2F')}>
+                    <p style={{fontSize:'14px',color:'#B8AAB8',marginBottom:'4px',display:'inline-flex',alignItems:'center',gap:'6px'}}><UploadCloud size={16}/> {enviandoVideo?'Enviando vídeo...':'Enviar vídeo MP4'}</p>
+                  </div>
+                )}
+                <input ref={videoRef} type="file" accept="video/mp4" onChange={uploadCapaVideo} style={{display:'none'}}/>
+
+                <button type="button" onClick={()=>setAvancadoVideoAberto(a=>!a)} style={{marginTop:'6px',background:'transparent',border:'none',color:'#8B5CF6',fontSize:'11px',fontWeight:600,cursor:'pointer',fontFamily:'inherit',padding:0,textDecoration:'underline'}}>
+                  {avancadoVideoAberto?'Ocultar opções avançadas':'Opções avançadas'}
+                </button>
+                {avancadoVideoAberto&&(
+                  <div style={{marginTop:'10px',padding:'12px',background:'rgba(139,92,246,.06)',border:'1px solid rgba(139,92,246,.18)',borderRadius:'10px'}}>
+                    <label className="lbl">URL do vídeo</label>
+                    <input className="inp" value={bannerVideoUrl} onChange={e=>setBannerVideoUrl(e.target.value)} placeholder="https://.../seu-video.mp4"/>
+                    <p style={{fontSize:'10px',color:'#B8AAB8',marginTop:'6px'}}>Normalmente não é preciso mexer aqui — use o botão "Enviar vídeo MP4" acima. Esse campo é preenchido automaticamente pelo upload.</p>
+                  </div>
+                )}
               </div>
             ):(
-              <div onClick={()=>imgRef.current?.click()} style={{border:'2px dashed #2A1A2F',borderRadius:'14px',padding:'32px',textAlign:'center',cursor:'pointer',marginBottom:'16px',transition:'border-color .18s'}} onMouseEnter={e=>(e.currentTarget.style.borderColor='rgba(236,72,153,.40)')} onMouseLeave={e=>(e.currentTarget.style.borderColor='#2A1A2F')}>
-                <p style={{fontSize:'14px',color:'#B8AAB8',marginBottom:'4px'}}>Clique para adicionar imagem de capa</p>
-                <p style={{fontSize:'12px',color:'#B8AAB8'}}>Recomendado: 1200x400px, formato JPG ou PNG</p>
-              </div>
-            )}
-            <input ref={imgRef} type="file" accept="image/*" onChange={uploadCapa} style={{display:'none'}}/>
+              <>
+                <p style={{fontSize:'13px',fontWeight:600,color:'#B8AAB8',marginBottom:'8px'}}>Imagem de capa</p>
+                <p style={{fontSize:'12px',color:'#B8AAB8',marginBottom:'12px'}}>Aparece no topo da sua MiniPage. Use uma imagem horizontal (16:9).</p>
+                {capUrl?(
+                  <div style={{position:'relative',borderRadius:'14px',overflow:'hidden',marginBottom:'16px',border:'1px solid #2A1A2F'}}>
+                    <img src={capUrl} alt="Capa" style={{width:'100%',height:'200px',objectFit:'cover',display:'block'}}/>
+                    <div style={{position:'absolute',top:'10px',right:'10px',display:'flex',gap:'6px'}}>
+                      <button onClick={()=>imgRef.current?.click()} style={{background:'rgba(24,16,27,.9)',border:'1px solid #2A1A2F',color:'#B8AAB8',borderRadius:'8px',padding:'6px 12px',fontSize:'12px',fontWeight:600,cursor:'pointer',fontFamily:'inherit',display:'inline-flex',alignItems:'center',gap:'5px'}}><UploadCloud size={13}/> Enviar imagem</button>
+                      <button onClick={()=>setCapUrl('')} style={{background:'rgba(24,16,27,.9)',border:'1px solid #2A1A2F',color:'#EF4444',borderRadius:'8px',padding:'6px 12px',fontSize:'12px',fontWeight:600,cursor:'pointer',fontFamily:'inherit'}}>Remover</button>
+                    </div>
+                  </div>
+                ):(
+                  <div onClick={()=>imgRef.current?.click()} style={{border:'2px dashed #2A1A2F',borderRadius:'14px',padding:'32px',textAlign:'center',cursor:'pointer',marginBottom:'16px',transition:'border-color .18s'}} onMouseEnter={e=>(e.currentTarget.style.borderColor='rgba(236,72,153,.40)')} onMouseLeave={e=>(e.currentTarget.style.borderColor='#2A1A2F')}>
+                    <p style={{fontSize:'14px',color:'#B8AAB8',marginBottom:'4px'}}>Clique para adicionar imagem de capa</p>
+                    <p style={{fontSize:'12px',color:'#B8AAB8'}}>Recomendado: 1200x400px, formato JPG ou PNG</p>
+                  </div>
+                )}
+                <input ref={imgRef} type="file" accept="image/*" onChange={uploadCapa} style={{display:'none'}}/>
 
-            <div style={{borderTop:'1px solid #2A1A2F',paddingTop:'18px',marginTop:'4px',marginBottom:'18px'}}>
-              <p style={{fontSize:'13px',fontWeight:600,color:'#B8AAB8',marginBottom:'4px'}}>Escolha um banner pronto</p>
-              <p style={{fontSize:'12px',color:'#B8AAB8',marginBottom:'14px'}}>Selecione uma imagem pronta para combinar com o estilo da sua página.</p>
-              <div className="banner-grid">
-                {BANNERS_PRONTOS.map(b=>(
-                  <button key={b} type="button" onClick={()=>setCapUrl(b)} className={`banner-thumb${capUrl===b?' sel':''}`}>
-                    <img src={b} alt="Banner pronto" loading="lazy"/>
-                    {capUrl===b&&<span className="banner-sel-badge">Selecionado</span>}
-                  </button>
-                ))}
-              </div>
-            </div>
+                <div style={{borderTop:'1px solid #2A1A2F',paddingTop:'18px',marginTop:'4px',marginBottom:'18px'}}>
+                  <p style={{fontSize:'13px',fontWeight:600,color:'#B8AAB8',marginBottom:'4px'}}>Escolha um banner pronto</p>
+                  <p style={{fontSize:'12px',color:'#B8AAB8',marginBottom:'14px'}}>Selecione uma imagem pronta para combinar com o estilo da sua página.</p>
+                  <div className="banner-grid">
+                    {BANNERS_PRONTOS.map(b=>(
+                      <button key={b} type="button" onClick={()=>setCapUrl(b)} className={`banner-thumb${capUrl===b?' sel':''}`}>
+                        <img src={b} alt="Banner pronto" loading="lazy"/>
+                        {capUrl===b&&<span className="banner-sel-badge">Selecionado</span>}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </>
+            )}
 
             <div style={{borderTop:'1px solid #2A1A2F',paddingTop:'18px',marginTop:'4px',marginBottom:'18px'}}>
               <p style={{fontSize:'13px',fontWeight:600,color:'#B8AAB8',marginBottom:'4px'}}>Enquadramento no celular</p>
-              <p style={{fontSize:'12px',color:'#B8AAB8',marginBottom:'14px'}}>Ajuste como a imagem de capa aparece no celular. Útil quando o banner fica muito distante ou corta uma parte importante.</p>
+              <p style={{fontSize:'12px',color:'#B8AAB8',marginBottom:'14px'}}>Ajuste como a capa aparece no celular. Útil quando o banner fica muito distante ou corta uma parte importante.</p>
               <div className="fg2">
                 <div>
                   <label className="lbl">Posição no celular</label>

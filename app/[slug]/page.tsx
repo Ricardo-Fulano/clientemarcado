@@ -13,9 +13,10 @@ import CatalogoItemCard from '../components/CatalogoItemCard'
 import VideoItemCard from '../components/VideoItemCard'
 import RegistrarPageView from '../components/RegistrarPageView'
 import RegistradorDeCliques from '../components/RegistradorDeCliques'
+import BannerVideo from '../components/BannerVideo'
 import DestaqueItemCard from '../components/DestaqueItemCard'
 import { resolverTema, getTema } from '../lib/tema-publico'
-import { ehPlanoComGestao, permiteVideos, permiteDestaques, permiteAgendaEventos, obterLimiteCatalogos, obterLimiteLinksRapidos } from '../lib/planos'
+import { ehPlanoComGestao, permiteVideos, permiteDestaques, permiteAgendaEventos, obterLimiteCatalogos, obterLimiteLinksRapidos, ehPlanoFree } from '../lib/planos'
 
 const inter = Inter({ subsets: ['latin'], weight: ['400', '500', '600', '700'], display: 'swap' })
 
@@ -26,6 +27,11 @@ html,body{overflow-x:hidden;width:100%;max-width:100%}
 .hero.no-capa{min-height:190px}
 .hero-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center center}
 .hero-overlay{position:absolute;inset:0;background:linear-gradient(to bottom,rgba(var(--bg-rgb),0) 55%,rgba(var(--bg-rgb),.6) 100%)}
+/* Por padrao (desktop e qualquer tela), a copia do perfil sobreposta ao video NUNCA aparece -
+   ela so existe pro efeito hero especial do mobile, reativada dentro da media query abaixo.
+   Sem essa regra global, o desktop mostrava essa copia (duplicando nome/icones) e ela ficava
+   cortada pelo overflow:hidden do hero, ja que nao tinha posicionamento definido fora do mobile. */
+.hero-perfil-overlay{display:none}
 .crd{background:var(--card);border:1px solid var(--accent-border);border-radius:16px;transition:border-color .2s,box-shadow .2s}
 .wrap{max-width:1100px;margin:0 auto;padding:0 20px}
 .svc-card{display:flex;align-items:center;gap:14px;padding:16px 18px;text-decoration:none;color:inherit}
@@ -113,11 +119,31 @@ html,body{overflow-x:hidden;width:100%;max-width:100%}
 }
 @media(max-width:767px){
   .hero, .hero.no-capa{height:170px!important;max-height:170px!important;min-height:170px!important;border-radius:18px!important;overflow:hidden!important;position:relative!important}
+  .hero-video{height:clamp(360px,100vw,440px)!important;max-height:none!important;min-height:clamp(360px,100vw,440px)!important;overflow:visible!important}
+  .hero-video .hero-img,.hero-video .hero-overlay{border-radius:18px}
+  .hero-video .hero-overlay{background:linear-gradient(to bottom,rgba(var(--bg-rgb),0) 30%,rgba(var(--bg-rgb),.55) 60%,rgba(var(--bg-rgb),.94) 100%)!important}
   .profile-row{margin-top:-56px;flex-direction:column;align-items:center;text-align:center}
   .avatar-pro{width:112px;height:112px}
   .social-row{margin-left:0;justify-content:center}
   .bio-text{margin-left:auto;margin-right:auto;text-align:center}
   .loc-text{justify-content:center}
+
+  /* Bloco de perfil sobreposto ao video - por padrao (imagem/desktop) nao existe/nao aparece.
+     So vira visivel aqui dentro, no mobile, quando o hero tiver a classe hero-video. */
+  .hero-perfil-overlay{display:none}
+  .hero-video .hero-perfil-overlay{
+    display:block;position:absolute;left:0;right:0;bottom:0;z-index:2;
+    padding:0 16px 16px;
+  }
+  .hero-video .hero-perfil-overlay .profile-row{margin-top:0;margin-bottom:10px}
+  .hero-video .hero-perfil-overlay h1,
+  .hero-video .hero-perfil-overlay .bio-text,
+  .hero-video .hero-perfil-overlay .loc-text{text-shadow:0 2px 10px rgba(0,0,0,.6)}
+
+  /* Quando o hero tiver video, a copia externa (fora do hero) fica escondida - quem aparece
+     e a copia de dentro do hero (overlay), evitando duplicar o conteudo visualmente. */
+  .perfil-externo-quando-video{display:none}
+  .espaco-pos-hero-video{height:8px!important}
   .benefit-grid{grid-template-columns:1fr}
   .destaque-grid,.destaque-grid.cols-1,.destaque-grid.cols-2,.destaque-grid.cols-3{grid-template-columns:1fr!important;gap:12px!important;width:100%!important;max-width:100%!important}
   .destaque-body{padding:10px 14px 12px!important}
@@ -448,51 +474,90 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
       {/* CONTEUDO */}
       <div className="wrap" style={{ paddingTop: '20px', paddingBottom: '60px' }}>
 
-        {/* HERO / BANNER */}
-        <div className={`hero${capaUrl ? '' : ' no-capa'}`}>
-          {capaUrl && <img src={capaUrl} alt={nomeBusiness} className="hero-img" decoding="async" fetchPriority="high"/>}
-          {!capaUrl && <div style={{ position: 'absolute', inset: 0, background: `radial-gradient(circle at top left,${tema.soft},transparent 40%),var(--card)` }}/>}
-          <div className="hero-overlay"/>
-        </div>
+        {(() => {
+          const usaVideo = perfil.banner_tipo === 'video' && !!perfil.banner_video_url && !ehPlanoFree(perfil.plano_tipo)
 
-        {/* PERFIL: avatar, nome, redes sociais */}
-        <div className="profile-row">
-          {fotoPerfilUrl ? (
-            <img src={fotoPerfilUrl} alt={nomeBusiness} className="avatar-pro" decoding="async" fetchPriority="high" style={{ border: `3px solid ${tema.accent}`, boxShadow: `0 0 24px ${tema.glow}` }} />
-          ) : (
-            <div className="avatar-pro" style={{ background: `linear-gradient(135deg,${tema.accent},${tema.secondary})`, border: `3px solid ${tema.accent}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '34px', fontWeight: 800, color: tema.btnText, boxShadow: `0 0 24px ${tema.glow}` }}>
-              {nomeBusiness.charAt(0).toUpperCase()}
-            </div>
-          )}
-          <div style={{ flex: 1, minWidth: '160px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '7px' }}>
-              <h1 style={{ fontSize: 'clamp(22px,4.5vw,32px)', fontWeight: 900, color: 'var(--text)', letterSpacing: '-0.03em', lineHeight: 1.15 }}>
-                {nomeBusiness}
-              </h1>
-              <BadgeCheck size={20} color={tema.accent} style={{ flexShrink: 0 }} />
-            </div>
-          </div>
-          {linksSociais.length > 0 && (
-            <div className="social-row">
-              {linksSociais.map(l => {
-                const cfg = iconeLink(detectarTipoPorUrl(l.url) || l.tipo)
-                return (
-                  <a key={l.id} href={l.url} target={l.url && l.url.startsWith('http') ? '_blank' : '_self'} rel="noopener noreferrer" className="social-ic" style={{ background: iconeBg, border: `1px solid ${iconeBorder}`, color: iconeCor }} aria-label={l.titulo} data-track-tipo="social_click" data-track-item-titulo={l.titulo} data-track-item-url={l.url}>
-                    {cfg.svg ? cfg.svg : (cfg.I ? <cfg.I size={16} color={iconeCor} /> : null)}
-                  </a>
-                )
-              })}
-            </div>
-          )}
-        </div>
+          // Bloco de perfil (avatar, nome, selo, icones sociais, bio, localizacao) extraido
+          // numa funcao pra poder ser renderizado em 2 lugares diferentes:
+          // 1) DENTRO do hero, sobreposto ao video - so aparece via CSS quando for video+mobile
+          // 2) FORA do hero, na posicao de sempre - e o unico visivel em imagem/desktop/etc
+          // Isso resolve o problema estrutural: antes, so o avatar (via margin negativa)
+          // "tocava" o video, mas nome/icones/bio continuavam fora, fisicamente separados no
+          // documento. Agora, quando for video+mobile, o bloco INTEIRO fica de verdade dentro
+          // do container do hero (via position:absolute), criando o efeito hero integrado.
+          const renderBlocoPerfil = () => (
+            <>
+              <div className="profile-row">
+                {fotoPerfilUrl ? (
+                  <img src={fotoPerfilUrl} alt={nomeBusiness} className="avatar-pro" decoding="async" fetchPriority="high" style={{ border: `3px solid ${tema.accent}`, boxShadow: `0 0 24px ${tema.glow}` }} />
+                ) : (
+                  <div className="avatar-pro" style={{ background: `linear-gradient(135deg,${tema.accent},${tema.secondary})`, border: `3px solid ${tema.accent}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '34px', fontWeight: 800, color: tema.btnText, boxShadow: `0 0 24px ${tema.glow}` }}>
+                    {nomeBusiness.charAt(0).toUpperCase()}
+                  </div>
+                )}
+                <div style={{ flex: 1, minWidth: '160px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '7px' }}>
+                    <h1 style={{ fontSize: 'clamp(22px,4.5vw,32px)', fontWeight: 900, color: 'var(--text)', letterSpacing: '-0.03em', lineHeight: 1.15 }}>
+                      {nomeBusiness}
+                    </h1>
+                    <BadgeCheck size={20} color={tema.accent} style={{ flexShrink: 0 }} />
+                  </div>
+                </div>
+                {linksSociais.length > 0 && (
+                  <div className="social-row">
+                    {linksSociais.map(l => {
+                      const cfg = iconeLink(detectarTipoPorUrl(l.url) || l.tipo)
+                      return (
+                        <a key={l.id} href={l.url} target={l.url && l.url.startsWith('http') ? '_blank' : '_self'} rel="noopener noreferrer" className="social-ic" style={{ background: iconeBg, border: `1px solid ${iconeBorder}`, color: iconeCor }} aria-label={l.titulo} data-track-tipo="social_click" data-track-item-titulo={l.titulo} data-track-item-url={l.url}>
+                          {cfg.svg ? cfg.svg : (cfg.I ? <cfg.I size={16} color={iconeCor} /> : null)}
+                        </a>
+                      )
+                    })}
+                  </div>
+                )}
+              </div>
 
-        {bioCurta && <p className="bio-text">{bioCurta}</p>}
-        {endereco && (
-          <p className="loc-text">
-            <MapPin size={12} color="var(--text-muted)" /> {endereco}
-          </p>
-        )}
-        <div style={{ height: '28px' }} />
+              {bioCurta && <p className="bio-text">{bioCurta}</p>}
+              {endereco && (
+                <p className="loc-text">
+                  <MapPin size={12} color="var(--text-muted)" /> {endereco}
+                </p>
+              )}
+            </>
+          )
+
+          return (
+            <>
+              {/* HERO / BANNER */}
+              {/* Video de capa (planos pagos) - mesma classe hero-img de sempre, entao herda o
+                  MESMO enquadramento mobile (banner_mobile_position/zoom) sem nenhum CSS novo. */}
+              <div className={`hero${(capaUrl || usaVideo) ? '' : ' no-capa'}${usaVideo ? ' hero-video' : ''}`}>
+                {usaVideo ? (
+                  <BannerVideo src={perfil.banner_video_url} className="hero-img" capaFallback={capaUrl || undefined} temaSoft={tema.soft} />
+                ) : capaUrl ? (
+                  <img src={capaUrl} alt={nomeBusiness} className="hero-img" decoding="async" fetchPriority="high"/>
+                ) : (
+                  <div style={{ position: 'absolute', inset: 0, background: `radial-gradient(circle at top left,${tema.soft},transparent 40%),var(--card)` }}/>
+                )}
+                <div className="hero-overlay"/>
+                {/* Copia do bloco de perfil, sobreposta ao video - por padrao escondida (display:none),
+                    so aparece via media query quando for video+mobile (ver CSS .hero-perfil-overlay) */}
+                {usaVideo && (
+                  <div className="hero-perfil-overlay">
+                    {renderBlocoPerfil()}
+                  </div>
+                )}
+              </div>
+
+              {/* Bloco de perfil na posicao normal - sempre visivel, exceto quando for
+                  video+mobile (nesse caso a copia de dentro do hero assume, ver CSS) */}
+              <div className={usaVideo ? 'perfil-externo-quando-video' : undefined}>
+                {renderBlocoPerfil()}
+              </div>
+              <div className={usaVideo ? 'espaco-pos-hero-video' : undefined} style={{ height: '28px' }} />
+            </>
+          )
+        })()}
 
         {/* PROMOCAO EM DESTAQUE — substituida por Destaques + Links Rapidos. Codigo/logica preservados, apenas nao renderiza. */}
         {SECOES_ANTIGAS_DESATIVADAS && promoVisivel && (

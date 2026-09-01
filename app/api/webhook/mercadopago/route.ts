@@ -81,7 +81,8 @@ export async function POST(request: NextRequest) {
       payload: evento,
     })
 
-    // Ativar plano se pagamento aprovado
+    // Ativar plano se pagamento aprovado (payment.approved OU preapproval.authorized -
+    // comportamento ORIGINAL, preservado sem nenhuma mudanca).
     const aprovado = status === 'authorized' || status === 'approved'
     if (aprovado) {
       const planoAte = new Date()
@@ -94,6 +95,29 @@ export async function POST(request: NextRequest) {
       }).eq('user_id', externalReference)
 
       console.log(`[WEBHOOK] Plano ativado para user_id: ${externalReference}`)
+    }
+    // FASE 1: tratamento dos demais status conhecidos do Mercado Pago. Nenhum deles rebaixa
+    // pra Free ainda (isso fica pra uma fase futura, com um job separado) - so atualiza
+    // status_acesso, sem mexer em plano_tipo nem apagar nenhum dado.
+    else if (status === 'rejected' || status === 'cancelled' || status === 'refunded') {
+      // Pagamento recusado, cancelado ou reembolsado: marca em_atraso, igual ao fluxo ja
+      // existente de trial vencido - o PainelLayoutClient ja sabe lidar com esse status
+      // (avisos progressivos por dias em atraso), sem precisar de nenhuma mudanca la.
+      await supabase.from('perfis').update({ status_acesso: 'em_atraso' }).eq('user_id', externalReference)
+      console.log(`[WEBHOOK] status_acesso = em_atraso para user_id: ${externalReference} (motivo: ${status})`)
+    }
+    else if (status === 'in_process' || status === 'pending') {
+      // Estado transitorio (aguardando confirmacao/analise) - nao bloqueia nem marca atraso
+      // ainda, so o registro em mp_eventos (ja acontece acima, sempre) serve de log.
+      console.log(`[WEBHOOK] Evento em processamento/pendente, sem alteracao de status: ${externalReference} (status: ${status})`)
+    }
+    else if (status === 'paused') {
+      // Pausa voluntaria da assinatura (diferente de atraso por recusa) - o valor 'pausado'
+      // ainda NAO existe em perfis.status_acesso hoje (so ativo/trial/em_atraso/bloqueado/
+      // cancelado sao usados no sistema). Por seguranca, so loga (via mp_eventos, ja
+      // acontece acima) e NAO altera status_acesso - evita criar um estado novo no banco
+      // sem confirmacao previa seguindo a instrucao explicita desta fase.
+      console.log(`[WEBHOOK] Assinatura pausada (preapproval.paused) - nenhuma alteracao de status_acesso feita, apenas logado: ${externalReference}`)
     }
 
     return NextResponse.json({ ok: true })
