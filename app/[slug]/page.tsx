@@ -31,7 +31,12 @@ html,body{overflow-x:hidden;width:100%;max-width:100%}
    ela so existe pro efeito hero especial do mobile, reativada dentro da media query abaixo.
    Sem essa regra global, o desktop mostrava essa copia (duplicando nome/icones) e ela ficava
    cortada pelo overflow:hidden do hero, ja que nao tinha posicionamento definido fora do mobile. */
-.hero-perfil-overlay{display:none}
+/* Hero mobile (proporcao 4:5) fica escondido por padrao - so aparece dentro da media query
+   mobile abaixo. O hero desktop tradicional continua sempre visivel por padrao (escondido
+   so dentro da media query mobile, ja que la o mobile view assume). */
+.mobile-hero-bg{display:none}
+.mobile-hero-content{display:none}
+.links-oficiais-titulo{display:none}
 .crd{background:var(--card);border:1px solid var(--accent-border);border-radius:16px;transition:border-color .2s,box-shadow .2s}
 .wrap{max-width:1100px;margin:0 auto;padding:0 20px}
 .svc-card{display:flex;align-items:center;gap:14px;padding:16px 18px;text-decoration:none;color:inherit}
@@ -118,32 +123,48 @@ html,body{overflow-x:hidden;width:100%;max-width:100%}
   .destaque-grid.cols-3{grid-template-columns:repeat(2,1fr)}
 }
 @media(max-width:767px){
-  .hero, .hero.no-capa{height:170px!important;max-height:170px!important;min-height:170px!important;border-radius:18px!important;overflow:hidden!important;position:relative!important}
-  .hero-video{height:clamp(360px,100vw,440px)!important;max-height:none!important;min-height:clamp(360px,100vw,440px)!important;overflow:visible!important}
-  .hero-video .hero-img,.hero-video .hero-overlay{border-radius:18px}
-  .hero-video .hero-overlay{background:linear-gradient(to bottom,rgba(var(--bg-rgb),0) 30%,rgba(var(--bg-rgb),.55) 60%,rgba(var(--bg-rgb),.94) 100%)!important}
-  .profile-row{margin-top:-56px;flex-direction:column;align-items:center;text-align:center}
-  .avatar-pro{width:112px;height:112px}
-  .social-row{margin-left:0;justify-content:center}
-  .bio-text{margin-left:auto;margin-right:auto;text-align:center}
-  .loc-text{justify-content:center}
+  /* No mobile, o hero tradicional de desktop (banner horizontal) fica escondido - quem
+     aparece e o novo hero-mobile-view (proporcao 4:5, avatar removido, perfil integrado). */
+  .hero-desktop-view{display:none}
+  .profile-row-desktop-view{display:none}
 
-  /* Bloco de perfil sobreposto ao video - por padrao (imagem/desktop) nao existe/nao aparece.
-     So vira visivel aqui dentro, no mobile, quando o hero tiver a classe hero-video. */
-  .hero-perfil-overlay{display:none}
-  .hero-video .hero-perfil-overlay{
-    display:block;position:absolute;left:0;right:0;bottom:0;z-index:2;
-    padding:0 16px 16px;
+  /* Midia do topo mobile como camada de FUNDO FIXA (nao sticky) - fica presa na tela
+     enquanto o usuario comeca a rolar. pointer-events:none pra nunca capturar cliques,
+     ja que fica atras de tudo (z-index:0). */
+  .mobile-hero-bg{
+    display:block;position:fixed;top:0;left:0;right:0;height:75svh;z-index:0;
+    overflow:hidden;pointer-events:none;
   }
-  .hero-video .hero-perfil-overlay .profile-row{margin-top:0;margin-bottom:10px}
-  .hero-video .hero-perfil-overlay h1,
-  .hero-video .hero-perfil-overlay .bio-text,
-  .hero-video .hero-perfil-overlay .loc-text{text-shadow:0 2px 10px rgba(0,0,0,.6)}
+  .mobile-hero-bg .hero-mobile-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+  .mobile-hero-overlay{position:absolute;inset:0;background:linear-gradient(to bottom,rgba(var(--bg-rgb),0) 30%,rgba(var(--bg-rgb),.5) 65%,rgba(var(--bg-rgb),.9) 100%)}
 
-  /* Quando o hero tiver video, a copia externa (fora do hero) fica escondida - quem aparece
-     e a copia de dentro do hero (overlay), evitando duplicar o conteudo visualmente. */
-  .perfil-externo-quando-video{display:none}
-  .espaco-pos-hero-video{height:8px!important}
+  /* Conteudo do perfil (nome/@/icones/seguidores/bio): fica em fluxo normal, com a MESMA
+     altura da midia de fundo - isso reserva o espaco certo antes do resto da pagina comecar,
+     e o texto fica visualmente sobre a midia fixa (z-index:1 > 0), sem nenhum JS. */
+  .mobile-hero-content{
+    position:relative;z-index:1;min-height:75svh;display:flex;flex-direction:column;
+    justify-content:flex-end;align-items:center;text-align:center;padding:0 20px 24px;
+  }
+  .hero-mobile-nome{font-size:clamp(26px,7vw,34px);font-weight:900;color:#fff;letter-spacing:-0.03em;line-height:1.1;margin:0;text-shadow:0 2px 12px rgba(0,0,0,.6)}
+  .hero-mobile-slug{font-size:14px;color:rgba(255,255,255,.75);margin:4px 0 10px;text-shadow:0 1px 6px rgba(0,0,0,.6)}
+  .hero-mobile-seguidores{font-size:13px;font-weight:600;color:rgba(255,255,255,.9);margin:8px 0 0;text-shadow:0 1px 6px rgba(0,0,0,.6)}
+  .hero-mobile-bio{margin:8px auto 0!important;text-align:center;text-shadow:0 1px 6px rgba(0,0,0,.6);max-width:300px}
+
+  /* Cobertura solida: envolve TODO o conteudo depois do hero (links oficiais, destaques,
+     catalogo, etc, sem mexer no CSS interno de nenhuma dessas secoes) - como esse bloco
+     esta em fluxo normal (nunca fixed), ele sobe naturalmente ao rolar e, por ter fundo
+     solido + z-index maior que a midia fixa, cobre ela visualmente aos poucos. */
+  .mobile-conteudo-cobertura{
+    position:relative;z-index:2;background:var(--bg);
+    width:100vw;margin-left:calc(-50vw + 50%);margin-right:calc(-50vw + 50%);
+    padding-left:16px;padding-right:16px;
+  }
+
+  .links-oficiais-titulo{
+    display:block;font-size:12px;font-weight:800;letter-spacing:.08em;color:var(--text-muted);
+    text-align:center;margin:0 0 14px;text-transform:uppercase;
+  }
+
   .benefit-grid{grid-template-columns:1fr}
   .destaque-grid,.destaque-grid.cols-1,.destaque-grid.cols-2,.destaque-grid.cols-3{grid-template-columns:1fr!important;gap:12px!important;width:100%!important;max-width:100%!important}
   .destaque-body{padding:10px 14px 12px!important}
@@ -460,11 +481,12 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
   const promoVisivel = !!(perfil.promocao_ativa && perfil.promocao_titulo && perfil.promocao_preco_novo && promoDentroPeriodo)
 
   return (
-    <main className={inter.className} style={{ minHeight: '100vh', background: 'var(--bg)', color: 'var(--text)', overflowX: 'hidden' }}>
+    <main className={inter.className} style={{ minHeight: '100vh', background: 'var(--bg)', color: 'var(--text)' }}>
       <style dangerouslySetInnerHTML={{ __html: CSS + `
         :root { --accent: ${tema.accent}; --accent-border: ${tema.border}; --accent-glow: ${tema.glow}; --bg: ${tema.bg}; --bg-rgb: ${tema.bgRGB}; --card: ${tema.card}; --text: ${tema.text}; --text-muted: ${tema.textMuted}; }
         @media(max-width:767px){
           .hero-img{width:100%!important;height:100%!important;object-fit:cover!important;object-position:${bannerMobilePos}!important;transform:scale(${bannerMobileScale})!important;transform-origin:${bannerMobilePos}!important}
+          .hero-mobile-img{object-position:${bannerMobilePos}!important;transform:scale(${bannerMobileScale})!important;transform-origin:${bannerMobilePos}!important}
         }
       ` }} />
 
@@ -475,19 +497,77 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
       <div className="wrap" style={{ paddingTop: '20px', paddingBottom: '60px' }}>
 
         {(() => {
-          const usaVideo = perfil.banner_tipo === 'video' && !!perfil.banner_video_url && !ehPlanoFree(perfil.plano_tipo)
+          const usaVideoDesktop = perfil.banner_tipo === 'video' && !!perfil.banner_video_url && !ehPlanoFree(perfil.plano_tipo)
 
-          // Bloco de perfil (avatar, nome, selo, icones sociais, bio, localizacao) extraido
-          // numa funcao pra poder ser renderizado em 2 lugares diferentes:
-          // 1) DENTRO do hero, sobreposto ao video - so aparece via CSS quando for video+mobile
-          // 2) FORA do hero, na posicao de sempre - e o unico visivel em imagem/desktop/etc
-          // Isso resolve o problema estrutural: antes, so o avatar (via margin negativa)
-          // "tocava" o video, mas nome/icones/bio continuavam fora, fisicamente separados no
-          // documento. Agora, quando for video+mobile, o bloco INTEIRO fica de verdade dentro
-          // do container do hero (via position:absolute), criando o efeito hero integrado.
-          const renderBlocoPerfil = () => (
+          // Midia dedicada do topo mobile (imagem ou video, proporcao 4:5) - se o cliente nao
+          // configurou nada especifico pro mobile, cai no fallback: usa a MESMA midia do
+          // desktop (capa ou video), sem quebrar contas que nunca mexeram nisso.
+          const temTopoMobileDedicado = !!perfil.topo_mobile_url && !ehPlanoFree(perfil.plano_tipo)
+          const midiaMobileUrl = temTopoMobileDedicado ? perfil.topo_mobile_url : (usaVideoDesktop ? perfil.banner_video_url : capaUrl)
+          const midiaMobileTipo = temTopoMobileDedicado ? perfil.topo_mobile_tipo : (usaVideoDesktop ? 'video' : 'imagem')
+          const temMidiaMobile = !!midiaMobileUrl
+
+          // Exibe exatamente o texto que o cliente digitou - sem soma nem formatacao
+          // automatica. Se estiver vazio, a secao de seguidores simplesmente nao aparece.
+          const seguidoresTexto = perfil.seguidores_texto?.trim()
+
+          return (
             <>
-              <div className="profile-row">
+              {/* HERO / BANNER - DESKTOP: capa/banner tradicional, igual a antes */}
+              <div className={`hero hero-desktop-view${(capaUrl || usaVideoDesktop) ? '' : ' no-capa'}${usaVideoDesktop ? ' hero-video' : ''}`}>
+                {usaVideoDesktop ? (
+                  <BannerVideo src={perfil.banner_video_url} className="hero-img" capaFallback={capaUrl || undefined} temaSoft={tema.soft} />
+                ) : capaUrl ? (
+                  <img src={capaUrl} alt={nomeBusiness} className="hero-img" decoding="async" fetchPriority="high"/>
+                ) : (
+                  <div style={{ position: 'absolute', inset: 0, background: `radial-gradient(circle at top left,${tema.soft},transparent 40%),var(--card)` }}/>
+                )}
+                <div className="hero-overlay"/>
+              </div>
+
+              {/* HERO MOBILE - midia como camada de FUNDO FIXA (position:fixed, nao sticky),
+                  presa na tela enquanto a pagina comeca a rolar. O conteudo do perfil fica
+                  em fluxo normal logo depois, com a mesma altura da midia - por isso aparece
+                  visualmente sobre ela. O resto da pagina (envolvido mais abaixo numa camada
+                  solida) cobre a midia fixa aos poucos conforme rola - efeito Link.me sem
+                  sticky e sem JS. */}
+              <div className={`mobile-hero-bg${temMidiaMobile ? ' hero-mobile-com-midia' : ''}`}>
+                {temMidiaMobile && (
+                  midiaMobileTipo === 'video' ? (
+                    <BannerVideo src={midiaMobileUrl} className="hero-mobile-img" capaFallback={capaUrl || undefined} temaSoft={tema.soft} />
+                  ) : (
+                    <img src={midiaMobileUrl} alt={nomeBusiness} className="hero-mobile-img" decoding="async" fetchPriority="high"/>
+                  )
+                )}
+                {!temMidiaMobile && (
+                  <div style={{ position: 'absolute', inset: 0, background: `radial-gradient(circle at top left,${tema.soft},transparent 40%),var(--card)` }}/>
+                )}
+                <div className="mobile-hero-overlay"/>
+              </div>
+              <div className="mobile-hero-content">
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+                  <h1 className="hero-mobile-nome">{nomeBusiness}</h1>
+                  <BadgeCheck size={20} color={tema.accent} style={{ flexShrink: 0, filter: 'drop-shadow(0 2px 6px rgba(0,0,0,.6))' }} />
+                </div>
+                <p className="hero-mobile-slug">@{slug}</p>
+                {linksSociais.length > 0 && (
+                  <div className="social-row" style={{ justifyContent: 'center', marginLeft: 0 }}>
+                    {linksSociais.map(l => {
+                      const cfg = iconeLink(detectarTipoPorUrl(l.url) || l.tipo)
+                      return (
+                        <a key={l.id} href={l.url} target={l.url && l.url.startsWith('http') ? '_blank' : '_self'} rel="noopener noreferrer" className="social-ic" style={{ background: iconeBg, border: `1px solid ${iconeBorder}`, color: iconeCor }} aria-label={l.titulo} data-track-tipo="social_click" data-track-item-titulo={l.titulo} data-track-item-url={l.url}>
+                          {cfg.svg ? cfg.svg : (cfg.I ? <cfg.I size={16} color={iconeCor} /> : null)}
+                        </a>
+                      )
+                    })}
+                  </div>
+                )}
+                {seguidoresTexto && <p className="hero-mobile-seguidores">{seguidoresTexto}</p>}
+                {bioCurta && <p className="bio-text hero-mobile-bio">{bioCurta}</p>}
+              </div>
+
+              {/* Bloco de perfil DESKTOP - avatar mantido, agora com @slug e seguidores */}
+              <div className="profile-row profile-row-desktop-view">
                 {fotoPerfilUrl ? (
                   <img src={fotoPerfilUrl} alt={nomeBusiness} className="avatar-pro" decoding="async" fetchPriority="high" style={{ border: `3px solid ${tema.accent}`, boxShadow: `0 0 24px ${tema.glow}` }} />
                 ) : (
@@ -502,6 +582,7 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
                     </h1>
                     <BadgeCheck size={20} color={tema.accent} style={{ flexShrink: 0 }} />
                   </div>
+                  <p style={{ fontSize: '13px', color: 'var(--text-muted)', margin: '2px 0 0' }}>@{slug}{seguidoresTexto ? ` · ${seguidoresTexto}` : ''}</p>
                 </div>
                 {linksSociais.length > 0 && (
                   <div className="social-row">
@@ -517,47 +598,28 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
                 )}
               </div>
 
-              {bioCurta && <p className="bio-text">{bioCurta}</p>}
-              {endereco && (
-                <p className="loc-text">
-                  <MapPin size={12} color="var(--text-muted)" /> {endereco}
-                </p>
-              )}
-            </>
-          )
-
-          return (
-            <>
-              {/* HERO / BANNER */}
-              {/* Video de capa (planos pagos) - mesma classe hero-img de sempre, entao herda o
-                  MESMO enquadramento mobile (banner_mobile_position/zoom) sem nenhum CSS novo. */}
-              <div className={`hero${(capaUrl || usaVideo) ? '' : ' no-capa'}${usaVideo ? ' hero-video' : ''}`}>
-                {usaVideo ? (
-                  <BannerVideo src={perfil.banner_video_url} className="hero-img" capaFallback={capaUrl || undefined} temaSoft={tema.soft} />
-                ) : capaUrl ? (
-                  <img src={capaUrl} alt={nomeBusiness} className="hero-img" decoding="async" fetchPriority="high"/>
-                ) : (
-                  <div style={{ position: 'absolute', inset: 0, background: `radial-gradient(circle at top left,${tema.soft},transparent 40%),var(--card)` }}/>
-                )}
-                <div className="hero-overlay"/>
-                {/* Copia do bloco de perfil, sobreposta ao video - por padrao escondida (display:none),
-                    so aparece via media query quando for video+mobile (ver CSS .hero-perfil-overlay) */}
-                {usaVideo && (
-                  <div className="hero-perfil-overlay">
-                    {renderBlocoPerfil()}
-                  </div>
+              <div className="profile-row-desktop-view">
+                {bioCurta && <p className="bio-text">{bioCurta}</p>}
+                {endereco && (
+                  <p className="loc-text">
+                    <MapPin size={12} color="var(--text-muted)" /> {endereco}
+                  </p>
                 )}
               </div>
 
-              {/* Bloco de perfil na posicao normal - sempre visivel, exceto quando for
-                  video+mobile (nesse caso a copia de dentro do hero assume, ver CSS) */}
-              <div className={usaVideo ? 'perfil-externo-quando-video' : undefined}>
-                {renderBlocoPerfil()}
-              </div>
-              <div className={usaVideo ? 'espaco-pos-hero-video' : undefined} style={{ height: '28px' }} />
+              {/* Titulo "LINKS OFICIAIS" - so aparece no mobile, logo antes da secao de links */}
+              <p className="links-oficiais-titulo">LINKS OFICIAIS</p>
+              <div style={{ height: '10px' }} />
             </>
           )
         })()}
+
+        {/* Camada de cobertura solida (so tem efeito visual no mobile, via CSS) - envolve TODO
+            o resto da pagina (promocao/destaques/links/catalogo/videos/footer) sem alterar
+            nada do conteudo interno de nenhuma dessas secoes. No mobile, isso cobre a midia
+            fixa do hero conforme a pagina rola; no desktop, e completamente neutro (mesma
+            posicao/fundo de sempre, position:relative sem side-effect nenhum). */}
+        <div className="mobile-conteudo-cobertura">
 
         {/* PROMOCAO EM DESTAQUE — substituida por Destaques + Links Rapidos. Codigo/logica preservados, apenas nao renderiza. */}
         {SECOES_ANTIGAS_DESATIVADAS && promoVisivel && (
@@ -861,6 +923,7 @@ videos && videos.length > 0 && permiteVideos(perfil.plano_tipo) && (() => {
             <span style={{ fontSize: '12px', fontWeight: 700, color: tema.accent }}>{t.crieSuaMiniPagePro}</span>
             <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>{t.umaSolucaoClienteMarcado}</span>
           </a>
+        </div>
         </div>
       </div>
     </main>
