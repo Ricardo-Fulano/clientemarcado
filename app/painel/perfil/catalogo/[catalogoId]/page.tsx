@@ -89,7 +89,7 @@ export default function GerenciarItensDoCatalogo(){
   }
 
   function novoItem(){
-    setItens(prev=>[...prev,{id:'novo-'+Date.now(),user_id:userId,catalogo_id:catalogoId,titulo:'',descricao_curta:'',descricao_completa:'',preco:'',preco_exibicao:'mostrar',preco_texto_personalizado:'',imagem_url:'',botao_texto:'Ver mais',tipo_destino:'link',destino_url:'',whatsapp:'',mensagem_whatsapp:'',ativo:true,ordem:prev.length,_novo:true}])
+    setItens(prev=>[...prev,{id:'novo-'+Date.now(),user_id:userId,catalogo_id:catalogoId,titulo:'',descricao_curta:'',descricao_completa:'',preco:'',preco_anterior:'',preco_exibicao:'mostrar',preco_texto_personalizado:'',selo_tipo:'',selo_texto:'',imagem_url:'',botao_texto:'Ver mais',tipo_destino:'link',destino_url:'',whatsapp:'',mensagem_whatsapp:'',ativo:true,ordem:prev.length,_novo:true}])
   }
   function mensagemPadrao(titulo:string){
     return `Olá! Quero saber mais sobre ${titulo||''}`
@@ -364,6 +364,9 @@ export default function GerenciarItensDoCatalogo(){
       preco: it.preco!==''&&it.preco!==null&&it.preco!==undefined ? parseFloat(String(it.preco).replace(',','.'))||null : null,
       preco_exibicao: it.preco_exibicao||'mostrar',
       preco_texto_personalizado: it.preco_exibicao==='texto_personalizado' ? (it.preco_texto_personalizado?.trim()||null) : null,
+      preco_anterior: it.preco_exibicao==='mostrar'&&it.preco_anterior!==''&&it.preco_anterior!==null&&it.preco_anterior!==undefined ? parseFloat(String(it.preco_anterior).replace(',','.'))||null : null,
+      selo_tipo: it.selo_tipo||null,
+      selo_texto: it.selo_tipo==='outros' ? (it.selo_texto?.trim().slice(0,20)||null) : null,
       imagem_url:it.imagem_url||null,
       botao_texto:it.botao_texto?.trim()||'Ver mais',
       tipo_destino:it.tipo_destino||'link',
@@ -524,8 +527,29 @@ export default function GerenciarItensDoCatalogo(){
                     ):it.preco_exibicao==='nao_mostrar'?(
                       <p style={{fontSize:'11px',color:'#B8AAB8'}}>Nenhum preço ou texto será exibido para este item.</p>
                     ):(
-                      <div><label className="lbl">Preço (opcional)</label><input className="inp" value={it.preco||''} onChange={e=>editarItem(it.id,'preco',e.target.value)} placeholder="Ex: 97,00"/></div>
+                      <div className="fg2">
+                        <div><label className="lbl">Preço (opcional)</label><input className="inp" value={it.preco||''} onChange={e=>editarItem(it.id,'preco',e.target.value)} placeholder="Ex: 97,00"/></div>
+                        <div><label className="lbl">Preço anterior (opcional)</label><input className="inp" value={it.preco_anterior||''} onChange={e=>editarItem(it.id,'preco_anterior',e.target.value)} placeholder="Ex: 197,00"/></div>
+                      </div>
                     )}
+                    {it.preco_exibicao!=='nao_mostrar'&&it.preco_anterior&&<p style={{fontSize:'10px',color:'#B8AAB8',marginTop:'6px'}}>Aparece riscado ao lado do preço atual (ex: de R$ 197,00 por R$ 97,00). Só funciona junto com o preço normal.</p>}
+                  </div>
+                  <div style={{marginBottom:'12px'}}>
+                    <label className="lbl">Selo / etiqueta (opcional)</label>
+                    <select className="inp" style={{cursor:'pointer'}} value={it.selo_tipo||''} onChange={e=>editarItem(it.id,'selo_tipo',e.target.value)}>
+                      <option value="">Sem selo</option>
+                      <option value="oferta">Oferta</option>
+                      <option value="novo">Novo</option>
+                      <option value="destaque">Destaque</option>
+                      <option value="promocao">Promoção</option>
+                      <option value="patrocinado">Patrocinado</option>
+                      <option value="lancamento">Lançamento</option>
+                      <option value="outros">Outros (personalizado)</option>
+                    </select>
+                    {it.selo_tipo==='outros'&&(
+                      <input className="inp" style={{marginTop:'8px'}} value={it.selo_texto||''} onChange={e=>editarItem(it.id,'selo_texto',e.target.value)} placeholder="Ex: Edição limitada" maxLength={20}/>
+                    )}
+                    <p style={{fontSize:'10px',color:'#B8AAB8',marginTop:'6px'}}>Aparece como uma etiqueta pequena sobre a imagem do card, na cor do tema escolhido da sua página.</p>
                   </div>
                   <div style={{marginBottom:'12px'}}>
                     <label className="lbl">Descrição longa</label>

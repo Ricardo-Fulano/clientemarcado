@@ -1,5 +1,6 @@
 'use client'
 import { useState, useRef } from 'react'
+import { Share2, Check } from 'lucide-react'
 import { registrarEvento } from '../lib/analyticsClient'
 
 // Card compacto do carrossel + modal de detalhes ao clicar. Client Component porque a
@@ -13,8 +14,11 @@ export default function CatalogoItemCard({
     descricao_curta?: string | null
     descricao_completa?: string | null
     preco?: number | null
+    preco_anterior?: number | null
     preco_exibicao?: string | null
     preco_texto_personalizado?: string | null
+    selo_tipo?: string | null
+    selo_texto?: string | null
     imagem_url?: string | null
     botao_texto?: string | null
     tipo_destino?: string | null
@@ -42,6 +46,44 @@ export default function CatalogoItemCard({
   const galeria = item.galeria && item.galeria.length > 0
     ? item.galeria
     : (item.imagem_url ? [{ id: 'legado', imagem_url: item.imagem_url }] : [])
+
+  // Mapa de selos pre-definidos - "outros" usa o texto personalizado (selo_texto).
+  const SELOS_PADRAO: Record<string, string> = {
+    oferta: 'Oferta', novo: 'Novo', destaque: 'Destaque', promocao: 'Promoção',
+    patrocinado: 'Patrocinado', lancamento: 'Lançamento',
+  }
+  function infoSelo(): string | null {
+    if (!item.selo_tipo) return null
+    if (item.selo_tipo === 'outros') return item.selo_texto?.trim() || null
+    return SELOS_PADRAO[item.selo_tipo] || null
+  }
+
+  const [compartilhando, setCompartilhando] = useState(false)
+  const [linkCopiado, setLinkCopiado] = useState(false)
+  async function compartilharItem() {
+    const url = `${window.location.origin}${window.location.pathname}?catalogo=${item.id}`
+    const dados = { title: item.titulo, text: item.titulo, url }
+    if (navigator.share) {
+      try {
+        setCompartilhando(true)
+        await navigator.share(dados)
+      } catch {
+        // Usuario cancelou o compartilhamento - nao e um erro real, so ignora.
+      } finally {
+        setCompartilhando(false)
+      }
+      return
+    }
+    // Fallback: sem suporte a navigator.share (a maioria dos navegadores desktop) -
+    // copia o link pra area de transferencia e mostra feedback temporario.
+    try {
+      await navigator.clipboard.writeText(url)
+      setLinkCopiado(true)
+      setTimeout(() => setLinkCopiado(false), 2200)
+    } catch {
+      // Clipboard tambem indisponivel (raro) - silenciosamente nao faz nada, sem quebrar a pagina.
+    }
+  }
 
   const fBRL = (v: number) => `R$ ${v.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`
 
@@ -144,7 +186,10 @@ export default function CatalogoItemCard({
         className="catalogo-card"
         style={{ border: `1px solid ${iconeBorder}`, background: cardBg, textAlign: 'left', cursor: 'pointer', font: 'inherit', color: 'inherit', padding: 0, flexShrink: 0 }}
       >
-        <div className="catalogo-card-img">
+        <div className="catalogo-card-img" style={{ position: 'relative' }}>
+          {infoSelo() && (
+            <span style={{ position: 'absolute', top: '8px', left: '8px', zIndex: 1, background: `linear-gradient(135deg,${accent},${secondary})`, color: btnText, fontSize: '10px', fontWeight: 800, padding: '3px 8px', borderRadius: '999px', letterSpacing: '.02em', boxShadow: `0 2px 8px ${accent}55` }}>{infoSelo()}</span>
+          )}
           {item.imagem_url && !imgComErro ? (
             <img src={item.imagem_url} alt={item.titulo} loading="lazy" decoding="async" onError={() => setImgComErro(true)} />
           ) : (
@@ -153,7 +198,12 @@ export default function CatalogoItemCard({
         </div>
         <div style={{ padding: '10px 12px' }}>
           <p className="catalogo-card-titulo" style={{ color: text }}>{item.titulo}</p>
-          <p className="catalogo-card-preco" style={{ color: accent }}>{infoPreco() || ''}</p>
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px', flexWrap: 'wrap' }}>
+            <p className="catalogo-card-preco" style={{ color: accent, marginTop: 0 }}>{infoPreco() || ''}</p>
+            {infoPreco() && item.preco_anterior != null && item.preco_anterior > 0 && (item.preco_exibicao || 'mostrar') === 'mostrar' && (
+              <p style={{ fontSize: '11px', color: textMuted, textDecoration: 'line-through', margin: 0 }}>{fBRL(item.preco_anterior)}</p>
+            )}
+          </div>
         </div>
       </button>
 
@@ -261,14 +311,41 @@ export default function CatalogoItemCard({
               </>
             )}
             <div style={{ padding: '20px' }}>
-              <p style={{ fontSize: '17px', fontWeight: 800, color: text, marginBottom: '8px' }}>{item.titulo}</p>
+              {infoSelo() && (
+                <span style={{ display: 'inline-block', marginBottom: '10px', background: `linear-gradient(135deg,${accent},${secondary})`, color: btnText, fontSize: '11px', fontWeight: 800, padding: '4px 10px', borderRadius: '999px', letterSpacing: '.02em' }}>{infoSelo()}</span>
+              )}
+              <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '12px', marginBottom: '12px' }}>
+                <p style={{ fontSize: '17px', fontWeight: 800, color: text, flex: 1 }}>{item.titulo}</p>
+                {/* Botao "Compartilhar" com icone + texto - estilo glass (fundo semi-
+                    transparente + borda na cor do tema), sempre visivel e claro sobre sua
+                    funcao. Fica ao lado do titulo no desktop; no mobile, quebra pra baixo
+                    naturalmente (flex-wrap) sem espremer o titulo nem atrapalhar o botao
+                    principal, que continua mais abaixo, intocado. */}
+                <button
+                  type="button"
+                  onClick={compartilharItem}
+                  disabled={compartilhando}
+                  className="catalogo-btn-compartilhar"
+                  style={{ flexShrink: 0, display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '7px 12px', borderRadius: '999px', background: `${accent}14`, border: `1px solid ${accent}55`, color: accent, fontSize: '12px', fontWeight: 700, cursor: compartilhando ? 'wait' : 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap' }}
+                >
+                  {linkCopiado ? <Check size={14} /> : <Share2 size={14} />}
+                  {linkCopiado ? 'Copiado!' : 'Compartilhar'}
+                </button>
+              </div>
+              <style>{`.catalogo-btn-compartilhar:hover{background:${accent}22!important}
+                .catalogo-btn-compartilhar:active{transform:scale(.96)}`}</style>
               {(item.descricao_completa || item.descricao_curta) && (
                 <div style={{ maxHeight: '160px', overflowY: 'auto', marginBottom: '12px' }}>
                   <p style={{ fontSize: '13px', color: textMuted, lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>{item.descricao_completa || item.descricao_curta}</p>
                 </div>
               )}
               {infoPreco() && (
-                <p style={{ fontSize: '18px', fontWeight: 800, color: accent, marginBottom: '16px' }}>{infoPreco()}</p>
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px', flexWrap: 'wrap', marginBottom: '16px' }}>
+                  <p style={{ fontSize: '18px', fontWeight: 800, color: accent }}>{infoPreco()}</p>
+                  {item.preco_anterior != null && item.preco_anterior > 0 && (item.preco_exibicao || 'mostrar') === 'mostrar' && (
+                    <p style={{ fontSize: '13px', color: textMuted, textDecoration: 'line-through' }}>{fBRL(item.preco_anterior)}</p>
+                  )}
+                </div>
               )}
               <button
                 type="button"
