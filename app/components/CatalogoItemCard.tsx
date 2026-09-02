@@ -1,5 +1,5 @@
 'use client'
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { registrarEvento } from '../lib/analyticsClient'
 
 // Card compacto do carrossel + modal de detalhes ao clicar. Client Component porque a
@@ -35,6 +35,7 @@ export default function CatalogoItemCard({
   const [aberto, setAberto] = useState(false)
   const [imgComErro, setImgComErro] = useState(false)
   const [imagemAtivaIdx, setImagemAtivaIdx] = useState(0)
+  const carrosselRef = useRef<HTMLDivElement>(null)
 
   // Galeria efetiva: usa a que vier do banco, ou sintetiza 1 imagem so a partir do campo de
   // sempre (imagem_url) - cobre 100% dos itens antigos, que nunca tiveram galeria cadastrada.
@@ -175,24 +176,84 @@ export default function CatalogoItemCard({
             </button>
             {galeria.length > 0 && !imgComErro && (
               <>
-                <img
-                  src={galeria[Math.min(imagemAtivaIdx, galeria.length - 1)].imagem_url}
-                  alt={item.titulo}
-                  loading="lazy"
-                  decoding="async"
-                  onError={() => setImgComErro(true)}
-                  style={{ width: '100%', aspectRatio: '4/3', objectFit: 'cover', objectPosition: 'center center', borderRadius: '20px 20px 0 0', display: 'block' }}
-                />
+                {/* Carrossel horizontal na imagem PRINCIPAL - mantem o mesmo object-fit:cover
+                    e proporcao 1:1 que ja funcionavam bem (nao mexe nisso), so adiciona a
+                    capacidade de arrastar/deslizar entre as fotos. scrollbar escondida via
+                    classe dedicada (catalogo-carrossel-principal, CSS logo abaixo) - a
+                    rolagem continua funcionando por baixo, so a barra visual some. */}
+                <style>{`.catalogo-carrossel-principal::-webkit-scrollbar{display:none}
+                  @media(max-width:600px){.catalogo-seta-carrossel{display:none}}`}</style>
+                <div style={{ position: 'relative' }}>
+                  <div
+                    ref={carrosselRef}
+                    className="catalogo-carrossel-principal"
+                    onScroll={e => {
+                      const el = e.currentTarget
+                      const idx = Math.round(el.scrollLeft / el.clientWidth)
+                      if (idx !== imagemAtivaIdx && idx >= 0 && idx < galeria.length) setImagemAtivaIdx(idx)
+                    }}
+                    style={{ display: 'flex', overflowX: galeria.length > 1 ? 'auto' : 'hidden', overflowY: 'hidden', scrollSnapType: 'x mandatory', WebkitOverflowScrolling: 'touch', width: '100%', borderRadius: '20px 20px 0 0', scrollbarWidth: 'none' }}
+                  >
+                    {galeria.map((img, idx) => (
+                      <div key={img.id} style={{ flex: '0 0 100%', width: '100%', minWidth: '100%', aspectRatio: '1/1', background: cardBg, overflow: 'hidden', scrollSnapAlign: 'center' }}>
+                        <img
+                          src={img.imagem_url}
+                          alt={item.titulo}
+                          loading={idx === 0 ? 'eager' : 'lazy'}
+                          decoding="async"
+                          onError={() => idx === imagemAtivaIdx && setImgComErro(true)}
+                          style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center center', display: 'block' }}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                  {/* Setas discretas - so no desktop (escondidas via CSS em telas touch/pequenas),
+                      atalho extra alem do arrastar/deslizar direto na imagem. */}
+                  {galeria.length > 1 && (
+                    <>
+                      {imagemAtivaIdx > 0 && (
+                        <button
+                          type="button"
+                          aria-label="Imagem anterior"
+                          onClick={() => {
+                            const novoIdx = imagemAtivaIdx - 1
+                            setImagemAtivaIdx(novoIdx)
+                            carrosselRef.current?.scrollTo({ left: novoIdx * carrosselRef.current.clientWidth, behavior: 'smooth' })
+                          }}
+                          className="catalogo-seta-carrossel"
+                          style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', width: '32px', height: '32px', borderRadius: '999px', background: 'rgba(0,0,0,.5)', border: '1px solid rgba(255,255,255,.3)', color: '#fff', fontSize: '15px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', zIndex: 1 }}
+                        >‹</button>
+                      )}
+                      {imagemAtivaIdx < galeria.length - 1 && (
+                        <button
+                          type="button"
+                          aria-label="Próxima imagem"
+                          onClick={() => {
+                            const novoIdx = imagemAtivaIdx + 1
+                            setImagemAtivaIdx(novoIdx)
+                            carrosselRef.current?.scrollTo({ left: novoIdx * carrosselRef.current.clientWidth, behavior: 'smooth' })
+                          }}
+                          className="catalogo-seta-carrossel"
+                          style={{ position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)', width: '32px', height: '32px', borderRadius: '999px', background: 'rgba(0,0,0,.5)', border: '1px solid rgba(255,255,255,.3)', color: '#fff', fontSize: '15px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', zIndex: 1 }}
+                        >›</button>
+                      )}
+                    </>
+                  )}
+                </div>
+
                 {galeria.length > 1 && (
-                  <div style={{ display: 'flex', gap: '7px', overflowX: 'auto', padding: '10px 20px 0', WebkitOverflowScrolling: 'touch' }}>
+                  <div style={{ width: '100%', maxWidth: '100%', display: 'flex', flexWrap: 'nowrap', gap: '8px', overflowX: 'auto', overflowY: 'hidden', WebkitOverflowScrolling: 'touch', padding: '12px 20px 8px' }}>
                     {galeria.map((img, idx) => (
                       <button
                         key={img.id}
                         type="button"
-                        onClick={() => setImagemAtivaIdx(idx)}
-                        style={{ flexShrink: 0, width: '48px', height: '48px', borderRadius: '8px', overflow: 'hidden', padding: 0, cursor: 'pointer', border: idx === imagemAtivaIdx ? `2px solid ${accent}` : `1px solid ${iconeBorder}`, opacity: idx === imagemAtivaIdx ? 1 : 0.6 }}
+                        onClick={() => {
+                          setImagemAtivaIdx(idx)
+                          carrosselRef.current?.scrollTo({ left: idx * carrosselRef.current.clientWidth, behavior: 'smooth' })
+                        }}
+                        style={{ flex: '0 0 auto', width: '64px', minWidth: '64px', height: '64px', borderRadius: '10px', overflow: 'hidden', padding: 0, cursor: 'pointer', border: idx === imagemAtivaIdx ? `2px solid ${accent}` : `1px solid ${iconeBorder}`, opacity: idx === imagemAtivaIdx ? 1 : 0.6 }}
                       >
-                        <img src={img.imagem_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                        <img src={img.imagem_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center', display: 'block' }} />
                       </button>
                     ))}
                   </div>
@@ -201,7 +262,11 @@ export default function CatalogoItemCard({
             )}
             <div style={{ padding: '20px' }}>
               <p style={{ fontSize: '17px', fontWeight: 800, color: text, marginBottom: '8px' }}>{item.titulo}</p>
-              {(item.descricao_completa || item.descricao_curta) && <p style={{ fontSize: '13px', color: textMuted, lineHeight: 1.6, marginBottom: '12px', whiteSpace: 'pre-wrap' }}>{item.descricao_completa || item.descricao_curta}</p>}
+              {(item.descricao_completa || item.descricao_curta) && (
+                <div style={{ maxHeight: '160px', overflowY: 'auto', marginBottom: '12px' }}>
+                  <p style={{ fontSize: '13px', color: textMuted, lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>{item.descricao_completa || item.descricao_curta}</p>
+                </div>
+              )}
               {infoPreco() && (
                 <p style={{ fontSize: '18px', fontWeight: 800, color: accent, marginBottom: '16px' }}>{infoPreco()}</p>
               )}
