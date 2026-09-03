@@ -114,9 +114,11 @@ export async function POST(request: NextRequest) {
     else if (status === 'paused') {
       // Pausa voluntaria da assinatura (diferente de atraso por recusa) - o valor 'pausado'
       // ainda NAO existe em perfis.status_acesso hoje (so ativo/trial/em_atraso/bloqueado/
-      // cancelado sao usados no sistema). Por seguranca, so loga (via mp_eventos, ja
-      // acontece acima) e NAO altera status_acesso - evita criar um estado novo no banco
-      // sem confirmacao previa seguindo a instrucao explicita desta fase.
+      // cancelado sao usados no sistema; 'aguardando_pagamento' foi ADICIONADO na Etapa 2
+      // do diagnostico de pagamento, mas tambem ainda nao e gravado por nenhum codigo).
+      // Por seguranca, so loga (via mp_eventos, ja acontece acima) e NAO altera
+      // status_acesso - evita criar um estado novo no banco sem confirmacao previa
+      // seguindo a instrucao explicita desta fase.
       console.log(`[WEBHOOK] Assinatura pausada (preapproval.paused) - nenhuma alteracao de status_acesso feita, apenas logado: ${externalReference}`)
     }
 

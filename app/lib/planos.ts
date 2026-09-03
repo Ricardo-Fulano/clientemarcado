@@ -52,6 +52,54 @@ export function obterPrecoPlano(planoTipo?: string | null): number {
   return 79.90
 }
 
+// ===================================================================
+// SUPORTE A PLANO ANUAL
+// ===================================================================
+// obterPrecoPlano() (acima) continua EXATAMENTE como antes - nenhuma chamada existente
+// quebra, ja que nada muda na assinatura nem no comportamento dela. As funcoes abaixo sao
+// aditivas, criadas so pra dar suporte ao ciclo anual sem duplicar valores espalhados.
+
+/** Alias explicito do preco mensal - mesmo valor de obterPrecoPlano(), so com nome mais claro
+ *  pra usar lado a lado com obterPrecoAnualPlano() sem ambiguidade. */
+export function obterPrecoMensalPlano(planoTipo?: string | null): number {
+  return obterPrecoPlano(planoTipo)
+}
+
+export function obterPrecoAnualPlano(planoTipo?: string | null): number {
+  const p = normalizarPlano(planoTipo)
+  if (p === 'free') return 0
+  if (p === 'minipage') return 397.00
+  if (p === 'loja') return 597.00
+  if (p === 'equipe') return 1497.00
+  return 797.00 // essencial/Pro
+}
+
+export type BillingCycle = 'mensal' | 'anual'
+
+/** Normaliza qualquer valor recebido (URL, formulario, banco) pra 'mensal' ou 'anual',
+ *  sempre caindo em 'mensal' como fallback seguro se vier vazio/invalido. */
+export function normalizarBillingCycle(valor?: string | null): BillingCycle {
+  return valor === 'anual' ? 'anual' : 'mensal'
+}
+
+/** Retorna o preco certo conforme o ciclo - centraliza a decisao mensal/anual num so lugar. */
+export function obterPrecoPlanoPorCiclo(planoTipo?: string | null, billingCycle?: string | null): number {
+  return normalizarBillingCycle(billingCycle) === 'anual' ? obterPrecoAnualPlano(planoTipo) : obterPrecoMensalPlano(planoTipo)
+}
+
+export function obterNomeCiclo(billingCycle?: string | null): string {
+  return normalizarBillingCycle(billingCycle) === 'anual' ? 'Anual' : 'Mensal'
+}
+
+/** Percentual de economia do anual em relacao a pagar 12x o mensal - usado na landing. */
+export function obterPercentualEconomiaAnual(planoTipo?: string | null): number {
+  const mensal = obterPrecoMensalPlano(planoTipo)
+  const anual = obterPrecoAnualPlano(planoTipo)
+  if (mensal <= 0 || anual <= 0) return 0
+  const precoMensalX12 = mensal * 12
+  return Math.round((1 - anual / precoMensalX12) * 100)
+}
+
 /**
  * Texto "reason" enviado ao Mercado Pago na criacao da assinatura.
  * Free tecnicamente tem um retorno aqui so por consistencia - a API do Mercado Pago
@@ -182,3 +230,39 @@ export function obterLimiteModelosCor(planoTipo?: string | null): number {
 export function permiteTodosModelosDeCor(planoTipo?: string | null): boolean {
   return obterLimiteModelosCor(planoTipo) >= 18
 }
+
+// ===================================================================
+// ETAPA 2 - preparacao do novo status_acesso 'aguardando_pagamento'
+// ===================================================================
+// So ADICIONA reconhecimento do novo valor - nao muda nenhum comportamento de bloqueio
+// ainda (isso fica pra uma proxima etapa). Contas antigas com status nulo/desconhecido
+// continuam caindo no mesmo fallback seguro de sempre ('ativo'), sem bloquear ninguem.
+//
+// Valores conhecidos hoje: 'ativo' (default/fallback), 'em_atraso' (setado pelo webhook e
+// pelo PainelLayoutClient quando o trial vence sem plano ativo). 'bloqueado' e 'cancelado'
+// existem no STATUS_LABEL da tela Meu Plano por precaucao, mas nenhum codigo atual chega a
+// gravar esses 2 valores no banco ainda. 'aguardando_pagamento' e o valor NOVO desta etapa -
+// ainda nao e gravado por nenhum codigo, so reconhecido pelas funcoes abaixo.
+export type StatusAcesso = 'ativo' | 'em_atraso' | 'bloqueado' | 'cancelado' | 'aguardando_pagamento'
+
+/** true apenas quando o status for exatamente 'aguardando_pagamento'. */
+export function ehAguardandoPagamento(status?: string | null): boolean {
+  return status === 'aguardando_pagamento'
+}
+
+/**
+ * true quando o status permite acesso completo ao painel. Mantem o MESMO comportamento
+ * de hoje: qualquer coisa que NAO seja 'em_atraso', 'bloqueado' ou 'aguardando_pagamento'
+ * libera acesso completo - inclusive nulo/desconhecido (fallback seguro, igual ja acontece
+ * hoje com `status_acesso || 'ativo'` no PainelLayoutClient). Esta funcao ainda NAO e usada
+ * pra bloquear ninguem nesta etapa - so fica pronta pra proxima etapa a utilizar.
+ */
+export function statusPermiteAcessoCompleto(status?: string | null): boolean {
+  return status !== 'em_atraso' && status !== 'bloqueado' && status !== 'aguardando_pagamento'
+}
+
+/** true quando o status indica que falta finalizar o checkout no Mercado Pago. */
+export function statusPrecisaFinalizarCheckout(status?: string | null): boolean {
+  return ehAguardandoPagamento(status)
+}
+

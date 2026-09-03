@@ -5,9 +5,8 @@ import { supabase } from '../lib/supabase'
 import { Suspense } from 'react'
 import BannerPagamentoSucesso from '../components/BannerPagamentoSucesso'
 import BloqueioPorPlano from '../components/BloqueioPorPlano'
-import { normalizarPlano, ehPlanoComGestao, permiteEquipe, ehPlanoFree } from '../lib/planos'
+import { normalizarPlano, ehPlanoComGestao, permiteEquipe, ehPlanoFree, ehAguardandoPagamento, statusPermiteAcessoCompleto, statusPrecisaFinalizarCheckout } from '../lib/planos'
 
-const CHECKOUT_URL = "https://www.mercadopago.com.br/subscriptions/checkout?preapproval_plan_id=1a0fb25c46214e45b0eb3d21b494e5d6"
 const G = 'linear-gradient(135deg,#3B82F6,#7C3AED)'
 // Nomes amigaveis pra mensagem de erro refletir o plano real da pessoa (antes ficava fixo
 // dizendo "Plano Equipe", mesmo quando o problema era com o MiniPage).
@@ -76,41 +75,35 @@ export default function PainelLayoutClient({ children }: { children: React.React
   async function abrirCheckout() {
     if (loadingPag) return
     setLoadingPag(true)
+    const MENSAGEM_ERRO_CHECKOUT = 'Não foi possível iniciar o checkout agora. Tente novamente ou fale com o suporte.'
     try {
       const { data: { session } } = await supabase.auth.getSession()
       const token = session?.access_token
       if (!token) {
-        if (planoTipo === 'essencial') window.location.href = CHECKOUT_URL
-        else alert('Sessão expirada. Faça login novamente para regularizar o pagamento.')
+        alert('Sessão expirada. Faça login novamente para regularizar o pagamento.')
         return
       }
-      const res = await fetch('/api/mercadopago/criar-assinatura', {
+      // Rota trocada pra Asaas - o fluxo real de "Finalizar assinatura" do painel agora usa
+      // /api/asaas/criar-assinatura. Os antigos fallbacks pro link fixo do Mercado Pago
+      // (CHECKOUT_URL) foram removidos de proposito: misturar os 2 gateways em caso de erro
+      // criaria inconsistencia (cliente pagaria no MP, sistema esperaria confirmacao do
+      // Asaas). Em qualquer erro agora, mostra so a mensagem clara pedindo pra tentar de
+      // novo ou falar com o suporte.
+      const res = await fetch('/api/asaas/criar-assinatura', {
         method: 'POST',
         headers: { 'Authorization': 'Bearer ' + token },
       })
       const data = await res.json().catch(() => null)
-      const mensagemGenerica = `Não foi possível gerar o link de pagamento do Plano ${nomePlanoAtual(planoTipo)}. Tente novamente em instantes ou entre em contato com o suporte.`
       if (data?.init_point) {
         window.location.href = data.init_point
-      } else if (!res.ok) {
-        // Mostra o motivo especifico que a API retornou (ex: "Plano Free nao gera
-        // assinatura.") em vez de sempre a mensagem generica - a mensagem generica
-        // continua como fallback, se a API nao mandar nada util.
-        if (data?.mp_status || data?.mp_data) {
-          // So existe fora de producao (a propria API so inclui isso em dev) - ajuda a
-          // debugar direto no console do navegador, sem precisar ficar olhando o terminal.
-          console.error('[MP] Detalhe do erro (dev only):', data.mp_status, data.mp_data)
-        }
-        alert(data?.error || data?.message || mensagemGenerica)
-      } else if (planoTipo === 'essencial') {
-        // Fallback antigo: so vale pro Essencial (unico com link fixo configurado no Mercado Pago)
-        window.location.href = CHECKOUT_URL
       } else {
-        alert(mensagemGenerica)
+        // Mostra o motivo especifico que a API retornou (ex: "Precisamos do seu CPF...")
+        // em vez de sempre a mensagem generica - a mensagem generica continua como
+        // fallback, se a API nao mandar nada util.
+        alert(data?.error || MENSAGEM_ERRO_CHECKOUT)
       }
     } catch {
-      if (planoTipo === 'essencial') window.location.href = CHECKOUT_URL
-      else alert(`Não foi possível gerar o link de pagamento do Plano ${nomePlanoAtual(planoTipo)}. Tente novamente em instantes ou entre em contato com o suporte.`)
+      alert(MENSAGEM_ERRO_CHECKOUT)
     } finally {
       setLoadingPag(false)
     }
@@ -233,6 +226,14 @@ export default function PainelLayoutClient({ children }: { children: React.React
   // especifico "trial acabou e nunca chegou a autorizar nada".
   const precisaFinalizarAssinatura = nivelAtraso !== null && !temAssinaturaAutorizada
 
+  // ETAPA 4 - 'aguardandoPagamento' agora e usado DE VERDADE mais abaixo, pra bloquear o
+  // painel de contas pagas que nunca autorizaram nenhuma assinatura. precisaFinalizarCheckout
+  // e statusPermiteAcessoCompleto continuam so preparados (Etapa 2), ainda sem uso real.
+  const aguardandoPagamento = ehAguardandoPagamento(status)
+  const precisaFinalizarCheckout = statusPrecisaFinalizarCheckout(status)
+  void precisaFinalizarCheckout
+  void statusPermiteAcessoCompleto
+
   // Bloqueio TOTAL (15+ dias): so essas rotas continuam acessiveis
   const ROTAS_PERMITIDAS_BLOQUEIO_TOTAL = ['/painel', '/painel/plano', '/painel/suporte']
   // Bloqueio PARCIAL (8-14 dias): essas rotas de criacao/gerenciamento ficam bloqueadas
@@ -272,6 +273,26 @@ export default function PainelLayoutClient({ children }: { children: React.React
       </div>
     </div>
   )
+
+  // ETAPA 4 - bloqueio de verdade pra quem esta 'aguardando_pagamento' (cadastro criado mas
+  // nunca autorizou nenhuma assinatura no Mercado Pago ainda). So bloqueia planos PAGOS -
+  // Free nunca cai aqui, ja que Free nunca tem status 'aguardando_pagamento' (a migration da
+  // Etapa 3, ainda nao aplicada, so vai gravar esse valor pra planos pagos). Usa o MESMO
+  // botao/endpoint (abrirCheckout -> /api/mercadopago/criar-assinatura) que o resto do
+  // sistema ja usa - nao cria nenhum fluxo novo de pagamento.
+  if (aguardandoPagamento && !ehPlanoFree(planoTipo)) return (
+    <div style={{minHeight:'100vh',background:'linear-gradient(180deg,#060C18,#050B16)',display:'flex',alignItems:'center',justifyContent:'center',padding:'24px',fontFamily:'system-ui'}}>
+      <div style={{maxWidth:'440px',width:'100%',background:'rgba(15,23,42,.95)',border:'1px solid rgba(139,92,246,.30)',borderRadius:'20px',padding:'40px 32px',textAlign:'center'}}>
+        <div style={{fontSize:'36px',marginBottom:'16px'}}>💳</div>
+        <h2 style={{fontSize:'20px',fontWeight:800,color:'#F8FAFC',marginBottom:'12px'}}>Finalize sua assinatura para ativar sua MiniPage Pro</h2>
+        <p style={{fontSize:'14px',color:'#94A3B8',marginBottom:'20px',lineHeight:1.6}}>Seu cadastro foi criado, mas sua assinatura ainda não foi concluída. Finalize o pagamento com segurança para liberar o painel e iniciar seu período grátis.</p>
+        <button onClick={abrirCheckout} disabled={loadingPag} style={{display:'flex',width:'100%',alignItems:'center',justifyContent:'center',height:'48px',background:G,color:'#fff',border:'none',borderRadius:'12px',textDecoration:'none',fontSize:'14px',fontWeight:700,cursor:loadingPag?'wait':'pointer',opacity:loadingPag?.7:1,fontFamily:'inherit',marginBottom:'12px'}}>{loadingPag?'Gerando...':'Finalizar assinatura'}</button>
+        <a href={`https://wa.me/5511941059063?text=${encodeURIComponent('Olá! Preciso de ajuda para finalizar minha assinatura da MiniPage Pro.')}`} target="_blank" rel="noopener noreferrer" style={{display:'block',fontSize:'13px',color:'#94A3B8',textDecoration:'underline',marginBottom:'16px'}}>Falar com o suporte</a>
+        <p style={{fontSize:'11px',color:'#64748B',lineHeight:1.5}}>Você só começa seu período grátis após concluir a assinatura.</p>
+      </div>
+    </div>
+  )
+
 
   // Bloqueio TOTAL por atraso (15+ dias): mesmo estilo visual do bloqueio manual acima, so que
   // disparado automaticamente pelos dias calculados, com links pras 3 rotas ainda permitidas.

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
-import { normalizarPlano } from '../../../lib/planos'
+import { normalizarPlano, ehPlanoFree, normalizarBillingCycle } from '../../../lib/planos'
 
 // UUID v4-like check (aceita qualquer versao de UUID valido, formato padrao)
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
@@ -35,7 +35,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json().catch(() => null)
     if (!body) return NextResponse.json({ error: 'Payload invalido' }, { status: 400 })
 
-    const { user_id, nome_negocio, tipo_negocio, plano_tipo } = body
+    const { user_id, nome_negocio, tipo_negocio, plano_tipo, cpf_cnpj, billing_cycle } = body
 
     if (!user_id || typeof user_id !== 'string' || !UUID_REGEX.test(user_id)) {
       return NextResponse.json({ error: 'user_id invalido' }, { status: 400 })
@@ -50,8 +50,14 @@ export async function POST(request: NextRequest) {
     )
 
     const camposComuns: Record<string, any> = { plano_tipo: planoValido }
+    if (cpf_cnpj && typeof cpf_cnpj === 'string') camposComuns.cpf_cnpj = cpf_cnpj
     if (nome_negocio && typeof nome_negocio === 'string') camposComuns.nome_negocio = nome_negocio
     if (tipo_negocio && typeof tipo_negocio === 'string') camposComuns.tipo_negocio = tipo_negocio
+    // Free nunca deve ter billing_cycle preenchido - nao gera cobranca em nenhum gateway,
+    // entao "mensal"/"anual" nao fazem sentido nem seriam usados por nenhuma rota de
+    // pagamento. Para planos pagos, normaliza qualquer valor recebido pra 'mensal'|'anual'
+    // (nunca deixa passar um valor invalido/vazio adiante - cai em 'mensal' por seguranca).
+    camposComuns.billing_cycle = ehPlanoFree(planoValido) ? null : normalizarBillingCycle(billing_cycle)
 
     const { data: existente } = await supabase.from('perfis').select('id').eq('user_id', user_id).maybeSingle()
 

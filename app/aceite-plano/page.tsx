@@ -2,7 +2,7 @@
 import { useState, useEffect, Suspense } from 'react'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
-import { normalizarPlano, obterNomePlano, obterPrecoPlano, ehPlanoFree, type PlanoTipo } from '../lib/planos'
+import { normalizarPlano, obterNomePlano, obterPrecoPlano, ehPlanoFree, type PlanoTipo, normalizarBillingCycle, obterPrecoPlanoPorCiclo, obterNomeCiclo } from '../lib/planos'
 
 const CSS = `
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -54,6 +54,10 @@ function AceitePlanoConteudo() {
   const searchParams = useSearchParams()
   const planoParam = searchParams.get('plano')
   const planoValido = normalizarPlano(planoParam)
+  // Le ?billing=anual (ou 'mensal') da URL - se nao vier nada, usa 'mensal' como padrao
+  // seguro, exatamente como pedido.
+  const billingParam = searchParams.get('billing')
+  const billingCycle = normalizarBillingCycle(billingParam)
 
   // Free nunca tem cobranca, trial nem contrato de plano pago - nao faz sentido passar por
   // essa tela. Redireciona direto pro cadastro, sem exibir nada do fluxo de aceite pago.
@@ -63,20 +67,25 @@ function AceitePlanoConteudo() {
     }
   }, [planoValido])
 
+  const nomeCiclo = obterNomeCiclo(billingCycle) // "Mensal" ou "Anual"
   const plano = {
     nome: `Plano ${obterNomePlano(planoValido)}`,
-    preco: `R$ ${obterPrecoPlano(planoValido).toLocaleString('pt-BR', { minimumFractionDigits: 2 }).replace('.', ',')}`,
+    preco: `R$ ${obterPrecoPlanoPorCiclo(planoValido, billingCycle).toLocaleString('pt-BR', { minimumFractionDigits: 2 }).replace('.', ',')}`,
     beneficios: BENEFICIOS_POR_PLANO[planoValido] || [],
   }
 
-  // Contrato dinamico: nome/preco corretos conforme o plano, sempre um plano PAGO nesse ponto
-  // (Free ja foi redirecionado acima antes de chegar aqui).
+  // Contrato dinamico: nome/preco/ciclo corretos conforme o plano e a periodicidade escolhida,
+  // sempre um plano PAGO nesse ponto (Free ja foi redirecionado acima antes de chegar aqui).
   const CLAUSULAS = [
     { t: '1. Contratante', c: 'Pessoa física ou jurídica que realiza o cadastro e utiliza a plataforma MiniPage Pro.' },
     { t: '2. Contratada', c: 'MiniPage Pro, uma solução ClienteMarcado, plataforma digital para criação de página profissional e gestão de pequenos negócios.' },
     { t: '3. Objeto', c: 'Disponibilização de acesso à plataforma MiniPage Pro, uma solução ClienteMarcado, para criação de página profissional, divulgação de links, redes sociais, conteúdos, vídeos, catálogos, contatos, análise de desempenho e, conforme o plano contratado, recursos de agenda, clientes, cobranças, financeiro, relatórios e equipe.' },
-    { t: '4. Plano', c: `${plano.nome} no valor de ${plano.preco}/mês, com 7 dias grátis, sem fidelidade.` },
-    { t: '5. Teste grátis', c: 'O contratante poderá utilizar a plataforma por 7 dias gratuitamente. Após esse período, poderá ocorrer cobranca da assinatura mensal, caso o cancelamento não seja realizado.' },
+    { t: '4. Plano', c: billingCycle === 'anual'
+        ? `${plano.nome} (Anual) - pagamento único de ${plano.preco}, com acesso à plataforma por 12 meses.`
+        : `${plano.nome} no valor de ${plano.preco}/mês, com 7 dias grátis, sem fidelidade.` },
+    { t: '5. Teste grátis / Vigência', c: billingCycle === 'anual'
+        ? 'O plano anual concede acesso à plataforma por 12 meses a partir da confirmação do pagamento, sem período de teste gratuito.'
+        : 'O contratante poderá utilizar a plataforma por 7 dias gratuitamente. Após esse período, poderá ocorrer cobranca da assinatura, caso o cancelamento não seja realizado.' },
     { t: '6. Pagamento', c: 'O pagamento da assinatura sera feito conforme a forma de pagamento escolhida no momento da contratação.' },
     { t: '7. Cancelamento', c: 'O contratante poderá cancelar a assinatura quando desejar, respeitando as regras apresentadas no fluxo de contratação.' },
     { t: '8. Uso da plataforma', c: 'O contratante deve utilizar a plataforma de forma lícita, correta e responsável, mantendo seus dados atualizados.' },
@@ -102,6 +111,9 @@ function AceitePlanoConteudo() {
       localStorage.setItem('clienteMarcadoAceiteData', new Date().toISOString())
       localStorage.setItem('clienteMarcadoAceiteVersão', '1.0')
       localStorage.setItem('cm_plano', planoValido)
+      // Preserva a escolha de periodicidade junto com o plano - o cadastro le esse mesmo
+      // valor depois (mesmo padrao ja usado pro cm_plano).
+      localStorage.setItem('cm_billing', billingCycle)
     } catch (_) {}
     window.location.href = '/cadastro'
   }
@@ -139,16 +151,26 @@ function AceitePlanoConteudo() {
         <div className="card">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '12px', marginBottom: '16px' }}>
             <div>
-              <p style={{ fontSize: '18px', fontWeight: 800, color: '#F8F4F7', marginBottom: '8px' }}>{plano.nome}</p>
+              <p style={{ fontSize: '18px', fontWeight: 800, color: '#F8F4F7', marginBottom: '8px' }}>{plano.nome} <span style={{ fontSize: '13px', fontWeight: 600, color: '#B8AAB8' }}>({nomeCiclo})</span></p>
               <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-                <span className="badge" style={{ background: 'rgba(34,197,94,.14)', border: '1px solid rgba(34,197,94,.28)', color: '#22C55E' }}>7 dias grátis</span>
-                <span className="badge" style={{ background: 'rgba(42,26,47,.10)', border: '1px solid rgba(42,26,47,.18)', color: '#B8AAB8' }}>Sem fidelidade</span>
-                <span className="badge" style={{ background: 'rgba(42,26,47,.10)', border: '1px solid rgba(42,26,47,.18)', color: '#B8AAB8' }}>Cancele quando quiser</span>
+                {billingCycle === 'anual' ? (
+                  <>
+                    <span className="badge" style={{ background: 'rgba(139,92,246,.14)', border: '1px solid rgba(139,92,246,.28)', color: '#A78BFA' }}>Pagamento anual</span>
+                    <span className="badge" style={{ background: 'rgba(34,197,94,.14)', border: '1px solid rgba(34,197,94,.28)', color: '#22C55E' }}>Economize 17%</span>
+                    <span className="badge" style={{ background: 'rgba(42,26,47,.10)', border: '1px solid rgba(42,26,47,.18)', color: '#B8AAB8' }}>Acesso por 12 meses</span>
+                  </>
+                ) : (
+                  <>
+                    <span className="badge" style={{ background: 'rgba(34,197,94,.14)', border: '1px solid rgba(34,197,94,.28)', color: '#22C55E' }}>7 dias grátis</span>
+                    <span className="badge" style={{ background: 'rgba(42,26,47,.10)', border: '1px solid rgba(42,26,47,.18)', color: '#B8AAB8' }}>Sem fidelidade</span>
+                    <span className="badge" style={{ background: 'rgba(42,26,47,.10)', border: '1px solid rgba(42,26,47,.18)', color: '#B8AAB8' }}>Cancele quando quiser</span>
+                  </>
+                )}
               </div>
             </div>
             <div style={{ textAlign: 'right' }}>
               <p style={{ fontSize: '28px', fontWeight: 800, color: '#EC4899', letterSpacing: '-0.02em', lineHeight: 1 }}>{plano.preco}</p>
-              <p style={{ fontSize: '12px', color: '#B8AAB8' }}>/mês após o teste</p>
+              <p style={{ fontSize: '12px', color: '#B8AAB8' }}>{billingCycle === 'anual' ? '/ano' : '/mês após o teste'}</p>
             </div>
           </div>
           <div style={{ borderTop: '1px solid rgba(42,26,47,.10)', paddingTop: '14px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
@@ -159,7 +181,9 @@ function AceitePlanoConteudo() {
             ))}
           </div>
           <div style={{ marginTop: '14px', padding: '10px 14px', background: 'rgba(245,158,11,.08)', border: '1px solid rgba(245,158,11,.22)', borderRadius: '10px', fontSize: '12px', color: '#FCD34D', lineHeight: 1.6 }}>
-            ⚠ Você poderá testar gratuitamente por 7 dias. Após esse período, poderá ser cobrado {plano.preco}/mês, caso não cancele antes.
+            {billingCycle === 'anual'
+              ? <>⚠ Você contratará o plano anual com acesso por 12 meses. O valor de {plano.preco}/ano será cobrado conforme a forma de pagamento escolhida.</>
+              : <>⚠ Você poderá testar gratuitamente por 7 dias. Após esse período, poderá ser cobrado {plano.preco}/mês, caso não cancele antes.</>}
           </div>
         </div>
 
@@ -201,7 +225,11 @@ function AceitePlanoConteudo() {
             <div className={'chk-box' + (c3 ? ' on' : '')}>
               {c3 && <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>}
             </div>
-            <p style={{ fontSize: '13px', color: '#B8AAB8', lineHeight: 1.5 }}>Estou ciente de que o plano possui 7 dias grátis e, após esse período, poderei ser cobrado {plano.preco}/mês, caso não cancele antes.</p>
+            <p style={{ fontSize: '13px', color: '#B8AAB8', lineHeight: 1.5 }}>
+              {billingCycle === 'anual'
+                ? <>Estou ciente de que estou contratando o plano anual, com acesso por 12 meses, no valor de {plano.preco}/ano, conforme a forma de pagamento escolhida.</>
+                : <>Estou ciente de que o plano possui 7 dias grátis e, após esse período, poderei ser cobrado {plano.preco}/mês, caso não cancele antes.</>}
+            </p>
           </div>
 
           {erro && <div className="msg-err">{erro}</div>}

@@ -2,11 +2,11 @@
 import Link from 'next/link'
 import { useState, useEffect } from 'react'
 import AssistenteComercial from '@/app/components/AssistenteComercial'
-import { obterNomePlano, obterPrecoPlano } from './lib/planos'
+import { obterNomePlano, obterPrecoPlanoPorCiclo, obterPercentualEconomiaAnual, type BillingCycle } from './lib/planos'
 const CHECKOUT_URL = "https://www.mercadopago.com.br/subscriptions/checkout?preapproval_plan_id=1a0fb25c46214e45b0eb3d21b494e5d6"
 const G = 'linear-gradient(135deg,#EC4899,#D946EF,#8B5CF6)'
-function fPreco(tipo: 'free'|'minipage'|'loja'|'essencial'|'equipe') {
-  const p = obterPrecoPlano(tipo)
+function fPreco(tipo: 'free'|'minipage'|'loja'|'essencial'|'equipe', ciclo: BillingCycle) {
+  const p = obterPrecoPlanoPorCiclo(tipo, ciclo)
   const [inteiro, decimal] = p.toFixed(2).split('.')
   return { inteiro, decimal }
 }
@@ -52,6 +52,7 @@ const inclusosEquipe = [
 ]
 export default function Home() {
   const [scrolled, setScrolled] = useState(false)
+  const [billingSelecionado, setBillingSelecionado] = useState<BillingCycle>('mensal')
   useEffect(() => {
     const h = () => setScrolled(window.scrollY > 20)
     window.addEventListener('scroll', h)
@@ -166,15 +167,34 @@ export default function Home() {
             <p style={{fontSize:'15px',color:'#B8AAB8',lineHeight:1.6,maxWidth:'560px',margin:'0 auto'}}>Comece com uma MiniPage para divulgar seu trabalho ou escolha um plano com agenda e gestão para organizar seus atendimentos.</p>
           </div>
 
-          <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(230px,1fr))',gap:'18px',alignItems:'start'}}>
+          <div style={{display:'flex',justifyContent:'center',marginBottom:'24px'}}>
+            <div style={{display:'inline-flex',background:'rgba(24,16,27,.9)',border:'1px solid #2A1A2F',borderRadius:'999px',padding:'4px'}}>
+              <button type="button" onClick={()=>setBillingSelecionado('mensal')} style={{background:billingSelecionado==='mensal'?G:'transparent',color:billingSelecionado==='mensal'?'#fff':'#B8AAB8',border:'none',borderRadius:'999px',padding:'8px 18px',fontSize:'13px',fontWeight:700,cursor:'pointer',fontFamily:'inherit'}}>Mensal</button>
+              <button type="button" onClick={()=>setBillingSelecionado('anual')} style={{background:billingSelecionado==='anual'?G:'transparent',color:billingSelecionado==='anual'?'#fff':'#B8AAB8',border:'none',borderRadius:'999px',padding:'8px 18px',fontSize:'13px',fontWeight:700,cursor:'pointer',fontFamily:'inherit',display:'inline-flex',alignItems:'center',gap:'6px'}}>
+                Anual
+                <span style={{background:'rgba(34,197,94,.20)',color:'#22C55E',fontSize:'10px',fontWeight:800,padding:'2px 7px',borderRadius:'999px'}}>-17%</span>
+              </button>
+            </div>
+          </div>
+          <style>{`
+            .planos-scroll::-webkit-scrollbar{display:none}
+            /* Desktop com espaco suficiente: os 5 cards cabem inteiros numa grade fluida,
+               sem scroll horizontal nenhum. !important e necessario pra sobrescrever os
+               estilos inline (base mobile) so a partir deste breakpoint. */
+            @media(min-width:900px){
+              .planos-scroll{display:grid !important;grid-template-columns:repeat(5,minmax(0,1fr)) !important;overflow-x:visible !important;}
+              .plano-card{flex:none !important;min-width:0 !important;width:auto !important;}
+            }
+          `}</style>
+          <div className="planos-scroll" style={{display:'flex',flexWrap:'nowrap',overflowX:'auto',WebkitOverflowScrolling:'touch',scrollSnapType:'x proximity',gap:'18px',alignItems:'stretch',paddingTop:'20px',paddingBottom:'8px',scrollbarWidth:'none'}}>
 
             {/* PLANO FREE */}
-            <div style={{background:'radial-gradient(ellipse at top,rgba(139,92,246,.10),transparent 55%),rgba(24,16,27,.97)',border:'1.5px solid #2A1A2F',borderRadius:'22px',padding:'30px 22px',position:'relative' as const}}>
+            <div className="plano-card" style={{background:'radial-gradient(ellipse at top,rgba(139,92,246,.10),transparent 55%),rgba(24,16,27,.97)',border:'1.5px solid #2A1A2F',borderRadius:'22px',padding:'30px 22px',position:'relative' as const,flex:'0 0 250px',minWidth:'250px',scrollSnapAlign:'start'}}>
               <div style={{textAlign:'center',marginBottom:'20px'}}>
                 <h3 style={{fontSize:'17px',fontWeight:800,color:'#F8F4F7',marginBottom:'6px'}}>{obterNomePlano('free')}</h3>
                 <p style={{fontSize:'12px',color:'#B8AAB8',lineHeight:1.5,marginBottom:'16px',minHeight:'50px'}}>Ideal para começar sua página profissional com links básicos.</p>
                 <div style={{marginBottom:'8px'}}>
-                  <span style={{fontSize:'34px',fontWeight:900,color:'#F8F4F7',letterSpacing:'-0.03em'}}>R$ {fPreco('free').inteiro}</span>
+                  <span style={{fontSize:'34px',fontWeight:900,color:'#F8F4F7',letterSpacing:'-0.03em'}}>R$ {fPreco('free', 'mensal').inteiro}</span>
                   <span style={{fontSize:'14px',color:'#B8AAB8'}}>/mês</span>
                 </div>
               </div>
@@ -192,14 +212,14 @@ export default function Home() {
             </div>
 
             {/* PLANO MINIPAGE */}
-            <div style={{background:'radial-gradient(ellipse at top,rgba(139,92,246,.10),transparent 55%),rgba(24,16,27,.97)',border:'1.5px solid #2A1A2F',borderRadius:'22px',padding:'30px 22px',position:'relative' as const}}>
+            <div className="plano-card" style={{background:'radial-gradient(ellipse at top,rgba(139,92,246,.10),transparent 55%),rgba(24,16,27,.97)',border:'1.5px solid #2A1A2F',borderRadius:'22px',padding:'30px 22px',position:'relative' as const,flex:'0 0 250px',minWidth:'250px',scrollSnapAlign:'start'}}>
               <div style={{textAlign:'center',marginBottom:'20px'}}>
                 <h3 style={{fontSize:'17px',fontWeight:800,color:'#F8F4F7',marginBottom:'6px'}}>{obterNomePlano('minipage')}</h3>
                 <p style={{fontSize:'12px',color:'#B8AAB8',lineHeight:1.5,marginBottom:'16px',minHeight:'50px'}}>Página profissional com links, destaques, vídeos e catálogo básico.</p>
                 <div style={{marginBottom:'8px'}}>
-                  <span style={{fontSize:'34px',fontWeight:900,color:'#F8F4F7',letterSpacing:'-0.03em'}}>R$ {fPreco('minipage').inteiro}</span>
-                  <span style={{fontSize:'16px',fontWeight:700,color:'#F8F4F7'}}>,{fPreco('minipage').decimal}</span>
-                  <span style={{fontSize:'14px',color:'#B8AAB8'}}>/mês</span>
+                  <span style={{fontSize:'34px',fontWeight:900,color:'#F8F4F7',letterSpacing:'-0.03em'}}>R$ {fPreco('minipage', billingSelecionado).inteiro}</span>
+                  <span style={{fontSize:'16px',fontWeight:700,color:'#F8F4F7'}}>,{fPreco('minipage', billingSelecionado).decimal}</span>
+                  <span style={{fontSize:'14px',color:'#B8AAB8'}}>{billingSelecionado==='anual'?'/ano':'/mês'}</span>
                 </div>
               </div>
               <div style={{marginBottom:'22px'}}>
@@ -210,20 +230,20 @@ export default function Home() {
                   </div>
                 ))}
               </div>
-              <Link href="/aceite-plano?plano=minipage" className="btn-p" style={{width:'100%',justifyContent:'center',height:'46px',fontSize:'13px'}}>
+              <Link href={`/aceite-plano?plano=minipage&billing=${billingSelecionado}`} className="btn-p" style={{width:'100%',justifyContent:'center',height:'46px',fontSize:'13px'}}>
                 Começar com a MiniPage
               </Link>
             </div>
 
             {/* PLANO LOJA */}
-            <div style={{background:'radial-gradient(ellipse at top,rgba(139,92,246,.10),transparent 55%),rgba(24,16,27,.97)',border:'1.5px solid #2A1A2F',borderRadius:'22px',padding:'30px 22px',position:'relative' as const}}>
+            <div className="plano-card" style={{background:'radial-gradient(ellipse at top,rgba(139,92,246,.10),transparent 55%),rgba(24,16,27,.97)',border:'1.5px solid #2A1A2F',borderRadius:'22px',padding:'30px 22px',position:'relative' as const,flex:'0 0 250px',minWidth:'250px',scrollSnapAlign:'start'}}>
               <div style={{textAlign:'center',marginBottom:'20px'}}>
                 <h3 style={{fontSize:'17px',fontWeight:800,color:'#F8F4F7',marginBottom:'6px'}}>{obterNomePlano('loja')}</h3>
                 <p style={{fontSize:'12px',color:'#B8AAB8',lineHeight:1.5,marginBottom:'16px',minHeight:'50px'}}>Vitrine para produtos, achadinhos, músicas, cursos e divulgações.</p>
                 <div style={{marginBottom:'8px'}}>
-                  <span style={{fontSize:'34px',fontWeight:900,color:'#F8F4F7',letterSpacing:'-0.03em'}}>R$ {fPreco('loja').inteiro}</span>
-                  <span style={{fontSize:'16px',fontWeight:700,color:'#F8F4F7'}}>,{fPreco('loja').decimal}</span>
-                  <span style={{fontSize:'14px',color:'#B8AAB8'}}>/mês</span>
+                  <span style={{fontSize:'34px',fontWeight:900,color:'#F8F4F7',letterSpacing:'-0.03em'}}>R$ {fPreco('loja', billingSelecionado).inteiro}</span>
+                  <span style={{fontSize:'16px',fontWeight:700,color:'#F8F4F7'}}>,{fPreco('loja', billingSelecionado).decimal}</span>
+                  <span style={{fontSize:'14px',color:'#B8AAB8'}}>{billingSelecionado==='anual'?'/ano':'/mês'}</span>
                 </div>
               </div>
               <div style={{marginBottom:'22px'}}>
@@ -234,21 +254,21 @@ export default function Home() {
                   </div>
                 ))}
               </div>
-              <Link href="/aceite-plano?plano=loja" className="btn-p" style={{width:'100%',justifyContent:'center',height:'46px',fontSize:'13px'}}>
+              <Link href={`/aceite-plano?plano=loja&billing=${billingSelecionado}`} className="btn-p" style={{width:'100%',justifyContent:'center',height:'46px',fontSize:'13px'}}>
                 Quero o MiniPage Loja
               </Link>
             </div>
 
             {/* PLANO PRO (interno: essencial) */}
-            <div style={{background:'radial-gradient(ellipse at top,rgba(236,72,153,.16),transparent 55%),rgba(24,16,27,.97)',border:'1.5px solid rgba(236,72,153,.50)',borderRadius:'22px',padding:'30px 22px',boxShadow:'0 0 64px rgba(236,72,153,.14)',position:'relative' as const}}>
+            <div className="plano-card" style={{background:'radial-gradient(ellipse at top,rgba(236,72,153,.16),transparent 55%),rgba(24,16,27,.97)',border:'1.5px solid rgba(236,72,153,.50)',borderRadius:'22px',padding:'30px 22px',boxShadow:'0 0 64px rgba(236,72,153,.14)',position:'relative' as const,flex:'0 0 250px',minWidth:'250px',scrollSnapAlign:'start'}}>
               <div style={{position:'absolute' as const,top:'-13px',left:'50%',transform:'translateX(-50%)',background:G,borderRadius:'999px',padding:'4px 18px',fontSize:'11px',fontWeight:700,color:'#fff',whiteSpace:'nowrap' as const}}>Mais escolhido</div>
               <div style={{textAlign:'center',marginBottom:'20px'}}>
                 <h3 style={{fontSize:'17px',fontWeight:800,color:'#F8F4F7',marginBottom:'6px'}}>{obterNomePlano('essencial')}</h3>
                 <p style={{fontSize:'12px',color:'#B8AAB8',lineHeight:1.5,marginBottom:'16px',minHeight:'50px'}}>MiniPage completa com agenda, clientes e gestão.</p>
                 <div style={{marginBottom:'8px'}}>
-                  <span style={{fontSize:'34px',fontWeight:900,color:'#F8F4F7',letterSpacing:'-0.03em'}}>R$ {fPreco('essencial').inteiro}</span>
-                  <span style={{fontSize:'16px',fontWeight:700,color:'#F8F4F7'}}>,{fPreco('essencial').decimal}</span>
-                  <span style={{fontSize:'14px',color:'#B8AAB8'}}>/mês</span>
+                  <span style={{fontSize:'34px',fontWeight:900,color:'#F8F4F7',letterSpacing:'-0.03em'}}>R$ {fPreco('essencial', billingSelecionado).inteiro}</span>
+                  <span style={{fontSize:'16px',fontWeight:700,color:'#F8F4F7'}}>,{fPreco('essencial', billingSelecionado).decimal}</span>
+                  <span style={{fontSize:'14px',color:'#B8AAB8'}}>{billingSelecionado==='anual'?'/ano':'/mês'}</span>
                 </div>
               </div>
               <div style={{marginBottom:'22px'}}>
@@ -259,20 +279,20 @@ export default function Home() {
                   </div>
                 ))}
               </div>
-              <Link href="/aceite-plano?plano=essencial" className="btn-p" style={{width:'100%',justifyContent:'center',height:'46px',fontSize:'13px'}}>
+              <Link href={`/aceite-plano?plano=essencial&billing=${billingSelecionado}`} className="btn-p" style={{width:'100%',justifyContent:'center',height:'46px',fontSize:'13px'}}>
                 Começar com o {obterNomePlano('essencial')}
               </Link>
             </div>
 
             {/* PLANO EQUIPE (interno: equipe) */}
-            <div style={{background:'radial-gradient(ellipse at top,rgba(139,92,246,.16),transparent 55%),rgba(24,16,27,.97)',border:'1.5px solid #2A1A2F',borderRadius:'22px',padding:'30px 22px',position:'relative' as const}}>
+            <div className="plano-card" style={{background:'radial-gradient(ellipse at top,rgba(139,92,246,.16),transparent 55%),rgba(24,16,27,.97)',border:'1.5px solid #2A1A2F',borderRadius:'22px',padding:'30px 22px',position:'relative' as const,flex:'0 0 250px',minWidth:'250px',scrollSnapAlign:'start'}}>
               <div style={{textAlign:'center',marginBottom:'20px'}}>
                 <h3 style={{fontSize:'17px',fontWeight:800,color:'#F8F4F7',marginBottom:'6px'}}>{obterNomePlano('equipe')}</h3>
                 <p style={{fontSize:'12px',color:'#B8AAB8',lineHeight:1.5,marginBottom:'16px',minHeight:'50px'}}>Para negócios com equipe, agenda compartilhada e controle.</p>
                 <div style={{marginBottom:'8px'}}>
-                  <span style={{fontSize:'34px',fontWeight:900,color:'#F8F4F7',letterSpacing:'-0.03em'}}>R$ {fPreco('equipe').inteiro}</span>
-                  <span style={{fontSize:'16px',fontWeight:700,color:'#F8F4F7'}}>,{fPreco('equipe').decimal}</span>
-                  <span style={{fontSize:'14px',color:'#B8AAB8'}}>/mês</span>
+                  <span style={{fontSize:'34px',fontWeight:900,color:'#F8F4F7',letterSpacing:'-0.03em'}}>R$ {fPreco('equipe', billingSelecionado).inteiro}</span>
+                  <span style={{fontSize:'16px',fontWeight:700,color:'#F8F4F7'}}>,{fPreco('equipe', billingSelecionado).decimal}</span>
+                  <span style={{fontSize:'14px',color:'#B8AAB8'}}>{billingSelecionado==='anual'?'/ano':'/mês'}</span>
                 </div>
               </div>
               <div style={{marginBottom:'22px'}}>
@@ -283,14 +303,14 @@ export default function Home() {
                   </div>
                 ))}
               </div>
-              <Link href="/aceite-plano?plano=equipe" className="btn-p" style={{width:'100%',justifyContent:'center',height:'46px',fontSize:'13px'}}>
+              <Link href={`/aceite-plano?plano=equipe&billing=${billingSelecionado}`} className="btn-p" style={{width:'100%',justifyContent:'center',height:'46px',fontSize:'13px'}}>
                 Quero o {obterNomePlano('equipe')}
               </Link>
             </div>
 
           </div>
 
-          <p style={{textAlign:'center',fontSize:'13px',color:'#B8AAB8',marginTop:'32px'}}>Todos os planos pagos incluem 7 dias grátis. MiniPage Pro é uma solução ClienteMarcado.</p>
+          <p style={{textAlign:'center',fontSize:'13px',color:'#B8AAB8',marginTop:'32px'}}>{billingSelecionado==='anual' ? 'Planos anuais com cobrança única e renovação anual. MiniPage Pro é uma solução ClienteMarcado.' : 'Todos os planos pagos incluem 7 dias grátis. MiniPage Pro é uma solução ClienteMarcado.'}</p>
         </div>
       </section>
       {/* CTA FINAL */}

@@ -92,6 +92,9 @@ const STATUS_LABEL: Record<string, { texto: string; cor: string; bg: string }> =
   em_atraso: { texto: 'Em atraso', cor: '#F59E0B', bg: 'rgba(245,158,11,.12)' },
   bloqueado: { texto: 'Bloqueado', cor: '#EF4444', bg: 'rgba(239,68,68,.12)' },
   cancelado: { texto: 'Cancelado', cor: '#EF4444', bg: 'rgba(239,68,68,.12)' },
+  // ETAPA 2: novo status, ainda nao gravado por nenhum codigo - so preparando a exibicao
+  // pra quando a proxima etapa passar a usa-lo de verdade.
+  aguardando_pagamento: { texto: 'Aguardando pagamento', cor: '#A78BFA', bg: 'rgba(167,139,250,.12)' },
 }
 
 function formatarData(iso?: string | null) {
@@ -216,7 +219,7 @@ export default function MeuPlano() {
                     <div>
                       <p style={{ fontSize: '12px', color: '#B8AAB8', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: '2px' }}>Plano atual</p>
                       <p style={{ fontSize: '19px', fontWeight: 800, color: '#F8F4F7' }}>{obterNomePlano(planoAtual)}</p>
-                      <p style={{ fontSize: '13px', color: '#B8AAB8' }}>{formatarPreco(planoAtual)}{!ehPlanoFree(planoAtual) && '/mês'}</p>
+                      <p style={{ fontSize: '13px', color: '#B8AAB8' }}>{formatarPreco(planoAtual)}{!ehPlanoFree(planoAtual) && (perfil?.billing_cycle === 'anual' ? '/ano' : '/mês')}</p>
                     </div>
                   </div>
                   {!ehPlanoFree(planoAtual) && (
@@ -227,6 +230,12 @@ export default function MeuPlano() {
                 <p style={{ fontSize: '14px', color: '#B8AAB8', lineHeight: 1.65, marginBottom: '20px' }}>{PLANOS[planoAtual].desc}</p>
 
                 <div style={{ display: 'flex', gap: '24px', flexWrap: 'wrap', paddingTop: '16px', borderTop: '1px solid #2A1A2F' }}>
+                  {!ehPlanoFree(planoAtual) && perfil?.billing_cycle && (
+                    <div>
+                      <p style={{ fontSize: '11px', color: '#B8AAB8', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: '4px' }}>Ciclo</p>
+                      <p style={{ fontSize: '15px', fontWeight: 700, color: '#F8F4F7' }}>{perfil.billing_cycle === 'anual' ? 'Anual' : 'Mensal'}</p>
+                    </div>
+                  )}
                   <div>
                     <p style={{ fontSize: '11px', color: '#B8AAB8', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: '4px' }}>Catálogos</p>
                     <p style={{ fontSize: '15px', fontWeight: 700, color: '#F8F4F7' }}>{limiteCatalogosAtual === Infinity ? 'Ilimitado' : limiteCatalogosAtual}</p>
