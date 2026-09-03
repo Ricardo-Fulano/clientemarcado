@@ -169,6 +169,13 @@ export default function GerenciarAparencia(){
     const file=e.target.files?.[0];if(!file)return
     if(!(await validarSessao()))return
 
+    // Defesa extra: mesmo que a UI ja bloqueie o clique, essa checagem impede o upload de
+    // video se o estado for manipulado externamente (ex: DevTools) - Free nunca envia video.
+    if(topoMobileTipo==='video'&&ehPlanoFree(planoTipo)){
+      setMsg('Topo em vídeo no celular disponível no plano MiniPage Pro.')
+      return
+    }
+
     if(topoMobileTipo==='video'){
       if(file.type!=='video/mp4'){setMsg('Envie um vídeo no formato MP4.');return}
       if(file.size>25*1024*1024){setMsg('O vídeo deve ter no máximo 25MB. Tente comprimir ou encurtar o vídeo.');return}
@@ -197,6 +204,7 @@ export default function GerenciarAparencia(){
     // cliente era pago e virou Free depois), nunca salva video pra conta Free - sempre
     // forca 'imagem' nesse caso, protegendo contra o bloqueio ser so visual.
     const bannerTipoFinal = ehPlanoFree(planoTipo) ? 'imagem' : bannerTipo
+    const topoMobileTipoFinal = ehPlanoFree(planoTipo) ? 'imagem' : topoMobileTipo
     const {error}=await supabase.from('perfis').update({
       capa_url:capUrl||null,
       banner_mobile_position:bannerMobilePosicao,
@@ -205,7 +213,7 @@ export default function GerenciarAparencia(){
       banner_tipo:bannerTipoFinal,
       banner_video_url:bannerTipoFinal==='video'?(bannerVideoUrl.trim()||null):null,
       seguidores_texto:seguidoresTexto.trim()||null,
-      topo_mobile_tipo:topoMobileTipo,
+      topo_mobile_tipo:topoMobileTipoFinal,
       topo_mobile_url:topoMobileUrl.trim()||null,
     }).eq('user_id',userId)
     setSalvando(false)
@@ -349,10 +357,15 @@ export default function GerenciarAparencia(){
 
               <div style={{display:'flex',gap:'8px',marginBottom:'14px',flexWrap:'wrap'}}>
                 <button type="button" onClick={()=>setTopoMobileTipo('imagem')} style={{background:topoMobileTipo==='imagem'?G:'rgba(24,16,27,.9)',color:topoMobileTipo==='imagem'?'#fff':'#B8AAB8',border:topoMobileTipo==='imagem'?'1px solid rgba(255,255,255,.12)':'1px solid #2A1A2F',borderRadius:'10px',padding:'9px 16px',fontSize:'13px',fontWeight:600,cursor:'pointer',fontFamily:'inherit'}}>Imagem</button>
-                <button type="button" onClick={()=>setTopoMobileTipo('video')} style={{background:topoMobileTipo==='video'?G:'rgba(24,16,27,.9)',color:topoMobileTipo==='video'?'#fff':'#B8AAB8',border:topoMobileTipo==='video'?'1px solid rgba(255,255,255,.12)':'1px solid #2A1A2F',borderRadius:'10px',padding:'9px 16px',fontSize:'13px',fontWeight:600,cursor:'pointer',fontFamily:'inherit'}}>Vídeo</button>
+                <button type="button" onClick={()=>{if(ehPlanoFree(planoTipo))return;setTopoMobileTipo('video')}} disabled={ehPlanoFree(planoTipo)} style={{background:topoMobileTipo==='video'?G:'rgba(24,16,27,.9)',color:topoMobileTipo==='video'?'#fff':ehPlanoFree(planoTipo)?'#4A3F4E':'#B8AAB8',border:topoMobileTipo==='video'?'1px solid rgba(255,255,255,.12)':'1px solid #2A1A2F',borderRadius:'10px',padding:'9px 16px',fontSize:'13px',fontWeight:600,cursor:ehPlanoFree(planoTipo)?'not-allowed':'pointer',fontFamily:'inherit',display:'inline-flex',alignItems:'center',gap:'6px'}}>
+                  {ehPlanoFree(planoTipo)&&<Lock size={12}/>} Vídeo
+                </button>
               </div>
+              {ehPlanoFree(planoTipo)&&(
+                <p style={{fontSize:'12px',color:'#B8AAB8',marginBottom:'12px'}}>🔒 Topo em vídeo no celular disponível no plano MiniPage Pro.</p>
+              )}
 
-              {topoMobileUrl?(
+              {topoMobileUrl&&!(ehPlanoFree(planoTipo)&&topoMobileTipo==='video')?(
                 <div style={{position:'relative',borderRadius:'14px',overflow:'hidden',marginBottom:'12px',border:'1px solid #2A1A2F',maxWidth:'220px'}}>
                   {topoMobileTipo==='video'?(
                     <video src={topoMobileUrl} muted loop autoPlay playsInline style={{width:'100%',aspectRatio:'4/5',objectFit:'cover',display:'block'}}/>
@@ -364,8 +377,18 @@ export default function GerenciarAparencia(){
                     <button onClick={()=>setTopoMobileUrl('')} style={{background:'rgba(24,16,27,.9)',border:'1px solid #2A1A2F',color:'#EF4444',borderRadius:'8px',padding:'5px 10px',fontSize:'11px',fontWeight:600,cursor:'pointer',fontFamily:'inherit'}}>Remover</button>
                   </div>
                 </div>
+              ):topoMobileUrl&&ehPlanoFree(planoTipo)&&topoMobileTipo==='video'?(
+                // Conta Free com um video LEGADO ja salvo (de antes desta regra existir) -
+                // mostra o preview normalmente (nao apaga o que ja esta na pagina publica),
+                // mas SEM permitir trocar por outro video - so remover.
+                <div style={{position:'relative',borderRadius:'14px',overflow:'hidden',marginBottom:'12px',border:'1px solid #2A1A2F',maxWidth:'220px'}}>
+                  <video src={topoMobileUrl} muted loop autoPlay playsInline style={{width:'100%',aspectRatio:'4/5',objectFit:'cover',display:'block'}}/>
+                  <div style={{position:'absolute',top:'8px',right:'8px'}}>
+                    <button onClick={()=>setTopoMobileUrl('')} style={{background:'rgba(24,16,27,.9)',border:'1px solid #2A1A2F',color:'#EF4444',borderRadius:'8px',padding:'5px 10px',fontSize:'11px',fontWeight:600,cursor:'pointer',fontFamily:'inherit'}}>Remover</button>
+                  </div>
+                </div>
               ):(
-                <div onClick={()=>topoMobileRef.current?.click()} style={{border:'2px dashed #2A1A2F',borderRadius:'14px',padding:'24px',textAlign:'center',cursor:enviandoTopoMobile?'wait':'pointer',marginBottom:'12px',maxWidth:'220px',transition:'border-color .18s'}} onMouseEnter={e=>(e.currentTarget.style.borderColor='rgba(236,72,153,.40)')} onMouseLeave={e=>(e.currentTarget.style.borderColor='#2A1A2F')}>
+                <div onClick={()=>{if(ehPlanoFree(planoTipo)&&topoMobileTipo==='video')return;topoMobileRef.current?.click()}} style={{border:'2px dashed #2A1A2F',borderRadius:'14px',padding:'24px',textAlign:'center',cursor:(enviandoTopoMobile||(ehPlanoFree(planoTipo)&&topoMobileTipo==='video'))?'not-allowed':'pointer',marginBottom:'12px',maxWidth:'220px',transition:'border-color .18s'}} onMouseEnter={e=>(e.currentTarget.style.borderColor='rgba(236,72,153,.40)')} onMouseLeave={e=>(e.currentTarget.style.borderColor='#2A1A2F')}>
                   <p style={{fontSize:'13px',color:'#B8AAB8',display:'inline-flex',alignItems:'center',gap:'6px'}}><UploadCloud size={15}/> {enviandoTopoMobile?'Enviando...':topoMobileTipo==='video'?'Enviar vídeo MP4':'Enviar imagem'}</p>
                 </div>
               )}
