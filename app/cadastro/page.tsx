@@ -66,8 +66,8 @@ export default function Cadastro() {
   // O fallback antigo apontava pra um subdominio vercel.app desatualizado; agora usa a var
   // ja documentada do projeto (NEXT_PUBLIC_SITE_URL), com o dominio oficial como ultimo recurso.
   function montarRedirectTo() {
-    if (typeof window !== 'undefined') return `${window.location.origin}/auth/callback`
-    return `${process.env.NEXT_PUBLIC_SITE_URL || 'https://clientemarcado.com.br'}/auth/callback`
+    if (typeof window !== 'undefined') return `${window.location.origin}/pos-confirmacao`
+    return `${process.env.NEXT_PUBLIC_SITE_URL || 'https://clientemarcado.com.br'}/pos-confirmacao`
   }
   // Mensagens amigaveis pro cadastro (nunca mostra erro tecnico cru pro usuario)
   function erroCadastroAmigavel(msg: string) {
