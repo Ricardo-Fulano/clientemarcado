@@ -807,6 +807,8 @@ videos && videos.length > 0 && permiteVideos(perfil.plano_tipo) && (() => {
                             textMuted={tema.textMuted}
                             cardBg={tema.card}
                             perfilId={perfil.id}
+                            slug={slug}
+                            captacaoLeadsAtiva={!!perfil.captacao_leads_ativa}
                           />
                         ))}
                       </div>

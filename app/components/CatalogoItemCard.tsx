@@ -6,7 +6,7 @@ import { registrarEvento } from '../lib/analyticsClient'
 // Card compacto do carrossel + modal de detalhes ao clicar. Client Component porque a
 // pagina publica (app/[slug]/page.tsx) e Server Component e nao pode ter onClick/useState.
 export default function CatalogoItemCard({
-  item, iconeBorder, accent, secondary, btnText, text, textMuted, cardBg, perfilId,
+  item, iconeBorder, accent, secondary, btnText, text, textMuted, cardBg, perfilId, slug, captacaoLeadsAtiva,
 }: {
   item: {
     id: string
@@ -35,9 +35,15 @@ export default function CatalogoItemCard({
   textMuted: string
   cardBg: string
   perfilId: string
+  slug: string
+  captacaoLeadsAtiva?: boolean
 }) {
   const [aberto, setAberto] = useState(false)
   const [imgComErro, setImgComErro] = useState(false)
+  const [mostrarCaptura, setMostrarCaptura] = useState(false)
+  const [emailCaptura, setEmailCaptura] = useState('')
+  const [enviandoCaptura, setEnviandoCaptura] = useState(false)
+  const [erroCaptura, setErroCaptura] = useState('')
   const [imagemAtivaIdx, setImagemAtivaIdx] = useState(0)
   const carrosselRef = useRef<HTMLDivElement>(null)
 
@@ -128,6 +134,64 @@ export default function CatalogoItemCard({
     const soDigitos = destino.replace(/\D/g, '')
     if (soDigitos.length >= 10 && soDigitos.length <= 13) return soDigitos
     return ''
+  }
+
+  const CHAVE_VISTO = `minipage_lead_prompt_seen_${slug}`
+  const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
+  function jaVisto(): boolean {
+    try {
+      const v = localStorage.getItem(CHAVE_VISTO)
+      if (!v) return false
+      if (v === 'cadastrou') return true // nunca mais mostra nesse navegador
+      // "recusou:<timestamp>" - respeita 30 dias antes de mostrar de novo
+      const [tipo, ts] = v.split(':')
+      if (tipo === 'recusou' && ts) {
+        const trintaDias = 30 * 24 * 60 * 60 * 1000
+        return Date.now() - Number(ts) < trintaDias
+      }
+      return false
+    } catch { return false }
+  }
+
+  // Decide se mostra o modal de captura antes de seguir pro destino - so quando o plano
+  // permite, a captacao esta ativa nesse perfil, e o visitante ainda nao viu o prompt.
+  function handleCtaClick() {
+    if (captacaoLeadsAtiva && !jaVisto()) {
+      setMostrarCaptura(true)
+      return
+    }
+    abrirDestino()
+  }
+
+  async function confirmarCaptura() {
+    const emailLimpo = emailCaptura.trim()
+    if (!EMAIL_REGEX.test(emailLimpo)) {
+      setErroCaptura('Informe um e-mail válido.')
+      return
+    }
+    setErroCaptura('')
+    setEnviandoCaptura(true)
+    try {
+      await fetch('/api/leads/capturar', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ slug, email: emailLimpo, origem: 'catalogo', item_id: item.id, item_titulo: item.titulo }),
+      })
+      try { localStorage.setItem(CHAVE_VISTO, 'cadastrou') } catch {}
+    } catch {
+      // Mesmo se falhar ao salvar, NUNCA bloqueia a venda - segue pro destino normalmente.
+    } finally {
+      setEnviandoCaptura(false)
+      setMostrarCaptura(false)
+      abrirDestino()
+    }
+  }
+
+  function pularCaptura() {
+    try { localStorage.setItem(CHAVE_VISTO, `recusou:${Date.now()}`) } catch {}
+    setMostrarCaptura(false)
+    abrirDestino()
   }
 
   function abrirDestino() {
@@ -349,7 +413,7 @@ export default function CatalogoItemCard({
               )}
               <button
                 type="button"
-                onClick={abrirDestino}
+                onClick={handleCtaClick}
                 style={{ width: '100%', background: `linear-gradient(135deg,${accent},${secondary})`, color: btnText, border: 'none', borderRadius: '12px', padding: '13px', fontSize: '14px', fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', marginTop: '4px', boxShadow: `0 8px 20px ${accent}40` }}
               >
                 {item.botao_texto || (item.tipo_destino === 'whatsapp' ? 'Chamar no WhatsApp' : item.tipo_destino === 'instagram' ? 'Ver no Instagram' : 'Ver mais')}
@@ -362,6 +426,39 @@ export default function CatalogoItemCard({
                 Fechar
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {mostrarCaptura && (
+        <div onClick={pularCaptura} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.78)', zIndex: 80, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
+          <div onClick={e => e.stopPropagation()} style={{ background: cardBg, border: `1px solid ${iconeBorder}`, borderRadius: '18px', maxWidth: '360px', width: '100%', padding: '24px 22px', textAlign: 'center' }}>
+            <p style={{ fontSize: '16px', fontWeight: 800, color: text, marginBottom: '8px' }}>Quer receber novidades?</p>
+            <p style={{ fontSize: '13px', color: textMuted, marginBottom: '16px', lineHeight: 1.5 }}>Cadastre seu e-mail para receber ofertas e atualizações desta página.</p>
+            <input
+              type="email"
+              value={emailCaptura}
+              onChange={e => setEmailCaptura(e.target.value)}
+              placeholder="Seu e-mail"
+              style={{ width: '100%', padding: '11px 14px', borderRadius: '10px', border: `1px solid ${iconeBorder}`, background: 'transparent', color: text, fontSize: '14px', marginBottom: '8px', fontFamily: 'inherit', boxSizing: 'border-box' }}
+            />
+            {erroCaptura && <p style={{ fontSize: '12px', color: '#F87171', marginBottom: '8px' }}>{erroCaptura}</p>}
+            <button
+              type="button"
+              onClick={confirmarCaptura}
+              disabled={enviandoCaptura}
+              style={{ width: '100%', background: `linear-gradient(135deg,${accent},${secondary})`, color: btnText, border: 'none', borderRadius: '12px', padding: '12px', fontSize: '14px', fontWeight: 700, cursor: enviandoCaptura ? 'wait' : 'pointer', fontFamily: 'inherit', marginBottom: '8px' }}
+            >
+              {enviandoCaptura ? 'Enviando...' : 'Continuar'}
+            </button>
+            <button
+              type="button"
+              onClick={pularCaptura}
+              style={{ width: '100%', background: 'transparent', color: textMuted, border: 'none', padding: '8px', fontSize: '13px', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}
+            >
+              Agora não
+            </button>
+            <p style={{ fontSize: '11px', color: textMuted, marginTop: '10px', opacity: .75, lineHeight: 1.4 }}>Ao enviar, você aceita receber contatos e novidades desta página.</p>
           </div>
         </div>
       )}

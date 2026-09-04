@@ -4,7 +4,7 @@ import { supabase } from '../../../lib/supabase'
 import Link from 'next/link'
 import { ArrowLeft, UploadCloud, Lock } from 'lucide-react'
 import PainelSidebar from '@/app/components/PainelSidebar'
-import { obterLimiteModelosCor, ehPlanoFree } from '../../../lib/planos'
+import { obterLimiteModelosCor, ehPlanoFree, permiteCatalogoWhatsapp } from '../../../lib/planos'
 
 const G='linear-gradient(135deg,#EC4899,#D946EF,#8B5CF6)'
 
@@ -79,6 +79,7 @@ export default function GerenciarAparencia(){
   const [topoMobileTipo,setTopoMobileTipo]=useState('imagem') // 'imagem' | 'video'
   const [topoMobileUrl,setTopoMobileUrl]=useState('')
   const [enviandoTopoMobile,setEnviandoTopoMobile]=useState(false)
+  const [captacaoLeadsAtiva,setCaptacaoLeadsAtiva]=useState(false)
   const [publicTheme,setPublicTheme]=useState('modelo2')
   const imgRef=useRef<HTMLInputElement>(null)
   const videoRef=useRef<HTMLInputElement>(null)
@@ -103,6 +104,7 @@ export default function GerenciarAparencia(){
       setBannerVideoUrl(p.banner_video_url||'')
       setSeguidoresTexto(p.seguidores_texto||'')
       setTopoMobileTipo(p.topo_mobile_tipo||'imagem')
+      setCaptacaoLeadsAtiva(!!p.captacao_leads_ativa)
       setTopoMobileUrl(p.topo_mobile_url||'')
       if(p.public_theme||p.tema_publico||p.tema_cor) setPublicTheme(resolverTema(p.public_theme||p.tema_publico||p.tema_cor||'modelo2'))
     }
@@ -214,6 +216,7 @@ export default function GerenciarAparencia(){
       banner_video_url:bannerTipoFinal==='video'?(bannerVideoUrl.trim()||null):null,
       seguidores_texto:seguidoresTexto.trim()||null,
       topo_mobile_tipo:topoMobileTipoFinal,
+      captacao_leads_ativa: permiteCatalogoWhatsapp(planoTipo) ? captacaoLeadsAtiva : false,
       topo_mobile_url:topoMobileUrl.trim()||null,
     }).eq('user_id',userId)
     setSalvando(false)
@@ -399,6 +402,24 @@ export default function GerenciarAparencia(){
               <p style={{fontSize:'13px',fontWeight:600,color:'#B8AAB8',marginBottom:'4px'}}>Contagem / destaque social</p>
               <p style={{fontSize:'12px',color:'#B8AAB8',marginBottom:'10px'}}>Escreva como deseja exibir na página. Ex: "107 mi seguidores", "200K no YouTube", "+ de 4 mil alunas".</p>
               <input className="inp" value={seguidoresTexto} onChange={e=>setSeguidoresTexto(e.target.value)} placeholder="Ex: 107 mi seguidores"/>
+            </div>
+
+            <div style={{borderTop:'1px solid #2A1A2F',paddingTop:'18px',marginTop:'4px',marginBottom:'18px'}}>
+              <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:'12px',marginBottom:'6px'}}>
+                <p style={{fontSize:'13px',fontWeight:600,color:'#B8AAB8'}}>Captar e-mails de visitantes {!permiteCatalogoWhatsapp(planoTipo)&&<Lock size={12} style={{display:'inline',marginLeft:'4px'}}/>}</p>
+                {permiteCatalogoWhatsapp(planoTipo) ? (
+                  <button type="button" onClick={()=>setCaptacaoLeadsAtiva(v=>!v)} style={{width:'44px',height:'24px',borderRadius:'999px',border:'none',cursor:'pointer',position:'relative',background:captacaoLeadsAtiva?'linear-gradient(135deg,#EC4899,#8B5CF6)':'rgba(255,255,255,.12)',transition:'background .18s',flexShrink:0}}>
+                    <span style={{position:'absolute',top:'3px',left:captacaoLeadsAtiva?'23px':'3px',width:'18px',height:'18px',borderRadius:'999px',background:'#fff',transition:'left .18s'}}/>
+                  </button>
+                ) : (
+                  <span style={{fontSize:'11px',color:'#B8AAB8',flexShrink:0}}>Bloqueado</span>
+                )}
+              </div>
+              {permiteCatalogoWhatsapp(planoTipo) ? (
+                <p style={{fontSize:'12px',color:'#B8AAB8'}}>Ao clicar em um item do catálogo, o visitante pode informar o e-mail antes de continuar (opcional). Os e-mails capturados aparecem em Desempenho.</p>
+              ) : (
+                <p style={{fontSize:'12px',color:'#B8AAB8'}}>Captação de e-mails disponível nos planos MiniPage Loja, Pro e Equipe.</p>
+              )}
             </div>
 
             <div style={{borderTop:'1px solid #2A1A2F',paddingTop:'18px',marginTop:'4px'}}>

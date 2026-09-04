@@ -76,6 +76,7 @@ export default function Desempenho() {
   const [eventos, setEventos] = useState<any[]>([])
   const [periodo, setPeriodo] = useState<Periodo>('30d')
   const [copiado, setCopiado] = useState(false)
+  const [leads, setLeads] = useState<any[]>([])
 
   useEffect(() => { carregar() }, [periodo])
 
@@ -96,6 +97,13 @@ export default function Desempenho() {
 
     const { data: evts } = await query
     setEventos(evts || [])
+
+    // Mesmo padrao de defesa em profundidade ja usado acima pros eventos - filtro explicito
+    // por user_id, alem do RLS que ja restringe "dono le so os proprios leads".
+    if (permiteCatalogoWhatsapp(p?.plano_tipo)) {
+      const { data: lds } = await supabase.from('minipage_leads').select('email, item_titulo, origem, created_at').eq('user_id', user.id).order('created_at', { ascending: false })
+      setLeads(lds || [])
+    }
     setCarregando(false)
   }
 
@@ -183,6 +191,13 @@ export default function Desempenho() {
                   <p style={{ fontSize: '11px', color: '#B8AAB8', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: '6px' }}>Taxa de clique</p>
                   <p style={{ fontSize: '26px', fontWeight: 800, color: '#F8F4F7' }}>{taxaClique.toFixed(1)}%</p>
                 </div>
+                {permiteCatalogoWhatsapp(planoAtual) ? (
+                  <div className="crd" style={{ padding: '18px' }}>
+                    <p style={{ fontSize: '11px', color: '#B8AAB8', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: '6px' }}>Leads capturados</p>
+                    <p style={{ fontSize: '26px', fontWeight: 800, color: '#F8F4F7', marginBottom: '8px' }}>{leads.length}</p>
+                    <Link href="/painel/desempenho/leads" style={{ display: 'inline-block', background: 'rgba(24,16,27,.9)', border: '1px solid #2A1A2F', color: '#F8F4F7', borderRadius: '8px', padding: '6px 12px', fontSize: '12px', fontWeight: 600, textDecoration: 'none', fontFamily: 'inherit' }}>Ver lista</Link>
+                  </div>
+                ) : <CardBloqueado titulo="Leads capturados" />}
               </div>
 
               <div className="desemp-rankings">
