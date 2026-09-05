@@ -170,6 +170,17 @@ export function obterLimiteCatalogos(planoTipo?: string | null): number {
 }
 
 /**
+ * Quantas SECOES de destaques o plano permite criar. Mesma regra de obterLimiteCatalogos:
+ * Free nao tem acesso (0), MiniPage basico limitado a 1 secao, Loja/Pro/Equipe ilimitado.
+ */
+export function obterLimiteSecoesDestaques(planoTipo?: string | null): number {
+  const p = normalizarPlano(planoTipo)
+  if (p === 'free') return 0
+  if (p === 'minipage') return 1
+  return Infinity // loja, essencial (Pro), equipe
+}
+
+/**
  * Quantos profissionais (login individual/equipe) o plano permite cadastrar.
  * Free, MiniPage e Loja nao tem area de profissionais/equipe.
  */

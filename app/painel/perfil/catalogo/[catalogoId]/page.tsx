@@ -193,13 +193,20 @@ export default function GerenciarItensDoCatalogo(){
       const dados=await res.json()
       if(!dados.success){
         setMsg(dados.message||'Não foi possível gerar a prévia automaticamente. Você pode preencher manualmente.')
+        // Mesmo quando a previa falha, se sobrou um nome legivel extraido da URL (fallback
+        // do backend) e o titulo ainda estiver vazio, aproveita isso - nunca sobrescreve o
+        // que o usuario ja tiver digitado.
+        if(dados.titulo_fallback){
+          setItens(prev=>prev.map(x=>x.id===it.id&&!x.titulo?.trim()?{...x,titulo:dados.titulo_fallback}:x))
+        }
         setGerandoPreviaId('')
-        setTimeout(()=>setMsg(''),5000)
+        setTimeout(()=>setMsg(''),6000)
         return
       }
       // Regra de seguranca: so preenche campos que ainda estao VAZIOS (nunca sobrescreve
       // o que o usuario ja digitou). O tipo_destino sempre atualiza - e o proposito
       // central da deteccao automatica, nao um "conteudo" que o usuario escreveu.
+      const imagemJaExistia = !!it.imagem_url
       setItens(prev=>prev.map(x=>{
         if(x.id!==it.id)return x
         return {
@@ -210,7 +217,38 @@ export default function GerenciarItensDoCatalogo(){
           imagem_url: x.imagem_url ? x.imagem_url : (dados.imagem_url || x.imagem_url),
         }
       }))
-      setMsg('Prévia encontrada. Revise os dados antes de salvar.')
+
+      // Se vieram imagens extras da previa (galeria do anuncio) E o item nao tinha imagem
+      // manual antes (pra nao misturar capa manual do usuario com fotos automaticas de
+      // origem diferente), tenta adicionar essas extras na galeria de verdade. Precisa de
+      // um ID real no banco pra isso - reaproveita o mesmo rascunho automatico ja usado
+      // quando se envia a imagem principal manualmente, sem duplicar logica.
+      if(!imagemJaExistia&&dados.imagem_url&&Array.isArray(dados.imagens_extras)&&dados.imagens_extras.length>0){
+        let itemId=it.id
+        if(itemId.startsWith('novo-')){
+          const novoId=await salvarRascunhoSeNecessario(itemId,dados.imagem_url)
+          if(novoId)itemId=novoId
+        }
+        if(!itemId.startsWith('novo-')){
+          const galeriaAtual=galeriaEfetiva({id:itemId,imagem_url:dados.imagem_url})
+          const jaTem=new Set(galeriaAtual.map((g:any)=>g.imagem_url))
+          const extrasParaAdicionar=dados.imagens_extras.filter((u:string)=>!jaTem.has(u)).slice(0,8-galeriaAtual.length)
+          if(extrasParaAdicionar.length>0){
+            let ordemAtual=galeriaAtual.length>0?Math.max(...galeriaAtual.map((g:any)=>g.ordem))+1:1
+            const inseridas:any[]=[]
+            for(const urlExtra of extrasParaAdicionar){
+              const {data:nova}=await supabase.from('catalogo_item_imagens').insert({item_id:itemId,user_id:userId,imagem_url:urlExtra,ordem:ordemAtual,is_capa:false}).select().single()
+              if(nova)inseridas.push(nova)
+              ordemAtual++
+            }
+            if(inseridas.length>0){
+              setGalerias(prev=>({...prev,[itemId]:[...(prev[itemId]||[]),...inseridas]}))
+            }
+          }
+        }
+      }
+
+      setMsg(dados.message||'Prévia encontrada. Revise os dados antes de salvar.')
     }catch{
       setMsg('Não foi possível gerar a prévia automaticamente. Você pode preencher manualmente.')
     }
@@ -231,8 +269,54 @@ export default function GerenciarItensDoCatalogo(){
     if(uploadError){setMsg('Erro no upload: '+uploadError.message);setEnviandoImgId('');return}
     const {data}=supabase.storage.from('fotos').getPublicUrl(path)
     editarItem(id,'imagem_url',data.publicUrl)
+    // Se o item ainda nao existe no banco (ID temporario "novo-..."), salva um RASCUNHO
+    // minimo automaticamente assim que a imagem principal for definida - isso da um ID
+    // real ao item, desbloqueando a galeria imediatamente, sem exigir titulo/destino
+    // preenchidos ainda (a validacao completa continua acontecendo normalmente no
+    // "Salvar item" de sempre, que so faz UPDATE a partir daqui).
+    if(id.startsWith('novo-')){
+      await salvarRascunhoSeNecessario(id,data.publicUrl)
+    }
     setEnviandoImgId('')
     if(fileRefs.current[id])fileRefs.current[id]!.value=''
+  }
+
+  // Insere um rascunho minimo no banco (sem validar titulo/destino, que sao exigidos so no
+  // "Salvar item" de verdade) - existe so pra dar um ID real ao item e desbloquear a
+  // galeria de imagens (que depende de item_id como chave estrangeira real).
+  async function salvarRascunhoSeNecessario(idTemporario:string,imagemUrl:string):Promise<string|null>{
+    const itemAtual=itens.find(x=>x.id===idTemporario)
+    if(!itemAtual||!itemAtual._novo)return null
+    // Mesma conversao de preco/selo ja usada em salvarItem, pra nao perder nada que o
+    // usuario ja tenha preenchido antes de enviar a imagem principal.
+    const payload={
+      user_id:userId,catalogo_id:catalogoId,
+      titulo:itemAtual.titulo?.trim()||'',
+      descricao_curta:itemAtual.descricao_curta?.trim()||null,
+      descricao_completa:itemAtual.descricao_completa?.trim()||null,
+      preco: itemAtual.preco!==''&&itemAtual.preco!==null&&itemAtual.preco!==undefined ? parseFloat(String(itemAtual.preco).replace(',','.'))||null : null,
+      preco_exibicao: itemAtual.preco_exibicao||'mostrar',
+      preco_texto_personalizado: itemAtual.preco_exibicao==='texto_personalizado' ? (itemAtual.preco_texto_personalizado?.trim()||null) : null,
+      preco_anterior: itemAtual.preco_exibicao==='mostrar'&&itemAtual.preco_anterior!==''&&itemAtual.preco_anterior!==null&&itemAtual.preco_anterior!==undefined ? parseFloat(String(itemAtual.preco_anterior).replace(',','.'))||null : null,
+      selo_tipo: itemAtual.selo_tipo||null,
+      selo_texto: itemAtual.selo_tipo==='outros' ? (itemAtual.selo_texto?.trim().slice(0,20)||null) : null,
+      imagem_url:imagemUrl,
+      botao_texto:itemAtual.botao_texto?.trim()||'Ver mais',
+      tipo_destino:itemAtual.tipo_destino||'link',
+      destino_url:itemAtual.destino_url?.trim()||null,
+      whatsapp:itemAtual.tipo_destino==='whatsapp'?(itemAtual.whatsapp?.trim()||null):null,
+      mensagem_whatsapp:itemAtual.tipo_destino==='whatsapp'?(itemAtual.mensagem_whatsapp?.trim()||null):null,
+      ativo:false, // rascunho comeca inativo - so fica visivel na pagina publica apos "Salvar item" de verdade
+      ordem:itemAtual.ordem||0,
+    }
+    const {data,error}=await supabase.from('pagina_catalogo_itens').insert(payload).select().single()
+    if(error){setMsg('Erro ao preparar o item: '+error.message);return null}
+    // Substitui o ID temporario pelo real, preservando tudo que ja estava preenchido
+    // localmente (titulo/preco/selo que o usuario ja tenha digitado antes da imagem).
+    // _novo precisa virar false aqui: o item ja existe de verdade no banco agora, entao o
+    // proximo "Salvar item" precisa fazer UPDATE, nunca outro INSERT (senao duplicaria).
+    setItens(prev=>prev.map(x=>x.id===idTemporario?{...x,...data,_novo:false}:x))
+    return data.id as string
   }
 
   // Galeria efetiva de um item: se ja tem linhas reais em catalogo_item_imagens, usa elas.

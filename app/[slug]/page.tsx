@@ -16,9 +16,17 @@ import RegistradorDeCliques from '../components/RegistradorDeCliques'
 import BannerVideo from '../components/BannerVideo'
 import DestaqueItemCard from '../components/DestaqueItemCard'
 import { resolverTema, getTema } from '../lib/tema-publico'
-import { ehPlanoComGestao, permiteVideos, permiteDestaques, permiteAgendaEventos, obterLimiteCatalogos, obterLimiteLinksRapidos, ehPlanoFree } from '../lib/planos'
+import { ehPlanoComGestao, permiteVideos, permiteDestaques, permiteAgendaEventos, obterLimiteCatalogos, obterLimiteSecoesDestaques, obterLimiteLinksRapidos, ehPlanoFree } from '../lib/planos'
 
 const inter = Inter({ subsets: ['latin'], weight: ['400', '500', '600', '700'], display: 'swap' })
+
+// Forca a pagina publica a NUNCA cachear dados - sem isso, o Next.js pode servir uma
+// versao antiga da pagina mesmo depois de o dono editar links/destaques/catalogo, ate
+// que algo dispare uma revalidacao (o que nao existe hoje em nenhum formulario do
+// painel). Aceita o custo de sempre buscar do banco a cada visita, em troca de garantir
+// que qualquer alteracao apareca imediatamente pro visitante.
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
 
 const CSS = `
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -51,12 +59,19 @@ html,body{overflow-x:hidden;width:100%;max-width:100%}
 .social-ic:hover{transform:translateY(-2px);border-color:var(--accent)!important;box-shadow:0 0 10px var(--accent-glow)}
 .bio-text{font-size:15px;color:var(--text-muted);max-width:560px;line-height:1.5;margin-bottom:6px}
 .loc-text{font-size:13px;color:var(--text-muted);display:flex;align-items:center;gap:5px;margin-bottom:4px}
-.destaque-grid{display:grid;gap:12px;width:100%;max-width:100%}
-.destaque-grid.cols-1{grid-template-columns:1fr;max-width:420px;margin:0 auto}
-.destaque-grid.cols-2{grid-template-columns:repeat(2,1fr)}
-.destaque-grid.cols-3{grid-template-columns:repeat(3,1fr)}
+.destaque-grid{display:flex;flex-wrap:wrap;gap:12px;width:100%;max-width:100%;justify-content:flex-start}
+.destaque-grid .destaque-item{flex:0 1 260px;max-width:260px;width:100%}
+/* Desktop: grid FIXO de 3 colunas, sempre - independente de quantos itens a secao tem de
+   verdade. Isso reproduz o padrao antigo aprovado: 1 item ocupa so a 1a coluna (nao estica
+   pra virar full-width), 2 itens ocupam as 2 primeiras, 3+ preenchem a linha toda. Mobile
+   fica intocado - continua usando o flex de 260px acima, que ja esta aprovado. */
+@media(min-width:1024px){
+  .destaque-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));justify-items:stretch}
+  .destaque-grid .destaque-item{max-width:100%;flex:none}
+}
 .destaque-item{display:block;width:100%;max-width:100%;min-width:0;box-sizing:border-box}
-.destaque-scroll{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px;width:100%;max-width:100%}
+.destaque-scroll{display:flex;flex-wrap:nowrap;overflow-x:auto;overflow-y:hidden;gap:12px;width:100%;max-width:100%;padding-bottom:6px;scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch}
+.destaque-scroll .destaque-item-h{flex:0 0 260px;max-width:260px;scroll-snap-align:start}
 .destaque-scroll::-webkit-scrollbar{height:5px}
 .destaque-scroll::-webkit-scrollbar-thumb{background:var(--accent-border);border-radius:99px}
 .destaque-card{display:flex;flex-direction:column;overflow:hidden;border-radius:16px;transition:transform .18s,box-shadow .18s,border-color .18s;width:100%;max-width:100%;box-sizing:border-box}
@@ -64,10 +79,10 @@ html,body{overflow-x:hidden;width:100%;max-width:100%}
 .destaque-card:hover .destaque-action{color:var(--accent)}
 .destaque-img-wrap{position:relative;width:100%;aspect-ratio:16/9;overflow:hidden;flex-shrink:0}
 .destaque-img-wrap img{width:100%;height:100%;object-fit:cover;display:block}
-.destaque-body{padding:12px 14px 14px;display:flex;flex-direction:column;gap:3px}
-.destaque-action{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;margin-top:3px;opacity:.85}
-.destaque-desc{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font-size:11px!important;min-height:30px}
-.destaque-titulo{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:42px}
+.destaque-body{padding:10px 14px 10px;display:flex;flex-direction:column;gap:2px}
+.destaque-action{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;margin-top:0;opacity:.85}
+.destaque-desc{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font-size:11px!important}
+.destaque-titulo{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:40px;line-height:1.25}
 .video-grid{display:flex;flex-wrap:nowrap;overflow-x:auto;overflow-y:hidden;gap:12px;width:100%;max-width:100%;align-items:flex-start;padding-bottom:6px;scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch}
 .video-grid::-webkit-scrollbar{height:5px}
 .video-grid::-webkit-scrollbar-thumb{background:var(--accent-border);border-radius:99px}
@@ -120,7 +135,8 @@ html,body{overflow-x:hidden;width:100%;max-width:100%}
   .link-grid{grid-template-columns:repeat(2,1fr)}
 }
 @media(min-width:768px) and (max-width:1024px){
-  .destaque-grid.cols-3{grid-template-columns:repeat(2,1fr)}
+  /* Nao precisa mais de regra especifica aqui - o flex-wrap do .destaque-grid ja
+     reorganiza sozinho quantos cards de 260px cabem por linha em qualquer largura. */
 }
 @media(max-width:767px){
   /* No mobile, o hero tradicional de desktop (banner horizontal) fica escondido - quem
@@ -166,7 +182,8 @@ html,body{overflow-x:hidden;width:100%;max-width:100%}
   }
 
   .benefit-grid{grid-template-columns:1fr}
-  .destaque-grid,.destaque-grid.cols-1,.destaque-grid.cols-2,.destaque-grid.cols-3{grid-template-columns:1fr!important;gap:12px!important;width:100%!important;max-width:100%!important}
+  .destaque-grid{flex-direction:column!important;gap:12px!important;width:100%!important;max-width:100%!important}
+  .destaque-grid .destaque-item{max-width:100%!important;flex-basis:auto!important}
   .destaque-body{padding:10px 14px 12px!important}
   .destaque-scroll{display:flex!important;grid-template-columns:none!important;gap:16px!important;overflow-x:auto!important;overflow-y:hidden!important;padding-bottom:6px;scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch}
   .destaque-item-h{flex:0 0 82vw!important;max-width:360px!important;min-width:0!important;scroll-snap-align:start}
@@ -314,10 +331,11 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
     }
   }
 
-  const [{ data: servicos }, { data: profissionais }, { data: destaques }, { data: linksRapidos }, { data: videos }, { data: eventos }, { data: catalogosAtivos }, { data: catalogoItensTodos }, { data: catalogoImagensTodas }] = await Promise.all([
+  const [{ data: servicos }, { data: profissionais }, { data: destaques }, { data: destaquesSecoesAtivas }, { data: linksRapidos }, { data: videos }, { data: eventos }, { data: catalogosAtivos }, { data: catalogoItensTodos }, { data: catalogoImagensTodas }] = await Promise.all([
     supabase.from('servicos').select('*').eq('user_id', perfil.user_id).eq('ativo', true).order('nome'),
     supabase.from('profissionais').select('*').eq('user_id', perfil.user_id).eq('ativo', true).order('nome'),
     supabase.from('pagina_destaques').select('*').eq('user_id', perfil.user_id).eq('ativo', true).order('ordem').order('created_at'),
+    supabase.from('pagina_destaques_secoes').select('id,titulo,subtitulo').eq('user_id', perfil.user_id).eq('ativo', true).order('ordem'),
     supabase.from('pagina_links').select('*').eq('user_id', perfil.user_id).eq('ativo', true).order('ordem').order('created_at'),
     supabase.from('pagina_videos').select('*').eq('user_id', perfil.user_id).eq('ativo', true).order('ordem').order('created_at'),
     supabase.from('pagina_eventos').select('*').eq('user_id', perfil.user_id).eq('ativo', true).order('ordem').order('created_at'),
@@ -325,6 +343,20 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
     supabase.from('pagina_catalogo_itens').select('id,catalogo_id,titulo,descricao_curta,descricao_completa,preco,preco_anterior,preco_exibicao,preco_texto_personalizado,selo_tipo,selo_texto,imagem_url,botao_texto,tipo_destino,destino_url,whatsapp,mensagem_whatsapp').eq('user_id', perfil.user_id).eq('ativo', true).order('ordem').order('created_at'),
     supabase.from('catalogo_item_imagens').select('id,item_id,imagem_url,ordem,is_capa').eq('user_id', perfil.user_id).order('ordem'),
   ])
+
+  // Agrupa os destaques (ja filtrados por ativo=true) por secao, mesmo padrao ja usado pro
+  // catalogo logo abaixo - secao sem nenhum destaque nao ocupa espaco. Tambem respeita o
+  // limite de secoes do plano atual na exibicao publica (mesma regra que ja bloqueia
+  // criacao no painel) - nunca apaga/desativa nada no banco, so nao renderiza secoes alem
+  // do que o plano permite mostrar.
+  const limiteSecoesDestaquesPublico = obterLimiteSecoesDestaques(perfil.plano_tipo)
+  const secoesDestaquesComItens = (destaquesSecoesAtivas || [])
+    .map((sec: any) => ({
+      ...sec,
+      itens: (destaques || []).filter((d: any) => d.secao_id === sec.id),
+    }))
+    .filter((sec: any) => sec.itens.length > 0)
+    .slice(0, limiteSecoesDestaquesPublico)
 
   // Agrupa os itens (ja filtrados por ativo=true) por catalogo, e mantem so os catalogos
   // que realmente tem pelo menos 1 item pra mostrar - catalogo vazio nao ocupa espaco.
@@ -655,43 +687,52 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
 
           const secoesMap: Record<string, ReactNode> = {
             destaques: (
-// * DESTAQUES DA PAGINA
-destaques && destaques.length > 0 && permiteDestaques(perfil.plano_tipo) && (
-          <div style={{ marginBottom: '28px' }}>
-            {destaquesFormato === 'horizontal' ? (
-              <>
-                <p className="scroll-hint">Deslize para ver mais →</p>
-                <div className="destaque-scroll">
-                  {destaques.map(d => (
-                    <DestaqueItemCard
-                      key={d.id}
-                      d={d}
-                      tema={tema}
-                      iconeCor={iconeCor}
-                      textoVerMais={t.verMais}
-                      cardBorderFinal={cardBorderFinal}
-                      cardShadowNeon={cardShadowNeon}
-                      horizontal
-                    />
-                  ))}
-                </div>
-              </>
-            ) : (
-              <div className={`destaque-grid cols-${Math.min(destaques.length, 3)}`}>
-                {destaques.map(d => (
-                  <DestaqueItemCard
-                    key={d.id}
-                    d={d}
-                    tema={tema}
-                    iconeCor={iconeCor}
-                    textoVerMais={t.verMais}
-                    cardBorderFinal={cardBorderFinal}
-                    cardShadowNeon={cardShadowNeon}
-                  />
-                ))}
+// * DESTAQUES DA PAGINA - agora com multiplas secoes, cada uma com seu proprio titulo/
+// subtitulo, seguindo o mesmo padrao ja usado no Catalogo (secoesComItens.map(...)).
+// O formato horizontal/vertical continua sendo uma configuracao GLOBAL da conta (nao por
+// secao), exatamente como ja funcionava antes desta mudanca.
+secoesDestaquesComItens.length > 0 && permiteDestaques(perfil.plano_tipo) && (
+          <>
+            {secoesDestaquesComItens.map((secao: any) => (
+              <div key={secao.id} style={{ marginBottom: '28px' }}>
+                <p style={{ fontSize: '17px', fontWeight: 800, color: tema.text, marginBottom: secao.subtitulo ? '2px' : '10px' }}>{secao.titulo}</p>
+                {secao.subtitulo && <p style={{ fontSize: '12px', color: tema.textMuted, marginBottom: '10px' }}>{secao.subtitulo}</p>}
+                {destaquesFormato === 'horizontal' ? (
+                  <>
+                    <p className="scroll-hint">Deslize para ver mais →</p>
+                    <div className="destaque-scroll">
+                      {secao.itens.map((d: any) => (
+                        <DestaqueItemCard
+                          key={d.id}
+                          d={d}
+                          tema={tema}
+                          iconeCor={iconeCor}
+                          textoVerMais={t.verMais}
+                          cardBorderFinal={cardBorderFinal}
+                          cardShadowNeon={cardShadowNeon}
+                          horizontal
+                        />
+                      ))}
+                    </div>
+                  </>
+                ) : (
+                  <div className="destaque-grid">
+                    {secao.itens.map((d: any) => (
+                      <DestaqueItemCard
+                        key={d.id}
+                        d={d}
+                        tema={tema}
+                        iconeCor={iconeCor}
+                        textoVerMais={t.verMais}
+                        cardBorderFinal={cardBorderFinal}
+                        cardShadowNeon={cardShadowNeon}
+                      />
+                    ))}
+                  </div>
+                )}
               </div>
-            )}
-          </div>
+            ))}
+          </>
         )
             ),
             links: (
