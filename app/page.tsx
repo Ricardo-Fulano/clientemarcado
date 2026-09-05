@@ -17,23 +17,29 @@ const inclusosFree = [
   'Desempenho básico',
 ]
 const inclusosMiniPage = [
+  'Banner com vídeo',
   'Links ilimitados',
   'Destaques',
   'Vídeos',
   'Agenda/Eventos',
-  '1 catálogo',
-  'Desempenho da página',
+  'Painel de desempenho',
+  'Captação de leads',
 ]
 const inclusosLoja = [
   'Tudo do MiniPage',
+  'Banner com vídeo',
+  'Destaques ilimitados',
   'Catálogos ilimitados',
   'WhatsApp no catálogo',
   'Mensagem automática por item',
   'Links de venda e achadinhos',
+  'Painel de desempenho',
   'Desempenho por produto/link',
+  'Captação de leads',
 ]
 const inclusosProfissional = [
   'Tudo do Loja',
+  'Banner com vídeo',
   'Agenda de atendimento',
   'Clientes',
   'Orçamentos',
@@ -41,14 +47,19 @@ const inclusosProfissional = [
   'Financeiro',
   'Relatórios',
   'Até 3 profissionais',
+  'Painel de desempenho',
+  'Captação de leads',
 ]
 const inclusosEquipe = [
   'Tudo do Pro',
+  'Banner com vídeo',
   'Até 15 profissionais',
   'Login individual por profissional',
   'Minha agenda',
   'Meu desempenho',
   'Controle de equipe',
+  'Painel de desempenho',
+  'Captação de leads',
 ]
 export default function Home() {
   const [scrolled, setScrolled] = useState(false)
@@ -106,13 +117,13 @@ export default function Home() {
             <span style={{fontSize:'12px',fontWeight:600,color:'#EC4899',letterSpacing:'.04em'}}>7 dias grátis para criar sua MiniPage profissional</span>
           </div>
           <h1 style={{fontSize:'clamp(38px,6vw,66px)',fontWeight:900,color:'#F8F4F7',letterSpacing:'-0.04em',lineHeight:1.05,marginBottom:'24px'}}>
-            Transforme sua bio<br/>em uma página profissional.
+            Transforme sua bio<br/>em uma MiniPage profissional.
           </h1>
           <p style={{fontSize:'clamp(17px,2.4vw,20px)',fontWeight:700,background:G,WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent',backgroundClip:'text',marginBottom:'20px'}}>
-            Com a MiniPage Pro, você reúne links, vídeos, publicidades, agenda e gestão em um só lugar.
+            Crie em poucos cliques uma página moderna para organizar seus links, vídeos, divulgações, produtos, agenda e contatos em um só lugar.
           </p>
           <p style={{fontSize:'clamp(15px,2vw,17px)',color:'#B8AAB8',lineHeight:1.75,marginBottom:'44px',maxWidth:'580px',margin:'0 auto 44px'}}>
-            Crie uma página moderna para divulgar no Instagram, WhatsApp e TikTok, apresentar seus conteúdos, destacar divulgações, vender produtos e organizar contatos em um painel simples.
+            Pronta para divulgar no Instagram, WhatsApp, TikTok e onde quiser.
           </p>
           <div className="hero-btns" style={{display:'flex',gap:'12px',justifyContent:'center',flexWrap:'wrap'}}>
             <Link href="/aceite-plano?plano=minipage" className="btn-p">Criar minha MiniPage grátis</Link>
@@ -154,8 +165,8 @@ export default function Home() {
       {/* CHAMADA PARA MODELOS REAIS */}
       <section style={{padding:'60px 24px',textAlign:'center'}}>
         <div style={{maxWidth:'560px',margin:'0 auto'}}>
-          <h2 style={{fontSize:'clamp(20px,3.5vw,28px)',fontWeight:800,color:'#F8F4F7',letterSpacing:'-0.03em',marginBottom:'12px'}}>Veja a MiniPage funcionando na prática</h2>
-          <p style={{fontSize:'14px',color:'#B8AAB8',lineHeight:1.65,marginBottom:'28px'}}>Explore modelos de páginas para lojas, criadores, artistas, achadinhos, serviços e profissionais.</p>
+          <h2 style={{fontSize:'clamp(20px,3.5vw,28px)',fontWeight:800,color:'#F8F4F7',letterSpacing:'-0.03em',marginBottom:'12px'}}>Você cria sua MiniPage em poucos cliques</h2>
+          <p style={{fontSize:'14px',color:'#B8AAB8',lineHeight:1.65,marginBottom:'28px'}}>Escolha um modelo, personalize sua página, adicione seus links e publique seu endereço profissional para divulgar nas redes sociais.</p>
           <a href="https://minipage.pro/modelos" className="btn-p">Ver modelos de MiniPage</a>
         </div>
       </section>
@@ -164,7 +175,7 @@ export default function Home() {
         <div style={{maxWidth:'1100px',margin:'0 auto'}}>
           <div style={{textAlign:'center',marginBottom:'48px'}}>
             <h2 style={{fontSize:'clamp(22px,4vw,34px)',fontWeight:800,color:'#F8F4F7',letterSpacing:'-0.03em',marginBottom:'12px'}}>Escolha o plano ideal para sua presença profissional</h2>
-            <p style={{fontSize:'15px',color:'#B8AAB8',lineHeight:1.6,maxWidth:'560px',margin:'0 auto'}}>Comece com uma MiniPage para divulgar seu trabalho ou escolha um plano com agenda e gestão para organizar seus atendimentos.</p>
+            <p style={{fontSize:'15px',color:'#B8AAB8',lineHeight:1.6,maxWidth:'560px',margin:'0 auto'}}>Comece com uma MiniPage para organizar seus links ou escolha um plano com loja, agenda e gestão para vender e atender melhor.</p>
           </div>
 
           <div style={{display:'flex',justifyContent:'center',marginBottom:'24px'}}>
@@ -192,7 +203,7 @@ export default function Home() {
             <div className="plano-card" style={{background:'radial-gradient(ellipse at top,rgba(139,92,246,.10),transparent 55%),rgba(24,16,27,.97)',border:'1.5px solid #2A1A2F',borderRadius:'22px',padding:'30px 22px',position:'relative' as const,flex:'0 0 250px',minWidth:'250px',scrollSnapAlign:'start'}}>
               <div style={{textAlign:'center',marginBottom:'20px'}}>
                 <h3 style={{fontSize:'17px',fontWeight:800,color:'#F8F4F7',marginBottom:'6px'}}>{obterNomePlano('free')}</h3>
-                <p style={{fontSize:'12px',color:'#B8AAB8',lineHeight:1.5,marginBottom:'16px',minHeight:'50px'}}>Ideal para começar sua página profissional com links básicos.</p>
+                <p style={{fontSize:'12px',color:'#B8AAB8',lineHeight:1.5,marginBottom:'16px',minHeight:'50px'}}>Ideal para começar sua presença online com links básicos.</p>
                 <div style={{marginBottom:'8px'}}>
                   <span style={{fontSize:'34px',fontWeight:900,color:'#F8F4F7',letterSpacing:'-0.03em'}}>R$ {fPreco('free', 'mensal').inteiro}</span>
                   <span style={{fontSize:'14px',color:'#B8AAB8'}}>/mês</span>
@@ -215,7 +226,7 @@ export default function Home() {
             <div className="plano-card" style={{background:'radial-gradient(ellipse at top,rgba(139,92,246,.10),transparent 55%),rgba(24,16,27,.97)',border:'1.5px solid #2A1A2F',borderRadius:'22px',padding:'30px 22px',position:'relative' as const,flex:'0 0 250px',minWidth:'250px',scrollSnapAlign:'start'}}>
               <div style={{textAlign:'center',marginBottom:'20px'}}>
                 <h3 style={{fontSize:'17px',fontWeight:800,color:'#F8F4F7',marginBottom:'6px'}}>{obterNomePlano('minipage')}</h3>
-                <p style={{fontSize:'12px',color:'#B8AAB8',lineHeight:1.5,marginBottom:'16px',minHeight:'50px'}}>Página profissional com links, destaques, vídeos e catálogo básico.</p>
+                <p style={{fontSize:'12px',color:'#B8AAB8',lineHeight:1.5,marginBottom:'16px',minHeight:'50px'}}>Página profissional com links, destaques, vídeos e agenda/eventos.</p>
                 <div style={{marginBottom:'8px'}}>
                   <span style={{fontSize:'34px',fontWeight:900,color:'#F8F4F7',letterSpacing:'-0.03em'}}>R$ {fPreco('minipage', billingSelecionado).inteiro}</span>
                   <span style={{fontSize:'16px',fontWeight:700,color:'#F8F4F7'}}>,{fPreco('minipage', billingSelecionado).decimal}</span>
@@ -239,7 +250,7 @@ export default function Home() {
             <div className="plano-card" style={{background:'radial-gradient(ellipse at top,rgba(139,92,246,.10),transparent 55%),rgba(24,16,27,.97)',border:'1.5px solid #2A1A2F',borderRadius:'22px',padding:'30px 22px',position:'relative' as const,flex:'0 0 250px',minWidth:'250px',scrollSnapAlign:'start'}}>
               <div style={{textAlign:'center',marginBottom:'20px'}}>
                 <h3 style={{fontSize:'17px',fontWeight:800,color:'#F8F4F7',marginBottom:'6px'}}>{obterNomePlano('loja')}</h3>
-                <p style={{fontSize:'12px',color:'#B8AAB8',lineHeight:1.5,marginBottom:'16px',minHeight:'50px'}}>Vitrine para produtos, achadinhos, músicas, cursos e divulgações.</p>
+                <p style={{fontSize:'12px',color:'#B8AAB8',lineHeight:1.5,marginBottom:'16px',minHeight:'50px'}}>Vitrine para produtos, achadinhos, músicas, cursos, divulgações e vendas.</p>
                 <div style={{marginBottom:'8px'}}>
                   <span style={{fontSize:'34px',fontWeight:900,color:'#F8F4F7',letterSpacing:'-0.03em'}}>R$ {fPreco('loja', billingSelecionado).inteiro}</span>
                   <span style={{fontSize:'16px',fontWeight:700,color:'#F8F4F7'}}>,{fPreco('loja', billingSelecionado).decimal}</span>
@@ -332,7 +343,7 @@ export default function Home() {
       <footer style={{borderTop:'1px solid #2A1A2F',padding:'32px 24px',textAlign:'center'}}>
         <p style={{fontSize:'13px',color:'#B8AAB8'}}>© 2026 ClienteMarcado. MiniPage Pro é uma solução ClienteMarcado.</p>
         <p style={{fontSize:'11px',color:'#475569',marginTop:'4px'}}>CNPJ: 31.671.616/0001-18</p>
-        <a href='https://instagram.com/minipagepro' target='_blank' rel='noreferrer' style={{fontSize:'15px',color:'#E1306C',textDecoration:'none',marginTop:'16px',marginBottom:'60px',display:'inline-flex',alignItems:'center',gap:'6px',fontWeight:700}}><svg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='#E1306C' strokeWidth='2' strokeLinecap='round' strokeLinejoin='round'><rect x='2' y='2' width='20' height='20' rx='5' ry='5'/><path d='M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z'/><line x1='17.5' y1='6.5' x2='17.51' y2='6.5'/></svg>@minipagepro</a>
+        <a href='https://instagram.com/clientemarcado' target='_blank' rel='noreferrer' style={{fontSize:'15px',color:'#E1306C',textDecoration:'none',marginTop:'16px',marginBottom:'60px',display:'inline-flex',alignItems:'center',gap:'6px',fontWeight:700}}><svg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='#E1306C' strokeWidth='2' strokeLinecap='round' strokeLinejoin='round'><rect x='2' y='2' width='20' height='20' rx='5' ry='5'/><path d='M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z'/><line x1='17.5' y1='6.5' x2='17.51' y2='6.5'/></svg>@clientemarcado</a>
       </footer>
       <AssistenteComercial checkoutUrl={CHECKOUT_URL} />
     </div>
