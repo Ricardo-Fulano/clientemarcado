@@ -16,7 +16,7 @@ import RegistradorDeCliques from '../components/RegistradorDeCliques'
 import BannerVideo from '../components/BannerVideo'
 import DestaqueItemCard from '../components/DestaqueItemCard'
 import { resolverTema, getTema } from '../lib/tema-publico'
-import { ehPlanoComGestao, permiteVideos, permiteDestaques, permiteAgendaEventos, obterLimiteCatalogos, obterLimiteSecoesDestaques, obterLimiteLinksRapidos, ehPlanoFree } from '../lib/planos'
+import { ehPlanoComGestao, permiteVideos, permiteDestaques, permiteAgendaEventos, obterLimiteCatalogos, podeUsarCatalogo, obterLimiteSecoesDestaques, obterLimiteLinksRapidos, ehPlanoFree } from '../lib/planos'
 
 const inter = Inter({ subsets: ['latin'], weight: ['400', '500', '600', '700'], display: 'swap' })
 
@@ -866,7 +866,7 @@ videos && videos.length > 0 && permiteVideos(perfil.plano_tipo) && (() => {
         })()
             ),
             catalogo: (
-              catalogosComItens.length > 0 && (
+              podeUsarCatalogo(perfil.plano_tipo) && catalogosComItens.length > 0 && (
                 <>
                   {catalogosComItens.map((cat: any) => (
                     <div key={cat.id} style={{ marginBottom: '32px' }}>

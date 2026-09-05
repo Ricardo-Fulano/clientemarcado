@@ -158,6 +158,24 @@ export function permiteCatalogoWhatsapp(planoTipo?: string | null): boolean {
 }
 
 /**
+ * Controla o ACESSO ao recurso de Catalogo inteiro (criar/editar/ver na pagina publica) -
+ * diferente de permiteCatalogoWhatsapp, que so controla o botao de WhatsApp dentro do
+ * catalogo (que ja pressupoe acesso). A partir desta regra, Catalogo passou a ser
+ * exclusivo dos planos Loja/Pro(essencial)/Equipe - MiniPage basico deixou de ter acesso
+ * (antes tinha limite de 1 catalogo, via obterLimiteCatalogos).
+ *
+ * IMPORTANTE: nao usa normalizarPlano() aqui de proposito - aquela funcao tem fallback pra
+ * 'essencial' quando o valor e desconhecido/vazio, o que faria plano_tipo nulo ou invalido
+ * liberar o catalogo por engano. Aqui checamos o valor bruto: so libera se for
+ * EXPLICITAMENTE loja/essencial/equipe - qualquer outra coisa (incluindo null/undefined/
+ * string vazia/valor nao reconhecido) fica bloqueada.
+ */
+export function podeUsarCatalogo(planoTipo?: string | null): boolean {
+  const p = (planoTipo || '').toLowerCase().trim()
+  return p === 'loja' || p === 'essencial' || p === 'equipe'
+}
+
+/**
  * Quantos catalogos o plano permite criar. Infinity representa "ilimitado" - usar esse
  * valor direto nas comparacoes (ex: quantidadeAtual >= limite) funciona corretamente sem
  * precisar de nenhum caso especial pra "ilimitado".

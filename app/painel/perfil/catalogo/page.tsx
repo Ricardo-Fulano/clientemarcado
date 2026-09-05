@@ -4,7 +4,7 @@ import { supabase } from '../../../lib/supabase'
 import Link from 'next/link'
 import { ArrowLeft, ArrowUp, ArrowDown } from 'lucide-react'
 import PainelSidebar from '@/app/components/PainelSidebar'
-import { normalizarPlano, obterNomePlano, obterLimiteCatalogos } from '../../../lib/planos'
+import { normalizarPlano, obterNomePlano, obterLimiteCatalogos, podeUsarCatalogo } from '../../../lib/planos'
 
 const G='linear-gradient(135deg,#EC4899,#D946EF,#8B5CF6)'
 
@@ -160,6 +160,28 @@ export default function ListaCatalogos(){
   }
 
   if(carregando)return(<div style={{minHeight:'100vh',background:'#08060A',display:'flex',alignItems:'center',justifyContent:'center',fontFamily:'system-ui'}}><p style={{color:'#B8AAB8',fontSize:'14px'}}>Carregando...</p></div>)
+
+  // Catalogo agora e exclusivo dos planos Loja/Pro/Equipe - Free e MiniPage basico veem
+  // um card de upgrade em vez da lista, mesmo que ja tenham catalogos antigos cadastrados
+  // (os dados continuam intactos no banco, so nao ficam acessiveis enquanto o plano nao mudar).
+  if(!podeUsarCatalogo(planoTipo)){
+    return(
+      <div style={{display:'flex',minHeight:'100vh',background:'#08060A',fontFamily:'-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif',overflowX:'hidden',width:'100%'}}>
+        <style dangerouslySetInnerHTML={{__html:CSS}}/>
+        <PainelSidebar tituloMobile="Catálogos"/>
+        <div className="psb-main">
+          <div className="pg"><div className="bdy">
+            <Link href="/painel/perfil" style={{display:'inline-flex',alignItems:'center',gap:'6px',fontSize:'13px',color:'#B8AAB8',textDecoration:'none',marginBottom:'18px'}}><ArrowLeft size={15}/> Voltar para Configurações</Link>
+            <div className="crd" style={{padding:'32px 24px',textAlign:'center',maxWidth:'440px',margin:'40px auto 0'}}>
+              <p style={{fontSize:'17px',fontWeight:800,color:'#F8F4F7',marginBottom:'10px'}}>Catálogo disponível no plano MiniPage Loja</p>
+              <p style={{fontSize:'13px',color:'#B8AAB8',marginBottom:'22px',lineHeight:1.5}}>Crie vitrines, achadinhos, produtos e divulgações com botão direto para WhatsApp ou links de venda.</p>
+              <Link href="/painel/plano" style={{display:'inline-block',background:'linear-gradient(135deg,#EC4899,#D946EF,#8B5CF6)',color:'#fff',border:'1px solid rgba(255,255,255,.12)',borderRadius:'10px',padding:'11px 24px',fontSize:'13px',fontWeight:700,textDecoration:'none'}}>Fazer upgrade</Link>
+            </div>
+          </div></div>
+        </div>
+      </div>
+    )
+  }
 
   const limite=obterLimiteCatalogos(planoTipo)
 
