@@ -136,6 +136,20 @@ export function ehPlanoComGestao(planoTipo?: string | null): boolean {
   return p === 'essencial' || p === 'equipe'
 }
 
+/**
+ * Controla o acesso ao menu/rota de Profissionais - essencial (Pro, ate 3 profissionais)
+ * e equipe (ate 15, com login individual). Free/MiniPage/Loja nao tem.
+ *
+ * Mesmo cuidado ja aplicado em podeUsarCatalogo: nao usa normalizarPlano() aqui, pois
+ * aquela funcao tem fallback pra 'essencial' em valores desconhecidos/vazios, o que
+ * liberaria Profissionais por engano pra plano_tipo nulo ou invalido. Checa o valor bruto
+ * diretamente - so libera se for EXPLICITAMENTE essencial ou equipe.
+ */
+export function podeUsarProfissionais(planoTipo?: string | null): boolean {
+  const p = (planoTipo || '').toLowerCase().trim()
+  return p === 'essencial' || p === 'equipe'
+}
+
 /** Mesmo comportamento de ehPlanoComGestao() - nome semantico especifico pra agenda. */
 export function permiteAgenda(planoTipo?: string | null): boolean {
   return ehPlanoComGestao(planoTipo)

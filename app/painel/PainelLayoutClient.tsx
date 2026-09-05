@@ -5,7 +5,7 @@ import { supabase } from '../lib/supabase'
 import { Suspense } from 'react'
 import BannerPagamentoSucesso from '../components/BannerPagamentoSucesso'
 import BloqueioPorPlano from '../components/BloqueioPorPlano'
-import { normalizarPlano, ehPlanoComGestao, permiteEquipe, ehPlanoFree, ehAguardandoPagamento, statusPermiteAcessoCompleto, statusPrecisaFinalizarCheckout } from '../lib/planos'
+import { normalizarPlano, ehPlanoComGestao, podeUsarProfissionais, ehPlanoFree, ehAguardandoPagamento, statusPermiteAcessoCompleto, statusPrecisaFinalizarCheckout } from '../lib/planos'
 
 const G = 'linear-gradient(135deg,#3B82F6,#7C3AED)'
 // Nomes amigaveis pra mensagem de erro refletir o plano real da pessoa (antes ficava fixo
@@ -248,10 +248,10 @@ export default function PainelLayoutClient({ children }: { children: React.React
   // funcoes centralizadas de app/lib/planos.ts - nunca comparacao solta tipo plano==='x'.
   const planoAtual = normalizarPlano(planoTipo)
   const ROTAS_GESTAO = ['/painel/agendamentos', '/painel/clientes', '/painel/orcamentos', '/painel/cobrancas', '/painel/financeiro', '/painel/servicos', '/painel/relatorio', '/painel/perfil/agenda']
-  const ROTAS_EQUIPE = ['/painel/profissionais']
+  const ROTAS_PROFISSIONAIS = ['/painel/profissionais']
   const precisaGestao = ROTAS_GESTAO.some(r => pathname === r || pathname.startsWith(r + '/'))
-  const precisaEquipe = ROTAS_EQUIPE.some(r => pathname === r || pathname.startsWith(r + '/'))
-  const bloqueadoPorPlano = (precisaGestao && !ehPlanoComGestao(planoAtual)) || (precisaEquipe && !permiteEquipe(planoAtual))
+  const precisaProfissionais = ROTAS_PROFISSIONAIS.some(r => pathname === r || pathname.startsWith(r + '/'))
+  const bloqueadoPorPlano = (precisaGestao && !ehPlanoComGestao(planoAtual)) || (precisaProfissionais && !podeUsarProfissionais(planoAtual))
 
   // Profissional tentando acessar rota administrativa: nao renderiza nada ate o redirecionamento
   if (isProfissional && pathname !== '/painel/minha-agenda' && pathname !== '/painel/alterar-senha' && pathname !== '/painel/meu-desempenho') return (

@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { supabase } from '../lib/supabase'
 import NotificacoesSino from './NotificacoesSino'
-import { normalizarPlano, ehPlanoComGestao, permiteEquipe, obterLimiteCatalogos } from '../lib/planos'
+import { normalizarPlano, ehPlanoComGestao, permiteEquipe, podeUsarProfissionais, obterLimiteCatalogos } from '../lib/planos'
 
 const ADMIN_ID = '618aedd1-f174-4419-b4b2-b81b8dd1c47e'
 const AV = 'linear-gradient(135deg,rgba(236,72,153,.95),rgba(139,92,246,.85))'
@@ -19,7 +19,7 @@ const LINKS = [
   { h: '/painel/cobrancas',     l: 'Cobranças',     requerGestao: true },
   { h: '/painel/financeiro',    l: 'Financeiro',    requerGestao: true },
   { h: '/painel/servicos',      l: 'Serviços',      requerGestao: true },
-  { h: '/painel/profissionais', l: 'Profissionais', requerEquipe: true },
+  { h: '/painel/profissionais', l: 'Profissionais', requerProfissionais: true },
   { h: '/painel/relatorio',     l: 'Relatórios',    requerGestao: true },
   { h: '/painel/perfil/catalogo', l: 'Catálogo',    requerCatalogo: true },
   { h: '/painel/parceiros',     l: 'Parceiros',     apenasAdmin: true },
@@ -116,6 +116,7 @@ export default function PainelSidebar({ nome = '', tituloMobile = 'Painel' }: Pr
     if (it.apenasAdmin) return isAdmin
     if (it.requerGestao) return ehPlanoComGestao(planoAtual)
     if (it.requerEquipe) return permiteEquipe(planoAtual)
+    if (it.requerProfissionais) return podeUsarProfissionais(planoAtual)
     if (it.requerCatalogo) return obterLimiteCatalogos(planoAtual) > 0
     return true
   })
