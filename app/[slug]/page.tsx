@@ -7,7 +7,7 @@ import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { headers } from 'next/headers'
 import { Inter } from 'next/font/google'
-import { Zap, CalendarDays, CheckCircle, Sparkles, GraduationCap, Crown, Globe, Link2, Music2, ShoppingBag, PlayCircle, BadgeCheck, MapPin, Calendar, Lock, Mail } from 'lucide-react'
+import { Zap, CalendarDays, CheckCircle, Sparkles, GraduationCap, Crown, Globe, Link2, Music2, ShoppingBag, PlayCircle, BadgeCheck, MapPin, Calendar, Lock, Mail, Phone } from 'lucide-react'
 import EmailLinkCard from '../components/EmailLinkCard'
 import CatalogoItemCard from '../components/CatalogoItemCard'
 import VideoItemCard from '../components/VideoItemCard'
@@ -169,16 +169,22 @@ html,body{overflow-x:hidden;width:100%;max-width:100%}
   /* Cobertura solida: envolve TODO o conteudo depois do hero (links oficiais, destaques,
      catalogo, etc, sem mexer no CSS interno de nenhuma dessas secoes) - como esse bloco
      esta em fluxo normal (nunca fixed), ele sobe naturalmente ao rolar e, por ter fundo
-     solido + z-index maior que a midia fixa, cobre ela visualmente aos poucos. */
+     solido + z-index maior que a midia fixa, cobre ela visualmente aos poucos.
+     padding-top + gradiente no ::before criam um respiro suave antes do "LINKS OFICIAIS",
+     evitando o corte seco que existia entre a imagem de capa e a area de cards. */
   .mobile-conteudo-cobertura{
     position:relative;z-index:2;background:var(--bg);
     width:100vw;margin-left:calc(-50vw + 50%);margin-right:calc(-50vw + 50%);
-    padding-left:16px;padding-right:16px;
+    padding-left:16px;padding-right:16px;padding-top:6px;
+  }
+  .mobile-conteudo-cobertura::before{
+    content:'';position:absolute;top:-28px;left:0;right:0;height:28px;
+    background:linear-gradient(to bottom,transparent,var(--bg));pointer-events:none;
   }
 
   .links-oficiais-titulo{
     display:block;font-size:12px;font-weight:800;letter-spacing:.08em;color:var(--text-muted);
-    text-align:center;margin:0 0 14px;text-transform:uppercase;
+    text-align:center;margin:0 0 18px;text-transform:uppercase;
   }
 
   .benefit-grid{grid-template-columns:1fr}
@@ -427,6 +433,10 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
       case 'youtube': return { color:'#FF3B30', I:PlayCircle }
       case 'shopee': return { color:'#EE4D2D', I:ShoppingBag }
       case 'mercadolivre': return { color:'#FFE600', I:ShoppingBag }
+      case 'loja': return { color:tema.accent, I:ShoppingBag }
+      case 'deezer': return { color:'#FEAA2D', I:Music2 }
+      case 'telefone': return { color:tema.accent, I:Phone }
+      case 'agenda': return { color:tema.accent, I:Calendar }
       case 'site': return { color:tema.accent, I:Globe }
       case 'curso': return { color:tema.accent, I:GraduationCap }
       case 'mentoria': return { color:tema.accent, I:Crown }
@@ -448,13 +458,41 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
     if (!u) return null
     const uMin = u.toLowerCase()
     if (uMin.startsWith('mailto:') || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(u)) return 'email'
+    if (uMin.startsWith('tel:')) return 'telefone'
     if (uMin.includes('open.spotify.com') || uMin.includes('spotify.com')) return 'spotify'
+    if (uMin.includes('deezer.com') || uMin.includes('deezer.page.link')) return 'deezer'
     if (uMin.includes('instagram.com')) return 'instagram'
     if (uMin.includes('tiktok.com')) return 'tiktok'
     if (uMin.includes('youtube.com') || uMin.includes('youtu.be')) return 'youtube'
     if (uMin.includes('wa.me') || uMin.includes('api.whatsapp.com') || uMin.includes('whatsapp.com')) return 'whatsapp'
+    if (uMin.includes('shopee.com')) return 'shopee'
+    if (uMin.includes('mercadolivre.com') || uMin.includes('mercadolibre.com')) return 'mercadolivre'
     if (uMin.includes('facebook.com') || uMin.includes('fb.com')) return 'facebook'
     if (uMin.includes('x.com') || uMin.includes('twitter.com')) return 'x'
+    return null
+  }
+
+  // Segunda camada de deteccao, usada quando a URL nao reconhece nada (vazia, encurtada,
+  // ou dominio proprio). Olha o TITULO que o dono digitou pro link - assim "YouTube",
+  // "Meu TikTok" ou "Loja" ganham o icone certo mesmo sem a URL confirmar. So entra em
+  // jogo depois de detectarTipoPorUrl falhar - URL reconhecida sempre tem prioridade.
+  function detectarTipoPorTitulo(titulo?: string): string | null {
+    const tMin = (titulo || '').trim().toLowerCase()
+    if (!tMin) return null
+    if (tMin.includes('whatsapp') || tMin.includes('zap')) return 'whatsapp'
+    if (tMin.includes('instagram') || tMin.includes('insta')) return 'instagram'
+    if (tMin.includes('youtube') || tMin.includes('canal')) return 'youtube'
+    if (tMin.includes('tiktok') || tMin.includes('tik tok')) return 'tiktok'
+    if (tMin.includes('spotify')) return 'spotify'
+    if (tMin.includes('deezer')) return 'deezer'
+    if (tMin.includes('shopee')) return 'shopee'
+    if (tMin.includes('mercado livre') || tMin.includes('mercadolivre')) return 'mercadolivre'
+    if (tMin.includes('facebook') || tMin === 'face') return 'facebook'
+    if (tMin.includes('e-mail') || tMin.includes('email')) return 'email'
+    if (tMin.includes('telefone') || tMin.includes('ligar') || tMin.includes('celular')) return 'telefone'
+    if (tMin.includes('agenda') || tMin.includes('agendar') || tMin.includes('calendário') || tMin.includes('calendario')) return 'agenda'
+    if (tMin.includes('loja') || tMin.includes('comprar') || tMin.includes('catálogo') || tMin.includes('catalogo') || tMin.includes('produto')) return 'loja'
+    if (tMin.includes('site') || tMin.includes('website')) return 'site'
     return null
   }
 
@@ -579,7 +617,7 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
               <div className="mobile-hero-content">
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
                   <h1 className="hero-mobile-nome">{nomeBusiness}</h1>
-                  <BadgeCheck size={20} color={tema.accent} style={{ flexShrink: 0, filter: 'drop-shadow(0 2px 6px rgba(0,0,0,.6))' }} />
+                  <BadgeCheck size={20} color="#3B82F6" style={{ flexShrink: 0, filter: 'drop-shadow(0 2px 6px rgba(0,0,0,.6))' }} />
                 </div>
                 <p className="hero-mobile-slug">@{slug}</p>
                 {linksSociais.length > 0 && (
@@ -612,7 +650,7 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
                     <h1 style={{ fontSize: 'clamp(22px,4.5vw,32px)', fontWeight: 900, color: 'var(--text)', letterSpacing: '-0.03em', lineHeight: 1.15 }}>
                       {nomeBusiness}
                     </h1>
-                    <BadgeCheck size={20} color={tema.accent} style={{ flexShrink: 0 }} />
+                    <BadgeCheck size={20} color="#3B82F6" style={{ flexShrink: 0 }} />
                   </div>
                   <p style={{ fontSize: '13px', color: 'var(--text-muted)', margin: '2px 0 0' }}>@{slug}{seguidoresTexto ? ` · ${seguidoresTexto}` : ''}</p>
                 </div>
@@ -639,8 +677,6 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
                 )}
               </div>
 
-              {/* Titulo "LINKS OFICIAIS" - so aparece no mobile, logo antes da secao de links */}
-              <p className="links-oficiais-titulo">LINKS OFICIAIS</p>
               <div style={{ height: '10px' }} />
             </>
           )
@@ -652,6 +688,10 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
             fixa do hero conforme a pagina rola; no desktop, e completamente neutro (mesma
             posicao/fundo de sempre, position:relative sem side-effect nenhum). */}
         <div className="mobile-conteudo-cobertura">
+          {/* Titulo "LINKS OFICIAIS" - so aparece no mobile (via CSS). Fica logo no inicio da
+              cobertura solida de proposito: aparece sobre o FUNDO DO TEMA (nao mais sobre a
+              imagem/video de capa), exatamente onde a transicao visual termina. */}
+          <p className="links-oficiais-titulo">LINKS OFICIAIS</p>
 
         {/* PROMOCAO EM DESTAQUE — substituida por Destaques + Links Rapidos. Codigo/logica preservados, apenas nao renderiza. */}
         {SECOES_ANTIGAS_DESATIVADAS && promoVisivel && (
@@ -753,7 +793,7 @@ secoesDestaquesComItens.length > 0 && permiteDestaques(perfil.plano_tipo) && (
                 </a>
               )}
               {linksRapidos && linksRapidos.slice(0, obterLimiteLinksRapidos(perfil.plano_tipo)).map(l => {
-                const tipoEfetivo = detectarTipoPorUrl(l.url) || l.tipo
+                const tipoEfetivo = detectarTipoPorUrl(l.url) || detectarTipoPorTitulo(l.titulo) || l.tipo
                 if (tipoEfetivo === 'email') {
                   const emailPuro = (l.url || '').replace(/^mailto:/i, '').trim()
                   return (
