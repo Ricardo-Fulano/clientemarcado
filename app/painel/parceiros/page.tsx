@@ -4,7 +4,12 @@ import { supabase } from '../../lib/supabase'
 import PainelSidebar from '@/app/components/PainelSidebar'
 import { normalizarPlano, obterNomePlano, obterPrecoPlano, type PlanoTipo } from '../../lib/planos'
 
-const ADMIN_ID = '618aedd1-f174-4419-b4b2-b81b8dd1c47e'
+// Mesma lista ja usada em PainelSidebar.tsx - canal19horas@gmail.com (original) +
+// misteriosoviaje@gmail.com (adicionada). Continua hardcoded (sem campo de banco).
+const ADMIN_IDS = [
+  '618aedd1-f174-4419-b4b2-b81b8dd1c47e', // canal19horas@gmail.com
+  'f2203e3c-9d23-4635-9d14-b990b5198b8a', // misteriosoviaje@gmail.com
+]
 
 const CSS = `
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -90,7 +95,7 @@ export default function Parceiros() {
   async function init() {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) { window.location.href = '/login'; return }
-    if (user.id !== ADMIN_ID) { window.location.href = '/painel'; return }
+    if (!ADMIN_IDS.includes(user.id)) { window.location.href = '/painel'; return }
     const { data: p } = await supabase.from('perfis').select('*').eq('user_id', user.id).single()
     setPerfil(p)
     await Promise.all([carregarParceiros(), carregarIndicacoes()])
@@ -264,7 +269,7 @@ export default function Parceiros() {
               <button className="btn-p" onClick={() => { resetForm(); setShowModal(true) }}>+ Novo parceiro</button>
             </div>
 
-            <p style={{ fontSize: '12px', color: '#C4B5FD', marginBottom: '20px' }}>Comissão: 50% da 1ª mensalidade paga pelo cliente indicado — MiniPage {fBRL(infoDoPlano('minipage').comissao)} · Profissional {fBRL(infoDoPlano('essencial').comissao)} · Equipe {fBRL(infoDoPlano('equipe').comissao)}</p>
+            <p style={{ fontSize: '12px', color: '#C4B5FD', marginBottom: '20px' }}>Comissão: 50% da 1ª mensalidade paga pelo cliente indicado — MiniPage {fBRL(infoDoPlano('minipage').comissao)} · Loja {fBRL(infoDoPlano('loja').comissao)} · Pro {fBRL(infoDoPlano('essencial').comissao)} · Equipe {fBRL(infoDoPlano('equipe').comissao)}</p>
 
             {msg && <div style={{ background: 'rgba(34,197,94,.12)', border: '1px solid rgba(34,197,94,.28)', borderRadius: '10px', padding: '10px 14px', fontSize: '13px', color: '#22C55E', marginBottom: '16px' }}>{msg}</div>}
 
@@ -589,7 +594,7 @@ export default function Parceiros() {
                   {TIPOS.map(t => <option key={t} value={t}>{t}</option>)}
                 </select>
               </div>
-              <p style={{ fontSize: '12px', color: '#B8AAB8', background: 'rgba(139,92,246,.08)', border: '1px solid rgba(139,92,246,.20)', borderRadius: '10px', padding: '10px 12px' }}>Comissão: 50% da 1ª mensalidade paga pelo cliente indicado (MiniPage {fBRL(infoDoPlano('minipage').comissao)} · Profissional {fBRL(infoDoPlano('essencial').comissao)} · Equipe {fBRL(infoDoPlano('equipe').comissao)}). Regra fixa, aplicada a todos os parceiros.</p>
+              <p style={{ fontSize: '12px', color: '#B8AAB8', background: 'rgba(139,92,246,.08)', border: '1px solid rgba(139,92,246,.20)', borderRadius: '10px', padding: '10px 12px' }}>Comissão: 50% da 1ª mensalidade paga pelo cliente indicado (MiniPage {fBRL(infoDoPlano('minipage').comissao)} · Loja {fBRL(infoDoPlano('loja').comissao)} · Pro {fBRL(infoDoPlano('essencial').comissao)} · Equipe {fBRL(infoDoPlano('equipe').comissao)}). Regra fixa, aplicada a todos os parceiros.</p>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <button onClick={() => setAtivo(!ativo)} style={{ width: '36px', height: '20px', borderRadius: '999px', border: 'none', cursor: 'pointer', position: 'relative', background: ativo ? '#EC4899' : '#2A1A2F' }}>
                   <span style={{ position: 'absolute', top: '2px', left: ativo ? '18px' : '2px', width: '16px', height: '16px', borderRadius: '50%', background: '#fff', transition: 'left .2s' }} />

@@ -7,7 +7,15 @@ import { supabase } from '../lib/supabase'
 import NotificacoesSino from './NotificacoesSino'
 import { normalizarPlano, ehPlanoComGestao, podeUsarProfissionais, obterLimiteCatalogos } from '../lib/planos'
 
-const ADMIN_ID = '618aedd1-f174-4419-b4b2-b81b8dd1c47e'
+// Lista de IDs com acesso admin ao menu "Parceiros" - antes era 1 unico ID fixo
+// (canal19horas@gmail.com), agora inclui tambem misteriosoviaje@gmail.com, que passou a
+// controlar parceiros/indicacoes tambem. Continua hardcoded no codigo (nao existe campo
+// is_admin nem tabela de permissoes no banco hoje) - se no futuro isso precisar crescer
+// mais, vale migrar pra um campo/tabela de verdade.
+const ADMIN_IDS = [
+  '618aedd1-f174-4419-b4b2-b81b8dd1c47e', // canal19horas@gmail.com
+  'f2203e3c-9d23-4635-9d14-b990b5198b8a', // misteriosoviaje@gmail.com
+]
 const AV = 'linear-gradient(135deg,rgba(236,72,153,.95),rgba(139,92,246,.85))'
 
 const LINKS = [
@@ -65,7 +73,7 @@ export default function PainelSidebar({ nome = '', tituloMobile = 'Painel' }: Pr
   useEffect(() => {
     supabase.auth.getUser().then(async ({ data: { user } }) => {
       if (!user) return
-      if (user.id === ADMIN_ID) setIsAdmin(true)
+      if (ADMIN_IDS.includes(user.id)) setIsAdmin(true)
       // Busca o plano do perfil pra filtrar o menu (Fase 2 - suporte tecnico ao plano MiniPage)
       const { data: perfil } = await supabase.from('perfis').select('plano_tipo').eq('user_id', user.id).maybeSingle()
       if (perfil) setPlanoAtual(normalizarPlano(perfil.plano_tipo))
