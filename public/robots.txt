@@ -4,4 +4,4 @@ Disallow: /painel
 Disallow: /painel/
 Disallow: /api/
 
-Sitemap: https://clientemarcado.com.br/sitemap.xml
+Sitemap: https://www.clientemarcado.com.br/sitemap.xml

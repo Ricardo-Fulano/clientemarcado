@@ -77,7 +77,11 @@ export async function POST(request: NextRequest) {
     let tentativas = 0
 
     while (tentativas < 3) {
-      const { error } = await supabase.from('perfis').insert({ user_id, slug: slugTentativa, ...camposComuns })
+      // pagina_mostrar_agenda:false vai APENAS aqui, no insert de perfil NOVO - nunca em
+      // camposComuns, que tambem e usado no update() acima (linha 66) quando o perfil ja
+      // existe. Colocar no camposComuns sobrescreveria contas antigas/ja configuradas
+      // toda vez que essa rota rodasse de novo pra um user_id existente.
+      const { error } = await supabase.from('perfis').insert({ user_id, slug: slugTentativa, pagina_mostrar_agenda: false, ...camposComuns })
       if (!error) {
         return NextResponse.json({ ok: true, criado: true, slug: slugTentativa })
       }

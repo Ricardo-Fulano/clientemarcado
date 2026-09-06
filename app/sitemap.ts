@@ -31,7 +31,17 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.8,
   }))
 
-  // minipage.pro (raiz) redireciona para clientemarcado.com.br (ver middleware.ts),
-  // entao nao faz sentido divulgar a raiz do minipage.pro no sitemap - so as paginas de perfil.
-  return urlsPerfis
+  // Home institucional - precisa estar listada explicitamente aqui, o Next.js nao inclui
+  // automaticamente so por existir metadata em layout.tsx.
+  const home: MetadataRoute.Sitemap = [{
+    url: 'https://www.clientemarcado.com.br',
+    lastModified: new Date(),
+    changeFrequency: 'weekly',
+    priority: 1,
+  }]
+
+  // minipage.pro (raiz) redireciona para www.clientemarcado.com.br (ver middleware.ts),
+  // entao nao faz sentido divulgar a raiz do minipage.pro no sitemap - so a home e as
+  // paginas de perfil.
+  return [...home, ...urlsPerfis]
 }

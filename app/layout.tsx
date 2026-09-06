@@ -13,25 +13,27 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://clientemarcado.com.br"),
-  title: "MiniPage Pro | Sua página profissional com links, vídeos, agenda e gestão",
+  metadataBase: new URL("https://www.clientemarcado.com.br"),
+  title: "MiniPage Pro | Página profissional para links, vídeos, catálogo e agenda",
   description:
-    "Transforme sua bio em uma página profissional com links, vídeos, divulgações, agenda e gestão em um só lugar.",
+    "Crie sua MiniPage profissional com links, vídeos, catálogo, destaques, agenda online e painel de desempenho. Uma solução ClienteMarcado para criadores, lojas, profissionais e negócios.",
+  alternates: {
+    canonical: "https://www.clientemarcado.com.br",
+  },
   keywords: [
+    "MiniPage Pro",
+    "página profissional para bio",
+    "link na bio",
+    "catálogo online",
     "agenda online",
-    "sistema para salão de beleza",
-    "sistema para estética",
-    "agendamento online",
-    "gestão para beleza",
-    "agenda para nail designer",
-    "agenda para lash designer",
+    "painel de desempenho",
     "ClienteMarcado",
   ],
   openGraph: {
-    title: "MiniPage Pro | Sua página profissional com links, vídeos, agenda e gestão",
+    title: "MiniPage Pro | Sua página profissional na bio",
     description:
-      "Transforme sua bio em uma página profissional com links, vídeos, divulgações, agenda e gestão em um só lugar.",
-    url: "https://clientemarcado.com.br",
+      "Organize links, vídeos, catálogo, divulgações, agenda e contatos em uma MiniPage moderna para Instagram, WhatsApp, TikTok e muito mais.",
+    url: "https://www.clientemarcado.com.br",
     siteName: "MiniPage Pro",
     locale: "pt_BR",
     type: "website",
@@ -46,9 +48,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "MiniPage Pro | Sua página profissional com links, vídeos, agenda e gestão",
+    title: "MiniPage Pro | Página profissional para links, vídeos e catálogo",
     description:
-      "Transforme sua bio em uma página profissional com links, vídeos, divulgações, agenda e gestão em um só lugar.",
+      "Crie sua MiniPage com links, vídeos, catálogo, agenda e painel de desempenho. Ideal para criadores, lojas, profissionais e negócios.",
     images: ["/og-image.png?v=2"],
   },
 };

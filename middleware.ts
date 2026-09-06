@@ -5,12 +5,24 @@ import { NextRequest, NextResponse } from 'next/server'
 // clientemarcado.com.br nunca entra nesse bloco, entao continua 100% como estava.
 export function middleware(request: NextRequest) {
   const host = request.headers.get('host') || ''
-  const ehMinipage = host.toLowerCase().includes('minipage.pro')
+  const hostLower = host.toLowerCase()
+  const ehMinipage = hostLower.includes('minipage.pro')
   const pathname = decodeURIComponent(request.nextUrl.pathname)
   const ehRaiz = pathname === '/'
 
+  // www.minipage.pro/{slug} deve virar minipage.pro/{slug} (redirect permanente) - evita
+  // que o Google veja as duas versoes como paginas diferentes (conteudo duplicado). Como
+  // isso muda o HOST (nao so o path), precisa montar a URL de destino na mao, com
+  // NextResponse.redirect(url) explicito, aplicado ANTES de qualquer outra regra de
+  // minipage.pro abaixo, ja que "www.minipage.pro" tambem bate em ehMinipage.
+  if (hostLower === 'www.minipage.pro') {
+    const destino = new URL(request.url)
+    destino.hostname = 'minipage.pro'
+    return NextResponse.redirect(destino, 308)
+  }
+
   if (ehMinipage && ehRaiz) {
-    return NextResponse.redirect('https://clientemarcado.com.br')
+    return NextResponse.redirect('https://www.clientemarcado.com.br')
   }
 
   // /@slug continua funcionando (compatibilidade), mas o link oficial divulgado agora e
