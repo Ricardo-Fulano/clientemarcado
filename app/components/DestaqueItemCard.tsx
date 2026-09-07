@@ -1,6 +1,51 @@
 'use client'
-import { useState } from 'react'
-import { Share2, Check } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { Share2, Check, PlayCircle } from 'lucide-react'
+
+// Detecta se a URL do destaque e de uma plataforma com embed oficial disponivel
+// (YouTube, Spotify ou TikTok) e monta a URL do player correspondente. Se nao reconhecer
+// nenhuma das 3, retorna null e o card mantem o comportamento antigo (so linka pra fora).
+function detectarEmbed(url?: string | null): { plataforma: 'youtube' | 'spotify' | 'tiktok'; embedUrl: string; aspectRatio: string } | null {
+  if (!url) return null
+  try {
+    const u = new URL(url)
+    const host = u.hostname.replace(/^www\./, '')
+
+    if (host === 'youtube.com' || host === 'youtu.be' || host === 'm.youtube.com') {
+      let videoId: string | null = null
+      if (host === 'youtu.be') videoId = u.pathname.slice(1)
+      else if (u.pathname.startsWith('/shorts/')) videoId = u.pathname.split('/')[2]
+      else videoId = u.searchParams.get('v')
+      if (!videoId) return null
+      return { plataforma: 'youtube', embedUrl: `https://www.youtube.com/embed/${videoId}?autoplay=1`, aspectRatio: '16/9' }
+    }
+
+    if (host === 'open.spotify.com') {
+      // O Spotify pode inserir um prefixo de idioma antes do tipo, ex:
+      // /intl-pt/artist/{id} em vez de so /artist/{id} - por isso procuramos o tipo valido
+      // em qualquer posicao do caminho, e pegamos o segmento seguinte como id, em vez de
+      // assumir que os 2 primeiros segmentos sao sempre [tipo, id].
+      const tiposValidos = ['track', 'album', 'playlist', 'episode', 'show', 'artist']
+      const partes = u.pathname.split('/').filter(Boolean)
+      const idxTipo = partes.findIndex(p => tiposValidos.includes(p))
+      if (idxTipo === -1 || !partes[idxTipo + 1]) return null
+      const tipo = partes[idxTipo]
+      const id = partes[idxTipo + 1]
+      return { plataforma: 'spotify', embedUrl: `https://open.spotify.com/embed/${tipo}/${id}`, aspectRatio: tipo === 'track' ? '456/152' : '1/1' }
+    }
+
+    if (host === 'tiktok.com') {
+      // /@usuario/video/{id}
+      const match = u.pathname.match(/\/video\/(\d+)/)
+      if (!match) return null
+      return { plataforma: 'tiktok', embedUrl: `https://www.tiktok.com/player/v1/${match[1]}`, aspectRatio: '9/16' }
+    }
+
+    return null
+  } catch {
+    return null
+  }
+}
 
 // Card de destaque + modal de detalhes ao clicar - mesmo padrao ja usado em CatalogoItemCard.
 // Client Component porque a pagina publica (app/[slug]/page.tsx) e Server Component e nao
@@ -37,6 +82,15 @@ export default function DestaqueItemCard({
   const [aberto, setAberto] = useState(false)
   const [compartilhando, setCompartilhando] = useState(false)
   const [linkCopiado, setLinkCopiado] = useState(false)
+  const [playerCarregado, setPlayerCarregado] = useState(false)
+  const embed = detectarEmbed(d.url)
+
+  useEffect(() => {
+    if (!aberto) return
+    const overflowOriginal = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => { document.body.style.overflow = overflowOriginal }
+  }, [aberto])
 
   const SELOS_PADRAO: Record<string, string> = {
     oferta: 'Oferta', novo: 'Novo', destaque: 'Destaque', promocao: 'Promoção',
@@ -126,11 +180,33 @@ export default function DestaqueItemCard({
               type="button"
               onClick={() => setAberto(false)}
               aria-label="Fechar"
-              style={{ position: 'absolute', top: '10px', right: '10px', width: '34px', height: '34px', borderRadius: '999px', background: 'rgba(0,0,0,.55)', border: '1.5px solid rgba(255,255,255,.4)', color: '#fff', fontSize: '16px', lineHeight: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', zIndex: 2 }}
+              style={{ position: 'absolute', top: '10px', right: '10px', width: '34px', height: '34px', borderRadius: '999px', background: 'rgba(0,0,0,.55)', border: '1.5px solid rgba(255,255,255,.4)', color: '#fff', fontSize: '16px', lineHeight: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', zIndex: 5 }}
             >
               ✕
             </button>
-            {d.imagem_url && (
+            {embed ? (
+              <div style={{ position: 'relative', width: '100%', aspectRatio: embed.aspectRatio, maxHeight: '70vh', margin: '0 auto', borderRadius: '20px 20px 0 0', overflow: 'hidden', background: '#000' }}>
+                {infoSelo() && (
+                  <span style={{ position: 'absolute', top: '10px', left: '10px', zIndex: 1, background: `linear-gradient(135deg,${tema.accent},${tema.secondary})`, color: tema.btnText, fontSize: '11px', fontWeight: 800, padding: '4px 10px', borderRadius: '999px', letterSpacing: '.02em' }}>{infoSelo()}</span>
+                )}
+                {playerCarregado ? (
+                  <iframe
+                    src={embed.embedUrl}
+                    title={d.titulo}
+                    allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+                    allowFullScreen
+                    style={{ width: '100%', height: '100%', border: 'none', display: 'block' }}
+                  />
+                ) : (
+                  <button type="button" onClick={() => setPlayerCarregado(true)} style={{ width: '100%', height: '100%', border: 'none', padding: 0, cursor: 'pointer', position: 'relative', background: '#000' }}>
+                    {d.imagem_url && <img src={d.imagem_url} alt={d.titulo} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', opacity: .75 }} />}
+                    <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', width: '60px', height: '60px', borderRadius: '999px', background: 'rgba(0,0,0,.6)', border: '2px solid rgba(255,255,255,.85)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <PlayCircle size={28} color="#fff" />
+                    </div>
+                  </button>
+                )}
+              </div>
+            ) : d.imagem_url && (
               <div style={{ position: 'relative' }}>
                 {infoSelo() && (
                   <span style={{ position: 'absolute', top: '10px', left: '10px', zIndex: 1, background: `linear-gradient(135deg,${tema.accent},${tema.secondary})`, color: tema.btnText, fontSize: '11px', fontWeight: 800, padding: '4px 10px', borderRadius: '999px', letterSpacing: '.02em' }}>{infoSelo()}</span>
@@ -162,6 +238,9 @@ export default function DestaqueItemCard({
                   )}
                 </div>
               )}
+              {embed?.plataforma === 'tiktok' && playerCarregado && (
+                <p style={{ fontSize: '11px', color: tema.textMuted, marginBottom: '12px', opacity: .8 }}>Se o vídeo não aparecer, use o botão abaixo para abrir no TikTok.</p>
+              )}
               {d.descricao && <p style={{ fontSize: '13px', color: tema.textMuted, lineHeight: 1.6, marginBottom: '16px', whiteSpace: 'pre-wrap' }}>{d.descricao}</p>}
               {d.url && (
                 <a
@@ -174,7 +253,7 @@ export default function DestaqueItemCard({
                   data-track-item-titulo={d.titulo || ''}
                   data-track-item-url={d.url}
                 >
-                  {d.texto_botao || textoVerMais}
+                  {d.texto_botao || (embed ? `Abrir no ${embed.plataforma === 'youtube' ? 'YouTube' : embed.plataforma === 'spotify' ? 'Spotify' : 'TikTok'}` : textoVerMais)}
                 </a>
               )}
               <button
