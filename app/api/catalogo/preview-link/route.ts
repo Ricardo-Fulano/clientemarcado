@@ -257,6 +257,46 @@ export async function POST(request: Request) {
       })
     }
 
+    // TikTok (video): usa o oEmbed oficial (publico, sem chave de API) - so cobre videos
+    // normais (@usuario/video/ID). TikTok Shop (produtos) nao tem API publica equivalente
+    // e continua no fluxo generico abaixo, com o mesmo aviso amigavel ja usado pra Shopee.
+    if (tipoDestino === 'tiktok') {
+      try {
+        const oembedRes = await buscarComTimeout(`https://www.tiktok.com/oembed?url=${encodeURIComponent(urlLimpa)}`)
+        if (oembedRes.ok) {
+          const dados = await oembedRes.json()
+          return NextResponse.json({
+            success: true,
+            tipo_destino: tipoDestino,
+            titulo: dados.title || null,
+            descricao: null,
+            imagem_url: dados.thumbnail_url || null,
+            url: urlLimpa,
+          })
+        }
+      } catch { /* segue pro fallback generico abaixo */ }
+    }
+
+    // Spotify: usa o oEmbed oficial (publico, sem chave de API) - resolve o problema de o
+    // Spotify bloquear/nao servir og:image no scraping generico abaixo. A resposta ja vem
+    // com a capa do album/faixa/playlist/episodio pronta em thumbnail_url.
+    if (tipoDestino === 'spotify') {
+      try {
+        const oembedRes = await buscarComTimeout(`https://open.spotify.com/oembed?url=${encodeURIComponent(urlLimpa)}`)
+        if (oembedRes.ok) {
+          const dados = await oembedRes.json()
+          return NextResponse.json({
+            success: true,
+            tipo_destino: tipoDestino,
+            titulo: dados.title || null,
+            descricao: null,
+            imagem_url: dados.thumbnail_url || null,
+            url: urlLimpa,
+          })
+        }
+      } catch { /* segue pro fallback generico abaixo */ }
+    }
+
     // Demais plataformas: tenta Open Graph generico via fetch com timeout curto, usando
     // headers de navegador real (nao mais um UA que se autodeclara bot) - reduz bastante a
     // chance de bloqueio automatico por WAFs de e-commerces como Shopee/Shein/Mercado Livre.
