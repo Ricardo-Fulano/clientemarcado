@@ -269,7 +269,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   }
 
   const nome = perfil.nome_negocio || 'MiniPage Pro'
-  const descricao = perfil.pagina_descricao_curta || perfil.descricao || 'Acesse agenda, links, vídeos e redes sociais em um só lugar.'
+  const descricao = perfil.pagina_descricao_curta || perfil.descricao || `Conheça a MiniPage de ${nome}: links, conteúdos, catálogo, vídeos e contatos em um só lugar.`
   const titulo = `${nome} | MiniPage Pro`
 
   // Mesmo fallback de capa por tipo de negócio já usado na renderização da página pública
