@@ -230,6 +230,18 @@ html,body{overflow-x:hidden;width:100%;max-width:100%}
 }
 `
 
+// Comprime a imagem via Supabase Storage Image Transformation quando a URL for do proprio
+// Storage do projeto - resolve o caso de fotos de perfil/capa grandes (2MB+) que o
+// Instagram aceita mas o crawler do WhatsApp, mais rigoroso com tempo/tamanho, frequentemente
+// falha em buscar (fica sem imagem grande na previa). Se a URL nao for reconhecida como
+// Storage do proprio projeto (ex: fallback padrao /og-image.png), retorna sem alterar -
+// nunca quebra o link original.
+function otimizarImagemOG(url: string): string {
+  const marcador = '/storage/v1/object/public/'
+  if (!url.includes(marcador)) return url
+  return url.replace('/storage/v1/object/public/', '/storage/v1/render/image/public/') + (url.includes('?') ? '&' : '?') + 'width=1200&quality=80'
+}
+
 // Domínio base do site, para montar URLs absolutas na prévia de compartilhamento.
 // Usa a mesma variável já documentada no projeto (.env.local / Vercel), com fallback pro domínio oficial.
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://clientemarcado.com.br'
@@ -289,7 +301,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   // Link oficial divulgado: https://minipage.pro/slug (sem @, mais simples de compartilhar).
   const url = `https://minipage.pro/${slug}`
   const imagemBruta = perfil.capa_url || perfil.imagem_capa || perfil.banner_url || capaFallback || perfil.foto_perfil_url || ''
-  const imagem = imagemBruta ? (imagemBruta.startsWith('http') ? imagemBruta : `${base}${imagemBruta}`) : `${SITE_URL}/og-image.png?v=2`
+  const imagem = imagemBruta ? otimizarImagemOG(imagemBruta.startsWith('http') ? imagemBruta : `${base}${imagemBruta}`) : `${SITE_URL}/og-image.png?v=2`
 
   return {
     title: titulo,
@@ -444,7 +456,7 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
       case 'endereco': return { color:tema.accent, I:MapPin }
       case 'secreto': return { color:tema.accent, I:Lock }
       case 'email': return { color:tema.accent, I:Mail }
-      case 'spotify': return { color:'#1DB954', svg:(<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" strokeWidth="1.6"/><path d="M7 10.6c2.8-.8 5.9-.6 8.3.7M7.4 13.4c2.3-.6 4.9-.5 6.9.6M7.8 16c1.8-.4 3.7-.3 5.2.5" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>) }
+      case 'spotify': return { color:'#1DB954', svg:(<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.24 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.1 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/></svg>) }
       case 'facebook': return { color:'#1877F2', svg:(<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M13.5 21v-7.8h2.6l.4-3h-3v-1.9c0-.87.24-1.46 1.5-1.46H16.6V4.14C16.3 4.1 15.3 4 14.1 4c-2.4 0-4.1 1.47-4.1 4.17V10.2H7.4v3h2.6V21h3.5z"/></svg>) }
       case 'x': return { color:tema.text, svg:(<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>) }
       case 'telegram': return { color:'#26A5E4', svg:(<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M21.05 3.51 2.6 10.72c-1.26.5-1.25 1.2-.23 1.51l4.72 1.47 1.82 5.53c.22.6.11.85.75.85.5 0 .72-.23 1-.5l2.4-2.32 4.98 3.67c.92.5 1.58.24 1.81-.85l3.28-15.44c.33-1.33-.5-1.94-1.38-1.53zM8.5 14.5l-1.1-3.6 10.5-6.6-8.4 8.4-.1.1z"/></svg>) }
