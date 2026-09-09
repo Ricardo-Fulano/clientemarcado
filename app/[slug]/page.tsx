@@ -420,8 +420,6 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
   const SECOES_ANTIGAS_DESATIVADAS = false as boolean
 
   // Icones sociais pequenos no topo (nao duplica a lista completa de Links, so um atalho)
-  const TIPOS_SOCIAIS = ['instagram', 'tiktok', 'youtube', 'whatsapp', 'site']
-  const linksSociais = (linksRapidos || []).filter(l => TIPOS_SOCIAIS.includes(l.tipo)).slice(0, 5)
 
   // Se o cliente ja cadastrou um link rapido apontando para a propria agenda, nao criar outro automatico (evita duplicar)
   const jaTemLinkDeAgenda = (linksRapidos || []).some(l => (l.url || '').includes('/agendar'))
@@ -449,6 +447,11 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
       case 'spotify': return { color:'#1DB954', svg:(<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" strokeWidth="1.6"/><path d="M7 10.6c2.8-.8 5.9-.6 8.3.7M7.4 13.4c2.3-.6 4.9-.5 6.9.6M7.8 16c1.8-.4 3.7-.3 5.2.5" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>) }
       case 'facebook': return { color:'#1877F2', svg:(<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M13.5 21v-7.8h2.6l.4-3h-3v-1.9c0-.87.24-1.46 1.5-1.46H16.6V4.14C16.3 4.1 15.3 4 14.1 4c-2.4 0-4.1 1.47-4.1 4.17V10.2H7.4v3h2.6V21h3.5z"/></svg>) }
       case 'x': return { color:tema.text, svg:(<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>) }
+      case 'telegram': return { color:'#26A5E4', svg:(<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M21.05 3.51 2.6 10.72c-1.26.5-1.25 1.2-.23 1.51l4.72 1.47 1.82 5.53c.22.6.11.85.75.85.5 0 .72-.23 1-.5l2.4-2.32 4.98 3.67c.92.5 1.58.24 1.81-.85l3.28-15.44c.33-1.33-.5-1.94-1.38-1.53zM8.5 14.5l-1.1-3.6 10.5-6.6-8.4 8.4-.1.1z"/></svg>) }
+      case 'linkedin': return { color:'#0A66C2', svg:(<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M20.45 20.45h-3.55v-5.57c0-1.33-.03-3.04-1.85-3.04-1.86 0-2.14 1.45-2.14 2.94v5.67H9.36V9h3.41v1.56h.05c.48-.9 1.64-1.85 3.38-1.85 3.61 0 4.28 2.38 4.28 5.47zM5.34 7.43a2.06 2.06 0 110-4.13 2.06 2.06 0 010 4.13zM7.11 20.45H3.56V9h3.55z"/></svg>) }
+      case 'pinterest': return { color:'#E60023', svg:(<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12c0 4.24 2.63 7.86 6.36 9.32-.09-.79-.16-2.01.03-2.87.18-.79 1.16-5.03 1.16-5.03s-.3-.6-.3-1.48c0-1.39.8-2.42 1.8-2.42.85 0 1.26.64 1.26 1.4 0 .85-.55 2.13-.83 3.32-.24.99.5 1.8 1.48 1.8 1.78 0 3.15-1.87 3.15-4.58 0-2.4-1.72-4.07-4.18-4.07-2.85 0-4.52 2.13-4.52 4.34 0 .86.33 1.78.75 2.28a.3.3 0 01.07.29c-.08.32-.25 1-.29 1.14-.04.19-.15.23-.35.14-1.3-.6-2.1-2.5-2.1-4.02 0-3.28 2.38-6.29 6.87-6.29 3.6 0 6.4 2.57 6.4 6 0 3.58-2.26 6.46-5.39 6.46-1.05 0-2.04-.55-2.38-1.19l-.65 2.47c-.23.9-.87 2.03-1.3 2.72.98.3 2.02.47 3.1.47 5.52 0 10-4.48 10-10S17.52 2 12 2z"/></svg>) }
+      case 'twitch': return { color:'#9146FF', svg:(<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M4.32 2 2.4 6.72v13.44h4.8V22.4l3.36-2.24h3.36l6.72-6.72V2H4.32zm14.4 10.24-3.36 3.36h-3.36l-2.4 2.4v-2.4H6.24V3.6h12.48v8.64z"/><path d="M15.36 6.72h1.92v5.76h-1.92zM10.56 6.72h1.92v5.76h-1.92z"/></svg>) }
+      case 'discord': return { color:'#5865F2', svg:(<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M20.32 5.37a18.6 18.6 0 0 0-4.6-1.44l-.23.42a17.1 17.1 0 0 1 4.06 1.42c-1.7-.9-3.55-1.55-5.55-1.86-.2.36-.4.75-.55 1.13a15.9 15.9 0 0 0-4.9 0c-.16-.38-.36-.77-.56-1.13-2 .3-3.85.96-5.55 1.86.03-.02.05-.03.06-.05C.87 8.4-.02 11.35.24 14.24a18.6 18.6 0 0 0 5.68 2.87c.46-.63.87-1.3 1.22-2a11.9 11.9 0 0 1-1.93-.94c.16-.12.32-.24.47-.37 3.72 1.72 7.78 1.72 11.46 0 .16.13.32.25.48.37-.62.36-1.27.68-1.94.94.35.7.76 1.37 1.22 2 1.98-.62 3.98-1.55 5.68-2.86.32-3.35-.55-6.27-2.26-8.88zM8.6 12.86c-.75 0-1.36-.7-1.36-1.55s.6-1.55 1.36-1.55c.76 0 1.37.7 1.36 1.55 0 .85-.6 1.55-1.36 1.55zm6.8 0c-.75 0-1.36-.7-1.36-1.55s.6-1.55 1.36-1.55c.76 0 1.37.7 1.36 1.55 0 .85-.6 1.55-1.36 1.55z"/></svg>) }
       default: return { color:tema.accent, I:Link2 }
     }
   }
@@ -472,6 +475,11 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
     if (uMin.includes('mercadolivre.com') || uMin.includes('mercadolibre.com')) return 'mercadolivre'
     if (uMin.includes('facebook.com') || uMin.includes('fb.com')) return 'facebook'
     if (uMin.includes('x.com') || uMin.includes('twitter.com')) return 'x'
+    if (uMin.includes('t.me') || uMin.includes('telegram.me') || uMin.includes('telegram.org')) return 'telegram'
+    if (uMin.includes('linkedin.com')) return 'linkedin'
+    if (uMin.includes('pinterest.com') || uMin.includes('pin.it')) return 'pinterest'
+    if (uMin.includes('twitch.tv')) return 'twitch'
+    if (uMin.includes('discord.gg') || uMin.includes('discord.com')) return 'discord'
     return null
   }
 
@@ -491,6 +499,11 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
     if (tMin.includes('shopee')) return 'shopee'
     if (tMin.includes('mercado livre') || tMin.includes('mercadolivre')) return 'mercadolivre'
     if (tMin.includes('facebook') || tMin === 'face') return 'facebook'
+    if (tMin.includes('telegram')) return 'telegram'
+    if (tMin.includes('linkedin')) return 'linkedin'
+    if (tMin.includes('pinterest')) return 'pinterest'
+    if (tMin.includes('twitch')) return 'twitch'
+    if (tMin.includes('discord')) return 'discord'
     if (tMin.includes('e-mail') || tMin.includes('email')) return 'email'
     if (tMin.includes('telefone') || tMin.includes('ligar') || tMin.includes('celular')) return 'telefone'
     if (tMin.includes('agenda') || tMin.includes('agendar') || tMin.includes('calendário') || tMin.includes('calendario')) return 'agenda'
@@ -498,6 +511,27 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
     if (tMin.includes('site') || tMin.includes('website')) return 'site'
     return null
   }
+
+  // Icones sociais do topo (abaixo do @slug): reconhece a plataforma de cada link rapido
+  // usando a MESMA deteccao ja usada nos cards abaixo (URL primeiro, titulo como segunda
+  // camada, campo tipo salvo manualmente por ultimo) - antes so olhava um campo "tipo" fixo
+  // com uma lista de so 5 valores, entao Spotify/Deezer/Shopee/Facebook/etc nunca apareciam
+  // no topo mesmo estando cadastrados corretamente como card.
+  // So plataformas "sociais" reconhecidas entram aqui - links genericos, produtos, loja
+  // fisica, catalogo, agenda ou botoes internos continuam so nos cards abaixo, por decisao
+  // deliberada (nao faz sentido visual/semantico ícone de "loja" ou "agenda" no topo).
+  const TIPOS_SOCIAIS_TOPO = ['whatsapp', 'instagram', 'youtube', 'tiktok', 'spotify', 'deezer', 'shopee', 'telegram', 'facebook', 'x', 'linkedin', 'pinterest', 'twitch', 'discord', 'email', 'site']
+  const linksSociaisBrutos = (linksRapidos || [])
+    .map(l => ({ ...l, tipoEfetivo: detectarTipoPorUrl(l.url) || detectarTipoPorTitulo(l.titulo) || l.tipo }))
+    .filter(l => TIPOS_SOCIAIS_TOPO.includes(l.tipoEfetivo))
+  // Deduplica por tipo - se houver 2 links de WhatsApp (ou Instagram em campo fixo + em
+  // link rapido), mostra so o primeiro de cada tipo, nunca 2 icones iguais.
+  const tiposJaVistos = new Set<string>()
+  const linksSociais = linksSociaisBrutos.filter(l => {
+    if (tiposJaVistos.has(l.tipoEfetivo)) return false
+    tiposJaVistos.add(l.tipoEfetivo)
+    return true
+  }).slice(0, 8)
 
   const fBRL = (v: number) => `R$ ${(v || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`
 
@@ -626,7 +660,7 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
                 {linksSociais.length > 0 && (
                   <div className="social-row" style={{ justifyContent: 'center', marginLeft: 0 }}>
                     {linksSociais.map(l => {
-                      const cfg = iconeLink(detectarTipoPorUrl(l.url) || l.tipo)
+                      const cfg = iconeLink(l.tipoEfetivo)
                       return (
                         <a key={l.id} href={l.url} target={l.url && l.url.startsWith('http') ? '_blank' : '_self'} rel="noopener noreferrer" className="social-ic" style={{ background: iconeBg, border: `1px solid ${iconeBorder}`, color: iconeCor }} aria-label={l.titulo} data-track-tipo="social_click" data-track-item-titulo={l.titulo} data-track-item-url={l.url}>
                           {cfg.svg ? cfg.svg : (cfg.I ? <cfg.I size={16} color={iconeCor} /> : null)}
@@ -660,7 +694,7 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
                 {linksSociais.length > 0 && (
                   <div className="social-row">
                     {linksSociais.map(l => {
-                      const cfg = iconeLink(detectarTipoPorUrl(l.url) || l.tipo)
+                      const cfg = iconeLink(l.tipoEfetivo)
                       return (
                         <a key={l.id} href={l.url} target={l.url && l.url.startsWith('http') ? '_blank' : '_self'} rel="noopener noreferrer" className="social-ic" style={{ background: iconeBg, border: `1px solid ${iconeBorder}`, color: iconeCor }} aria-label={l.titulo} data-track-tipo="social_click" data-track-item-titulo={l.titulo} data-track-item-url={l.url}>
                           {cfg.svg ? cfg.svg : (cfg.I ? <cfg.I size={16} color={iconeCor} /> : null)}
