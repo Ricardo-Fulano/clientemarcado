@@ -82,12 +82,12 @@ function AceitePlanoConteudo() {
     { t: '3. Objeto', c: 'Disponibilização de acesso à plataforma MiniPage Pro, uma solução ClienteMarcado, para criação de página profissional, divulgação de links, redes sociais, conteúdos, vídeos, catálogos, contatos, análise de desempenho e, conforme o plano contratado, recursos de agenda, clientes, cobranças, financeiro, relatórios e equipe.' },
     { t: '4. Plano', c: billingCycle === 'anual'
         ? `${plano.nome} (Anual) - pagamento único de ${plano.preco}, com acesso à plataforma por 12 meses.`
-        : `${plano.nome} no valor de ${plano.preco}/mês, com 7 dias grátis, sem fidelidade.` },
-    { t: '5. Teste grátis / Vigência', c: billingCycle === 'anual'
-        ? 'O plano anual concede acesso à plataforma por 12 meses a partir da confirmação do pagamento, sem período de teste gratuito.'
-        : 'O contratante poderá utilizar a plataforma por 7 dias gratuitamente. Após esse período, poderá ocorrer cobranca da assinatura, caso o cancelamento não seja realizado.' },
+        : `${plano.nome} no valor de ${plano.preco}/mês, sem fidelidade.` },
+    { t: '5. Ativação', c: billingCycle === 'anual'
+        ? 'O plano anual concede acesso à plataforma por 12 meses a partir da confirmação do pagamento.'
+        : 'O acesso à plataforma MiniPage Pro será disponibilizado após a confirmação do pagamento do plano contratado. Os valores, recursos e periodicidade de cobrança são apresentados ao contratante antes da confirmação da assinatura.' },
     { t: '6. Pagamento', c: 'O pagamento da assinatura sera feito conforme a forma de pagamento escolhida no momento da contratação.' },
-    { t: '7. Cancelamento', c: 'O contratante poderá cancelar a assinatura quando desejar, respeitando as regras apresentadas no fluxo de contratação.' },
+    { t: '7. Cancelamento', c: 'O contratante poderá solicitar o cancelamento conforme as condições informadas na plataforma, sem fidelidade, permanecendo responsável por valores já confirmados até a data do cancelamento, quando aplicável.' },
     { t: '8. Uso da plataforma', c: 'O contratante deve utilizar a plataforma de forma lícita, correta e responsável, mantendo seus dados atualizados.' },
     { t: '9. Dados cadastrados', c: 'O contratante é responsável pelos dados, links, imagens, descrições, produtos, conteúdos, contatos, clientes, serviços, valores, horários, orçamentos e pagamentos inseridos na plataforma, conforme os recursos disponíveis em seu plano.' },
     { t: '10. Limitacao de responsabilidade', c: 'O ClienteMarcado e uma ferramenta de organização e gestão. A plataforma não substitui consultoria contábil, jurídica, fiscal, odontológica, medica ou financeira.' },
@@ -144,7 +144,7 @@ function AceitePlanoConteudo() {
         {/* Intro */}
         <div style={{ marginBottom: '28px' }}>
           <h1 style={{ fontSize: '28px', fontWeight: 800, color: '#F8F4F7', letterSpacing: '-0.03em', marginBottom: '8px' }}>Antes de começar</h1>
-          <p style={{ fontSize: '14px', color: '#B8AAB8', lineHeight: 1.6 }}>Revise o plano, leia o contrato e confirme seu aceite para ativar seu teste grátis.</p>
+          <p style={{ fontSize: '14px', color: '#B8AAB8', lineHeight: 1.6 }}>Revise o plano, leia o contrato e confirme seu aceite para ativar sua MiniPage.</p>
         </div>
 
         {/* Card do plano */}
@@ -161,8 +161,7 @@ function AceitePlanoConteudo() {
                   </>
                 ) : (
                   <>
-                    <span className="badge" style={{ background: 'rgba(34,197,94,.14)', border: '1px solid rgba(34,197,94,.28)', color: '#22C55E' }}>7 dias grátis</span>
-                    <span className="badge" style={{ background: 'rgba(42,26,47,.10)', border: '1px solid rgba(42,26,47,.18)', color: '#B8AAB8' }}>Sem fidelidade</span>
+                    <span className="badge" style={{ background: 'rgba(34,197,94,.14)', border: '1px solid rgba(34,197,94,.28)', color: '#22C55E' }}>Sem fidelidade</span>
                     <span className="badge" style={{ background: 'rgba(42,26,47,.10)', border: '1px solid rgba(42,26,47,.18)', color: '#B8AAB8' }}>Cancele quando quiser</span>
                   </>
                 )}
@@ -170,7 +169,7 @@ function AceitePlanoConteudo() {
             </div>
             <div style={{ textAlign: 'right' }}>
               <p style={{ fontSize: '28px', fontWeight: 800, color: '#EC4899', letterSpacing: '-0.02em', lineHeight: 1 }}>{plano.preco}</p>
-              <p style={{ fontSize: '12px', color: '#B8AAB8' }}>{billingCycle === 'anual' ? '/ano' : '/mês após o teste'}</p>
+              <p style={{ fontSize: '12px', color: '#B8AAB8' }}>{billingCycle === 'anual' ? '/ano' : '/mês'}</p>
             </div>
           </div>
           <div style={{ borderTop: '1px solid rgba(42,26,47,.10)', paddingTop: '14px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
@@ -183,7 +182,7 @@ function AceitePlanoConteudo() {
           <div style={{ marginTop: '14px', padding: '10px 14px', background: 'rgba(245,158,11,.08)', border: '1px solid rgba(245,158,11,.22)', borderRadius: '10px', fontSize: '12px', color: '#FCD34D', lineHeight: 1.6 }}>
             {billingCycle === 'anual'
               ? <>⚠ Você contratará o plano anual com acesso por 12 meses. O valor de {plano.preco}/ano será cobrado conforme a forma de pagamento escolhida.</>
-              : <>⚠ Você poderá testar gratuitamente por 7 dias. Após esse período, poderá ser cobrado {plano.preco}/mês, caso não cancele antes.</>}
+              : <>⚠ Após aceitar o contrato, você criará sua conta e poderá escolher Pix ou Cartão para ativar sua MiniPage. O valor de {plano.preco}/mês será cobrado conforme a forma de pagamento escolhida.</>}
           </div>
         </div>
 
@@ -228,7 +227,7 @@ function AceitePlanoConteudo() {
             <p style={{ fontSize: '13px', color: '#B8AAB8', lineHeight: 1.5 }}>
               {billingCycle === 'anual'
                 ? <>Estou ciente de que estou contratando o plano anual, com acesso por 12 meses, no valor de {plano.preco}/ano, conforme a forma de pagamento escolhida.</>
-                : <>Estou ciente de que o plano possui 7 dias grátis e, após esse período, poderei ser cobrado {plano.preco}/mês, caso não cancele antes.</>}
+                : <>Estou ciente de que minha MiniPage será ativada após a confirmação do pagamento do plano de {plano.preco}/mês escolhido.</>}
             </p>
           </div>
 

@@ -63,7 +63,6 @@ async function criarPerfilAutomatico(userId: string, metadata: any) {
 export default function PainelLayoutClient({ children }: { children: React.ReactNode }) {
   const [status, setStatus] = useState<string>('ativo')
   const [planoTipo, setPlanoTipo] = useState<string>('essencial')
-  const [diasTrial, setDiasTrial] = useState<number|null>(null)
   const [diasAtraso, setDiasAtraso] = useState<number|null>(null)
   const [temAssinaturaAutorizada, setTemAssinaturaAutorizada] = useState(true) // otimista ate confirmar - nunca bloqueia por engano antes da consulta terminar
   const [loadingPag, setLoadingPag] = useState(false)
@@ -328,16 +327,6 @@ export default function PainelLayoutClient({ children }: { children: React.React
           </p>
           <button onClick={abrirCheckout} disabled={loadingPag} style={{display:'inline-flex',alignItems:'center',height:'32px',padding:'0 16px',background:G,color:'#fff',borderRadius:'8px',border:'none',fontSize:'12px',fontWeight:700,whiteSpace:'nowrap',flexShrink:0,cursor:loadingPag?'wait':'pointer',opacity:loadingPag?.7:1,fontFamily:'inherit'}}>
             {loadingPag ? 'Gerando...' : precisaFinalizarAssinatura ? 'Finalizar assinatura' : 'Regularizar'}
-          </button>
-        </div>
-      )}
-      {diasTrial !== null && status === 'ativo' && (
-        <div style={{background:'rgba(59,130,246,.08)',border:'1px solid rgba(96,165,250,.22)',borderRadius:'0',padding:'10px 24px',display:'flex',alignItems:'center',gap:'10px',position:'sticky',top:0,zIndex:40}}>
-          <p style={{fontSize:'13px',fontWeight:600,color:'#93C5FD',margin:0}}>
-            🕐 Seu teste grátis termina em {diasTrial <= 0 ? 'menos de 1 dia' : `${diasTrial} dia${diasTrial === 1 ? '' : 's'}`}. Ative seu plano para continuar usando o ClienteMarcado.
-          </p>
-          <button onClick={abrirCheckout} disabled={loadingPag} style={{display:'inline-flex',alignItems:'center',height:'30px',padding:'0 14px',background:G,color:'#fff',borderRadius:'8px',border:'none',fontSize:'12px',fontWeight:700,whiteSpace:'nowrap',flexShrink:0,cursor:loadingPag?'wait':'pointer',opacity:loadingPag?.7:1,fontFamily:'inherit'}}>
-            {loadingPag ? 'Gerando...' : 'Ativar plano'}
           </button>
         </div>
       )}

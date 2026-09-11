@@ -282,12 +282,6 @@ export default function MeuPlano() {
                       <p style={{ fontSize: '15px', fontWeight: 700, color: totalProfissionais >= limiteProfissionaisAtual ? '#F87171' : '#F8F4F7' }}>{totalProfissionais} de {limiteProfissionaisAtual}</p>
                     </div>
                   )}
-                  {perfil?.trial_ends_at && !ehPlanoFree(planoAtual) && (
-                    <div>
-                      <p style={{ fontSize: '11px', color: '#B8AAB8', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: '4px' }}>Teste grátis até</p>
-                      <p style={{ fontSize: '15px', fontWeight: 700, color: '#F8F4F7' }}>{formatarData(perfil.trial_ends_at)}</p>
-                    </div>
-                  )}
                   {perfil?.plano_ativo_ate && !ehPlanoFree(planoAtual) && (
                     <div>
                       <p style={{ fontSize: '11px', color: '#B8AAB8', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: '4px' }}>Próxima cobrança</p>
