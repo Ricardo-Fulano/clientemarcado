@@ -47,6 +47,17 @@ export async function POST(request: NextRequest) {
     // preenchido (criadas antes desta etapa). Sempre normaliza pra 'mensal'|'anual', nunca
     // deixa passar um valor invalido adiante.
     const bodyRecebido = await request.json().catch(() => ({}))
+
+    // Metodo de pagamento: so aceita CREDIT_CARD ou PIX, escolhido explicitamente pelo
+    // cliente na tela de /pos-confirmacao. Nunca usa UNDEFINED (que liberaria Boleto e
+    // Debito tambem) - se vier vazio/invalido, rejeita com 400 em vez de assumir um valor
+    // padrao, seguindo a mesma logica de seguranca ja usada nos outros BLOQUEIOs desta rota.
+    const METODOS_PAGAMENTO_PERMITIDOS = ['CREDIT_CARD', 'PIX']
+    const metodoPagamento = bodyRecebido?.metodoPagamento
+    if (!METODOS_PAGAMENTO_PERMITIDOS.includes(metodoPagamento)) {
+      return NextResponse.json({ error: 'Selecione uma forma de pagamento válida (cartão de crédito ou Pix).' }, { status: 400 })
+    }
+
     const billingCycle = normalizarBillingCycle(perfil?.billing_cycle || bodyRecebido?.billing_cycle)
     const valor = obterPrecoPlanoPorCiclo(planoTipo, billingCycle)
     const descricao = `${obterReasonMercadoPago(planoTipo)} (${billingCycle === 'anual' ? 'Anual' : 'Mensal'})`
@@ -92,9 +103,22 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Não foi possível iniciar a cobrança. Tente novamente ou fale com o suporte.' }, { status: 500 })
     }
 
-    const amanha = new Date()
-    amanha.setDate(amanha.getDate() + 1)
-    const nextDueDate = amanha.toISOString().slice(0, 10) // formato AAAA-MM-DD
+    // Vencimento no mesmo dia (nao mais amanha): confirmado na documentacao oficial do
+    // Asaas que dueDate/nextDueDate NAO controla quando o cartao e cobrado nesse tipo de
+    // fluxo (checkout hospedado, sem enviar dados do cartao na criacao) - a cobranca no
+    // cartao sempre acontece no momento em que o cliente insere os dados na tela do Asaas,
+    // independente da data aqui. Usar hoje corrige a data EXIBIDA (que antes mostrava
+    // "amanha" de forma enganosa) e, pro Pix, permite vencimento no mesmo dia pra ativacao
+    // imediata, sem mudar o comportamento real de cobranca de nenhum dos dois metodos.
+    const hoje = new Date()
+    const nextDueDate = hoje.toISOString().slice(0, 10) // formato AAAA-MM-DD
+
+    // URL de retorno pos-pagamento: mesmo padrao ja usado na pagina publica pra montar URL
+    // absoluta do site (clientemarcado.com.br, onde o painel/pos-confirmacao roda - nao
+    // minipage.pro, que e so pras paginas publicas [slug]). O Asaas redireciona o cliente
+    // pra ca automaticamente assim que o pagamento e concluido (recurso nativo "callback").
+    const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://clientemarcado.com.br'
+    const successUrl = `${SITE_URL}/pos-confirmacao?aguardando=1`
 
     // ===================================================================
     // ANUAL: cobranca UNICA (nunca recorrente) - endpoint /payments direto,
@@ -106,11 +130,12 @@ export async function POST(request: NextRequest) {
         headers,
         body: JSON.stringify({
           customer: customerData.id,
-          billingType: 'UNDEFINED', // cliente escolhe Pix/cartao/boleto no checkout hospedado
+          billingType: metodoPagamento, // CREDIT_CARD ou PIX, escolhido pelo cliente - nunca UNDEFINED
           value: valor,
           dueDate: nextDueDate,
           description: descricao,
           externalReference: userId,
+          callback: { successUrl },
         }),
       })
       const paymentData = await parseRespostaAsaas(paymentRes, 'criar cobranca anual (payment unico)')
@@ -141,12 +166,13 @@ export async function POST(request: NextRequest) {
       headers,
       body: JSON.stringify({
         customer: customerData.id,
-        billingType: 'UNDEFINED',
+        billingType: metodoPagamento, // CREDIT_CARD ou PIX, escolhido pelo cliente - nunca UNDEFINED
         value: valor,
         nextDueDate,
         cycle: 'MONTHLY',
         description: descricao,
         externalReference: userId,
+        callback: { successUrl },
       }),
     })
     const subscriptionData = await parseRespostaAsaas(subscriptionRes, 'criar subscription')

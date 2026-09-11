@@ -72,41 +72,14 @@ export default function PainelLayoutClient({ children }: { children: React.React
   const router = useRouter()
   const pathname = usePathname()
 
-  async function abrirCheckout() {
+  function abrirCheckout() {
     if (loadingPag) return
     setLoadingPag(true)
-    const MENSAGEM_ERRO_CHECKOUT = 'Não foi possível iniciar o checkout agora. Tente novamente ou fale com o suporte.'
-    try {
-      const { data: { session } } = await supabase.auth.getSession()
-      const token = session?.access_token
-      if (!token) {
-        alert('Sessão expirada. Faça login novamente para regularizar o pagamento.')
-        return
-      }
-      // Rota trocada pra Asaas - o fluxo real de "Finalizar assinatura" do painel agora usa
-      // /api/asaas/criar-assinatura. Os antigos fallbacks pro link fixo do Mercado Pago
-      // (CHECKOUT_URL) foram removidos de proposito: misturar os 2 gateways em caso de erro
-      // criaria inconsistencia (cliente pagaria no MP, sistema esperaria confirmacao do
-      // Asaas). Em qualquer erro agora, mostra so a mensagem clara pedindo pra tentar de
-      // novo ou falar com o suporte.
-      const res = await fetch('/api/asaas/criar-assinatura', {
-        method: 'POST',
-        headers: { 'Authorization': 'Bearer ' + token },
-      })
-      const data = await res.json().catch(() => null)
-      if (data?.init_point) {
-        window.location.href = data.init_point
-      } else {
-        // Mostra o motivo especifico que a API retornou (ex: "Precisamos do seu CPF...")
-        // em vez de sempre a mensagem generica - a mensagem generica continua como
-        // fallback, se a API nao mandar nada util.
-        alert(data?.error || MENSAGEM_ERRO_CHECKOUT)
-      }
-    } catch {
-      alert(MENSAGEM_ERRO_CHECKOUT)
-    } finally {
-      setLoadingPag(false)
-    }
+    // /pos-confirmacao mostra a escolha entre Cartao de Credito e Pix, e so ali a API
+    // /api/asaas/criar-assinatura e chamada de verdade, com o metodo escolhido - chamar a
+    // API direto por aqui (como antes) sempre falha hoje, ja que ela exige metodoPagamento
+    // explicito e nunca mais aceita UNDEFINED.
+    window.location.href = '/pos-confirmacao'
   }
 
   useEffect(() => {
@@ -152,38 +125,23 @@ export default function PainelLayoutClient({ children }: { children: React.React
 
       let st = p?.status_acesso || 'ativo'
 
-      // Free nunca tem cobranca - nao faz sentido avaliar atraso nem marcar em_atraso pra essas
-      // contas, mesmo que o trial de 7 dias (dado a todo cadastro, independente do plano
-      // escolhido depois) ja tenha vencido.
-      if (p?.trial_ends_at && !ehPlanoFree(p?.plano_tipo)) {
+      // NOTA: existia aqui uma logica baseada em trial_ends_at (trial de 7 dias) que
+      // calculava se o trial tinha vencido e, nesse caso, mudava status_acesso pra
+      // 'em_atraso' sozinha. Essa logica foi DESATIVADA - a nova regra de negocio nao usa
+      // mais trial: Free e gratis sem vencimento, planos pagos so liberam/bloqueiam via
+      // status_acesso definido pelo webhook do Asaas (pagamento confirmado libera,
+      // atraso/cancelamento bloqueia). O campo trial_ends_at continua existindo no banco
+      // (ainda preenchido pelo trigger_set_trial, que nao foi alterado), mas nao e mais
+      // lido/usado aqui pra nenhuma decisao de acesso.
+
+      // Dias de atraso (mantido): calcula usando plano_ativo_ate como referencia quando o
+      // status ja veio 'em_atraso' do banco (definido pelo webhook do Asaas por pagamento
+      // vencido/estornado/cancelado - nunca mais por trial vencido).
+      if (st === 'em_atraso' && p?.plano_ativo_ate) {
         const agora = new Date()
-        const fimTrial = new Date(p.trial_ends_at)
-        const fimPlano = p?.plano_ativo_ate ? new Date(p.plano_ativo_ate) : null
-        const msRestantes = fimTrial.getTime() - agora.getTime()
-        const diasRestantes = Math.ceil(msRestantes / (1000 * 60 * 60 * 24))
-
-        const trialVencido = agora > fimTrial
-        const planoAtivo = fimPlano && agora < fimPlano
-
-        if (!trialVencido) {
-          // Trial ainda ativo
-          if (diasRestantes <= 2) setDiasTrial(diasRestantes)
-        } else if (!planoAtivo) {
-          // Trial vencido e sem plano ativo: mudar para em_atraso
-          if (st === 'ativo') {
-            st = 'em_atraso'
-            await supabase.from('perfis').update({ status_acesso: 'em_atraso' }).eq('user_id', user.id)
-          }
-        }
-
-        // Dias de atraso: usa a data de fim do plano pago como referencia (mais precisa pra
-        // quem ja pagou antes e teve a assinatura vencida); se nunca pagou, usa o fim do trial.
-        // Nao inventa campo novo no banco - reaproveita o que ja existe.
-        if (st === 'em_atraso') {
-          const dataReferencia = fimPlano || fimTrial
-          const diasDesde = Math.floor((agora.getTime() - dataReferencia.getTime()) / (1000 * 60 * 60 * 24))
-          setDiasAtraso(Math.max(0, diasDesde))
-        }
+        const dataReferencia = new Date(p.plano_ativo_ate)
+        const diasDesde = Math.floor((agora.getTime() - dataReferencia.getTime()) / (1000 * 60 * 60 * 24))
+        setDiasAtraso(Math.max(0, diasDesde))
       }
 
       setStatus(st)

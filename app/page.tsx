@@ -114,7 +114,7 @@ export default function Home() {
         <div style={{maxWidth:'760px',margin:'0 auto'}}>
           <div style={{display:'inline-flex',alignItems:'center',gap:'8px',background:'rgba(236,72,153,.10)',border:'1px solid rgba(236,72,153,.22)',borderRadius:'999px',padding:'6px 18px',marginBottom:'36px'}}>
             <span style={{width:'6px',height:'6px',borderRadius:'50%',background:'#EC4899',display:'inline-block',flexShrink:0}}/>
-            <span style={{fontSize:'12px',fontWeight:600,color:'#EC4899',letterSpacing:'.04em'}}>7 dias grátis para criar sua MiniPage profissional</span>
+            <span style={{fontSize:'12px',fontWeight:600,color:'#EC4899',letterSpacing:'.04em'}}>Comece grátis, crie sua MiniPage profissional</span>
           </div>
           <h1 style={{fontSize:'clamp(38px,6vw,66px)',fontWeight:900,color:'#F8F4F7',letterSpacing:'-0.04em',lineHeight:1.05,marginBottom:'24px'}}>
             Transforme sua bio<br/>em uma MiniPage profissional.
@@ -130,7 +130,7 @@ export default function Home() {
             <a href="https://minipage.pro/modelos" className="btn-s">Ver exemplo</a>
           </div>
           <p style={{fontSize:'13px',color:'#B8AAB8',marginTop:'18px'}}>Quer ver exemplos antes de criar? <a href="https://minipage.pro/modelos" style={{color:'#EC4899',fontWeight:600,textDecoration:'none'}}>Veja os melhores modelos</a>.</p>
-          <p style={{fontSize:'12px',color:'#B8AAB8',marginTop:'10px'}}>Teste grátis por 7 dias. Planos a partir de R$ 39,90/mês. Sem fidelidade.</p>
+          <p style={{fontSize:'12px',color:'#B8AAB8',marginTop:'10px'}}>Comece no plano grátis. Planos pagos a partir de R$ 39,90/mês. Sem fidelidade.</p>
         </div>
 
         {/* MOCKUP VISUAL DA MINIPAGE */}
@@ -321,7 +321,7 @@ export default function Home() {
 
           </div>
 
-          <p style={{textAlign:'center',fontSize:'13px',color:'#B8AAB8',marginTop:'32px'}}>{billingSelecionado==='anual' ? 'Planos anuais com cobrança única e renovação anual. MiniPage Pro é uma solução ClienteMarcado.' : 'Todos os planos pagos incluem 7 dias grátis. MiniPage Pro é uma solução ClienteMarcado.'}</p>
+          <p style={{textAlign:'center',fontSize:'13px',color:'#B8AAB8',marginTop:'32px'}}>{billingSelecionado==='anual' ? 'Planos anuais com cobrança única e renovação anual. MiniPage Pro é uma solução ClienteMarcado.' : 'Planos pagos com cobrança mensal recorrente. MiniPage Pro é uma solução ClienteMarcado.'}</p>
         </div>
       </section>
       {/* CTA FINAL */}
@@ -337,7 +337,7 @@ export default function Home() {
             <Link href="/aceite-plano?plano=minipage" className="btn-p">Criar minha MiniPage grátis</Link>
             <Link href="/login" className="btn-s">Já tenho conta</Link>
           </div>
-          <p style={{fontSize:'13px',color:'#B8AAB8',marginTop:'20px'}}>Teste grátis por 7 dias. Planos a partir de R$ 39,90/mês. Sem fidelidade.</p>
+          <p style={{fontSize:'13px',color:'#B8AAB8',marginTop:'20px'}}>Comece no plano grátis. Planos pagos a partir de R$ 39,90/mês. Sem fidelidade.</p>
         </div>
       </section>
       <footer style={{borderTop:'1px solid #2A1A2F',padding:'32px 24px',textAlign:'center'}}>
