@@ -70,6 +70,7 @@ export default function GerenciarAparencia(){
   const [msg,setMsg]=useState('')
 
   const [capUrl,setCapUrl]=useState('')
+  const [capUrlOriginal,setCapUrlOriginal]=useState('')
   const [bannerMobilePosicao,setBannerMobilePosicao]=useState('padrao')
   const [bannerMobileZoom,setBannerMobileZoom]=useState('normal')
   const [bannerTipo,setBannerTipo]=useState('imagem') // 'imagem' | 'video'
@@ -78,6 +79,7 @@ export default function GerenciarAparencia(){
   
   const [topoMobileTipo,setTopoMobileTipo]=useState('imagem') // 'imagem' | 'video'
   const [topoMobileUrl,setTopoMobileUrl]=useState('')
+  const [topoMobileUrlOriginal,setTopoMobileUrlOriginal]=useState('')
   const [enviandoTopoMobile,setEnviandoTopoMobile]=useState(false)
   const [captacaoLeadsAtiva,setCaptacaoLeadsAtiva]=useState(false)
   const [publicTheme,setPublicTheme]=useState('modelo2')
@@ -98,6 +100,7 @@ export default function GerenciarAparencia(){
     if(p){
       setPlanoTipo(p.plano_tipo||'essencial')
       setCapUrl(p.capa_url||p.imagem_capa||'')
+      setCapUrlOriginal(p.capa_url||p.imagem_capa||'')
       setBannerMobilePosicao(p.banner_mobile_position||'padrao')
       setBannerMobileZoom(p.banner_mobile_zoom||'normal')
       setBannerTipo(p.banner_tipo||'imagem')
@@ -106,6 +109,7 @@ export default function GerenciarAparencia(){
       setTopoMobileTipo(p.topo_mobile_tipo||'imagem')
       setCaptacaoLeadsAtiva(!!p.captacao_leads_ativa)
       setTopoMobileUrl(p.topo_mobile_url||'')
+      setTopoMobileUrlOriginal(p.topo_mobile_url||'')
       if(p.public_theme||p.tema_publico||p.tema_cor) setPublicTheme(resolverTema(p.public_theme||p.tema_publico||p.tema_cor||'modelo2'))
     }
     setCarregando(false)
@@ -207,8 +211,13 @@ export default function GerenciarAparencia(){
     // forca 'imagem' nesse caso, protegendo contra o bloqueio ser so visual.
     const bannerTipoFinal = ehPlanoFree(planoTipo) ? 'imagem' : bannerTipo
     const topoMobileTipoFinal = ehPlanoFree(planoTipo) ? 'imagem' : topoMobileTipo
+    // Protecao extra: para Free, capa e topo mobile sempre preservam o valor ORIGINAL
+    // carregado do banco, mesmo que o state local tenha sido alterado de alguma forma (a UI
+    // ja bloqueia edicao, isso e so uma segunda camada de seguranca).
+    const capUrlFinal = ehPlanoFree(planoTipo) ? capUrlOriginal : capUrl
+    const topoMobileUrlFinal = ehPlanoFree(planoTipo) ? topoMobileUrlOriginal : topoMobileUrl
     const {error}=await supabase.from('perfis').update({
-      capa_url:capUrl||null,
+      capa_url:capUrlFinal||null,
       banner_mobile_position:bannerMobilePosicao,
       banner_mobile_zoom:bannerMobileZoom,
       public_theme:publicTheme,
@@ -217,7 +226,7 @@ export default function GerenciarAparencia(){
       seguidores_texto:seguidoresTexto.trim()||null,
       topo_mobile_tipo:topoMobileTipoFinal,
       captacao_leads_ativa: permiteCatalogoWhatsapp(planoTipo) ? captacaoLeadsAtiva : false,
-      topo_mobile_url:topoMobileUrl.trim()||null,
+      topo_mobile_url:topoMobileUrlFinal.trim()||null,
     }).eq('user_id',userId)
     setSalvando(false)
     if(error){setMsg('Erro ao salvar: '+error.message);return}
@@ -226,6 +235,8 @@ export default function GerenciarAparencia(){
   }
 
   if(carregando)return(<div style={{minHeight:'100vh',background:'#08060A',display:'flex',alignItems:'center',justifyContent:'center',fontFamily:'system-ui'}}><p style={{color:'#B8AAB8',fontSize:'14px'}}>Carregando...</p></div>)
+
+  const isPlanoFree = ehPlanoFree(planoTipo)
 
   return(
     <div style={{display:'flex',minHeight:'100vh',background:'#08060A',fontFamily:'-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif',overflowX:'hidden',width:'100%'}}>
@@ -246,6 +257,18 @@ export default function GerenciarAparencia(){
           <p style={{fontSize:'13px',color:'#B8AAB8',marginBottom:'24px'}}>Personalize o visual da página que seus visitantes acessam.</p>
 
           <div className="crd">
+            {isPlanoFree ? (
+              <div style={{textAlign:'center',padding:'28px 16px'}}>
+                <div style={{width:'52px',height:'52px',borderRadius:'999px',background:'rgba(139,92,246,.14)',border:'1px solid rgba(139,92,246,.28)',display:'flex',alignItems:'center',justifyContent:'center',margin:'0 auto 16px'}}>
+                  <Lock size={22} color="#A78BFA"/>
+                </div>
+                <p style={{fontSize:'15px',fontWeight:700,color:'#F8F4F7',marginBottom:'8px'}}>Recurso disponível nos planos pagos</p>
+                <p style={{fontSize:'13px',color:'#B8AAB8',lineHeight:1.6,maxWidth:'420px',margin:'0 auto 6px'}}>Capa, vídeo de capa e topo personalizado estão disponíveis nos planos pagos.</p>
+                <p style={{fontSize:'12px',color:'#B8AAB8',lineHeight:1.6,maxWidth:'420px',margin:'0 auto 20px'}}>No plano Free, sua página usa a foto de perfil, nome, bio e links rápidos. Para liberar capa, vídeo, destaques visuais e personalização completa, escolha um plano pago.</p>
+                <Link href="/painel/plano" style={{display:'inline-flex',alignItems:'center',gap:'6px',background:G,color:'#fff',borderRadius:'10px',padding:'10px 20px',fontSize:'13px',fontWeight:700,textDecoration:'none'}}>Ver planos</Link>
+              </div>
+            ) : (
+              <>
             <p style={{fontSize:'13px',fontWeight:600,color:'#B8AAB8',marginBottom:'8px'}}>Tipo de capa</p>
             <div style={{display:'flex',gap:'8px',marginBottom:'18px',flexWrap:'wrap'}}>
               <button type="button" onClick={()=>setBannerTipo('imagem')} style={{background:bannerTipo==='imagem'?G:'rgba(24,16,27,.9)',color:bannerTipo==='imagem'?'#fff':'#B8AAB8',border:bannerTipo==='imagem'?'1px solid rgba(255,255,255,.12)':'1px solid #2A1A2F',borderRadius:'10px',padding:'9px 16px',fontSize:'13px',fontWeight:600,cursor:'pointer',fontFamily:'inherit'}}>Imagem</button>
@@ -397,6 +420,8 @@ export default function GerenciarAparencia(){
               )}
               <input ref={topoMobileRef} type="file" accept={topoMobileTipo==='video'?'video/mp4':'image/*'} onChange={uploadTopoMobile} style={{display:'none'}}/>
             </div>
+              </>
+            )}
 
             <div style={{borderTop:'1px solid #2A1A2F',paddingTop:'18px',marginTop:'4px',marginBottom:'18px'}}>
               <p style={{fontSize:'13px',fontWeight:600,color:'#B8AAB8',marginBottom:'4px'}}>Contagem / destaque social</p>

@@ -419,7 +419,13 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
   const nomeBusiness = perfil.nome_negocio || t.agendamentoOnline
   const bioCurta = perfil.pagina_descricao_curta || perfil.descricao || ''
   const endereco = perfil.endereco || perfil.cidade || ''
-  const capaUrl = perfil.capa_url || perfil.imagem_capa || perfil.banner_url || capaFallback || ''
+  // Free e uma "porta de entrada" - pagina simples de links, sem os elementos premium que
+  // incentivam upgrade (capa/banner grande, video, selo oficial, icones sociais no topo).
+  // Nao apaga nada do banco - so nao RENDERIZA esses elementos quando o plano for Free. Se
+  // a conta fizer upgrade depois, os mesmos dados ja salvos voltam a aparecer normalmente,
+  // sem precisar recadastrar nada.
+  const isPlanoFree = ehPlanoFree(perfil.plano_tipo)
+  const capaUrl = isPlanoFree ? '' : (perfil.capa_url || perfil.imagem_capa || perfil.banner_url || capaFallback || '')
   const fotoPerfilUrl = perfil.foto_perfil_url || ''
   const tituloBotaoAgenda = perfil.pagina_titulo_botao_agenda || t.agendarAgora
   // Toggles: null/undefined = comportamento antigo (tudo visivel)
@@ -664,12 +670,21 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
                 <div className="mobile-hero-overlay"/>
               </div>
               <div className="mobile-hero-content">
+                {isPlanoFree && (
+                  fotoPerfilUrl ? (
+                    <img src={fotoPerfilUrl} alt={nomeBusiness} className="avatar-pro" decoding="async" fetchPriority="high" style={{ border: `3px solid ${tema.accent}`, boxShadow: `0 0 24px ${tema.glow}`, margin: '0 auto 14px' }} />
+                  ) : (
+                    <div className="avatar-pro" style={{ background: `linear-gradient(135deg,${tema.accent},${tema.secondary})`, border: `3px solid ${tema.accent}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '34px', fontWeight: 800, color: tema.btnText, boxShadow: `0 0 24px ${tema.glow}`, margin: '0 auto 14px' }}>
+                      {nomeBusiness.charAt(0).toUpperCase()}
+                    </div>
+                  )
+                )}
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
                   <h1 className="hero-mobile-nome">{nomeBusiness}</h1>
-                  <BadgeCheck size={20} color="#3B82F6" style={{ flexShrink: 0, filter: 'drop-shadow(0 2px 6px rgba(0,0,0,.6))' }} />
+                  {!isPlanoFree && <BadgeCheck size={20} color="#3B82F6" style={{ flexShrink: 0, filter: 'drop-shadow(0 2px 6px rgba(0,0,0,.6))' }} />}
                 </div>
                 <p className="hero-mobile-slug">@{slug}</p>
-                {linksSociais.length > 0 && (
+                {!isPlanoFree && linksSociais.length > 0 && (
                   <div className="social-row" style={{ justifyContent: 'center', marginLeft: 0 }}>
                     {linksSociais.map(l => {
                       const cfg = iconeLink(l.tipoEfetivo)
@@ -699,11 +714,11 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
                     <h1 style={{ fontSize: 'clamp(22px,4.5vw,32px)', fontWeight: 900, color: 'var(--text)', letterSpacing: '-0.03em', lineHeight: 1.15 }}>
                       {nomeBusiness}
                     </h1>
-                    <BadgeCheck size={20} color="#3B82F6" style={{ flexShrink: 0 }} />
+                    {!isPlanoFree && <BadgeCheck size={20} color="#3B82F6" style={{ flexShrink: 0 }} />}
                   </div>
                   <p style={{ fontSize: '13px', color: 'var(--text-muted)', margin: '2px 0 0' }}>@{slug}{seguidoresTexto ? ` · ${seguidoresTexto}` : ''}</p>
                 </div>
-                {linksSociais.length > 0 && (
+                {!isPlanoFree && linksSociais.length > 0 && (
                   <div className="social-row">
                     {linksSociais.map(l => {
                       const cfg = iconeLink(l.tipoEfetivo)
