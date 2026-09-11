@@ -347,14 +347,14 @@ export default function Cadastro() {
           <span className="logo-texto">ClienteMarcado</span>
         </div>
         <div className="headline-bloco">
-          <h1 className="headline-titulo">Crie sua conta grátis</h1>
+          <h1 className="headline-titulo">{ehPlanoFree(planoParaExibicao) ? 'Crie sua conta grátis' : 'Crie sua conta'}</h1>
           <p className="headline-sub">Configure sua Página de agendamento em poucos minutos.</p>
         </div>
         <div className="form-bloco">
           <div className="card">
             {fase === 'form' ? (
             <>
-            <p className="card-titulo">Criar conta grátis</p>
+            <p className="card-titulo">{ehPlanoFree(planoParaExibicao) ? 'Criar conta grátis' : 'Criar conta'}</p>
             <p className="card-sub">É rápido, fácil e sem compromisso.</p>
             <div className="campos">
               <div>

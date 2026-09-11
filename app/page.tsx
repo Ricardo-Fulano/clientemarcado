@@ -105,7 +105,7 @@ export default function Home() {
           </div>
           <div style={{display:'flex',gap:'12px',alignItems:'center'}}>
             <Link href="/login" style={{fontSize:'13px',color:'#B8AAB8',textDecoration:'none',fontWeight:500}}>Entrar</Link>
-            <button onClick={scrollToPlano} className="btn-p" style={{height:'40px',padding:'0 20px',fontSize:'13px',borderRadius:'10px'}}>Começar grátis</button>
+            <button onClick={scrollToPlano} className="btn-p" style={{height:'40px',padding:'0 20px',fontSize:'13px',borderRadius:'10px'}}>Ver planos</button>
           </div>
         </div>
       </header>
@@ -114,7 +114,7 @@ export default function Home() {
         <div style={{maxWidth:'760px',margin:'0 auto'}}>
           <div style={{display:'inline-flex',alignItems:'center',gap:'8px',background:'rgba(236,72,153,.10)',border:'1px solid rgba(236,72,153,.22)',borderRadius:'999px',padding:'6px 18px',marginBottom:'36px'}}>
             <span style={{width:'6px',height:'6px',borderRadius:'50%',background:'#EC4899',display:'inline-block',flexShrink:0}}/>
-            <span style={{fontSize:'12px',fontWeight:600,color:'#EC4899',letterSpacing:'.04em'}}>Comece grátis, crie sua MiniPage profissional</span>
+            <span style={{fontSize:'12px',fontWeight:600,color:'#EC4899',letterSpacing:'.04em'}}>Crie sua MiniPage profissional</span>
           </div>
           <h1 style={{fontSize:'clamp(38px,6vw,66px)',fontWeight:900,color:'#F8F4F7',letterSpacing:'-0.04em',lineHeight:1.05,marginBottom:'24px'}}>
             Transforme sua bio<br/>em uma MiniPage profissional.
@@ -126,7 +126,7 @@ export default function Home() {
             Pronta para divulgar no Instagram, WhatsApp, TikTok e onde quiser.
           </p>
           <div className="hero-btns" style={{display:'flex',gap:'12px',justifyContent:'center',flexWrap:'wrap'}}>
-            <Link href="/aceite-plano?plano=minipage" className="btn-p">Criar minha MiniPage grátis</Link>
+            <Link href="/aceite-plano?plano=minipage" className="btn-p">Criar minha MiniPage</Link>
             <a href="https://minipage.pro/modelos" className="btn-s">Ver exemplo</a>
           </div>
           <p style={{fontSize:'13px',color:'#B8AAB8',marginTop:'18px'}}>Quer ver exemplos antes de criar? <a href="https://minipage.pro/modelos" style={{color:'#EC4899',fontWeight:600,textDecoration:'none'}}>Veja os melhores modelos</a>.</p>
@@ -331,10 +331,10 @@ export default function Home() {
             Pronto para transformar sua bio em uma MiniPage profissional?
           </h2>
           <p style={{fontSize:'15px',color:'#B8AAB8',marginBottom:'36px',lineHeight:1.7}}>
-            Comece grátis e crie uma página completa para divulgar seus links, vídeos, publicidades, produtos, serviços e agenda.
+            Crie uma página completa para divulgar seus links, vídeos, publicidades, produtos, serviços e agenda.
           </p>
           <div className="cta-btns" style={{display:'flex',gap:'12px',justifyContent:'center',flexWrap:'wrap'}}>
-            <Link href="/aceite-plano?plano=minipage" className="btn-p">Criar minha MiniPage grátis</Link>
+            <Link href="/aceite-plano?plano=minipage" className="btn-p">Criar minha MiniPage</Link>
             <Link href="/login" className="btn-s">Já tenho conta</Link>
           </div>
           <p style={{fontSize:'13px',color:'#B8AAB8',marginTop:'20px'}}>Comece no plano grátis. Planos pagos a partir de R$ 39,90/mês. Sem fidelidade.</p>
