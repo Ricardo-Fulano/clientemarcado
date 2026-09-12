@@ -672,9 +672,9 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
               <div className="mobile-hero-content">
                 {isPlanoFree && (
                   fotoPerfilUrl ? (
-                    <img src={fotoPerfilUrl} alt={nomeBusiness} className="avatar-pro" decoding="async" fetchPriority="high" style={{ border: `3px solid ${tema.accent}`, boxShadow: `0 0 24px ${tema.glow}`, margin: '0 auto 14px' }} />
+                    <img src={fotoPerfilUrl} alt={nomeBusiness} className="avatar-pro" decoding="async" fetchPriority="high" style={{ width: '112px', height: '112px', border: `3px solid ${tema.accent}`, boxShadow: `0 0 24px ${tema.glow}`, margin: '0 auto 16px' }} />
                   ) : (
-                    <div className="avatar-pro" style={{ background: `linear-gradient(135deg,${tema.accent},${tema.secondary})`, border: `3px solid ${tema.accent}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '34px', fontWeight: 800, color: tema.btnText, boxShadow: `0 0 24px ${tema.glow}`, margin: '0 auto 14px' }}>
+                    <div className="avatar-pro" style={{ width: '112px', height: '112px', background: `linear-gradient(135deg,${tema.accent},${tema.secondary})`, border: `3px solid ${tema.accent}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '40px', fontWeight: 800, color: tema.btnText, boxShadow: `0 0 24px ${tema.glow}`, margin: '0 auto 16px' }}>
                       {nomeBusiness.charAt(0).toUpperCase()}
                     </div>
                   )
