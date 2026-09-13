@@ -18,22 +18,31 @@ const ADMIN_IDS = [
 ]
 const AV = 'linear-gradient(135deg,rgba(236,72,153,.95),rgba(139,92,246,.85))'
 
-const LINKS = [
+type ItemMenu = { h: string; l: string; grupo?: string; requerGestao?: boolean; requerProfissionais?: boolean; requerCatalogo?: boolean; apenasAdmin?: boolean }
+
+// grupo: usado so pra organizar visualmente a sidebar em secoes (MINHA MINIPAGE / GESTAO /
+// CONTA) - nao afeta nenhuma regra de permissao, que continua 100% via requerGestao/
+// requerProfissionais/requerCatalogo/apenasAdmin, exatamente como ja era.
+const LINKS: ItemMenu[] = [
   { h: '/painel',               l: 'Início'        },
-  { h: '/painel/desempenho',    l: 'Desempenho'    },
-  { h: '/painel/agendamentos',  l: 'Agenda',        requerGestao: true },
-  { h: '/painel/clientes',      l: 'Clientes',      requerGestao: true },
-  { h: '/painel/orcamentos',    l: 'Orçamentos',    requerGestao: true },
-  { h: '/painel/cobrancas',     l: 'Cobranças',     requerGestao: true },
-  { h: '/painel/financeiro',    l: 'Financeiro',    requerGestao: true },
-  { h: '/painel/servicos',      l: 'Serviços',      requerGestao: true },
-  { h: '/painel/profissionais', l: 'Profissionais', requerProfissionais: true },
-  { h: '/painel/relatorio',     l: 'Relatórios',    requerGestao: true },
-  { h: '/painel/perfil/catalogo', l: 'Catálogo',    requerCatalogo: true },
-  { h: '/painel/parceiros',     l: 'Parceiros',     apenasAdmin: true },
-  { h: '/painel/suporte',       l: 'Suporte'       },
-  { h: '/painel/perfil',        l: 'Configurações' },
-  { h: '/painel/plano',         l: 'Meu plano'      },
+
+  { h: '/painel/perfil',        l: 'Minha MiniPage', grupo: 'MINHA MINIPAGE' },
+  { h: '/painel/desempenho',    l: 'Desempenho',      grupo: 'MINHA MINIPAGE' },
+  { h: '/painel/perfil/catalogo', l: 'Catálogo',      grupo: 'MINHA MINIPAGE', requerCatalogo: true },
+
+  { h: '/painel/agendamentos',  l: 'Agenda',        grupo: 'GESTÃO', requerGestao: true },
+  { h: '/painel/clientes',      l: 'Clientes',      grupo: 'GESTÃO', requerGestao: true },
+  { h: '/painel/orcamentos',    l: 'Orçamentos',    grupo: 'GESTÃO', requerGestao: true },
+  { h: '/painel/cobrancas',     l: 'Cobranças',     grupo: 'GESTÃO', requerGestao: true },
+  { h: '/painel/financeiro',    l: 'Financeiro',    grupo: 'GESTÃO', requerGestao: true },
+  { h: '/painel/servicos',      l: 'Serviços',      grupo: 'GESTÃO', requerGestao: true },
+  { h: '/painel/profissionais', l: 'Profissionais', grupo: 'GESTÃO', requerProfissionais: true },
+  { h: '/painel/relatorio',     l: 'Relatórios',    grupo: 'GESTÃO', requerGestao: true },
+
+  { h: '/painel/parceiros',     l: 'Parceiros',     grupo: 'CONTA', apenasAdmin: true },
+  { h: '/painel/suporte',       l: 'Suporte',       grupo: 'CONTA' },
+  { h: '/painel/plano',         l: 'Meu plano',     grupo: 'CONTA' },
+  { h: '/painel/alterar-senha', l: 'Configurações', grupo: 'CONTA' },
 ]
 
 const CSS = `
@@ -44,6 +53,8 @@ const CSS = `
 .nl{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:10px;margin-bottom:2px;text-decoration:none;font-size:13px;font-weight:500;color:#B8AAB8;transition:all .15s;border:1px solid transparent;white-space:nowrap}
 .nl:hover{background:rgba(236,72,153,.10);border-color:rgba(236,72,153,.24);color:#F8F4F7}
 .nl.on{background:linear-gradient(135deg,#EC4899,#D946EF,#8B5CF6);color:#fff;font-weight:700;border-color:rgba(255,255,255,.10);box-shadow:0 0 26px rgba(236,72,153,.28),inset 0 1px 0 rgba(255,255,255,.12)}
+.nl-grupo{font-size:10px;font-weight:700;color:#6B5C6E;text-transform:uppercase;letter-spacing:.08em;padding:14px 14px 6px;margin-top:2px}
+.nl-grupo:first-child{margin-top:0}
 .psb-foot{padding:12px 10px;border-top:1px solid #2A1A2F;flex-shrink:0}
 .psb-mhdr{display:none;align-items:center;justify-content:space-between;padding:0 16px;height:56px;background:rgba(8,6,10,.96);backdrop-filter:blur(20px);border-bottom:1px solid #2A1A2F;position:fixed;top:0;left:0;right:0;z-index:20;width:100%}
 .psb-drw{position:fixed;top:0;left:0;bottom:0;width:280px;max-width:85vw;background:radial-gradient(circle at top left,rgba(139,92,246,.14),transparent 32%),linear-gradient(180deg,#120A14,#08060A);z-index:50;transform:translateX(-100%);transition:transform .28s ease;display:flex;flex-direction:column;border-right:1px solid #2A1A2F}
@@ -112,7 +123,7 @@ export default function PainelSidebar({ nome = '', tituloMobile = 'Painel' }: Pr
     return path.startsWith(href)
   }
 
-  const LINKS_PROFISSIONAL = [
+  const LINKS_PROFISSIONAL: ItemMenu[] = [
     { h: '/painel/minha-agenda', l: 'Minha agenda' },
     { h: '/painel/meu-desempenho', l: 'Meu desempenho' },
     { h: '/painel/alterar-senha', l: 'Alterar senha' },
@@ -128,16 +139,27 @@ export default function PainelSidebar({ nome = '', tituloMobile = 'Painel' }: Pr
     return true
   })
 
-  const NavLinks = ({ onClick }: { onClick?: () => void }) => (
-    <>
-      {(isProfissional ? LINKS_PROFISSIONAL : linksDoDono).map(it => (
-        <Link key={it.h} href={it.h} onClick={onClick}
-          className={'nl' + (ativo(it.h) ? ' on' : '')}>
-          {it.l}
-        </Link>
-      ))}
-    </>
-  )
+  const NavLinks = ({ onClick }: { onClick?: () => void }) => {
+    const lista = isProfissional ? LINKS_PROFISSIONAL : linksDoDono
+    let grupoAnterior: string | undefined
+    return (
+      <>
+        {lista.map(it => {
+          const mostrarCabecalho = it.grupo !== undefined && it.grupo !== grupoAnterior
+          grupoAnterior = it.grupo ?? grupoAnterior
+          return (
+            <div key={it.h}>
+              {mostrarCabecalho && <p className="nl-grupo">{it.grupo}</p>}
+              <Link href={it.h} onClick={onClick}
+                className={'nl' + (ativo(it.h) ? ' on' : '')}>
+                {it.l}
+              </Link>
+            </div>
+          )
+        })}
+      </>
+    )
+  }
 
   const NavLinksSkeleton = () => (
     <div style={{ padding: '4px 14px' }}>
@@ -175,12 +197,6 @@ export default function PainelSidebar({ nome = '', tituloMobile = 'Painel' }: Pr
           {carregandoPapel ? <NavLinksSkeleton /> : <NavLinks onClick={() => setMob(false)} />}
         </nav>
         <div style={{ padding: '12px 10px', borderTop: '1px solid #2A1A2F' }}>
-          {!carregandoPapel && !isProfissional && (
-            <Link href="/painel/alterar-senha" onClick={() => setMob(false)}
-              style={{ display: 'block', textAlign: 'center' as const, fontSize: '12px', color: '#B8AAB8', textDecoration: 'none', padding: '8px 0', marginBottom: '4px' }}>
-              Alterar senha
-            </Link>
-          )}
           <BtnSair onClick={() => { setMob(false); sair() }} />
         </div>
       </div>
@@ -210,12 +226,6 @@ export default function PainelSidebar({ nome = '', tituloMobile = 'Painel' }: Pr
               <p style={{ fontSize: '10px', color: '#B8AAB8' }}>{carregandoPapel ? '' : (isProfissional ? 'Profissional' : 'Administrador')}</p>
             </div>
           </div>
-          {!carregandoPapel && !isProfissional && (
-            <Link href="/painel/alterar-senha"
-              style={{ display: 'block', textAlign: 'center' as const, fontSize: '11px', color: '#B8AAB8', textDecoration: 'none', padding: '6px 0', marginBottom: '4px' }}>
-              Alterar senha
-            </Link>
-          )}
           <BtnSair />
         </div>
       </aside>

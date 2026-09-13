@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { ArrowLeft, ArrowUp, ArrowDown } from 'lucide-react'
 import PainelSidebar from '@/app/components/PainelSidebar'
 import { obterLimiteLinksRapidos } from '../../../lib/planos'
+import { PLATAFORMAS_LINK, placeholderPlataforma, normalizarInstagram, normalizarFacebook } from '../../../lib/plataformasLinks'
 
 const G='linear-gradient(135deg,#EC4899,#D946EF,#8B5CF6)'
 
@@ -110,6 +111,8 @@ export default function GerenciarLinks(){
     let urlFinal=l.url.trim()
     if(l.tipo==='whatsapp')urlFinal=montarLinkWhatsapp(l.url)
     else if(l.tipo==='email')urlFinal=`mailto:${l.url.trim()}`
+    else if(l.tipo==='instagram')urlFinal=normalizarInstagram(l.url)
+    else if(l.tipo==='facebook')urlFinal=normalizarFacebook(l.url)
     const payload={user_id:userId,tipo:l.tipo||'outro',titulo:l.titulo.trim(),descricao:l.descricao?.trim()||null,url:urlFinal,ativo:!!l.ativo,ordem:l.ordem||0}
     if(l._novo){
       const {data,error}=await supabase.from('pagina_links').insert(payload).select().single()
@@ -168,7 +171,7 @@ export default function GerenciarLinks(){
           <Link href="/painel/perfil" style={{display:'inline-flex',alignItems:'center',gap:'6px',fontSize:'13px',color:'#B8AAB8',textDecoration:'none',marginBottom:'18px'}}><ArrowLeft size={15}/> Voltar para Configurações</Link>
 
           <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',flexWrap:'wrap',gap:'12px',marginBottom:'8px'}}>
-            <p style={{fontSize:'22px',fontWeight:800,color:'#F8F4F7',letterSpacing:'-0.02em'}}>Links rápidos</p>
+            <p style={{fontSize:'22px',fontWeight:800,color:'#F8F4F7',letterSpacing:'-0.02em'}}>Links</p>
             <button type="button" onClick={novoLink} style={{background:G,color:'#fff',border:'1px solid rgba(255,255,255,.12)',borderRadius:'10px',padding:'10px 18px',fontSize:'13px',fontWeight:700,cursor:'pointer',fontFamily:'inherit'}}>+ Novo link</button>
           </div>
           <p style={{fontSize:'13px',color:'#B8AAB8',marginBottom:'24px'}}>TikTok, YouTube, Shopee, site, grupo VIP e outros links da sua bio. Use as setas para mudar a ordem de exibição.</p>
@@ -189,7 +192,7 @@ export default function GerenciarLinks(){
                     <div>
                       <label className="lbl">Tipo</label>
                       <select className="inp" style={{cursor:'pointer'}} value={l.tipo||'outro'} onChange={e=>editarLink(l.id,'tipo',e.target.value)}>
-                        {['whatsapp','instagram','tiktok','youtube','x','facebook','spotify','email','secreto','shopee','mercadolivre','site','curso','mentoria','endereco','outro'].map(t=><option key={t} value={t}>{t==='endereco'?'Endereço':t==='email'?'E-mail':t==='x'?'X / Twitter':t==='secreto'?'Secreto':t==='outro'?'Outros':t}</option>)}
+                        {PLATAFORMAS_LINK.map(p=><option key={p.id} value={p.id}>{p.label}</option>)}
                       </select>
                     </div>
                     <div><label className="lbl">Título</label><input className="inp" autoFocus={!!l._novo} value={l.titulo||''} onChange={e=>editarLink(l.id,'titulo',e.target.value)} placeholder="Ex: TikTok"/></div>
@@ -197,7 +200,7 @@ export default function GerenciarLinks(){
                   <div style={{marginBottom:'10px'}}><label className="lbl">Descrição (opcional)</label><input className="inp" value={l.descricao||''} onChange={e=>editarLink(l.id,'descricao',e.target.value)} placeholder="Ex: @studiobellaeducadora"/></div>
                   <div style={{marginBottom:'12px'}}>
                     <label className="lbl">{l.tipo==='whatsapp'?'Número (com DDD) ou @usuário do WhatsApp':l.tipo==='endereco'?'Endereço para abrir no Google Maps':l.tipo==='email'?'E-mail para contato':l.tipo==='secreto'?'Link de direcionamento':'Link (URL)'}</label>
-                    <input className="inp" type={l.tipo==='email'?'email':'text'} value={l.url||''} onChange={e=>editarLink(l.id,'url',e.target.value)} placeholder={l.tipo==='whatsapp'?'(11) 99999-9999 ou @studiobella':l.tipo==='endereco'?'Ex: Avenida Atlântica, 156 - São Paulo, SP':l.tipo==='email'?'contato@seudominio.com':'https://...'}/>
+                    <input className="inp" type={l.tipo==='email'?'email':'text'} value={l.url||''} onChange={e=>editarLink(l.id,'url',e.target.value)} placeholder={placeholderPlataforma(l.tipo)}/>
                     {l.tipo==='whatsapp'&&<p style={{fontSize:'11px',color:'#B8AAB8',marginTop:'6px'}}>Pode digitar só o número com DDD (sem link pronto) ou seu @usuário do WhatsApp, se você já tiver criado um. O link completo é montado sozinho ao salvar.</p>}
                     {l.tipo==='endereco'&&<p style={{fontSize:'11px',color:'#B8AAB8',marginTop:'6px'}}>Digite o endereço completo. O ClienteMarcado abrirá esse local no Google Maps. Também aceita um link do Google Maps já pronto, se preferir colar um.</p>}
                     {l.tipo==='email'&&<p style={{fontSize:'11px',color:'#B8AAB8',marginTop:'6px'}}>Só o e-mail, sem precisar escrever &quot;mailto:&quot; — isso é feito automaticamente. Ao clicar no card, abre o app de e-mail do visitante.</p>}

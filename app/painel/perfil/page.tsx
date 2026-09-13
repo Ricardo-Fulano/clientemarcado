@@ -541,8 +541,8 @@ export default function Perfil(){
 
           <div className="topo-r" style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',gap:'12px',flexWrap:'wrap',marginBottom:'24px'}}>
             <div>
-              <h1 style={{fontSize:'22px',fontWeight:800,color:'#F8F4F7',letterSpacing:'-0.04em',marginBottom:'5px'}}>Perfil do negócio</h1>
-              <p style={{fontSize:'13px',color:'#B8AAB8'}}>Configure como seu negócio aparece para os clientes.</p>
+              <h1 style={{fontSize:'22px',fontWeight:800,color:'#F8F4F7',letterSpacing:'-0.04em',marginBottom:'5px'}}>Minha MiniPage</h1>
+              <p style={{fontSize:'13px',color:'#B8AAB8'}}>Personalize sua página e organize o que seus visitantes vão encontrar.</p>
             </div>
             <Link href="/painel" prefetch={false} className="btn-verpag" style={{fontSize:'13px',color:'#B8AAB8',textDecoration:'none',display:'flex',alignItems:'center',gap:'4px',flexShrink:0,padding:'8px 12px',background:'rgba(24,16,27,.72)',border:'1px solid #2A1A2F',borderRadius:'8px'}}>← Voltar ao painel</Link>
           </div>
@@ -550,7 +550,7 @@ export default function Perfil(){
           {slug&&(
             <div className="crd" style={{border:'1.5px solid rgba(139,92,246,.24)',background:'radial-gradient(circle at top left,rgba(139,92,246,.10),transparent 40%),linear-gradient(145deg,rgba(24,16,27,.97),rgba(18,10,20,.99))'}}>
               <p style={{fontSize:'15px',fontWeight:700,color:'#F8F4F7',marginBottom:'4px'}}>Seu link profissional</p>
-              <p style={{fontSize:'12px',color:'#B8AAB8',marginBottom:'14px'}}>Compartilhe este link para receber agendamentos online.</p>
+              <p style={{fontSize:'12px',color:'#B8AAB8',marginBottom:'14px'}}>Este é o link público da sua MiniPage.</p>
               <div style={{background:'rgba(24,16,27,.72)',border:'1px solid #2A1A2F',borderRadius:'10px',padding:'10px 14px',marginBottom:'14px',display:'flex',alignItems:'center',gap:'8px',overflowX:'auto'}}>
                 <span style={{fontSize:'13px',color:'#8B5CF6',fontFamily:'monospace',fontWeight:600,whiteSpace:'nowrap'}}>{pubUrl}</span>
               </div>
@@ -558,8 +558,7 @@ export default function Perfil(){
                 <button onClick={copiarLink} style={{background:G,color:'#fff',border:'1px solid rgba(255,255,255,.12)',borderRadius:'12px',height:'42px',padding:'0 18px',fontSize:'13px',fontWeight:700,display:'inline-flex',alignItems:'center',gap:'6px',cursor:'pointer',fontFamily:'inherit',boxShadow:'0 8px 24px rgba(236,72,153,.28)',whiteSpace:'nowrap'}}>
                   {copied?<Check size={14}/>:<Copy size={14}/>}{copied?'Copiado!':'Copiar link'}
                 </button>
-                <a href={`https://wa.me/?text=${encodeURIComponent('Agende comigo: '+pubUrl)}`} target="_blank" rel="noreferrer" style={{background:'rgba(34,197,94,.14)',border:'1px solid rgba(34,197,94,.28)',color:'#22C55E',borderRadius:'10px',height:'42px',padding:'0 16px',fontSize:'13px',fontWeight:600,display:'inline-flex',alignItems:'center',gap:'6px',textDecoration:'none',whiteSpace:'nowrap'}}>WhatsApp</a>
-                <a href={pubUrl} target="_blank" rel="noreferrer" className="btn-verpag" style={{background:'rgba(24,16,27,.88)',border:'1px solid #2A1A2F',color:'#B8AAB8',borderRadius:'10px',height:'42px',padding:'0 16px',fontSize:'13px',fontWeight:600,display:'inline-flex',alignItems:'center',gap:'6px',textDecoration:'none',whiteSpace:'nowrap'}}><ExternalLink size={14}/>Ver página</a>
+                <a href={pubUrl} target="_blank" rel="noreferrer" className="btn-verpag" style={{background:'rgba(139,92,246,.12)',border:'1.5px solid rgba(139,92,246,.45)',color:'#E9D5FF',borderRadius:'12px',height:'42px',padding:'0 18px',fontSize:'13px',fontWeight:700,display:'inline-flex',alignItems:'center',gap:'6px',textDecoration:'none',whiteSpace:'nowrap'}}><ExternalLink size={14}/>Ver MiniPage</a>
               </div>
             </div>
           )}
@@ -681,7 +680,7 @@ export default function Perfil(){
             <p style={{fontSize:'12px',color:'#B8AAB8',marginBottom:'16px'}}>Altere a ordem em que as seções aparecem na sua MiniPage Pro.</p>
             <div style={{display:'flex',flexDirection:'column',gap:'8px'}}>
               {ordemSecoes.map((chave,i)=>{
-                const rotulos:Record<string,string>={destaques:'Destaques da página',links:'Links rápidos',agenda:'Agenda / Eventos',catalogo:'Catálogo',videos:'Vídeos da página'}
+                const rotulos:Record<string,string>={destaques:'Destaques da página',links:'Links',agenda:'Agenda / Eventos',catalogo:'Catálogo',videos:'Vídeos da página'}
                 return (
                   <div key={chave} style={{display:'flex',alignItems:'center',gap:'12px',padding:'10px 14px',background:'rgba(24,16,27,.72)',border:'1px solid #2A1A2F',borderRadius:'10px'}}>
                     <span style={{fontSize:'12px',fontWeight:700,color:'#B8AAB8',width:'18px',flexShrink:0}}>{i+1}</span>
@@ -713,7 +712,7 @@ export default function Perfil(){
           <div className="crd" style={{padding:'20px'}}>
             <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',flexWrap:'wrap',gap:'12px'}}>
               <div>
-                <p style={{fontSize:'15px',fontWeight:700,color:'#F8F4F7',marginBottom:'2px'}}>Links rápidos</p>
+                <p style={{fontSize:'15px',fontWeight:700,color:'#F8F4F7',marginBottom:'2px'}}>Links</p>
                 <p style={{fontSize:'12px',color:'#B8AAB8'}}>{links.length}{obterLimiteLinksRapidos(planoTipo)!==Infinity?` de ${obterLimiteLinksRapidos(planoTipo)}`:''} link{links.length!==1?'s':''} cadastrado{links.length!==1?'s':''}</p>
               </div>
               <Link href="/painel/perfil/links" style={{background:G,color:'#fff',border:'1px solid rgba(255,255,255,.12)',borderRadius:'10px',padding:'10px 18px',fontSize:'13px',fontWeight:700,textDecoration:'none',flexShrink:0}}>Gerenciar links</Link>

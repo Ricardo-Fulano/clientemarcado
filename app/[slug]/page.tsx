@@ -453,7 +453,11 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
       case 'shopee': return { color:'#EE4D2D', I:ShoppingBag }
       case 'mercadolivre': return { color:'#FFE600', I:ShoppingBag }
       case 'loja': return { color:tema.accent, I:ShoppingBag }
-      case 'deezer': return { color:'#FEAA2D', I:Music2 }
+      case 'deezer': return { color:'#FEAA2D', svg:(<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><rect x="14.5" y="3" width="3.2" height="4.5" rx="0.5"/><rect x="19" y="3" width="3.2" height="4.5" rx="0.5"/><rect x="14.5" y="8.5" width="3.2" height="4.5" rx="0.5"/><rect x="19" y="8.5" width="3.2" height="4.5" rx="0.5"/><rect x="10" y="8.5" width="3.2" height="4.5" rx="0.5"/><rect x="1" y="14" width="3.2" height="4.5" rx="0.5"/><rect x="5.5" y="14" width="3.2" height="4.5" rx="0.5"/><rect x="10" y="14" width="3.2" height="4.5" rx="0.5"/><rect x="14.5" y="14" width="3.2" height="4.5" rx="0.5"/><rect x="19" y="14" width="3.2" height="4.5" rx="0.5"/></svg>) }
+      case 'apple_music': return { color:'#FA243C', svg:(<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M18.5 3.5c-.3 0-2.4.2-4.3 1.5-1.5 1-2.6 2.6-2.6 4.5v9.4c0 .8-.6 1.4-1.4 1.6-.4.1-.9.1-1.3 0a2.6 2.6 0 00-3.2 1.8 2.6 2.6 0 002.8 3.3c.9-.1 1.7-.4 2.4-1a4.4 4.4 0 001.5-3.4V9.8c0-.3.2-.5.5-.6 1.6-.4 4.6-1 5.9-1.3.3-.1.6.1.6.4v7.9c0 .8-.6 1.4-1.4 1.6-.4.1-.9.1-1.3 0a2.6 2.6 0 00-3.2 1.8 2.6 2.6 0 002.8 3.3c.9-.1 1.7-.4 2.4-1a4.4 4.4 0 001.5-3.4V4.1c0-.4-.4-.7-.7-.6z"/></svg>) }
+      case 'amazon_music': return { color:'#25D1DA', svg:(<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="10.5" fill="none" stroke="currentColor" strokeWidth="1.6"/><path d="M9.5 8.2v7.6l6.3-3.8z"/><path d="M6.5 18.8c3.3 1.9 8 1.9 11.3-.2" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/></svg>) }
+      case 'tidal': return { color:tema.text, svg:(<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M6 3l3 3-3 3-3-3z"/><path d="M12 3l3 3-3 3-3-3z"/><path d="M18 3l3 3-3 3-3-3z"/><path d="M12 9l3 3-3 3-3-3z"/></svg>) }
+      case 'tinder': return { color:'#FE3C72', svg:(<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2c1 3-2 4-2 7 0-1 2-1.5 2-3 1.5 1.5 3 3.5 3 6.5A5 5 0 0110 17.5c-3-1-4-4-2.5-7C6 12 5 14 5 16a7 7 0 007 7 7 7 0 007-7c0-6-4-9-7-14z"/></svg>) }
       case 'telefone': return { color:tema.accent, I:Phone }
       case 'agenda': return { color:tema.accent, I:Calendar }
       case 'site': return { color:tema.accent, I:Globe }
@@ -498,6 +502,10 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
     if (uMin.includes('pinterest.com') || uMin.includes('pin.it')) return 'pinterest'
     if (uMin.includes('twitch.tv')) return 'twitch'
     if (uMin.includes('discord.gg') || uMin.includes('discord.com')) return 'discord'
+    if (uMin.includes('music.apple.com')) return 'apple_music'
+    if (uMin.includes('music.amazon.com') || uMin.includes('amazon.com/music') || uMin.includes('amzn_music') || uMin.includes('amazonmusic')) return 'amazon_music'
+    if (uMin.includes('tidal.com')) return 'tidal'
+    if (uMin.includes('tinder.com')) return 'tinder'
     return null
   }
 
@@ -522,6 +530,10 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
     if (tMin.includes('pinterest')) return 'pinterest'
     if (tMin.includes('twitch')) return 'twitch'
     if (tMin.includes('discord')) return 'discord'
+    if (tMin.includes('apple music')) return 'apple_music'
+    if (tMin.includes('amazon music')) return 'amazon_music'
+    if (tMin.includes('tidal')) return 'tidal'
+    if (tMin.includes('tinder')) return 'tinder'
     if (tMin.includes('e-mail') || tMin.includes('email')) return 'email'
     if (tMin.includes('telefone') || tMin.includes('ligar') || tMin.includes('celular')) return 'telefone'
     if (tMin.includes('agenda') || tMin.includes('agendar') || tMin.includes('calendário') || tMin.includes('calendario')) return 'agenda'
@@ -538,7 +550,7 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
   // So plataformas "sociais" reconhecidas entram aqui - links genericos, produtos, loja
   // fisica, catalogo, agenda ou botoes internos continuam so nos cards abaixo, por decisao
   // deliberada (nao faz sentido visual/semantico ícone de "loja" ou "agenda" no topo).
-  const TIPOS_SOCIAIS_TOPO = ['whatsapp', 'instagram', 'youtube', 'tiktok', 'spotify', 'deezer', 'shopee', 'telegram', 'facebook', 'x', 'linkedin', 'pinterest', 'twitch', 'discord', 'email', 'site']
+  const TIPOS_SOCIAIS_TOPO = ['whatsapp', 'instagram', 'youtube', 'tiktok', 'spotify', 'deezer', 'shopee', 'telegram', 'facebook', 'x', 'linkedin', 'pinterest', 'twitch', 'discord', 'email', 'site', 'apple_music', 'amazon_music', 'tidal', 'tinder']
   const linksSociaisBrutos = (linksRapidos || [])
     .map(l => ({ ...l, tipoEfetivo: detectarTipoPorUrl(l.url) || detectarTipoPorTitulo(l.titulo) || l.tipo }))
     .filter(l => TIPOS_SOCIAIS_TOPO.includes(l.tipoEfetivo))

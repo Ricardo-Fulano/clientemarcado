@@ -5,6 +5,8 @@ import Link from 'next/link'
 import { ArrowLeft, UploadCloud, Lock } from 'lucide-react'
 import PainelSidebar from '@/app/components/PainelSidebar'
 import { obterLimiteModelosCor, ehPlanoFree, permiteCatalogoWhatsapp } from '../../../lib/planos'
+import { TEMAS_MINIPAGE } from '../../../lib/temasMiniPage'
+import ThemePreviewCard from '../../../components/ThemePreviewCard'
 
 const G='linear-gradient(135deg,#EC4899,#D946EF,#8B5CF6)'
 
@@ -12,26 +14,7 @@ const G='linear-gradient(135deg,#EC4899,#D946EF,#8B5CF6)'
 const TEMA_LEGADO: Record<string,string> = {padrao:'modelo1', beleza:'modelo2', barbearia:'modelo3', minimal:'modelo4', saude:'modelo5'}
 function resolverTema(id:string){ return TEMA_LEGADO[id] || id }
 
-const TEMAS=[
-  {id:'modelo1',nome:'Modelo 1',desc:'Rosa vibrante, moderno e marcante.',p:'#FF4FA3',s:'#D946EF'},
-  {id:'modelo2',nome:'Modelo 2',desc:'Preto e grafite, premium e minimalista.',p:'#EDEDF0',s:'#A1A1AA'},
-  {id:'modelo3',nome:'Modelo 3',desc:'Grafite e preto, moderno e sofisticado.',p:'#1C1C1F',s:'#0A0A0B'},
-  {id:'modelo4',nome:'Modelo 4',desc:'Preto e dourado, visual luxuoso e de alto padrão.',p:'#D4AF37',s:'#9C7A2F'},
-  {id:'modelo5',nome:'Modelo 5',desc:'Cinza claro e branco, clean e editorial.',p:'#C97B93',s:'#8B5D73'},
-  {id:'modelo6',nome:'Modelo 6',desc:'Branco e cinza suave, refinado e elegante.',p:'#5FA8A0',s:'#3D7871'},
-  {id:'modelo7',nome:'Modelo 7',desc:'Rosa blush premium, ideal para beleza e estética.',p:'#F5C3D6',s:'#E83E8C'},
-  {id:'modelo8',nome:'Modelo 8',desc:'Rosa forte premium, marcante e feminino.',p:'#F1B6CF',s:'#C2185B'},
-  {id:'modelo9',nome:'Modelo 9',desc:'Lilás profundo, sofisticado e marcante.',p:'#B69AF0',s:'#8B6FD9'},
-  {id:'modelo10',nome:'Modelo 10',desc:'Nude e mocha, acolhedor e refinado.',p:'#A67C52',s:'#7A5A3A'},
-  {id:'modelo11',nome:'Modelo 11',desc:'Bordô profundo, elegante e marcante.',p:'#7F1D1D',s:'#BE123C'},
-  {id:'modelo12',nome:'Modelo 12',desc:'Azul-meia-noite, premium e versátil.',p:'#3B82F6',s:'#10243D'},
-  {id:'modelo13',nome:'Modelo 13',desc:'Vermelho neon, intenso, moderno e impactante.',p:'#FF1744',s:'#FF6B85'},
-  {id:'modelo14',nome:'Modelo 14',desc:'Verde neon, vibrante, moderno e tecnológico.',p:'#00FF85',s:'#6FFFB0'},
-  {id:'modelo15',nome:'Modelo 15',desc:'Azul neon, marcante, sofisticado e digital.',p:'#00BFFF',s:'#66D9FF'},
-  {id:'modelo16',nome:'Modelo 16',desc:'Rosa neon, forte, feminino e super marcante.',p:'#FF2DAA',s:'#FF7ACB'},
-  {id:'modelo17',nome:'Modelo 17',desc:'Laranja neon, energético, criativo e ousado.',p:'#FF7A00',s:'#FFB066'},
-  {id:'modelo18',nome:'Modelo 18',desc:'Dourado neon, luxuoso, intenso e premium.',p:'#FFD700',s:'#FFEB80'},
-]
+const TEMAS=TEMAS_MINIPAGE
 
 const BANNERS_PRONTOS=Array.from({length:14},(_,i)=>`/banners/prontos/banner-${String(i+1).padStart(2,'0')}.webp`)
 
@@ -450,27 +433,20 @@ export default function GerenciarAparencia(){
             <div style={{borderTop:'1px solid #2A1A2F',paddingTop:'18px',marginTop:'4px'}}>
               <p style={{fontSize:'13px',fontWeight:600,color:'#B8AAB8',marginBottom:'4px'}}>Cor de destaque</p>
               <p style={{fontSize:'12px',color:'#B8AAB8',marginBottom:'14px'}}>Escolha uma cor pronta para combinar com o estilo do seu negócio. Afeta apenas a página pública.</p>
-              <div className="temas-grid">
+              <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(120px,1fr))',gap:'12px'}}>
                 {TEMAS.map(t=>{
                   const numeroModelo=parseInt(t.id.replace('modelo',''),10)||0
                   // O tema JA selecionado nunca fica bloqueado (nao apaga escolha antiga de
                   // conta que testou um modelo premium antes do limite existir) - so modelos
                   // DIFERENTES do atual, acima do limite do plano, ficam bloqueados.
                   const bloqueado=numeroModelo>obterLimiteModelosCor(planoTipo)&&publicTheme!==t.id
+                  const badge = publicTheme===t.id
+                    ? <span style={{fontSize:'9px',fontWeight:700,color:'#fff',background:t.p,borderRadius:'6px',padding:'2px 6px'}}>Ativo</span>
+                    : bloqueado
+                      ? <span style={{fontSize:'9px',fontWeight:700,color:'#B8AAB8',background:'rgba(8,6,10,.85)',borderRadius:'6px',padding:'2px 6px',display:'flex',alignItems:'center',gap:'3px'}}><Lock size={9}/> MiniPage</span>
+                      : undefined
                   return (
-                  <button key={t.id} onClick={()=>{if(!bloqueado)setPublicTheme(t.id)}} className={`tema-card${publicTheme===t.id?' on':''}`}
-                    style={{...(publicTheme===t.id?{borderColor:t.p,background:`${t.p}1A`,boxShadow:`0 0 18px ${t.p}30`}:undefined),...(bloqueado?{opacity:.45,cursor:'not-allowed'}:undefined)}}>
-                    <div style={{display:'flex',alignItems:'center',gap:'8px',marginBottom:'8px'}}>
-                      <div style={{display:'flex',gap:'4px'}}>
-                        <div style={{width:'16px',height:'16px',borderRadius:'50%',background:t.p,flexShrink:0}}/>
-                        <div style={{width:'16px',height:'16px',borderRadius:'50%',background:t.s,flexShrink:0}}/>
-                      </div>
-                      {publicTheme===t.id&&<span style={{fontSize:'10px',fontWeight:700,color:t.p,background:`${t.p}24`,borderRadius:'6px',padding:'2px 7px',marginLeft:'auto'}}>Ativo</span>}
-                      {bloqueado&&<span style={{fontSize:'10px',fontWeight:700,color:'#B8AAB8',background:'rgba(184,170,184,.14)',borderRadius:'6px',padding:'2px 7px',marginLeft:'auto',display:'flex',alignItems:'center',gap:'3px'}}><Lock size={9}/> MiniPage</span>}
-                    </div>
-                    <p style={{fontSize:'12px',fontWeight:700,color:publicTheme===t.id?'#F8F4F7':'#B8AAB8',marginBottom:'3px'}}>{t.nome}</p>
-                    <p style={{fontSize:'11px',color:'#B8AAB8',lineHeight:1.4}}>{t.desc}</p>
-                  </button>
+                    <ThemePreviewCard key={t.id} tema={t} selecionado={publicTheme===t.id} bloqueado={bloqueado} badge={badge} onClick={()=>setPublicTheme(t.id)} />
                   )
                 })}
               </div>

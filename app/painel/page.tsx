@@ -61,6 +61,19 @@ export default function Home(){
     const {data:{user}}=await supabase.auth.getUser()
     if(!user){window.location.href='/login';return}
     const {data:p}=await supabase.from('perfis').select('*').eq('user_id',user.id).single()
+
+    // Onboarding (Etapa 2): conta nova/incompleta (nunca preencheu foto NEM bio) que ainda
+    // nao marcou onboarding visto/pulado neste navegador vai pro fluxo guiado. A chave do
+    // localStorage inclui o user_id de verdade - nunca global - pra 2 contas diferentes no
+    // mesmo navegador nunca se confundirem. So verifica aqui, apos autenticacao concluida;
+    // nao mexe em cadastro, confirmacao de e-mail, callback ou pagamento.
+    const perfilIncompleto = !p?.foto_perfil_url && !(p?.pagina_descricao_curta || p?.descricao)
+    if(perfilIncompleto){
+      let jaViu=false
+      try{ jaViu = localStorage.getItem(`minipage_onboarding_visto_${user.id}`)==='1' }catch{ /* localStorage indisponivel - trata como nao visto */ }
+      if(!jaViu){ window.location.href='/painel/criar-minipage'; return }
+    }
+
     setPerfil(p)
     if(ehPlanoComGestao(p?.plano_tipo)){
       const [{data:ags},{data:orcs},{data:pags}]=await Promise.all([
