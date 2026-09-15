@@ -1,5 +1,5 @@
 'use client'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import { supabase } from '../../lib/supabase'
 import PainelSidebar from '@/app/components/PainelSidebar'
 import { normalizarPlano, obterNomePlano, obterPrecoPlano, type PlanoTipo } from '../../lib/planos'
@@ -83,11 +83,22 @@ export default function Parceiros() {
   const [indicacoes, setIndicacoes] = useState<any[]>([])
   const [comissoes, setComissoes] = useState<any[]>([])
   const [repasses, setRepasses] = useState<any[]>([])
+  // Fase 3D: confirmandoRepasse guarda { parceiroId, competencia, comissoesDoGrupo } enquanto
+  // o modal de confirmacao esta aberto. processandoRepasse evita double-click (desabilita o
+  // botao ate a resposta do servidor chegar). resultadoRepasse guarda a resposta AUTORITATIVA
+  // da RPC (nunca o total calculado no client) pra mostrar o feedback de sucesso.
+  const [confirmandoRepasse, setConfirmandoRepasse] = useState<any>(null)
+  const [processandoRepasse, setProcessandoRepasse] = useState(false)
+  const [resultadoRepasse, setResultadoRepasse] = useState<any>(null)
+  const [erroRepasse, setErroRepasse] = useState('')
   const [loading, setLoading] = useState(true)
   const [showModal, setShowModal] = useState(false)
   const [editando, setEditando] = useState<any>(null)
   const [msg, setMsg] = useState('')
-  const [aba, setAba] = useState<'parceiros' | 'indicacoes'>('parceiros')
+  const [aba, setAba] = useState<'parceiros' | 'indicacoes' | 'fechamentos'>('parceiros')
+  const [competenciaFechamento, setCompetenciaFechamento] = useState('')
+  const [filtroFechamento, setFiltroFechamento] = useState<'todos' | 'pendentes' | 'pagos'>('todos')
+  const [buscaFechamento, setBuscaFechamento] = useState('')
   const [verDetalhes, setVerDetalhes] = useState<any>(null)
   const [filtroPeriodo, setFiltroPeriodo] = useState<'hoje'|'semana'|'mes'|'mes_passado'|'tudo'|'personalizado'>('tudo')
   const [dataIni, setDataIni] = useState('')
@@ -133,6 +144,144 @@ export default function Parceiros() {
       setRepasses(dados.repasses || [])
     } catch (e: any) {
       console.error('[Parceiros] Erro ao carregar dados admin:', e?.message)
+    }
+  }
+
+  // Fase 3D: agrupa comissoes pendentes de um parceiro por competencia - so competencias com
+  // pelo menos 1 comissao pendente/sem repasse aparecem (nunca mostra competencia vazia).
+  function competenciasPendentesDoParceiro(parceiroId: string) {
+    const doParceiro = comissoes.filter(c => c.parceiro_id === parceiroId && c.status === 'pendente' && !c.repasse_id)
+    const porCompetencia = new Map<string, any[]>()
+    for (const c of doParceiro) {
+      const lista = porCompetencia.get(c.competencia) || []
+      lista.push(c)
+      porCompetencia.set(c.competencia, lista)
+    }
+    return [...porCompetencia.entries()]
+      .map(([competencia, lista]) => ({ competencia, qtd: lista.length, total: lista.reduce((a, c) => a + Number(c.valor_comissao || 0), 0), comissoes: lista }))
+      .sort((a, b) => b.competencia.localeCompare(a.competencia))
+  }
+
+  function labelCompetencia(competencia: string) {
+    const [ano, mes] = competencia.split('-')
+    const nomes = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro']
+    return `${nomes[parseInt(mes, 10) - 1]}/${ano}`
+  }
+
+  function repassesDoParceiro(parceiroId: string) {
+    return repasses.filter(r => r.parceiro_id === parceiroId).sort((a, b) => new Date(b.data_repasse).getTime() - new Date(a.data_repasse).getTime())
+  }
+
+  // ===== Fase 3D.1: aba Fechamentos - agregacao em memoria, sem chamadas de rede novas =====
+
+  // Ajuste 1: competencia continua disponivel pra consulta mesmo depois de toda comissao
+  // ja ter sido paga - por isso a uniao inclui competencias de REPASSES tambem, nao so de
+  // comissoes pendentes/atuais.
+  const competenciasDisponiveis = useMemo(() => {
+    const set = new Set<string>()
+    comissoes.forEach(c => { if (c.competencia) set.add(c.competencia) })
+    repasses.forEach(r => { if (r.competencia) set.add(r.competencia) })
+    return [...set].sort((a, b) => b.localeCompare(a))
+  }, [comissoes, repasses])
+
+  // Define a competencia mais recente automaticamente na primeira carga - nunca sobrescreve
+  // se o admin ja tiver escolhido (ou trocado) manualmente.
+  useEffect(() => {
+    if (!competenciaFechamento && competenciasDisponiveis.length > 0) {
+      setCompetenciaFechamento(competenciasDisponiveis[0])
+    }
+  }, [competenciasDisponiveis, competenciaFechamento])
+
+  // Ajuste 2: campos separados por natureza - nunca uma variavel generica "comissoes" que
+  // misture pendente com pago/total.
+  type ResumoParceiroFechamento = {
+    parceiroId: string
+    qtdComissoesPendentes: number
+    valorPendente: number
+    qtdComissoesPagas: number
+    valorPago: number
+    qtdComissoesTotal: number
+    repassesDaCompetencia: any[]
+  }
+
+  const fechamentoDaCompetencia = useMemo<ResumoParceiroFechamento[]>(() => {
+    if (!competenciaFechamento) return []
+    const porParceiro = new Map<string, ResumoParceiroFechamento>()
+    function getOuCria(parceiroId: string): ResumoParceiroFechamento {
+      if (!porParceiro.has(parceiroId)) {
+        porParceiro.set(parceiroId, { parceiroId, qtdComissoesPendentes: 0, valorPendente: 0, qtdComissoesPagas: 0, valorPago: 0, qtdComissoesTotal: 0, repassesDaCompetencia: [] })
+      }
+      return porParceiro.get(parceiroId)!
+    }
+    comissoes.filter(c => c.competencia === competenciaFechamento).forEach(c => {
+      const entry = getOuCria(c.parceiro_id)
+      entry.qtdComissoesTotal += 1
+      if (c.status === 'pendente') { entry.qtdComissoesPendentes += 1; entry.valorPendente += Number(c.valor_comissao || 0) }
+      else if (c.status === 'paga') { entry.qtdComissoesPagas += 1; entry.valorPago += Number(c.valor_comissao || 0) }
+      // 'estornada' conta no total (transparencia) mas nunca em pendente/pago.
+    })
+    // Parceiro pode ter repasse na competencia sem nenhuma comissao "ativa" sobrando na
+    // lista (ex: tudo ja foi pago) - ainda assim precisa aparecer no fechamento.
+    repasses.filter(r => r.competencia === competenciaFechamento).forEach(r => {
+      getOuCria(r.parceiro_id).repassesDaCompetencia.push(r)
+    })
+    return [...porParceiro.values()].sort((a, b) => b.valorPendente - a.valorPendente || b.valorPago - a.valorPago)
+  }, [comissoes, repasses, competenciaFechamento])
+
+  // Ajuste 3: filtros nao sao mutuamente exclusivos - um parceiro pago com pendencia
+  // complementar aparece tanto em Pendentes quanto em Pagos.
+  const fechamentoFiltrado = useMemo(() => {
+    return fechamentoDaCompetencia.filter(f => {
+      if (filtroFechamento === 'pendentes' && f.valorPendente <= 0) return false
+      if (filtroFechamento === 'pagos' && f.valorPago <= 0) return false
+      if (buscaFechamento.trim()) {
+        const par = parceiros.find(p => p.id === f.parceiroId)
+        const termo = buscaFechamento.toLowerCase().trim()
+        const nomeMatch = par?.nome?.toLowerCase().includes(termo)
+        const cupomMatch = par?.cupom?.toLowerCase().includes(termo)
+        if (!nomeMatch && !cupomMatch) return false
+      }
+      return true
+    })
+  }, [fechamentoDaCompetencia, filtroFechamento, buscaFechamento, parceiros])
+
+  const resumoGlobalFechamento = useMemo(() => ({
+    parceirosComPendencia: fechamentoDaCompetencia.filter(f => f.valorPendente > 0).length,
+    comissoesPendentes: fechamentoDaCompetencia.reduce((a, f) => a + f.qtdComissoesPendentes, 0),
+    totalAPagar: fechamentoDaCompetencia.reduce((a, f) => a + f.valorPendente, 0),
+    totalPago: fechamentoDaCompetencia.reduce((a, f) => a + f.valorPago, 0),
+  }), [fechamentoDaCompetencia])
+
+  // So chama o endpoint quando o admin CONFIRMA no modal - o preview antes disso e so
+  // visual, calculado localmente a partir de "comissoes" ja carregado.
+  async function confirmarRepasse() {
+    if (!confirmandoRepasse || processandoRepasse) return
+    setProcessandoRepasse(true)
+    setErroRepasse('')
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      const token = session?.access_token
+      if (!token) { setErroRepasse('Sessão expirada.'); setProcessandoRepasse(false); return }
+      const res = await fetch('/api/admin/parceiros/repasse', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ parceiroId: confirmandoRepasse.parceiroId, competencia: confirmandoRepasse.competencia }),
+      })
+      const dados = await res.json()
+      if (!res.ok) {
+        setErroRepasse(dados.error || 'Não foi possível confirmar o repasse.')
+        setProcessandoRepasse(false)
+        return
+      }
+      // dados.repasse e a resposta AUTORITATIVA da RPC - usada no feedback, nunca o total
+      // calculado no preview local.
+      setResultadoRepasse(dados.repasse)
+      setConfirmandoRepasse(null)
+      setProcessandoRepasse(false)
+      await carregarDadosAdmin()
+    } catch (e: any) {
+      setErroRepasse('Erro de conexão ao confirmar o repasse.')
+      setProcessandoRepasse(false)
     }
   }
 
@@ -407,11 +556,11 @@ export default function Parceiros() {
 
             {/* Abas */}
             <div style={{ display: 'flex', gap: '8px', marginBottom: '20px' }}>
-              {(['parceiros', 'indicacoes'] as const).map(a => (
+              {(['parceiros', 'indicacoes', 'fechamentos'] as const).map(a => (
                 <button key={a} onClick={() => setAba(a)}
                   className={aba === a ? '' : 'btn-s'}
                   style={{ padding: '8px 18px', borderRadius: '10px', border: aba === a ? 'none' : undefined, cursor: 'pointer', fontFamily: 'inherit', fontSize: '13px', fontWeight: 600, background: aba === a ? 'linear-gradient(135deg,#EC4899,#D946EF,#8B5CF6)' : undefined, color: aba === a ? '#fff' : undefined }}>
-                  {a === 'parceiros' ? 'Parceiros' : 'Indicações'}
+                  {a === 'parceiros' ? 'Parceiros' : a === 'indicacoes' ? 'Indicações' : 'Fechamentos'}
                 </button>
               ))}
             </div>
@@ -579,6 +728,116 @@ export default function Parceiros() {
               )
             })()}
 
+            {aba === 'fechamentos' && (
+              <div>
+                <p style={{ fontSize: '18px', fontWeight: 800, color: '#F8F4F7', marginBottom: '4px' }}>Fechamento mensal</p>
+                <p style={{ fontSize: '13px', color: '#B8AAB8', marginBottom: '18px' }}>Acompanhe e confirme os repasses de comissão por parceiro e competência.</p>
+
+                <div style={{ marginBottom: '18px' }}>
+                  <label className="lbl" style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#B8AAB8', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: '6px' }}>Competência</label>
+                  <select value={competenciaFechamento} onChange={e => setCompetenciaFechamento(e.target.value)}
+                    style={{ background: 'rgba(24,16,27,.92)', border: '1px solid #2A1A2F', borderRadius: '10px', padding: '10px 14px', color: '#F8F4F7', fontSize: '14px', fontFamily: 'inherit', minWidth: '200px' }}>
+                    {competenciasDisponiveis.length === 0 && <option value="">Nenhuma competência</option>}
+                    {competenciasDisponiveis.map(c => <option key={c} value={c}>{labelCompetencia(c)}</option>)}
+                  </select>
+                </div>
+
+                {competenciaFechamento && (
+                  <>
+                    {/* Cards de resumo global - so o essencial, sem poluir */}
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(150px,1fr))', gap: '10px', marginBottom: '20px' }}>
+                      {[
+                        { l: 'Parceiros com pendência', v: String(resumoGlobalFechamento.parceirosComPendencia), c: '#FACC15' },
+                        { l: 'Comissões pendentes', v: String(resumoGlobalFechamento.comissoesPendentes), c: '#B8AAB8' },
+                        { l: 'Total a pagar', v: fBRL(resumoGlobalFechamento.totalAPagar), c: '#EC4899' },
+                        { l: 'Total pago', v: fBRL(resumoGlobalFechamento.totalPago), c: '#22C55E' },
+                      ].map(k => (
+                        <div key={k.l} style={{ background: '#18101B', border: '1.5px solid #2A1A2F', borderRadius: '14px', padding: '14px' }}>
+                          <p style={{ fontSize: '10px', fontWeight: 700, color: '#B8AAB8', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: '4px' }}>{k.l}</p>
+                          <p style={{ fontSize: '18px', fontWeight: 800, color: k.c }}>{k.v}</p>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Filtros + busca */}
+                    <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '16px', alignItems: 'center' }}>
+                      {(['todos', 'pendentes', 'pagos'] as const).map(f => (
+                        <button key={f} onClick={() => setFiltroFechamento(f)}
+                          className={filtroFechamento === f ? '' : 'btn-s'}
+                          style={{ padding: '6px 14px', borderRadius: '8px', border: filtroFechamento === f ? 'none' : undefined, cursor: 'pointer', fontFamily: 'inherit', fontSize: '12px', fontWeight: 600, background: filtroFechamento === f ? 'linear-gradient(135deg,#EC4899,#D946EF,#8B5CF6)' : undefined, color: filtroFechamento === f ? '#fff' : undefined }}>
+                          {f === 'todos' ? 'Todos' : f === 'pendentes' ? 'Pendentes' : 'Pagos'}
+                        </button>
+                      ))}
+                      <input value={buscaFechamento} onChange={e => setBuscaFechamento(e.target.value)} placeholder="Buscar por nome ou cupom..."
+                        style={{ flex: 1, minWidth: '180px', background: 'rgba(24,16,27,.92)', border: '1px solid #2A1A2F', borderRadius: '10px', padding: '8px 12px', color: '#F8F4F7', fontSize: '13px', fontFamily: 'inherit' }} />
+                    </div>
+
+                    {/* Lista de parceiros na competencia */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                      {fechamentoFiltrado.length === 0 && (
+                        <p style={{ fontSize: '13px', color: '#B8AAB8', padding: '20px 0', textAlign: 'center' as const }}>Nenhum parceiro com movimento nesta competência.</p>
+                      )}
+                      {fechamentoFiltrado.map(f => {
+                        const par = parceiros.find(p => p.id === f.parceiroId)
+                        if (!par) return null
+                        const misto = f.valorPendente > 0 && f.valorPago > 0
+                        const badge = misto
+                          ? { texto: 'Pago + pendência complementar', bg: 'rgba(250,204,21,.12)', borda: 'rgba(250,204,21,.28)', cor: '#FACC15' }
+                          : f.valorPendente > 0
+                            ? { texto: 'Pendente', bg: 'rgba(250,204,21,.12)', borda: 'rgba(250,204,21,.28)', cor: '#FACC15' }
+                            : { texto: 'Pago', bg: 'rgba(34,197,94,.12)', borda: 'rgba(34,197,94,.24)', cor: '#22C55E' }
+                        const ultimoRepasse = [...f.repassesDaCompetencia].sort((a, b) => new Date(b.data_repasse).getTime() - new Date(a.data_repasse).getTime())[0]
+                        return (
+                          <div key={f.parceiroId} style={{ border: '1px solid #2A1A2F', borderRadius: '14px', padding: '16px', background: 'rgba(24,16,27,.5)' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
+                              <div>
+                                <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginBottom: '4px', flexWrap: 'wrap' }}>
+                                  <p style={{ fontSize: '14px', fontWeight: 700, color: '#F8F4F7' }}>{par.nome}</p>
+                                  <span style={{ fontSize: '11px', fontWeight: 800, color: '#EC4899', background: 'rgba(236,72,153,.12)', border: '1px solid rgba(236,72,153,.28)', padding: '2px 8px', borderRadius: '6px' }}>{par.cupom}</span>
+                                  <span className="badge" style={{ background: badge.bg, border: `1px solid ${badge.borda}`, color: badge.cor }}>{badge.texto}</span>
+                                </div>
+                                <div style={{ display: 'flex', gap: '18px', flexWrap: 'wrap', marginTop: '8px' }}>
+                                  <div>
+                                    <p style={{ fontSize: '10px', color: '#B8AAB8', textTransform: 'uppercase', letterSpacing: '.05em' }}>Pendentes</p>
+                                    <p style={{ fontSize: '13px', color: '#FACC15', fontWeight: 700 }}>{f.qtdComissoesPendentes} comissõe{f.qtdComissoesPendentes !== 1 ? 's' : ''} · {fBRL(f.valorPendente)}</p>
+                                  </div>
+                                  <div>
+                                    <p style={{ fontSize: '10px', color: '#B8AAB8', textTransform: 'uppercase', letterSpacing: '.05em' }}>Pagas</p>
+                                    <p style={{ fontSize: '13px', color: '#22C55E', fontWeight: 700 }}>{f.qtdComissoesPagas} comissõe{f.qtdComissoesPagas !== 1 ? 's' : ''} · {fBRL(f.valorPago)}</p>
+                                  </div>
+                                  {ultimoRepasse && (
+                                    <div>
+                                      <p style={{ fontSize: '10px', color: '#B8AAB8', textTransform: 'uppercase', letterSpacing: '.05em' }}>Último repasse</p>
+                                      <p style={{ fontSize: '13px', color: '#F8F4F7', fontWeight: 600 }}>{new Date(ultimoRepasse.data_repasse).toLocaleDateString('pt-BR')} · {fBRL(Number(ultimoRepasse.valor_total))}</p>
+                                    </div>
+                                  )}
+                                </div>
+                                {f.repassesDaCompetencia.length > 1 && (
+                                  <div style={{ marginTop: '8px', display: 'flex', flexDirection: 'column', gap: '3px' }}>
+                                    {[...f.repassesDaCompetencia].sort((a, b) => new Date(b.data_repasse).getTime() - new Date(a.data_repasse).getTime()).map(r => (
+                                      <p key={r.id} style={{ fontSize: '11px', color: '#B8AAB8' }}>{new Date(r.data_repasse).toLocaleDateString('pt-BR')} · {fBRL(Number(r.valor_total))} · {r.qtd_comissoes} comissõe{r.qtd_comissoes !== 1 ? 's' : ''}</p>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+                              <div style={{ display: 'flex', gap: '8px', alignItems: 'flex-start', flexShrink: 0 }}>
+                                <button className="btn-s" onClick={() => { setVerDetalhes(par); setFiltroPeriodo('tudo') }}>Ver detalhes</button>
+                                {f.valorPendente > 0 && (
+                                  <button className="btn-p" onClick={() => setConfirmandoRepasse({ parceiroId: f.parceiroId, competencia: competenciaFechamento, qtd: f.qtdComissoesPendentes, total: f.valorPendente })}>
+                                    Confirmar repasse
+                                  </button>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
+
           </div>
         </div>
       </div>
@@ -651,6 +910,44 @@ export default function Parceiros() {
                   </div>
                 ))}
               </div>
+
+              {/* A pagar (Fase 3D) - competencias com comissao pendente, agrupadas */}
+              {competenciasPendentesDoParceiro(verDetalhes.id).length > 0 && (
+                <>
+                  <p style={{ fontSize: '13px', fontWeight: 700, color: '#F8F4F7', marginBottom: '10px' }}>A pagar</p>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '22px' }}>
+                    {competenciasPendentesDoParceiro(verDetalhes.id).map(grupo => (
+                      <div key={grupo.competencia} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '10px', padding: '12px 14px', border: '1px solid rgba(250,204,21,.28)', borderRadius: '10px', background: 'rgba(250,204,21,.06)', flexWrap: 'wrap' }}>
+                        <div>
+                          <p style={{ fontSize: '13px', fontWeight: 700, color: '#F8F4F7' }}>{labelCompetencia(grupo.competencia)}</p>
+                          <p style={{ fontSize: '11px', color: '#B8AAB8' }}>{grupo.qtd} comissõe{grupo.qtd > 1 ? 's' : ''} · {fBRL(grupo.total)}</p>
+                        </div>
+                        <button className="btn-p" onClick={() => setConfirmandoRepasse({ parceiroId: verDetalhes.id, competencia: grupo.competencia, qtd: grupo.qtd, total: grupo.total, comissoesDoGrupo: grupo.comissoes })}>
+                          Ver / Confirmar repasse
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </>
+              )}
+
+              {/* Repasses (historico - Fase 3D) */}
+              {repassesDoParceiro(verDetalhes.id).length > 0 && (
+                <>
+                  <p style={{ fontSize: '13px', fontWeight: 700, color: '#F8F4F7', marginBottom: '10px' }}>Repasses</p>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '22px' }}>
+                    {repassesDoParceiro(verDetalhes.id).map(r => (
+                      <div key={r.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '10px', padding: '10px 12px', border: '1px solid #2A1A2F', borderRadius: '10px', background: 'rgba(24,16,27,.4)', flexWrap: 'wrap' }}>
+                        <div>
+                          <p style={{ fontSize: '12px', color: '#F8F4F7', fontWeight: 600 }}>{labelCompetencia(r.competencia)}</p>
+                          <p style={{ fontSize: '11px', color: '#B8AAB8' }}>{r.qtd_comissoes} comissõe{r.qtd_comissoes > 1 ? 's' : ''} · Pago em {new Date(r.data_repasse).toLocaleDateString('pt-BR')}</p>
+                        </div>
+                        <p style={{ fontSize: '13px', color: '#22C55E', fontWeight: 800 }}>{fBRL(Number(r.valor_total))}</p>
+                      </div>
+                    ))}
+                  </div>
+                </>
+              )}
 
               {/* Lista de indicacoes (mesmo padrao visual de card empilhado da aba Indicacoes - ja responsivo por natureza) */}
               {/* Comissoes (historico financeiro real - Fase 3C) */}
@@ -782,6 +1079,36 @@ export default function Parceiros() {
                 </div>
               </>
             )}
+          </div>
+        </div>
+      )}
+
+      {confirmandoRepasse && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100, padding: '20px' }} onClick={() => { if (!processandoRepasse) { setConfirmandoRepasse(null); setErroRepasse('') } }}>
+          <div style={{ background: 'linear-gradient(145deg,rgba(24,16,27,.98),rgba(18,10,20,.99))', border: '1.5px solid #2A1A2F', borderRadius: '18px', padding: '28px', maxWidth: '440px', width: '100%' }} onClick={e => e.stopPropagation()}>
+            <p style={{ fontSize: '18px', fontWeight: 800, color: '#F8F4F7', marginBottom: '10px' }}>Confirmar repasse?</p>
+            <p style={{ fontSize: '13px', color: '#B8AAB8', lineHeight: 1.6, marginBottom: '18px' }}>Confirme somente após realizar o pagamento ao parceiro. Esta ação marcará as comissões desta competência como pagas.</p>
+            <div style={{ background: 'rgba(139,92,246,.08)', border: '1px solid rgba(139,92,246,.22)', borderRadius: '10px', padding: '12px 14px', marginBottom: '18px' }}>
+              <p style={{ fontSize: '14px', fontWeight: 700, color: '#F8F4F7', marginBottom: '4px' }}>{labelCompetencia(confirmandoRepasse.competencia)}</p>
+              <p style={{ fontSize: '12px', color: '#B8AAB8' }}>{confirmandoRepasse.qtd} comissõe{confirmandoRepasse.qtd > 1 ? 's' : ''} · Total: {fBRL(confirmandoRepasse.total)}</p>
+            </div>
+            {erroRepasse && <p style={{ fontSize: '12.5px', color: '#F87171', marginBottom: '14px' }}>{erroRepasse}</p>}
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <button className="btn-s" onClick={() => { setConfirmandoRepasse(null); setErroRepasse('') }} style={{ flex: 1 }} disabled={processandoRepasse}>Cancelar</button>
+              <button onClick={confirmarRepasse} disabled={processandoRepasse} style={{ flex: 1, background: 'linear-gradient(135deg,#EC4899,#D946EF,#8B5CF6)', color: '#fff', border: 'none', borderRadius: '12px', height: '42px', fontSize: '13px', fontWeight: 700, cursor: processandoRepasse ? 'wait' : 'pointer', fontFamily: 'inherit' }}>
+                {processandoRepasse ? 'Confirmando...' : 'Confirmar repasse'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {resultadoRepasse && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100, padding: '20px' }} onClick={() => setResultadoRepasse(null)}>
+          <div style={{ background: 'linear-gradient(145deg,rgba(24,16,27,.98),rgba(18,10,20,.99))', border: '1.5px solid rgba(34,197,94,.35)', borderRadius: '18px', padding: '28px', maxWidth: '420px', width: '100%', textAlign: 'center' as const }} onClick={e => e.stopPropagation()}>
+            <p style={{ fontSize: '18px', fontWeight: 800, color: '#22C55E', marginBottom: '10px' }}>Repasse confirmado com sucesso</p>
+            <p style={{ fontSize: '15px', color: '#F8F4F7', fontWeight: 700, marginBottom: '18px' }}>{fBRL(Number(resultadoRepasse.valor_total))}</p>
+            <button className="btn-p" onClick={() => setResultadoRepasse(null)} style={{ width: '100%' }}>Fechar</button>
           </div>
         </div>
       )}
