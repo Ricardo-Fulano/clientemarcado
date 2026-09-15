@@ -42,24 +42,39 @@ html,body{overflow-x:hidden;width:100%;background:#08060A}
   .modal{padding:20px!important}
 }
 @media(max-width:480px){.kpi{grid-template-columns:1fr}}
+@media(min-width:1024px) and (max-width:1280px){.resumo-plano-grid{grid-template-columns:repeat(2,1fr)!important}}
 `
 
 const TIPOS = ['Influencer', 'Página local', 'Cliente indicador', 'Parceiro comercial', 'Outro']
 
-// Regra comercial: comissao unica de 50% sobre a 1a mensalidade paga (nao recorrente).
+// Regra comercial atual: 20% recorrente sobre cada mensalidade paga pelo cliente indicado,
+// por ate 12 meses (nao mais 50% unico da 1a mensalidade).
 // 'essencial' e o nome interno no banco pro plano comercialmente chamado de "Profissional"
 // (nao mexemos no banco, so tratamos a exibicao/calculo). Fallback: plano_tipo nulo/vazio/
 // invalido sempre vira 'essencial' (Profissional), igual ao comportamento anterior.
-// Comissao = 50% da 1a mensalidade paga pelo cliente indicado. Calculada dinamicamente a
-// partir do preco REAL e atual de cada plano (app/lib/planos.ts) - antes esses valores
-// estavam duplicados aqui com o preco antigo do MiniPage (R$29,90), o que deixava a
-// comissao do MiniPage desatualizada mesmo depois do preco real ja ter mudado pra R$39,90.
+// IMPORTANTE: a comissao aqui e calculada sobre o PRECO TABELADO ATUAL do plano (app/lib/
+// planos.ts), nao sobre o valor que foi de fato pago na transacao - o sistema hoje nao
+// persiste o valor real de cada pagamento (nem em indicacoes_parceiros, nem em perfis; o
+// webhook do Asaas recebe esse valor mas nunca o grava). Se um cliente pagou com desconto/
+// promocao, a comissao exibida aqui pode nao refletir o valor exato pago. Ajustar isso com
+// precisao exigiria salvar o valor real do pagamento (mudanca de webhook/schema, fora do
+// escopo desta correcao).
 function infoDoPlano(chave: PlanoTipo) {
   const mensalidade = obterPrecoPlano(chave)
-  return { mensalidade, comissao: mensalidade * 0.5, nomeComercial: obterNomePlano(chave) }
+  return { mensalidade, comissao: mensalidade * 0.2, nomeComercial: obterNomePlano(chave) }
 }
 function comissaoDoIndicado(ind: any) {
   return infoDoPlano(normalizarPlano(ind?.plano_tipo)).comissao
+}
+// Traduz o status_acesso ja existente em perfis (ativo/em_atraso/cancelado/
+// aguardando_pagamento) pra um rotulo amigavel com cor propria - nao inventa nenhum status
+// novo, so melhora a comunicacao do que ja existe.
+function labelStatusAcesso(s: string | null | undefined) {
+  if (s === 'ativo') return { texto: 'Ativo', cor: '#22C55E', bg: 'rgba(34,197,94,.12)', borda: 'rgba(34,197,94,.26)' }
+  if (s === 'em_atraso') return { texto: 'Em atraso', cor: '#FACC15', bg: 'rgba(250,204,21,.12)', borda: 'rgba(250,204,21,.26)' }
+  if (s === 'cancelado') return { texto: 'Cancelado', cor: '#F87171', bg: 'rgba(248,113,113,.12)', borda: 'rgba(248,113,113,.26)' }
+  if (s === 'aguardando_pagamento') return { texto: 'Aguardando pagamento', cor: '#94A3B8', bg: 'rgba(148,163,184,.12)', borda: 'rgba(148,163,184,.24)' }
+  return null
 }
 
 export default function Parceiros() {
@@ -165,7 +180,7 @@ export default function Parceiros() {
   // fallback de planoValido as contaria erradamente como "Profissional").
   function resumoPorPlano(inds: any[]) {
     const comPlanoDefinido = inds.filter(i => i.plano_tipo !== null && i.plano_tipo !== undefined && i.plano_tipo !== '')
-    const chaves = ['minipage', 'essencial', 'equipe'] as const
+    const chaves = ['minipage', 'loja', 'essencial', 'equipe'] as const
     return chaves.map(chave => {
       const doPlano = comPlanoDefinido.filter(i => normalizarPlano(i.plano_tipo) === chave)
       const pagantesDoPlano = doPlano.filter(ehPagante)
@@ -202,6 +217,46 @@ export default function Parceiros() {
   async function toggleAtivo(p: any) {
     await supabase.from('parceiros').update({ ativo: !p.ativo }).eq('id', p.id)
     await carregarParceiros()
+  }
+
+  // Exclusao segura: so permite apagar de verdade se o parceiro nao tiver NENHUMA indicacao
+  // vinculada (o que automaticamente cobre comissoes/pagamentos, ja que essas informacoes
+  // ficam dentro do registro de indicacao). Se tiver historico, nunca apaga fisicamente -
+  // so oferece desativar, preservando os dados.
+  const [confirmandoExclusao, setConfirmandoExclusao] = useState<any>(null)
+  const [excluindo, setExcluindo] = useState(false)
+
+  function temHistorico(parceiroId: string) {
+    return indicacoes.some(i => i.parceiro_id === parceiroId)
+  }
+
+  function abrirConfirmacaoExclusao(p: any) {
+    setConfirmandoExclusao(p)
+  }
+
+  async function confirmarExclusao() {
+    if (!confirmandoExclusao) return
+    // Checagem final no momento da exclusao (nao so ao abrir o modal) - garante que nao
+    // apaga fisicamente um parceiro que tenha ganho uma indicacao entre abrir o modal e
+    // confirmar.
+    if (temHistorico(confirmandoExclusao.id)) {
+      setConfirmandoExclusao(null)
+      return
+    }
+    setExcluindo(true)
+    const { error } = await supabase.from('parceiros').delete().eq('id', confirmandoExclusao.id)
+    setExcluindo(false)
+    setConfirmandoExclusao(null)
+    if (error) { setMsg('Erro ao excluir: ' + error.message); return }
+    setMsg('Parceiro excluído.')
+    await carregarParceiros()
+  }
+
+  async function desativarEFecharModal() {
+    if (!confirmandoExclusao) return
+    await supabase.from('parceiros').update({ ativo: false }).eq('id', confirmandoExclusao.id)
+    await carregarParceiros()
+    setConfirmandoExclusao(null)
   }
 
   async function marcarPago(ind: any) {
@@ -269,7 +324,7 @@ export default function Parceiros() {
               <button className="btn-p" onClick={() => { resetForm(); setShowModal(true) }}>+ Novo parceiro</button>
             </div>
 
-            <p style={{ fontSize: '12px', color: '#C4B5FD', marginBottom: '20px' }}>Comissão: 50% da 1ª mensalidade paga pelo cliente indicado — MiniPage {fBRL(infoDoPlano('minipage').comissao)} · Loja {fBRL(infoDoPlano('loja').comissao)} · Pro {fBRL(infoDoPlano('essencial').comissao)} · Equipe {fBRL(infoDoPlano('equipe').comissao)}</p>
+            <p style={{ fontSize: '12px', color: '#C4B5FD', marginBottom: '20px' }}>Comissão: 20% recorrente sobre cada mensalidade paga pelos clientes indicados, por até 12 meses.</p>
 
             {msg && <div style={{ background: 'rgba(34,197,94,.12)', border: '1px solid rgba(34,197,94,.28)', borderRadius: '10px', padding: '10px 14px', fontSize: '13px', color: '#22C55E', marginBottom: '16px' }}>{msg}</div>}
 
@@ -355,6 +410,7 @@ export default function Parceiros() {
                         <button className="btn-s" onClick={() => copiarPainelParceiro(p.cupom)}>Copiar painel do parceiro</button>
                         <button className="btn-s" onClick={() => abrirEditar(p)}>Editar</button>
                         <button className={p.ativo ? 'btn-s btn-desativar' : 'btn-s'} onClick={() => toggleAtivo(p)}>{p.ativo ? 'Desativar' : 'Ativar'}</button>
+                        <button className="btn-s" style={{ color: '#F87171', borderColor: 'rgba(248,113,113,.35)' }} onClick={() => abrirConfirmacaoExclusao(p)}>Excluir</button>
                       </div>
                     </div>
                   )
@@ -437,6 +493,7 @@ export default function Parceiros() {
                             {ehPagante(ind) && (
                               <span className="badge" style={{ background: ind.comissao_status === 'paga' ? 'rgba(34,197,94,.10)' : 'rgba(250,204,21,.12)', border: `1px solid ${ind.comissao_status === 'paga' ? 'rgba(34,197,94,.22)' : 'rgba(250,204,21,.28)'}`, color: ind.comissao_status === 'paga' ? '#22C55E' : '#FACC15' }}>{ind.comissao_status === 'paga' ? 'Comissão paga' : 'Comissão pendente'}</span>
                             )}
+                            {labelStatusAcesso(ind.status_acesso) && (() => { const st = labelStatusAcesso(ind.status_acesso)!; return <span className="badge" style={{ background: st.bg, border: `1px solid ${st.borda}`, color: st.cor }}>{st.texto}</span> })()}
                           </div>
                         </div>
                         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '6px' }}>
@@ -522,7 +579,7 @@ export default function Parceiros() {
 
               {/* Resumo por plano */}
               <p style={{ fontSize: '13px', fontWeight: 700, color: '#F8F4F7', marginBottom: '10px' }}>Resumo por plano</p>
-              <div className="resumo-plano-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '10px', marginBottom: '22px' }}>
+              <div className="resumo-plano-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '10px', marginBottom: '22px' }}>
                 {resumo.map(r => (
                   <div key={r.chave} style={{ background: 'rgba(139,92,246,.06)', border: '1px solid rgba(139,92,246,.20)', borderRadius: '12px', padding: '12px 10px' }}>
                     <p style={{ fontSize: '11px', fontWeight: 800, color: '#C4B5FD', marginBottom: '8px' }}>{r.nome}</p>
@@ -553,13 +610,14 @@ export default function Parceiros() {
                             <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap' }}>
                               <span className="badge" style={{ background: 'rgba(139,92,246,.12)', border: '1px solid rgba(139,92,246,.26)', color: '#C4B5FD' }}>{temPlanoDefinido ? infoPlano.nomeComercial : 'Não definido'}</span>
                               <span className="badge" style={{ background: ehPagante(ind) ? 'rgba(34,197,94,.12)' : 'rgba(236,72,153,.12)', border: `1px solid ${ehPagante(ind) ? 'rgba(34,197,94,.24)' : 'rgba(236,72,153,.24)'}`, color: ehPagante(ind) ? '#22C55E' : '#EC4899' }}>{ehPagante(ind) ? 'Pagante' : 'Cadastro'}</span>
-                              {ind.status_acesso && <span className="badge" style={{ background: 'rgba(148,163,184,.12)', border: '1px solid rgba(148,163,184,.24)', color: '#94A3B8' }}>{ind.status_acesso}</span>}
+                              {labelStatusAcesso(ind.status_acesso) && (() => { const st = labelStatusAcesso(ind.status_acesso)!; return <span className="badge" style={{ background: st.bg, border: `1px solid ${st.borda}`, color: st.cor }}>{st.texto}</span> })()}
                             </div>
                           </div>
                           <div style={{ textAlign: 'right' as const, flexShrink: 0 }}>
                             <p style={{ fontSize: '10px', color: '#B8AAB8', marginBottom: '2px' }}>{ind.created_at ? new Date(ind.created_at).toLocaleDateString('pt-BR') : '—'}</p>
                             {ind.data_pagamento && <p style={{ fontSize: '10px', color: '#B8AAB8', marginBottom: '4px' }}>1º pgto: {new Date(ind.data_pagamento).toLocaleDateString('pt-BR')}</p>}
-                            <p style={{ fontSize: '13px', color: '#EC4899', fontWeight: 800 }}>{fBRL(comissao)}</p>
+                            {temPlanoDefinido && <p style={{ fontSize: '10px', color: '#B8AAB8', marginBottom: '2px' }}>Mensalidade: {fBRL(infoPlano.mensalidade)}</p>}
+                            <p style={{ fontSize: '13px', color: '#EC4899', fontWeight: 800 }}>Comissão: {fBRL(comissao)}</p>
                             {ehPagante(ind) && <p style={{ fontSize: '10px', color: ind.comissao_status === 'paga' ? '#22C55E' : '#FACC15' }}>{ind.comissao_status === 'paga' ? 'Paga' : 'Pendente'}</p>}
                           </div>
                         </div>
@@ -594,7 +652,7 @@ export default function Parceiros() {
                   {TIPOS.map(t => <option key={t} value={t}>{t}</option>)}
                 </select>
               </div>
-              <p style={{ fontSize: '12px', color: '#B8AAB8', background: 'rgba(139,92,246,.08)', border: '1px solid rgba(139,92,246,.20)', borderRadius: '10px', padding: '10px 12px' }}>Comissão: 50% da 1ª mensalidade paga pelo cliente indicado (MiniPage {fBRL(infoDoPlano('minipage').comissao)} · Loja {fBRL(infoDoPlano('loja').comissao)} · Pro {fBRL(infoDoPlano('essencial').comissao)} · Equipe {fBRL(infoDoPlano('equipe').comissao)}). Regra fixa, aplicada a todos os parceiros.</p>
+              <p style={{ fontSize: '12px', color: '#B8AAB8', background: 'rgba(139,92,246,.08)', border: '1px solid rgba(139,92,246,.20)', borderRadius: '10px', padding: '10px 12px' }}>Comissão: 20% recorrente sobre cada mensalidade paga pelos clientes indicados, por até 12 meses. Regra aplicada a todos os parceiros.</p>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <button onClick={() => setAtivo(!ativo)} style={{ width: '36px', height: '20px', borderRadius: '999px', border: 'none', cursor: 'pointer', position: 'relative', background: ativo ? '#EC4899' : '#2A1A2F' }}>
                   <span style={{ position: 'absolute', top: '2px', left: ativo ? '18px' : '2px', width: '16px', height: '16px', borderRadius: '50%', background: '#fff', transition: 'left .2s' }} />
@@ -606,6 +664,32 @@ export default function Parceiros() {
                 <button className="btn-p" onClick={salvar} style={{ flex: 2 }}>Salvar parceiro</button>
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {confirmandoExclusao && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100, padding: '20px' }} onClick={() => setConfirmandoExclusao(null)}>
+          <div style={{ background: 'linear-gradient(145deg,rgba(24,16,27,.98),rgba(18,10,20,.99))', border: '1.5px solid #2A1A2F', borderRadius: '18px', padding: '28px', maxWidth: '420px', width: '100%' }} onClick={e => e.stopPropagation()}>
+            {temHistorico(confirmandoExclusao.id) ? (
+              <>
+                <p style={{ fontSize: '18px', fontWeight: 800, color: '#F8F4F7', marginBottom: '10px' }}>Este parceiro não pode ser excluído</p>
+                <p style={{ fontSize: '13px', color: '#B8AAB8', lineHeight: 1.6, marginBottom: '22px' }}>Este parceiro possui indicações ou comissões vinculadas e não pode ser excluído permanentemente. Você pode desativá-lo para preservar o histórico.</p>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <button className="btn-s" onClick={() => setConfirmandoExclusao(null)} style={{ flex: 1 }}>Cancelar</button>
+                  <button className="btn-p" onClick={desativarEFecharModal} style={{ flex: 1 }}>Desativar parceiro</button>
+                </div>
+              </>
+            ) : (
+              <>
+                <p style={{ fontSize: '18px', fontWeight: 800, color: '#F8F4F7', marginBottom: '10px' }}>Excluir parceiro?</p>
+                <p style={{ fontSize: '13px', color: '#B8AAB8', lineHeight: 1.6, marginBottom: '22px' }}>Esta ação pode afetar vínculos e histórico de indicações. Confirme somente se tiver certeza.</p>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <button className="btn-s" onClick={() => setConfirmandoExclusao(null)} style={{ flex: 1 }} disabled={excluindo}>Cancelar</button>
+                  <button onClick={confirmarExclusao} disabled={excluindo} style={{ flex: 1, background: '#EF4444', color: '#fff', border: 'none', borderRadius: '12px', height: '42px', fontSize: '13px', fontWeight: 700, cursor: excluindo ? 'wait' : 'pointer', fontFamily: 'inherit' }}>{excluindo ? 'Excluindo...' : 'Excluir parceiro'}</button>
+                </div>
+              </>
+            )}
           </div>
         </div>
       )}

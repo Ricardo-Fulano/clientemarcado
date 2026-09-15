@@ -2,6 +2,11 @@
 import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
 
+// CORRECAO DE SEGURANCA: essa pagina publica (sem login) nao recebe mais a lista individual
+// de indicacoes (nome, email, slug de cada cliente indicado) - so agregados ja calculados
+// pelo servidor. O cupom nunca funcionou como autenticacao de verdade, entao reduzimos ao
+// minimo o que fica exposto por aqui. O filtro de periodo continua funcionando, so que agora
+// manda inicio/fim pra API, que refaz o calculo agregado no servidor.
 const CSS = `
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html,body{overflow-x:hidden;width:100%;background:#08060A}
@@ -16,24 +21,11 @@ html,body{overflow-x:hidden;width:100%;background:#08060A}
   .kpi{grid-template-columns:1fr 1fr!important}
   .resumo-plano{grid-template-columns:1fr!important}
 }
+@media(min-width:641px) and (max-width:900px){
+  .resumo-plano{grid-template-columns:repeat(2,1fr)!important}
+}
 `
 
-const PLANOS_COMISSAO: Record<string, { mensalidade: number; comissao: number; nomeComercial: string }> = {
-  minipage: { mensalidade: 29.90, comissao: 14.95, nomeComercial: 'MiniPage' },
-  essencial: { mensalidade: 79.90, comissao: 39.95, nomeComercial: 'Profissional' },
-  equipe: { mensalidade: 149.90, comissao: 74.95, nomeComercial: 'Equipe' },
-}
-// 'profissional' e 'essencial' apontam pro mesmo plano comercial (Profissional). Qualquer
-// coisa fora dessas 3 chaves cai no fallback 'essencial', igual ao painel admin.
-function planoValido(pt: string | null | undefined) {
-  if (pt === 'minipage') return 'minipage'
-  if (pt === 'equipe') return 'equipe'
-  return 'essencial'
-}
-function comissaoDoIndicado(ind: any) {
-  return PLANOS_COMISSAO[planoValido(ind?.plano_tipo)].comissao
-}
-const ehPagante = (ind: any) => ind.is_pagante || ind.status === 'pagante'
 const fBRL = (v: number) => `R$ ${(v || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`
 
 type FiltroPeriodo = 'hoje' | 'semana' | 'mes' | 'mes_passado' | 'tudo' | 'personalizado'
@@ -70,42 +62,26 @@ export default function PainelParceiroPublico() {
   const [carregando, setCarregando] = useState(true)
   const [naoEncontrado, setNaoEncontrado] = useState(false)
   const [parceiro, setParceiro] = useState<any>(null)
-  const [indicacoes, setIndicacoes] = useState<any[]>([])
+  const [agregados, setAgregados] = useState<any>(null)
   const [filtroPeriodo, setFiltroPeriodo] = useState<FiltroPeriodo>('tudo')
   const [dataIni, setDataIni] = useState('')
   const [dataFim, setDataFim] = useState('')
 
   useEffect(() => {
     if (!cupom) return
-    fetch(`/api/parceiro/${encodeURIComponent(cupom)}`)
+    setCarregando(true)
+    const intervalo = calcularIntervalo(filtroPeriodo, dataIni, dataFim)
+    const qs = intervalo ? `?inicio=${intervalo.inicio.toISOString()}&fim=${intervalo.fim.toISOString()}` : ''
+    fetch(`/api/parceiro/${encodeURIComponent(cupom)}${qs}`)
       .then(async (res) => {
         if (!res.ok) { setNaoEncontrado(true); return }
         const data = await res.json()
         setParceiro(data.parceiro)
-        setIndicacoes(data.indicacoes || [])
+        setAgregados(data.agregados)
       })
       .catch(() => setNaoEncontrado(true))
       .finally(() => setCarregando(false))
-  }, [cupom])
-
-  const intervalo = calcularIntervalo(filtroPeriodo, dataIni, dataFim)
-  const indsFiltradas = indicacoes.filter(ind => {
-    if (!intervalo) return true
-    if (!ind.created_at) return false
-    const d = new Date(ind.created_at)
-    return d >= intervalo.inicio && d <= intervalo.fim
-  })
-  const pagsFiltradas = indsFiltradas.filter(ehPagante)
-  const pendenteFiltrado = pagsFiltradas.filter(i => i.comissao_status !== 'paga').reduce((a, i) => a + comissaoDoIndicado(i), 0)
-  const pagoFiltrado = indsFiltradas.filter(i => i.comissao_status === 'paga').reduce((a, i) => a + comissaoDoIndicado(i), 0)
-
-  const comPlanoDefinido = indsFiltradas.filter(i => i.plano_tipo !== null && i.plano_tipo !== undefined && i.plano_tipo !== '')
-  const resumoPorPlano = (['minipage', 'essencial', 'equipe'] as const).map(chave => {
-    const doPlano = comPlanoDefinido.filter(i => planoValido(i.plano_tipo) === chave)
-    const pagantesDoPlano = doPlano.filter(ehPagante)
-    const comissao = pagantesDoPlano.reduce((a, i) => a + comissaoDoIndicado(i), 0)
-    return { chave, nome: PLANOS_COMISSAO[chave].nomeComercial, cadastros: doPlano.length, pagantes: pagantesDoPlano.length, comissao }
-  })
+  }, [cupom, filtroPeriodo, dataIni, dataFim])
 
   if (carregando) {
     return (
@@ -116,7 +92,7 @@ export default function PainelParceiroPublico() {
     )
   }
 
-  if (naoEncontrado || !parceiro) {
+  if (naoEncontrado || !parceiro || !agregados) {
     return (
       <div className="pg" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px' }}>
         <style dangerouslySetInnerHTML={{ __html: CSS }} />
@@ -168,10 +144,10 @@ export default function PainelParceiroPublico() {
         {/* KPIs */}
         <div className="kpi">
           {[
-            { l: 'Cadastros', v: String(indsFiltradas.length), c: '#B8AAB8' },
-            { l: 'Pagantes', v: String(pagsFiltradas.length), c: '#22C55E' },
-            { l: 'Comissão pendente', v: fBRL(pendenteFiltrado), c: '#FACC15' },
-            { l: 'Comissão paga', v: fBRL(pagoFiltrado), c: '#22C55E' },
+            { l: 'Cadastros', v: String(agregados.cadastros), c: '#B8AAB8' },
+            { l: 'Pagantes', v: String(agregados.pagantes), c: '#22C55E' },
+            { l: 'Comissão pendente', v: fBRL(agregados.comissaoPendente), c: '#FACC15' },
+            { l: 'Comissão paga', v: fBRL(agregados.comissaoPaga), c: '#22C55E' },
           ].map(k => (
             <div key={k.l} style={{ background: '#18101B', border: '1.5px solid #2A1A2F', borderRadius: '14px', padding: '14px 10px' }}>
               <p style={{ fontSize: '9px', fontWeight: 700, color: '#B8AAB8', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: '4px' }}>{k.l}</p>
@@ -182,8 +158,8 @@ export default function PainelParceiroPublico() {
 
         {/* Resumo por plano */}
         <p style={{ fontSize: '13px', fontWeight: 700, color: '#F8F4F7', marginBottom: '10px' }}>Resumo por plano</p>
-        <div className="resumo-plano" style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '10px', marginBottom: '24px' }}>
-          {resumoPorPlano.map(r => (
+        <div className="resumo-plano" style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '10px', marginBottom: agregados.cadastrosFree > 0 ? '10px' : '24px' }}>
+          {agregados.resumoPorPlano.map((r: any) => (
             <div key={r.chave} style={{ background: 'rgba(139,92,246,.06)', border: '1px solid rgba(139,92,246,.20)', borderRadius: '12px', padding: '12px 10px' }}>
               <p style={{ fontSize: '11px', fontWeight: 800, color: '#C4B5FD', marginBottom: '8px' }}>{r.nome}</p>
               <p style={{ fontSize: '11px', color: '#B8AAB8', marginBottom: '2px' }}>Cadastros: <span style={{ color: '#F8F4F7', fontWeight: 700 }}>{r.cadastros}</span></p>
@@ -193,41 +169,8 @@ export default function PainelParceiroPublico() {
           ))}
         </div>
 
-        {/* Lista de indicacoes */}
-        <p style={{ fontSize: '13px', fontWeight: 700, color: '#F8F4F7', marginBottom: '10px' }}>Clientes indicados no período ({indsFiltradas.length})</p>
-        {indsFiltradas.length === 0 ? (
-          <div className="card" style={{ padding: '40px', textAlign: 'center' }}>
-            <p style={{ fontSize: '13px', color: '#B8AAB8' }}>Nenhuma indicação neste período.</p>
-          </div>
-        ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '32px' }}>
-            {indsFiltradas.map(ind => {
-              const temPlano = ind.plano_tipo !== null && ind.plano_tipo !== undefined && ind.plano_tipo !== ''
-              const infoPlano = PLANOS_COMISSAO[planoValido(ind.plano_tipo)]
-              const comissao = temPlano ? comissaoDoIndicado(ind) : 0
-              return (
-                <div key={ind.id} style={{ padding: '14px', border: '1px solid #2A1A2F', borderRadius: '12px', background: 'rgba(24,16,27,.5)' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px' }}>
-                    <div style={{ minWidth: 0 }}>
-                      <p style={{ fontSize: '13px', fontWeight: 700, color: '#F8F4F7', marginBottom: '2px' }}>{ind.nome_negocio || ind.nome_responsavel || '—'}</p>
-                      {ind.slug && <p style={{ fontSize: '11px', color: '#B8AAB8', marginBottom: '1px' }}>minipage.pro/{ind.slug}</p>}
-                      <p style={{ fontSize: '11px', color: '#B8AAB8', marginBottom: '6px' }}>{ind.email || '—'}</p>
-                      <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap' }}>
-                        <span className="badge" style={{ background: 'rgba(139,92,246,.12)', border: '1px solid rgba(139,92,246,.26)', color: '#C4B5FD' }}>{temPlano ? infoPlano.nomeComercial : 'Não definido'}</span>
-                        <span className="badge" style={{ background: ehPagante(ind) ? 'rgba(34,197,94,.12)' : 'rgba(236,72,153,.12)', border: `1px solid ${ehPagante(ind) ? 'rgba(34,197,94,.24)' : 'rgba(236,72,153,.24)'}`, color: ehPagante(ind) ? '#22C55E' : '#EC4899' }}>{ehPagante(ind) ? 'Pagante' : 'Cadastro'}</span>
-                      </div>
-                    </div>
-                    <div style={{ textAlign: 'right' as const, flexShrink: 0 }}>
-                      <p style={{ fontSize: '10px', color: '#B8AAB8', marginBottom: '4px' }}>{ind.created_at ? new Date(ind.created_at).toLocaleDateString('pt-BR') : '—'}</p>
-                      <p style={{ fontSize: '11px', color: '#B8AAB8', marginBottom: '2px' }}>{temPlano ? fBRL(infoPlano.mensalidade) : '—'}</p>
-                      <p style={{ fontSize: '13px', color: '#EC4899', fontWeight: 800 }}>{fBRL(comissao)}</p>
-                      {ehPagante(ind) && <p style={{ fontSize: '10px', color: ind.comissao_status === 'paga' ? '#22C55E' : '#FACC15' }}>{ind.comissao_status === 'paga' ? 'Comissão paga' : 'Comissão pendente'}</p>}
-                    </div>
-                  </div>
-                </div>
-              )
-            })}
-          </div>
+        {agregados.cadastrosFree > 0 && (
+          <p style={{ fontSize: '12px', color: '#B8AAB8', marginBottom: '24px' }}>Cadastros Free: <span style={{ color: '#F8F4F7', fontWeight: 700 }}>{agregados.cadastrosFree}</span></p>
         )}
 
         {/* Rodape */}
