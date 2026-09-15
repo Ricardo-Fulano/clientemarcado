@@ -81,6 +81,8 @@ export default function Parceiros() {
   const [perfil, setPerfil] = useState<any>(null)
   const [parceiros, setParceiros] = useState<any[]>([])
   const [indicacoes, setIndicacoes] = useState<any[]>([])
+  const [comissoes, setComissoes] = useState<any[]>([])
+  const [repasses, setRepasses] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [showModal, setShowModal] = useState(false)
   const [editando, setEditando] = useState<any>(null)
@@ -113,18 +115,25 @@ export default function Parceiros() {
     if (!ADMIN_IDS.includes(user.id)) { window.location.href = '/painel'; return }
     const { data: p } = await supabase.from('perfis').select('*').eq('user_id', user.id).single()
     setPerfil(p)
-    await Promise.all([carregarParceiros(), carregarIndicacoes()])
+    await carregarDadosAdmin()
     setLoading(false)
   }
 
-  async function carregarParceiros() {
-    const { data } = await supabase.from('parceiros').select('*').order('created_at', { ascending: false })
-    setParceiros(data || [])
-  }
-
-  async function carregarIndicacoes() {
-    const { data } = await supabase.from('indicacoes_parceiros').select('*').order('created_at', { ascending: false })
-    setIndicacoes(data || [])
+  async function carregarDadosAdmin() {
+    const { data: { session } } = await supabase.auth.getSession()
+    const token = session?.access_token
+    if (!token) return
+    try {
+      const res = await fetch('/api/admin/parceiros', { headers: { Authorization: `Bearer ${token}` } })
+      if (!res.ok) { console.error('[Parceiros] Erro ao carregar dados admin:', res.status); return }
+      const dados = await res.json()
+      setParceiros(dados.parceiros || [])
+      setIndicacoes(dados.indicacoes || [])
+      setComissoes(dados.comissoes || [])
+      setRepasses(dados.repasses || [])
+    } catch (e: any) {
+      console.error('[Parceiros] Erro ao carregar dados admin:', e?.message)
+    }
   }
 
   function indicacoesDoParceiro(parceiroId: string) {
@@ -175,17 +184,46 @@ export default function Parceiros() {
     })
   }
 
+  // Comissoes pendentes/geradas no periodo: usa data_pagamento_cliente (quando o cliente
+  // de fato pagou), nunca created_at da comissao nem data de processamento do webhook.
+  function comissoesGeradasNoPeriodo(lista: any[]) {
+    const intervalo = intervaloDoFiltro()
+    if (!intervalo) return lista
+    return lista.filter(c => {
+      if (!c.data_pagamento_cliente) return false
+      const d = new Date(c.data_pagamento_cliente)
+      return d >= intervalo.inicio && d <= intervalo.fim
+    })
+  }
+
+  // Comissao PAGA no periodo: usa a data REAL do repasse ao parceiro (repasses_parceiros.
+  // data_repasse), nao a data que o cliente pagou. Ex: cliente pagou em agosto, repasse
+  // aconteceu em setembro -> essa comissao entra em "Setembro", nao em "Agosto".
+  function comissoesPagasNoPeriodo(lista: any[]) {
+    const pagas = lista.filter(c => c.status === 'paga')
+    const intervalo = intervaloDoFiltro()
+    if (!intervalo) return pagas
+    return pagas.filter(c => {
+      const repasse = repasses.find(r => r.id === c.repasse_id)
+      if (!repasse?.data_repasse) return false
+      const d = new Date(repasse.data_repasse)
+      return d >= intervalo.inicio && d <= intervalo.fim
+    })
+  }
+
   // Resumo por plano (cadastros/pagantes/comissao), usado dentro do modal de detalhes.
   // Indicacoes SEM plano_tipo definido ficam de fora dos 3 grupos comerciais (senao o
   // fallback de planoValido as contaria erradamente como "Profissional").
-  function resumoPorPlano(inds: any[]) {
+  function resumoPorPlano(inds: any[], comissoesRelevantes: any[]) {
     const comPlanoDefinido = inds.filter(i => i.plano_tipo !== null && i.plano_tipo !== undefined && i.plano_tipo !== '')
+    const comissoesValidasRelevantes = comissoesRelevantes.filter(c => c.status === 'pendente' || c.status === 'paga')
     const chaves = ['minipage', 'loja', 'essencial', 'equipe'] as const
     return chaves.map(chave => {
       const doPlano = comPlanoDefinido.filter(i => normalizarPlano(i.plano_tipo) === chave)
-      const pagantesDoPlano = doPlano.filter(ehPagante)
-      const comissao = pagantesDoPlano.reduce((a, i) => a + comissaoDoIndicado(i), 0)
-      return { chave, nome: infoDoPlano(chave).nomeComercial, cadastros: doPlano.length, pagantes: pagantesDoPlano.length, comissao }
+      const comissoesDoPlano = comissoesValidasRelevantes.filter(c => normalizarPlano(c.plano_tipo) === chave)
+      const pagantesDoPlano = new Set(comissoesDoPlano.map(c => c.indicacao_id)).size
+      const comissao = comissoesDoPlano.reduce((a, c) => a + Number(c.valor_comissao || 0), 0)
+      return { chave, nome: infoDoPlano(chave).nomeComercial, cadastros: doPlano.length, pagantes: pagantesDoPlano, comissao }
     })
   }
 
@@ -211,12 +249,12 @@ export default function Parceiros() {
       const { error } = await supabase.from('parceiros').insert(payload)
       if (error) { setMsg('Erro: ' + error.message); return }
     }
-    setMsg(''); resetForm(); setShowModal(false); await carregarParceiros()
+    setMsg(''); resetForm(); setShowModal(false); await carregarDadosAdmin()
   }
 
   async function toggleAtivo(p: any) {
     await supabase.from('parceiros').update({ ativo: !p.ativo }).eq('id', p.id)
-    await carregarParceiros()
+    await carregarDadosAdmin()
   }
 
   // Exclusao segura: so permite apagar de verdade se o parceiro nao tiver NENHUMA indicacao
@@ -249,20 +287,20 @@ export default function Parceiros() {
     setConfirmandoExclusao(null)
     if (error) { setMsg('Erro ao excluir: ' + error.message); return }
     setMsg('Parceiro excluído.')
-    await carregarParceiros()
+    await carregarDadosAdmin()
   }
 
   async function desativarEFecharModal() {
     if (!confirmandoExclusao) return
     await supabase.from('parceiros').update({ ativo: false }).eq('id', confirmandoExclusao.id)
-    await carregarParceiros()
+    await carregarDadosAdmin()
     setConfirmandoExclusao(null)
   }
 
   async function marcarPago(ind: any) {
     if (!window.confirm('Deseja marcar esta comissão como paga?')) return
     await supabase.from('indicacoes_parceiros').update({ comissao_status: 'paga' }).eq('id', ind.id)
-    await carregarIndicacoes()
+    await carregarDadosAdmin()
   }
 
   async function marcarPagante(ind: any) {
@@ -275,7 +313,7 @@ export default function Parceiros() {
       comissao_valor: valor,
       data_pagamento: new Date().toISOString().split('T')[0],
     }).eq('id', ind.id)
-    await carregarIndicacoes()
+    await carregarDadosAdmin()
   }
 
   function copiarLink(c: string) {
@@ -295,14 +333,38 @@ export default function Parceiros() {
 
   const fBRL = (v: number) => `R$ ${(v || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`
 
-  const ehPagante = (ind: any) => ind.is_pagante || ind.status === 'pagante'
+  // ===== FASE 3C: comissoes_parceiros passa a ser a fonte financeira de verdade =====
+  // is_pagante/comissao_status (legado em indicacoes_parceiros) NAO sao mais usados aqui
+  // pra decidir pagante/pendente/pago - continuam existindo no banco, intocados, so
+  // deixam de alimentar esta tela.
+  const comissoesValidas = comissoes.filter(c => c.status === 'pendente' || c.status === 'paga')
+  const indicacoesComComissaoValida = new Set(comissoesValidas.map(c => c.indicacao_id))
+  const ehPagante = (ind: any) => indicacoesComComissaoValida.has(ind.id)
 
-  // KPIs (todo o periodo - modelo agora e comissao unica, nao mensal)
+  // Comissao mais recente de uma indicacao (por data_pagamento_cliente) - usada na linha
+  // principal quando o cliente ja pagou varias mensalidades, sem precisar listar todas ali.
+  function ultimaComissao(indicacaoId: string) {
+    const doCliente = comissoes.filter(c => c.indicacao_id === indicacaoId)
+    if (doCliente.length === 0) return null
+    return [...doCliente].sort((a, b) => new Date(b.data_pagamento_cliente).getTime() - new Date(a.data_pagamento_cliente).getTime())[0]
+  }
+
+  // Todas as comissoes de uma indicacao, mais recente primeiro - usada na secao
+  // "Comissoes" (historico) dentro do modal do parceiro.
+  function historicoComissoes(indicacaoId: string) {
+    return comissoes
+      .filter(c => c.indicacao_id === indicacaoId)
+      .sort((a, b) => new Date(b.data_pagamento_cliente).getTime() - new Date(a.data_pagamento_cliente).getTime())
+  }
+
+  const labelStatusComissao = (s: string) => s === 'paga' ? 'Paga' : s === 'estornada' ? 'Estornada' : 'Pendente'
+
+  // KPIs (todo o periodo)
   const totalAtivos = parceiros.filter(p => p.ativo).length
   const totalCadastros = indicacoes.length
   const totalPagantes = indicacoes.filter(ehPagante).length
-  const totalPendente = indicacoes.filter(i => ehPagante(i) && i.comissao_status !== 'paga').reduce((a, i) => a + comissaoDoIndicado(i), 0)
-  const totalPago = indicacoes.filter(i => i.comissao_status === 'paga').reduce((a, i) => a + comissaoDoIndicado(i), 0)
+  const totalPendente = comissoes.filter(c => c.status === 'pendente').reduce((a, c) => a + Number(c.valor_comissao || 0), 0)
+  const totalPago = comissoes.filter(c => c.status === 'paga').reduce((a, c) => a + Number(c.valor_comissao || 0), 0)
 
   if (loading) return <div style={{ minHeight: '100vh', background: '#08060A', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><p style={{ color: '#B8AAB8' }}>Carregando...</p></div>
 
@@ -368,9 +430,10 @@ export default function Parceiros() {
                   </div>
                 ) : parceiros.map(p => {
                   const inds = indicacoesDoParceiro(p.id)
+                  const comissoesDoParceiro = comissoes.filter(c => c.parceiro_id === p.id)
                   const pags = inds.filter(ehPagante)
-                  const pendente = pags.filter(i => i.comissao_status !== 'paga').reduce((a, i) => a + comissaoDoIndicado(i), 0)
-                  const pago = inds.filter(i => i.comissao_status === 'paga').reduce((a, i) => a + comissaoDoIndicado(i), 0)
+                  const pendente = comissoesDoParceiro.filter(c => c.status === 'pendente').reduce((a, c) => a + Number(c.valor_comissao || 0), 0)
+                  const pago = comissoesDoParceiro.filter(c => c.status === 'paga').reduce((a, c) => a + Number(c.valor_comissao || 0), 0)
 
                   return (
                     <div key={p.id} className="tbl-row">
@@ -476,7 +539,7 @@ export default function Parceiros() {
                 ) : indicacoesFiltradas.map(ind => {
                   const planoTipo = normalizarPlano(ind.plano_tipo)
                   const infoPlano = infoDoPlano(planoTipo)
-                  const comissao = comissaoDoIndicado(ind)
+                  const ultima = ultimaComissao(ind.id)
                   const par = parceiros.find((pc: any) => pc.id === ind.parceiro_id)
                   return (
                     <div key={ind.id} className="tbl-row">
@@ -490,23 +553,21 @@ export default function Parceiros() {
                             {par && <span style={{ fontSize: '11px', color: '#B8AAB8' }}>→ {par.nome}</span>}
                             <span className="badge" style={{ background: 'rgba(139,92,246,.12)', border: '1px solid rgba(139,92,246,.26)', color: '#C4B5FD' }}>Plano {infoPlano.nomeComercial}</span>
                             <span className="badge" style={{ background: ehPagante(ind) ? 'rgba(34,197,94,.12)' : 'rgba(236,72,153,.12)', border: `1px solid ${ehPagante(ind) ? 'rgba(34,197,94,.24)' : 'rgba(236,72,153,.24)'}`, color: ehPagante(ind) ? '#22C55E' : '#EC4899' }}>{ehPagante(ind) ? 'Pagante' : 'Cadastro'}</span>
-                            {ehPagante(ind) && (
-                              <span className="badge" style={{ background: ind.comissao_status === 'paga' ? 'rgba(34,197,94,.10)' : 'rgba(250,204,21,.12)', border: `1px solid ${ind.comissao_status === 'paga' ? 'rgba(34,197,94,.22)' : 'rgba(250,204,21,.28)'}`, color: ind.comissao_status === 'paga' ? '#22C55E' : '#FACC15' }}>{ind.comissao_status === 'paga' ? 'Comissão paga' : 'Comissão pendente'}</span>
+                            {ultima && (
+                              <span className="badge" style={{ background: ultima.status === 'paga' ? 'rgba(34,197,94,.10)' : ultima.status === 'estornada' ? 'rgba(248,113,113,.12)' : 'rgba(250,204,21,.12)', border: `1px solid ${ultima.status === 'paga' ? 'rgba(34,197,94,.22)' : ultima.status === 'estornada' ? 'rgba(248,113,113,.28)' : 'rgba(250,204,21,.28)'}`, color: ultima.status === 'paga' ? '#22C55E' : ultima.status === 'estornada' ? '#F87171' : '#FACC15' }}>Comissão {labelStatusComissao(ultima.status).toLowerCase()}</span>
                             )}
                             {labelStatusAcesso(ind.status_acesso) && (() => { const st = labelStatusAcesso(ind.status_acesso)!; return <span className="badge" style={{ background: st.bg, border: `1px solid ${st.borda}`, color: st.cor }}>{st.texto}</span> })()}
                           </div>
                         </div>
                         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '6px' }}>
                           <div style={{ textAlign: 'right' as const }}>
-                            <p style={{ fontSize: '11px', color: '#B8AAB8' }}>Mensalidade: <span style={{ color: '#F8F4F7', fontWeight: 600 }}>{fBRL(infoPlano.mensalidade)}</span></p>
-                            <p style={{ fontSize: '13px', color: '#EC4899', fontWeight: 800 }}>Comissão: {fBRL(comissao)}</p>
-                          </div>
-                          <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-                            {!ind.is_pagante && (
-                              <button className="btn-s" onClick={() => marcarPagante(ind)}>Marcar pagante</button>
-                            )}
-                            {ind.is_pagante && ind.comissao_status !== 'paga' && (
-                              <button className="btn-g" onClick={() => marcarPago(ind)}>Marcar comissão paga</button>
+                            {ultima ? (
+                              <>
+                                <p style={{ fontSize: '11px', color: '#B8AAB8' }}>Valor pago: <span style={{ color: '#F8F4F7', fontWeight: 600 }}>{fBRL(Number(ultima.valor_pago))}</span></p>
+                                <p style={{ fontSize: '13px', color: '#EC4899', fontWeight: 800 }}>Comissão: {fBRL(Number(ultima.valor_comissao))}</p>
+                              </>
+                            ) : (
+                              <p style={{ fontSize: '11px', color: '#B8AAB8' }}>Plano: <span style={{ color: '#F8F4F7', fontWeight: 600 }}>{fBRL(infoPlano.mensalidade)}/mês</span></p>
                             )}
                           </div>
                         </div>
@@ -526,10 +587,11 @@ export default function Parceiros() {
       {verDetalhes && (() => {
         const todasDoParceiro = indicacoesDoParceiro(verDetalhes.id)
         const indsFiltradas = indicacoesNoPeriodo(todasDoParceiro)
+        const comissoesDoParceiro = comissoes.filter(c => c.parceiro_id === verDetalhes.id)
         const pagsFiltradas = indsFiltradas.filter(ehPagante)
-        const pendenteFiltrado = pagsFiltradas.filter(i => i.comissao_status !== 'paga').reduce((a, i) => a + comissaoDoIndicado(i), 0)
-        const pagoFiltrado = indsFiltradas.filter(i => i.comissao_status === 'paga').reduce((a, i) => a + comissaoDoIndicado(i), 0)
-        const resumo = resumoPorPlano(indsFiltradas)
+        const pendenteFiltrado = comissoesGeradasNoPeriodo(comissoesDoParceiro).filter(c => c.status === 'pendente').reduce((a, c) => a + Number(c.valor_comissao || 0), 0)
+        const pagoFiltrado = comissoesPagasNoPeriodo(comissoesDoParceiro).reduce((a, c) => a + Number(c.valor_comissao || 0), 0)
+        const resumo = resumoPorPlano(indsFiltradas, comissoesGeradasNoPeriodo(comissoesDoParceiro))
 
         return (
           <div className="modal-bg" onClick={() => setVerDetalhes(null)}>
@@ -591,6 +653,31 @@ export default function Parceiros() {
               </div>
 
               {/* Lista de indicacoes (mesmo padrao visual de card empilhado da aba Indicacoes - ja responsivo por natureza) */}
+              {/* Comissoes (historico financeiro real - Fase 3C) */}
+              {comissoesDoParceiro.length > 0 && (
+                <>
+                  <p style={{ fontSize: '13px', fontWeight: 700, color: '#F8F4F7', marginBottom: '10px' }}>Comissões ({comissoesDoParceiro.length})</p>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '22px' }}>
+                    {[...comissoesDoParceiro].sort((a, b) => new Date(b.data_pagamento_cliente).getTime() - new Date(a.data_pagamento_cliente).getTime()).map(c => {
+                      const ind = indicacoes.find(i => i.id === c.indicacao_id)
+                      return (
+                        <div key={c.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '10px', padding: '10px 12px', border: '1px solid #2A1A2F', borderRadius: '10px', background: 'rgba(24,16,27,.4)', flexWrap: 'wrap' }}>
+                          <div>
+                            <p style={{ fontSize: '12px', color: '#F8F4F7', fontWeight: 600 }}>{ind?.nome_negocio || ind?.email || '—'}</p>
+                            <p style={{ fontSize: '11px', color: '#B8AAB8' }}>{new Date(c.data_pagamento_cliente).toLocaleDateString('pt-BR')} · {infoDoPlano(normalizarPlano(c.plano_tipo)).nomeComercial}</p>
+                          </div>
+                          <div style={{ textAlign: 'right' as const }}>
+                            <p style={{ fontSize: '11px', color: '#B8AAB8' }}>Pago: {fBRL(Number(c.valor_pago))}</p>
+                            <p style={{ fontSize: '12px', color: '#EC4899', fontWeight: 700 }}>Comissão: {fBRL(Number(c.valor_comissao))}</p>
+                            <p style={{ fontSize: '10px', color: c.status === 'paga' ? '#22C55E' : c.status === 'estornada' ? '#F87171' : '#FACC15' }}>{labelStatusComissao(c.status)}</p>
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                </>
+              )}
+
               <p style={{ fontSize: '13px', fontWeight: 700, color: '#F8F4F7', marginBottom: '10px' }}>Indicações no período ({indsFiltradas.length})</p>
               {indsFiltradas.length === 0 ? (
                 <p style={{ fontSize: '13px', color: '#B8AAB8', padding: '16px 0', textAlign: 'center' }}>Nenhuma indicação neste período.</p>
@@ -599,7 +686,7 @@ export default function Parceiros() {
                   {indsFiltradas.map(ind => {
                     const infoPlano = infoDoPlano(normalizarPlano(ind.plano_tipo))
                     const temPlanoDefinido = ind.plano_tipo !== null && ind.plano_tipo !== undefined && ind.plano_tipo !== ''
-                    const comissao = temPlanoDefinido ? comissaoDoIndicado(ind) : 0
+                    const ultima = ultimaComissao(ind.id)
                     return (
                       <div key={ind.id} style={{ padding: '14px', border: '1px solid #2A1A2F', borderRadius: '12px', background: 'rgba(24,16,27,.5)' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px' }}>
@@ -615,10 +702,15 @@ export default function Parceiros() {
                           </div>
                           <div style={{ textAlign: 'right' as const, flexShrink: 0 }}>
                             <p style={{ fontSize: '10px', color: '#B8AAB8', marginBottom: '2px' }}>{ind.created_at ? new Date(ind.created_at).toLocaleDateString('pt-BR') : '—'}</p>
-                            {ind.data_pagamento && <p style={{ fontSize: '10px', color: '#B8AAB8', marginBottom: '4px' }}>1º pgto: {new Date(ind.data_pagamento).toLocaleDateString('pt-BR')}</p>}
-                            {temPlanoDefinido && <p style={{ fontSize: '10px', color: '#B8AAB8', marginBottom: '2px' }}>Mensalidade: {fBRL(infoPlano.mensalidade)}</p>}
-                            <p style={{ fontSize: '13px', color: '#EC4899', fontWeight: 800 }}>Comissão: {fBRL(comissao)}</p>
-                            {ehPagante(ind) && <p style={{ fontSize: '10px', color: ind.comissao_status === 'paga' ? '#22C55E' : '#FACC15' }}>{ind.comissao_status === 'paga' ? 'Paga' : 'Pendente'}</p>}
+                            {ultima ? (
+                              <>
+                                <p style={{ fontSize: '10px', color: '#B8AAB8', marginBottom: '2px' }}>Valor pago: {fBRL(Number(ultima.valor_pago))}</p>
+                                <p style={{ fontSize: '13px', color: '#EC4899', fontWeight: 800 }}>Comissão: {fBRL(Number(ultima.valor_comissao))}</p>
+                                <p style={{ fontSize: '10px', color: ultima.status === 'paga' ? '#22C55E' : ultima.status === 'estornada' ? '#F87171' : '#FACC15' }}>{labelStatusComissao(ultima.status)}</p>
+                              </>
+                            ) : (
+                              temPlanoDefinido && <p style={{ fontSize: '10px', color: '#B8AAB8' }}>Plano: {fBRL(infoPlano.mensalidade)}/mês</p>
+                            )}
                           </div>
                         </div>
                       </div>
