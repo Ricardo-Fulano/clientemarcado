@@ -184,17 +184,16 @@ export default function PainelSidebar({ nome = '', tituloMobile = 'Painel' }: Pr
     </div>
   )
 
-  // Fase 4B: secao independente, nunca substitui os menus normais - so aparece quando o
-  // backend confirmou o vinculo (isAfiliado). /painel/afiliado ainda nao existe (Fase 4C),
-  // entao o item fica como "Em breve" (texto, nao link) - evita publicar um link quebrado.
-  const SecaoAfiliados = () => {
+  // Fase 4C: pagina /painel/afiliado ja existe - ativa o link real, mesmo padrao visual
+  // (classe nl, estado ativo) dos demais itens do menu.
+  const SecaoAfiliados = ({ onClick }: { onClick?: () => void }) => {
     if (!isAfiliado) return null
     return (
       <div>
         <p className="nl-grupo">AFILIADOS</p>
-        <div className="nl" style={{ cursor: 'default', opacity: .6 }}>
-          Meu painel de afiliado <span style={{ fontSize: '10px' }}>(Em breve)</span>
-        </div>
+        <Link href="/painel/afiliado" onClick={onClick} className={'nl' + (ativo('/painel/afiliado') ? ' on' : '')}>
+          Meu painel de afiliado
+        </Link>
       </div>
     )
   }
@@ -224,7 +223,7 @@ export default function PainelSidebar({ nome = '', tituloMobile = 'Painel' }: Pr
           <button onClick={() => setMob(false)} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,.5)', cursor: 'pointer', fontSize: '22px', lineHeight: 1 }}>×</button>
         </div>
         <nav style={{ flex: 1, minHeight: 0, padding: '10px 8px', overflowY: 'auto' }}>
-          {carregandoPapel ? <NavLinksSkeleton /> : <><NavLinks onClick={() => setMob(false)} /><SecaoAfiliados /></>}
+          {carregandoPapel ? <NavLinksSkeleton /> : <><NavLinks onClick={() => setMob(false)} /><SecaoAfiliados onClick={() => setMob(false)} /></>}
         </nav>
         <div style={{ padding: '12px 10px', borderTop: '1px solid #2A1A2F' }}>
           <BtnSair onClick={() => { setMob(false); sair() }} />

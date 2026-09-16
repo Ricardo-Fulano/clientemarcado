@@ -60,15 +60,33 @@ export default function Home(){
   async function load(){
     const {data:{user}}=await supabase.auth.getUser()
     if(!user){window.location.href='/login';return}
-    const {data:p}=await supabase.from('perfis').select('*').eq('user_id',user.id).single()
+    const {data:p}=await supabase.from('perfis').select('*').eq('user_id',user.id).maybeSingle()
 
     // Onboarding (Etapa 2): conta nova/incompleta (nunca preencheu foto NEM bio) que ainda
     // nao marcou onboarding visto/pulado neste navegador vai pro fluxo guiado. A chave do
     // localStorage inclui o user_id de verdade - nunca global - pra 2 contas diferentes no
     // mesmo navegador nunca se confundirem. So verifica aqui, apos autenticacao concluida;
     // nao mexe em cadastro, confirmacao de e-mail, callback ou pagamento.
+    const semPerfilNenhum = !p
     const perfilIncompleto = !p?.foto_perfil_url && !(p?.pagina_descricao_curta || p?.descricao)
     if(perfilIncompleto){
+      // Fase 4C.41-42: afiliado puro (sem NENHUM perfil MiniPage, nao so incompleto) nao
+      // deve ser forcado pro onboarding de criacao de MiniPage - vai pro proprio painel.
+      // Cliente MiniPage com perfil incompleto continua indo pro onboarding normalmente,
+      // mesmo que tambem seja afiliado (ele ainda precisa terminar o proprio cadastro).
+      if(semPerfilNenhum){
+        try{
+          const {data:{session}}=await supabase.auth.getSession()
+          const token=session?.access_token
+          if(token){
+            const resAfiliado=await fetch('/api/afiliado/me',{headers:{Authorization:'Bearer '+token}})
+            const dadosAfiliado=await resAfiliado.json()
+            if(resAfiliado.ok && dadosAfiliado?.afiliado===true){
+              window.location.href='/painel/afiliado'; return
+            }
+          }
+        }catch{ /* falha na checagem de afiliado nao deve travar o onboarding normal */ }
+      }
       let jaViu=false
       try{ jaViu = localStorage.getItem(`minipage_onboarding_visto_${user.id}`)==='1' }catch{ /* localStorage indisponivel - trata como nao visto */ }
       if(!jaViu){ window.location.href='/painel/criar-minipage'; return }
