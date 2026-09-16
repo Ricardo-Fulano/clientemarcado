@@ -42,7 +42,7 @@ const LINKS: ItemMenu[] = [
   { h: '/painel/parceiros',     l: 'Parceiros',     grupo: 'CONTA', apenasAdmin: true },
   { h: '/painel/suporte',       l: 'Suporte',       grupo: 'CONTA' },
   { h: '/painel/plano',         l: 'Meu plano',     grupo: 'CONTA' },
-  { h: '/painel/alterar-senha', l: 'Configurações', grupo: 'CONTA' },
+  { h: '/painel/alterar-senha', l: 'Conta e acesso', grupo: 'CONTA' },
 ]
 
 const CSS = `
@@ -81,6 +81,10 @@ export default function PainelSidebar({ nome = '', tituloMobile = 'Painel' }: Pr
   const [role, setRole] = useState<'loading' | 'admin' | 'profissional'>('loading')
   const [nomeProfissionalVinculo, setNomeProfissionalVinculo] = useState('')
   const [planoAtual, setPlanoAtual] = useState('essencial')
+  // Fase 4B: flag independente, nunca substitui admin/dono/equipe - um usuario pode ser
+  // varias coisas ao mesmo tempo. Comeca sempre false (estado seguro) e so vira true
+  // depois da confirmacao real do backend via /api/afiliado/me.
+  const [isAfiliado, setIsAfiliado] = useState(false)
   useEffect(() => {
     supabase.auth.getUser().then(async ({ data: { user } }) => {
       if (!user) return
@@ -103,6 +107,17 @@ export default function PainelSidebar({ nome = '', tituloMobile = 'Painel' }: Pr
       } catch (e) {
         console.warn('Erro ao verificar vinculo de equipe:', e)
         setRole('admin')
+      }
+      // Mesmo padrao do meu-vinculo acima, mas pra afiliado - falha aqui nunca quebra o
+      // sidebar nem mostra a secao (fail-safe: so mostra com confirmacao explicita).
+      try {
+        const resAfiliado = await fetch('/api/afiliado/me', { headers: { 'Authorization': 'Bearer ' + token } })
+        const dadosAfiliado = await resAfiliado.json()
+        if (resAfiliado.ok && dadosAfiliado?.afiliado === true) {
+          setIsAfiliado(true)
+        }
+      } catch (e) {
+        console.warn('Erro ao verificar vinculo de afiliado:', e)
       }
     })
   }, [])
@@ -169,6 +184,21 @@ export default function PainelSidebar({ nome = '', tituloMobile = 'Painel' }: Pr
     </div>
   )
 
+  // Fase 4B: secao independente, nunca substitui os menus normais - so aparece quando o
+  // backend confirmou o vinculo (isAfiliado). /painel/afiliado ainda nao existe (Fase 4C),
+  // entao o item fica como "Em breve" (texto, nao link) - evita publicar um link quebrado.
+  const SecaoAfiliados = () => {
+    if (!isAfiliado) return null
+    return (
+      <div>
+        <p className="nl-grupo">AFILIADOS</p>
+        <div className="nl" style={{ cursor: 'default', opacity: .6 }}>
+          Meu painel de afiliado <span style={{ fontSize: '10px' }}>(Em breve)</span>
+        </div>
+      </div>
+    )
+  }
+
   const BtnSair = ({ onClick }: { onClick?: () => void }) => (
     <button onClick={onClick || sair}
       style={{ width: '100%', background: 'rgba(239,68,68,.10)', border: '1px solid rgba(239,68,68,.25)', borderRadius: '10px', padding: '10px 14px', color: '#FCA5A5', fontSize: '13px', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: '8px', transition: 'background .15s' }}
@@ -194,7 +224,7 @@ export default function PainelSidebar({ nome = '', tituloMobile = 'Painel' }: Pr
           <button onClick={() => setMob(false)} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,.5)', cursor: 'pointer', fontSize: '22px', lineHeight: 1 }}>×</button>
         </div>
         <nav style={{ flex: 1, minHeight: 0, padding: '10px 8px', overflowY: 'auto' }}>
-          {carregandoPapel ? <NavLinksSkeleton /> : <NavLinks onClick={() => setMob(false)} />}
+          {carregandoPapel ? <NavLinksSkeleton /> : <><NavLinks onClick={() => setMob(false)} /><SecaoAfiliados /></>}
         </nav>
         <div style={{ padding: '12px 10px', borderTop: '1px solid #2A1A2F' }}>
           <BtnSair onClick={() => { setMob(false); sair() }} />
@@ -217,7 +247,7 @@ export default function PainelSidebar({ nome = '', tituloMobile = 'Painel' }: Pr
           </div>
           {!carregandoPapel && <NotificacoesSino alinhamento="left" />}
         </div>
-        <nav>{carregandoPapel ? <NavLinksSkeleton /> : <NavLinks />}</nav>
+        <nav>{carregandoPapel ? <NavLinksSkeleton /> : <><NavLinks /><SecaoAfiliados /></>}</nav>
         <div className="psb-foot">
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', background: 'rgba(24,16,27,.6)', border: '1px solid #2A1A2F', borderRadius: '10px', padding: '10px 12px', marginBottom: '8px' }}>
             <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: AV, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '13px', fontWeight: 700, color: '#fff', flexShrink: 0 }}>{ini}</div>
