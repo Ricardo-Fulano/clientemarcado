@@ -661,9 +661,9 @@ export default function Parceiros() {
                       <label className="lbl">Plano</label>
                       <select className="inp" style={{ cursor: 'pointer' }} value={filtroPlano} onChange={e => setFiltroPlano(e.target.value)}>
                         <option value="">Todos os planos</option>
-                        <option value="minipage">MiniPage</option>
-                        <option value="essencial">Profissional</option>
-                        <option value="equipe">Equipe</option>
+                        {(['minipage', 'loja', 'essencial', 'equipe'] as const).map(chave => (
+                          <option key={chave} value={chave}>{obterNomePlano(chave)}</option>
+                        ))}
                       </select>
                     </div>
                   </div>
