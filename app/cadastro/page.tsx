@@ -59,8 +59,13 @@ export default function Cadastro() {
   const [reenvioMsg, setReenvioMsg] = useState('')
   async function validarCupom(c: string) {
     if (!c) { setCupomStatus('idle'); return }
-    const { data } = await supabase.from('parceiros').select('id').eq('cupom', c).eq('ativo', true).single()
-    setCupomStatus(data ? 'ok' : 'erro')
+    try {
+      const res = await fetch(`/api/publico/validar-cupom?cupom=${encodeURIComponent(c)}`)
+      const dados = await res.json()
+      setCupomStatus(dados?.valido ? 'ok' : 'erro')
+    } catch {
+      setCupomStatus('erro')
+    }
   }
   // Monta o link de confirmacao sempre com o dominio real (nunca localhost em producao).
   // O fallback antigo apontava pra um subdominio vercel.app desatualizado; agora usa a var
@@ -195,16 +200,12 @@ export default function Cadastro() {
     if (cupom && cupom.trim()) {
       const cupomFmt = cupom.trim().toUpperCase()
       try {
-        const { data: parceiro } = await supabase
-          .from('parceiros')
-          .select('id,comissao_fixa')
-          .eq('cupom', cupomFmt)
-          .eq('ativo', true)
-          .single()
-        console.log("PARCEIRO ENCONTRADO:", parceiro); if (parceiro) {
+        const resCupom = await fetch(`/api/publico/validar-cupom?cupom=${encodeURIComponent(cupomFmt)}`)
+        const dadosCupom = await resCupom.json()
+        if (dadosCupom?.valido && dadosCupom?.parceiroId) {
           // Upsert evita duplicidade por email+cupom
           await supabase.from('indicacoes_parceiros').upsert({
-            parceiro_id: parceiro.id,
+            parceiro_id: dadosCupom.parceiroId,
             cupom_codigo: cupomFmt,
             nome_negocio: null,
             nome_responsavel: nomeUsuario || null,

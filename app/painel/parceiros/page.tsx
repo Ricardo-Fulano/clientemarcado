@@ -130,6 +130,57 @@ export default function Parceiros() {
     setLoading(false)
   }
 
+  // S0.A: helper que sempre inclui o Bearer token da sessao atual - usado por todas as
+  // operacoes de escrita (criar/editar/ativar/desativar/excluir), que antes rodavam direto
+  // do navegador contra a tabela parceiros e agora passam pelo endpoint server-side.
+  async function fetchAdmin(url: string, options: RequestInit = {}) {
+    const { data: { session } } = await supabase.auth.getSession()
+    const token = session?.access_token
+    if (!token) throw new Error('Sessão expirada.')
+    const res = await fetch(url, {
+      ...options,
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}`, ...(options.headers || {}) },
+    })
+    const dados = await res.json().catch(() => ({}))
+    if (!res.ok) throw new Error(dados?.error || 'Erro na operação.')
+    return dados
+  }
+
+  // Fase 4A: vincular/desvincular acesso ao painel do afiliado. Email so serve pra
+  // localizar a conta no backend - a autorizacao futura sera sempre pelo user_id salvo.
+  const [emailVinculo, setEmailVinculo] = useState('')
+  const [vinculando, setVinculando] = useState(false)
+  const [msgVinculo, setMsgVinculo] = useState('')
+
+  async function vincularConta(parceiroId: string) {
+    if (!emailVinculo.trim()) { setMsgVinculo('Informe um e-mail.'); return }
+    setVinculando(true)
+    setMsgVinculo('')
+    try {
+      const resultado = await fetchAdmin(`/api/admin/parceiros/${parceiroId}/vinculo`, { method: 'POST', body: JSON.stringify({ email: emailVinculo.trim() }) })
+      setMsgVinculo('')
+      setEmailVinculo('')
+      await carregarDadosAdmin()
+      setVerDetalhes((atual: any) => atual ? { ...atual, user_id: resultado.user_id } : atual)
+    } catch (e: any) {
+      setMsgVinculo(e?.message || 'Erro ao vincular.')
+    }
+    setVinculando(false)
+  }
+
+  async function desvincularConta(parceiroId: string) {
+    setVinculando(true)
+    setMsgVinculo('')
+    try {
+      await fetchAdmin(`/api/admin/parceiros/${parceiroId}/vinculo`, { method: 'DELETE' })
+      await carregarDadosAdmin()
+      setVerDetalhes((atual: any) => atual ? { ...atual, user_id: null } : atual)
+    } catch (e: any) {
+      setMsgVinculo(e?.message || 'Erro ao desvincular.')
+    }
+    setVinculando(false)
+  }
+
   async function carregarDadosAdmin() {
     const { data: { session } } = await supabase.auth.getSession()
     const token = session?.access_token
@@ -391,18 +442,25 @@ export default function Parceiros() {
     const cupomFmt = cupom.toUpperCase().replace(/[^A-Z0-9]/g, '')
     if (!nome.trim() || !cupomFmt) { setMsg('Preencha nome e cupom.'); return }
     const payload = { nome: nome.trim(), cupom: cupomFmt, whatsapp: wpp || null, email: email || null, tipo, ativo }
-    if (editando) {
-      const { error } = await supabase.from('parceiros').update(payload).eq('id', editando.id)
-      if (error) { setMsg('Erro: ' + error.message); return }
-    } else {
-      const { error } = await supabase.from('parceiros').insert(payload)
-      if (error) { setMsg('Erro: ' + error.message); return }
+    try {
+      if (editando) {
+        await fetchAdmin(`/api/admin/parceiros/${editando.id}`, { method: 'PATCH', body: JSON.stringify(payload) })
+      } else {
+        await fetchAdmin('/api/admin/parceiros', { method: 'POST', body: JSON.stringify(payload) })
+      }
+    } catch (e: any) {
+      setMsg('Erro: ' + (e?.message || 'não foi possível salvar'))
+      return
     }
     setMsg(''); resetForm(); setShowModal(false); await carregarDadosAdmin()
   }
 
   async function toggleAtivo(p: any) {
-    await supabase.from('parceiros').update({ ativo: !p.ativo }).eq('id', p.id)
+    try {
+      await fetchAdmin(`/api/admin/parceiros/${p.id}`, { method: 'PATCH', body: JSON.stringify({ ativo: !p.ativo }) })
+    } catch (e: any) {
+      setMsg('Erro: ' + (e?.message || 'não foi possível atualizar'))
+    }
     await carregarDadosAdmin()
   }
 
@@ -423,25 +481,32 @@ export default function Parceiros() {
 
   async function confirmarExclusao() {
     if (!confirmandoExclusao) return
-    // Checagem final no momento da exclusao (nao so ao abrir o modal) - garante que nao
-    // apaga fisicamente um parceiro que tenha ganho uma indicacao entre abrir o modal e
-    // confirmar.
+    // Checagem local so pra UX imediata - a protecao real e sempre no servidor (DELETE
+    // retorna 409 com a mesma mensagem se houver historico, mesmo que algo tenha mudado
+    // entre abrir o modal e confirmar).
     if (temHistorico(confirmandoExclusao.id)) {
       setConfirmandoExclusao(null)
       return
     }
     setExcluindo(true)
-    const { error } = await supabase.from('parceiros').delete().eq('id', confirmandoExclusao.id)
+    try {
+      await fetchAdmin(`/api/admin/parceiros/${confirmandoExclusao.id}`, { method: 'DELETE' })
+      setMsg('Parceiro excluído.')
+    } catch (e: any) {
+      setMsg('Erro ao excluir: ' + (e?.message || 'não foi possível excluir'))
+    }
     setExcluindo(false)
     setConfirmandoExclusao(null)
-    if (error) { setMsg('Erro ao excluir: ' + error.message); return }
-    setMsg('Parceiro excluído.')
     await carregarDadosAdmin()
   }
 
   async function desativarEFecharModal() {
     if (!confirmandoExclusao) return
-    await supabase.from('parceiros').update({ ativo: false }).eq('id', confirmandoExclusao.id)
+    try {
+      await fetchAdmin(`/api/admin/parceiros/${confirmandoExclusao.id}`, { method: 'PATCH', body: JSON.stringify({ ativo: false }) })
+    } catch (e: any) {
+      setMsg('Erro: ' + (e?.message || 'não foi possível desativar'))
+    }
     await carregarDadosAdmin()
     setConfirmandoExclusao(null)
   }
@@ -909,6 +974,29 @@ export default function Parceiros() {
                     <p style={{ fontSize: '11px', color: '#B8AAB8' }}>Comissão: <span style={{ color: '#EC4899', fontWeight: 700 }}>{fBRL(r.comissao)}</span></p>
                   </div>
                 ))}
+              </div>
+
+              {/* Acesso ao painel de afiliado (Fase 4A) */}
+              <p style={{ fontSize: '13px', fontWeight: 700, color: '#F8F4F7', marginBottom: '10px' }}>Acesso ao painel de afiliado</p>
+              <div style={{ border: '1px solid #2A1A2F', borderRadius: '12px', padding: '14px', marginBottom: '22px', background: 'rgba(24,16,27,.4)' }}>
+                {verDetalhes.user_id ? (
+                  <>
+                    <span className="badge" style={{ background: 'rgba(34,197,94,.12)', border: '1px solid rgba(34,197,94,.24)', color: '#22C55E', marginBottom: '10px', display: 'inline-block' }}>Acesso vinculado</span>
+                    <div>
+                      <button className="btn-s" disabled={vinculando} onClick={() => desvincularConta(verDetalhes.id)}>{vinculando ? 'Removendo...' : 'Desvincular acesso'}</button>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <p style={{ fontSize: '12px', color: '#B8AAB8', marginBottom: '10px' }}>Nenhuma conta vinculada.</p>
+                    <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                      <input value={emailVinculo} onChange={e => setEmailVinculo(e.target.value)} placeholder="email@dacontaminipage.com"
+                        style={{ flex: 1, minWidth: '200px', background: 'rgba(24,16,27,.92)', border: '1px solid #2A1A2F', borderRadius: '10px', padding: '9px 12px', color: '#F8F4F7', fontSize: '13px', fontFamily: 'inherit' }} />
+                      <button className="btn-p" disabled={vinculando} onClick={() => vincularConta(verDetalhes.id)}>{vinculando ? 'Vinculando...' : 'Vincular conta existente'}</button>
+                    </div>
+                  </>
+                )}
+                {msgVinculo && <p style={{ fontSize: '12px', color: '#F87171', marginTop: '8px' }}>{msgVinculo}</p>}
               </div>
 
               {/* A pagar (Fase 3D) - competencias com comissao pendente, agrupadas */}

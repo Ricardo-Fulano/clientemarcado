@@ -62,3 +62,58 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: 'Erro interno' }, { status: 500 })
   }
 }
+
+// Whitelist explicita de campos aceitos no criar/editar parceiro - nunca um update(body)
+// direto. Campos como id/created_at/comissao_fixa nunca sao aceitos vindo do client aqui.
+function extrairCamposPermitidos(body: any) {
+  const payload: any = {}
+  if (typeof body?.nome === 'string') payload.nome = body.nome.trim()
+  if (typeof body?.cupom === 'string') payload.cupom = body.cupom.trim().toUpperCase()
+  if (typeof body?.whatsapp === 'string') payload.whatsapp = body.whatsapp.trim() || null
+  if (typeof body?.email === 'string') payload.email = body.email.trim().toLowerCase() || null
+  if (typeof body?.tipo === 'string') payload.tipo = body.tipo.trim()
+  if (typeof body?.ativo === 'boolean') payload.ativo = body.ativo
+  return payload
+}
+
+async function autenticarAdmin(request: NextRequest) {
+  const authHeader = request.headers.get('authorization') || ''
+  const token = authHeader.replace(/^Bearer\s+/i, '').trim()
+  if (!token) return { erro: NextResponse.json({ error: 'Não autenticado' }, { status: 401 }) }
+
+  const supabaseAuth = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
+  const { data: { user }, error: authError } = await supabaseAuth.auth.getUser(token)
+  if (authError || !user) return { erro: NextResponse.json({ error: 'Sessão inválida' }, { status: 401 }) }
+
+  if (!ADMIN_IDS.includes(user.id)) return { erro: NextResponse.json({ error: 'Acesso não autorizado' }, { status: 403 }) }
+
+  return { user }
+}
+
+// POST /api/admin/parceiros - cria um novo parceiro (S0.A: antes feito client-side)
+export async function POST(request: NextRequest) {
+  try {
+    const auth = await autenticarAdmin(request)
+    if (auth.erro) return auth.erro
+
+    const body = await request.json().catch(() => null)
+    const payload = extrairCamposPermitidos(body)
+
+    if (!payload.nome || !payload.cupom) {
+      return NextResponse.json({ error: 'Nome e cupom são obrigatórios' }, { status: 400 })
+    }
+
+    const supabaseAdmin = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
+    const { data, error } = await supabaseAdmin.from('parceiros').insert(payload).select().single()
+
+    if (error) {
+      console.error('[api/admin/parceiros][POST] Erro:', error.message)
+      return NextResponse.json({ error: error.message }, { status: 400 })
+    }
+
+    return NextResponse.json({ parceiro: data })
+  } catch (e: any) {
+    console.error('[api/admin/parceiros][POST] Erro interno:', e?.message)
+    return NextResponse.json({ error: 'Erro interno' }, { status: 500 })
+  }
+}
