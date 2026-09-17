@@ -155,3 +155,57 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
     return NextResponse.json({ error: 'Erro interno' }, { status: 500 })
   }
 }
+
+// GET /api/admin/parceiros/[id]/vinculo?email=... - so VERIFICA se existe conta com esse
+// email, sem vincular nada. Reaproveita a mesma busca segura ja usada no POST. Nunca
+// retorna user_id, metadata ou lista de usuarios - so o minimo pra UI decidir o proximo
+// passo (mostrar "Vincular acesso" ou "Nenhuma conta encontrada").
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  try {
+    const auth = await autenticarAdmin(request)
+    if (auth.erro) return auth.erro
+
+    const { id } = await params
+    const emailBruto = request.nextUrl.searchParams.get('email')
+    if (!emailBruto || !emailBruto.trim() || !emailBruto.includes('@')) {
+      return NextResponse.json({ error: 'Informe um e-mail válido.' }, { status: 400 })
+    }
+    const emailNormalizado = emailBruto.trim().toLowerCase()
+
+    const supabaseAdmin: any = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
+
+    let usuarioEncontrado
+    try {
+      usuarioEncontrado = await buscarUsuarioPorEmail(supabaseAdmin, emailNormalizado)
+    } catch (e: any) {
+      console.error('[api/admin/parceiros/[id]/vinculo][GET] Erro ao buscar usuário:', e?.message)
+      return NextResponse.json({ error: 'Erro ao verificar conta.' }, { status: 500 })
+    }
+
+    if (!usuarioEncontrado) {
+      return NextResponse.json({ encontrada: false })
+    }
+
+    // Ja vinculado a este mesmo parceiro (nao e conflito, so ja esta vinculado aqui).
+    const { data: parceiroAtual } = await supabaseAdmin.from('parceiros').select('user_id').eq('id', id).maybeSingle()
+    if (parceiroAtual?.user_id === usuarioEncontrado.id) {
+      return NextResponse.json({ encontrada: true, email: usuarioEncontrado.email })
+    }
+
+    // Conflito: essa conta ja esta vinculada a OUTRO parceiro.
+    const { data: outroParceiro } = await supabaseAdmin
+      .from('parceiros')
+      .select('id')
+      .eq('user_id', usuarioEncontrado.id)
+      .maybeSingle()
+
+    if (outroParceiro) {
+      return NextResponse.json({ encontrada: true, conflito: true })
+    }
+
+    return NextResponse.json({ encontrada: true, email: usuarioEncontrado.email })
+  } catch (e: any) {
+    console.error('[api/admin/parceiros/[id]/vinculo][GET] Erro interno:', e?.message)
+    return NextResponse.json({ error: 'Erro interno' }, { status: 500 })
+  }
+}
