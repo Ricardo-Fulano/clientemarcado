@@ -151,6 +151,8 @@ export default function Parceiros() {
   const [emailVinculo, setEmailVinculo] = useState('')
   const [vinculando, setVinculando] = useState(false)
   const [msgVinculo, setMsgVinculo] = useState('')
+  const [convitesPendentes, setConvitesPendentes] = useState<any[]>([])
+  const [enviandoConvite, setEnviandoConvite] = useState(false)
 
   async function vincularConta(parceiroId: string) {
     if (!emailVinculo.trim()) { setMsgVinculo('Informe um e-mail.'); return }
@@ -181,6 +183,34 @@ export default function Parceiros() {
     setVinculando(false)
   }
 
+  // Fase 4E: mesmo endpoint serve pra "enviar" e "reenviar" - o backend ja cancela o
+  // pendente anterior antes de criar o novo token.
+  async function enviarConvite(parceiroId: string) {
+    if (!emailVinculo.trim()) { setMsgVinculo('Informe um e-mail.'); return }
+    setEnviandoConvite(true)
+    setMsgVinculo('')
+    try {
+      await fetchAdmin(`/api/admin/parceiros/${parceiroId}/convite`, { method: 'POST', body: JSON.stringify({ email: emailVinculo.trim() }) })
+      setEmailVinculo('')
+      await carregarDadosAdmin()
+    } catch (e: any) {
+      setMsgVinculo(e?.message || 'Erro ao enviar convite.')
+    }
+    setEnviandoConvite(false)
+  }
+
+  async function cancelarConvite(parceiroId: string) {
+    setEnviandoConvite(true)
+    setMsgVinculo('')
+    try {
+      await fetchAdmin(`/api/admin/parceiros/${parceiroId}/convite`, { method: 'DELETE' })
+      await carregarDadosAdmin()
+    } catch (e: any) {
+      setMsgVinculo(e?.message || 'Erro ao cancelar convite.')
+    }
+    setEnviandoConvite(false)
+  }
+
   async function carregarDadosAdmin() {
     const { data: { session } } = await supabase.auth.getSession()
     const token = session?.access_token
@@ -193,6 +223,7 @@ export default function Parceiros() {
       setIndicacoes(dados.indicacoes || [])
       setComissoes(dados.comissoes || [])
       setRepasses(dados.repasses || [])
+      setConvitesPendentes(dados.convitesPendentes || [])
     } catch (e: any) {
       console.error('[Parceiros] Erro ao carregar dados admin:', e?.message)
     }
@@ -976,26 +1007,65 @@ export default function Parceiros() {
                 ))}
               </div>
 
-              {/* Acesso ao painel de afiliado (Fase 4A) */}
+              {/* Acesso ao painel de afiliado (Fase 4A + 4E) */}
               <p style={{ fontSize: '13px', fontWeight: 700, color: '#F8F4F7', marginBottom: '10px' }}>Acesso ao painel de afiliado</p>
               <div style={{ border: '1px solid #2A1A2F', borderRadius: '12px', padding: '14px', marginBottom: '22px', background: 'rgba(24,16,27,.4)' }}>
-                {verDetalhes.user_id ? (
-                  <>
-                    <span className="badge" style={{ background: 'rgba(34,197,94,.12)', border: '1px solid rgba(34,197,94,.24)', color: '#22C55E', marginBottom: '10px', display: 'inline-block' }}>Acesso vinculado</span>
-                    <div>
-                      <button className="btn-s" disabled={vinculando} onClick={() => desvincularConta(verDetalhes.id)}>{vinculando ? 'Removendo...' : 'Desvincular acesso'}</button>
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    <p style={{ fontSize: '12px', color: '#B8AAB8', marginBottom: '10px' }}>Nenhuma conta vinculada.</p>
-                    <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                      <input value={emailVinculo} onChange={e => setEmailVinculo(e.target.value)} placeholder="email@dacontaminipage.com"
-                        style={{ flex: 1, minWidth: '200px', background: 'rgba(24,16,27,.92)', border: '1px solid #2A1A2F', borderRadius: '10px', padding: '9px 12px', color: '#F8F4F7', fontSize: '13px', fontFamily: 'inherit' }} />
-                      <button className="btn-p" disabled={vinculando} onClick={() => vincularConta(verDetalhes.id)}>{vinculando ? 'Vinculando...' : 'Vincular conta existente'}</button>
-                    </div>
-                  </>
-                )}
+                {(() => {
+                  const convite = convitesPendentes.find((c: any) => c.parceiro_id === verDetalhes.id)
+                  const conviteExpirado = convite && new Date(convite.expira_em) < new Date()
+
+                  if (verDetalhes.user_id) {
+                    return (
+                      <>
+                        <span className="badge" style={{ background: 'rgba(34,197,94,.12)', border: '1px solid rgba(34,197,94,.24)', color: '#22C55E', marginBottom: '10px', display: 'inline-block' }}>Acesso vinculado</span>
+                        <div>
+                          <button className="btn-s" disabled={vinculando} onClick={() => desvincularConta(verDetalhes.id)}>{vinculando ? 'Removendo...' : 'Desvincular acesso'}</button>
+                        </div>
+                      </>
+                    )
+                  }
+
+                  if (convite && conviteExpirado) {
+                    return (
+                      <>
+                        <span className="badge" style={{ background: 'rgba(248,113,113,.12)', border: '1px solid rgba(248,113,113,.28)', color: '#F87171', marginBottom: '10px', display: 'inline-block' }}>Convite expirado</span>
+                        <p style={{ fontSize: '12px', color: '#B8AAB8', marginBottom: '10px' }}>Convite enviado para {convite.email_convidado} expirou.</p>
+                        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                          <input value={emailVinculo} onChange={e => setEmailVinculo(e.target.value)} placeholder={convite.email_convidado}
+                            style={{ flex: 1, minWidth: '200px', background: 'rgba(24,16,27,.92)', border: '1px solid #2A1A2F', borderRadius: '10px', padding: '9px 12px', color: '#F8F4F7', fontSize: '13px', fontFamily: 'inherit' }} />
+                          <button className="btn-p" disabled={enviandoConvite} onClick={() => enviarConvite(verDetalhes.id)}>{enviandoConvite ? 'Enviando...' : 'Enviar novo convite'}</button>
+                        </div>
+                      </>
+                    )
+                  }
+
+                  if (convite) {
+                    return (
+                      <>
+                        <span className="badge" style={{ background: 'rgba(250,204,21,.12)', border: '1px solid rgba(250,204,21,.28)', color: '#FACC15', marginBottom: '10px', display: 'inline-block' }}>Convite pendente</span>
+                        <p style={{ fontSize: '12px', color: '#B8AAB8', marginBottom: '10px' }}>Enviado para <strong style={{ color: '#F8F4F7' }}>{convite.email_convidado}</strong> · expira em {new Date(convite.expira_em).toLocaleDateString('pt-BR')}</p>
+                        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                          <button className="btn-s" disabled={enviandoConvite} onClick={() => { setEmailVinculo(convite.email_convidado); enviarConvite(verDetalhes.id) }}>{enviandoConvite ? 'Reenviando...' : 'Reenviar'}</button>
+                          <button className="btn-s" disabled={enviandoConvite} onClick={() => cancelarConvite(verDetalhes.id)}>{enviandoConvite ? 'Cancelando...' : 'Cancelar convite'}</button>
+                        </div>
+                      </>
+                    )
+                  }
+
+                  return (
+                    <>
+                      <p style={{ fontSize: '12px', color: '#B8AAB8', marginBottom: '10px' }}>Nenhuma conta vinculada.</p>
+                      <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '8px' }}>
+                        <input value={emailVinculo} onChange={e => setEmailVinculo(e.target.value)} placeholder="email@dacontaminipage.com"
+                          style={{ flex: 1, minWidth: '200px', background: 'rgba(24,16,27,.92)', border: '1px solid #2A1A2F', borderRadius: '10px', padding: '9px 12px', color: '#F8F4F7', fontSize: '13px', fontFamily: 'inherit' }} />
+                      </div>
+                      <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                        <button className="btn-s" disabled={vinculando} onClick={() => vincularConta(verDetalhes.id)}>{vinculando ? 'Vinculando...' : 'Vincular conta existente'}</button>
+                        <button className="btn-p" disabled={enviandoConvite} onClick={() => enviarConvite(verDetalhes.id)}>{enviandoConvite ? 'Enviando...' : 'Enviar convite'}</button>
+                      </div>
+                    </>
+                  )
+                })()}
                 {msgVinculo && <p style={{ fontSize: '12px', color: '#F87171', marginTop: '8px' }}>{msgVinculo}</p>}
               </div>
 

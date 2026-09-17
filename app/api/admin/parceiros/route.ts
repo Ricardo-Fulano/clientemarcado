@@ -38,15 +38,16 @@ export async function GET(request: NextRequest) {
     // So a partir daqui usamos a service role key - nunca exposta ao frontend.
     const supabaseAdmin = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
 
-    const [parceirosRes, indicacoesRes, comissoesRes, repassesRes] = await Promise.all([
+    const [parceirosRes, indicacoesRes, comissoesRes, repassesRes, convitesRes] = await Promise.all([
       supabaseAdmin.from('parceiros').select('*').order('created_at', { ascending: false }),
       supabaseAdmin.from('indicacoes_parceiros').select('*').order('created_at', { ascending: false }),
       supabaseAdmin.from('comissoes_parceiros').select('*').order('data_pagamento_cliente', { ascending: false }),
       supabaseAdmin.from('repasses_parceiros').select('*').order('data_repasse', { ascending: false }),
+      supabaseAdmin.from('convites_parceiros').select('parceiro_id, email_convidado, status, expira_em').eq('status', 'pendente'),
     ])
 
-    if (parceirosRes.error || indicacoesRes.error || comissoesRes.error || repassesRes.error) {
-      const erro = parceirosRes.error || indicacoesRes.error || comissoesRes.error || repassesRes.error
+    if (parceirosRes.error || indicacoesRes.error || comissoesRes.error || repassesRes.error || convitesRes.error) {
+      const erro = parceirosRes.error || indicacoesRes.error || comissoesRes.error || repassesRes.error || convitesRes.error
       console.error('[api/admin/parceiros] Erro ao carregar dados:', erro?.message)
       return NextResponse.json({ error: 'Erro ao carregar dados' }, { status: 500 })
     }
@@ -56,6 +57,7 @@ export async function GET(request: NextRequest) {
       indicacoes: indicacoesRes.data || [],
       comissoes: comissoesRes.data || [],
       repasses: repassesRes.data || [],
+      convitesPendentes: convitesRes.data || [],
     })
   } catch (e: any) {
     console.error('[api/admin/parceiros] Erro interno:', e?.message)
