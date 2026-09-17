@@ -15,10 +15,10 @@ const PLANOS_COMISSIONAVEIS = ['minipage', 'loja', 'essencial', 'equipe']
 // dados corretos e valida o payload antes de chamar a RPC, nunca duplica essa logica.
 async function registrarComissaoParceiro(
   supabase: any,
-  params: { userId: string; planoTipo: string | null; payment: any }
+  params: { userId: string; planoTipo: string | null; payment: any; cicloCobranca?: string | null }
 ) {
   const prefixo = '[Webhook Asaas][Comissão]'
-  const { userId, planoTipo, payment } = params
+  const { userId, planoTipo, payment, cicloCobranca } = params
 
   try {
     // ---- Ajuste 2: plano precisa ser um dos 4 comissionaveis ----
@@ -92,6 +92,11 @@ async function registrarComissaoParceiro(
       p_valor_pago: valorPago,
       p_percentual: 0.20,
       p_data_pagamento_cliente: dataPagamento.toISOString(),
+      // Validacao estrita - NUNCA usar normalizarBillingCycle() aqui, ela transformaria
+      // valor ausente em 'mensal' (fallback ja usado noutro lugar deste arquivo pra
+      // calcular data de expiracao de acesso, mas errado pra congelar o ciclo real da
+      // comissao). Melhor NULL do que informacao inventada.
+      p_ciclo_cobranca: cicloCobranca === 'mensal' || cicloCobranca === 'anual' ? cicloCobranca : null,
     })
 
     if (erroRpc) {
@@ -236,6 +241,7 @@ export async function POST(request: NextRequest) {
           userId: perfil.user_id,
           planoTipo: perfil.plano_tipo,
           payment,
+          cicloCobranca: perfil.billing_cycle,
         })
       } catch (erroComissao: any) {
         console.error('[Webhook Asaas][Comissão] Erro inesperado (fora do helper):', erroComissao?.message || erroComissao)

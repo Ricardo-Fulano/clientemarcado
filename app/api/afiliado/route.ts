@@ -61,7 +61,7 @@ export async function GET(request: NextRequest) {
         .order('created_at', { ascending: false }),
       supabaseAdmin
         .from('comissoes_parceiros')
-        .select('id, indicacao_id, plano_tipo, valor_pago, percentual, valor_comissao, competencia, status, data_pagamento_cliente, created_at, repasse_id')
+        .select('id, indicacao_id, plano_tipo, valor_pago, percentual, valor_comissao, competencia, status, data_pagamento_cliente, created_at, repasse_id, ciclo_cobranca')
         .eq('parceiro_id', parceiro.id)
         .order('data_pagamento_cliente', { ascending: false }),
       supabaseAdmin
@@ -110,13 +110,23 @@ export async function GET(request: NextRequest) {
     const cancelados = 0
 
     // ===== Por indicacao: primeiro/ultimo pagamento, comissoes validas, acumulado,
-    // janela de elegibilidade (formula identica a registrar_comissao_pagamento) =====
+    // janela de elegibilidade (formula identica a registrar_comissao_pagamento), ciclo
+    // de cobranca (Fase 4D - nunca inferido, so o que ja veio congelado na comissao) =====
     const detalheIndicacoes = indicacoes.map((ind: any) => {
       const comissoesDaIndicacao = comissoesValidas.filter((c: any) => c.indicacao_id === ind.id)
       const datasPagamento = comissoesDaIndicacao.map((c: any) => new Date(c.data_pagamento_cliente).getTime())
       const primeiroPagamento = datasPagamento.length ? new Date(Math.min(...datasPagamento)).toISOString() : null
       const ultimoPagamento = datasPagamento.length ? new Date(Math.max(...datasPagamento)).toISOString() : null
       const comissaoAcumulada = comissoesDaIndicacao.reduce((a: number, c: any) => a + Number(c.valor_comissao || 0), 0)
+
+      // Ciclo de cobranca da comissao mais recente - reflete o estado mais atual da
+      // indicacao. Se nenhuma comissao tiver ciclo congelado (registros antigos/teste,
+      // ou o proprio perfis.billing_cycle ainda nao preenchido no momento do pagamento),
+      // fica null - nunca inferido por plano/valor/quantidade.
+      const comissaoMaisRecente = comissoesDaIndicacao.length
+        ? [...comissoesDaIndicacao].sort((a: any, b: any) => new Date(b.data_pagamento_cliente).getTime() - new Date(a.data_pagamento_cliente).getTime())[0]
+        : null
+      const cicloCobranca: string | null = comissaoMaisRecente?.ciclo_cobranca ?? null
 
       // Janela: replica exatamente "p_data_pagamento_cliente >= v_primeiro_pagamento +
       // interval '12 months'" da RPC - mesma aritmetica de timestamp UTC, sem conversao
@@ -138,6 +148,7 @@ export async function GET(request: NextRequest) {
         statusAcesso: null, // ver nota acima - status_acesso nao existe fisicamente ainda
         createdAt: ind.created_at,
         planoTipo: ind.plano_tipo,
+        cicloCobranca,
         primeiroPagamento,
         ultimoPagamento,
         comissoesValidasGeradas: comissoesDaIndicacao.length,
@@ -172,6 +183,7 @@ export async function GET(request: NextRequest) {
           competencia: c.competencia,
           status: c.status,
           dataPagamentoCliente: c.data_pagamento_cliente,
+          cicloCobranca: c.ciclo_cobranca ?? null,
         })),
         repasses: repasses.map((r: any) => ({
           id: r.id,

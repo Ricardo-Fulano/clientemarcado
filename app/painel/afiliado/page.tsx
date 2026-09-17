@@ -26,6 +26,34 @@ function labelStatusComissao(s: string) {
   return { texto: 'Pendente', cor: '#FACC15' }
 }
 
+function labelCiclo(cicloCobranca: string | null) {
+  if (cicloCobranca === 'mensal') return 'Mensal'
+  if (cicloCobranca === 'anual') return 'Anual'
+  return '—'
+}
+
+// Texto principal de progresso/elegibilidade - so mostra "X de 12" quando o ciclo mensal e
+// conhecido com certeza (nunca inferido). Anual nunca usa contagem de mensalidades.
+function textoProgresso(ind: any): { principal: string; secundario: string | null } {
+  const qtd = ind.comissoesValidasGeradas
+  if (ind.cicloCobranca === 'mensal') {
+    const restantes = Math.max(12 - qtd, 0)
+    return {
+      principal: `${qtd} de 12 pagamentos elegíveis`,
+      secundario: `Até ${restantes} pagamento${restantes !== 1 ? 's' : ''} ${restantes !== 1 ? 'adicionais' : 'adicional'} enquanto o cliente permanecer elegível.`,
+    }
+  }
+  if (ind.cicloCobranca === 'anual') {
+    return {
+      principal: `${qtd} pagamento${qtd !== 1 ? 's' : ''} anual${qtd !== 1 ? 'is' : ''}`,
+      secundario: ind.elegivelAteExclusivo ? `Elegível até ${fData(ind.elegivelAteExclusivo)}` : null,
+    }
+  }
+  // Ciclo desconhecido (registros antigos/teste, ou billing_cycle ainda nao preenchido no
+  // momento do pagamento) - contagem generica, nunca nomeada como "mensalidades".
+  return { principal: qtd === 1 ? '1 comissão gerada' : `${qtd} comissões geradas`, secundario: null }
+}
+
 export default function PainelAfiliado() {
   const [carregando, setCarregando] = useState(true)
   const [erro, setErro] = useState('')
@@ -230,9 +258,17 @@ export default function PainelAfiliado() {
                       </div>
                       <p style={{ fontSize: '11px', color: '#B8AAB8', marginTop: '6px' }}>Cadastro: {fData(ind.createdAt)} · 1º pagamento: {fData(ind.primeiroPagamento)} · Último: {fData(ind.ultimoPagamento)}</p>
                     </div>
-                    <div style={{ textAlign: 'right' as const }}>
-                      <p style={{ fontSize: '11px', color: '#B8AAB8' }}>{ind.comissoesValidasGeradas} comissõe{ind.comissoesValidasGeradas !== 1 ? 's' : ''} elegíveis geradas</p>
-                      <p style={{ fontSize: '14px', color: '#EC4899', fontWeight: 800 }}>{fBRL(ind.comissaoAcumulada)}</p>
+                    <div style={{ textAlign: 'right' as const, maxWidth: '220px' }}>
+                      {(() => {
+                        const prog = textoProgresso(ind)
+                        return (
+                          <>
+                            <p style={{ fontSize: '11px', color: '#B8AAB8' }}>{prog.principal}</p>
+                            {prog.secundario && <p style={{ fontSize: '10px', color: '#8a7c8a', marginTop: '1px' }}>{prog.secundario}</p>}
+                          </>
+                        )
+                      })()}
+                      <p style={{ fontSize: '14px', color: '#EC4899', fontWeight: 800, marginTop: '2px' }}>{fBRL(ind.comissaoAcumulada)}</p>
                     </div>
                   </div>
                 </div>
@@ -253,7 +289,7 @@ export default function PainelAfiliado() {
                 <div key={c.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '10px', padding: '12px 14px', border: '1px solid #2A1A2F', borderRadius: '12px', background: 'rgba(24,16,27,.4)', flexWrap: 'wrap' }}>
                   <div>
                     <p style={{ fontSize: '12px', color: '#F8F4F7', fontWeight: 600 }}>{fData(c.dataPagamentoCliente)} · {obterNomePlano(normalizarPlano(c.planoTipo))}</p>
-                    <p style={{ fontSize: '11px', color: '#B8AAB8' }}>{labelCompetencia(c.competencia)} · Pago: {fBRL(Number(c.valorPago))}</p>
+                    <p style={{ fontSize: '11px', color: '#B8AAB8' }}>{labelCompetencia(c.competencia)} · Pago: {fBRL(Number(c.valorPago))} · Ciclo: {labelCiclo(c.cicloCobranca)}</p>
                   </div>
                   <div style={{ textAlign: 'right' as const }}>
                     <p style={{ fontSize: '13px', color: '#EC4899', fontWeight: 700 }}>{fBRL(Number(c.valorComissao))}</p>
