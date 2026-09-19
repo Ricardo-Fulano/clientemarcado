@@ -7,7 +7,7 @@ import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { headers } from 'next/headers'
 import { Inter } from 'next/font/google'
-import { Zap, CalendarDays, CheckCircle, Sparkles, GraduationCap, Crown, Globe, Link2, Music2, ShoppingBag, PlayCircle, BadgeCheck, MapPin, Calendar, Lock, Mail, Phone } from 'lucide-react'
+import { Zap, CalendarDays, CheckCircle, Sparkles, GraduationCap, Crown, Globe, Link2, ShoppingBag, PlayCircle, BadgeCheck, MapPin, Calendar, Lock, Mail, Phone } from 'lucide-react'
 import EmailLinkCard from '../components/EmailLinkCard'
 import CatalogoItemCard from '../components/CatalogoItemCard'
 import VideoItemCard from '../components/VideoItemCard'
@@ -74,35 +74,26 @@ html,body{overflow-x:hidden;width:100%;max-width:100%}
 .destaque-scroll .destaque-item-h{flex:0 0 260px;max-width:260px;scroll-snap-align:start}
 .destaque-scroll::-webkit-scrollbar{height:5px}
 .destaque-scroll::-webkit-scrollbar-thumb{background:var(--accent-border);border-radius:99px}
-.destaque-card{display:flex;flex-direction:column;overflow:hidden;border-radius:16px;transition:transform .18s,box-shadow .18s,border-color .18s;width:100%;max-width:100%;box-sizing:border-box}
+.destaque-card{position:relative;overflow:hidden;border-radius:16px;transition:transform .18s,box-shadow .18s,border-color .18s;width:100%;max-width:100%;box-sizing:border-box}
 .destaque-card:hover{transform:translateY(-4px);border-color:var(--accent)!important;box-shadow:0 6px 18px var(--accent-glow)}
-.destaque-card:hover .destaque-action{color:var(--accent)}
-.destaque-img-wrap{position:relative;width:100%;aspect-ratio:16/9;overflow:hidden;flex-shrink:0}
+.destaque-img-wrap{position:relative;width:100%;aspect-ratio:3/2;overflow:hidden}
 .destaque-img-wrap img{width:100%;height:100%;object-fit:cover;display:block}
-.destaque-body{padding:10px 14px 10px;display:flex;flex-direction:column;gap:2px}
-.destaque-action{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;margin-top:0;opacity:.85}
-.destaque-desc{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font-size:11px!important}
-.destaque-titulo{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:40px;line-height:1.25}
+.destaque-overlay{position:absolute;left:0;right:0;bottom:0;padding:18px 10px 9px;background:linear-gradient(to top,rgba(0,0,0,.88) 0%,rgba(0,0,0,.5) 55%,transparent 100%);display:flex;flex-direction:column;gap:1px}
+.destaque-action-v2{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:600;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.6);margin-top:1px}
+.destaque-desc-v2{display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden;font-size:10px;color:rgba(255,255,255,.85);text-shadow:0 1px 3px rgba(0,0,0,.5);margin:1px 0 2px}
+.destaque-titulo-v2{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;line-height:1.2;font-weight:700;font-size:12.5px;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.6);margin:0}
 .video-grid{display:flex;flex-wrap:nowrap;overflow-x:auto;overflow-y:hidden;gap:12px;width:100%;max-width:100%;align-items:flex-start;padding-bottom:6px;scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch}
 .video-grid::-webkit-scrollbar{height:5px}
 .video-grid::-webkit-scrollbar-thumb{background:var(--accent-border);border-radius:99px}
-.video-card{display:flex;flex-direction:column;overflow:hidden;border-radius:13px;transition:transform .18s,box-shadow .18s,border-color .18s;box-sizing:border-box}
-.video-card.fmt-horizontal{width:230px;flex-shrink:0;scroll-snap-align:start}
-.video-card:hover{transform:translateY(-4px);border-color:var(--accent)!important}
-.video-card:hover .video-assistir{color:var(--accent);border-color:var(--accent)!important}
-.video-thumb-wrap{position:relative;width:100%;overflow:hidden;flex-shrink:0;display:block;text-decoration:none;background:#000}
-.video-thumb-wrap img{width:100%;height:100%;object-fit:cover;display:block}
-.video-play{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:44px;height:44px;border-radius:999px;background:rgba(0,0,0,.55);border:1.5px solid rgba(255,255,255,.7);display:flex;align-items:center;justify-content:center;backdrop-filter:blur(2px)}
+.video-card-v2{position:relative;overflow:hidden;border-radius:13px;transition:transform .18s,box-shadow .18s,border-color .18s;box-sizing:border-box;width:180px;flex-shrink:0;scroll-snap-align:start}
+.video-card-v2:hover{transform:translateY(-4px);border-color:var(--accent)!important}
+.video-thumb-wrap-v2{position:relative;display:block;width:100%;aspect-ratio:4/5;overflow:hidden;text-decoration:none;background:#000}
+.video-thumb-wrap-v2 img{width:100%;height:100%;object-fit:cover;display:block}
 .video-placeholder{width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:14px;text-align:center}
-.video-placeholder-play{width:44px;height:44px;border-radius:999px;background:rgba(255,255,255,.20);border:1.5px solid rgba(255,255,255,.55);display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .video-placeholder-label{font-size:11px;font-weight:700;color:#fff;letter-spacing:.02em}
-.video-placeholder-title{font-size:10px;color:rgba(255,255,255,.85);line-height:1.35;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;max-width:200px}
-.video-body{padding:9px 12px 11px;display:flex;flex-direction:column;gap:2px}
-.video-title{font-size:14px;font-weight:600;color:var(--text);line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-.video-desc{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font-size:11px!important}
-.video-btns{display:flex;flex-direction:column;gap:6px;margin-top:6px}
-.video-cta{display:inline-flex;align-items:center;justify-content:center;gap:5px;font-size:12px;font-weight:700;padding:8px 14px;border-radius:9px;text-decoration:none;text-align:center}
-.video-assistir{display:inline-flex;align-items:center;justify-content:center;gap:5px;font-size:11px;font-weight:600;padding:7px 14px;border-radius:9px;text-decoration:none;text-align:center;background:transparent}
+.video-overlay-v2{position:absolute;left:0;right:0;bottom:0;padding:22px 10px 10px;background:linear-gradient(to top,rgba(0,0,0,.85) 0%,rgba(0,0,0,.45) 55%,transparent 100%);pointer-events:none}
+.video-title-v2{font-size:12.5px;font-weight:700;color:#fff;line-height:1.3;text-shadow:0 1px 3px rgba(0,0,0,.6);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;margin:0}
+.video-cta-v2{position:absolute;top:8px;right:8px;z-index:1;display:inline-flex;align-items:center;font-size:10.5px;font-weight:700;padding:5px 10px;border-radius:999px;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.35)}
 .catalogo-scroll{display:flex;gap:12px;overflow-x:auto;overflow-y:hidden;padding-bottom:6px;scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch}
 .catalogo-scroll::-webkit-scrollbar{height:5px}
 .catalogo-scroll::-webkit-scrollbar-thumb{background:var(--accent-border);border-radius:99px}
@@ -127,9 +118,11 @@ html,body{overflow-x:hidden;width:100%;max-width:100%}
 .link-title{font-size:16px;font-weight:600;color:var(--text);margin-bottom:2px;line-height:1.25}
 .link-sub{font-size:13px;font-weight:400;color:var(--text-muted);line-height:1.3}
 .link-arrow{font-size:16px;flex-shrink:0;opacity:.5}
-.evento-card{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:22px 18px;box-sizing:border-box;border-radius:16px}
+.evento-card{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 16px;box-sizing:border-box;border-radius:16px}
 .evento-card:hover{border-color:var(--accent)!important}
-.evento-titulo{font-size:14px;font-weight:600;color:var(--text);line-height:1.3;letter-spacing:.01em}
+.evento-imagem{width:48px;height:48px;border-radius:10px;object-fit:cover;flex-shrink:0}
+.evento-imagem-fallback{background:rgba(128,128,128,.12);display:flex;align-items:center;justify-content:center}
+.evento-titulo{flex:1;min-width:0;font-size:14px;font-weight:600;color:var(--text);line-height:1.3;letter-spacing:.01em}
 .evento-menu{font-size:16px;flex-shrink:0;opacity:.5;letter-spacing:1px}
 @media(min-width:640px){
   .link-grid{grid-template-columns:repeat(2,1fr)}
@@ -190,14 +183,10 @@ html,body{overflow-x:hidden;width:100%;max-width:100%}
   .benefit-grid{grid-template-columns:1fr}
   .destaque-grid{flex-direction:column!important;gap:12px!important;width:100%!important;max-width:100%!important}
   .destaque-grid .destaque-item{max-width:100%!important;flex-basis:auto!important}
-  .destaque-body{padding:10px 14px 12px!important}
   .destaque-scroll{display:flex!important;grid-template-columns:none!important;gap:16px!important;overflow-x:auto!important;overflow-y:hidden!important;padding-bottom:6px;scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch}
   .destaque-item-h{flex:0 0 82vw!important;max-width:360px!important;min-width:0!important;scroll-snap-align:start}
-  .destaque-card-horizontal .destaque-img-wrap{aspect-ratio:auto!important;height:180px!important}
-  .destaque-card-horizontal .destaque-body{padding:12px 14px 14px!important}
   .video-grid{gap:10px!important}
-  .video-card.fmt-horizontal{width:210px!important}
-  .video-body{padding:9px 11px 11px!important}
+  .video-card-v2{width:170px!important}
   .link-grid{grid-template-columns:1fr!important;gap:10px!important}
   .hero-btns{flex-direction:column}
   .hero-btns a{width:100%;justify-content:center;text-align:center}
@@ -217,16 +206,10 @@ html,body{overflow-x:hidden;width:100%;max-width:100%}
   .link-sub{font-size:13px!important;font-weight:400!important;line-height:1.25!important;margin-top:2px!important}
   .link-grid{gap:10px!important}
 
-  .destaque-img-wrap{aspect-ratio:auto!important;height:170px!important;max-height:170px!important;min-height:0!important}
-  .destaque-body{padding:12px 14px 11px!important;gap:2px!important}
-  .destaque-action{font-size:13px!important;margin-top:5px!important}
-
-  .video-body{padding:10px 12px 12px!important;gap:2px!important}
-  .video-title{font-size:15px!important;line-height:1.25!important}
+  .video-title-v2{font-size:13.5px!important}
 }
 @media(max-width:340px){
   .wrap{padding:0 14px}
-  .destaque-img-wrap{height:160px!important;max-height:160px!important}
 }
 `
 
@@ -448,8 +431,9 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
     switch(tipo){
       case 'whatsapp': return { color:'#22C55E', svg:(<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>) }
       case 'instagram': return { color:'#EC4899', svg:(<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1112.63 8 4 4 0 0116 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>) }
-      case 'tiktok': return { color:tema.text, I:Music2 }
+      case 'tiktok': return { color:'#000000', svg:(<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M16.6 5.82s.51.5 0 0A4.278 4.278 0 0 1 15.54 3h-3.09v12.4a2.592 2.592 0 0 1-2.59 2.5c-1.42 0-2.6-1.16-2.6-2.6 0-1.72 1.66-3.01 3.37-2.48V9.66c-3.45-.46-6.47 2.22-6.47 5.64 0 3.33 2.76 5.7 5.69 5.7 3.14 0 5.69-2.55 5.69-5.7V9.01a7.35 7.35 0 0 0 4.3 1.38V7.3s-1.88.09-3.24-1.48z"/></svg>) }
       case 'youtube': return { color:'#FF3B30', I:PlayCircle }
+      case 'youtube_music': return { color:'#FF0000', svg:(<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="10.5"/><circle cx="12" cy="12" r="6.2" fill="#fff"/><circle cx="12" cy="12" r="2.2"/><path d="M10.5 9.3v5.4l4.6-2.7z" fill="#FF0000"/></svg>) }
       case 'shopee': return { color:'#EE4D2D', I:ShoppingBag }
       case 'mercadolivre': return { color:'#FFE600', I:ShoppingBag }
       case 'loja': return { color:tema.accent, I:ShoppingBag }
@@ -701,8 +685,8 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
                     {linksSociais.map(l => {
                       const cfg = iconeLink(l.tipoEfetivo)
                       return (
-                        <a key={l.id} href={l.url} target={l.url && l.url.startsWith('http') ? '_blank' : '_self'} rel="noopener noreferrer" className="social-ic" style={{ background: iconeBg, border: `1px solid ${iconeBorder}`, color: iconeCor }} aria-label={l.titulo} data-track-tipo="social_click" data-track-item-titulo={l.titulo} data-track-item-url={l.url}>
-                          {cfg.svg ? cfg.svg : (cfg.I ? <cfg.I size={16} color={iconeCor} /> : null)}
+                        <a key={l.id} href={l.url} target={l.url && l.url.startsWith('http') ? '_blank' : '_self'} rel="noopener noreferrer" className="social-ic" style={{ background: iconeBg, border: `1px solid ${iconeBorder}`, color: cfg.color || iconeCor }} aria-label={l.titulo} data-track-tipo="social_click" data-track-item-titulo={l.titulo} data-track-item-url={l.url}>
+                          {cfg.svg ? cfg.svg : (cfg.I ? <cfg.I size={16} color={cfg.color || iconeCor} /> : null)}
                         </a>
                       )
                     })}
@@ -735,8 +719,8 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
                     {linksSociais.map(l => {
                       const cfg = iconeLink(l.tipoEfetivo)
                       return (
-                        <a key={l.id} href={l.url} target={l.url && l.url.startsWith('http') ? '_blank' : '_self'} rel="noopener noreferrer" className="social-ic" style={{ background: iconeBg, border: `1px solid ${iconeBorder}`, color: iconeCor }} aria-label={l.titulo} data-track-tipo="social_click" data-track-item-titulo={l.titulo} data-track-item-url={l.url}>
-                          {cfg.svg ? cfg.svg : (cfg.I ? <cfg.I size={16} color={iconeCor} /> : null)}
+                        <a key={l.id} href={l.url} target={l.url && l.url.startsWith('http') ? '_blank' : '_self'} rel="noopener noreferrer" className="social-ic" style={{ background: iconeBg, border: `1px solid ${iconeBorder}`, color: cfg.color || iconeCor }} aria-label={l.titulo} data-track-tipo="social_click" data-track-item-titulo={l.titulo} data-track-item-url={l.url}>
+                          {cfg.svg ? cfg.svg : (cfg.I ? <cfg.I size={16} color={cfg.color || iconeCor} /> : null)}
                         </a>
                       )
                     })}
@@ -880,8 +864,8 @@ secoesDestaquesComItens.length > 0 && permiteDestaques(perfil.plano_tipo) && (
                 const hrefFinal = urlFinalLink(l)
                 return (
                   <a key={l.id} href={hrefFinal} target={hrefFinal.startsWith('http') ? '_blank' : '_self'} rel="noopener noreferrer" className="crd link-card" style={{ textDecoration: 'none', color: 'inherit', border: cardBorderFinal, boxShadow: cardShadowNeon }} data-track-tipo="link_rapido_click" data-track-item-id={l.id} data-track-item-titulo={l.titulo || ''} data-track-item-url={hrefFinal}>
-                    <div className="link-icon" style={{ background: iconeBg, border: `1px solid ${iconeBorder}`, color: iconeCor }}>
-                      {cfg.svg ? cfg.svg : (cfg.I ? <cfg.I size={21} color={iconeCor} /> : null)}
+                    <div className="link-icon" style={{ background: iconeBg, border: `1px solid ${iconeBorder}`, color: cfg.color || iconeCor }}>
+                      {cfg.svg ? cfg.svg : (cfg.I ? <cfg.I size={21} color={cfg.color || iconeCor} /> : null)}
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <p className="link-title">{l.titulo || (l.tipo === 'endereco' ? t.endereco : '')}</p>
@@ -901,12 +885,28 @@ eventos && eventos.length > 0 && permiteAgendaEventos(perfil.plano_tipo) && (
           <div style={{ marginBottom: '28px' }}>
             <p style={{ fontSize: '20px', fontWeight: 900, color: 'var(--text)', letterSpacing: '-0.02em', marginBottom: '14px' }}>{t.agendaEventos}</p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              {eventos.map((ev: { id: string; titulo: string; url: string }) => (
-                <a key={ev.id} href={ev.url} target="_blank" rel="noopener noreferrer" className="crd evento-card" style={{ textDecoration: 'none', color: 'inherit', border: cardBorderFinal, boxShadow: cardShadowNeon }}>
-                  <span className="evento-titulo">{ev.titulo}</span>
-                  <span className="evento-menu" style={{ color: setaCor }}>⋮</span>
-                </a>
-              ))}
+              {eventos.map((ev: { id: string; titulo: string; url: string | null; imagem_url?: string | null }) => {
+                const conteudoEvento = (
+                  <>
+                    {ev.imagem_url ? (
+                      <img src={ev.imagem_url} alt="" className="evento-imagem" />
+                    ) : (
+                      <div className="evento-imagem evento-imagem-fallback"><Calendar size={20} color="var(--text-muted)" /></div>
+                    )}
+                    <span className="evento-titulo">{ev.titulo}</span>
+                    {ev.url && <span className="evento-menu" style={{ color: setaCor }}>⋮</span>}
+                  </>
+                )
+                return ev.url ? (
+                  <a key={ev.id} href={ev.url} target="_blank" rel="noopener noreferrer" className="crd evento-card" style={{ textDecoration: 'none', color: 'inherit', border: cardBorderFinal, boxShadow: cardShadowNeon }}>
+                    {conteudoEvento}
+                  </a>
+                ) : (
+                  <div key={ev.id} className="crd evento-card" style={{ border: cardBorderFinal, boxShadow: cardShadowNeon }}>
+                    {conteudoEvento}
+                  </div>
+                )
+              })}
             </div>
           </div>
         )

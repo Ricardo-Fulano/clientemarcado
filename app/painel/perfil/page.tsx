@@ -3,7 +3,7 @@ import { useEffect, useState, useRef } from 'react'
 import { supabase } from '../../lib/supabase'
 import { permiteDestaques, permiteVideos, permiteAgendaEventos, obterLimiteLinksRapidos, obterLimiteCatalogos, permiteAgenda } from '../../lib/planos'
 import Link from 'next/link'
-import { Copy, Check, ExternalLink, ChevronDown, ChevronUp, UploadCloud, ArrowUp, ArrowDown } from 'lucide-react'
+import { Copy, Check, ExternalLink, UploadCloud, ArrowUp, ArrowDown } from 'lucide-react'
 import PainelSidebar from '@/app/components/PainelSidebar'
 
 const G='linear-gradient(135deg,#EC4899,#D946EF,#8B5CF6)'
@@ -143,15 +143,6 @@ export default function Perfil(){
   const [catalogos,setCatalogos]=useState<any[]>([])
   const ORDEM_PADRAO_SECOES=['destaques','links','agenda','catalogo','videos']
   const [ordemSecoes,setOrdemSecoes]=useState<string[]>(ORDEM_PADRAO_SECOES)
-  // Acesso da conta (transferir e-mail de login / reenviar link de senha)
-  const [emailAtual,setEmailAtual]=useState('')
-  const [souProfissional,setSouProfissional]=useState(false)
-  const [acessoAberto,setAcessoAberto]=useState(false)
-  const [novoEmailAcesso,setNovoEmailAcesso]=useState('')
-  const [transferindo,setTransferindo]=useState(false)
-  const [transferMsg,setTransferMsg]=useState('')
-  const [transferOk,setTransferOk]=useState(false)
-
   const tc = TEMA_CORES[publicTheme] ?? TEMA_CORES.modelo2
 
   // Guarda o ultimo user_id conhecido fora do state, pra comparar dentro do listener
@@ -164,8 +155,6 @@ export default function Perfil(){
   function resetPerfilState(){
     setUserId('')
     setSemPerfil(false)
-    setEmailAtual('')
-    setSouProfissional(false)
     setNome('')
     setSlug('')
     setEnd('')
@@ -203,9 +192,6 @@ export default function Perfil(){
     setDestaques([])
     setLinks([])
     setVideos([])
-    setNovoEmailAcesso('')
-    setTransferMsg('')
-    setTransferOk(false)
     setMsg('')
   }
 
@@ -240,17 +226,6 @@ export default function Perfil(){
     if(!user){resetPerfilState();window.location.href='/login';return}
     ultimoUserIdRef.current=user.id
     setUserId(user.id)
-    setEmailAtual(user.email||'')
-
-    // Esconde "Acesso da conta" se quem esta logado for uma profissional com login individual (nao a dona do negocio)
-    const {data:{session}}=await supabase.auth.getSession()
-    if(session?.access_token){
-      try{
-        const res=await fetch('/api/equipe/meu-vinculo',{headers:{'Authorization':'Bearer '+session.access_token}})
-        const vinculo=await res.json()
-        if(res.ok && vinculo?.role==='profissional' && vinculo?.ativo) setSouProfissional(true)
-      }catch(e){console.warn('Erro ao verificar vinculo de equipe:',e)}
-    }
 
     const {data:p,error}=await supabase.from('perfis').select('*').eq('user_id',user.id).maybeSingle()
     if(error){console.error('Erro ao carregar perfil:',error)}
@@ -462,8 +437,6 @@ export default function Perfil(){
     setTimeout(()=>setMsg(''),3000)
   }
 
-  // ---------- ACESSO DA CONTA (Caminho B) ----------
-  function emailValido(e:string){return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e)}
   function moverSecao(indice:number,direcao:'up'|'down'){
     const novoIndice=direcao==='up'?indice-1:indice+1
     if(novoIndice<0||novoIndice>=ordemSecoes.length)return
@@ -473,38 +446,6 @@ export default function Perfil(){
       return copia
     })
   }
-
-  // Caminho B: convite proprio, com token controlado por nos.
-  // A pessoa cria a PROPRIA senha na pagina /convite/[token] - o admin atual nunca
-  // ve nem define essa senha. So depois que ela aceita e que o perfil e transferido.
-  async function transferirAcesso(){
-    setTransferMsg('')
-    setTransferOk(false)
-    const novo=novoEmailAcesso.trim().toLowerCase()
-    if(!novo){setTransferMsg('Informe um e-mail válido.');return}
-    if(!emailValido(novo)){setTransferMsg('Informe um e-mail válido.');return}
-    if(novo===(emailAtual||'').toLowerCase()){setTransferMsg('O novo e-mail precisa ser diferente do e-mail atual.');return}
-    setTransferindo(true)
-    const {data:{session}}=await supabase.auth.getSession()
-    if(!session){setTransferMsg('Sua sessão expirou. Recarregue a página e tente de novo.');setTransferindo(false);return}
-    const res=await fetch('/api/convite/criar',{
-      method:'POST',
-      headers:{'Content-Type':'application/json','Authorization':'Bearer '+session.access_token},
-      body:JSON.stringify({email_novo:novo}),
-    })
-    const data=await res.json().catch(()=>({}))
-    setTransferindo(false)
-    if(!res.ok){
-      console.warn('Erro ao criar convite:',data.error)
-      setTransferMsg(data.error||'Não foi possível enviar o convite. Verifique o e-mail e tente novamente.')
-      return
-    }
-    setTransferOk(true)
-    setNovoEmailAcesso('')
-    setTransferMsg('Convite enviado! A pessoa vai receber um e-mail para criar a própria senha e assumir o acesso. Você não verá nem definirá essa senha em nenhum momento.')
-  }
-
-
 
   function copiarLink(){navigator.clipboard.writeText(pubUrl);setCopied(true);setTimeout(()=>setCopied(false),2000)}
 
@@ -594,11 +535,6 @@ export default function Perfil(){
               <label className="lbl">Cidade / Estado</label>
               <input className="inp" type="text" placeholder="Ex: São Paulo - SP" value={cidade} onChange={e=>setCidade(e.target.value)}/>
             </div>
-            <div>
-              <label className="lbl">Bio da página</label>
-              <textarea value={desc} onChange={e=>setDesc(e.target.value.slice(0,180))} placeholder="Ex: Atendimento com horário marcado, ambiente confortável e profissionais especializados." style={{width:'100%',background:'rgba(24,16,27,.88)',border:'1.5px solid #2A1A2F',borderRadius:'12px',padding:'12px 14px',fontSize:'14px',color:'#F8F4F7',outline:'none',fontFamily:'inherit',resize:'none',height:'90px',lineHeight:1.5,boxSizing:'border-box',transition:'border-color .2s'}} onFocus={e=>(e.target.style.borderColor='rgba(236,72,153,.55)')} onBlur={e=>(e.target.style.borderColor='#2A1A2F')}/>
-              <p style={{fontSize:'11px',color:'#B8AAB8',textAlign:'right',marginTop:'4px'}}>{desc.length}/180</p>
-            </div>
           </div>
 
           <div className="crd">
@@ -655,23 +591,12 @@ export default function Perfil(){
               <input className="inp" type="text" placeholder="Agendar agora" value={tituloBotaoAgenda} onChange={e=>setTituloBotaoAgenda(e.target.value)}/>
             </div>
 
-            <div style={{borderTop:'1px solid #2A1A2F',paddingTop:'18px'}}>
-              <p style={{fontSize:'13px',fontWeight:600,color:'#B8AAB8',marginBottom:'4px'}}>O que aparece na sua página</p>
-              <p style={{fontSize:'12px',color:'#B8AAB8',marginBottom:'14px'}}>Desative o que não usa. Sua página funciona bem com ou sem agenda.</p>
-              <div style={{display:'flex',flexDirection:'column',gap:'8px'}}>
-                {[
-                  {lbl:'Botão de agendar / Agenda',val:mostrarAgenda,set:setMostrarAgenda},
-                  {lbl:'Serviços',val:mostrarServicos,set:setMostrarServicos},
-                  {lbl:'Equipe',val:mostrarEquipe,set:setMostrarEquipe},
-                  {lbl:'Seção "Por que agendar aqui?"',val:mostrarPorQueAgendar,set:setMostrarPorQueAgendar},
-                  {lbl:'Contato (WhatsApp/Instagram/endereço)',val:mostrarContato,set:setMostrarContato},
-                ].map(({lbl,val,set})=>(
-                  <div key={lbl} style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'10px 14px',background:'rgba(255,255,255,.03)',borderRadius:'10px',border:'1px solid rgba(255,255,255,.06)'}}>
-                    <span style={{fontSize:'13px',color:'#F8F4F7'}}>{lbl}</span>
-                    <button type="button" onClick={()=>set((v:boolean)=>!v)} style={{background:val?'rgba(34,197,94,.14)':'#2A1A2F',border:'1px solid '+(val?'rgba(34,197,94,.25)':'#2A1A2F'),borderRadius:10,padding:'5px 12px',fontSize:11,fontWeight:700,color:val?'#22C55E':'#B8AAB8',cursor:'pointer',fontFamily:'inherit'}}>{val?'Exibindo':'Oculto'}</button>
-                  </div>
-                ))}
+            <div style={{borderTop:'1px solid #2A1A2F',paddingTop:'18px',display:'flex',alignItems:'center',justifyContent:'space-between',gap:'12px',flexWrap:'wrap'}}>
+              <div>
+                <p style={{fontSize:'13px',fontWeight:600,color:'#F8F4F7',marginBottom:'2px'}}>Agenda na página</p>
+                <p style={{fontSize:'12px',color:'#B8AAB8'}}>Mostra ou oculta o botão de agendamento na sua página.</p>
               </div>
+              <button type="button" onClick={()=>setMostrarAgenda(v=>!v)} style={{background:mostrarAgenda?'rgba(34,197,94,.14)':'#2A1A2F',border:'1px solid '+(mostrarAgenda?'rgba(34,197,94,.25)':'#2A1A2F'),borderRadius:10,padding:'6px 14px',fontSize:11,fontWeight:700,color:mostrarAgenda?'#22C55E':'#B8AAB8',cursor:'pointer',fontFamily:'inherit',flexShrink:0}}>{mostrarAgenda?'Exibindo':'Oculto'}</button>
             </div>
           </div>
 
@@ -852,37 +777,6 @@ export default function Perfil(){
                   </div>
                 </div>
               </div>
-            )}
-          </div>
-          )}
-
-          {!souProfissional && (
-          <div className="crd">
-            <button type="button" onClick={()=>setAcessoAberto(v=>!v)} style={{display:'flex',alignItems:'center',gap:'10px',background:'none',border:'none',cursor:'pointer',padding:0,fontFamily:'inherit',width:'100%',textAlign:'left'}}>
-              {acessoAberto?<ChevronUp size={18} color="#B8AAB8"/>:<ChevronDown size={18} color="#B8AAB8"/>}
-              <span style={{fontSize:'15px',fontWeight:700,color:'#F8F4F7'}}>Acesso da conta</span>
-            </button>
-            {acessoAberto && (
-            <>
-            <p style={{fontSize:'12px',color:'#B8AAB8',marginBottom:'20px',marginTop:'14px',lineHeight:1.6}}>Transfira esta página profissional para outro e-mail com segurança. O e-mail atual autoriza a transferência e o novo e-mail cria a própria senha de acesso.</p>
-
-            <div style={{marginBottom:'14px'}}>
-              <label className="lbl">E-mail atual</label>
-              <input className="inp" value={emailAtual} disabled readOnly style={{opacity:.65,cursor:'not-allowed'}}/>
-            </div>
-            <div style={{marginBottom:'8px'}}>
-              <label className="lbl">Novo e-mail de acesso</label>
-              <input className="inp" type="email" value={novoEmailAcesso} onChange={e=>{setNovoEmailAcesso(e.target.value);setTransferMsg('')}} placeholder="influenciadora@email.com"/>
-            </div>
-
-            {transferMsg && <p style={{fontSize:'12px',marginBottom:'14px',color:transferOk?'#22C55E':'#EF4444'}}>{transferOk?'✓ ':''}{transferMsg}</p>}
-
-            <button type="button" onClick={transferirAcesso} disabled={transferindo} style={{width:'100%',background:G,color:'#fff',border:'1px solid rgba(255,255,255,.12)',borderRadius:'12px',padding:'12px',fontSize:'13px',fontWeight:700,cursor:transferindo?'not-allowed':'pointer',fontFamily:'inherit',opacity:transferindo?.7:1,marginBottom:'12px'}}>
-              {transferindo?'Enviando...':'Enviar convite de transferência'}
-            </button>
-            <p style={{fontSize:'11px',color:'#B8AAB8',lineHeight:1.6}}>A pessoa recebe um link exclusivo por e-mail para criar a própria senha e assumir o acesso. Você não vê nem define essa senha em nenhum momento.</p>
-            <p style={{fontSize:'11px',color:'#B8AAB8',lineHeight:1.6,marginTop:'6px'}}>O convite expira em 7 dias e só pode ser usado uma vez. Esta ação é enviada imediatamente e não depende do botão Salvar perfil.</p>
-            </>
             )}
           </div>
           )}

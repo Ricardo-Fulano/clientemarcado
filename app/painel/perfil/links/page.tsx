@@ -2,8 +2,9 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../../../lib/supabase'
 import Link from 'next/link'
-import { ArrowLeft, ArrowUp, ArrowDown } from 'lucide-react'
+import { ArrowLeft, ArrowUp, ArrowDown, Pencil, Trash2, Mail, MapPin, Link2, Music } from 'lucide-react'
 import PainelSidebar from '@/app/components/PainelSidebar'
+import VerMiniPageButton from '@/app/components/VerMiniPageButton'
 import { obterLimiteLinksRapidos } from '../../../lib/planos'
 import { PLATAFORMAS_LINK, placeholderPlataforma, normalizarInstagram, normalizarFacebook } from '../../../lib/plataformasLinks'
 
@@ -20,8 +21,53 @@ input,select,textarea{color-scheme:dark}
 .inp{width:100%;background:rgba(24,16,27,.92);border:1.5px solid #2A1A2F;border-radius:10px;padding:10px 12px;color:#F8F4F7;font-size:13px;font-family:inherit}
 .inp:focus{outline:none;border-color:rgba(236,72,153,.5)}
 .fg2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-@media(max-width:767px){.psb-main .bdy{padding:14px 14px 80px!important}.fg2{grid-template-columns:1fr!important}}
+@media(max-width:767px){.psb-main .bdy{padding:14px 14px 80px!important}.fg2{grid-template-columns:1fr!important}.top-actions{flex-direction:column;align-items:stretch!important}}
 `
+
+// Icone compacto por tipo de link, so pra identificacao visual rapida no card - nao precisa
+// ser tao elaborado quanto os icones da pagina publica. lucide-react (v1.47+) removeu os
+// icones de marca/logo (Instagram, Youtube, Facebook nao existem mais como export) - por
+// isso os SVGs de marca sao customizados aqui, reaproveitando exatamente os mesmos paths
+// ja usados na pagina publica (slug) pra garantir fidelidade visual identica.
+function IconePlataforma({ tipo }: { tipo: string }) {
+  const tamanho = 18
+  switch (tipo) {
+    case 'whatsapp': return (
+      <svg width={tamanho} height={tamanho} viewBox="0 0 24 24" fill="#22C55E">
+        <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+      </svg>
+    )
+    case 'instagram': return (
+      <svg width={tamanho} height={tamanho} viewBox="0 0 24 24" fill="none" stroke="#EC4899" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1112.63 8 4 4 0 0116 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/>
+      </svg>
+    )
+    case 'youtube': return (
+      <svg width={tamanho} height={tamanho} viewBox="0 0 24 24" fill="#FF0000">
+        <path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.6 12 3.6 12 3.6s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2 31.2 31.2 0 0 0 0 12a31.2 31.2 0 0 0 .5 5.8 3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1A31.2 31.2 0 0 0 24 12a31.2 31.2 0 0 0-.5-5.8zM9.6 15.6V8.4l6.3 3.6z"/>
+      </svg>
+    )
+    case 'youtube_music': return (
+      <svg width={tamanho} height={tamanho} viewBox="0 0 24 24" fill="#FF0000">
+        <circle cx="12" cy="12" r="10.5"/><circle cx="12" cy="12" r="6.2" fill="#fff"/><circle cx="12" cy="12" r="2.2"/><path d="M10.5 9.3v5.4l4.6-2.7z" fill="#FF0000"/>
+      </svg>
+    )
+    case 'facebook': return (
+      <svg width={tamanho} height={tamanho} viewBox="0 0 24 24" fill="#1877F2">
+        <path d="M22 12a10 10 0 1 0-11.6 9.9v-7H7.9V12h2.5V9.8c0-2.5 1.5-3.9 3.8-3.9 1.1 0 2.2.2 2.2.2v2.4h-1.3c-1.2 0-1.6.8-1.6 1.6V12h2.8l-.4 2.9h-2.4v7A10 10 0 0 0 22 12z"/>
+      </svg>
+    )
+    case 'tiktok': return (
+      <svg width={tamanho} height={tamanho} viewBox="0 0 24 24" fill="#F8F4F7">
+        <path d="M16.6 5.82s.51.5 0 0A4.278 4.278 0 0 1 15.54 3h-3.09v12.4a2.592 2.592 0 0 1-2.59 2.5c-1.42 0-2.6-1.16-2.6-2.6 0-1.72 1.66-3.01 3.37-2.48V9.66c-3.45-.46-6.47 2.22-6.47 5.64 0 3.33 2.76 5.7 5.69 5.7 3.14 0 5.69-2.55 5.69-5.7V9.01a7.35 7.35 0 0 0 4.3 1.38V7.3s-1.88.09-3.24-1.48z"/>
+      </svg>
+    )
+    case 'spotify': return <Music size={tamanho} color="#1DB954" />
+    case 'email': return <Mail size={tamanho} color="#F8F4F7" />
+    case 'endereco': return <MapPin size={tamanho} color="#F8F4F7" />
+    default: return <Link2 size={tamanho} color="#B8AAB8" />
+  }
+}
 
 export default function GerenciarLinks(){
   const [userId,setUserId]=useState('')
@@ -30,6 +76,8 @@ export default function GerenciarLinks(){
   const [carregando,setCarregando]=useState(true)
   const [msg,setMsg]=useState('')
   const [salvandoId,setSalvandoId]=useState('')
+  // Controla qual card esta em modo edicao - null significa que todos aparecem compactos.
+  const [editandoId,setEditandoId]=useState<string|null>(null)
 
   useEffect(()=>{load()},[])
 
@@ -63,7 +111,9 @@ export default function GerenciarLinks(){
       setTimeout(()=>setMsg(''),5000)
       return
     }
-    setLinks(prev=>[{id:'novo-'+Date.now(),user_id:userId,tipo:'whatsapp',titulo:'',descricao:'',url:'',ativo:true,ordem:prev.length,_novo:true},...prev])
+    const novoId='novo-'+Date.now()
+    setLinks(prev=>[{id:novoId,user_id:userId,tipo:'whatsapp',titulo:'',descricao:'',url:'',ativo:true,ordem:prev.length,_novo:true},...prev])
+    setEditandoId(novoId)
   }
   function editarLink(id:string,campo:string,valor:any){
     setLinks(prev=>prev.map(l=>l.id===id?{...l,[campo]:valor}:l))
@@ -120,11 +170,12 @@ export default function GerenciarLinks(){
       else{
         const dataExibicao=l.tipo==='email'&&data.url?.startsWith('mailto:')?{...data,url:data.url.replace('mailto:','')}:data
         setLinks(prev=>prev.map(x=>x.id===l.id?dataExibicao:x));setMsg('Link salvo!')
+        setEditandoId(null)
       }
     } else {
       const {error}=await supabase.from('pagina_links').update(payload).eq('id',l.id).eq('user_id',userId)
       if(error){setMsg('Erro ao salvar link: '+error.message)}
-      else{setMsg('Link salvo!')}
+      else{setMsg('Link salvo!');setEditandoId(null)}
     }
     setSalvandoId('')
     setTimeout(()=>setMsg(''),3000)
@@ -136,6 +187,7 @@ export default function GerenciarLinks(){
       if(error){setMsg('Erro ao excluir: '+error.message);return}
     }
     setLinks(prev=>prev.filter(l=>l.id!==id))
+    if(editandoId===id)setEditandoId(null)
   }
   async function mover(id:string,direcao:'up'|'down'){
     const idx=links.findIndex(l=>l.id===id)
@@ -151,6 +203,17 @@ export default function GerenciarLinks(){
         await supabase.from('pagina_links').update({ordem:item.ordem}).eq('id',item.id).eq('user_id',userId)
       }
     }
+  }
+  // Cancela a edicao de um item ja existente (descarta alteracoes nao salvas, recarrega do
+  // banco pra garantir que o card volta com os dados reais). Um item novo (_novo) que for
+  // cancelado e simplesmente removido da lista, ja que nunca foi persistido.
+  function cancelarEdicao(l:any){
+    if(l._novo){
+      setLinks(prev=>prev.filter(x=>x.id!==l.id))
+    } else {
+      load()
+    }
+    setEditandoId(null)
   }
 
   if(carregando)return(<div style={{minHeight:'100vh',background:'#08060A',display:'flex',alignItems:'center',justifyContent:'center',fontFamily:'system-ui'}}><p style={{color:'#B8AAB8',fontSize:'14px'}}>Carregando...</p></div>)
@@ -170,9 +233,12 @@ export default function GerenciarLinks(){
 
           <Link href="/painel/perfil" style={{display:'inline-flex',alignItems:'center',gap:'6px',fontSize:'13px',color:'#B8AAB8',textDecoration:'none',marginBottom:'18px'}}><ArrowLeft size={15}/> Voltar para Configurações</Link>
 
-          <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',flexWrap:'wrap',gap:'12px',marginBottom:'8px'}}>
+          <div className="top-actions" style={{display:'flex',alignItems:'center',justifyContent:'space-between',flexWrap:'wrap',gap:'12px',marginBottom:'8px'}}>
             <p style={{fontSize:'22px',fontWeight:800,color:'#F8F4F7',letterSpacing:'-0.02em'}}>Links</p>
-            <button type="button" onClick={novoLink} style={{background:G,color:'#fff',border:'1px solid rgba(255,255,255,.12)',borderRadius:'10px',padding:'10px 18px',fontSize:'13px',fontWeight:700,cursor:'pointer',fontFamily:'inherit'}}>+ Novo link</button>
+            <div style={{display:'flex',gap:'10px',flexWrap:'wrap'}}>
+              <VerMiniPageButton/>
+              <button type="button" onClick={novoLink} style={{background:G,color:'#fff',border:'1px solid rgba(255,255,255,.12)',borderRadius:'10px',padding:'10px 18px',fontSize:'13px',fontWeight:700,cursor:'pointer',fontFamily:'inherit'}}>+ Novo link</button>
+            </div>
           </div>
           <p style={{fontSize:'13px',color:'#B8AAB8',marginBottom:'24px'}}>TikTok, YouTube, Shopee, site, grupo VIP e outros links da sua bio. Use as setas para mudar a ordem de exibição.</p>
 
@@ -181,6 +247,33 @@ export default function GerenciarLinks(){
           <div style={{display:'flex',flexDirection:'column',gap:'12px'}}>
             {links.map((l,i)=>{
               const tipoSugerido=(l.tipo==='outro'||!l.tipo)?detectarTipoPelaUrl(l.url):null
+              const emEdicao=editandoId===l.id
+
+              // ===== CARD COMPACTO (padrao de exibicao) =====
+              if(!emEdicao){
+                return (
+                  <div key={l.id} className="crd" style={{padding:'14px 16px',display:'flex',alignItems:'center',gap:'12px'}}>
+                    <div style={{display:'flex',flexDirection:'column',gap:'3px',flexShrink:0}}>
+                      <button type="button" onClick={()=>mover(l.id,'up')} disabled={i===0} style={{width:'22px',height:'22px',borderRadius:'6px',background:'rgba(24,16,27,.9)',border:'1px solid #2A1A2F',color:i===0?'#4A3F4E':'#B8AAB8',cursor:i===0?'not-allowed':'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}><ArrowUp size={12}/></button>
+                      <button type="button" onClick={()=>mover(l.id,'down')} disabled={i===links.length-1} style={{width:'22px',height:'22px',borderRadius:'6px',background:'rgba(24,16,27,.9)',border:'1px solid #2A1A2F',color:i===links.length-1?'#4A3F4E':'#B8AAB8',cursor:i===links.length-1?'not-allowed':'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}><ArrowDown size={12}/></button>
+                    </div>
+                    <div style={{width:'36px',height:'36px',borderRadius:'10px',background:'rgba(255,255,255,.04)',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
+                      <IconePlataforma tipo={l.tipo}/>
+                    </div>
+                    <div style={{flex:1,minWidth:0}}>
+                      <p style={{fontSize:'14px',fontWeight:700,color:'#F8F4F7',whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{l.titulo||'(sem título)'}</p>
+                      {l.descricao&&<p style={{fontSize:'12px',color:'#B8AAB8',whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{l.descricao}</p>}
+                    </div>
+                    <button type="button" onClick={()=>editarLink(l.id,'ativo',!l.ativo)} style={{background:l.ativo?'rgba(34,197,94,.14)':'#2A1A2F',border:'1px solid '+(l.ativo?'rgba(34,197,94,.25)':'#2A1A2F'),borderRadius:10,padding:'6px 12px',fontSize:11,fontWeight:700,color:l.ativo?'#22C55E':'#B8AAB8',cursor:'pointer',fontFamily:'inherit',flexShrink:0}}>{l.ativo?'Ativo':'Oculto'}</button>
+                    <div style={{display:'flex',gap:'6px',flexShrink:0}}>
+                      <button type="button" onClick={()=>setEditandoId(l.id)} aria-label="Editar" style={{width:'32px',height:'32px',borderRadius:'8px',background:'rgba(24,16,27,.9)',border:'1px solid #2A1A2F',color:'#B8AAB8',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}><Pencil size={14}/></button>
+                      <button type="button" onClick={()=>excluirLink(l.id)} aria-label="Excluir" style={{width:'32px',height:'32px',borderRadius:'8px',background:'rgba(239,68,68,.10)',border:'1px solid rgba(239,68,68,.25)',color:'#EF4444',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}><Trash2 size={14}/></button>
+                    </div>
+                  </div>
+                )
+              }
+
+              // ===== FORMULARIO COMPLETO (so o item em edicao) =====
               return (
               <div key={l.id} className="crd" style={{padding:'16px',display:'flex',gap:'12px'}}>
                 <div style={{display:'flex',flexDirection:'column',gap:'4px',flexShrink:0,paddingTop:'2px'}}>
@@ -213,6 +306,7 @@ export default function GerenciarLinks(){
                   <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:'8px',flexWrap:'wrap'}}>
                     <button type="button" onClick={()=>editarLink(l.id,'ativo',!l.ativo)} style={{background:l.ativo?'rgba(34,197,94,.14)':'#2A1A2F',border:'1px solid '+(l.ativo?'rgba(34,197,94,.25)':'#2A1A2F'),borderRadius:10,padding:'6px 14px',fontSize:12,fontWeight:700,color:l.ativo?'#22C55E':'#B8AAB8',cursor:'pointer',fontFamily:'inherit'}}>{l.ativo?'Ativo':'Oculto'}</button>
                     <div style={{display:'flex',gap:'8px'}}>
+                      <button type="button" onClick={()=>cancelarEdicao(l)} style={{background:'rgba(24,16,27,.9)',border:'1px solid #2A1A2F',color:'#B8AAB8',borderRadius:'8px',padding:'8px 14px',fontSize:'12px',fontWeight:600,cursor:'pointer',fontFamily:'inherit'}}>Voltar</button>
                       <button type="button" onClick={()=>excluirLink(l.id)} style={{background:'rgba(239,68,68,.10)',border:'1px solid rgba(239,68,68,.25)',color:'#EF4444',borderRadius:'8px',padding:'8px 14px',fontSize:'12px',fontWeight:600,cursor:'pointer',fontFamily:'inherit'}}>Excluir</button>
                       <button type="button" onClick={()=>salvarLink(l)} disabled={salvandoId===l.id} style={{background:G,color:'#fff',border:'1px solid rgba(255,255,255,.12)',borderRadius:'8px',padding:'8px 16px',fontSize:'12px',fontWeight:700,cursor:'pointer',fontFamily:'inherit',opacity:salvandoId===l.id?.7:1}}>{salvandoId===l.id?'Salvando...':'Salvar'}</button>
                     </div>
@@ -228,3 +322,4 @@ export default function GerenciarLinks(){
     </div>
   )
 }
+

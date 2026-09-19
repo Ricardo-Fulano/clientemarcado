@@ -8,6 +8,7 @@ export const PLATAFORMAS_LINK = [
   { id: 'instagram', label: 'Instagram', placeholder: '@usuario ou instagram.com/usuario' },
   { id: 'tiktok', label: 'TikTok', placeholder: 'https://tiktok.com/@usuario' },
   { id: 'youtube', label: 'YouTube', placeholder: 'https://youtube.com/...' },
+  { id: 'youtube_music', label: 'YouTube Music', placeholder: 'https://music.youtube.com/...' },
   { id: 'x', label: 'X / Twitter', placeholder: 'https://x.com/usuario' },
   { id: 'facebook', label: 'Facebook', placeholder: '@usuario ou facebook.com/usuario' },
   { id: 'spotify', label: 'Spotify', placeholder: 'https://open.spotify.com/...' },

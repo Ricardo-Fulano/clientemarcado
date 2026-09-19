@@ -1,5 +1,5 @@
 'use client'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { supabase } from '../../lib/supabase'
 import PainelSidebar from '@/app/components/PainelSidebar'
 
@@ -30,6 +30,66 @@ export default function AlterarSenha() {
   const [erro, setErro] = useState('')
   const [sucesso, setSucesso] = useState(false)
   const [salvando, setSalvando] = useState(false)
+
+  // ---------- Transferir acesso (movido de /painel/perfil - Etapa A) ----------
+  const [emailAtual, setEmailAtual] = useState('')
+  const [souProfissional, setSouProfissional] = useState(false)
+  const [novoEmailAcesso, setNovoEmailAcesso] = useState('')
+  const [transferindo, setTransferindo] = useState(false)
+  const [transferMsg, setTransferMsg] = useState('')
+  const [transferOk, setTransferOk] = useState(false)
+
+  useEffect(() => {
+    async function carregar() {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return
+      setEmailAtual(user.email || '')
+
+      // Esconde a secao se quem esta logado for uma profissional com login individual
+      // (nao a dona do negocio) - mesma checagem ja usada antes em /painel/perfil.
+      const { data: { session } } = await supabase.auth.getSession()
+      if (session?.access_token) {
+        try {
+          const res = await fetch('/api/equipe/meu-vinculo', { headers: { Authorization: 'Bearer ' + session.access_token } })
+          const vinculo = await res.json()
+          if (res.ok && vinculo?.role === 'profissional' && vinculo?.ativo) setSouProfissional(true)
+        } catch (e) { console.warn('Erro ao verificar vinculo de equipe:', e) }
+      }
+    }
+    carregar()
+  }, [])
+
+  function emailValido(e: string) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e) }
+
+  // Caminho B: convite proprio, com token controlado por nos.
+  // A pessoa cria a PROPRIA senha na pagina /convite/[token] - o admin atual nunca
+  // ve nem define essa senha. So depois que ela aceita e que o perfil e transferido.
+  async function transferirAcesso() {
+    setTransferMsg('')
+    setTransferOk(false)
+    const novo = novoEmailAcesso.trim().toLowerCase()
+    if (!novo) { setTransferMsg('Informe um e-mail válido.'); return }
+    if (!emailValido(novo)) { setTransferMsg('Informe um e-mail válido.'); return }
+    if (novo === (emailAtual || '').toLowerCase()) { setTransferMsg('O novo e-mail precisa ser diferente do e-mail atual.'); return }
+    setTransferindo(true)
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session) { setTransferMsg('Sua sessão expirou. Recarregue a página e tente de novo.'); setTransferindo(false); return }
+    const res = await fetch('/api/convite/criar', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + session.access_token },
+      body: JSON.stringify({ email_novo: novo }),
+    })
+    const data = await res.json().catch(() => ({}))
+    setTransferindo(false)
+    if (!res.ok) {
+      console.warn('Erro ao criar convite:', data.error)
+      setTransferMsg(data.error || 'Não foi possível enviar o convite. Verifique o e-mail e tente novamente.')
+      return
+    }
+    setTransferOk(true)
+    setNovoEmailAcesso('')
+    setTransferMsg('Convite enviado! A pessoa vai receber um e-mail para criar a própria senha e assumir o acesso. Você não verá nem definirá essa senha em nenhum momento.')
+  }
 
   async function salvar() {
     setErro(''); setSucesso(false)
@@ -82,6 +142,30 @@ export default function AlterarSenha() {
             </div>
             <button className="btn-p" onClick={salvar} disabled={salvando}>{salvando ? 'Salvando...' : 'Salvar nova senha'}</button>
           </div>
+
+          {!souProfissional && (
+          <div className="crd" style={{ marginTop: '18px' }}>
+            <h2 style={{ fontSize: '15px', fontWeight: 700, color: '#F8F4F7', marginBottom: '4px' }}>Transferir acesso da MiniPage</h2>
+            <p style={{ fontSize: '12px', color: '#B8AAB8', marginBottom: '20px', lineHeight: 1.6 }}>Transfira esta página profissional para outro e-mail com segurança. O e-mail atual autoriza a transferência e o novo e-mail cria a própria senha de acesso.</p>
+
+            <div style={{ marginBottom: '14px' }}>
+              <label className="lbl">E-mail atual</label>
+              <input className="inp" value={emailAtual} disabled readOnly style={{ opacity: .65, cursor: 'not-allowed' }} />
+            </div>
+            <div style={{ marginBottom: '8px' }}>
+              <label className="lbl">Novo e-mail de acesso</label>
+              <input className="inp" type="email" value={novoEmailAcesso} onChange={e => { setNovoEmailAcesso(e.target.value); setTransferMsg('') }} placeholder="influenciadora@email.com" />
+            </div>
+
+            {transferMsg && <p style={{ fontSize: '12px', marginBottom: '14px', color: transferOk ? '#22C55E' : '#EF4444' }}>{transferOk ? '✓ ' : ''}{transferMsg}</p>}
+
+            <button type="button" onClick={transferirAcesso} disabled={transferindo} className="btn-p" style={{ marginBottom: '12px', opacity: transferindo ? .7 : 1, cursor: transferindo ? 'not-allowed' : 'pointer' }}>
+              {transferindo ? 'Enviando...' : 'Enviar convite de transferência'}
+            </button>
+            <p style={{ fontSize: '11px', color: '#B8AAB8', lineHeight: 1.6 }}>A pessoa recebe um link exclusivo por e-mail para criar a própria senha e assumir o acesso. Você não vê nem define essa senha em nenhum momento.</p>
+            <p style={{ fontSize: '11px', color: '#B8AAB8', lineHeight: 1.6, marginTop: '6px' }}>O convite expira em 7 dias e só pode ser usado uma vez.</p>
+          </div>
+          )}
 
         </div></div>
       </div>

@@ -3,8 +3,9 @@ import { useEffect, useState, useRef } from 'react'
 import { useParams } from 'next/navigation'
 import { supabase } from '../../../../lib/supabase'
 import Link from 'next/link'
-import { ArrowLeft, ArrowUp, ArrowDown, UploadCloud } from 'lucide-react'
+import { ArrowLeft, ArrowUp, ArrowDown, UploadCloud, Pencil, Trash2 } from 'lucide-react'
 import PainelSidebar from '@/app/components/PainelSidebar'
+import VerMiniPageButton from '@/app/components/VerMiniPageButton'
 import { normalizarPlano, permiteCatalogoWhatsapp } from '../../../../lib/planos'
 
 const G='linear-gradient(135deg,#EC4899,#D946EF,#8B5CF6)'
@@ -45,6 +46,8 @@ export default function GerenciarItensDoCatalogo(){
   const [naoEncontrado,setNaoEncontrado]=useState(false)
   const [msg,setMsg]=useState('')
   const [salvandoId,setSalvandoId]=useState('')
+  // Controla qual item esta em modo edicao - null significa que todos aparecem compactos.
+  const [editandoId,setEditandoId]=useState<string|null>(null)
   const [enviandoImgId,setEnviandoImgId]=useState('')
   const [gerandoPreviaId,setGerandoPreviaId]=useState('')
   const [avancadoAbertoIds,setAvancadoAbertoIds]=useState<Set<string>>(new Set())
@@ -89,7 +92,9 @@ export default function GerenciarItensDoCatalogo(){
   }
 
   function novoItem(){
-    setItens(prev=>[...prev,{id:'novo-'+Date.now(),user_id:userId,catalogo_id:catalogoId,titulo:'',descricao_curta:'',descricao_completa:'',preco:'',preco_anterior:'',preco_exibicao:'mostrar',preco_texto_personalizado:'',selo_tipo:'',selo_texto:'',imagem_url:'',botao_texto:'Ver mais',tipo_destino:'link',destino_url:'',whatsapp:'',mensagem_whatsapp:'',ativo:true,ordem:prev.length,_novo:true}])
+    const novoId='novo-'+Date.now()
+    setItens(prev=>[...prev,{id:novoId,user_id:userId,catalogo_id:catalogoId,titulo:'',descricao_curta:'',descricao_completa:'',preco:'',preco_anterior:'',preco_exibicao:'mostrar',preco_texto_personalizado:'',selo_tipo:'',selo_texto:'',imagem_url:'',botao_texto:'Ver mais',tipo_destino:'link',destino_url:'',whatsapp:'',mensagem_whatsapp:'',ativo:true,ordem:prev.length,_novo:true}])
+    setEditandoId(novoId)
   }
   function mensagemPadrao(titulo:string){
     return `Olá! Quero saber mais sobre ${titulo||''}`
@@ -463,14 +468,25 @@ export default function GerenciarItensDoCatalogo(){
     if(it._novo){
       const {data,error}=await supabase.from('pagina_catalogo_itens').insert(payload).select().single()
       if(error){setMsg('Erro ao salvar: '+error.message)}
-      else{setItens(prev=>prev.map(x=>x.id===it.id?data:x));setMsg('Item salvo!')}
+      else{setItens(prev=>prev.map(x=>x.id===it.id?data:x));setMsg('Item salvo!');setEditandoId(null)}
     } else {
       const {error}=await supabase.from('pagina_catalogo_itens').update(payload).eq('id',it.id).eq('user_id',userId)
       if(error){setMsg('Erro ao salvar: '+error.message)}
-      else{setMsg('Item salvo!')}
+      else{setMsg('Item salvo!');setEditandoId(null)}
     }
     setSalvandoId('')
     setTimeout(()=>setMsg(''),3000)
+  }
+
+  // Fecha a edicao sem salvar - item novo (nunca persistido) e removido; item existente
+  // recarrega do banco pra descartar qualquer alteracao nao confirmada.
+  function cancelarEdicao(it:any){
+    if(it._novo){
+      setItens(prev=>prev.filter(x=>x.id!==it.id))
+    } else {
+      load()
+    }
+    setEditandoId(null)
   }
 
   async function excluirItem(id:string){
@@ -480,6 +496,7 @@ export default function GerenciarItensDoCatalogo(){
       if(error){setMsg('Erro ao excluir: '+error.message);return}
     }
     setItens(prev=>prev.filter(it=>it.id!==id))
+    if(editandoId===id)setEditandoId(null)
   }
 
   async function mover(id:string,direcao:'up'|'down'){
@@ -530,14 +547,50 @@ export default function GerenciarItensDoCatalogo(){
 
           <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',flexWrap:'wrap',gap:'12px',marginBottom:'8px'}}>
             <p style={{fontSize:'15px',fontWeight:700,color:'#F8F4F7'}}>Itens deste catálogo</p>
-            <button type="button" onClick={novoItem} style={{background:G,color:'#fff',border:'1px solid rgba(255,255,255,.12)',borderRadius:'10px',padding:'10px 18px',fontSize:'13px',fontWeight:700,cursor:'pointer',fontFamily:'inherit'}}>+ Adicionar item</button>
+            <div style={{display:'flex',gap:'10px',flexWrap:'wrap'}}>
+              <VerMiniPageButton/>
+              <button type="button" onClick={novoItem} style={{background:G,color:'#fff',border:'1px solid rgba(255,255,255,.12)',borderRadius:'10px',padding:'10px 18px',fontSize:'13px',fontWeight:700,cursor:'pointer',fontFamily:'inherit'}}>+ Adicionar item</button>
+            </div>
           </div>
           <p style={{fontSize:'13px',color:'#B8AAB8',marginBottom:'24px'}}>Use as setas para mudar a ordem de exibição.</p>
 
           {itens.length===0&&<p style={{fontSize:'13px',color:'#B8AAB8',padding:'12px 0'}}>Nenhum item cadastrado ainda neste catálogo.</p>}
 
           <div style={{display:'flex',flexDirection:'column',gap:'12px'}}>
-            {itens.map((it,i)=>(
+            {itens.map((it,i)=>{
+              const emEdicao=editandoId===it.id
+
+              // ===== CARD COMPACTO (padrao de exibicao) =====
+              if(!emEdicao){
+                return (
+                  <div key={it.id} className="crd" style={{padding:'14px 16px',display:'flex',alignItems:'center',gap:'12px'}}>
+                    <div style={{display:'flex',flexDirection:'column',gap:'3px',flexShrink:0}}>
+                      <button type="button" onClick={()=>mover(it.id,'up')} disabled={i===0} style={{width:'22px',height:'22px',borderRadius:'6px',background:'rgba(24,16,27,.9)',border:'1px solid #2A1A2F',color:i===0?'#4A3F4E':'#B8AAB8',cursor:i===0?'not-allowed':'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}><ArrowUp size={12}/></button>
+                      <button type="button" onClick={()=>mover(it.id,'down')} disabled={i===itens.length-1} style={{width:'22px',height:'22px',borderRadius:'6px',background:'rgba(24,16,27,.9)',border:'1px solid #2A1A2F',color:i===itens.length-1?'#4A3F4E':'#B8AAB8',cursor:i===itens.length-1?'not-allowed':'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}><ArrowDown size={12}/></button>
+                    </div>
+                    {it.imagem_url ? (
+                      <img src={it.imagem_url} alt="" style={{width:'44px',height:'44px',borderRadius:'10px',objectFit:'cover',flexShrink:0}}/>
+                    ) : (
+                      <div style={{width:'44px',height:'44px',borderRadius:'10px',background:'rgba(255,255,255,.04)',flexShrink:0}}/>
+                    )}
+                    <div style={{flex:1,minWidth:0}}>
+                      <p style={{fontSize:'14px',fontWeight:700,color:'#F8F4F7',whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{it.titulo||'(sem título)'}</p>
+                      <p style={{fontSize:'12px',color:'#B8AAB8',whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>
+                        {it.preco_exibicao==='mostrar'&&it.preco?`R$ ${Number(it.preco).toFixed(2).replace('.',',')}`:it.descricao_curta||''}
+                        {it.selo_tipo?` · ${it.selo_tipo==='outros'?it.selo_texto:it.selo_tipo}`:''}
+                      </p>
+                    </div>
+                    <button type="button" onClick={()=>editarItem(it.id,'ativo',!it.ativo)} style={{background:it.ativo?'rgba(34,197,94,.14)':'#2A1A2F',border:'1px solid '+(it.ativo?'rgba(34,197,94,.25)':'#2A1A2F'),borderRadius:10,padding:'6px 12px',fontSize:11,fontWeight:700,color:it.ativo?'#22C55E':'#B8AAB8',cursor:'pointer',fontFamily:'inherit',flexShrink:0}}>{it.ativo?'Ativo':'Oculto'}</button>
+                    <div style={{display:'flex',gap:'6px',flexShrink:0}}>
+                      <button type="button" onClick={()=>setEditandoId(it.id)} title="Editar" aria-label="Editar" style={{width:'32px',height:'32px',borderRadius:'8px',background:'rgba(24,16,27,.9)',border:'1px solid #2A1A2F',color:'#B8AAB8',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}><Pencil size={14}/></button>
+                      <button type="button" onClick={()=>excluirItem(it.id)} title="Excluir" aria-label="Excluir" style={{width:'32px',height:'32px',borderRadius:'8px',background:'rgba(239,68,68,.10)',border:'1px solid rgba(239,68,68,.25)',color:'#EF4444',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}><Trash2 size={14}/></button>
+                    </div>
+                  </div>
+                )
+              }
+
+              // ===== FORMULARIO COMPLETO (so o item em edicao) =====
+              return (
               <div key={it.id} className="crd" style={{padding:'16px',display:'flex',gap:'12px'}}>
                 <div style={{display:'flex',flexDirection:'column',gap:'4px',flexShrink:0,paddingTop:'2px'}}>
                   <button type="button" onClick={()=>mover(it.id,'up')} disabled={i===0} style={{width:'28px',height:'28px',borderRadius:'8px',background:'rgba(24,16,27,.9)',border:'1px solid #2A1A2F',color:i===0?'#4A3F4E':'#B8AAB8',cursor:i===0?'not-allowed':'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}><ArrowUp size={14}/></button>
@@ -687,13 +740,15 @@ export default function GerenciarItensDoCatalogo(){
                   <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:'8px',flexWrap:'wrap'}}>
                     <button type="button" onClick={()=>editarItem(it.id,'ativo',!it.ativo)} style={{background:it.ativo?'rgba(34,197,94,.14)':'#2A1A2F',border:'1px solid '+(it.ativo?'rgba(34,197,94,.25)':'#2A1A2F'),borderRadius:10,padding:'6px 14px',fontSize:12,fontWeight:700,color:it.ativo?'#22C55E':'#B8AAB8',cursor:'pointer',fontFamily:'inherit'}}>{it.ativo?'Ativo':'Oculto'}</button>
                     <div style={{display:'flex',gap:'8px'}}>
+                      <button type="button" onClick={()=>cancelarEdicao(it)} style={{background:'rgba(24,16,27,.9)',border:'1px solid #2A1A2F',color:'#B8AAB8',borderRadius:'8px',padding:'8px 14px',fontSize:'12px',fontWeight:600,cursor:'pointer',fontFamily:'inherit'}}>Voltar</button>
                       <button type="button" onClick={()=>excluirItem(it.id)} style={{background:'rgba(239,68,68,.10)',border:'1px solid rgba(239,68,68,.25)',color:'#EF4444',borderRadius:'8px',padding:'8px 14px',fontSize:'12px',fontWeight:600,cursor:'pointer',fontFamily:'inherit'}}>Excluir</button>
                       <button type="button" onClick={()=>salvarItem(it)} disabled={salvandoId===it.id} style={{background:G,color:'#fff',border:'1px solid rgba(255,255,255,.12)',borderRadius:'8px',padding:'8px 16px',fontSize:'12px',fontWeight:700,cursor:'pointer',fontFamily:'inherit',opacity:salvandoId===it.id?.7:1}}>{salvandoId===it.id?'Salvando...':'Salvar'}</button>
                     </div>
                   </div>
                 </div>
               </div>
-            ))}
+              )
+            })}
           </div>
 
         </div></div>

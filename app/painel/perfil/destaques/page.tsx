@@ -4,6 +4,7 @@ import { supabase } from '../../../lib/supabase'
 import Link from 'next/link'
 import { ArrowLeft, ArrowUp, ArrowDown } from 'lucide-react'
 import PainelSidebar from '@/app/components/PainelSidebar'
+import VerMiniPageButton from '@/app/components/VerMiniPageButton'
 import { normalizarPlano, obterNomePlano, obterLimiteSecoesDestaques } from '../../../lib/planos'
 
 const G='linear-gradient(135deg,#EC4899,#D946EF,#8B5CF6)'
@@ -208,7 +209,7 @@ export default function ListaSecoesDestaques(){
                 <div><label className="lbl">Subtítulo (opcional)</label><input className="inp" value={subtituloForm} onChange={e=>setSubtituloForm(e.target.value)} placeholder="Ex: Aproveite antes que acabe"/></div>
               </div>
               <div style={{display:'flex',gap:'8px'}}>
-                <button type="button" onClick={fecharForm} style={{background:'rgba(24,16,27,.9)',border:'1px solid #2A1A2F',color:'#B8AAB8',borderRadius:'8px',padding:'9px 16px',fontSize:'12px',fontWeight:600,cursor:'pointer',fontFamily:'inherit'}}>Cancelar</button>
+                <button type="button" onClick={fecharForm} style={{background:'rgba(24,16,27,.9)',border:'1px solid #2A1A2F',color:'#B8AAB8',borderRadius:'8px',padding:'9px 16px',fontSize:'12px',fontWeight:600,cursor:'pointer',fontFamily:'inherit'}}>Voltar</button>
                 <button type="button" onClick={salvarSecao} disabled={salvando} style={{background:G,color:'#fff',border:'1px solid rgba(255,255,255,.12)',borderRadius:'8px',padding:'9px 18px',fontSize:'12px',fontWeight:700,cursor:'pointer',fontFamily:'inherit',opacity:salvando?.7:1}}>{salvando?'Salvando...':'Salvar seção'}</button>
               </div>
             </div>
@@ -216,7 +217,10 @@ export default function ListaSecoesDestaques(){
 
           <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',flexWrap:'wrap',gap:'12px',marginBottom:'20px'}}>
             <p style={{fontSize:'15px',fontWeight:700,color:'#F8F4F7'}}>Suas seções de destaques</p>
-            <button type="button" onClick={abrirNovo} style={{background:G,color:'#fff',border:'1px solid rgba(255,255,255,.12)',borderRadius:'10px',padding:'10px 18px',fontSize:'13px',fontWeight:700,cursor:'pointer',fontFamily:'inherit'}}>+ Nova seção</button>
+            <div style={{display:'flex',gap:'10px',flexWrap:'wrap'}}>
+              <VerMiniPageButton/>
+              <button type="button" onClick={abrirNovo} style={{background:G,color:'#fff',border:'1px solid rgba(255,255,255,.12)',borderRadius:'10px',padding:'10px 18px',fontSize:'13px',fontWeight:700,cursor:'pointer',fontFamily:'inherit'}}>+ Nova seção</button>
+            </div>
           </div>
 
           {secoes.length===0&&<p style={{fontSize:'13px',color:'#B8AAB8',padding:'12px 0'}}>Nenhuma seção de destaques cadastrada ainda.</p>}

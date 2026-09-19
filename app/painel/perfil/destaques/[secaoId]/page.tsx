@@ -3,8 +3,9 @@ import { useEffect, useState, useRef } from 'react'
 import { useParams } from 'next/navigation'
 import { supabase } from '../../../../lib/supabase'
 import Link from 'next/link'
-import { ArrowLeft, ArrowUp, ArrowDown, UploadCloud } from 'lucide-react'
+import { ArrowLeft, ArrowUp, ArrowDown, UploadCloud, Pencil, Trash2 } from 'lucide-react'
 import PainelSidebar from '@/app/components/PainelSidebar'
+import VerMiniPageButton from '@/app/components/VerMiniPageButton'
 import BloqueioPorPlano from '@/app/components/BloqueioPorPlano'
 import { permiteDestaques } from '../../../../lib/planos'
 
@@ -42,6 +43,8 @@ export default function GerenciarDestaques(){
   const [galeriasDestaque,setGaleriasDestaque]=useState<Record<string,any[]>>({}) // destaque_id -> [{id,imagem_url,ordem,is_capa}]
   const [enviandoGaleriaId,setEnviandoGaleriaId]=useState('')
   const galeriaFileRefs=useRef<Record<string,HTMLInputElement|null>>({})
+  // Controla qual destaque esta em modo edicao - null significa que todos aparecem compactos.
+  const [editandoId,setEditandoId]=useState<string|null>(null)
 
   useEffect(()=>{ if(secaoId) load() },[secaoId])
 
@@ -89,7 +92,9 @@ export default function GerenciarDestaques(){
   }
 
   function novoDestaque(){
-    setDestaques(prev=>[{id:'novo-'+Date.now(),user_id:userId,secao_id:secaoId,titulo:'',descricao:'',texto_botao:'Ver mais',url:'',imagem_url:'',ativo:true,ordem:prev.length,preco:'',preco_anterior:'',preco_exibicao:'nao_mostrar',preco_texto_personalizado:'',selo_tipo:'',selo_texto:'',_novo:true},...prev])
+    const novoId='novo-'+Date.now()
+    setDestaques(prev=>[{id:novoId,user_id:userId,secao_id:secaoId,titulo:'',descricao:'',texto_botao:'Ver mais',url:'',imagem_url:'',ativo:true,ordem:prev.length,preco:'',preco_anterior:'',preco_exibicao:'nao_mostrar',preco_texto_personalizado:'',selo_tipo:'',selo_texto:'',_novo:true},...prev])
+    setEditandoId(novoId)
   }
   function editarDestaque(id:string,campo:string,valor:any){
     setDestaques(prev=>prev.map(d=>d.id===id?{...d,[campo]:valor}:d))
@@ -305,14 +310,24 @@ export default function GerenciarDestaques(){
     if(d._novo){
       const {data,error}=await supabase.from('pagina_destaques').insert(payload).select().single()
       if(error){setMsg('Erro ao salvar destaque: '+error.message)}
-      else{setDestaques(prev=>prev.map(x=>x.id===d.id?data:x));setMsg('Destaque salvo!')}
+      else{setDestaques(prev=>prev.map(x=>x.id===d.id?data:x));setMsg('Destaque salvo!');setEditandoId(null)}
     } else {
       const {error}=await supabase.from('pagina_destaques').update(payload).eq('id',d.id).eq('user_id',userId)
       if(error){setMsg('Erro ao salvar destaque: '+error.message)}
-      else{setMsg('Destaque salvo!')}
+      else{setMsg('Destaque salvo!');setEditandoId(null)}
     }
     setSalvandoId('')
     setTimeout(()=>setMsg(''),3000)
+  }
+  // Fecha a edicao sem salvar - item novo (nunca persistido) e removido da lista; item ja
+  // existente recarrega do banco pra descartar qualquer alteracao nao confirmada.
+  function cancelarEdicao(d:any){
+    if(d._novo){
+      setDestaques(prev=>prev.filter(x=>x.id!==d.id))
+    } else {
+      load()
+    }
+    setEditandoId(null)
   }
   async function excluirDestaque(id:string){
     if(!(await validarSessao()))return
@@ -321,6 +336,7 @@ export default function GerenciarDestaques(){
       if(error){setMsg('Erro ao excluir: '+error.message);return}
     }
     setDestaques(prev=>prev.filter(d=>d.id!==id))
+    if(editandoId===id)setEditandoId(null)
   }
   // Move o item na lista e reatribui a ordem sequencial de todos, persistindo no banco
   // (so os itens ja salvos - itens "novo-" ainda nem existem la).
@@ -427,7 +443,10 @@ export default function GerenciarDestaques(){
 
           <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',flexWrap:'wrap',gap:'12px',marginBottom:'8px'}}>
             <p style={{fontSize:'22px',fontWeight:800,color:'#F8F4F7',letterSpacing:'-0.02em'}}>{secao?.titulo||'Destaques'}</p>
-            <button type="button" onClick={novoDestaque} style={{background:G,color:'#fff',border:'1px solid rgba(255,255,255,.12)',borderRadius:'10px',padding:'10px 18px',fontSize:'13px',fontWeight:700,cursor:'pointer',fontFamily:'inherit'}}>+ Novo destaque</button>
+            <div style={{display:'flex',gap:'10px',flexWrap:'wrap'}}>
+              <VerMiniPageButton/>
+              <button type="button" onClick={novoDestaque} style={{background:G,color:'#fff',border:'1px solid rgba(255,255,255,.12)',borderRadius:'10px',padding:'10px 18px',fontSize:'13px',fontWeight:700,cursor:'pointer',fontFamily:'inherit'}}>+ Novo destaque</button>
+            </div>
           </div>
           <p style={{fontSize:'13px',color:'#B8AAB8',marginBottom:'20px'}}>Cards grandes como &quot;Curso Presencial&quot;, &quot;Mentoria VIP&quot; ou &quot;Produtos Indicados&quot;. Use as setas para mudar a ordem de exibição.</p>
 
@@ -443,7 +462,42 @@ export default function GerenciarDestaques(){
           {destaques.length===0&&<p style={{fontSize:'13px',color:'#B8AAB8',padding:'12px 0'}}>Nenhum destaque cadastrado ainda.</p>}
 
           <div style={{display:'flex',flexDirection:'column',gap:'12px'}}>
-            {destaques.map((d,i)=>(
+            {destaques.map((d,i)=>{
+              const emEdicao=editandoId===d.id
+              const capaDestaque=galeriaEfetivaDestaque(d)[0]?.imagem_url
+
+              // ===== CARD COMPACTO (padrao de exibicao) =====
+              if(!emEdicao){
+                return (
+                  <div key={d.id} className="crd" style={{padding:'14px 16px',display:'flex',alignItems:'center',gap:'12px'}}>
+                    <div style={{display:'flex',flexDirection:'column',gap:'3px',flexShrink:0}}>
+                      <button type="button" onClick={()=>mover(d.id,'up')} disabled={i===0} style={{width:'22px',height:'22px',borderRadius:'6px',background:'rgba(24,16,27,.9)',border:'1px solid #2A1A2F',color:i===0?'#4A3F4E':'#B8AAB8',cursor:i===0?'not-allowed':'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}><ArrowUp size={12}/></button>
+                      <button type="button" onClick={()=>mover(d.id,'down')} disabled={i===destaques.length-1} style={{width:'22px',height:'22px',borderRadius:'6px',background:'rgba(24,16,27,.9)',border:'1px solid #2A1A2F',color:i===destaques.length-1?'#4A3F4E':'#B8AAB8',cursor:i===destaques.length-1?'not-allowed':'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}><ArrowDown size={12}/></button>
+                    </div>
+                    {capaDestaque ? (
+                      <img src={capaDestaque} alt="" style={{width:'44px',height:'44px',borderRadius:'10px',objectFit:'cover',flexShrink:0}}/>
+                    ) : (
+                      <div style={{width:'44px',height:'44px',borderRadius:'10px',background:'rgba(255,255,255,.04)',flexShrink:0}}/>
+                    )}
+                    <div style={{flex:1,minWidth:0}}>
+                      <p style={{fontSize:'14px',fontWeight:700,color:'#F8F4F7',whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{d.titulo||'(sem título)'}</p>
+                      <p style={{fontSize:'12px',color:'#B8AAB8',whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>
+                        {d.descricao||''}
+                        {d.preco_exibicao==='mostrar'&&d.preco?` · R$ ${Number(d.preco).toFixed(2).replace('.',',')}`:''}
+                        {d.selo_tipo?` · ${d.selo_tipo==='outros'?d.selo_texto:d.selo_tipo}`:''}
+                      </p>
+                    </div>
+                    <button type="button" onClick={()=>editarDestaque(d.id,'ativo',!d.ativo)} style={{background:d.ativo?'rgba(34,197,94,.14)':'#2A1A2F',border:'1px solid '+(d.ativo?'rgba(34,197,94,.25)':'#2A1A2F'),borderRadius:10,padding:'6px 12px',fontSize:11,fontWeight:700,color:d.ativo?'#22C55E':'#B8AAB8',cursor:'pointer',fontFamily:'inherit',flexShrink:0}}>{d.ativo?'Ativo':'Oculto'}</button>
+                    <div style={{display:'flex',gap:'6px',flexShrink:0}}>
+                      <button type="button" onClick={()=>setEditandoId(d.id)} title="Editar" aria-label="Editar" style={{width:'32px',height:'32px',borderRadius:'8px',background:'rgba(24,16,27,.9)',border:'1px solid #2A1A2F',color:'#B8AAB8',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}><Pencil size={14}/></button>
+                      <button type="button" onClick={()=>excluirDestaque(d.id)} title="Excluir" aria-label="Excluir" style={{width:'32px',height:'32px',borderRadius:'8px',background:'rgba(239,68,68,.10)',border:'1px solid rgba(239,68,68,.25)',color:'#EF4444',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}><Trash2 size={14}/></button>
+                    </div>
+                  </div>
+                )
+              }
+
+              // ===== FORMULARIO COMPLETO (so o item em edicao) =====
+              return (
               <div key={d.id} className="crd" style={{padding:'16px',display:'flex',gap:'12px'}}>
                 <div style={{display:'flex',flexDirection:'column',gap:'4px',flexShrink:0,paddingTop:'2px'}}>
                   <button type="button" onClick={()=>mover(d.id,'up')} disabled={i===0} style={{width:'28px',height:'28px',borderRadius:'8px',background:'rgba(24,16,27,.9)',border:'1px solid #2A1A2F',color:i===0?'#4A3F4E':'#B8AAB8',cursor:i===0?'not-allowed':'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}><ArrowUp size={14}/></button>
@@ -547,13 +601,15 @@ export default function GerenciarDestaques(){
                   <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:'8px',flexWrap:'wrap'}}>
                     <button type="button" onClick={()=>editarDestaque(d.id,'ativo',!d.ativo)} style={{background:d.ativo?'rgba(34,197,94,.14)':'#2A1A2F',border:'1px solid '+(d.ativo?'rgba(34,197,94,.25)':'#2A1A2F'),borderRadius:10,padding:'6px 14px',fontSize:12,fontWeight:700,color:d.ativo?'#22C55E':'#B8AAB8',cursor:'pointer',fontFamily:'inherit'}}>{d.ativo?'Ativo':'Oculto'}</button>
                     <div style={{display:'flex',gap:'8px'}}>
+                      <button type="button" onClick={()=>cancelarEdicao(d)} style={{background:'rgba(24,16,27,.9)',border:'1px solid #2A1A2F',color:'#B8AAB8',borderRadius:'8px',padding:'8px 14px',fontSize:'12px',fontWeight:600,cursor:'pointer',fontFamily:'inherit'}}>Voltar</button>
                       <button type="button" onClick={()=>excluirDestaque(d.id)} style={{background:'rgba(239,68,68,.10)',border:'1px solid rgba(239,68,68,.25)',color:'#EF4444',borderRadius:'8px',padding:'8px 14px',fontSize:'12px',fontWeight:600,cursor:'pointer',fontFamily:'inherit'}}>Excluir</button>
                       <button type="button" onClick={()=>salvarDestaque(d)} disabled={salvandoId===d.id} style={{background:G,color:'#fff',border:'1px solid rgba(255,255,255,.12)',borderRadius:'8px',padding:'8px 16px',fontSize:'12px',fontWeight:700,cursor:'pointer',fontFamily:'inherit',opacity:salvandoId===d.id?.7:1}}>{salvandoId===d.id?'Salvando...':'Salvar'}</button>
                     </div>
                   </div>
                 </div>
               </div>
-            ))}
+              )
+            })}
           </div>
           <input ref={imgRef} type="file" accept="image/*" onChange={uploadImagem} style={{display:'none'}}/>
 

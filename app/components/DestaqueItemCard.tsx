@@ -57,9 +57,11 @@ function detectarEmbed(url?: string | null): { plataforma: 'youtube' | 'spotify'
 // modal aparece por completo (sem corte). Isso entrega a experiencia pedida sem precisar de
 // coluna nova no banco.
 //
-// selo/preco/preco_anterior/compartilhar: MESMO padrao ja validado e aprovado no catalogo -
-// tudo opcional, nunca reserva espaco vazio quando ausente, cor do selo/preco sempre segue o
-// tema (nunca vermelho fixo).
+// selo/preco/preco_anterior/compartilhar: opcionais, mas o bloco preco/descricao SEMPRE
+// reserva a mesma altura minima (min-height 34px), mesmo quando nenhum dos dois existe -
+// garante que todos os cards do carrossel fiquem com a mesma altura visual, independente
+// de terem preco, descricao ou nenhum dos dois. Cor do selo/preco sempre segue o tema
+// (nunca vermelho fixo).
 export default function DestaqueItemCard({
   d, tema, iconeCor, textoVerMais, cardBorderFinal, cardShadowNeon, horizontal,
 }: {
@@ -148,27 +150,27 @@ export default function DestaqueItemCard({
         <div className={`crd destaque-card${horizontal ? ' destaque-card-horizontal' : ' destaque-card-vertical'}`} style={{ border: cardBorderFinal, boxShadow: cardShadowNeon }}>
           <div className="destaque-img-wrap" style={{ position: 'relative' }}>
             {infoSelo() && (
-              <span style={{ position: 'absolute', top: '8px', left: '8px', zIndex: 1, background: `linear-gradient(135deg,${tema.accent},${tema.secondary})`, color: tema.btnText, fontSize: '10px', fontWeight: 800, padding: '3px 8px', borderRadius: '999px', letterSpacing: '.02em', boxShadow: `0 2px 8px ${tema.accent}55` }}>{infoSelo()}</span>
+              <span style={{ position: 'absolute', top: '8px', left: '8px', zIndex: 2, background: `linear-gradient(135deg,${tema.accent},${tema.secondary})`, color: tema.btnText, fontSize: '10px', fontWeight: 800, padding: '3px 8px', borderRadius: '999px', letterSpacing: '.02em', boxShadow: `0 2px 8px ${tema.accent}55` }}>{infoSelo()}</span>
             )}
             {d.imagem_url ? (
               <img src={d.imagem_url} alt={d.titulo} loading="lazy" decoding="async" />
             ) : (
               <div style={{ width: '100%', height: '100%', background: `linear-gradient(135deg,${tema.accent},${tema.secondary})` }} />
             )}
-          </div>
-          <div className="destaque-body">
-            <p className="destaque-titulo" style={{ fontWeight: 600, fontSize: '16px', color: 'var(--text)' }}>{d.titulo}</p>
-            {infoPreco() ? (
-              <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px', flexWrap: 'wrap', margin: '2px 0' }}>
-                <p style={{ fontSize: '15px', fontWeight: 800, color: tema.accent, margin: 0 }}>{infoPreco()}</p>
-                {d.preco_anterior != null && d.preco_anterior > 0 && (d.preco_exibicao || 'mostrar') === 'mostrar' && (
-                  <p style={{ fontSize: '12px', color: tema.textMuted, textDecoration: 'line-through', margin: 0, opacity: .75 }}>{fBRL(d.preco_anterior)}</p>
-                )}
-              </div>
-            ) : d.descricao?.trim() ? (
-              <p className="destaque-desc" style={{ fontSize: '12px', color: 'var(--text-muted)', lineHeight: 1.4 }}>{d.descricao}</p>
-            ) : null}
-            <span className="destaque-action" style={{ color: iconeCor }}>{d.texto_botao || textoVerMais} →</span>
+            <div className="destaque-overlay">
+              <p className="destaque-titulo-v2">{d.titulo}</p>
+              {infoPreco() ? (
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px', flexWrap: 'wrap', margin: '2px 0 3px' }}>
+                  <p style={{ fontSize: '14px', fontWeight: 800, color: '#fff', margin: 0, textShadow: '0 1px 3px rgba(0,0,0,.6)' }}>{infoPreco()}</p>
+                  {d.preco_anterior != null && d.preco_anterior > 0 && (d.preco_exibicao || 'mostrar') === 'mostrar' && (
+                    <p style={{ fontSize: '11px', color: 'rgba(255,255,255,.75)', textDecoration: 'line-through', margin: 0 }}>{fBRL(d.preco_anterior)}</p>
+                  )}
+                </div>
+              ) : d.descricao?.trim() ? (
+                <p className="destaque-desc-v2">{d.descricao}</p>
+              ) : null}
+              <span className="destaque-action-v2">{d.texto_botao || textoVerMais} →</span>
+            </div>
           </div>
         </div>
       </button>

@@ -4,6 +4,7 @@ import { supabase } from '../../../lib/supabase'
 import Link from 'next/link'
 import { ArrowLeft, ArrowUp, ArrowDown } from 'lucide-react'
 import PainelSidebar from '@/app/components/PainelSidebar'
+import VerMiniPageButton from '@/app/components/VerMiniPageButton'
 import { normalizarPlano, obterNomePlano, obterLimiteCatalogos, podeUsarCatalogo } from '../../../lib/planos'
 
 const G='linear-gradient(135deg,#EC4899,#D946EF,#8B5CF6)'
@@ -220,7 +221,10 @@ export default function ListaCatalogos(){
 
           <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',flexWrap:'wrap',gap:'12px',marginBottom:'20px'}}>
             <p style={{fontSize:'15px',fontWeight:700,color:'#F8F4F7'}}>Seus catálogos</p>
-            <button type="button" onClick={abrirNovo} style={{background:G,color:'#fff',border:'1px solid rgba(255,255,255,.12)',borderRadius:'10px',padding:'10px 18px',fontSize:'13px',fontWeight:700,cursor:'pointer',fontFamily:'inherit'}}>+ Novo catálogo</button>
+            <div style={{display:'flex',gap:'10px',flexWrap:'wrap'}}>
+              <VerMiniPageButton/>
+              <button type="button" onClick={abrirNovo} style={{background:G,color:'#fff',border:'1px solid rgba(255,255,255,.12)',borderRadius:'10px',padding:'10px 18px',fontSize:'13px',fontWeight:700,cursor:'pointer',fontFamily:'inherit'}}>+ Novo catálogo</button>
+            </div>
           </div>
 
           {catalogos.length===0&&<p style={{fontSize:'13px',color:'#B8AAB8',padding:'12px 0'}}>Nenhum catálogo cadastrado ainda.</p>}

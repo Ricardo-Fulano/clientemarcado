@@ -110,11 +110,17 @@ function extrairTodasMetaTags(html: string, propriedade: string): string[] {
   return resultados
 }
 
-// Camada 2b: JSON-LD (schema.org/Product) - bloco <script type="application/ld+json">
-// costuma trazer "image" como string OU array de strings. E o formato mais estruturado e
-// confiavel quando presente (bastante usado por lojas serias, menos comum na Shopee).
-function extrairImagensJsonLd(html: string): string[] {
-  const imagens: string[] = []
+// Camada 2b: JSON-LD (schema.org) - bloco <script type="application/ld+json"> costuma trazer
+// "image" e "name" como string OU array. E o formato mais estruturado e confiavel quando
+// presente. Prioriza estritamente o tipoAlvo pedido pelo chamador ('Product' pra Catalogo,
+// 'Event' pra Agenda/Eventos) - uma pagina pode ter varios JSON-LD (Organization,
+// BreadcrumbList, Product, Event...) e so o tipo que o chamador pediu de fato representa o
+// item sendo anunciado, nunca produtos/eventos relacionados que aparecem em outros blocos
+// JSON-LD da mesma pagina. Nunca usa logica de Product como unica fonte pra evento.
+function extrairJsonLd(html: string, tipoAlvo: 'Product' | 'Event' = 'Product'): { imagens: string[]; nome: string | null } {
+  const imagensAlvo: string[] = []
+  const imagensOutros: string[] = []
+  let nomeAlvo: string | null = null
   const regexBlocos = /<script[^>]+type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi
   let m
   while ((m = regexBlocos.exec(html)) !== null) {
@@ -122,13 +128,19 @@ function extrairImagensJsonLd(html: string): string[] {
       const json = JSON.parse(m[1].trim())
       const itens = Array.isArray(json) ? json : [json]
       for (const item of itens) {
+        const tipo = item?.['@type']
+        const ehAlvo = tipo === tipoAlvo || (Array.isArray(tipo) && tipo.includes(tipoAlvo))
         const img = item?.image
-        if (typeof img === 'string') imagens.push(img)
-        else if (Array.isArray(img)) img.forEach((i: any) => typeof i === 'string' && imagens.push(i))
+        const destino = ehAlvo ? imagensAlvo : imagensOutros
+        if (typeof img === 'string') destino.push(img)
+        else if (Array.isArray(img)) img.forEach((i: any) => typeof i === 'string' && destino.push(i))
+        if (ehAlvo && !nomeAlvo && typeof item?.name === 'string') nomeAlvo = item.name
       }
     } catch { /* JSON-LD malformado - ignora esse bloco, tenta os outros */ }
   }
-  return imagens
+  // So usa JSON-LD de outros tipos se nao existir nenhum bloco do tipoAlvo pedido - nunca
+  // mistura os dois no mesmo retorno.
+  return { imagens: imagensAlvo.length > 0 ? imagensAlvo : imagensOutros, nome: nomeAlvo }
 }
 
 // Camada 3: paginas modernas (Shopee incluida) costumam embutir o estado inicial da
@@ -137,6 +149,9 @@ function extrairImagensJsonLd(html: string): string[] {
 // procura strings de URL de imagem (.jpg/.png/.webp) dentro desses blocos JSON, sem tentar
 // entender a estrutura completa. Pode nao encontrar nada (paginas 100% client-side-rendered
 // sem SSR nao tem esse JSON no HTML inicial) - nesse caso, cai pro fallback normal.
+// ATENCAO: essa camada e a menos confiavel - o mesmo bloco JSON de estado inicial costuma
+// incluir tambem produtos recomendados/relacionados, entao so deve ser usada como ULTIMO
+// recurso, nunca concatenada com fontes confiaveis (og:image, JSON-LD Product).
 function extrairImagensDeJsonEmbutido(html: string): string[] {
   const imagens: string[] = []
   const regexScripts = /<script(?![^>]*type=["']application\/ld\+json["'])[^>]*>([\s\S]*?)<\/script>/gi
@@ -154,23 +169,36 @@ function extrairImagensDeJsonEmbutido(html: string): string[] {
   return imagens
 }
 
-// Junta as 3 camadas de busca de imagem, remove duplicatas (por URL exata) e devolve a
-// lista final - a primeira imagem da lista sempre vira a "principal".
-function coletarImagens(html: string): string[] {
+// Coleta imagens em CASCATA (nunca concatena fontes diferentes) - so avanca pra proxima
+// fonte se a anterior nao trouxe nenhuma imagem. Isso e a correcao da causa raiz do bug:
+// antes, imagens confiaveis (og:image) eram sempre misturadas com imagens arriscadas do
+// JSON de estado da pagina (que podem incluir produtos recomendados), inflando a galeria
+// com fotos que nao pertencem ao produto principal.
+// Prioridade: 1) JSON-LD Product  2) og:image  3) twitter:image  4) fallback generico (JSON embutido)
+function coletarDados(html: string, tipoAlvo: 'Product' | 'Event' = 'Product'): { imagens: string[]; nomeJsonLd: string | null } {
+  const dedup = (lista: string[]) => {
+    const vistas = new Set<string>()
+    const unicas: string[] = []
+    for (const img of lista) {
+      const limpa = img.trim()
+      if (limpa && !vistas.has(limpa)) { vistas.add(limpa); unicas.push(limpa) }
+    }
+    return unicas.slice(0, 8) // mesmo limite ja usado nas galerias do Catalogo/Destaques
+  }
+
+  const jsonLd = extrairJsonLd(html, tipoAlvo)
+  if (jsonLd.imagens.length > 0) return { imagens: dedup(jsonLd.imagens), nomeJsonLd: jsonLd.nome }
+
   const ogImages = extrairTodasMetaTags(html, 'og:image')
   const ogImagesSecure = extrairTodasMetaTags(html, 'og:image:secure_url')
-  const twitterImage = extrairMetaTag(html, 'twitter:image') || extrairMetaTag(html, 'twitter:image:src')
-  const jsonLd = extrairImagensJsonLd(html)
-  const embutido = extrairImagensDeJsonEmbutido(html)
+  const og = [...ogImages, ...ogImagesSecure]
+  if (og.length > 0) return { imagens: dedup(og), nomeJsonLd: jsonLd.nome }
 
-  const todas = [...ogImages, ...ogImagesSecure, ...(twitterImage ? [twitterImage] : []), ...jsonLd, ...embutido]
-  const vistas = new Set<string>()
-  const unicas: string[] = []
-  for (const img of todas) {
-    const limpa = img.trim()
-    if (limpa && !vistas.has(limpa)) { vistas.add(limpa); unicas.push(limpa) }
-  }
-  return unicas.slice(0, 8) // mesmo limite ja usado nas galerias do Catalogo/Destaques
+  const twitterImage = extrairMetaTag(html, 'twitter:image') || extrairMetaTag(html, 'twitter:image:src')
+  if (twitterImage) return { imagens: dedup([twitterImage]), nomeJsonLd: jsonLd.nome }
+
+  // Ultimo recurso - nenhuma fonte confiavel encontrou imagem.
+  return { imagens: dedup(extrairImagensDeJsonEmbutido(html)), nomeJsonLd: jsonLd.nome }
 }
 
 function decodificarEntidadesHtml(texto: string): string {
@@ -181,7 +209,8 @@ function decodificarEntidadesHtml(texto: string): string {
 
 export async function POST(request: Request) {
   try {
-    const { url } = await request.json()
+    const { url, tipo } = await request.json()
+    const tipoAlvo: 'Product' | 'Event' = tipo === 'evento' ? 'Event' : 'Product'
     if (!url || typeof url !== 'string' || !/^https?:\/\//i.test(url.trim())) {
       return NextResponse.json({ success: false, message: 'Informe um link válido (começando com http:// ou https://).' }, { status: 400 })
     }
@@ -352,13 +381,15 @@ export async function POST(request: Request) {
       const html = await res.text()
       // Cadeia de fallback pra titulo: og: -> twitter: -> <title> (fallback por URL fica
       // separado na resposta parcial acima, so entra se nem isso funcionar).
-      const titulo = extrairMetaTag(html, 'og:title') || extrairMetaTag(html, 'twitter:title') || extrairTitleTag(html)
-      const descricao = extrairMetaTag(html, 'og:description') || extrairMetaTag(html, 'twitter:description') || extrairMetaTag(html, 'description')
-      // Imagem: agora busca em 3 camadas (og:image multiplos, JSON-LD, JSON embutido) -
-      // ve funcao coletarImagens() pra detalhes de cada camada.
-      const imagens = coletarImagens(html)
+      // Imagem: busca em 4 camadas (JSON-LD do tipo pedido, og:image multiplos, twitter,
+      // JSON embutido) - ve funcao coletarDados() pra detalhes de cada camada.
+      const { imagens, nomeJsonLd } = coletarDados(html, tipoAlvo)
       const imagemPrincipal = imagens[0] || null
       const imagensExtras = imagens.slice(1)
+      // JSON-LD (Event/Product) tem prioridade sobre meta tags quando disponivel - meta
+      // tags genericas (og:title) podem trazer o nome do site em vez do item especifico.
+      const titulo = nomeJsonLd || extrairMetaTag(html, 'og:title') || extrairMetaTag(html, 'twitter:title') || extrairTitleTag(html)
+      const descricao = extrairMetaTag(html, 'og:description') || extrairMetaTag(html, 'twitter:description') || extrairMetaTag(html, 'description')
 
       if (!titulo && !descricao && imagens.length === 0) return respostaFallback()
 

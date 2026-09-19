@@ -2,8 +2,9 @@
 import { useEffect, useState, useRef } from 'react'
 import { supabase } from '../../../lib/supabase'
 import Link from 'next/link'
-import { ArrowLeft, ArrowUp, ArrowDown } from 'lucide-react'
+import { ArrowLeft, ArrowUp, ArrowDown, Pencil, Trash2, PlayCircle } from 'lucide-react'
 import PainelSidebar from '@/app/components/PainelSidebar'
+import VerMiniPageButton from '@/app/components/VerMiniPageButton'
 import BloqueioPorPlano from '@/app/components/BloqueioPorPlano'
 import { permiteVideos } from '../../../lib/planos'
 
@@ -32,6 +33,8 @@ export default function GerenciarVideos(){
   const [carregando,setCarregando]=useState(true)
   const [msg,setMsg]=useState('')
   const [salvandoId,setSalvandoId]=useState('')
+  // Controla qual video esta em modo edicao - null significa que todos aparecem compactos.
+  const [editandoId,setEditandoId]=useState<string|null>(null)
   const [uploadingId,setUploadingId]=useState('')
   const [gerandoCapaId,setGerandoCapaId]=useState('')
   const imgRef=useRef<HTMLInputElement>(null)
@@ -96,7 +99,9 @@ export default function GerenciarVideos(){
     return 'Conteúdo em vídeo'
   }
   function novoVideo(){
-    setVideos(prev=>[{id:'novo-'+Date.now(),user_id:userId,titulo:'',descricao:'',url_video:'',plataforma:'youtube',thumbnail_url:'',formato:'16:9',link_destino:'',texto_cta:'',texto_botao_video:'Assistir vídeo',ordem:prev.length,ativo:true,_novo:true},...prev])
+    const novoId='novo-'+Date.now()
+    setVideos(prev=>[{id:novoId,user_id:userId,titulo:'',descricao:'',url_video:'',plataforma:'youtube',thumbnail_url:'',formato:'16:9',link_destino:'',texto_cta:'',texto_botao_video:'Assistir vídeo',ordem:prev.length,ativo:true,_novo:true},...prev])
+    setEditandoId(novoId)
   }
   function editarVideo(id:string,campo:string,valor:any){
     setVideos(prev=>prev.map(v=>{
@@ -158,14 +163,24 @@ export default function GerenciarVideos(){
     if(v._novo){
       const {data,error}=await supabase.from('pagina_videos').insert(payload).select().single()
       if(error){setMsg('Erro ao salvar vídeo: '+error.message)}
-      else{setVideos(prev=>prev.map(x=>x.id===v.id?data:x));setMsg('Vídeo salvo!')}
+      else{setVideos(prev=>prev.map(x=>x.id===v.id?data:x));setMsg('Vídeo salvo!');setEditandoId(null)}
     } else {
       const {error}=await supabase.from('pagina_videos').update(payload).eq('id',v.id).eq('user_id',userId)
       if(error){setMsg('Erro ao salvar vídeo: '+error.message)}
-      else{setMsg('Vídeo salvo!')}
+      else{setMsg('Vídeo salvo!');setEditandoId(null)}
     }
     setSalvandoId('')
     setTimeout(()=>setMsg(''),3000)
+  }
+  // Fecha a edicao sem salvar - item novo (nunca persistido) e removido; item existente
+  // recarrega do banco pra descartar qualquer alteracao nao confirmada.
+  function cancelarEdicao(v:any){
+    if(v._novo){
+      setVideos(prev=>prev.filter(x=>x.id!==v.id))
+    } else {
+      load()
+    }
+    setEditandoId(null)
   }
   async function excluirVideo(id:string){
     if(!(await validarSessao()))return
@@ -174,6 +189,7 @@ export default function GerenciarVideos(){
       if(error){setMsg('Erro ao excluir: '+error.message);return}
     }
     setVideos(prev=>prev.filter(v=>v.id!==id))
+    if(editandoId===id)setEditandoId(null)
   }
   async function mover(id:string,direcao:'up'|'down'){
     const idx=videos.findIndex(v=>v.id===id)
@@ -229,7 +245,10 @@ export default function GerenciarVideos(){
 
           <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',flexWrap:'wrap',gap:'12px',marginBottom:'8px'}}>
             <p style={{fontSize:'22px',fontWeight:800,color:'#F8F4F7',letterSpacing:'-0.02em'}}>Vídeos da página</p>
-            <button type="button" onClick={novoVideo} style={{background:G,color:'#fff',border:'1px solid rgba(255,255,255,.12)',borderRadius:'10px',padding:'10px 18px',fontSize:'13px',fontWeight:700,cursor:'pointer',fontFamily:'inherit'}}>+ Novo vídeo</button>
+            <div style={{display:'flex',gap:'10px',flexWrap:'wrap'}}>
+              <VerMiniPageButton/>
+              <button type="button" onClick={novoVideo} style={{background:G,color:'#fff',border:'1px solid rgba(255,255,255,.12)',borderRadius:'10px',padding:'10px 18px',fontSize:'13px',fontWeight:700,cursor:'pointer',fontFamily:'inherit'}}>+ Novo vídeo</button>
+            </div>
           </div>
           <p style={{fontSize:'13px',color:'#B8AAB8',marginBottom:'4px'}}>Cole o link de um vídeo do YouTube, Instagram, TikTok ou outra plataforma. O formato ideal é detectado automaticamente.</p>
           <p style={{fontSize:'13px',color:'#B8AAB8',marginBottom:'24px'}}>Use as setas para mudar a ordem de exibição.</p>
@@ -237,7 +256,37 @@ export default function GerenciarVideos(){
           {videos.length===0&&<p style={{fontSize:'13px',color:'#B8AAB8',padding:'12px 0'}}>Nenhum vídeo cadastrado ainda. Adicione vídeos para destacar conteúdos, cursos, mentorias ou produtos na sua página.</p>}
 
           <div style={{display:'flex',flexDirection:'column',gap:'12px'}}>
-            {videos.map((v,i)=>(
+            {videos.map((v,i)=>{
+              const emEdicao=editandoId===v.id
+
+              // ===== CARD COMPACTO (padrao de exibicao) =====
+              if(!emEdicao){
+                return (
+                  <div key={v.id} className="crd" style={{padding:'14px 16px',display:'flex',alignItems:'center',gap:'12px',border:'1px solid rgba(229,72,184,.18)'}}>
+                    <div style={{display:'flex',flexDirection:'column',gap:'3px',flexShrink:0}}>
+                      <button type="button" onClick={()=>mover(v.id,'up')} disabled={i===0} style={{width:'22px',height:'22px',borderRadius:'6px',background:'rgba(24,16,27,.9)',border:'1px solid #2A1A2F',color:i===0?'#4A3F4E':'#B8AAB8',cursor:i===0?'not-allowed':'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}><ArrowUp size={12}/></button>
+                      <button type="button" onClick={()=>mover(v.id,'down')} disabled={i===videos.length-1} style={{width:'22px',height:'22px',borderRadius:'6px',background:'rgba(24,16,27,.9)',border:'1px solid #2A1A2F',color:i===videos.length-1?'#4A3F4E':'#B8AAB8',cursor:i===videos.length-1?'not-allowed':'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}><ArrowDown size={12}/></button>
+                    </div>
+                    {v.thumbnail_url ? (
+                      <img src={v.thumbnail_url} alt="" style={{width:'52px',height:'52px',borderRadius:'10px',objectFit:'cover',flexShrink:0}}/>
+                    ) : (
+                      <div style={{width:'52px',height:'52px',borderRadius:'10px',background:'rgba(255,255,255,.04)',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}><PlayCircle size={20} color="#B8AAB8"/></div>
+                    )}
+                    <div style={{flex:1,minWidth:0}}>
+                      <p style={{fontSize:'14px',fontWeight:700,color:'#F8F4F7',whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{v.titulo||'(sem título)'}</p>
+                      <p style={{fontSize:'12px',color:'#B8AAB8',whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{formatoLabel(v.formato)}{v.descricao?` · ${v.descricao}`:''}</p>
+                    </div>
+                    <button type="button" onClick={()=>editarVideo(v.id,'ativo',!v.ativo)} style={{background:v.ativo?'rgba(34,197,94,.14)':'#2A1A2F',border:'1px solid '+(v.ativo?'rgba(34,197,94,.25)':'#2A1A2F'),borderRadius:10,padding:'6px 12px',fontSize:11,fontWeight:700,color:v.ativo?'#22C55E':'#B8AAB8',cursor:'pointer',fontFamily:'inherit',flexShrink:0}}>{v.ativo?'Ativo':'Oculto'}</button>
+                    <div style={{display:'flex',gap:'6px',flexShrink:0}}>
+                      <button type="button" onClick={()=>setEditandoId(v.id)} title="Editar" aria-label="Editar" style={{width:'32px',height:'32px',borderRadius:'8px',background:'rgba(24,16,27,.9)',border:'1px solid #2A1A2F',color:'#B8AAB8',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}><Pencil size={14}/></button>
+                      <button type="button" onClick={()=>excluirVideo(v.id)} title="Excluir" aria-label="Excluir" style={{width:'32px',height:'32px',borderRadius:'8px',background:'rgba(239,68,68,.10)',border:'1px solid rgba(239,68,68,.25)',color:'#EF4444',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}><Trash2 size={14}/></button>
+                    </div>
+                  </div>
+                )
+              }
+
+              // ===== FORMULARIO COMPLETO (so o item em edicao) =====
+              return (
               <div key={v.id} className="crd" style={{padding:'16px',display:'flex',gap:'12px',border:'1px solid rgba(229,72,184,.18)'}}>
                 <div style={{display:'flex',flexDirection:'column',gap:'4px',flexShrink:0,paddingTop:'2px'}}>
                   <button type="button" onClick={()=>mover(v.id,'up')} disabled={i===0} style={{width:'28px',height:'28px',borderRadius:'8px',background:'rgba(24,16,27,.9)',border:'1px solid #2A1A2F',color:i===0?'#4A3F4E':'#B8AAB8',cursor:i===0?'not-allowed':'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}><ArrowUp size={14}/></button>
@@ -291,13 +340,15 @@ export default function GerenciarVideos(){
                   <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:'8px',flexWrap:'wrap'}}>
                     <button type="button" onClick={()=>editarVideo(v.id,'ativo',!v.ativo)} style={{background:v.ativo?'rgba(34,197,94,.14)':'#2A1A2F',border:'1px solid '+(v.ativo?'rgba(34,197,94,.25)':'#2A1A2F'),borderRadius:10,padding:'6px 14px',fontSize:12,fontWeight:700,color:v.ativo?'#22C55E':'#B8AAB8',cursor:'pointer',fontFamily:'inherit'}}>{v.ativo?'Ativo':'Oculto'}</button>
                     <div style={{display:'flex',gap:'8px'}}>
+                      <button type="button" onClick={()=>cancelarEdicao(v)} style={{background:'rgba(24,16,27,.9)',border:'1px solid #2A1A2F',color:'#B8AAB8',borderRadius:'8px',padding:'8px 14px',fontSize:'12px',fontWeight:600,cursor:'pointer',fontFamily:'inherit'}}>Voltar</button>
                       <button type="button" onClick={()=>excluirVideo(v.id)} style={{background:'rgba(239,68,68,.10)',border:'1px solid rgba(239,68,68,.25)',color:'#EF4444',borderRadius:'8px',padding:'8px 14px',fontSize:'12px',fontWeight:600,cursor:'pointer',fontFamily:'inherit'}}>Excluir</button>
                       <button type="button" onClick={()=>salvarVideo(v)} disabled={salvandoId===v.id} style={{background:G,color:'#fff',border:'1px solid rgba(255,255,255,.12)',borderRadius:'8px',padding:'8px 16px',fontSize:'12px',fontWeight:700,cursor:'pointer',fontFamily:'inherit',opacity:salvandoId===v.id?.7:1}}>{salvandoId===v.id?'Salvando...':'Salvar'}</button>
                     </div>
                   </div>
                 </div>
               </div>
-            ))}
+              )
+            })}
           </div>
           <input ref={imgRef} type="file" accept="image/*" onChange={uploadCapaVideo} style={{display:'none'}}/>
 
