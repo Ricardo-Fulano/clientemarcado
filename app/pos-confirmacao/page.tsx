@@ -16,6 +16,8 @@ export default function PosConfirmacao() {
   const [tempoEsgotado, setTempoEsgotado] = useState(false)
   const [verificandoAgora, setVerificandoAgora] = useState(false)
   const [jaConfirmado, setJaConfirmado] = useState(false)
+  const [cpfCnpj, setCpfCnpj] = useState('')
+  const [erroCpf, setErroCpf] = useState('')
   // Guard contra duplo disparo (StrictMode do React chama efeitos 2x em dev, e recarregar
   // a pagina manualmente tambem re-executaria isso) - garante que so tentamos criar UMA
   // assinatura por carregamento real desta pagina.
@@ -38,7 +40,7 @@ export default function PosConfirmacao() {
 
       const { data: perfil, error: erroPerfil } = await supabase
         .from('perfis')
-        .select('plano_tipo, status_acesso, gateway_subscription_id')
+        .select('plano_tipo, status_acesso, gateway_subscription_id, cpf_cnpj')
         .eq('user_id', session.user.id)
         .maybeSingle()
 
@@ -46,6 +48,7 @@ export default function PosConfirmacao() {
         setEstado('sem_perfil')
         return
       }
+      if (perfil.cpf_cnpj) setCpfCnpj(perfil.cpf_cnpj)
 
       // Free nunca passa por checkout - vai direto pro painel, como sempre.
       if (ehPlanoFree(perfil.plano_tipo)) {
@@ -130,6 +133,12 @@ export default function PosConfirmacao() {
   }
 
   async function escolherMetodo(metodo: 'CREDIT_CARD' | 'PIX') {
+    setErroCpf('')
+    const cpfCnpjLimpo = cpfCnpj.replace(/\D/g, '')
+    if (cpfCnpjLimpo.length !== 11 && cpfCnpjLimpo.length !== 14) {
+      setErroCpf('Informe um CPF (11 dígitos) ou CNPJ (14 dígitos) válido para continuar.')
+      return
+    }
     setMetodoEscolhendo(metodo)
     try {
       const { data: { session } } = await supabase.auth.getSession()
@@ -141,7 +150,7 @@ export default function PosConfirmacao() {
       const res = await fetch('/api/asaas/criar-assinatura', {
         method: 'POST',
         headers: { 'Authorization': 'Bearer ' + session.access_token, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ metodoPagamento: metodo }),
+        body: JSON.stringify({ metodoPagamento: metodo, cpfCnpj: cpfCnpjLimpo }),
       })
       const data = await res.json().catch(() => null)
       if (data?.init_point) {
@@ -222,6 +231,17 @@ export default function PosConfirmacao() {
         <div style={{ maxWidth: '440px', width: '100%', background: 'rgba(15,23,42,.95)', border: '1px solid rgba(139,92,246,.30)', borderRadius: '20px', padding: '36px 28px' }}>
           <h2 style={{ fontSize: '19px', fontWeight: 800, color: '#F8FAFC', marginBottom: '8px', textAlign: 'center' }}>Escolha sua forma de pagamento</h2>
           <p style={{ fontSize: '14px', color: '#94A3B8', marginBottom: '24px', textAlign: 'center', lineHeight: 1.5 }}>Para ativar sua MiniPage, escolha como deseja pagar seu plano.</p>
+
+          <div style={{ marginBottom: '20px' }}>
+            <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: '6px' }}>CPF ou CNPJ</label>
+            <input
+              type="text" inputMode="numeric" placeholder="Só números" value={cpfCnpj}
+              onChange={e => { setCpfCnpj(e.target.value.replace(/\D/g, '').slice(0, 14)); setErroCpf('') }}
+              style={{ width: '100%', background: 'rgba(148,163,184,.08)', border: '1px solid rgba(148,163,184,.25)', borderRadius: '10px', padding: '12px 14px', color: '#F8FAFC', fontSize: '14px', fontFamily: 'inherit', boxSizing: 'border-box' }}
+            />
+            <p style={{ fontSize: '11px', color: '#94A3B8', marginTop: '5px' }}>Necessário para gerar a cobrança.</p>
+            {erroCpf && <p style={{ fontSize: '12px', color: '#EF4444', marginTop: '6px' }}>{erroCpf}</p>}
+          </div>
 
           <button
             onClick={() => escolherMetodo('CREDIT_CARD')}

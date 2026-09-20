@@ -81,8 +81,22 @@ export default function Home() {
         .btn-p:hover{transform:translateY(-2px)}
         .btn-s{background:rgba(24,16,27,.88);color:#B8AAB8;border:1px solid #2A1A2F;border-radius:14px;padding:0 28px;height:50px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;transition:all .2s;white-space:nowrap}
         .btn-s:hover{border-color:rgba(139,92,246,.45);color:#fff}
+        .btn-ver-exemplos{background:rgba(236,72,153,.12);color:#F8F4F7;border:1.5px solid rgba(236,72,153,.55);border-radius:14px;padding:0 28px;height:50px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;transition:all .2s;white-space:nowrap;box-shadow:0 0 24px rgba(236,72,153,.16)}
+        .btn-ver-exemplos:hover{background:rgba(236,72,153,.20);border-color:rgba(236,72,153,.8);transform:translateY(-2px);box-shadow:0 0 32px rgba(236,72,153,.26)}
         .card-b{background:radial-gradient(circle at top left,rgba(139,92,246,.07),transparent 60%),linear-gradient(145deg,rgba(24,16,27,.96),rgba(18,10,20,.99));border:1px solid #2A1A2F;border-radius:18px;padding:28px 24px;transition:border-color .2s,transform .2s}
         .card-b:hover{border-color:rgba(139,92,246,.28);transform:translateY(-3px)}
+        .tudo-conectado-orbita{position:relative;width:100%;max-width:520px;aspect-ratio:1/1;margin:0 auto}
+        .tudo-conectado-linhas{position:absolute;inset:0;width:100%;height:100%;opacity:1;z-index:0;filter:drop-shadow(0 0 3px rgba(236,72,153,.25))}
+        .tudo-conectado-central{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:132px;height:132px;border-radius:20px;background:radial-gradient(circle at top left,rgba(139,92,246,.16),transparent 60%),linear-gradient(145deg,rgba(24,16,27,.97),rgba(10,6,12,.99));border:1.5px solid rgba(236,72,153,.32);box-shadow:0 0 40px rgba(139,92,246,.28),0 12px 32px rgba(0,0,0,.4);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:10px;z-index:2;animation:pulseGlow 3.5s ease-in-out infinite}
+        @keyframes pulseGlow{0%,100%{box-shadow:0 0 40px rgba(139,92,246,.28),0 12px 32px rgba(0,0,0,.4)}50%{box-shadow:0 0 56px rgba(236,72,153,.38),0 12px 32px rgba(0,0,0,.4)}}
+        .tudo-conectado-pill{position:absolute;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;gap:5px;background:rgba(24,16,27,.92);border:1px solid #2A1A2F;border-radius:14px;padding:10px 12px;min-width:76px;z-index:1;backdrop-filter:blur(6px)}
+        .tudo-conectado-pill span{font-size:10px;font-weight:600;color:#B8AAB8;white-space:nowrap}
+        @media(max-width:768px){
+          .tudo-conectado-orbita{max-width:100%;aspect-ratio:auto;display:grid;grid-template-columns:repeat(3,1fr);gap:10px;place-items:center}
+          .tudo-conectado-linhas{display:none}
+          .tudo-conectado-central{position:static;transform:none;grid-column:1/-1;width:100%;max-width:220px;margin:0 auto 6px;animation:none}
+          .tudo-conectado-pill{position:static;transform:none;width:100%}
+        }
         @media(max-width:768px){
           .hero-btns{flex-direction:column!important;align-items:stretch!important;gap:10px!important}
           .hero-btns a{width:100%!important}
@@ -95,9 +109,7 @@ export default function Home() {
       <header style={{position:'sticky',top:0,zIndex:50,background:scrolled?'rgba(8,6,10,.97)':'transparent',backdropFilter:'blur(20px)',borderBottom:scrolled?'1px solid #2A1A2F':'1px solid transparent',transition:'all .3s',padding:'0 24px'}}>
         <div style={{maxWidth:'1100px',margin:'0 auto',height:'64px',display:'flex',alignItems:'center',justifyContent:'space-between'}}>
           <div style={{display:'flex',alignItems:'center',gap:'10px'}}>
-            <div style={{width:'32px',height:'32px',borderRadius:'9px',background:G,display:'flex',alignItems:'center',justifyContent:'center',boxShadow:'0 0 20px rgba(139,92,246,.45)',flexShrink:0}}>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-            </div>
+            <img src="/minipage-pro-icon.png" alt="MiniPage Pro" width={36} height={36} style={{borderRadius:'9px',flexShrink:0,objectFit:'contain'}}/>
             <div style={{display:'flex',flexDirection:'column',lineHeight:1.15}}>
               <span style={{fontSize:'17px',fontWeight:800,color:'#F8F4F7',letterSpacing:'-0.02em'}}>MiniPage Pro</span>
               <span style={{fontSize:'11px',fontWeight:600,color:'#B8AAB8',letterSpacing:'.02em'}}>por ClienteMarcado</span>
@@ -122,44 +134,59 @@ export default function Home() {
           <p style={{fontSize:'clamp(17px,2.4vw,20px)',fontWeight:700,background:G,WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent',backgroundClip:'text',marginBottom:'20px'}}>
             Crie em poucos cliques uma página moderna para organizar seus links, vídeos, divulgações, produtos, agenda e contatos em um só lugar.
           </p>
-          <p style={{fontSize:'clamp(15px,2vw,17px)',color:'#B8AAB8',lineHeight:1.75,marginBottom:'44px',maxWidth:'580px',margin:'0 auto 44px'}}>
+          <p style={{fontSize:'clamp(15px,2vw,17px)',color:'#B8AAB8',lineHeight:1.75,marginBottom:'32px',maxWidth:'580px',margin:'0 auto 32px'}}>
             Pronta para divulgar no Instagram, WhatsApp, TikTok e onde quiser.
           </p>
-          <div className="hero-btns" style={{display:'flex',gap:'12px',justifyContent:'center',flexWrap:'wrap'}}>
-            <Link href="/aceite-plano?plano=minipage" className="btn-p">Criar minha MiniPage</Link>
-            <a href="https://minipage.pro/modelos" className="btn-s">Ver exemplo</a>
-          </div>
           <p style={{fontSize:'13px',color:'#B8AAB8',marginTop:'18px'}}>Quer ver exemplos antes de criar? <a href="https://minipage.pro/modelos" style={{color:'#EC4899',fontWeight:600,textDecoration:'none'}}>Veja os melhores modelos</a>.</p>
           <p style={{fontSize:'12px',color:'#B8AAB8',marginTop:'10px'}}>Comece no plano grátis. Planos pagos a partir de R$ 39,90/mês. Sem fidelidade.</p>
         </div>
+      </section>
+      {/* TUDO CONECTADO */}
+      <section className="tudo-conectado-section" style={{padding:'90px 24px',textAlign:'center',position:'relative',overflow:'hidden'}}>
+        <div style={{maxWidth:'620px',margin:'0 auto 56px'}}>
+          <h2 style={{fontSize:'clamp(24px,4vw,36px)',fontWeight:900,color:'#F8F4F7',letterSpacing:'-0.03em',marginBottom:'12px'}}>Tudo conectado.<br/>Em um só lugar.</h2>
+          <p style={{fontSize:'15px',color:'#B8AAB8',lineHeight:1.6}}>WhatsApp, Instagram, TikTok, catálogo, agenda e muito mais — tudo reunido numa única página profissional.</p>
+        </div>
 
-        {/* MOCKUP VISUAL DA MINIPAGE */}
-        <div style={{display:'flex',justifyContent:'center',marginTop:'40px'}}>
-          <div style={{width:'330px',background:'#0B0610',border:'1px solid rgba(236,72,153,.30)',borderRadius:'32px',padding:'16px',boxShadow:'0 34px 80px rgba(139,92,246,.24), 0 0 46px rgba(236,72,153,.14)'}}>
-            <div style={{borderRadius:'22px',overflow:'hidden',background:'#120A14'}}>
-              <div style={{position:'relative',height:'98px',background:'linear-gradient(135deg,#EC4899,#D946EF,#8B5CF6)'}} />
-              <div style={{padding:'0 18px 18px',marginTop:'-32px',position:'relative'}}>
-                <div style={{width:'64px',height:'64px',borderRadius:'999px',background:G,border:'3px solid #08060A',boxShadow:'0 0 20px rgba(236,72,153,.4)'}} />
-                <p style={{fontSize:'16px',fontWeight:800,color:'#fff',marginTop:'9px'}}>seunome</p>
-                <p style={{fontSize:'12px',color:'#EC4899',fontWeight:600,marginBottom:'14px'}}>minipage.pro/seunome</p>
-                <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'7px',marginBottom:'11px'}}>
-                  {['Links','Vídeos','Publi'].map(t=>(
-                    <div key={t} style={{background:'rgba(255,255,255,.05)',border:'1px solid rgba(236,72,153,.22)',borderRadius:'11px',padding:'9px 7px',textAlign:'center'}}>
-                      <p style={{fontSize:'10px',fontWeight:700,color:'#fff'}}>{t}</p>
-                    </div>
-                  ))}
-                </div>
-                <div style={{display:'flex',flexDirection:'column',gap:'7px'}}>
-                  {[{t:'Fale no WhatsApp',c:'#22C55E'},{t:'Redes sociais',c:'#8B5CF6'}].map(l=>(
-                    <div key={l.t} style={{display:'flex',alignItems:'center',gap:'9px',background:'rgba(255,255,255,.04)',border:'1px solid rgba(255,255,255,.07)',borderRadius:'11px',padding:'9px 11px'}}>
-                      <span style={{width:'9px',height:'9px',borderRadius:'999px',background:l.c,flexShrink:0}}/>
-                      <span style={{fontSize:'11px',fontWeight:600,color:'#fff'}}>{l.t}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
+        <div className="tudo-conectado-orbita">
+          <svg className="tudo-conectado-linhas" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet">
+            {[0,30,60,90,120,150,180,210,240,270,300,330].map(ang=>{
+              const rad=(ang*Math.PI)/180
+              const x2=(50+38*Math.cos(rad)).toFixed(3)
+              const y2=(50+38*Math.sin(rad)).toFixed(3)
+              return <line key={ang} x1="50" y1="50" x2={x2} y2={y2} stroke="#D946EF" strokeOpacity="0.5" strokeWidth="0.4" strokeLinecap="round"/>
+            })}
+          </svg>
+
+          <div className="tudo-conectado-central">
+            <img src="/minipage-pro-icon.png" alt="MiniPage Pro" width={60} height={60} style={{borderRadius:'15px',objectFit:'contain'}}/>
+            <p style={{fontSize:'10px',fontWeight:600,color:'#B8AAB8',marginTop:'9px',letterSpacing:'.01em'}}>minipage.pro/seunome</p>
           </div>
+
+          {[
+            {nome:'WhatsApp',cor:'#22C55E',svg:<path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347M12.05 22h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26C2.167 6.658 6.601 2 12.05 2c2.64 0 5.122 1.03 6.988 2.898A9.825 9.825 0 0121.93 11.9c-.003 5.45-4.437 9.884-9.885 9.884"/>},
+            {nome:'Instagram',cor:'#EC4899',svg:<><rect x="2" y="2" width="20" height="20" rx="5" fill="none" stroke="#EC4899" strokeWidth="2"/><circle cx="12" cy="12" r="4.2" fill="none" stroke="#EC4899" strokeWidth="2"/><circle cx="17.5" cy="6.5" r="1.1"/></>},
+            {nome:'TikTok',cor:'#F8F4F7',svg:<path d="M16.6 5.82s.51.5 0 0A4.278 4.278 0 0 1 15.54 3h-3.09v12.4a2.592 2.592 0 0 1-2.59 2.5c-1.42 0-2.6-1.16-2.6-2.6 0-1.72 1.66-3.01 3.37-2.48V9.66c-3.45-.46-6.47 2.22-6.47 5.64 0 3.33 2.76 5.7 5.69 5.7 3.14 0 5.69-2.55 5.69-5.7V9.01a7.35 7.35 0 0 0 4.3 1.38V7.3s-1.88.09-3.24-1.48z"/>},
+            {nome:'YouTube',cor:'#FF0000',svg:<path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.6 12 3.6 12 3.6s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2 31.2 31.2 0 0 0 0 12a31.2 31.2 0 0 0 .5 5.8 3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1A31.2 31.2 0 0 0 24 12a31.2 31.2 0 0 0-.5-5.8zM9.6 15.6V8.4l6.3 3.6z"/>},
+            {nome:'Spotify',cor:'#1DB954',svg:<><circle cx="12" cy="12" r="10.5"/><path d="M7 9.5c3-.8 7-.5 9.5 1M7.2 13c2.5-.6 5.8-.4 7.8.8M7.5 16c2-.5 4.5-.3 6 .6" stroke="#08060A" strokeWidth="1.4" fill="none" strokeLinecap="round"/></>},
+            {nome:'Facebook',cor:'#1877F2',svg:<path d="M22 12a10 10 0 1 0-11.6 9.9v-7H7.9V12h2.5V9.8c0-2.5 1.5-3.9 3.8-3.9 1.1 0 2.2.2 2.2.2v2.4h-1.3c-1.2 0-1.6.8-1.6 1.6V12h2.8l-.4 2.9h-2.4v7A10 10 0 0 0 22 12z"/>},
+            {nome:'LinkedIn',cor:'#0A66C2',svg:<><rect x="2" y="2" width="20" height="20" rx="3"/><path d="M7 9v8M7 6.2v.1M11 17V9m0 3c0-2 1.5-3 3-3s3 1 3 3v5" stroke="#08060A" strokeWidth="1.6" fill="none" strokeLinecap="round"/></>},
+            {nome:'Apple Music',cor:'#FA243C',svg:<><rect x="2" y="2" width="20" height="20" rx="6"/><path d="M15.5 7v7.2a2.6 2.6 0 1 1-1.5-2.36V9.3L10 10.4v5a2.6 2.6 0 1 1-1.5-2.36V8.2z" fill="#08060A"/></>},
+            {nome:'Deezer',cor:'#FF6B00',svg:<><rect x="2" y="14" width="3.2" height="4" rx=".6"/><rect x="6.4" y="11.5" width="3.2" height="6.5" rx=".6"/><rect x="10.8" y="9" width="3.2" height="9" rx=".6"/><rect x="15.2" y="6.5" width="3.2" height="11.5" rx=".6"/><rect x="19.6" y="4" width="3.2" height="14" rx=".6"/></>},
+            {nome:'YouTube Music',cor:'#FF0000',svg:<><circle cx="12" cy="12" r="10.5"/><circle cx="12" cy="12" r="6.2" fill="#08060A"/><circle cx="12" cy="12" r="2.2"/><path d="M10.5 9.3v5.4l4.6-2.7z" fill="#FF0000"/></>},
+            {nome:'Shopee',cor:'#EE4D2D',svg:<path d="M12 2C9.5 2 7.5 4 7.5 6.5V8H5.5a1 1 0 0 0-1 .9L3.5 20.5a1.5 1.5 0 0 0 1.5 1.5h14a1.5 1.5 0 0 0 1.5-1.5L19.5 8.9a1 1 0 0 0-1-.9h-2V6.5C16.5 4 14.5 2 12 2zm0 2c1.4 0 2.5 1.1 2.5 2.5V8h-5V6.5C9.5 5.1 10.6 4 12 4z"/>},
+            {nome:'Mercado Livre',cor:'#FFE600',svg:<><circle cx="12" cy="12" r="10.5"/><path d="M7 14.5c1 1 3 1.5 5 1.5s4-.5 5-1.5M9 10c.5-1 1.5-1.5 3-1.5s2.5.5 3 1.5" stroke="#08060A" strokeWidth="1.6" fill="none" strokeLinecap="round"/></>},
+          ].map((p,i)=>{
+            const ang=(i*30-90)*Math.PI/180
+            const x=(50+38*Math.cos(ang)).toFixed(3)
+            const y=(50+38*Math.sin(ang)).toFixed(3)
+            return (
+              <div key={p.nome} className="tudo-conectado-pill" style={{left:`${x}%`,top:`${y}%`}}>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill={p.cor}>{p.svg}</svg>
+                <span>{p.nome}</span>
+              </div>
+            )
+          })}
         </div>
       </section>
       {/* CHAMADA PARA MODELOS REAIS */}
@@ -167,7 +194,7 @@ export default function Home() {
         <div style={{maxWidth:'560px',margin:'0 auto'}}>
           <h2 style={{fontSize:'clamp(20px,3.5vw,28px)',fontWeight:800,color:'#F8F4F7',letterSpacing:'-0.03em',marginBottom:'12px'}}>Você cria sua MiniPage em poucos cliques</h2>
           <p style={{fontSize:'14px',color:'#B8AAB8',lineHeight:1.65,marginBottom:'28px'}}>Escolha um modelo, personalize sua página, adicione seus links e publique seu endereço profissional para divulgar nas redes sociais.</p>
-          <a href="https://minipage.pro/modelos" className="btn-p">Ver modelos de MiniPage</a>
+          <a href="https://minipage.pro/modelos" className="btn-p" style={{height:'56px',padding:'0 36px',fontSize:'15px',boxShadow:'0 16px 40px rgba(236,72,153,.34),0 0 40px rgba(139,92,246,.20)'}}>Ver modelos de MiniPage</a>
         </div>
       </section>
       {/* PLANO */}
@@ -290,7 +317,7 @@ export default function Home() {
                   </div>
                 ))}
               </div>
-              <Link href={`/aceite-plano?plano=essencial&billing=${billingSelecionado}`} className="btn-p" style={{width:'100%',justifyContent:'center',height:'46px',fontSize:'13px'}}>
+              <Link href={`/aceite-plano?plano=essencial&billing=${billingSelecionado}`} className="btn-p" style={{width:'100%',justifyContent:'center',height:'auto',minHeight:'46px',padding:'12px 14px',fontSize:'13px',whiteSpace:'normal',lineHeight:1.3,textAlign:'center' as const}}>
                 Começar com o {obterNomePlano('essencial')}
               </Link>
             </div>

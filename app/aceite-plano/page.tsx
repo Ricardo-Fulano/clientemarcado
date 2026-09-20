@@ -130,13 +130,11 @@ function AceitePlanoConteudo() {
         {/* Header */}
         <div className="hdr">
           <a href="/" className="logo-row">
-            <div className="logo-ic">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/>
-                <line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
-              </svg>
+            <img src="/minipage-pro-icon.png" alt="MiniPage Pro" width={32} height={32} style={{borderRadius:'8px',objectFit:'contain',flexShrink:0}}/>
+            <div style={{display:'flex',flexDirection:'column',lineHeight:1.1}}>
+              <span className="logo-txt">MiniPage Pro</span>
+              <span style={{fontSize:'10px',fontWeight:600,color:'#B8AAB8',letterSpacing:'.02em'}}>por ClienteMarcado</span>
             </div>
-            <span className="logo-txt">ClienteMarcado</span>
           </a>
           <a href="/" className="btn-v">← Voltar</a>
         </div>

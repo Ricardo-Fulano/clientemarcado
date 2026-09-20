@@ -46,7 +46,6 @@ export default function Cadastro() {
   const [nomeUsuario, setNomeUsuario] = useState('')
   const [email, setEmail] = useState('')
   const [senha, setSenha] = useState('')
-  const [cpfCnpj, setCpfCnpj] = useState('')
   const [mostrarSenha, setMostrarSenha] = useState(false)
   const [loading, setLoading] = useState(false)
   const [aceitou, setAceitou] = useState(false)
@@ -111,13 +110,12 @@ export default function Cadastro() {
       validarCupom(cupomFinal.toUpperCase())
     }, 0)
   }
-  // Calcula o plano da mesma forma que handleCadastro() calcula na hora de enviar - so pra
-  // saber, aqui no JSX, se deve mostrar o campo de CPF/CNPJ (so planos PAGOS precisam, ja
-  // que Free nunca cria customer/assinatura em nenhum gateway de pagamento).
+  // Calcula o plano da mesma forma que handleCadastro() calcula na hora de enviar - usado
+  // so pra decidir o billing_cycle de exibicao aqui no JSX. CPF/CNPJ nao e mais coletado
+  // nesta tela - passa a ser pedido em /pos-confirmacao, so no momento de planos pagos.
   const planoParaExibicao = typeof window !== 'undefined'
     ? normalizarPlano(new URLSearchParams(window.location.search).get('plano') || localStorage.getItem('cm_plano'))
     : 'free'
-  const exigeCpfCnpj = !ehPlanoFree(planoParaExibicao)
   // Mesmo padrao ja usado pro plano: le da URL (?billing=anual) OU do localStorage
   // (cm_billing, salvo pelo aceite-plano), sempre normalizado - Free nunca usa isso de
   // verdade (billing_cycle fica null pra Free, decidido no backend em criar-perfil).
@@ -139,15 +137,6 @@ export default function Cadastro() {
     const planoDaUrl = typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('plano') : null
     const planoSalvo = planoDaUrl || (typeof window !== 'undefined' ? localStorage.getItem('cm_plano') : null)
     const planoTipo = normalizarPlano(planoSalvo)
-    // Planos pagos precisam de CPF/CNPJ pra criar o customer no gateway de pagamento depois -
-    // Free nunca cria assinatura em nenhum gateway, entao nunca precisa disso.
-    if (!ehPlanoFree(planoTipo)) {
-      const cpfCnpjLimpo = cpfCnpj.replace(/\D/g, '')
-      if (cpfCnpjLimpo.length !== 11 && cpfCnpjLimpo.length !== 14) {
-        setMensagem('Informe um CPF (11 dígitos) ou CNPJ (14 dígitos) válido para continuar.')
-        return
-      }
-    }
     setLoading(true)
     setMensagem('')
     const redirectTo = montarRedirectTo()
@@ -192,7 +181,7 @@ export default function Cadastro() {
         await fetch('/api/cadastro/criar-perfil', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ user_id: data.user.id, nome_negocio: nomeUsuario, plano_tipo: planoTipo, cpf_cnpj: cpfCnpj.replace(/\D/g, '') || null, billing_cycle: billingCycleParaExibicao })
+          body: JSON.stringify({ user_id: data.user.id, nome_negocio: nomeUsuario, plano_tipo: planoTipo, cpf_cnpj: null, billing_cycle: billingCycleParaExibicao })
         })
       } catch (e) { console.warn('Erro ao gravar perfil inicial:', e) }
     }
@@ -319,8 +308,11 @@ export default function Cadastro() {
       <div className="pg-body">
         <div className="col-esquerda">
           <div className="desk-logo-row">
-            <div className="desk-logo-icone"><CalIcon /></div>
-            <span className="desk-logo-texto">ClienteMarcado</span>
+            <img src="/minipage-pro-icon.png" alt="MiniPage Pro" width={36} height={36} style={{borderRadius:'10px',objectFit:'contain',flexShrink:0}}/>
+            <div style={{display:'flex',flexDirection:'column',lineHeight:1.15}}>
+              <span className="desk-logo-texto">MiniPage Pro</span>
+              <span style={{fontSize:'11px',fontWeight:600,color:'#B8AAB8',letterSpacing:'.02em'}}>por ClienteMarcado</span>
+            </div>
           </div>
           <div>
             <h1 className="desk-hero-titulo">
@@ -344,8 +336,8 @@ export default function Cadastro() {
           </div>
         </div>
         <div className="logo-bloco">
-          <div className="logo-icone"><CalIcon /></div>
-          <span className="logo-texto">ClienteMarcado</span>
+          <img src="/minipage-pro-icon.png" alt="MiniPage Pro" width={34} height={34} style={{borderRadius:'10px',objectFit:'contain',flexShrink:0}}/>
+          <span className="logo-texto">MiniPage Pro</span>
         </div>
         <div className="headline-bloco">
           <h1 className="headline-titulo">{ehPlanoFree(planoParaExibicao) ? 'Crie sua conta grátis' : 'Crie sua conta'}</h1>
@@ -375,13 +367,6 @@ export default function Cadastro() {
                   </button>
                 </div>
               </div>
-              {exigeCpfCnpj && (
-                <div>
-                  <label className="label">CPF ou CNPJ</label>
-                  <input type="text" inputMode="numeric" placeholder="Só números" value={cpfCnpj} onChange={e => setCpfCnpj(e.target.value.replace(/\D/g, '').slice(0, 14))} className="input" />
-                  <p style={{ fontSize: '11px', color: '#8B8594', marginTop: '4px' }}>Necessário para gerar sua cobrança com segurança.</p>
-                </div>
-              )}
             </div>
             {mensagem && (
               <div className={mensagem.startsWith('Erro') ? 'msg-err' : 'msg-ok'}>

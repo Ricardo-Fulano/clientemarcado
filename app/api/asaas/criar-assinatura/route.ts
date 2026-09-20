@@ -33,12 +33,22 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Não foi possível identificar seu plano. Entre em contato com o suporte.' }, { status: 400 })
     }
 
-    // BLOQUEIO 3: CPF/CNPJ e obrigatorio pra criar o customer no Asaas. Contas criadas
-    // ANTES desta etapa (via Mercado Pago) nunca tiveram esse campo coletado - por isso
-    // pedimos aqui, com mensagem clara, em vez de falhar silenciosamente na chamada do Asaas.
-    const cpfCnpjLimpo = (perfil?.cpf_cnpj || '').replace(/\D/g, '')
+    // BLOQUEIO 3: CPF/CNPJ e obrigatorio pra criar o customer no Asaas. Agora pode vir de
+    // 2 fontes: (a) o body da requisicao, coletado em /pos-confirmacao no momento do
+    // pagamento (fluxo novo, cadastro nao pede mais isso), ou (b) ja salvo no perfil
+    // (contas antigas que ja tinham isso preenchido). O body tem prioridade quando valido.
+    const bodyRecebido = await request.json().catch(() => ({}))
+    const cpfCnpjDoBody = (bodyRecebido?.cpfCnpj || '').replace(/\D/g, '')
+    const cpfCnpjSalvo = (perfil?.cpf_cnpj || '').replace(/\D/g, '')
+    const cpfCnpjValidoDoBody = cpfCnpjDoBody.length === 11 || cpfCnpjDoBody.length === 14
+    const cpfCnpjLimpo = cpfCnpjValidoDoBody ? cpfCnpjDoBody : cpfCnpjSalvo
     if (cpfCnpjLimpo.length !== 11 && cpfCnpjLimpo.length !== 14) {
-      return NextResponse.json({ error: 'Precisamos do seu CPF ou CNPJ para gerar a cobrança. Atualize seu cadastro e tente novamente.' }, { status: 400 })
+      return NextResponse.json({ error: 'Precisamos do seu CPF ou CNPJ para gerar a cobrança. Informe um documento válido e tente novamente.' }, { status: 400 })
+    }
+    // Veio um valor novo/diferente do body - salva no perfil pra nao precisar pedir de
+    // novo numa proxima tentativa. Nao bloqueia o fluxo se o update falhar por algum motivo.
+    if (cpfCnpjValidoDoBody && cpfCnpjDoBody !== cpfCnpjSalvo) {
+      await supabase.from('perfis').update({ cpf_cnpj: cpfCnpjDoBody }).eq('user_id', userId)
     }
 
     const planoTipo = normalizarPlano(planoTipoOriginal)
@@ -46,7 +56,6 @@ export async function POST(request: NextRequest) {
     // corpo da requisicao como fallback pra contas antigas que ainda nao tem esse campo
     // preenchido (criadas antes desta etapa). Sempre normaliza pra 'mensal'|'anual', nunca
     // deixa passar um valor invalido adiante.
-    const bodyRecebido = await request.json().catch(() => ({}))
 
     // Metodo de pagamento: so aceita CREDIT_CARD ou PIX, escolhido explicitamente pelo
     // cliente na tela de /pos-confirmacao. Nunca usa UNDEFINED (que liberaria Boleto e
