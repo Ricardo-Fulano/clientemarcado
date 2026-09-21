@@ -4,6 +4,7 @@ import { supabase } from '../../../lib/supabase'
 import Link from 'next/link'
 import { ArrowLeft, UploadCloud, Lock } from 'lucide-react'
 import PainelSidebar from '@/app/components/PainelSidebar'
+import VerMiniPageButton from '@/app/components/VerMiniPageButton'
 import { obterLimiteModelosCor, ehPlanoFree, permiteCatalogoWhatsapp } from '../../../lib/planos'
 import { TEMAS_MINIPAGE } from '../../../lib/temasMiniPage'
 import ThemePreviewCard from '../../../components/ThemePreviewCard'
@@ -236,8 +237,13 @@ export default function GerenciarAparencia(){
 
           <Link href="/painel/perfil" style={{display:'inline-flex',alignItems:'center',gap:'6px',fontSize:'13px',color:'#B8AAB8',textDecoration:'none',marginBottom:'18px'}}><ArrowLeft size={15}/> Voltar para Configurações</Link>
 
-          <p style={{fontSize:'22px',fontWeight:800,color:'#F8F4F7',letterSpacing:'-0.02em',marginBottom:'8px'}}>Aparência da MiniPage</p>
-          <p style={{fontSize:'13px',color:'#B8AAB8',marginBottom:'24px'}}>Personalize o visual da página que seus visitantes acessam.</p>
+          <div style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',flexWrap:'wrap',gap:'12px',marginBottom:'8px'}}>
+            <div>
+              <p style={{fontSize:'22px',fontWeight:800,color:'#F8F4F7',letterSpacing:'-0.02em',marginBottom:'8px'}}>Aparência da MiniPage</p>
+              <p style={{fontSize:'13px',color:'#B8AAB8'}}>Personalize o visual da página que seus visitantes acessam.</p>
+            </div>
+            <VerMiniPageButton/>
+          </div>
 
           <div className="crd">
             {isPlanoFree ? (

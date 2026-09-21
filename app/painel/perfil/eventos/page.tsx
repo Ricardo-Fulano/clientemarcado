@@ -60,7 +60,7 @@ export default function GerenciarEventos(){
 
   function novoEvento(){
     const novoId='novo-'+Date.now()
-    setEventos(prev=>[{id:novoId,user_id:userId,titulo:'',url:'',imagem_url:'',ativo:true,ordem:prev.length,_novo:true},...prev])
+    setEventos(prev=>[{id:novoId,user_id:userId,titulo:'',url:'',imagem_url:'',data_evento:'',local:'',ativo:true,ordem:prev.length,_novo:true},...prev])
     setEditandoId(novoId)
   }
   function editarEvento(id:string,campo:string,valor:any){
@@ -79,7 +79,7 @@ export default function GerenciarEventos(){
     const urlFinal=e.url?.trim()?normalizarUrl(e.url):''
     if(e.url?.trim()&&(!urlFinal||!/^https?:\/\//i.test(urlFinal))){setMsg('Informe um link de evento válido, ou deixe o campo vazio.');return}
     setSalvandoId(e.id)
-    const payload={user_id:userId,titulo:e.titulo.trim(),url:urlFinal||null,imagem_url:e.imagem_url?.trim()||null,ativo:!!e.ativo,ordem:e.ordem||0}
+    const payload={user_id:userId,titulo:e.titulo.trim(),url:urlFinal||null,imagem_url:e.imagem_url?.trim()||null,data_evento:e.data_evento||null,local:e.local?.trim()||null,ativo:!!e.ativo,ordem:e.ordem||0}
     if(e._novo){
       const {data,error}=await supabase.from('pagina_eventos').insert(payload).select().single()
       if(error){setMsg('Erro ao salvar evento: '+error.message)}
@@ -243,7 +243,7 @@ export default function GerenciarEventos(){
                     )}
                     <div style={{flex:1,minWidth:0}}>
                       <p style={{fontSize:'14px',fontWeight:700,color:'#F8F4F7',whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{e.titulo||'(sem título)'}</p>
-                      {e.url&&<p style={{fontSize:'12px',color:'#B8AAB8',whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{e.url}</p>}
+                      {(e.data_evento||e.local)&&<p style={{fontSize:'12px',color:'#B8AAB8',whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{[e.data_evento?new Date(e.data_evento+'T00:00:00').toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'}):null,e.local].filter(Boolean).join(' · ')}</p>}
                     </div>
                     <button type="button" onClick={()=>editarEvento(e.id,'ativo',!e.ativo)} style={{background:e.ativo?'rgba(34,197,94,.14)':'#2A1A2F',border:'1px solid '+(e.ativo?'rgba(34,197,94,.25)':'#2A1A2F'),borderRadius:10,padding:'6px 12px',fontSize:11,fontWeight:700,color:e.ativo?'#22C55E':'#B8AAB8',cursor:'pointer',fontFamily:'inherit',flexShrink:0}}>{e.ativo?'Ativo':'Oculto'}</button>
                     <div style={{display:'flex',gap:'6px',flexShrink:0}}>
@@ -265,6 +265,16 @@ export default function GerenciarEventos(){
                   <div style={{marginBottom:'10px'}}>
                     <label className="lbl">Título</label>
                     <input className="inp" autoFocus={!!e._novo} value={e.titulo||''} onChange={ev=>editarEvento(e.id,'titulo',ev.target.value)} placeholder="Ex: 21/08 | SÃO PAULO — CARIOCA CLUB"/>
+                  </div>
+                  <div style={{display:'flex',gap:'10px',marginBottom:'12px',flexWrap:'wrap'}}>
+                    <div style={{flex:'1 1 140px'}}>
+                      <label className="lbl">Data (opcional)</label>
+                      <input type="date" className="inp" value={e.data_evento||''} onChange={ev=>editarEvento(e.id,'data_evento',ev.target.value)}/>
+                    </div>
+                    <div style={{flex:'2 1 220px'}}>
+                      <label className="lbl">Local / cidade (opcional)</label>
+                      <input className="inp" value={e.local||''} onChange={ev=>editarEvento(e.id,'local',ev.target.value)} placeholder="Ex: Allianz Parque · São Paulo"/>
+                    </div>
                   </div>
                   <div style={{marginBottom:'12px'}}>
                     <label className="lbl">Link do evento (opcional)</label>

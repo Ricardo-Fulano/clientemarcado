@@ -98,15 +98,16 @@ export function getTema(temaPublico: string): TemaTokens {
         text:'#232326', textMuted:'#75757C',
         cardBorder:'rgba(35,35,38,.10)', surface2:'#EFEFF1', headerBg:'rgba(250,250,251,.92)',
       }
-    case 'modelo7': // Beauty Pink - forte presenca de rosa, premium, pensado pra nail/estetica/beleza
+    case 'modelo7': // Dark Red Neon - fundo cinza escuro quase preto (neutro) + neon vermelho intenso, clima premium e forte
       return {
-        mode:'light',
-        accent:'#E83E8C', accent2:'#F06BA8', secondary:'#C23F6C',
-        soft:'rgba(232,62,140,.14)', border:'rgba(232,62,140,.34)', glow:'rgba(232,62,140,.18)',
+        mode:'dark',
+        isNeon:true,
+        accent:'#FF1E3C', accent2:'#FF6B7D', secondary:'#CC0022',
+        soft:'rgba(255,30,60,.16)', border:'rgba(255,30,60,.32)', glow:'rgba(255,30,60,.28)',
         btnText:'#fff',
-        bg:'linear-gradient(180deg,#F5C3D6 0%,#F7CEDD 50%,#FAD9E5 100%)', bgRGB:'245,195,214', card:'linear-gradient(145deg,#FEF0F6,#FCE3EC)',
-        text:'#3D1F2A', textMuted:'#805663',
-        cardBorder:'rgba(232,62,140,.28)', surface2:'#FBDCE9', headerBg:'rgba(245,195,214,.92)',
+        bg:'radial-gradient(circle at top,rgba(255,30,60,.14),transparent 42%),#0D0D0D', bgRGB:'13,13,13', card:'linear-gradient(145deg,#1A1A1A,#141414)',
+        text:'#FFFFFF', textMuted:'#C9C0C1',
+        cardBorder:'rgba(255,30,60,.26)', surface2:'rgba(26,26,26,.88)', headerBg:'rgba(13,13,13,.96)',
       }
     case 'modelo8': // Rosa Forte Premium - rosa marcante e feminino, mais intenso e "presente" que o Modelo 7 (blush suave)
       return {
@@ -223,6 +224,28 @@ export function getTema(temaPublico: string): TemaTokens {
         bg:'radial-gradient(circle at top,rgba(255,215,0,.20),transparent 38%),#090700', bgRGB:'9,7,0', card:'rgba(30,25,4,.92)',
         text:'#FFFFFF', textMuted:'#F0E4A0',
         cardBorder:'rgba(255,215,0,.28)', surface2:'rgba(30,25,4,.88)', headerBg:'rgba(9,7,0,.96)',
+      }
+    case 'modelo19': // Preto + Neon Branco - fundo preto puro, neon branco brilhante, contraste maximo
+      return {
+        mode:'dark',
+        isNeon:true,
+        accent:'#FFFFFF', accent2:'#F1F1F1', secondary:'#D4D4D4',
+        soft:'rgba(255,255,255,.14)', border:'rgba(255,255,255,.30)', glow:'rgba(255,255,255,.30)',
+        btnText:'#0A0A0A',
+        bg:'radial-gradient(circle at top,rgba(255,255,255,.10),transparent 40%),#000000', bgRGB:'0,0,0', card:'linear-gradient(145deg,#161616,#0F0F0F)',
+        text:'#FFFFFF', textMuted:'#C4C4C4',
+        cardBorder:'rgba(255,255,255,.22)', surface2:'rgba(22,22,22,.88)', headerBg:'rgba(0,0,0,.97)',
+      }
+    case 'modelo20': // Cinza Escuro + Neon Branco - fundo cinza escuro (mais claro que o Modelo 19), mesmo neon branco
+      return {
+        mode:'dark',
+        isNeon:true,
+        accent:'#FFFFFF', accent2:'#F1F1F1', secondary:'#D4D4D4',
+        soft:'rgba(255,255,255,.13)', border:'rgba(255,255,255,.28)', glow:'rgba(255,255,255,.26)',
+        btnText:'#0A0A0A',
+        bg:'radial-gradient(circle at top,rgba(255,255,255,.09),transparent 42%),#1C1C1C', bgRGB:'28,28,28', card:'linear-gradient(145deg,#282828,#202020)',
+        text:'#FFFFFF', textMuted:'#CBCBCB',
+        cardBorder:'rgba(255,255,255,.20)', surface2:'rgba(40,40,40,.88)', headerBg:'rgba(28,28,28,.96)',
       }
     default:
       return MODELO1

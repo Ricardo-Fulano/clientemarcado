@@ -122,7 +122,12 @@ html,body{overflow-x:hidden;width:100%;max-width:100%}
 .evento-card:hover{border-color:var(--accent)!important}
 .evento-imagem{width:48px;height:48px;border-radius:10px;object-fit:cover;flex-shrink:0}
 .evento-imagem-fallback{background:rgba(128,128,128,.12);display:flex;align-items:center;justify-content:center}
-.evento-titulo{flex:1;min-width:0;font-size:14px;font-weight:600;color:var(--text);line-height:1.3;letter-spacing:.01em}
+.evento-data-badge{width:48px;height:48px;border-radius:10px;flex-shrink:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--accent-soft,rgba(139,92,246,.12));border:1px solid var(--accent);gap:0}
+.evento-data-mes{font-size:9.5px;font-weight:800;color:var(--accent);letter-spacing:.04em;line-height:1.1}
+.evento-data-dia{font-size:17px;font-weight:800;color:var(--accent);line-height:1.05}
+.evento-info{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.evento-titulo{font-size:14px;font-weight:600;color:var(--text);line-height:1.3;letter-spacing:.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.evento-local{font-size:12px;color:var(--text-muted);line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .evento-menu{font-size:16px;flex-shrink:0;opacity:.5;letter-spacing:1px}
 @media(min-width:640px){
   .link-grid{grid-template-columns:repeat(2,1fr)}
@@ -431,7 +436,7 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
     switch(tipo){
       case 'whatsapp': return { color:'#22C55E', svg:(<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>) }
       case 'instagram': return { color:'#EC4899', svg:(<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1112.63 8 4 4 0 0116 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>) }
-      case 'tiktok': return { color:'#000000', svg:(<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M16.6 5.82s.51.5 0 0A4.278 4.278 0 0 1 15.54 3h-3.09v12.4a2.592 2.592 0 0 1-2.59 2.5c-1.42 0-2.6-1.16-2.6-2.6 0-1.72 1.66-3.01 3.37-2.48V9.66c-3.45-.46-6.47 2.22-6.47 5.64 0 3.33 2.76 5.7 5.69 5.7 3.14 0 5.69-2.55 5.69-5.7V9.01a7.35 7.35 0 0 0 4.3 1.38V7.3s-1.88.09-3.24-1.48z"/></svg>) }
+      case 'tiktok': return { color:'#FFFFFF', svg:(<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M16.6 5.82s.51.5 0 0A4.278 4.278 0 0 1 15.54 3h-3.09v12.4a2.592 2.592 0 0 1-2.59 2.5c-1.42 0-2.6-1.16-2.6-2.6 0-1.72 1.66-3.01 3.37-2.48V9.66c-3.45-.46-6.47 2.22-6.47 5.64 0 3.33 2.76 5.7 5.69 5.7 3.14 0 5.69-2.55 5.69-5.7V9.01a7.35 7.35 0 0 0 4.3 1.38V7.3s-1.88.09-3.24-1.48z" stroke="#000000" strokeWidth="0.7" strokeLinejoin="round"/></svg>) }
       case 'youtube': return { color:'#FF3B30', I:PlayCircle }
       case 'youtube_music': return { color:'#FF0000', svg:(<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="10.5"/><circle cx="12" cy="12" r="6.2" fill="#fff"/><circle cx="12" cy="12" r="2.2"/><path d="M10.5 9.3v5.4l4.6-2.7z" fill="#FF0000"/></svg>) }
       case 'shopee': return { color:'#EE4D2D', I:ShoppingBag }
@@ -885,15 +890,26 @@ eventos && eventos.length > 0 && permiteAgendaEventos(perfil.plano_tipo) && (
           <div style={{ marginBottom: '28px' }}>
             <p style={{ fontSize: '20px', fontWeight: 900, color: 'var(--text)', letterSpacing: '-0.02em', marginBottom: '14px' }}>{t.agendaEventos}</p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              {eventos.map((ev: { id: string; titulo: string; url: string | null; imagem_url?: string | null }) => {
+              {eventos.map((ev: { id: string; titulo: string; url: string | null; imagem_url?: string | null; data_evento?: string | null; local?: string | null }) => {
+                const dataObj = ev.data_evento ? new Date(ev.data_evento + 'T00:00:00') : null
+                const mesAbrev = dataObj ? dataObj.toLocaleDateString('pt-BR', { month: 'short' }).replace('.', '').toUpperCase() : null
+                const diaNum = dataObj ? dataObj.getDate() : null
                 const conteudoEvento = (
                   <>
                     {ev.imagem_url ? (
                       <img src={ev.imagem_url} alt="" className="evento-imagem" />
+                    ) : dataObj ? (
+                      <div className="evento-data-badge">
+                        <span className="evento-data-mes">{mesAbrev}</span>
+                        <span className="evento-data-dia">{diaNum}</span>
+                      </div>
                     ) : (
                       <div className="evento-imagem evento-imagem-fallback"><Calendar size={20} color="var(--text-muted)" /></div>
                     )}
-                    <span className="evento-titulo">{ev.titulo}</span>
+                    <div className="evento-info">
+                      <span className="evento-titulo">{ev.titulo}</span>
+                      {ev.local && <span className="evento-local">{ev.local}</span>}
+                    </div>
                     {ev.url && <span className="evento-menu" style={{ color: setaCor }}>⋮</span>}
                   </>
                 )

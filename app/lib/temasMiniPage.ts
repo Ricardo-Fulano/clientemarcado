@@ -10,7 +10,7 @@ export const TEMAS_MINIPAGE = [
   { id: 'modelo4', nome: 'Modelo 4', desc: 'Preto e dourado, visual luxuoso e de alto padrão.', p: '#D4AF37', s: '#9C7A2F' },
   { id: 'modelo5', nome: 'Modelo 5', desc: 'Cinza claro e branco, clean e editorial.', p: '#C97B93', s: '#8B5D73' },
   { id: 'modelo6', nome: 'Modelo 6', desc: 'Branco e cinza suave, refinado e elegante.', p: '#5FA8A0', s: '#3D7871' },
-  { id: 'modelo7', nome: 'Modelo 7', desc: 'Rosa blush premium, ideal para beleza e estética.', p: '#F5C3D6', s: '#E83E8C' },
+  { id: 'modelo7', nome: 'Modelo 7', desc: 'Cinza escuro e vermelho neon, premium e impactante.', p: '#FF1E3C', s: '#CC0022' },
   { id: 'modelo8', nome: 'Modelo 8', desc: 'Rosa forte premium, marcante e feminino.', p: '#F1B6CF', s: '#C2185B' },
   { id: 'modelo9', nome: 'Modelo 9', desc: 'Lilás profundo, sofisticado e marcante.', p: '#B69AF0', s: '#8B6FD9' },
   { id: 'modelo10', nome: 'Modelo 10', desc: 'Nude e mocha, acolhedor e refinado.', p: '#A67C52', s: '#7A5A3A' },
@@ -22,4 +22,6 @@ export const TEMAS_MINIPAGE = [
   { id: 'modelo16', nome: 'Modelo 16', desc: 'Rosa neon, forte, feminino e super marcante.', p: '#FF2DAA', s: '#FF7ACB' },
   { id: 'modelo17', nome: 'Modelo 17', desc: 'Laranja neon, energético, criativo e ousado.', p: '#FF7A00', s: '#FFB066' },
   { id: 'modelo18', nome: 'Modelo 18', desc: 'Dourado neon, luxuoso, intenso e premium.', p: '#FFD700', s: '#FFEB80' },
+  { id: 'modelo19', nome: 'Modelo 19', desc: 'Preto e neon branco brilhante, contraste máximo.', p: '#FFFFFF', s: '#D4D4D4' },
+  { id: 'modelo20', nome: 'Modelo 20', desc: 'Cinza escuro e neon branco brilhante, moderno e clean.', p: '#FFFFFF', s: '#CBCBCB' },
 ]
