@@ -2,7 +2,7 @@
 import { useEffect, useState, useRef } from 'react'
 import { supabase } from '../../../lib/supabase'
 import Link from 'next/link'
-import { ArrowLeft, UploadCloud, Lock } from 'lucide-react'
+import { ArrowLeft, UploadCloud, Lock, User } from 'lucide-react'
 import PainelSidebar from '@/app/components/PainelSidebar'
 import VerMiniPageButton from '@/app/components/VerMiniPageButton'
 import { obterLimiteModelosCor, ehPlanoFree, permiteCatalogoWhatsapp } from '../../../lib/planos'
@@ -72,6 +72,11 @@ export default function GerenciarAparencia(){
   const topoMobileRef=useRef<HTMLInputElement>(null)
   const [enviandoVideo,setEnviandoVideo]=useState(false)
   const [avancadoVideoAberto,setAvancadoVideoAberto]=useState(false)
+  const [fotoPerfilUrl,setFotoPerfilUrl]=useState('')
+  const [descCurta,setDescCurta]=useState('')
+  const [tituloBotaoAgenda,setTituloBotaoAgenda]=useState('')
+  const [mostrarAgenda,setMostrarAgenda]=useState(true)
+  const fotoRef=useRef<HTMLInputElement>(null)
 
   useEffect(()=>{load()},[])
 
@@ -95,6 +100,10 @@ export default function GerenciarAparencia(){
       setTopoMobileUrl(p.topo_mobile_url||'')
       setTopoMobileUrlOriginal(p.topo_mobile_url||'')
       if(p.public_theme||p.tema_publico||p.tema_cor) setPublicTheme(resolverTema(p.public_theme||p.tema_publico||p.tema_cor||'modelo2'))
+      setFotoPerfilUrl(p.foto_perfil_url||'')
+      setDescCurta(p.pagina_descricao_curta||'')
+      setTituloBotaoAgenda(p.pagina_titulo_botao_agenda||'')
+      setMostrarAgenda(p.pagina_mostrar_agenda!==false)
     }
     setCarregando(false)
   }
@@ -187,6 +196,32 @@ export default function GerenciarAparencia(){
     if(topoMobileRef.current)topoMobileRef.current.value=''
   }
 
+  async function uploadFotoPerfil(e:React.ChangeEvent<HTMLInputElement>){
+    const file=e.target.files?.[0];if(!file)return
+    if(!(await validarSessao()))return
+    const allowedTypes=['image/jpeg','image/jpg','image/png','image/webp']
+    if(!allowedTypes.includes(file.type)){setMsg('Envie uma imagem JPG, PNG ou WEBP.');return}
+    if(file.size>5*1024*1024){setMsg('A imagem deve ter no máximo 5MB.');return}
+
+    const {data:userData}=await supabase.auth.getUser()
+    if(!userData?.user){setMsg('Sua sessão expirou. Faça login novamente.');return}
+
+    const ext=file.name.split('.').pop()?.toLowerCase()||'png'
+    const path=`perfis/${userId}-${Date.now()}.${ext}`
+
+    const {error:uploadError}=await supabase.storage.from('fotos').upload(path,file,{upsert:true,contentType:file.type,cacheControl:'3600'})
+    if(uploadError){setMsg('Erro no upload: '+uploadError.message);return}
+
+    const {data}=supabase.storage.from('fotos').getPublicUrl(path)
+    setFotoPerfilUrl(data.publicUrl)
+
+    const {error:updateError}=await supabase.from('perfis').update({foto_perfil_url:data.publicUrl}).eq('user_id',userId)
+    if(updateError){setMsg('Foto enviada, mas erro ao salvar no perfil: '+updateError.message);return}
+
+    setMsg('Foto de perfil salva com sucesso!')
+    setTimeout(()=>setMsg(''),3000)
+  }
+
   async function salvarAparencia(){
     if(!(await validarSessao()))return
     setSalvando(true)
@@ -211,6 +246,10 @@ export default function GerenciarAparencia(){
       topo_mobile_tipo:topoMobileTipoFinal,
       captacao_leads_ativa: permiteCatalogoWhatsapp(planoTipo) ? captacaoLeadsAtiva : false,
       topo_mobile_url:topoMobileUrlFinal.trim()||null,
+      foto_perfil_url:fotoPerfilUrl||null,
+      pagina_descricao_curta:descCurta.trim()||null,
+      pagina_titulo_botao_agenda:tituloBotaoAgenda.trim()||null,
+      pagina_mostrar_agenda:mostrarAgenda,
     }).eq('user_id',userId)
     setSalvando(false)
     if(error){setMsg('Erro ao salvar: '+error.message);return}
@@ -456,6 +495,50 @@ export default function GerenciarAparencia(){
                   )
                 })}
               </div>
+            </div>
+          </div>
+
+          <div className="crd" style={{marginTop:'18px'}}>
+            <p style={{fontSize:'15px',fontWeight:700,color:'#F8F4F7',marginBottom:'4px'}}>Perfil da página</p>
+            <p style={{fontSize:'12px',color:'#B8AAB8',marginBottom:'18px'}}>Foto de perfil e a descrição curta que aparecem na sua página pública.</p>
+
+            <p style={{fontSize:'13px',fontWeight:600,color:'#B8AAB8',marginBottom:'4px'}}>Foto de perfil</p>
+            <p style={{fontSize:'11px',color:'#B8AAB8',marginBottom:'10px'}}>Recomendado: imagem quadrada, 400x400px (proporção 1:1). Aparece em formato circular.</p>
+            <div style={{display:'flex',alignItems:'center',gap:'16px',marginBottom:'18px'}}>
+              {fotoPerfilUrl?(
+                <img src={fotoPerfilUrl} alt="Foto de perfil" style={{width:'72px',height:'72px',borderRadius:'50%',objectFit:'cover',border:'1.5px solid #2A1A2F',flexShrink:0}}/>
+              ):(
+                <div style={{width:'72px',height:'72px',borderRadius:'50%',background:G,display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}><User size={28} color="#fff"/></div>
+              )}
+              <div style={{display:'flex',gap:'8px',flexWrap:'wrap'}}>
+                <button type="button" onClick={()=>fotoRef.current?.click()} style={{background:'rgba(24,16,27,.9)',border:'1px solid #2A1A2F',color:'#B8AAB8',borderRadius:'8px',padding:'8px 14px',fontSize:'12px',fontWeight:600,cursor:'pointer',fontFamily:'inherit'}}>{fotoPerfilUrl?'Trocar foto':'Adicionar foto'}</button>
+                {fotoPerfilUrl&&<button type="button" onClick={()=>setFotoPerfilUrl('')} style={{background:'rgba(24,16,27,.9)',border:'1px solid #2A1A2F',color:'#EF4444',borderRadius:'8px',padding:'8px 14px',fontSize:'12px',fontWeight:600,cursor:'pointer',fontFamily:'inherit'}}>Remover</button>}
+              </div>
+              <input ref={fotoRef} type="file" accept="image/*" onChange={uploadFotoPerfil} style={{display:'none'}}/>
+            </div>
+
+            <div>
+              <label className="lbl">Descrição curta da página (bio)</label>
+              <textarea value={descCurta} onChange={e=>setDescCurta(e.target.value.slice(0,140))} placeholder="Ex: Nail designer • Mentora • Cursos presenciais e online" style={{width:'100%',background:'rgba(24,16,27,.88)',border:'1.5px solid #2A1A2F',borderRadius:'12px',padding:'12px 14px',fontSize:'14px',color:'#F8F4F7',outline:'none',fontFamily:'inherit',resize:'none',height:'70px',lineHeight:1.5,boxSizing:'border-box'}}/>
+              <p style={{fontSize:'11px',color:'#B8AAB8',textAlign:'right',marginTop:'4px'}}>{descCurta.length}/140</p>
+            </div>
+          </div>
+
+          <div className="crd" style={{marginTop:'18px'}}>
+            <p style={{fontSize:'15px',fontWeight:700,color:'#F8F4F7',marginBottom:'4px'}}>Exibição da página</p>
+            <p style={{fontSize:'12px',color:'#B8AAB8',marginBottom:'18px'}}>Controle o botão de agendamento na sua página pública.</p>
+
+            <div style={{marginBottom:'18px'}}>
+              <label className="lbl">Texto do botão de agendar (opcional)</label>
+              <input className="inp" type="text" placeholder="Agendar agora" value={tituloBotaoAgenda} onChange={e=>setTituloBotaoAgenda(e.target.value)}/>
+            </div>
+
+            <div style={{borderTop:'1px solid #2A1A2F',paddingTop:'18px',display:'flex',alignItems:'center',justifyContent:'space-between',gap:'12px',flexWrap:'wrap'}}>
+              <div>
+                <p style={{fontSize:'13px',fontWeight:600,color:'#F8F4F7',marginBottom:'2px'}}>Agenda na página</p>
+                <p style={{fontSize:'12px',color:'#B8AAB8'}}>Mostra ou oculta o botão de agendamento na sua página.</p>
+              </div>
+              <button type="button" onClick={()=>setMostrarAgenda(v=>!v)} style={{background:mostrarAgenda?'rgba(34,197,94,.14)':'#2A1A2F',border:'1px solid '+(mostrarAgenda?'rgba(34,197,94,.25)':'#2A1A2F'),borderRadius:10,padding:'6px 14px',fontSize:11,fontWeight:700,color:mostrarAgenda?'#22C55E':'#B8AAB8',cursor:'pointer',fontFamily:'inherit',flexShrink:0}}>{mostrarAgenda?'Exibindo':'Oculto'}</button>
             </div>
           </div>
 

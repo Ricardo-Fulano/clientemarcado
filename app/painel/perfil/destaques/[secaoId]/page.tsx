@@ -557,7 +557,7 @@ export default function GerenciarDestaques(){
                   </div>
                   <div style={{marginBottom:'12px'}}>
                     <label className="lbl">Imagem de fundo do card</label>
-                    <p style={{fontSize:'11px',color:'#B8AAB8',marginBottom:'8px'}}>Recomendado: 800x600px (proporção 4:3). Imagem horizontal funciona melhor.</p>
+                    <p style={{fontSize:'11px',color:'#B8AAB8',marginBottom:'8px'}}>Recomendado: 1200x800px (proporção 3:2). A imagem preenche todo o card e pode sofrer pequenos cortes nas bordas.</p>
                     <div style={{display:'flex',alignItems:'center',gap:'12px',flexWrap:'wrap'}}>
                       {d.imagem_url?(
                         <img src={d.imagem_url} alt="Imagem do destaque" style={{width:'88px',height:'66px',borderRadius:'10px',objectFit:'cover',border:'1px solid #2A1A2F',flexShrink:0}}/>

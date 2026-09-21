@@ -126,15 +126,10 @@ export default function Perfil(){
   const [fechamento,setFechamento]=useState('18:00')
   const [antecedencia,setAntecedencia]=useState('Sem restrição')
 
-  const [fotoPerfilUrl,setFotoPerfilUrl]=useState('')
-  const [descCurta,setDescCurta]=useState('')
-  const [tituloBotaoAgenda,setTituloBotaoAgenda]=useState('')
-  const [mostrarAgenda,setMostrarAgenda]=useState(true)
   const [mostrarServicos,setMostrarServicos]=useState(true)
   const [mostrarEquipe,setMostrarEquipe]=useState(true)
   const [mostrarPorQueAgendar,setMostrarPorQueAgendar]=useState(true)
   const [mostrarContato,setMostrarContato]=useState(true)
-  const fotoRef=useRef<HTMLInputElement>(null)
 
   const [destaques,setDestaques]=useState<any[]>([])
   const [links,setLinks]=useState<any[]>([])
@@ -181,10 +176,6 @@ export default function Perfil(){
     setPromoObs('')
     setPromoInicio('')
     setPromoFim('')
-    setFotoPerfilUrl('')
-    setDescCurta('')
-    setTituloBotaoAgenda('')
-    setMostrarAgenda(true)
     setMostrarServicos(true)
     setMostrarEquipe(true)
     setMostrarPorQueAgendar(true)
@@ -265,11 +256,6 @@ export default function Perfil(){
       if(p.promocao_data_inicio) setPromoInicio(p.promocao_data_inicio)
       if(p.promocao_data_fim) setPromoFim(p.promocao_data_fim)
 
-      // Campos novos da Página Profissional — fallback seguro se ainda não existirem no perfil
-      setFotoPerfilUrl(p.foto_perfil_url||'')
-      setDescCurta(p.pagina_descricao_curta||'')
-      setTituloBotaoAgenda(p.pagina_titulo_botao_agenda||'')
-      setMostrarAgenda(p.pagina_mostrar_agenda!==false)
       const ordemSalva=p.ordem_secoes_publicas
       const ordemValida=Array.isArray(ordemSalva)&&ordemSalva.length===ORDEM_PADRAO_SECOES.length&&ORDEM_PADRAO_SECOES.every(s=>ordemSalva.includes(s))
       setOrdemSecoes(ordemValida?ordemSalva:ORDEM_PADRAO_SECOES)
@@ -355,10 +341,6 @@ export default function Perfil(){
     payloadSeguro.banner_mobile_position=bannerMobilePosicao
     payloadSeguro.banner_mobile_zoom=bannerMobileZoom
 
-    payloadSeguro.foto_perfil_url=fotoPerfilUrl||null
-    payloadSeguro.pagina_descricao_curta=descCurta.trim()||null
-    payloadSeguro.pagina_titulo_botao_agenda=tituloBotaoAgenda.trim()||null
-    payloadSeguro.pagina_mostrar_agenda=mostrarAgenda
     payloadSeguro.pagina_mostrar_servicos=mostrarServicos
     payloadSeguro.pagina_mostrar_equipe=mostrarEquipe
     payloadSeguro.pagina_mostrar_por_que_agendar=mostrarPorQueAgendar
@@ -408,32 +390,6 @@ export default function Perfil(){
 
     setSalvando(false)
     setMsg('Perfil salvo com sucesso!')
-    setTimeout(()=>setMsg(''),3000)
-  }
-
-  async function uploadFotoPerfil(e:React.ChangeEvent<HTMLInputElement>){
-    const file=e.target.files?.[0];if(!file)return
-    if(!(await validarSessaoAtual()))return
-    const allowedTypes=['image/jpeg','image/jpg','image/png','image/webp']
-    if(!allowedTypes.includes(file.type)){setMsg('Envie uma imagem JPG, PNG ou WEBP.');return}
-    if(file.size>5*1024*1024){setMsg('A imagem deve ter no máximo 5MB.');return}
-
-    const {data:userData}=await supabase.auth.getUser()
-    if(!userData?.user){setMsg('Sua sessão expirou. Faça login novamente.');return}
-
-    const ext=file.name.split('.').pop()?.toLowerCase()||'png'
-    const path=`perfis/${userId}-${Date.now()}.${ext}`
-
-    const {error:uploadError}=await supabase.storage.from('fotos').upload(path,file,{upsert:true,contentType:file.type,cacheControl:'3600'})
-    if(uploadError){setMsg('Erro no upload: '+uploadError.message);return}
-
-    const {data}=supabase.storage.from('fotos').getPublicUrl(path)
-    setFotoPerfilUrl(data.publicUrl)
-
-    const {error:updateError}=await supabase.from('perfis').update({foto_perfil_url:data.publicUrl}).eq('user_id',userId)
-    if(updateError){setMsg('Foto enviada, mas erro ao salvar no perfil: '+updateError.message);return}
-
-    setMsg('Foto de perfil salva com sucesso!')
     setTimeout(()=>setMsg(''),3000)
   }
 
@@ -558,45 +514,6 @@ export default function Perfil(){
                 <p style={{fontSize:'12px',color:'#B8AAB8'}}>Banner, foto, cores e visual da página pública.</p>
               </div>
               <Link href="/painel/perfil/aparencia" style={{background:G,color:'#fff',border:'1px solid rgba(255,255,255,.12)',borderRadius:'10px',padding:'10px 18px',fontSize:'13px',fontWeight:700,textDecoration:'none',flexShrink:0}}>Gerenciar aparência</Link>
-            </div>
-          </div>
-
-          <div className="crd">
-            <p style={{fontSize:'15px',fontWeight:700,color:'#F8F4F7',marginBottom:'4px'}}>Página profissional</p>
-            <p style={{fontSize:'12px',color:'#B8AAB8',marginBottom:'18px'}}>Foto de perfil, descrição da bio e o que aparece na sua página pública.</p>
-
-            <p style={{fontSize:'13px',fontWeight:600,color:'#B8AAB8',marginBottom:'4px'}}>Foto de perfil</p>
-            <p style={{fontSize:'11px',color:'#B8AAB8',marginBottom:'10px'}}>Recomendado: imagem quadrada, 400x400px (proporção 1:1). Aparece em formato circular.</p>
-            <div style={{display:'flex',alignItems:'center',gap:'16px',marginBottom:'18px'}}>
-              {fotoPerfilUrl?(
-                <img src={fotoPerfilUrl} alt="Foto de perfil" style={{width:'72px',height:'72px',borderRadius:'50%',objectFit:'cover',border:'1.5px solid #2A1A2F',flexShrink:0}}/>
-              ):(
-                <div style={{width:'72px',height:'72px',borderRadius:'50%',background:AV,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'24px',fontWeight:700,color:'#fff',flexShrink:0}}>{ini}</div>
-              )}
-              <div style={{display:'flex',gap:'8px',flexWrap:'wrap'}}>
-                <button type="button" onClick={()=>fotoRef.current?.click()} style={{background:'rgba(24,16,27,.9)',border:'1px solid #2A1A2F',color:'#B8AAB8',borderRadius:'8px',padding:'8px 14px',fontSize:'12px',fontWeight:600,cursor:'pointer',fontFamily:'inherit'}}>{fotoPerfilUrl?'Trocar foto':'Adicionar foto'}</button>
-                {fotoPerfilUrl&&<button type="button" onClick={()=>setFotoPerfilUrl('')} style={{background:'rgba(24,16,27,.9)',border:'1px solid #2A1A2F',color:'#EF4444',borderRadius:'8px',padding:'8px 14px',fontSize:'12px',fontWeight:600,cursor:'pointer',fontFamily:'inherit'}}>Remover</button>}
-              </div>
-              <input ref={fotoRef} type="file" accept="image/*" onChange={uploadFotoPerfil} style={{display:'none'}}/>
-            </div>
-
-            <div style={{marginBottom:'18px'}}>
-              <label className="lbl">Descrição curta da página (bio)</label>
-              <textarea value={descCurta} onChange={e=>setDescCurta(e.target.value.slice(0,140))} placeholder="Ex: Nail designer • Mentora • Cursos presenciais e online" style={{width:'100%',background:'rgba(24,16,27,.88)',border:'1.5px solid #2A1A2F',borderRadius:'12px',padding:'12px 14px',fontSize:'14px',color:'#F8F4F7',outline:'none',fontFamily:'inherit',resize:'none',height:'70px',lineHeight:1.5,boxSizing:'border-box'}}/>
-              <p style={{fontSize:'11px',color:'#B8AAB8',textAlign:'right',marginTop:'4px'}}>{descCurta.length}/140</p>
-            </div>
-
-            <div style={{marginBottom:'18px'}}>
-              <label className="lbl">Texto do botão de agendar (opcional)</label>
-              <input className="inp" type="text" placeholder="Agendar agora" value={tituloBotaoAgenda} onChange={e=>setTituloBotaoAgenda(e.target.value)}/>
-            </div>
-
-            <div style={{borderTop:'1px solid #2A1A2F',paddingTop:'18px',display:'flex',alignItems:'center',justifyContent:'space-between',gap:'12px',flexWrap:'wrap'}}>
-              <div>
-                <p style={{fontSize:'13px',fontWeight:600,color:'#F8F4F7',marginBottom:'2px'}}>Agenda na página</p>
-                <p style={{fontSize:'12px',color:'#B8AAB8'}}>Mostra ou oculta o botão de agendamento na sua página.</p>
-              </div>
-              <button type="button" onClick={()=>setMostrarAgenda(v=>!v)} style={{background:mostrarAgenda?'rgba(34,197,94,.14)':'#2A1A2F',border:'1px solid '+(mostrarAgenda?'rgba(34,197,94,.25)':'#2A1A2F'),borderRadius:10,padding:'6px 14px',fontSize:11,fontWeight:700,color:mostrarAgenda?'#22C55E':'#B8AAB8',cursor:'pointer',fontFamily:'inherit',flexShrink:0}}>{mostrarAgenda?'Exibindo':'Oculto'}</button>
             </div>
           </div>
 

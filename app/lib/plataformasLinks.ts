@@ -6,6 +6,7 @@
 export const PLATAFORMAS_LINK = [
   { id: 'whatsapp', label: 'WhatsApp', placeholder: '(11) 99999-9999 ou @studiobella' },
   { id: 'instagram', label: 'Instagram', placeholder: '@usuario ou instagram.com/usuario' },
+  { id: 'threads', label: 'Threads', placeholder: 'https://threads.net/@usuario' },
   { id: 'tiktok', label: 'TikTok', placeholder: 'https://tiktok.com/@usuario' },
   { id: 'youtube', label: 'YouTube', placeholder: 'https://youtube.com/...' },
   { id: 'youtube_music', label: 'YouTube Music', placeholder: 'https://music.youtube.com/...' },
