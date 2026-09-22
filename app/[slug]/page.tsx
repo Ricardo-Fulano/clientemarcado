@@ -15,6 +15,7 @@ import RegistrarPageView from '../components/RegistrarPageView'
 import RegistradorDeCliques from '../components/RegistradorDeCliques'
 import BannerVideo from '../components/BannerVideo'
 import DestaqueItemCard from '../components/DestaqueItemCard'
+import SocialTicker from '../components/SocialTicker'
 import { resolverTema, getTema } from '../lib/tema-publico'
 import { ehPlanoComGestao, permiteVideos, permiteDestaques, permiteAgendaEventos, obterLimiteCatalogos, podeUsarCatalogo, obterLimiteSecoesDestaques, obterLimiteLinksRapidos, ehPlanoFree } from '../lib/planos'
 
@@ -54,9 +55,10 @@ html,body{overflow-x:hidden;width:100%;max-width:100%}
 .hero-btns{display:flex;gap:10px;flex-wrap:wrap;margin-top:22px;margin-bottom:28px}
 .profile-row{display:flex;align-items:flex-end;gap:16px;margin-top:-48px;margin-bottom:18px;flex-wrap:wrap;position:relative;z-index:2}
 .avatar-pro{width:96px;height:96px;border-radius:999px;object-fit:cover;flex-shrink:0}
-.social-row{display:flex;gap:8px;margin-left:auto;flex-wrap:wrap}
 .social-ic{width:38px;height:38px;border-radius:999px;display:flex;align-items:center;justify-content:center;flex-shrink:0;text-decoration:none;transition:transform .18s}
+@media (hover:hover) and (pointer:fine){
 .social-ic:hover{transform:translateY(-2px);border-color:var(--accent)!important;box-shadow:0 0 10px var(--accent-glow)}
+}
 .bio-text{font-size:15px;color:var(--text-muted);max-width:560px;line-height:1.5;margin-bottom:6px}
 .loc-text{font-size:13px;color:var(--text-muted);display:flex;align-items:center;gap:5px;margin-bottom:4px}
 .destaque-grid{display:flex;flex-wrap:wrap;gap:12px;width:100%;max-width:100%;justify-content:flex-start}
@@ -540,18 +542,20 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
   // So plataformas "sociais" reconhecidas entram aqui - links genericos, produtos, loja
   // fisica, catalogo, agenda ou botoes internos continuam so nos cards abaixo, por decisao
   // deliberada (nao faz sentido visual/semantico ícone de "loja" ou "agenda" no topo).
-  const TIPOS_SOCIAIS_TOPO = ['whatsapp', 'instagram', 'youtube', 'tiktok', 'spotify', 'deezer', 'shopee', 'telegram', 'facebook', 'x', 'linkedin', 'pinterest', 'twitch', 'discord', 'email', 'site', 'apple_music', 'amazon_music', 'tidal', 'tinder']
+  const TIPOS_SOCIAIS_TOPO = ['whatsapp', 'instagram', 'threads', 'youtube', 'tiktok', 'spotify', 'deezer', 'shopee', 'telegram', 'facebook', 'x', 'linkedin', 'pinterest', 'twitch', 'discord', 'email', 'site', 'apple_music', 'amazon_music', 'tidal', 'tinder', 'youtube_music']
   const linksSociaisBrutos = (linksRapidos || [])
     .map(l => ({ ...l, tipoEfetivo: detectarTipoPorUrl(l.url) || detectarTipoPorTitulo(l.titulo) || l.tipo }))
     .filter(l => TIPOS_SOCIAIS_TOPO.includes(l.tipoEfetivo))
   // Deduplica por tipo - se houver 2 links de WhatsApp (ou Instagram em campo fixo + em
-  // link rapido), mostra so o primeiro de cada tipo, nunca 2 icones iguais.
+  // link rapido), mostra so o primeiro de cada tipo, nunca 2 icones iguais. Sem limite de
+  // quantidade - a faixa em esteira (SocialTicker) suporta qualquer numero de itens numa
+  // unica linha, com auto-scroll quando nao couberem todos na largura disponivel.
   const tiposJaVistos = new Set<string>()
   const linksSociais = linksSociaisBrutos.filter(l => {
     if (tiposJaVistos.has(l.tipoEfetivo)) return false
     tiposJaVistos.add(l.tipoEfetivo)
     return true
-  }).slice(0, 8)
+  })
 
   const fBRL = (v: number) => `R$ ${(v || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`
 
@@ -687,15 +691,17 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
                 </div>
                 <p className="hero-mobile-slug">@{slug}</p>
                 {!isPlanoFree && linksSociais.length > 0 && (
-                  <div className="social-row" style={{ justifyContent: 'center', marginLeft: 0 }}>
-                    {linksSociais.map(l => {
-                      const cfg = iconeLink(l.tipoEfetivo)
-                      return (
-                        <a key={l.id} href={l.url} target={l.url && l.url.startsWith('http') ? '_blank' : '_self'} rel="noopener noreferrer" className="social-ic" style={{ background: iconeBg, border: `1px solid ${iconeBorder}`, color: cfg.color || iconeCor }} aria-label={l.titulo} data-track-tipo="social_click" data-track-item-titulo={l.titulo} data-track-item-url={l.url}>
-                          {cfg.svg ? cfg.svg : (cfg.I ? <cfg.I size={16} color={cfg.color || iconeCor} /> : null)}
-                        </a>
-                      )
-                    })}
+                  <div style={{ marginTop: '2px', width: '100%', minWidth: 0, alignSelf: 'stretch' }}>
+                    <SocialTicker>
+                      {linksSociais.map(l => {
+                        const cfg = iconeLink(l.tipoEfetivo)
+                        return (
+                          <a key={l.id} href={l.url} target={l.url && l.url.startsWith('http') ? '_blank' : '_self'} rel="noopener noreferrer" className="social-ic" style={{ background: iconeBg, border: `1px solid ${iconeBorder}`, color: cfg.color || iconeCor }} aria-label={l.titulo} data-track-tipo="social_click" data-track-item-titulo={l.titulo} data-track-item-url={l.url}>
+                            {cfg.svg ? cfg.svg : (cfg.I ? <cfg.I size={16} color={cfg.color || iconeCor} /> : null)}
+                          </a>
+                        )
+                      })}
+                    </SocialTicker>
                   </div>
                 )}
                 {seguidoresTexto && <p className="hero-mobile-seguidores">{seguidoresTexto}</p>}
@@ -721,15 +727,17 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
                   <p style={{ fontSize: '13px', color: 'var(--text-muted)', margin: '2px 0 0' }}>@{slug}{seguidoresTexto ? ` · ${seguidoresTexto}` : ''}</p>
                 </div>
                 {!isPlanoFree && linksSociais.length > 0 && (
-                  <div className="social-row">
-                    {linksSociais.map(l => {
-                      const cfg = iconeLink(l.tipoEfetivo)
-                      return (
-                        <a key={l.id} href={l.url} target={l.url && l.url.startsWith('http') ? '_blank' : '_self'} rel="noopener noreferrer" className="social-ic" style={{ background: iconeBg, border: `1px solid ${iconeBorder}`, color: cfg.color || iconeCor }} aria-label={l.titulo} data-track-tipo="social_click" data-track-item-titulo={l.titulo} data-track-item-url={l.url}>
-                          {cfg.svg ? cfg.svg : (cfg.I ? <cfg.I size={16} color={cfg.color || iconeCor} /> : null)}
-                        </a>
-                      )
-                    })}
+                  <div style={{ marginTop: '2px', width: '100%', minWidth: 0, alignSelf: 'stretch' }}>
+                    <SocialTicker>
+                      {linksSociais.map(l => {
+                        const cfg = iconeLink(l.tipoEfetivo)
+                        return (
+                          <a key={l.id} href={l.url} target={l.url && l.url.startsWith('http') ? '_blank' : '_self'} rel="noopener noreferrer" className="social-ic" style={{ background: iconeBg, border: `1px solid ${iconeBorder}`, color: cfg.color || iconeCor }} aria-label={l.titulo} data-track-tipo="social_click" data-track-item-titulo={l.titulo} data-track-item-url={l.url}>
+                            {cfg.svg ? cfg.svg : (cfg.I ? <cfg.I size={16} color={cfg.color || iconeCor} /> : null)}
+                          </a>
+                        )
+                      })}
+                    </SocialTicker>
                   </div>
                 )}
               </div>
