@@ -229,7 +229,7 @@ html,body{overflow-x:hidden;width:100%;max-width:100%}
 function otimizarImagemOG(url: string): string {
   const marcador = '/storage/v1/object/public/'
   if (!url.includes(marcador)) return url
-  return url.replace('/storage/v1/object/public/', '/storage/v1/render/image/public/') + (url.includes('?') ? '&' : '?') + 'width=1200&quality=80'
+  return url.replace('/storage/v1/object/public/', '/storage/v1/render/image/public/') + (url.includes('?') ? '&' : '?') + 'width=630&quality=80'
 }
 
 // Domínio base do site, para montar URLs absolutas na prévia de compartilhamento.
@@ -275,22 +275,15 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const titulo = `${nome} | MiniPage Pro`
 
   // Mesmo fallback de capa por tipo de negócio já usado na renderização da página pública
-  let capaFallback = ''
-  if (!perfil.capa_url) {
-    const tipoNeg = (perfil.tipo_negocio || '').toLowerCase()
-    const slugRef = tipoNeg.includes('barbearia') ? 'domcorte' : (tipoNeg.includes('est') || tipoNeg.includes('sal') || tipoNeg.includes('bel') ? 'studiobella' : '')
-    if (slugRef) {
-      const { data: perfilRef } = await supabase.from('perfis').select('capa_url').eq('slug', slugRef).single()
-      capaFallback = perfilRef?.capa_url || ''
-    }
-  }
-
   const { base } = await resolverDominioAtual(slug)
   // Link canonico da pagina publica agora e sempre o minipage.pro/@slug (o link curto oficial),
   // independente de qual dominio serviu essa requisicao especifica.
   // Link oficial divulgado: https://minipage.pro/slug (sem @, mais simples de compartilhar).
   const url = `https://minipage.pro/${slug}`
-  const imagemBruta = perfil.capa_url || perfil.imagem_capa || perfil.banner_url || capaFallback || perfil.foto_perfil_url || ''
+  // Prioridade de imagem OG: SOMENTE foto de perfil, com fallback institucional. Capa/banner
+  // foram removidos dessa prioridade porque na pratica boa parte das MiniPages usa VIDEO
+  // como capa - uma URL de video como og:image nunca gera preview valido em nenhuma rede.
+  const imagemBruta = perfil.foto_perfil_url || ''
   const imagem = imagemBruta ? otimizarImagemOG(imagemBruta.startsWith('http') ? imagemBruta : `${base}${imagemBruta}`) : `${SITE_URL}/og-image.png?v=2`
 
   return {
@@ -305,13 +298,16 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
       url,
       siteName: 'MiniPage Pro',
       type: 'website',
-      images: [{ url: imagem, width: 1200, height: 630, alt: `${nome} - Página profissional` }],
+      images: [{ url: imagem, width: 630, height: 630, alt: `${nome} - Página profissional` }],
     },
     twitter: {
       card: 'summary_large_image',
       title: titulo,
       description: descricao,
       images: [imagem],
+    },
+    other: {
+      'og:image:secure_url': imagem,
     },
   }
 }

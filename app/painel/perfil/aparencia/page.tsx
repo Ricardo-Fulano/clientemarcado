@@ -196,20 +196,62 @@ export default function GerenciarAparencia(){
     if(topoMobileRef.current)topoMobileRef.current.value=''
   }
 
+  // Comprime a imagem no navegador ANTES do upload - redimensiona pra no maximo 800x800px
+  // (suficiente mesmo em telas retina pro tamanho recomendado de 400x400) e converte pra
+  // JPEG com qualidade 85%. Resolve na raiz o problema de preview do WhatsApp: fotos
+  // originais grandes/complexas viravam PNG pesado (as vezes 2MB+) mesmo depois de
+  // redimensionadas na API do Supabase, e o WhatsApp so mostra preview com imagem se o
+  // arquivo final for menor que ~600KB. Convertendo sempre pra JPEG aqui, a foto de perfil
+  // nunca mais sai pesada, independente do que o cliente enviar.
+  function comprimirImagem(file: File): Promise<File> {
+    return new Promise((resolve, reject) => {
+      const img = new Image()
+      const url = URL.createObjectURL(file)
+      img.onload = () => {
+        URL.revokeObjectURL(url)
+        const MAX = 800
+        let { width, height } = img
+        if (width > MAX || height > MAX) {
+          if (width > height) { height = Math.round(height * (MAX / width)); width = MAX }
+          else { width = Math.round(width * (MAX / height)); height = MAX }
+        }
+        const canvas = document.createElement('canvas')
+        canvas.width = width
+        canvas.height = height
+        const ctx = canvas.getContext('2d')
+        if (!ctx) { reject(new Error('Canvas não suportado')); return }
+        ctx.drawImage(img, 0, 0, width, height)
+        canvas.toBlob((blob) => {
+          if (!blob) { reject(new Error('Falha ao comprimir imagem')); return }
+          resolve(new File([blob], file.name.replace(/\.[^.]+$/, '') + '.jpg', { type: 'image/jpeg' }))
+        }, 'image/jpeg', 0.85)
+      }
+      img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('Não foi possível ler a imagem')) }
+      img.src = url
+    })
+  }
+
   async function uploadFotoPerfil(e:React.ChangeEvent<HTMLInputElement>){
-    const file=e.target.files?.[0];if(!file)return
+    const fileOriginal=e.target.files?.[0];if(!fileOriginal)return
     if(!(await validarSessao()))return
     const allowedTypes=['image/jpeg','image/jpg','image/png','image/webp']
-    if(!allowedTypes.includes(file.type)){setMsg('Envie uma imagem JPG, PNG ou WEBP.');return}
-    if(file.size>5*1024*1024){setMsg('A imagem deve ter no máximo 5MB.');return}
+    if(!allowedTypes.includes(fileOriginal.type)){setMsg('Envie uma imagem JPG, PNG ou WEBP.');return}
+    if(fileOriginal.size>5*1024*1024){setMsg('A imagem deve ter no máximo 5MB.');return}
 
     const {data:userData}=await supabase.auth.getUser()
     if(!userData?.user){setMsg('Sua sessão expirou. Faça login novamente.');return}
 
-    const ext=file.name.split('.').pop()?.toLowerCase()||'png'
-    const path=`perfis/${userId}-${Date.now()}.${ext}`
+    let file: File
+    try {
+      file = await comprimirImagem(fileOriginal)
+    } catch {
+      setMsg('Não foi possível processar a imagem. Tente outra foto.')
+      return
+    }
 
-    const {error:uploadError}=await supabase.storage.from('fotos').upload(path,file,{upsert:true,contentType:file.type,cacheControl:'3600'})
+    const path=`perfis/${userId}-${Date.now()}.jpg`
+
+    const {error:uploadError}=await supabase.storage.from('fotos').upload(path,file,{upsert:true,contentType:'image/jpeg',cacheControl:'3600'})
     if(uploadError){setMsg('Erro no upload: '+uploadError.message);return}
 
     const {data}=supabase.storage.from('fotos').getPublicUrl(path)
@@ -503,7 +545,7 @@ export default function GerenciarAparencia(){
             <p style={{fontSize:'12px',color:'#B8AAB8',marginBottom:'18px'}}>Foto de perfil e a descrição curta que aparecem na sua página pública.</p>
 
             <p style={{fontSize:'13px',fontWeight:600,color:'#B8AAB8',marginBottom:'4px'}}>Foto de perfil</p>
-            <p style={{fontSize:'11px',color:'#B8AAB8',marginBottom:'10px'}}>Recomendado: imagem quadrada, 400x400px (proporção 1:1). Aparece em formato circular.</p>
+            <p style={{fontSize:'11px',color:'#B8AAB8',marginBottom:'10px'}}>Recomendado: imagem quadrada (proporção 1:1). Aparece em formato circular. Sua foto é otimizada automaticamente ao enviar.</p>
             <div style={{display:'flex',alignItems:'center',gap:'16px',marginBottom:'18px'}}>
               {fotoPerfilUrl?(
                 <img src={fotoPerfilUrl} alt="Foto de perfil" style={{width:'72px',height:'72px',borderRadius:'50%',objectFit:'cover',border:'1.5px solid #2A1A2F',flexShrink:0}}/>
