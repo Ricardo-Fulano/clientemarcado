@@ -72,20 +72,35 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Não foi possível concluir a transferência agora. Fale com o suporte.' }, { status: 500 })
     }
 
-    const [destaquesRes, linksRes, videosRes, eventosRes] = await Promise.all([
+    const [destaquesRes, secoesDestaquesRes, linksRes, videosRes, eventosRes, catalogosRes, catalogoItensRes] = await Promise.all([
       supabase.from('pagina_destaques').update({ user_id: novoUserId }).eq('user_id', userIdAntigo),
+      supabase.from('pagina_destaques_secoes').update({ user_id: novoUserId }).eq('user_id', userIdAntigo),
       supabase.from('pagina_links').update({ user_id: novoUserId }).eq('user_id', userIdAntigo),
       supabase.from('pagina_videos').update({ user_id: novoUserId }).eq('user_id', userIdAntigo),
       supabase.from('pagina_eventos').update({ user_id: novoUserId }).eq('user_id', userIdAntigo),
+      supabase.from('pagina_catalogos').update({ user_id: novoUserId }).eq('user_id', userIdAntigo),
+      supabase.from('pagina_catalogo_itens').update({ user_id: novoUserId }).eq('user_id', userIdAntigo),
     ])
     if (destaquesRes.error) console.error('[convite/aceitar] Erro ao transferir destaques:', destaquesRes.error.message)
+    if (secoesDestaquesRes.error) console.error('[convite/aceitar] Erro ao transferir seções de destaques:', secoesDestaquesRes.error.message)
     if (linksRes.error) console.error('[convite/aceitar] Erro ao transferir links:', linksRes.error.message)
     if (videosRes.error) console.error('[convite/aceitar] Erro ao transferir vídeos:', videosRes.error.message)
     if (eventosRes.error) console.error('[convite/aceitar] Erro ao transferir eventos:', eventosRes.error.message)
+    if (catalogosRes.error) console.error('[convite/aceitar] Erro ao transferir catálogos:', catalogosRes.error.message)
+    if (catalogoItensRes.error) console.error('[convite/aceitar] Erro ao transferir itens de catálogo:', catalogoItensRes.error.message)
 
     await supabase.from('convites_transferencia').update({ status: 'aceito', aceito_em: new Date().toISOString() }).eq('id', convite.id)
 
-    return NextResponse.json({ ok: true })
+    const avisos: string[] = []
+    if (destaquesRes.error) avisos.push('destaques')
+    if (secoesDestaquesRes.error) avisos.push('seções de destaques')
+    if (linksRes.error) avisos.push('links')
+    if (videosRes.error) avisos.push('vídeos')
+    if (eventosRes.error) avisos.push('eventos')
+    if (catalogosRes.error) avisos.push('catálogos')
+    if (catalogoItensRes.error) avisos.push('itens de catálogo')
+
+    return NextResponse.json({ ok: true, avisos: avisos.length > 0 ? avisos : undefined })
   } catch (err) {
     console.error('[convite/aceitar] Erro interno:', err)
     return NextResponse.json({ error: 'Erro interno' }, { status: 500 })
