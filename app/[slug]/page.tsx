@@ -62,6 +62,7 @@ html,body{overflow-x:hidden;width:100%;max-width:100%}
 .bio-text{font-size:15px;color:var(--text-muted);max-width:560px;line-height:1.5;margin-bottom:6px}
 .loc-text{font-size:13px;color:var(--text-muted);display:flex;align-items:center;gap:5px;margin-bottom:4px}
 .destaque-grid{display:flex;flex-wrap:wrap;gap:12px;width:100%;max-width:100%;justify-content:flex-start}
+.destaque-grade{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;width:100%;max-width:100%}
 .destaque-grid .destaque-item{flex:0 1 260px;max-width:260px;width:100%}
 /* Desktop: grid FIXO de 3 colunas, sempre - independente de quantos itens a secao tem de
    verdade. Isso reproduz o padrao antigo aprovado: 1 item ocupa so a 1a coluna (nao estica
@@ -70,6 +71,7 @@ html,body{overflow-x:hidden;width:100%;max-width:100%}
 @media(min-width:1024px){
   .destaque-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));justify-items:stretch}
   .destaque-grid .destaque-item{max-width:100%;flex:none}
+  .destaque-grade{grid-template-columns:repeat(auto-fill,minmax(200px,1fr))}
 }
 .destaque-item{display:block;width:100%;max-width:100%;min-width:0;box-sizing:border-box}
 .destaque-scroll{display:flex;flex-wrap:nowrap;overflow-x:auto;overflow-y:hidden;gap:12px;width:100%;max-width:100%;padding-bottom:6px;scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch}
@@ -209,6 +211,17 @@ html,body{overflow-x:hidden;width:100%;max-width:100%}
   .cta-btns a{width:100%!important;justify-content:center!important}
   .wrap{padding:0 18px}
 }
+
+/* Escala tipografica propria do modo Grade - o card fica bem menor que Vertical/Carrossel,
+   entao titulo/descricao/CTA precisam ser proporcionalmente menores. Posicionado aqui
+   (depois do bloco mobile acima) e com especificidade maior (3 classes em cadeia) de
+   proposito - vence tanto por especificidade quanto por ordem de declaracao, garantindo
+   que nao seja sobrescrito pela regra mobile generica de .destaque-titulo-v2/desc/action. */
+.destaque-grade .destaque-card .destaque-overlay{padding:16px 7px 7px!important}
+.destaque-grade .destaque-card .destaque-titulo-v2{font-size:12px!important;line-height:1.15!important}
+.destaque-grade .destaque-card .destaque-desc-v2{font-size:10px!important}
+.destaque-grade .destaque-card .destaque-action-v2{font-size:10.5px!important}
+
 /* Breakpoint mobile estrito - valores explicitos e definitivos pra altura dos cards.
    Usa !important deliberadamente aqui: tentativas anteriores mais "suaves" nao foram
    suficientes, entao esse bloco garante que nada mais no arquivo consiga vencer essas
@@ -349,7 +362,7 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
     supabase.from('servicos').select('*').eq('user_id', perfil.user_id).eq('ativo', true).order('nome'),
     supabase.from('profissionais').select('*').eq('user_id', perfil.user_id).eq('ativo', true).order('nome'),
     supabase.from('pagina_destaques').select('*').eq('user_id', perfil.user_id).eq('ativo', true).order('ordem').order('created_at'),
-    supabase.from('pagina_destaques_secoes').select('id,titulo,subtitulo').eq('user_id', perfil.user_id).eq('ativo', true).order('ordem'),
+    supabase.from('pagina_destaques_secoes').select('id,titulo,subtitulo,formato').eq('user_id', perfil.user_id).eq('ativo', true).order('ordem'),
     supabase.from('pagina_links').select('*').eq('user_id', perfil.user_id).eq('ativo', true).order('ordem').order('created_at'),
     supabase.from('pagina_videos').select('*').eq('user_id', perfil.user_id).eq('ativo', true).order('ordem').order('created_at'),
     supabase.from('pagina_eventos').select('*').eq('user_id', perfil.user_id).eq('ativo', true).order('ordem').order('created_at'),
@@ -801,8 +814,6 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
             && ORDEM_PADRAO_SECOES.every(s => ordemSalva.includes(s))
           const ordemSecoes: string[] = ordemValida ? (ordemSalva as string[]) : ORDEM_PADRAO_SECOES
 
-          const destaquesFormato = perfil.destaques_formato === 'horizontal' ? 'horizontal' : 'vertical'
-
           const secoesMap: Record<string, ReactNode> = {
             destaques: (
 // * DESTAQUES DA PAGINA - agora com multiplas secoes, cada uma com seu proprio titulo/
@@ -815,10 +826,31 @@ secoesDestaquesComItens.length > 0 && permiteDestaques(perfil.plano_tipo) && (
               <div key={secao.id} style={{ marginBottom: '28px' }}>
                 <p style={{ fontSize: '17px', fontWeight: 800, color: tema.text, marginBottom: secao.subtitulo ? '2px' : '10px' }}>{secao.titulo}</p>
                 {secao.subtitulo && <p style={{ fontSize: '12px', color: tema.textMuted, marginBottom: '10px' }}>{secao.subtitulo}</p>}
-                {destaquesFormato === 'horizontal' ? (
-                  <>
-                    <p className="scroll-hint">Deslize para ver mais →</p>
-                    <div className="destaque-scroll">
+                {(() => {
+                  // Fallback defensivo: 'grade' e reconhecido; 'horizontal' (nome antigo) e
+                  // 'carrossel' tem o mesmo visual; qualquer outro valor/nulo cai em vertical.
+                  const formatoSecao = secao.formato === 'grade' ? 'grade' : (secao.formato === 'horizontal' || secao.formato === 'carrossel') ? 'carrossel' : 'vertical'
+                  if (formatoSecao === 'carrossel') return (
+                    <>
+                      <p className="scroll-hint">Deslize para ver mais →</p>
+                      <div className="destaque-scroll">
+                        {secao.itens.map((d: any) => (
+                          <DestaqueItemCard
+                            key={d.id}
+                            d={d}
+                            tema={tema}
+                            iconeCor={iconeCor}
+                            textoVerMais={t.verMais}
+                            cardBorderFinal={cardBorderFinal}
+                            cardShadowNeon={cardShadowNeon}
+                            horizontal
+                          />
+                        ))}
+                      </div>
+                    </>
+                  )
+                  if (formatoSecao === 'grade') return (
+                    <div className="destaque-grade">
                       {secao.itens.map((d: any) => (
                         <DestaqueItemCard
                           key={d.id}
@@ -828,26 +860,27 @@ secoesDestaquesComItens.length > 0 && permiteDestaques(perfil.plano_tipo) && (
                           textoVerMais={t.verMais}
                           cardBorderFinal={cardBorderFinal}
                           cardShadowNeon={cardShadowNeon}
-                          horizontal
+                          grade
                         />
                       ))}
                     </div>
-                  </>
-                ) : (
-                  <div className="destaque-grid">
-                    {secao.itens.map((d: any) => (
-                      <DestaqueItemCard
-                        key={d.id}
-                        d={d}
-                        tema={tema}
-                        iconeCor={iconeCor}
-                        textoVerMais={t.verMais}
-                        cardBorderFinal={cardBorderFinal}
-                        cardShadowNeon={cardShadowNeon}
-                      />
-                    ))}
-                  </div>
-                )}
+                  )
+                  return (
+                    <div className="destaque-grid">
+                      {secao.itens.map((d: any) => (
+                        <DestaqueItemCard
+                          key={d.id}
+                          d={d}
+                          tema={tema}
+                          iconeCor={iconeCor}
+                          textoVerMais={t.verMais}
+                          cardBorderFinal={cardBorderFinal}
+                          cardShadowNeon={cardShadowNeon}
+                        />
+                      ))}
+                    </div>
+                  )
+                })()}
               </div>
             ))}
           </>

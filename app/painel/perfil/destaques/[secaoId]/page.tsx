@@ -31,7 +31,7 @@ export default function GerenciarDestaques(){
   const [secao,setSecao] = useState<any>(null)
   const [userId,setUserId]=useState('')
   const [planoTipo,setPlanoTipo]=useState('essencial')
-  const [formato,setFormato]=useState<'vertical'|'horizontal'>('vertical')
+  const [formato,setFormato]=useState<'vertical'|'carrossel'|'grade'>('vertical')
   const [salvandoFormato,setSalvandoFormato]=useState(false)
   const [destaques,setDestaques]=useState<any[]>([])
   const [carregando,setCarregando]=useState(true)
@@ -58,7 +58,8 @@ export default function GerenciarDestaques(){
       supabase.from('pagina_destaques_secoes').select('*').eq('id',secaoId).eq('user_id',user.id).maybeSingle(),
     ])
     if(perfil?.plano_tipo) setPlanoTipo(perfil.plano_tipo)
-    setFormato(perfil?.destaques_formato==='horizontal'?'horizontal':'vertical')
+    const formatoSecao = secaoData?.formato
+    setFormato(formatoSecao==='grade'?'grade':(formatoSecao==='horizontal'||formatoSecao==='carrossel')?'carrossel':'vertical')
     setSecao(secaoData||null)
     setDestaques(data||[])
     // Busca a galeria de TODOS os destaques dessa secao de uma vez (evita 1 consulta por
@@ -82,12 +83,16 @@ export default function GerenciarDestaques(){
     return true
   }
 
-  async function alterarFormato(novoFormato:'vertical'|'horizontal'){
+  function selecionarFormato(novoFormato:'vertical'|'carrossel'|'grade'){
+    setFormato(novoFormato) // so muda a selecao visual - nao salva ainda
+  }
+
+  async function salvarFormato(){
     if(!(await validarSessao()))return
-    setFormato(novoFormato) // atualiza a UI na hora, sem esperar o salvamento
     setSalvandoFormato(true)
-    const {error}=await supabase.from('perfis').update({destaques_formato:novoFormato}).eq('user_id',userId)
-    if(error)setMsg('Erro ao salvar o formato de exibição.')
+    const {error}=await supabase.from('pagina_destaques_secoes').update({formato}).eq('id',secaoId).eq('user_id',userId)
+    if(error){setMsg('Erro ao salvar o formato de exibição.')}
+    else{setMsg('Formato salvo!');setTimeout(()=>setMsg(''),3000)}
     setSalvandoFormato(false)
   }
 
@@ -457,10 +462,12 @@ export default function GerenciarDestaques(){
           <div className="crd" style={{padding:'16px 18px',marginBottom:'24px'}}>
             <p style={{fontSize:'13px',fontWeight:700,color:'#F8F4F7',marginBottom:'10px'}}>Formato dos destaques</p>
             <div style={{display:'flex',gap:'8px',flexWrap:'wrap'}}>
-              <button type="button" onClick={()=>alterarFormato('vertical')} disabled={salvandoFormato} style={{background:formato==='vertical'?G:'rgba(24,16,27,.9)',color:formato==='vertical'?'#fff':'#B8AAB8',border:formato==='vertical'?'1px solid rgba(255,255,255,.12)':'1px solid #2A1A2F',borderRadius:'10px',padding:'9px 16px',fontSize:'13px',fontWeight:600,cursor:salvandoFormato?'wait':'pointer',fontFamily:'inherit'}}>Vertical</button>
-              <button type="button" onClick={()=>alterarFormato('horizontal')} disabled={salvandoFormato} style={{background:formato==='horizontal'?G:'rgba(24,16,27,.9)',color:formato==='horizontal'?'#fff':'#B8AAB8',border:formato==='horizontal'?'1px solid rgba(255,255,255,.12)':'1px solid #2A1A2F',borderRadius:'10px',padding:'9px 16px',fontSize:'13px',fontWeight:600,cursor:salvandoFormato?'wait':'pointer',fontFamily:'inherit'}}>Carrossel no celular</button>
+              <button type="button" onClick={()=>selecionarFormato('vertical')} disabled={salvandoFormato} style={{background:formato==='vertical'?G:'rgba(24,16,27,.9)',color:formato==='vertical'?'#fff':'#B8AAB8',border:formato==='vertical'?'1px solid rgba(255,255,255,.12)':'1px solid #2A1A2F',borderRadius:'10px',padding:'9px 16px',fontSize:'13px',fontWeight:600,cursor:salvandoFormato?'wait':'pointer',fontFamily:'inherit'}}>Vertical</button>
+              <button type="button" onClick={()=>selecionarFormato('carrossel')} disabled={salvandoFormato} style={{background:formato==='carrossel'?G:'rgba(24,16,27,.9)',color:formato==='carrossel'?'#fff':'#B8AAB8',border:formato==='carrossel'?'1px solid rgba(255,255,255,.12)':'1px solid #2A1A2F',borderRadius:'10px',padding:'9px 16px',fontSize:'13px',fontWeight:600,cursor:salvandoFormato?'wait':'pointer',fontFamily:'inherit'}}>Carrossel no celular</button>
+              <button type="button" onClick={()=>selecionarFormato('grade')} disabled={salvandoFormato} style={{background:formato==='grade'?G:'rgba(24,16,27,.9)',color:formato==='grade'?'#fff':'#B8AAB8',border:formato==='grade'?'1px solid rgba(255,255,255,.12)':'1px solid #2A1A2F',borderRadius:'10px',padding:'9px 16px',fontSize:'13px',fontWeight:600,cursor:salvandoFormato?'wait':'pointer',fontFamily:'inherit'}}>Grade</button>
             </div>
-            <p style={{fontSize:'11px',color:'#B8AAB8',marginTop:'8px'}}>Vertical mostra os destaques em blocos grandes, um abaixo do outro. Carrossel no celular aplica a rolagem lateral apenas no celular, deixando a página mais compacta no mobile. No desktop, os destaques continuam em blocos grandes.</p>
+            <p style={{fontSize:'11px',color:'#B8AAB8',marginTop:'8px',marginBottom:'12px'}}>Vertical mostra os destaques em blocos grandes, um abaixo do outro. Carrossel no celular aplica a rolagem lateral apenas no celular. Grade organiza em colunas compactas. O formato é definido individualmente para esta seção.</p>
+            <button type="button" onClick={salvarFormato} disabled={salvandoFormato} style={{background:G,color:'#fff',border:'1px solid rgba(255,255,255,.12)',borderRadius:'10px',padding:'9px 18px',fontSize:'13px',fontWeight:700,cursor:salvandoFormato?'wait':'pointer',fontFamily:'inherit',opacity:salvandoFormato?.7:1}}>{salvandoFormato?'Salvando...':'Salvar formato'}</button>
           </div>
 
           {destaques.length===0&&<p style={{fontSize:'13px',color:'#B8AAB8',padding:'12px 0'}}>Nenhum destaque cadastrado ainda.</p>}

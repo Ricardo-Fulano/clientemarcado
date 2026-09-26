@@ -63,7 +63,7 @@ function detectarEmbed(url?: string | null): { plataforma: 'youtube' | 'spotify'
 // de terem preco, descricao ou nenhum dos dois. Cor do selo/preco sempre segue o tema
 // (nunca vermelho fixo).
 export default function DestaqueItemCard({
-  d, tema, iconeCor, textoVerMais, cardBorderFinal, cardShadowNeon, horizontal,
+  d, tema, iconeCor, textoVerMais, cardBorderFinal, cardShadowNeon, horizontal, grade,
 }: {
   d: {
     id: string; titulo: string; descricao?: string | null; url?: string | null; texto_botao?: string | null; imagem_url?: string | null
@@ -80,6 +80,7 @@ export default function DestaqueItemCard({
   cardBorderFinal: string
   cardShadowNeon?: string
   horizontal?: boolean
+  grade?: boolean
 }) {
   const [aberto, setAberto] = useState(false)
   const [compartilhando, setCompartilhando] = useState(false)
@@ -159,7 +160,7 @@ export default function DestaqueItemCard({
             )}
             <div className="destaque-overlay">
               <p className="destaque-titulo-v2">{d.titulo}</p>
-              {infoPreco() ? (
+              {!grade && (infoPreco() ? (
                 <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px', flexWrap: 'wrap', margin: '2px 0 3px' }}>
                   <p style={{ fontSize: '14px', fontWeight: 800, color: '#fff', margin: 0, textShadow: '0 1px 3px rgba(0,0,0,.6)' }}>{infoPreco()}</p>
                   {d.preco_anterior != null && d.preco_anterior > 0 && (d.preco_exibicao || 'mostrar') === 'mostrar' && (
@@ -168,8 +169,8 @@ export default function DestaqueItemCard({
                 </div>
               ) : d.descricao?.trim() ? (
                 <p className="destaque-desc-v2">{d.descricao}</p>
-              ) : null}
-              <span className="destaque-action-v2">{d.texto_botao || textoVerMais} →</span>
+              ) : null)}
+              {!grade && <span className="destaque-action-v2">{d.texto_botao || textoVerMais} →</span>}
             </div>
           </div>
         </div>
