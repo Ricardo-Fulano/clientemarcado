@@ -418,6 +418,10 @@ export default function GerenciarDestaques(){
     // destaque virava "Oculto" sozinho so por ter enviado uma imagem, e o proximo "Salvar"
     // acabava persistindo esse ativo:false por engano.
     setDestaques(prev=>prev.map(x=>x.id===idTemporario?{...x,...data,ativo:x.ativo,_novo:false}:x))
+    // O destaque trocou de ID (temporario -> real do banco) - se ainda estava em edicao pelo
+    // ID antigo, acompanha a troca. Sem isso, editandoId fica "orfao" apontando pro ID que
+    // nao existe mais, e o card parece fechar sozinho mesmo sem o usuario clicar em Salvar.
+    setEditandoId(atual=>atual===idTemporario?(data.id as string):atual)
     setMsg('Imagem enviada! Destaque criado automaticamente - continue preenchendo e clique em "Salvar" quando terminar.')
     setTimeout(()=>setMsg(''),4500)
     return data.id as string

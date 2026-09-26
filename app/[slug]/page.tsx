@@ -80,7 +80,7 @@ html,body{overflow-x:hidden;width:100%;max-width:100%}
 .destaque-card:hover{transform:translateY(-4px);border-color:var(--accent)!important;box-shadow:0 6px 18px var(--accent-glow)}
 .destaque-img-wrap{position:relative;width:100%;aspect-ratio:3/2;overflow:hidden}
 .destaque-img-wrap img{width:100%;height:100%;object-fit:cover;display:block}
-.destaque-overlay{position:absolute;left:0;right:0;bottom:0;padding:18px 10px 9px;background:linear-gradient(to top,rgba(0,0,0,.88) 0%,rgba(0,0,0,.5) 55%,transparent 100%);display:flex;flex-direction:column;gap:1px}
+.destaque-overlay{position:absolute;left:0;right:0;bottom:0;padding:34px 10px 10px;background:linear-gradient(to top,rgba(0,0,0,.92) 0%,rgba(0,0,0,.55) 50%,transparent 100%);display:flex;flex-direction:column;gap:1px}
 .destaque-action-v2{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:600;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.6);margin-top:1px}
 .destaque-desc-v2{display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden;font-size:10px;color:rgba(255,255,255,.85);text-shadow:0 1px 3px rgba(0,0,0,.5);margin:1px 0 2px}
 .destaque-titulo-v2{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;line-height:1.2;font-weight:700;font-size:12.5px;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.6);margin:0}
@@ -139,6 +139,13 @@ html,body{overflow-x:hidden;width:100%;max-width:100%}
      reorganiza sozinho quantos cards de 260px cabem por linha em qualquer largura. */
 }
 @media(max-width:767px){
+  /* Reforco de legibilidade dos Destaques so no mobile - desktop preservado intocado.
+     Line-clamp (2 linhas titulo, 1 linha descricao) e o line-height continuam garantindo
+     que o card nunca muda de altura, so a tipografia ficou maior/mais legivel. */
+  .destaque-titulo-v2{font-size:15px!important;line-height:1.25!important}
+  .destaque-desc-v2{font-size:13px!important}
+  .destaque-action-v2{font-size:13px!important}
+
   /* No mobile, o hero tradicional de desktop (banner horizontal) fica escondido - quem
      aparece e o novo hero-mobile-view (proporcao 4:5, avatar removido, perfil integrado). */
   .hero-desktop-view{display:none}

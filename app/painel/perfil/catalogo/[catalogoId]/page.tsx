@@ -321,6 +321,10 @@ export default function GerenciarItensDoCatalogo(){
     // _novo precisa virar false aqui: o item ja existe de verdade no banco agora, entao o
     // proximo "Salvar item" precisa fazer UPDATE, nunca outro INSERT (senao duplicaria).
     setItens(prev=>prev.map(x=>x.id===idTemporario?{...x,...data,_novo:false}:x))
+    // O item trocou de ID (temporario -> real do banco) - se ainda estava em edicao pelo ID
+    // antigo, acompanha a troca. Sem isso, editandoId fica "orfao" apontando pro ID que nao
+    // existe mais, e o card parece fechar sozinho mesmo sem o usuario clicar em Salvar/Voltar.
+    setEditandoId(atual=>atual===idTemporario?(data.id as string):atual)
     return data.id as string
   }
 
