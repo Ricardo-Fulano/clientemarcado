@@ -66,6 +66,7 @@ const pt = {
   endereco: 'Endereço',
   profissional: 'Profissional',
   crieSuaMiniPagePro: 'Crie sua MiniPage Pro',
+  querUmaPaginaComoEsta: 'Quer uma página como esta?',
   umaSolucaoClienteMarcado: '· uma solução ClienteMarcado',
   emailCopiado: 'E-mail copiado!',
   // ---------- agendamento publico ----------
@@ -158,6 +159,7 @@ const en: Dicionario = {
   endereco: 'Address',
   profissional: 'Professional',
   crieSuaMiniPagePro: 'Create your MiniPage Pro',
+  querUmaPaginaComoEsta: 'Want a page like this?',
   umaSolucaoClienteMarcado: '· a ClienteMarcado solution',
   emailCopiado: 'Email copied!',
   carregando: 'Loading...',
@@ -246,6 +248,7 @@ const es: Dicionario = {
   endereco: 'Dirección',
   profissional: 'Profesional',
   crieSuaMiniPagePro: 'Crea tu MiniPage Pro',
+  querUmaPaginaComoEsta: '¿Quieres una página como esta?',
   umaSolucaoClienteMarcado: '· una solución de ClienteMarcado',
   emailCopiado: '¡Correo copiado!',
   carregando: 'Cargando...',

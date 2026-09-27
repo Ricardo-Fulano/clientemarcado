@@ -67,6 +67,7 @@ export default function GerenciarAparencia(){
   const [enviandoTopoMobile,setEnviandoTopoMobile]=useState(false)
   const [captacaoLeadsAtiva,setCaptacaoLeadsAtiva]=useState(false)
   const [publicTheme,setPublicTheme]=useState('modelo2')
+  const [layoutSlug,setLayoutSlug]=useState<'padrao'|'imersivo'>('padrao')
   const imgRef=useRef<HTMLInputElement>(null)
   const videoRef=useRef<HTMLInputElement>(null)
   const topoMobileRef=useRef<HTMLInputElement>(null)
@@ -100,6 +101,7 @@ export default function GerenciarAparencia(){
       setTopoMobileUrl(p.topo_mobile_url||'')
       setTopoMobileUrlOriginal(p.topo_mobile_url||'')
       if(p.public_theme||p.tema_publico||p.tema_cor) setPublicTheme(resolverTema(p.public_theme||p.tema_publico||p.tema_cor||'modelo2'))
+      setLayoutSlug(p.layout_slug==='imersivo'?'imersivo':'padrao')
       setFotoPerfilUrl(p.foto_perfil_url||'')
       setDescCurta(p.pagina_descricao_curta||'')
       setTituloBotaoAgenda(p.pagina_titulo_botao_agenda||'')
@@ -271,6 +273,11 @@ export default function GerenciarAparencia(){
     // cliente era pago e virou Free depois), nunca salva video pra conta Free - sempre
     // forca 'imagem' nesse caso, protegendo contra o bloqueio ser so visual.
     const bannerTipoFinal = ehPlanoFree(planoTipo) ? 'imagem' : bannerTipo
+    // Protecao extra: 'imersivo' so faz sentido com video de capa real - se a conta virou Free
+    // depois, ou o video foi removido, o layout salvo cai pra 'padrao' automaticamente, mesmo
+    // que o state local ainda mostre 'imersivo' por algum motivo. A slug ja tem esse mesmo
+    // fallback embutido, isso e so uma segunda camada de seguranca.
+    const layoutSlugFinal = (layoutSlug === 'imersivo' && bannerTipoFinal === 'video' && bannerVideoUrl.trim()) ? 'imersivo' : 'padrao'
     const topoMobileTipoFinal = ehPlanoFree(planoTipo) ? 'imagem' : topoMobileTipo
     // Protecao extra: para Free, capa e topo mobile sempre preservam o valor ORIGINAL
     // carregado do banco, mesmo que o state local tenha sido alterado de alguma forma (a UI
@@ -282,6 +289,7 @@ export default function GerenciarAparencia(){
       banner_mobile_position:bannerMobilePosicao,
       banner_mobile_zoom:bannerMobileZoom,
       public_theme:publicTheme,
+      layout_slug:layoutSlugFinal,
       banner_tipo:bannerTipoFinal,
       banner_video_url:bannerTipoFinal==='video'?(bannerVideoUrl.trim()||null):null,
       seguidores_texto:seguidoresTexto.trim()||null,
@@ -537,6 +545,26 @@ export default function GerenciarAparencia(){
                   )
                 })}
               </div>
+            </div>
+
+            <div style={{borderTop:'1px solid #2A1A2F',paddingTop:'18px',marginTop:'18px'}}>
+              <p style={{fontSize:'13px',fontWeight:600,color:'#B8AAB8',marginBottom:'4px'}}>Layout da página</p>
+              <p style={{fontSize:'12px',color:'#B8AAB8',marginBottom:'14px'}}>Independente da cor escolhida acima. O Fundo imersivo usa o vídeo de capa como fundo contínuo da página inteira.</p>
+              {(() => {
+                const videoDisponivel = bannerTipo==='video' && !!bannerVideoUrl.trim() && !ehPlanoFree(planoTipo)
+                return (
+                  <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(160px,1fr))',gap:'12px'}}>
+                    <button type="button" onClick={()=>setLayoutSlug('padrao')} style={{textAlign:'left',padding:'14px',borderRadius:'12px',cursor:'pointer',fontFamily:'inherit',background:layoutSlug==='padrao'?'rgba(236,72,153,.10)':'rgba(24,16,27,.9)',border:layoutSlug==='padrao'?'1px solid #EC4899':'1px solid #2A1A2F'}}>
+                      <p style={{fontSize:'13px',fontWeight:700,color:'#F8F4F7',marginBottom:'2px'}}>Padrão</p>
+                      <p style={{fontSize:'11px',color:'#B8AAB8'}}>O layout atual da sua página, sem alterações.</p>
+                    </button>
+                    <button type="button" onClick={()=>videoDisponivel&&setLayoutSlug('imersivo')} disabled={!videoDisponivel} style={{textAlign:'left',padding:'14px',borderRadius:'12px',cursor:videoDisponivel?'pointer':'not-allowed',fontFamily:'inherit',opacity:videoDisponivel?1:.55,background:layoutSlug==='imersivo'&&videoDisponivel?'rgba(236,72,153,.10)':'rgba(24,16,27,.9)',border:layoutSlug==='imersivo'&&videoDisponivel?'1px solid #EC4899':'1px solid #2A1A2F'}}>
+                      <p style={{fontSize:'13px',fontWeight:700,color:'#F8F4F7',marginBottom:'2px'}}>Fundo imersivo</p>
+                      <p style={{fontSize:'11px',color:'#B8AAB8'}}>{videoDisponivel ? 'O vídeo de capa vira o fundo contínuo da página.' : 'Cadastre um vídeo de capa acima para liberar esta opção.'}</p>
+                    </button>
+                  </div>
+                )
+              })()}
             </div>
           </div>
 

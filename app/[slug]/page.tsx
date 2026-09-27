@@ -171,6 +171,10 @@ html,body{overflow-x:hidden;width:100%;max-width:100%}
      aparece e o novo hero-mobile-view (proporcao 4:5, avatar removido, perfil integrado). */
   .hero-desktop-view{display:none}
   .profile-row-desktop-view{display:none}
+  .rodape-cta{padding:6px 14px!important;gap:0px!important;margin-top:14px!important}
+  .rodape-cta span:first-child{font-size:8px!important}
+  .rodape-cta span:nth-child(2){font-size:11px!important}
+  .rodape-cta span:last-child{font-size:7px!important}
 
   /* Midia do topo mobile como camada de FUNDO FIXA (nao sticky) - fica presa na tela
      enquanto o usuario comeca a rolar. pointer-events:none pra nunca capturar cliques,
@@ -205,10 +209,12 @@ html,body{overflow-x:hidden;width:100%;max-width:100%}
     width:100vw;margin-left:calc(-50vw + 50%);margin-right:calc(-50vw + 50%);
     padding-left:16px;padding-right:16px;padding-top:6px;
   }
+  .modo-imersivo .mobile-conteudo-cobertura{background:transparent}
   .mobile-conteudo-cobertura::before{
     content:'';position:absolute;top:-28px;left:0;right:0;height:28px;
     background:linear-gradient(to bottom,transparent,var(--bg));pointer-events:none;
   }
+  .modo-imersivo .mobile-conteudo-cobertura::before{background:none}
 
   .links-oficiais-titulo{
     display:block;font-size:12px;font-weight:800;letter-spacing:.08em;color:var(--text-muted);
@@ -439,6 +445,18 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
 
   const temaId = resolverTema(perfil.public_theme || perfil.tema_publico || perfil.tema_cor || 'modelo2')
   const tema = getTema(temaId)
+  // Fundo imersivo: layout OPCIONAL e independente da cor (public_theme) e do video em si -
+  // reaproveita o MESMO banner_video_url ja usado no hero, so muda ONDE e COMO ele aparece.
+  // Fallback automatico: sem video real cadastrado (ou plano sem direito a video), o campo
+  // layout_slug='imersivo' e simplesmente ignorado e a slug renderiza o layout padrao de
+  // sempre - nunca quebra, mesmo que o dado no banco esteja desatualizado.
+  const modoImersivoAtivo = perfil.layout_slug === 'imersivo' && perfil.banner_tipo === 'video' && !!perfil.banner_video_url && !ehPlanoFree(perfil.plano_tipo)
+  // Midia mobile dedicada (Topo no celular) - MESMOS campos ja usados pelo hero tradicional,
+  // nenhum campo novo. So conta como "video mobile especifico" se o tipo cadastrado for
+  // realmente 'video' (Topo no celular tambem aceita imagem) - caso contrario, o Fundo
+  // imersivo cai no fallback do video principal (banner_video_url), nunca numa imagem.
+  const temTopoMobileDedicado = !!perfil.topo_mobile_url && !ehPlanoFree(perfil.plano_tipo)
+  const midiaImersivaMobileUrl = (temTopoMobileDedicado && perfil.topo_mobile_tipo === 'video') ? perfil.topo_mobile_url : perfil.banner_video_url
   // Icones/setas neutros (nao usam mais a cor forte de cada rede social) - se adaptam
   // automaticamente pro tema claro/champagne ou escuro, mantendo o visual premium consistente.
   const iconeBg = tema.mode === 'light' ? 'rgba(255,255,255,.45)' : 'rgba(255,255,255,.06)'
@@ -657,15 +675,35 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
   const promoVisivel = !!(perfil.promocao_ativa && perfil.promocao_titulo && perfil.promocao_preco_novo && promoDentroPeriodo)
 
   return (
-    <main className={inter.className} style={{ minHeight: '100vh', background: 'var(--bg)', color: 'var(--text)' }}>
+    <main className={`${inter.className}${modoImersivoAtivo ? ' modo-imersivo' : ''}`} style={{ minHeight: '100vh', background: modoImersivoAtivo ? 'transparent' : 'var(--bg)', color: 'var(--text)' }}>
       <style dangerouslySetInnerHTML={{ __html: CSS + `
         :root { --accent: ${tema.accent}; --accent-border: ${tema.border}; --accent-glow: ${tema.glow}; --bg: ${tema.bg}; --bg-rgb: ${tema.bgRGB}; --card: ${tema.card}; --text: ${tema.text}; --text-muted: ${tema.textMuted}; }
         @media(max-width:767px){
           .hero-img{width:100%!important;height:100%!important;object-fit:cover!important;object-position:${bannerMobilePos}!important;transform:scale(${bannerMobileScale})!important;transform-origin:${bannerMobilePos}!important}
           .hero-mobile-img{object-position:${bannerMobilePos}!important;transform:scale(${bannerMobileScale})!important;transform-origin:${bannerMobilePos}!important}
         }
+        .modo-imersivo-video{position:fixed;inset:0;width:100%;height:100%;object-fit:cover;z-index:0;transform:translateZ(0);-webkit-transform:translateZ(0);background:#000}
+        @media(max-width:767px){.modo-imersivo-video-desktop{display:none}}
+        @media(min-width:768px){.modo-imersivo-video-mobile{display:none}}
+        .modo-imersivo-overlay{position:fixed;inset:0;z-index:0;background:linear-gradient(180deg,rgba(0,0,0,.22) 0%,rgba(var(--bg-rgb),.50) 45%,rgba(var(--bg-rgb),.88) 100%)}
+        .modo-imersivo .wrap{position:relative;z-index:1}
+        .modo-imersivo .profile-row-desktop-view{position:relative;text-shadow:0 2px 12px rgba(0,0,0,.75)}
+        .modo-imersivo .profile-row.profile-row-desktop-view{margin-top:56px}
+        .modo-imersivo .profile-row-desktop-view::before{content:'';position:absolute;inset:-30px -26px;z-index:-1;background:radial-gradient(ellipse at center,rgba(0,0,0,.52),transparent 75%);border-radius:28px;pointer-events:none}
+        .modo-imersivo .social-ic{backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);background:rgba(0,0,0,.40)!important;border-color:rgba(255,255,255,.22)!important}
+        .modo-imersivo .avatar-pro{box-shadow:0 4px 24px rgba(0,0,0,.6),0 0 0 1px rgba(255,255,255,.15)!important}
+        .modo-imersivo .bio-text,.modo-imersivo .loc-text{text-shadow:0 1px 10px rgba(0,0,0,.75)}
+        .modo-imersivo .hero-desktop-view,.modo-imersivo .mobile-hero-bg{display:none}
+        .modo-imersivo .crd,.modo-imersivo .catalogo-card,.modo-imersivo .video-card-v2,.modo-imersivo .destaque-card,.modo-imersivo .rodape-cta{background:rgba(var(--bg-rgb),.42)!important;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-color:var(--accent-border)!important}
       ` }} />
 
+      {modoImersivoAtivo && (
+        <>
+          <video className="modo-imersivo-video modo-imersivo-video-desktop" src={perfil.banner_video_url} poster={capaUrl || undefined} autoPlay muted loop playsInline aria-hidden="true" />
+          <video className="modo-imersivo-video modo-imersivo-video-mobile" src={midiaImersivaMobileUrl} poster={capaUrl || undefined} autoPlay muted loop playsInline aria-hidden="true" style={{ objectPosition: bannerMobilePos, transform: `scale(${bannerMobileScale}) translateZ(0)`, transformOrigin: bannerMobilePos }} />
+          <div className="modo-imersivo-overlay" aria-hidden="true" />
+        </>
+      )}
       <RegistrarPageView perfilId={perfil.id} />
       <RegistradorDeCliques perfilId={perfil.id} />
 
@@ -678,7 +716,6 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
           // Midia dedicada do topo mobile (imagem ou video, proporcao 4:5) - se o cliente nao
           // configurou nada especifico pro mobile, cai no fallback: usa a MESMA midia do
           // desktop (capa ou video), sem quebrar contas que nunca mexeram nisso.
-          const temTopoMobileDedicado = !!perfil.topo_mobile_url && !ehPlanoFree(perfil.plano_tipo)
           const midiaMobileUrl = temTopoMobileDedicado ? perfil.topo_mobile_url : (usaVideoDesktop ? perfil.banner_video_url : capaUrl)
           const midiaMobileTipo = temTopoMobileDedicado ? perfil.topo_mobile_tipo : (usaVideoDesktop ? 'video' : 'imagem')
           const temMidiaMobile = !!midiaMobileUrl
@@ -689,6 +726,8 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
 
           return (
             <>
+              {!modoImersivoAtivo && (
+              <>
               {/* HERO / BANNER - DESKTOP: capa/banner tradicional, igual a antes */}
               <div className={`hero hero-desktop-view${(capaUrl || usaVideoDesktop) ? '' : ' no-capa'}${usaVideoDesktop ? ' hero-video' : ''}`}>
                 {usaVideoDesktop ? (
@@ -720,6 +759,8 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
                 )}
                 <div className="mobile-hero-overlay"/>
               </div>
+              </>
+              )}
               <div className="mobile-hero-content">
                 {isPlanoFree && (
                   fotoPerfilUrl ? (
@@ -1182,12 +1223,11 @@ videos && videos.length > 0 && permiteVideos(perfil.plano_tipo) && (() => {
             </div>
           </div>
         )}
-        <div style={{ display: 'flex', justifyContent: 'center', marginTop: '32px', marginBottom: '8px' }}>
-          <a href="https://minipage.pro/modelos" target="_blank" rel="noopener noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', textDecoration: 'none', padding: '9px 18px', borderRadius: '999px', background: 'var(--card)', border: `1px solid ${tema.accent}22` }}>
-            <span style={{ fontSize: '12px', fontWeight: 700, color: tema.accent }}>{t.crieSuaMiniPagePro}</span>
-            <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>{t.umaSolucaoClienteMarcado}</span>
-          </a>
-        </div>
+        <a href="https://minipage.pro/modelos" target="_blank" rel="noopener noreferrer" className="rodape-cta" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1px', textAlign: 'center', textDecoration: 'none', marginTop: '24px', marginBottom: '8px', padding: '8px 20px', borderRadius: '12px', background: tema.soft, border: `1px solid ${tema.border}` }}>
+          <span style={{ fontSize: '10px', fontWeight: 600, color: 'var(--text-muted)' }}>{t.querUmaPaginaComoEsta}</span>
+          <span style={{ fontSize: '13px', fontWeight: 800, color: tema.accent }}>{t.crieSuaMiniPagePro} →</span>
+          <span style={{ fontSize: '9px', color: 'var(--text-muted)', marginTop: '1px' }}>{t.umaSolucaoClienteMarcado}</span>
+        </a>
         </div>
       </div>
     </main>
