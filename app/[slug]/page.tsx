@@ -15,6 +15,7 @@ import RegistrarPageView from '../components/RegistrarPageView'
 import RegistradorDeCliques from '../components/RegistradorDeCliques'
 import BannerVideo from '../components/BannerVideo'
 import DestaqueItemCard from '../components/DestaqueItemCard'
+import AlbumFaixa from '../components/AlbumFaixa'
 import SocialTicker from '../components/SocialTicker'
 import { resolverTema, getTema } from '../lib/tema-publico'
 import { ehPlanoComGestao, permiteVideos, permiteDestaques, permiteAgendaEventos, obterLimiteCatalogos, podeUsarCatalogo, obterLimiteSecoesDestaques, obterLimiteLinksRapidos, ehPlanoFree } from '../lib/planos'
@@ -99,6 +100,24 @@ html,body{overflow-x:hidden;width:100%;max-width:100%}
 .video-title-v2{font-size:12.5px;font-weight:700;color:#fff;line-height:1.3;text-shadow:0 1px 3px rgba(0,0,0,.6);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;margin:0}
 .video-cta-v2{position:absolute;top:8px;right:8px;z-index:1;display:inline-flex;align-items:center;font-size:10.5px;font-weight:700;padding:5px 10px;border-radius:999px;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.35)}
 .catalogo-scroll{display:flex;gap:12px;overflow-x:auto;overflow-y:hidden;padding-bottom:6px;scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch}
+.album-faixa-scroll{display:flex;gap:8px;overflow-x:auto;overflow-y:hidden;padding-bottom:4px;-webkit-overflow-scrolling:touch;scroll-snap-type:x proximity}
+.album-faixa-scroll::-webkit-scrollbar{height:5px}
+.album-faixa-scroll::-webkit-scrollbar-thumb{background:var(--accent-border);border-radius:99px}
+.album-faixa-item{flex:0 0 auto;height:110px;border-radius:12px;overflow:hidden;border:none;padding:0;cursor:pointer;background:transparent;scroll-snap-align:start}
+.album-faixa-item img{width:100%;height:100%;object-fit:cover;display:block}
+.album-modal-backdrop{position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.92);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px}
+.album-modal-fechar{position:absolute;top:16px;right:16px;width:40px;height:40px;border-radius:999px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:2}
+.album-modal-conteudo{position:relative;width:100%;max-width:900px;flex:1;display:flex;align-items:center;justify-content:center;min-height:0}
+.album-modal-img-wrap{width:100%;height:100%;display:flex;align-items:center;justify-content:center}
+.album-modal-img{max-width:100%;max-height:80vh;object-fit:contain;display:block}
+.album-modal-seta{position:absolute;top:50%;transform:translateY(-50%);width:40px;height:40px;border-radius:999px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:2}
+.album-modal-seta-esq{left:8px}
+.album-modal-seta-dir{right:8px}
+.album-modal-info{width:100%;max-width:900px;max-height:120px;overflow-y:auto;padding:12px 8px 0;color:#fff}
+.album-modal-titulo{font-size:14px;font-weight:700;margin:0}
+.album-modal-contador{font-size:11px;color:rgba(255,255,255,.6);flex-shrink:0}
+.album-modal-legenda{font-size:13px;color:rgba(255,255,255,.85);line-height:1.5;margin:0}
+@media(max-width:640px){.album-modal-seta{display:none}}
 .catalogo-scroll::-webkit-scrollbar{height:5px}
 .catalogo-scroll::-webkit-scrollbar-thumb{background:var(--accent-border);border-radius:99px}
 .catalogo-card{width:140px;flex-shrink:0;border-radius:16px;overflow:hidden;scroll-snap-align:start;transition:border-color .18s;display:flex;flex-direction:column}
@@ -358,7 +377,7 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
     }
   }
 
-  const [{ data: servicos }, { data: profissionais }, { data: destaques }, { data: destaquesSecoesAtivas }, { data: linksRapidos }, { data: videos }, { data: eventos }, { data: catalogosAtivos }, { data: catalogoItensTodos }, { data: catalogoImagensTodas }] = await Promise.all([
+  const [{ data: servicos }, { data: profissionais }, { data: destaques }, { data: destaquesSecoesAtivas }, { data: linksRapidos }, { data: videos }, { data: eventos }, { data: catalogosAtivos }, { data: catalogoItensTodos }, { data: catalogoImagensTodas }, { data: albunsAtivos }, { data: albumFotosTodas }] = await Promise.all([
     supabase.from('servicos').select('*').eq('user_id', perfil.user_id).eq('ativo', true).order('nome'),
     supabase.from('profissionais').select('*').eq('user_id', perfil.user_id).eq('ativo', true).order('nome'),
     supabase.from('pagina_destaques').select('*').eq('user_id', perfil.user_id).eq('ativo', true).order('ordem').order('created_at'),
@@ -369,6 +388,8 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
     supabase.from('pagina_catalogos').select('id,titulo,subtitulo').eq('user_id', perfil.user_id).eq('ativo', true).order('ordem'),
     supabase.from('pagina_catalogo_itens').select('id,catalogo_id,titulo,descricao_curta,descricao_completa,preco,preco_anterior,preco_exibicao,preco_texto_personalizado,selo_tipo,selo_texto,imagem_url,botao_texto,tipo_destino,destino_url,whatsapp,mensagem_whatsapp').eq('user_id', perfil.user_id).eq('ativo', true).order('ordem').order('created_at'),
     supabase.from('catalogo_item_imagens').select('id,item_id,imagem_url,ordem,is_capa').eq('user_id', perfil.user_id).order('ordem'),
+    supabase.from('pagina_albuns').select('id,titulo,subtitulo,proporcao').eq('user_id', perfil.user_id).eq('ativo', true).order('ordem'),
+    supabase.from('pagina_album_fotos').select('id,album_id,imagem_url,titulo,descricao').eq('user_id', perfil.user_id).eq('ativo', true).order('ordem'),
   ])
 
   // Agrupa os destaques (ja filtrados por ativo=true) por secao, mesmo padrao ja usado pro
@@ -384,6 +405,13 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
     }))
     .filter((sec: any) => sec.itens.length > 0)
     .slice(0, limiteSecoesDestaquesPublico)
+
+  const albunsComFotos = (albunsAtivos || [])
+    .map((alb: any) => ({
+      ...alb,
+      fotos: (albumFotosTodas || []).filter((f: any) => f.album_id === alb.id),
+    }))
+    .filter((alb: any) => alb.fotos.length > 0)
 
   // Agrupa os itens (ja filtrados por ativo=true) por catalogo, e mantem so os catalogos
   // que realmente tem pelo menos 1 item pra mostrar - catalogo vazio nao ocupa espaco.
@@ -807,7 +835,7 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
             cliente em /painel/perfil. Cada secao individual (conteudo, condicao de exibir, estilo)
             continua exatamente igual - so a ORDEM de renderizacao delas muda, via ordemSecoes. */}
         {(() => {
-          const ORDEM_PADRAO_SECOES = ['destaques', 'links', 'agenda', 'catalogo', 'videos']
+          const ORDEM_PADRAO_SECOES = ['destaques', 'albuns', 'links', 'agenda', 'catalogo', 'videos']
           const ordemSalva = (perfil as { ordem_secoes_publicas?: unknown }).ordem_secoes_publicas
           const ordemValida = Array.isArray(ordemSalva)
             && ordemSalva.length === ORDEM_PADRAO_SECOES.length
@@ -885,6 +913,21 @@ secoesDestaquesComItens.length > 0 && permiteDestaques(perfil.plano_tipo) && (
             ))}
           </>
         )
+            ),
+            albuns: (
+              albunsComFotos.length > 0 && (
+                <>
+                  {albunsComFotos.map((alb: any) => (
+                    <AlbumFaixa
+                      key={alb.id}
+                      titulo={alb.titulo}
+                      subtitulo={alb.subtitulo}
+                      proporcao={alb.proporcao}
+                      fotos={alb.fotos}
+                    />
+                  ))}
+                </>
+              )
             ),
             links: (
 // * LINKS RAPIDOS: apenas o que o cliente configurou no painel + fallback de agenda, se aplicavel
