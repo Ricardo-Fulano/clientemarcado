@@ -17,6 +17,8 @@ import BannerVideo from '../components/BannerVideo'
 import DestaqueItemCard from '../components/DestaqueItemCard'
 import AlbumFaixa from '../components/AlbumFaixa'
 import SocialTicker from '../components/SocialTicker'
+import CardVisualItem from '../components/CardVisualItem'
+import { detectarTipoPorUrl, detectarTipoPorTitulo, TIPOS_SOCIAIS_TOPO, normalizarOrdemSecoes } from '../lib/plataformasLinks'
 import { resolverTema, getTema } from '../lib/tema-publico'
 import { ehPlanoComGestao, permiteVideos, permiteDestaques, permiteAgendaEventos, obterLimiteCatalogos, podeUsarCatalogo, obterLimiteSecoesDestaques, obterLimiteLinksRapidos, ehPlanoFree } from '../lib/planos'
 
@@ -57,6 +59,15 @@ html,body{overflow-x:hidden;width:100%;max-width:100%}
 .profile-row{display:flex;align-items:flex-end;gap:16px;margin-top:-48px;margin-bottom:18px;flex-wrap:wrap;position:relative;z-index:2}
 .avatar-pro{width:96px;height:96px;border-radius:999px;object-fit:cover;flex-shrink:0}
 .social-ic{width:38px;height:38px;border-radius:999px;display:flex;align-items:center;justify-content:center;flex-shrink:0;text-decoration:none;transition:transform .18s}
+.card-visual-item{position:relative;display:block;width:100%;border-radius:20px;overflow:hidden;text-decoration:none;transition:transform .18s,box-shadow .18s}
+.card-visual-item:hover{transform:translateY(-3px)}
+.card-visual-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center center;display:block}
+.card-visual-overlay{position:absolute;left:0;right:0;bottom:0;padding:18px 18px 14px;background:linear-gradient(to top,rgba(0,0,0,.78),rgba(0,0,0,.25) 60%,transparent)}
+.card-visual-titulo{color:#fff;font-size:15px;font-weight:800;letter-spacing:-.01em;text-shadow:0 2px 6px rgba(0,0,0,.6)}
+.card-visual-item::before{content:'';display:block;width:100%;padding-top:30.4878%}
+@media(min-width:768px){
+  .card-visual-item::before{padding-top:18.13%}
+}
 @media (hover:hover) and (pointer:fine){
 .social-ic:hover{transform:translateY(-2px);border-color:var(--accent)!important;box-shadow:0 0 10px var(--accent-glow)}
 }
@@ -137,7 +148,7 @@ html,body{overflow-x:hidden;width:100%;max-width:100%}
 .link-card{display:flex;align-items:center;gap:14px;padding:16px 18px;box-sizing:border-box;border-radius:16px}
 .link-icon{width:54px;height:54px;border-radius:16px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .link-card:hover{border-color:var(--accent)!important;box-shadow:0 0 10px var(--accent-glow)}
-.link-grid{display:grid;grid-template-columns:1fr;gap:11px;width:100%}
+.link-grid,.card-visual-lista{display:grid;grid-template-columns:1fr;gap:11px;width:100%}
 .link-title{font-size:16px;font-weight:600;color:var(--text);margin-bottom:2px;line-height:1.25}
 .link-sub{font-size:13px;font-weight:400;color:var(--text-muted);line-height:1.3}
 .link-arrow{font-size:16px;flex-shrink:0;opacity:.5}
@@ -153,7 +164,7 @@ html,body{overflow-x:hidden;width:100%;max-width:100%}
 .evento-local{font-size:12px;color:var(--text-muted);line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .evento-menu{font-size:16px;flex-shrink:0;opacity:.5;letter-spacing:1px}
 @media(min-width:640px){
-  .link-grid{grid-template-columns:repeat(2,1fr)}
+  .link-grid,.card-visual-lista{grid-template-columns:repeat(2,1fr)}
 }
 @media(min-width:768px) and (max-width:1024px){
   /* Nao precisa mais de regra especifica aqui - o flex-wrap do .destaque-grid ja
@@ -228,7 +239,7 @@ html,body{overflow-x:hidden;width:100%;max-width:100%}
   .destaque-item-h{flex:0 0 82vw!important;max-width:360px!important;min-width:0!important;scroll-snap-align:start}
   .video-grid{gap:10px!important}
   .video-card-v2{width:170px!important}
-  .link-grid{grid-template-columns:1fr!important;gap:10px!important}
+  .link-grid,.card-visual-lista{grid-template-columns:1fr!important;gap:10px!important}
   .hero-btns{flex-direction:column}
   .hero-btns a{width:100%;justify-content:center;text-align:center}
   .cta-inner{flex-direction:column!important;gap:16px!important}
@@ -256,7 +267,7 @@ html,body{overflow-x:hidden;width:100%;max-width:100%}
   .link-icon{width:44px!important;height:44px!important;min-width:44px!important;border-radius:12px!important}
   .link-title{font-size:16px!important;font-weight:600!important;line-height:1.2!important;margin-bottom:0!important}
   .link-sub{font-size:13px!important;font-weight:400!important;line-height:1.25!important;margin-top:2px!important}
-  .link-grid{gap:10px!important}
+  .link-grid,.card-visual-lista{gap:10px!important}
 
   .video-title-v2{font-size:13.5px!important}
 }
@@ -383,7 +394,7 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
     }
   }
 
-  const [{ data: servicos }, { data: profissionais }, { data: destaques }, { data: destaquesSecoesAtivas }, { data: linksRapidos }, { data: videos }, { data: eventos }, { data: catalogosAtivos }, { data: catalogoItensTodos }, { data: catalogoImagensTodas }, { data: albunsAtivos }, { data: albumFotosTodas }] = await Promise.all([
+  const [{ data: servicos }, { data: profissionais }, { data: destaques }, { data: destaquesSecoesAtivas }, { data: linksRapidos }, { data: videos }, { data: eventos }, { data: catalogosAtivos }, { data: catalogoItensTodos }, { data: catalogoImagensTodas }, { data: albunsAtivos }, { data: albumFotosTodas }, { data: cardsSecoesAtivas }, { data: cardsTodos }] = await Promise.all([
     supabase.from('servicos').select('*').eq('user_id', perfil.user_id).eq('ativo', true).order('nome'),
     supabase.from('profissionais').select('*').eq('user_id', perfil.user_id).eq('ativo', true).order('nome'),
     supabase.from('pagina_destaques').select('*').eq('user_id', perfil.user_id).eq('ativo', true).order('ordem').order('created_at'),
@@ -396,6 +407,8 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
     supabase.from('catalogo_item_imagens').select('id,item_id,imagem_url,ordem,is_capa').eq('user_id', perfil.user_id).order('ordem'),
     supabase.from('pagina_albuns').select('id,titulo,subtitulo,proporcao').eq('user_id', perfil.user_id).eq('ativo', true).order('ordem'),
     supabase.from('pagina_album_fotos').select('id,album_id,imagem_url,titulo,descricao').eq('user_id', perfil.user_id).eq('ativo', true).order('ordem'),
+    supabase.from('pagina_cards_secoes').select('id,titulo,subtitulo').eq('user_id', perfil.user_id).eq('ativo', true).order('ordem'),
+    supabase.from('pagina_cards').select('id,secao_id,imagem_url,titulo,exibir_titulo,url,exibir_no_topo').eq('user_id', perfil.user_id).eq('ativo', true).order('ordem').order('created_at'),
   ])
 
   // Agrupa os destaques (ja filtrados por ativo=true) por secao, mesmo padrao ja usado pro
@@ -418,6 +431,18 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
       fotos: (albumFotosTodas || []).filter((f: any) => f.album_id === alb.id),
     }))
     .filter((alb: any) => alb.fotos.length > 0)
+
+  // Secoes de Cards (Links visuais) + seus cards - mesmo padrao de agrupamento de Albuns:
+  // secao sem nenhum card ativo nao ocupa espaco na pagina. cardsSecoesAtivas e cardsTodos
+  // ja vem filtrados por ativo=true na propria query.
+  const todosCardsVisuaisAtivos = cardsTodos || []
+  const secoesCardsAtivasIds = new Set((cardsSecoesAtivas || []).map((s: any) => s.id))
+  const cardsSecoesComCards = (cardsSecoesAtivas || [])
+    .map((sec: any) => ({
+      ...sec,
+      cards: todosCardsVisuaisAtivos.filter((c: any) => c.secao_id === sec.id),
+    }))
+    .filter((sec: any) => sec.cards.length > 0)
 
   // Agrupa os itens (ja filtrados por ativo=true) por catalogo, e mantem so os catalogos
   // que realmente tem pelo menos 1 item pra mostrar - catalogo vazio nao ocupa espaco.
@@ -533,79 +558,8 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
     }
   }
 
-  // Reconhece a plataforma automaticamente pela URL, mesmo que o tipo salvo no banco seja
-  // generico ("outro"/"site"/etc). So retorna algo quando reconhece com confianca; caso
-  // contrario retorna null e quem chamou usa o tipo salvo manualmente, como fallback.
-  function detectarTipoPorUrl(url?: string): string | null {
-    const u = (url || '').trim()
-    if (!u) return null
-    const uMin = u.toLowerCase()
-    if (uMin.startsWith('mailto:') || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(u)) return 'email'
-    if (uMin.startsWith('tel:')) return 'telefone'
-    if (uMin.includes('open.spotify.com') || uMin.includes('spotify.com')) return 'spotify'
-    if (uMin.includes('deezer.com') || uMin.includes('deezer.page.link')) return 'deezer'
-    if (uMin.includes('instagram.com')) return 'instagram'
-    if (uMin.includes('tiktok.com')) return 'tiktok'
-    if (uMin.includes('youtube.com') || uMin.includes('youtu.be')) return 'youtube'
-    if (uMin.includes('wa.me') || uMin.includes('api.whatsapp.com') || uMin.includes('whatsapp.com')) return 'whatsapp'
-    if (uMin.includes('shopee.com')) return 'shopee'
-    if (uMin.includes('mercadolivre.com') || uMin.includes('mercadolibre.com')) return 'mercadolivre'
-    if (uMin.includes('facebook.com') || uMin.includes('fb.com')) return 'facebook'
-    if (uMin.includes('x.com') || uMin.includes('twitter.com')) return 'x'
-    if (uMin.includes('t.me') || uMin.includes('telegram.me') || uMin.includes('telegram.org')) return 'telegram'
-    if (uMin.includes('linkedin.com')) return 'linkedin'
-    if (uMin.includes('pinterest.com') || uMin.includes('pin.it')) return 'pinterest'
-    if (uMin.includes('twitch.tv')) return 'twitch'
-    if (uMin.includes('discord.gg') || uMin.includes('discord.com')) return 'discord'
-    if (uMin.includes('music.apple.com')) return 'apple_music'
-    if (uMin.includes('music.amazon.com') || uMin.includes('amazon.com/music') || uMin.includes('amzn_music') || uMin.includes('amazonmusic')) return 'amazon_music'
-    if (uMin.includes('tidal.com')) return 'tidal'
-    if (uMin.includes('tinder.com')) return 'tinder'
-    return null
-  }
-
-  // Segunda camada de deteccao, usada quando a URL nao reconhece nada (vazia, encurtada,
-  // ou dominio proprio). Olha o TITULO que o dono digitou pro link - assim "YouTube",
-  // "Meu TikTok" ou "Loja" ganham o icone certo mesmo sem a URL confirmar. So entra em
-  // jogo depois de detectarTipoPorUrl falhar - URL reconhecida sempre tem prioridade.
-  function detectarTipoPorTitulo(titulo?: string): string | null {
-    const tMin = (titulo || '').trim().toLowerCase()
-    if (!tMin) return null
-    if (tMin.includes('whatsapp') || tMin.includes('zap')) return 'whatsapp'
-    if (tMin.includes('instagram') || tMin.includes('insta')) return 'instagram'
-    if (tMin.includes('youtube') || tMin.includes('canal')) return 'youtube'
-    if (tMin.includes('tiktok') || tMin.includes('tik tok')) return 'tiktok'
-    if (tMin.includes('spotify')) return 'spotify'
-    if (tMin.includes('deezer')) return 'deezer'
-    if (tMin.includes('shopee')) return 'shopee'
-    if (tMin.includes('mercado livre') || tMin.includes('mercadolivre')) return 'mercadolivre'
-    if (tMin.includes('facebook') || tMin === 'face') return 'facebook'
-    if (tMin.includes('telegram')) return 'telegram'
-    if (tMin.includes('linkedin')) return 'linkedin'
-    if (tMin.includes('pinterest')) return 'pinterest'
-    if (tMin.includes('twitch')) return 'twitch'
-    if (tMin.includes('discord')) return 'discord'
-    if (tMin.includes('apple music')) return 'apple_music'
-    if (tMin.includes('amazon music')) return 'amazon_music'
-    if (tMin.includes('tidal')) return 'tidal'
-    if (tMin.includes('tinder')) return 'tinder'
-    if (tMin.includes('e-mail') || tMin.includes('email')) return 'email'
-    if (tMin.includes('telefone') || tMin.includes('ligar') || tMin.includes('celular')) return 'telefone'
-    if (tMin.includes('agenda') || tMin.includes('agendar') || tMin.includes('calendário') || tMin.includes('calendario')) return 'agenda'
-    if (tMin.includes('loja') || tMin.includes('comprar') || tMin.includes('catálogo') || tMin.includes('catalogo') || tMin.includes('produto')) return 'loja'
-    if (tMin.includes('site') || tMin.includes('website')) return 'site'
-    return null
-  }
-
-  // Icones sociais do topo (abaixo do @slug): reconhece a plataforma de cada link rapido
-  // usando a MESMA deteccao ja usada nos cards abaixo (URL primeiro, titulo como segunda
-  // camada, campo tipo salvo manualmente por ultimo) - antes so olhava um campo "tipo" fixo
-  // com uma lista de so 5 valores, entao Spotify/Deezer/Shopee/Facebook/etc nunca apareciam
-  // no topo mesmo estando cadastrados corretamente como card.
-  // So plataformas "sociais" reconhecidas entram aqui - links genericos, produtos, loja
-  // fisica, catalogo, agenda ou botoes internos continuam so nos cards abaixo, por decisao
-  // deliberada (nao faz sentido visual/semantico ícone de "loja" ou "agenda" no topo).
-  const TIPOS_SOCIAIS_TOPO = ['whatsapp', 'instagram', 'threads', 'youtube', 'tiktok', 'spotify', 'deezer', 'shopee', 'telegram', 'facebook', 'x', 'linkedin', 'pinterest', 'twitch', 'discord', 'email', 'site', 'apple_music', 'amazon_music', 'tidal', 'tinder', 'youtube_music']
+  // Reconhece a plataforma automaticamente pela URL, usando o helper central (mesma
+  // deteccao usada pelos cards visuais abaixo, sem duplicar regras em 2 lugares).
   const linksSociaisBrutos = (linksRapidos || [])
     .map(l => ({ ...l, tipoEfetivo: detectarTipoPorUrl(l.url) || detectarTipoPorTitulo(l.titulo) || l.tipo }))
     .filter(l => TIPOS_SOCIAIS_TOPO.includes(l.tipoEfetivo))
@@ -617,6 +571,23 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
   const linksSociais = linksSociaisBrutos.filter(l => {
     if (tiposJaVistos.has(l.tipoEfetivo)) return false
     tiposJaVistos.add(l.tipoEfetivo)
+    return true
+  })
+  // Cards visuais (Links visuais) como fonte SECUNDARIA dos icones do topo: um card so
+  // participa quando card ativo + secao pai ativa + "exibir_no_topo" ligado + plataforma
+  // reconhecida e elegivel. pagina_links sempre tem prioridade - um card so preenche um
+  // tipo que os links tradicionais ainda nao ocuparam (tiposJaVistos, computado acima).
+  // Se existirem varios cards da mesma plataforma, o desempate e deterministico: primeiro
+  // card ativo na ordem em que os cards aparecem na consulta (ordenados por secao > ordem
+  // do card), nunca aleatorio - por isso o .filter de dedupe abaixo sempre mantem a
+  // primeira ocorrencia.
+  const cardsElegiveisTopoBrutos = (todosCardsVisuaisAtivos || [])
+    .filter((c: any) => c.exibir_no_topo && secoesCardsAtivasIds.has(c.secao_id))
+    .map((c: any) => ({ ...c, tipoEfetivo: detectarTipoPorUrl(c.url) }))
+    .filter((c: any) => c.tipoEfetivo && TIPOS_SOCIAIS_TOPO.includes(c.tipoEfetivo) && !tiposJaVistos.has(c.tipoEfetivo))
+  const cardsElegiveisTopo = cardsElegiveisTopoBrutos.filter((c: any) => {
+    if (tiposJaVistos.has(c.tipoEfetivo!)) return false
+    tiposJaVistos.add(c.tipoEfetivo!)
     return true
   })
 
@@ -776,13 +747,24 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
                   {!isPlanoFree && <BadgeCheck size={20} color="#3B82F6" style={{ flexShrink: 0, filter: 'drop-shadow(0 2px 6px rgba(0,0,0,.6))' }} />}
                 </div>
                 <p className="hero-mobile-slug">@{slug}</p>
-                {!isPlanoFree && linksSociais.length > 0 && (
+                {!isPlanoFree && (linksSociais.length > 0 || cardsElegiveisTopo.length > 0) && (
                   <div style={{ marginTop: '2px', width: '100%', minWidth: 0, alignSelf: 'stretch' }}>
                     <SocialTicker>
                       {linksSociais.map(l => {
                         const cfg = iconeLink(l.tipoEfetivo)
                         return (
                           <a key={l.id} href={l.url} target={l.url && l.url.startsWith('http') ? '_blank' : '_self'} rel="noopener noreferrer" className="social-ic" style={{ background: iconeBg, border: `1px solid ${iconeBorder}`, color: cfg.color || iconeCor }} aria-label={l.titulo} data-track-tipo="social_click" data-track-item-titulo={l.titulo} data-track-item-url={l.url}>
+                            {cfg.svg ? cfg.svg : (cfg.I ? <cfg.I size={16} color={cfg.color || iconeCor} /> : null)}
+                          </a>
+                        )
+                      })}
+                      {/* Cards visuais elegiveis (fonte secundaria) - so entram aqui quando o tipo
+                          ainda nao foi ocupado por um link tradicional (prioridade ja resolvida
+                          antes, em cardsElegiveisTopo). */}
+                      {cardsElegiveisTopo.map((c: any) => {
+                        const cfg = iconeLink(c.tipoEfetivo)
+                        return (
+                          <a key={`card-${c.id}`} href={c.url} target={c.url && c.url.startsWith('http') ? '_blank' : '_self'} rel="noopener noreferrer" className="social-ic" style={{ background: iconeBg, border: `1px solid ${iconeBorder}`, color: cfg.color || iconeCor }} aria-label={c.titulo || cfg.color} data-track-tipo="social_click" data-track-item-titulo={c.titulo || ''} data-track-item-url={c.url}>
                             {cfg.svg ? cfg.svg : (cfg.I ? <cfg.I size={16} color={cfg.color || iconeCor} /> : null)}
                           </a>
                         )
@@ -812,13 +794,24 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
                   </div>
                   <p style={{ fontSize: '13px', color: 'var(--text-muted)', margin: '2px 0 0' }}>@{slug}{seguidoresTexto ? ` · ${seguidoresTexto}` : ''}</p>
                 </div>
-                {!isPlanoFree && linksSociais.length > 0 && (
+                {!isPlanoFree && (linksSociais.length > 0 || cardsElegiveisTopo.length > 0) && (
                   <div style={{ marginTop: '2px', width: '100%', minWidth: 0, alignSelf: 'stretch' }}>
                     <SocialTicker>
                       {linksSociais.map(l => {
                         const cfg = iconeLink(l.tipoEfetivo)
                         return (
                           <a key={l.id} href={l.url} target={l.url && l.url.startsWith('http') ? '_blank' : '_self'} rel="noopener noreferrer" className="social-ic" style={{ background: iconeBg, border: `1px solid ${iconeBorder}`, color: cfg.color || iconeCor }} aria-label={l.titulo} data-track-tipo="social_click" data-track-item-titulo={l.titulo} data-track-item-url={l.url}>
+                            {cfg.svg ? cfg.svg : (cfg.I ? <cfg.I size={16} color={cfg.color || iconeCor} /> : null)}
+                          </a>
+                        )
+                      })}
+                      {/* Cards visuais elegiveis (fonte secundaria) - so entram aqui quando o tipo
+                          ainda nao foi ocupado por um link tradicional (prioridade ja resolvida
+                          antes, em cardsElegiveisTopo). */}
+                      {cardsElegiveisTopo.map((c: any) => {
+                        const cfg = iconeLink(c.tipoEfetivo)
+                        return (
+                          <a key={`card-${c.id}`} href={c.url} target={c.url && c.url.startsWith('http') ? '_blank' : '_self'} rel="noopener noreferrer" className="social-ic" style={{ background: iconeBg, border: `1px solid ${iconeBorder}`, color: cfg.color || iconeCor }} aria-label={c.titulo || cfg.color} data-track-tipo="social_click" data-track-item-titulo={c.titulo || ''} data-track-item-url={c.url}>
                             {cfg.svg ? cfg.svg : (cfg.I ? <cfg.I size={16} color={cfg.color || iconeCor} /> : null)}
                           </a>
                         )
@@ -876,12 +869,9 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
             cliente em /painel/perfil. Cada secao individual (conteudo, condicao de exibir, estilo)
             continua exatamente igual - so a ORDEM de renderizacao delas muda, via ordemSecoes. */}
         {(() => {
-          const ORDEM_PADRAO_SECOES = ['destaques', 'albuns', 'links', 'agenda', 'catalogo', 'videos']
+          const ORDEM_PADRAO_SECOES = ['destaques', 'albuns', 'links', 'agenda', 'catalogo', 'videos', 'cards']
           const ordemSalva = (perfil as { ordem_secoes_publicas?: unknown }).ordem_secoes_publicas
-          const ordemValida = Array.isArray(ordemSalva)
-            && ordemSalva.length === ORDEM_PADRAO_SECOES.length
-            && ORDEM_PADRAO_SECOES.every(s => ordemSalva.includes(s))
-          const ordemSecoes: string[] = ordemValida ? (ordemSalva as string[]) : ORDEM_PADRAO_SECOES
+          const ordemSecoes: string[] = normalizarOrdemSecoes(ordemSalva, ORDEM_PADRAO_SECOES)
 
           const secoesMap: Record<string, ReactNode> = {
             destaques: (
@@ -966,6 +956,29 @@ secoesDestaquesComItens.length > 0 && permiteDestaques(perfil.plano_tipo) && (
                       proporcao={alb.proporcao}
                       fotos={alb.fotos}
                     />
+                  ))}
+                </>
+              )
+            ),
+            cards: (
+              cardsSecoesComCards.length > 0 && (
+                <>
+                  {cardsSecoesComCards.map((secao: any) => (
+                    <div key={secao.id} style={{ marginBottom: '28px' }}>
+                      <p style={{ fontSize: '17px', fontWeight: 800, color: tema.text, marginBottom: secao.subtitulo ? '2px' : '10px' }}>{secao.titulo}</p>
+                      {secao.subtitulo && <p style={{ fontSize: '12px', color: tema.textMuted, marginBottom: '10px' }}>{secao.subtitulo}</p>}
+                      <div className="card-visual-lista">
+                        {secao.cards.map((c: any) => (
+                          <CardVisualItem
+                            key={c.id}
+                            imagemUrl={c.imagem_url}
+                            titulo={c.titulo}
+                            exibirTitulo={c.exibir_titulo}
+                            url={c.url}
+                          />
+                        ))}
+                      </div>
+                    </div>
                   ))}
                 </>
               )

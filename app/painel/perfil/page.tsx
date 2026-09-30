@@ -2,6 +2,7 @@
 import { useEffect, useState, useRef } from 'react'
 import { supabase } from '../../lib/supabase'
 import { permiteDestaques, permiteVideos, permiteAgendaEventos, obterLimiteLinksRapidos, obterLimiteCatalogos, permiteAgenda } from '../../lib/planos'
+import { normalizarOrdemSecoes } from '../../lib/plataformasLinks'
 import Link from 'next/link'
 import { Copy, Check, ExternalLink, UploadCloud, ArrowUp, ArrowDown } from 'lucide-react'
 import PainelSidebar from '@/app/components/PainelSidebar'
@@ -136,7 +137,7 @@ export default function Perfil(){
   const [videos,setVideos]=useState<any[]>([])
   const [eventos,setEventos]=useState<any[]>([])
   const [catalogos,setCatalogos]=useState<any[]>([])
-  const ORDEM_PADRAO_SECOES=['destaques','albuns','links','agenda','catalogo','videos']
+  const ORDEM_PADRAO_SECOES=['destaques','albuns','links','agenda','catalogo','videos','cards']
   const [ordemSecoes,setOrdemSecoes]=useState<string[]>(ORDEM_PADRAO_SECOES)
   const tc = TEMA_CORES[publicTheme] ?? TEMA_CORES.modelo2
 
@@ -257,8 +258,8 @@ export default function Perfil(){
       if(p.promocao_data_fim) setPromoFim(p.promocao_data_fim)
 
       const ordemSalva=p.ordem_secoes_publicas
-      const ordemValida=Array.isArray(ordemSalva)&&ordemSalva.length===ORDEM_PADRAO_SECOES.length&&ORDEM_PADRAO_SECOES.every(s=>ordemSalva.includes(s))
-      setOrdemSecoes(ordemValida?ordemSalva:ORDEM_PADRAO_SECOES)
+      const ordemValida=normalizarOrdemSecoes(ordemSalva,ORDEM_PADRAO_SECOES)
+      setOrdemSecoes(ordemValida)
       setMostrarServicos(p.pagina_mostrar_servicos!==false)
       setMostrarEquipe(p.pagina_mostrar_equipe!==false)
       setMostrarPorQueAgendar(p.pagina_mostrar_por_que_agendar!==false)
@@ -522,7 +523,7 @@ export default function Perfil(){
             <p style={{fontSize:'12px',color:'#B8AAB8',marginBottom:'16px'}}>Altere a ordem em que as seções aparecem na sua MiniPage Pro.</p>
             <div style={{display:'flex',flexDirection:'column',gap:'8px'}}>
               {ordemSecoes.map((chave,i)=>{
-                const rotulos:Record<string,string>={destaques:'Destaques da página',albuns:'Álbuns / Fotos',links:'Links',agenda:'Agenda / Eventos',catalogo:'Catálogo',videos:'Vídeos da página'}
+                const rotulos:Record<string,string>={destaques:'Destaques da página',albuns:'Álbuns / Fotos',links:'Links',agenda:'Agenda / Eventos',catalogo:'Catálogo',videos:'Vídeos da página',cards:'Links visuais'}
                 return (
                   <div key={chave} style={{display:'flex',alignItems:'center',gap:'12px',padding:'10px 14px',background:'rgba(24,16,27,.72)',border:'1px solid #2A1A2F',borderRadius:'10px'}}>
                     <span style={{fontSize:'12px',fontWeight:700,color:'#B8AAB8',width:'18px',flexShrink:0}}>{i+1}</span>
@@ -558,6 +559,16 @@ export default function Perfil(){
                 <p style={{fontSize:'12px',color:'#B8AAB8'}}>Galerias de fotos em faixa horizontal deslizável</p>
               </div>
               <Link href="/painel/perfil/albuns" style={{background:G,color:'#fff',border:'1px solid rgba(255,255,255,.12)',borderRadius:'10px',padding:'10px 18px',fontSize:'13px',fontWeight:700,textDecoration:'none',flexShrink:0}}>Gerenciar álbuns</Link>
+            </div>
+          </div>
+
+          <div className="crd" style={{padding:'20px'}}>
+            <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',flexWrap:'wrap',gap:'12px'}}>
+              <div>
+                <p style={{fontSize:'15px',fontWeight:700,color:'#F8F4F7',marginBottom:'2px'}}>Links visuais</p>
+                <p style={{fontSize:'12px',color:'#B8AAB8'}}>Crie cards com imagem que direcionam para páginas, contatos, plataformas ou outros destinos.</p>
+              </div>
+              <Link href="/painel/perfil/cards" style={{background:G,color:'#fff',border:'1px solid rgba(255,255,255,.12)',borderRadius:'10px',padding:'10px 18px',fontSize:'13px',fontWeight:700,textDecoration:'none',flexShrink:0}}>Gerenciar links visuais</Link>
             </div>
           </div>
 
