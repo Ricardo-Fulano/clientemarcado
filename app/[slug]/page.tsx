@@ -61,17 +61,19 @@ html,body{overflow-x:hidden;width:100%;max-width:100%}
 .profile-row{display:flex;align-items:flex-end;gap:16px;margin-top:-48px;margin-bottom:18px;flex-wrap:wrap;position:relative;z-index:2}
 .avatar-pro{width:96px;height:96px;border-radius:999px;object-fit:cover;flex-shrink:0}
 .social-ic{width:38px;height:38px;border-radius:999px;display:flex;align-items:center;justify-content:center;flex-shrink:0;text-decoration:none;transition:transform .18s}
-.card-visual-item{position:relative;display:block;width:100%;border-radius:20px;overflow:hidden;text-decoration:none;transition:transform .18s,box-shadow .18s}
+.card-visual-item{position:relative;display:block;width:100%;aspect-ratio:1200/365;border-radius:20px;overflow:hidden;text-decoration:none;transition:transform .18s,box-shadow .18s}
 .card-visual-item:hover{transform:translateY(-3px)}
+@media(min-width:768px){
+  .card-visual-item{width:min(335px,100%)}
+}
 .card-visual-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center center;display:block}
+.card-visual-bg{position:absolute;inset:-8%;width:116%;height:116%;object-fit:cover;filter:blur(14px);transform:scale(1.05);opacity:.7;display:block}
+.card-visual-bg-overlay{position:absolute;inset:0;background:rgba(0,0,0,.18)}
+.card-visual-main{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;object-position:center;z-index:1;display:block}
 .card-visual-overlay{position:absolute;left:0;right:0;bottom:0;padding:18px 18px 14px;background:linear-gradient(to top,rgba(0,0,0,.78),rgba(0,0,0,.25) 60%,transparent)}
 .card-visual-titulo{color:#fff;font-size:15px;font-weight:800;letter-spacing:-.01em;text-shadow:0 2px 6px rgba(0,0,0,.6)}
 .spotify-lista{display:flex;flex-direction:column;align-items:center;gap:16px;width:100%}
 .spotify-embed-wrap{width:100%;max-width:560px;margin:0 auto;border-radius:12px;overflow:hidden}
-.card-visual-item::before{content:'';display:block;width:100%;padding-top:30.4878%}
-@media(min-width:768px){
-  .card-visual-item::before{padding-top:18.13%}
-}
 @media (hover:hover) and (pointer:fine){
 .social-ic:hover{transform:translateY(-2px);border-color:var(--accent)!important;box-shadow:0 0 10px var(--accent-glow)}
 }
@@ -412,7 +414,7 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
     supabase.from('pagina_albuns').select('id,titulo,subtitulo,proporcao').eq('user_id', perfil.user_id).eq('ativo', true).order('ordem'),
     supabase.from('pagina_album_fotos').select('id,album_id,imagem_url,titulo,descricao').eq('user_id', perfil.user_id).eq('ativo', true).order('ordem'),
     supabase.from('pagina_cards_secoes').select('id,titulo,subtitulo').eq('user_id', perfil.user_id).eq('ativo', true).order('ordem'),
-    supabase.from('pagina_cards').select('id,secao_id,imagem_url,titulo,exibir_titulo,url,exibir_no_topo').eq('user_id', perfil.user_id).eq('ativo', true).order('ordem').order('created_at'),
+    supabase.from('pagina_cards').select('id,secao_id,imagem_url,titulo,exibir_titulo,url,exibir_no_topo,image_fit').eq('user_id', perfil.user_id).eq('ativo', true).order('ordem').order('created_at'),
     supabase.from('pagina_spotify_secoes').select('id,titulo,subtitulo').eq('user_id', perfil.user_id).eq('ativo', true).order('ordem'),
     supabase.from('pagina_spotify_itens').select('id,secao_id,spotify_url').eq('user_id', perfil.user_id).eq('ativo', true).order('ordem').order('created_at'),
   ])
@@ -996,6 +998,7 @@ secoesDestaquesComItens.length > 0 && permiteDestaques(perfil.plano_tipo) && (
                             titulo={c.titulo}
                             exibirTitulo={c.exibir_titulo}
                             url={c.url}
+                            imageFit={c.image_fit || 'cover'}
                           />
                         ))}
                       </div>

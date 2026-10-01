@@ -4,6 +4,7 @@ import { useParams } from 'next/navigation'
 import { supabase } from '../../../../lib/supabase'
 import Link from 'next/link'
 import { ArrowLeft, ArrowUp, ArrowDown, UploadCloud, Trash2, Pencil } from 'lucide-react'
+import CardVisualPreviewBox from '@/app/components/CardVisualPreviewBox'
 import PainelSidebar from '@/app/components/PainelSidebar'
 import VerMiniPageButton from '@/app/components/VerMiniPageButton'
 import { detectarTipoPorUrl, TIPOS_SOCIAIS_TOPO, labelPlataforma } from '../../../../lib/plataformasLinks'
@@ -21,6 +22,10 @@ input,select,textarea{color-scheme:dark}
 .inp{width:100%;background:rgba(24,16,27,.92);border:1.5px solid #2A1A2F;border-radius:10px;padding:10px 12px;color:#F8F4F7;font-size:13px;font-family:inherit}
 .inp:focus{outline:none;border-color:rgba(236,72,153,.5)}
 .chk{display:flex;align-items:center;gap:8px;cursor:pointer;user-select:none}
+.card-visual-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center center;display:block}
+.card-visual-bg{position:absolute;inset:-8%;width:116%;height:116%;object-fit:cover;filter:blur(14px);transform:scale(1.05);opacity:.7;display:block}
+.card-visual-bg-overlay{position:absolute;inset:0;background:rgba(0,0,0,.18)}
+.card-visual-main{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;object-position:center;z-index:1;display:block}
 @media(max-width:767px){.psb-main .bdy{padding:14px 14px 80px!important}}
 `
 
@@ -61,7 +66,7 @@ export default function GerenciarSecaoCards() {
 
   function novoCard() {
     const novoId = 'novo-' + Date.now()
-    setCards(prev => [...prev, { id: novoId, secao_id: secaoId, user_id: userId, imagem_url: '', titulo: '', exibir_titulo: false, url: '', exibir_no_topo: false, ativo: true, ordem: prev.length, _novo: true }])
+    setCards(prev => [...prev, { id: novoId, secao_id: secaoId, user_id: userId, imagem_url: '', titulo: '', exibir_titulo: false, url: '', exibir_no_topo: false, image_fit: 'auto', ativo: true, ordem: prev.length, _novo: true }])
     setEditandoId(novoId)
   }
 
@@ -87,7 +92,7 @@ export default function GerenciarSecaoCards() {
     if (!(await validarSessao())) return
     if (!c.imagem_url) { setMsg('Envie uma imagem primeiro.'); return }
     if (!c.url?.trim()) { setMsg('Informe o link/destino do card.'); return }
-    const payload = { secao_id: secaoId, user_id: userId, imagem_url: c.imagem_url, titulo: c.titulo?.trim() || null, exibir_titulo: !!c.exibir_titulo, url: c.url.trim(), exibir_no_topo: !!c.exibir_no_topo, ativo: !!c.ativo, ordem: c.ordem || 0 }
+    const payload = { secao_id: secaoId, user_id: userId, imagem_url: c.imagem_url, titulo: c.titulo?.trim() || null, exibir_titulo: !!c.exibir_titulo, url: c.url.trim(), exibir_no_topo: !!c.exibir_no_topo, image_fit: c.image_fit || 'auto', ativo: !!c.ativo, ordem: c.ordem || 0 }
     if (c._novo) {
       const { data, error } = await supabase.from('pagina_cards').insert(payload).select().single()
       if (error) { setMsg('Erro ao salvar card: ' + error.message) }
@@ -149,7 +154,7 @@ export default function GerenciarSecaoCards() {
     const cardAtual = cards.find(x => x.id === idTemporario)
     if (!cardAtual || !cardAtual._novo) return null
     if (!cardAtual.url?.trim()) return null // ainda sem URL preenchida - nao da pra criar o registro real ainda
-    const payload = { secao_id: secaoId, user_id: userId, imagem_url: imagemUrl, titulo: cardAtual.titulo?.trim() || null, exibir_titulo: !!cardAtual.exibir_titulo, url: cardAtual.url.trim(), exibir_no_topo: !!cardAtual.exibir_no_topo, ativo: cardAtual.ativo, ordem: cardAtual.ordem || 0 }
+    const payload = { secao_id: secaoId, user_id: userId, imagem_url: imagemUrl, titulo: cardAtual.titulo?.trim() || null, exibir_titulo: !!cardAtual.exibir_titulo, url: cardAtual.url.trim(), exibir_no_topo: !!cardAtual.exibir_no_topo, image_fit: cardAtual.image_fit || 'auto', ativo: cardAtual.ativo, ordem: cardAtual.ordem || 0 }
     const { data, error } = await supabase.from('pagina_cards').insert(payload).select().single()
     if (error) { setMsg('Erro ao preparar o card: ' + error.message); return null }
     setCards(prev => prev.map(x => x.id === idTemporario ? { ...x, ...data, _novo: false } : x))
@@ -257,6 +262,16 @@ export default function GerenciarSecaoCards() {
                         <input type="checkbox" checked={!!c.exibir_titulo} onChange={e => editarCard(c.id, 'exibir_titulo', e.target.checked)} />
                         Exibir título sobre a imagem
                       </label>
+                      <div style={{ marginBottom: '12px' }}>
+                        <label className="lbl">Enquadramento da imagem</label>
+                        <select className="inp" value={c.image_fit || 'auto'} onChange={e => editarCard(c.id, 'image_fit', e.target.value)}>
+                          <option value="auto">Automático (recomendado)</option>
+                          <option value="cover">Preencher card</option>
+                          <option value="contain">Mostrar imagem inteira</option>
+                        </select>
+                        <p style={{ fontSize: '10px', color: '#8B7D8B', marginTop: '6px', marginBottom: '10px' }}>Automático adapta a arte ao card e evita cortes importantes. Preencher card ocupa todo o espaço e pode cortar a imagem. Mostrar imagem inteira preserva toda a arte.</p>
+                        {c.imagem_url && <CardVisualPreviewBox imagemUrl={c.imagem_url} titulo={c.exibir_titulo ? c.titulo : null} imageFit={c.image_fit || 'auto'} />}
+                      </div>
                       <div style={{ marginBottom: '8px' }}>
                         <label className="lbl">Link / destino</label>
                         <input className="inp" value={c.url || ''} onChange={e => editarCard(c.id, 'url', e.target.value)} placeholder="https://..." />

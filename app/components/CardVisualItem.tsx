@@ -1,23 +1,32 @@
+'use client'
+import { useRef } from 'react'
+import CardVisualMedia from './CardVisualMedia'
+import type { ImageFit } from './CardVisualMedia'
+
 // Card visual (modulo "Links visuais") - card horizontal encorpado, nunca banner 16:9.
-// Proporcao ~1.85:1 (referencia 1200x650), imagem dominante preenchendo todo o card,
-// clique no card inteiro abre o destino. Titulo so aparece sobre a imagem quando o dono
-// explicitamente ligou "Exibir titulo sobre a imagem" - por padrao a arte fala por si.
+// Tamanho/proporcao EXTERNA (.card-visual-item, ::before, .link-grid) nunca mudam aqui -
+// a decisao de COMO a imagem se encaixa dentro desse espaco fica em CardVisualMedia,
+// compartilhado com o preview do formulario no painel.
 export default function CardVisualItem({
   imagemUrl,
   titulo,
   exibirTitulo,
   url,
+  imageFit = 'cover',
 }: {
   imagemUrl?: string | null
   titulo?: string | null
   exibirTitulo?: boolean
   url?: string | null
+  imageFit?: ImageFit
 }) {
+  const itemRef = useRef<HTMLAnchorElement>(null)
   if (!imagemUrl || !url) return null
   const externo = url.startsWith('http://') || url.startsWith('https://')
 
   return (
     <a
+      ref={itemRef}
       href={url}
       target={externo ? '_blank' : '_self'}
       rel="noopener noreferrer"
@@ -27,7 +36,7 @@ export default function CardVisualItem({
       data-track-item-titulo={titulo || ''}
       data-track-item-url={url}
     >
-      <img src={imagemUrl} alt={titulo || ''} loading="lazy" decoding="async" className="card-visual-img" />
+      <CardVisualMedia imagemUrl={imagemUrl} titulo={titulo} imageFit={imageFit} containerRef={itemRef} />
       {exibirTitulo && titulo && (
         <div className="card-visual-overlay">
           <p className="card-visual-titulo">{titulo}</p>
