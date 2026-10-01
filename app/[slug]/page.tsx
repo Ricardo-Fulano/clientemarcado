@@ -18,6 +18,8 @@ import DestaqueItemCard from '../components/DestaqueItemCard'
 import AlbumFaixa from '../components/AlbumFaixa'
 import SocialTicker from '../components/SocialTicker'
 import CardVisualItem from '../components/CardVisualItem'
+import SpotifyEmbedItem from '../components/SpotifyEmbedItem'
+import { parseSpotifyUrl } from '../lib/spotify'
 import { detectarTipoPorUrl, detectarTipoPorTitulo, TIPOS_SOCIAIS_TOPO, normalizarOrdemSecoes } from '../lib/plataformasLinks'
 import { resolverTema, getTema } from '../lib/tema-publico'
 import { ehPlanoComGestao, permiteVideos, permiteDestaques, permiteAgendaEventos, obterLimiteCatalogos, podeUsarCatalogo, obterLimiteSecoesDestaques, obterLimiteLinksRapidos, ehPlanoFree } from '../lib/planos'
@@ -64,6 +66,8 @@ html,body{overflow-x:hidden;width:100%;max-width:100%}
 .card-visual-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center center;display:block}
 .card-visual-overlay{position:absolute;left:0;right:0;bottom:0;padding:18px 18px 14px;background:linear-gradient(to top,rgba(0,0,0,.78),rgba(0,0,0,.25) 60%,transparent)}
 .card-visual-titulo{color:#fff;font-size:15px;font-weight:800;letter-spacing:-.01em;text-shadow:0 2px 6px rgba(0,0,0,.6)}
+.spotify-lista{display:flex;flex-direction:column;align-items:center;gap:16px;width:100%}
+.spotify-embed-wrap{width:100%;max-width:560px;margin:0 auto;border-radius:12px;overflow:hidden}
 .card-visual-item::before{content:'';display:block;width:100%;padding-top:30.4878%}
 @media(min-width:768px){
   .card-visual-item::before{padding-top:18.13%}
@@ -394,7 +398,7 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
     }
   }
 
-  const [{ data: servicos }, { data: profissionais }, { data: destaques }, { data: destaquesSecoesAtivas }, { data: linksRapidos }, { data: videos }, { data: eventos }, { data: catalogosAtivos }, { data: catalogoItensTodos }, { data: catalogoImagensTodas }, { data: albunsAtivos }, { data: albumFotosTodas }, { data: cardsSecoesAtivas }, { data: cardsTodos }] = await Promise.all([
+  const [{ data: servicos }, { data: profissionais }, { data: destaques }, { data: destaquesSecoesAtivas }, { data: linksRapidos }, { data: videos }, { data: eventos }, { data: catalogosAtivos }, { data: catalogoItensTodos }, { data: catalogoImagensTodas }, { data: albunsAtivos }, { data: albumFotosTodas }, { data: cardsSecoesAtivas }, { data: cardsTodos }, { data: spotifySecoesAtivas }, { data: spotifyItensTodos }] = await Promise.all([
     supabase.from('servicos').select('*').eq('user_id', perfil.user_id).eq('ativo', true).order('nome'),
     supabase.from('profissionais').select('*').eq('user_id', perfil.user_id).eq('ativo', true).order('nome'),
     supabase.from('pagina_destaques').select('*').eq('user_id', perfil.user_id).eq('ativo', true).order('ordem').order('created_at'),
@@ -409,6 +413,8 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
     supabase.from('pagina_album_fotos').select('id,album_id,imagem_url,titulo,descricao').eq('user_id', perfil.user_id).eq('ativo', true).order('ordem'),
     supabase.from('pagina_cards_secoes').select('id,titulo,subtitulo').eq('user_id', perfil.user_id).eq('ativo', true).order('ordem'),
     supabase.from('pagina_cards').select('id,secao_id,imagem_url,titulo,exibir_titulo,url,exibir_no_topo').eq('user_id', perfil.user_id).eq('ativo', true).order('ordem').order('created_at'),
+    supabase.from('pagina_spotify_secoes').select('id,titulo,subtitulo').eq('user_id', perfil.user_id).eq('ativo', true).order('ordem'),
+    supabase.from('pagina_spotify_itens').select('id,secao_id,spotify_url').eq('user_id', perfil.user_id).eq('ativo', true).order('ordem').order('created_at'),
   ])
 
   // Agrupa os destaques (ja filtrados por ativo=true) por secao, mesmo padrao ja usado pro
@@ -443,6 +449,21 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
       cards: todosCardsVisuaisAtivos.filter((c: any) => c.secao_id === sec.id),
     }))
     .filter((sec: any) => sec.cards.length > 0)
+
+  // Secoes de Spotify + seus itens - mesmo padrao de agrupamento de Cards/Albuns. Cada
+  // item e revalidado aqui (parseSpotifyUrl) - tipo/id/embedUrl nunca sao persistidos no
+  // banco, sempre derivados da spotify_url na leitura. Um item com URL invalida (link
+  // editado manualmente no banco, por exemplo) e silenciosamente ignorado - nunca quebra
+  // a pagina nem tenta renderizar um iframe invalido.
+  const spotifySecoesComItens = (spotifySecoesAtivas || [])
+    .map((sec: any) => ({
+      ...sec,
+      itens: (spotifyItensTodos || [])
+        .filter((it: any) => it.secao_id === sec.id)
+        .map((it: any) => ({ ...it, parse: parseSpotifyUrl(it.spotify_url) }))
+        .filter((it: any) => it.parse.valido),
+    }))
+    .filter((sec: any) => sec.itens.length > 0)
 
   // Agrupa os itens (ja filtrados por ativo=true) por catalogo, e mantem so os catalogos
   // que realmente tem pelo menos 1 item pra mostrar - catalogo vazio nao ocupa espaco.
@@ -869,7 +890,7 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
             cliente em /painel/perfil. Cada secao individual (conteudo, condicao de exibir, estilo)
             continua exatamente igual - so a ORDEM de renderizacao delas muda, via ordemSecoes. */}
         {(() => {
-          const ORDEM_PADRAO_SECOES = ['destaques', 'albuns', 'links', 'agenda', 'catalogo', 'videos', 'cards']
+          const ORDEM_PADRAO_SECOES = ['destaques', 'albuns', 'links', 'agenda', 'catalogo', 'videos', 'cards', 'spotify']
           const ordemSalva = (perfil as { ordem_secoes_publicas?: unknown }).ordem_secoes_publicas
           const ordemSecoes: string[] = normalizarOrdemSecoes(ordemSalva, ORDEM_PADRAO_SECOES)
 
@@ -976,6 +997,23 @@ secoesDestaquesComItens.length > 0 && permiteDestaques(perfil.plano_tipo) && (
                             exibirTitulo={c.exibir_titulo}
                             url={c.url}
                           />
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </>
+              )
+            ),
+            spotify: (
+              spotifySecoesComItens.length > 0 && (
+                <>
+                  {spotifySecoesComItens.map((secao: any) => (
+                    <div key={secao.id} style={{ marginBottom: '28px' }}>
+                      <p style={{ fontSize: '17px', fontWeight: 800, color: tema.text, marginBottom: secao.subtitulo ? '2px' : '10px' }}>{secao.titulo}</p>
+                      {secao.subtitulo && <p style={{ fontSize: '12px', color: tema.textMuted, marginBottom: '10px' }}>{secao.subtitulo}</p>}
+                      <div className="spotify-lista">
+                        {secao.itens.map((it: any) => (
+                          <SpotifyEmbedItem key={it.id} tipo={it.parse.tipo} id={it.parse.id} embedUrl={it.parse.embedUrl} />
                         ))}
                       </div>
                     </div>

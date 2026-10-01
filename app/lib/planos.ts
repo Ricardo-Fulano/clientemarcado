@@ -256,6 +256,15 @@ export function permiteVideos(planoTipo?: string | null): boolean {
   return obterLimiteVideos(planoTipo) > 0
 }
 
+/** Spotify incorporado e recurso premium: Free bloqueado, qualquer plano pago libera -
+ *  mesmo padrao binario ja usado por Destaques e Videos. */
+export function obterLimiteSpotify(planoTipo?: string | null): number {
+  return normalizarPlano(planoTipo) === 'free' ? 0 : Infinity
+}
+export function permiteSpotify(planoTipo?: string | null): boolean {
+  return obterLimiteSpotify(planoTipo) > 0
+}
+
 /** Quantos eventos de Agenda/Eventos (secao da propria pagina, nao a agenda de atendimento
  *  completa) o plano permite. Free bloqueado (0). */
 export function obterLimiteAgendaEventos(planoTipo?: string | null): number {

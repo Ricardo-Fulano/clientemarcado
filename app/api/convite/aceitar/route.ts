@@ -72,7 +72,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Não foi possível concluir a transferência agora. Fale com o suporte.' }, { status: 500 })
     }
 
-    const [destaquesRes, secoesDestaquesRes, linksRes, videosRes, eventosRes, catalogosRes, catalogoItensRes, albunsRes, albumFotosRes, cardsSecoesRes, cardsRes] = await Promise.all([
+    const [destaquesRes, secoesDestaquesRes, linksRes, videosRes, eventosRes, catalogosRes, catalogoItensRes, albunsRes, albumFotosRes, cardsSecoesRes, cardsRes, spotifySecoesRes, spotifyItensRes] = await Promise.all([
       supabase.from('pagina_destaques').update({ user_id: novoUserId }).eq('user_id', userIdAntigo),
       supabase.from('pagina_destaques_secoes').update({ user_id: novoUserId }).eq('user_id', userIdAntigo),
       supabase.from('pagina_links').update({ user_id: novoUserId }).eq('user_id', userIdAntigo),
@@ -84,6 +84,8 @@ export async function POST(request: NextRequest) {
       supabase.from('pagina_album_fotos').update({ user_id: novoUserId }).eq('user_id', userIdAntigo),
       supabase.from('pagina_cards_secoes').update({ user_id: novoUserId }).eq('user_id', userIdAntigo),
       supabase.from('pagina_cards').update({ user_id: novoUserId }).eq('user_id', userIdAntigo),
+      supabase.from('pagina_spotify_secoes').update({ user_id: novoUserId }).eq('user_id', userIdAntigo),
+      supabase.from('pagina_spotify_itens').update({ user_id: novoUserId }).eq('user_id', userIdAntigo),
     ])
     if (destaquesRes.error) console.error('[convite/aceitar] Erro ao transferir destaques:', destaquesRes.error.message)
     if (secoesDestaquesRes.error) console.error('[convite/aceitar] Erro ao transferir seções de destaques:', secoesDestaquesRes.error.message)
@@ -96,6 +98,8 @@ export async function POST(request: NextRequest) {
     if (albumFotosRes.error) console.error('[convite/aceitar] Erro ao transferir fotos de álbuns:', albumFotosRes.error.message)
     if (cardsSecoesRes.error) console.error('[convite/aceitar] Erro ao transferir seções de links visuais:', cardsSecoesRes.error.message)
     if (cardsRes.error) console.error('[convite/aceitar] Erro ao transferir links visuais:', cardsRes.error.message)
+    if (spotifySecoesRes.error) console.error('[convite/aceitar] Erro ao transferir seções de spotify:', spotifySecoesRes.error.message)
+    if (spotifyItensRes.error) console.error('[convite/aceitar] Erro ao transferir itens de spotify:', spotifyItensRes.error.message)
 
     await supabase.from('convites_transferencia').update({ status: 'aceito', aceito_em: new Date().toISOString() }).eq('id', convite.id)
 
@@ -111,6 +115,8 @@ export async function POST(request: NextRequest) {
     if (albumFotosRes.error) avisos.push('fotos de álbuns')
     if (cardsSecoesRes.error) avisos.push('seções de links visuais')
     if (cardsRes.error) avisos.push('links visuais')
+    if (spotifySecoesRes.error) avisos.push('seções de spotify')
+    if (spotifyItensRes.error) avisos.push('itens de spotify')
 
     return NextResponse.json({ ok: true, avisos: avisos.length > 0 ? avisos : undefined })
   } catch (err) {
