@@ -146,6 +146,22 @@ export default function GerenciarSecaoCards() {
 
   function abrirUpload(id: string) { setUploadingId(id); imgRef.current?.click() }
 
+  // Remove somente a imagem do card - nunca o card inteiro, nunca titulo/url/image_fit/
+  // ordem/ativo. Seguindo o padrao ja confirmado no projeto (nenhum modulo - Destaques,
+  // Albuns, foto de perfil - apaga fisicamente o arquivo do Storage ao trocar/remover
+  // imagem), aqui tambem so limpamos imagem_url no banco, sem excluir o arquivo do bucket.
+  async function removerImagem(id: string) {
+    if (!(await validarSessao())) return
+    if (!window.confirm('Remover a imagem deste card?')) return
+    editarCard(id, 'imagem_url', '')
+    if (!id.startsWith('novo-')) {
+      const { error } = await supabase.from('pagina_cards').update({ imagem_url: null }).eq('id', id).eq('user_id', userId)
+      if (error) { setMsg('Erro ao remover imagem: ' + error.message); return }
+      setMsg('Imagem removida.')
+      setTimeout(() => setMsg(''), 3000)
+    }
+  }
+
   // Mesmo padrao ja aprovado em Destaques/Catalogo/Albuns: se o card ainda for um
   // rascunho novo (_novo), salva um registro tecnico no banco pra obter um ID real, MAS
   // preserva editandoId sincronizado com o novo ID e nunca fecha o formulario - so
@@ -253,7 +269,12 @@ export default function GerenciarSecaoCards() {
                           ) : (
                             <div style={{ width: '110px', height: '60px', borderRadius: '10px', background: 'rgba(24,16,27,.72)', border: '1px dashed #2A1A2F', flexShrink: 0 }} />
                           )}
-                          <button type="button" onClick={() => abrirUpload(c.id)} disabled={uploadingId === c.id} style={{ background: 'rgba(24,16,27,.9)', border: '1px solid #2A1A2F', color: '#B8AAB8', borderRadius: '8px', padding: '8px 14px', fontSize: '12px', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', display: 'inline-flex', alignItems: 'center', gap: '5px' }}><UploadCloud size={13} /> {uploadingId === c.id ? 'Enviando...' : (c.imagem_url ? 'Trocar imagem' : 'Enviar imagem')}</button>
+                          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                            <button type="button" onClick={() => abrirUpload(c.id)} disabled={uploadingId === c.id} style={{ background: 'rgba(24,16,27,.9)', border: '1px solid #2A1A2F', color: '#B8AAB8', borderRadius: '8px', padding: '8px 14px', fontSize: '12px', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', display: 'inline-flex', alignItems: 'center', gap: '5px' }}><UploadCloud size={13} /> {uploadingId === c.id ? 'Enviando...' : (c.imagem_url ? 'Alterar imagem' : 'Enviar imagem')}</button>
+                            {c.imagem_url && (
+                              <button type="button" onClick={() => removerImagem(c.id)} style={{ background: 'rgba(239,68,68,.10)', border: '1px solid rgba(239,68,68,.25)', color: '#EF4444', borderRadius: '8px', padding: '8px 14px', fontSize: '12px', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', display: 'inline-flex', alignItems: 'center', gap: '5px' }}><Trash2 size={13} /> Remover imagem</button>
+                            )}
+                          </div>
                         </div>
                         <p style={{ fontSize: '10px', color: '#8B7D8B', marginTop: '6px' }}>Recomendado: 1200 × 365 px. Mantenha as informações importantes na área central da imagem.</p>
                       </div>
