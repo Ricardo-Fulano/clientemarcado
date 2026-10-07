@@ -2,8 +2,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import crypto from 'crypto'
 
-// Valida um token de convite (rota publica, sem login).
-// So confirma se o token existe, esta pendente e nao expirou - nao expoe dados sensiveis.
+// Valida um token de convite (rota publica, sem login). O e-mail devolvido vem SEMPRE do
+// convite deste token - nunca da sessao. Informa tambem se esse e-mail ja tem conta, para a
+// pagina mostrar logo a tela certa (entrar) em vez de falhar na hora de criar a senha.
 export async function GET(request: NextRequest) {
   try {
     const token = request.nextUrl.searchParams.get('token')
@@ -16,20 +17,24 @@ export async function GET(request: NextRequest) {
       .from('convites_transferencia')
       .select('id, status, expira_em, email_novo, perfil_id, perfis(nome_negocio)')
       .eq('token_hash', tokenHash)
-      .single()
+      .maybeSingle()
 
-    if (!convite) return NextResponse.json({ valido: false, motivo: 'Este convite não existe ou já foi usado.' })
-    if (convite.status !== 'pendente') return NextResponse.json({ valido: false, motivo: 'Este convite já foi utilizado ou cancelado.' })
-    if (new Date(convite.expira_em) < new Date()) {
-      await supabase.from('convites_transferencia').update({ status: 'expirado' }).eq('id', convite.id)
+    if (!convite) return NextResponse.json({ valido: false, motivo: 'Este convite não existe ou foi substituído por um mais recente.' })
+    if (convite.status === 'aceito') return NextResponse.json({ valido: false, motivo: 'Este convite já foi utilizado.' })
+    if (convite.status === 'cancelado') return NextResponse.json({ valido: false, motivo: 'Este convite foi substituído por um mais recente. Use o link do último e-mail enviado.' })
+    if (convite.status !== 'pendente' || new Date(convite.expira_em) < new Date()) {
+      if (convite.status === 'pendente') await supabase.from('convites_transferencia').update({ status: 'expirado' }).eq('id', convite.id)
       return NextResponse.json({ valido: false, motivo: 'Este convite expirou. Peça um novo convite.' })
     }
+
+    const { data: existenteId } = await supabase.rpc('auth_user_id_por_email', { p_email: convite.email_novo })
 
     const perfilInfo = Array.isArray(convite.perfis) ? convite.perfis[0] : convite.perfis
     return NextResponse.json({
       valido: true,
       email_novo: convite.email_novo,
       nome_negocio: (perfilInfo as { nome_negocio?: string } | null)?.nome_negocio || 'sua página profissional',
+      conta_existente: !!existenteId,
     })
   } catch (err) {
     console.error('[convite/validar] Erro interno:', err)

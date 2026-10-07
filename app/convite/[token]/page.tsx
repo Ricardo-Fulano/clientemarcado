@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { supabase } from '../../lib/supabase'
 
 const G = 'linear-gradient(135deg,#EC4899,#D946EF,#8B5CF6)'
+const MSG_PADRAO = 'Não foi possível concluir a transferência. Tente novamente.'
 
 export default function AceitarConvite() {
   const params = useParams()
@@ -22,6 +23,9 @@ export default function AceitarConvite() {
   const [erro, setErro] = useState('')
   const [precisaLogin, setPrecisaLogin] = useState(false)
   const [sucesso, setSucesso] = useState(false)
+  // E-mail da sessao atual do navegador (se houver). Serve SO para avisar quando e outra
+  // conta - o e-mail do convite continua vindo exclusivamente do token.
+  const [emailSessao, setEmailSessao] = useState('')
 
   useEffect(() => {
     async function validar() {
@@ -31,6 +35,8 @@ export default function AceitarConvite() {
       if (data.valido) {
         setNomeNegocio(data.nome_negocio)
         setEmailNovo(data.email_novo)
+        // Se o e-mail do convite ja tem conta, vai direto para "entre para assumir".
+        if (data.conta_existente) setPrecisaLogin(true)
       } else {
         setMotivo(data.motivo || 'Não foi possível validar este convite.')
       }
@@ -39,40 +45,70 @@ export default function AceitarConvite() {
     if (token) validar()
   }, [token])
 
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => setEmailSessao(data.session?.user?.email || ''))
+    const { data: sub } = supabase.auth.onAuthStateChange((_evento, sessao) => setEmailSessao(sessao?.user?.email || ''))
+    return () => sub.subscription.unsubscribe()
+  }, [])
+
+  const sessaoDeOutraConta = !!emailSessao && !!emailNovo && emailSessao.toLowerCase() !== emailNovo.toLowerCase()
+  const sessaoCorreta = !!emailSessao && !!emailNovo && emailSessao.toLowerCase() === emailNovo.toLowerCase()
+
   async function aceitarComSenha() {
     setErro('')
     if (!senha || senha.length < 6) { setErro('A senha precisa ter pelo menos 6 caracteres.'); return }
     if (senha !== confirmar) { setErro('As senhas não coincidem.'); return }
     setEnviando(true)
-    const res = await fetch('/api/convite/aceitar', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ token, senha }),
-    })
-    const data = await res.json()
-    setEnviando(false)
-    if (!res.ok) {
-      if (data.error === 'já_tem_conta') { setPrecisaLogin(true); return }
-      setErro(data.error || 'Não foi possível concluir agora.')
-      return
+    try {
+      // Sem Authorization de proposito: a conta nova e criada pelo servidor para o e-mail do
+      // convite, qualquer sessao antiga do navegador e ignorada.
+      const res = await fetch('/api/convite/aceitar', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token, senha }),
+      })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) {
+        if (data.codigo === 'JA_TEM_CONTA') { setPrecisaLogin(true); return }
+        setErro(data.error || MSG_PADRAO)
+        return
+      }
+      // Conta criada e pagina transferida: entra direto com a senha que acabou de definir.
+      const { error: erroLogin } = await supabase.auth.signInWithPassword({ email: emailNovo, password: senha })
+      if (!erroLogin) { window.location.href = '/painel'; return }
+      setSucesso(true)
+    } catch {
+      setErro(MSG_PADRAO)
+    } finally {
+      setEnviando(false)
     }
-    setSucesso(true)
   }
 
   async function aceitarLogado() {
     setErro('')
     const { data: { session } } = await supabase.auth.getSession()
-    if (!session) { setErro('Faça login primeiro pelo link abaixo.'); return }
+    if (!session) { setErro('Entre primeiro com o e-mail do convite.'); return }
     setEnviando(true)
-    const res = await fetch('/api/convite/aceitar', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + session.access_token },
-      body: JSON.stringify({ token }),
-    })
-    const data = await res.json()
-    setEnviando(false)
-    if (!res.ok) { setErro(data.error || 'Não foi possível concluir agora.'); return }
-    setSucesso(true)
+    try {
+      const res = await fetch('/api/convite/aceitar', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + session.access_token },
+        body: JSON.stringify({ token }),
+      })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) { setErro(data.error || MSG_PADRAO); return }
+      window.location.href = '/painel'
+    } catch {
+      setErro(MSG_PADRAO)
+    } finally {
+      setEnviando(false)
+    }
+  }
+
+  async function sairDaConta() {
+    await supabase.auth.signOut()
+    setEmailSessao('')
+    setErro('')
   }
 
   return (
@@ -96,12 +132,20 @@ export default function AceitarConvite() {
         ) : precisaLogin ? (
           <>
             <p style={{ fontSize: '19px', fontWeight: 800, color: '#F8F4F7', marginBottom: '10px' }}>Você já tem uma conta</p>
-            <p style={{ fontSize: '14px', color: '#B8AAB8', lineHeight: 1.6, marginBottom: '18px' }}>Já existe uma conta ClienteMarcado com o e-mail <strong style={{ color: '#F8F4F7' }}>{emailNovo}</strong>. Faça login normalmente e depois volte nesta página para confirmar a transferência.</p>
+            <p style={{ fontSize: '14px', color: '#B8AAB8', lineHeight: 1.6, marginBottom: '18px' }}>Este e-mail já possui uma conta: <strong style={{ color: '#F8F4F7' }}>{emailNovo}</strong>. Entre com ele para assumir a página <strong style={{ color: '#EC4899' }}>{nomeNegocio}</strong>.</p>
+            {sessaoDeOutraConta && (
+              <div style={{ background: 'rgba(245,158,11,.10)', border: '1px solid rgba(245,158,11,.30)', borderRadius: '12px', padding: '12px', marginBottom: '14px', fontSize: '13px', color: '#F5C26B', lineHeight: 1.5 }}>
+                Você está logado como <strong>{emailSessao}</strong>, que não é o e-mail do convite.
+                <button type="button" onClick={sairDaConta} style={{ display: 'block', margin: '8px auto 0', background: 'transparent', border: '1px solid rgba(245,158,11,.40)', color: '#F5C26B', borderRadius: '8px', padding: '7px 14px', fontSize: '12px', fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>Sair desta conta</button>
+              </div>
+            )}
             {erro && <p style={{ fontSize: '13px', color: '#EF4444', marginBottom: '14px' }}>{erro}</p>}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              <Link href="/login" target="_blank" style={{ background: 'rgba(24,16,27,.92)', border: '1px solid rgba(229,72,184,.28)', color: '#F8F4F7', textDecoration: 'none', fontWeight: 600, fontSize: '14px', padding: '12px', borderRadius: '12px' }}>Fazer login (nova aba)</Link>
-              <button type="button" onClick={aceitarLogado} disabled={enviando} style={{ background: G, color: '#fff', border: 'none', fontWeight: 700, fontSize: '14px', padding: '13px', borderRadius: '12px', cursor: 'pointer', fontFamily: 'inherit', opacity: enviando ? .7 : 1 }}>
-                {enviando ? 'Confirmando...' : 'Já fiz login, confirmar transferência'}
+              {!sessaoCorreta && (
+                <Link href="/login" target="_blank" style={{ background: 'rgba(24,16,27,.92)', border: '1px solid rgba(229,72,184,.28)', color: '#F8F4F7', textDecoration: 'none', fontWeight: 600, fontSize: '14px', padding: '12px', borderRadius: '12px' }}>Entrar (nova aba)</Link>
+              )}
+              <button type="button" onClick={aceitarLogado} disabled={enviando || sessaoDeOutraConta} style={{ background: G, color: '#fff', border: 'none', fontWeight: 700, fontSize: '14px', padding: '13px', borderRadius: '12px', cursor: sessaoDeOutraConta ? 'not-allowed' : 'pointer', fontFamily: 'inherit', opacity: enviando || sessaoDeOutraConta ? .6 : 1 }}>
+                {enviando ? 'Confirmando...' : (sessaoCorreta ? 'Assumir a página' : 'Já entrei, assumir a página')}
               </button>
             </div>
           </>
