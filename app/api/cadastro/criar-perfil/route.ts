@@ -1,137 +1,31 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
-import { normalizarPlano, ehPlanoFree, normalizarBillingCycle } from '../../../lib/planos'
+import { criarPerfilInicial } from '../../../lib/perfil-inicial'
 
-// UUID v4-like check (aceita qualquer versao de UUID valido, formato padrao)
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
-// Gera um slug inicial a partir do nome do negocio (o usuario pode trocar depois em Configuracoes).
-// Mesma ideia de normalizacao usada em app/painel/perfil/page.tsx, mas sem hifen (so letras/numeros),
-// pra reduzir chance de colisao e manter o link curto.
-function gerarSlugBase(nome: string, userId: string) {
-  const limpo = (nome || '')
-    .normalize('NFD').replace(/[\u0300-\u036f]/g, '') // remove acentos
-    .toLowerCase()
-    .replace(/[^a-z0-9]/g, '')
-    .slice(0, 30)
-  return limpo || ('negocio' + userId.replace(/-/g, '').slice(0, 8))
-}
-
-// Rota chamada logo apos o cadastro (supabase.auth.signUp) dar certo.
-// Objetivo: garantir que nome_negocio, tipo_negocio e plano_tipo cheguem em `perfis`,
-// ja que nao existe nenhum trigger/funcao no banco que faca essa copia automaticamente
-// (confirmado via diagnostico: nenhum trigger de auth.users->perfis, so o
-// trigger_set_trial que preenche trial_ends_at/status_acesso quando a linha e inserida).
-//
-// IMPORTANTE: `perfis.slug` e obrigatorio (NOT NULL) e unico (UNIQUE). Como slug hoje so e
-// definido manualmente pela usuaria em Configuracoes, uma conta recem-criada ainda nao tem
-// slug nenhum. Por isso:
-//   - se JA existe uma linha em perfis pra esse user_id, so atualizamos os 3 campos (nunca
-//     tocamos em slug, banner, tema, horarios, status_acesso, trial_ends_at, etc.)
-//   - se NAO existe, criamos a linha com um slug inicial gerado a partir do nome do negocio,
-//     que a usuaria pode trocar a qualquer momento em Configuracoes (fluxo ja existente)
+// Cria/atualiza o perfil da PROPRIA pessoa logada. O dono vem SEMPRE da sessao (Bearer),
+// nunca de um user_id no corpo. O cadastro novo usa /api/cadastro/registrar; esta rota
+// continua disponivel (e segura) para quem ja tem sessao.
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json().catch(() => null)
     if (!body) return NextResponse.json({ error: 'Payload invalido' }, { status: 400 })
+    const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
 
-    const { nome_negocio, tipo_negocio, plano_tipo, cpf_cnpj, billing_cycle, cupom } = body
-
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    )
-
-    // SEGURANCA: o dono do perfil vem SEMPRE da sessao (Bearer), nunca de um user_id enviado
-    // no corpo. Antes, qualquer pessoa que soubesse um UUID podia alterar plano_tipo/nome de
-    // outra conta chamando esta rota. Agora so a propria pessoa autenticada cria/atualiza o
-    // proprio perfil.
     const bearer = (request.headers.get('Authorization') || '').replace(/^Bearer\s+/i, '')
     if (!bearer) return NextResponse.json({ error: 'Sessao obrigatoria' }, { status: 401 })
     const { data: sess, error: erroSess } = await supabase.auth.getUser(bearer)
     if (erroSess || !sess?.user) return NextResponse.json({ error: 'Sessao invalida' }, { status: 401 })
-    const user_id = sess.user.id
-    const emailSessao = (sess.user.email || '').toLowerCase().trim()
-    if (!UUID_REGEX.test(user_id)) return NextResponse.json({ error: 'user_id invalido' }, { status: 400 })
+    if (!UUID_REGEX.test(sess.user.id)) return NextResponse.json({ error: 'user_id invalido' }, { status: 400 })
 
-    // plano_tipo aceita 'equipe' e 'minipage' explicitamente; qualquer outra coisa vira 'essencial'
-    const planoValido = normalizarPlano(plano_tipo)
-
-    // Indicacao de parceiro: gravada aqui no servidor (service role), com o e-mail da propria
-    // sessao - o navegador nao consegue forjar a indicacao de outro e-mail. Falha aqui nunca
-    // impede a criacao da conta.
-    async function registrarIndicacao() {
-      if (!cupom || typeof cupom !== 'string' || cupom.length > 50) return
-      try {
-        const cupomFmt = cupom.trim().toUpperCase()
-        const { data: parceiro } = await supabase.from('parceiros').select('id, ativo').eq('cupom', cupomFmt).maybeSingle()
-        if (!parceiro || !parceiro.ativo) return
-        await supabase.from('indicacoes_parceiros').upsert({
-          parceiro_id: parceiro.id,
-          cupom_codigo: cupomFmt,
-          nome_negocio: null,
-          nome_responsavel: typeof nome_negocio === 'string' ? nome_negocio : null,
-          email: emailSessao,
-          status: 'cadastrado',
-          is_pagante: false,
-          comissao_status: 'nenhuma',
-          comissao_valor: 0,
-          plano_tipo: planoValido,
-        }, { onConflict: 'email,cupom_codigo', ignoreDuplicates: true })
-      } catch (e) { console.warn('[criar-perfil] indicacao de parceiro:', e) }
-    }
-
-    const camposComuns: Record<string, any> = { plano_tipo: planoValido }
-    if (cpf_cnpj && typeof cpf_cnpj === 'string') camposComuns.cpf_cnpj = cpf_cnpj
-    if (nome_negocio && typeof nome_negocio === 'string') camposComuns.nome_negocio = nome_negocio
-    if (tipo_negocio && typeof tipo_negocio === 'string') camposComuns.tipo_negocio = tipo_negocio
-    // Free nunca deve ter billing_cycle preenchido - nao gera cobranca em nenhum gateway,
-    // entao "mensal"/"anual" nao fazem sentido nem seriam usados por nenhuma rota de
-    // pagamento. Para planos pagos, normaliza qualquer valor recebido pra 'mensal'|'anual'
-    // (nunca deixa passar um valor invalido/vazio adiante - cai em 'mensal' por seguranca).
-    camposComuns.billing_cycle = ehPlanoFree(planoValido) ? null : normalizarBillingCycle(billing_cycle)
-
-    const { data: existente } = await supabase.from('perfis').select('id').eq('user_id', user_id).maybeSingle()
-
-    if (existente) {
-      // Perfil ja existe: so atualiza os 3 campos. Nunca mexe em slug/banner/tema/etc.
-      const { error } = await supabase.from('perfis').update(camposComuns).eq('user_id', user_id)
-      if (error) {
-        console.error('[criar-perfil] Erro ao atualizar perfil existente:', error.message)
-        return NextResponse.json({ error: 'Erro ao atualizar perfil' }, { status: 500 })
-      }
-      await registrarIndicacao()
-      return NextResponse.json({ ok: true, criado: false })
-    }
-
-    // Perfil novo: precisa de slug (unico) pra passar na constraint do banco
-    const slugBase = gerarSlugBase(nome_negocio, user_id)
-    let slugTentativa = slugBase
-    let tentativas = 0
-
-    while (tentativas < 3) {
-      // pagina_mostrar_agenda:false vai APENAS aqui, no insert de perfil NOVO - nunca em
-      // camposComuns, que tambem e usado no update() acima (linha 66) quando o perfil ja
-      // existe. Colocar no camposComuns sobrescreveria contas antigas/ja configuradas
-      // toda vez que essa rota rodasse de novo pra um user_id existente.
-      const { error } = await supabase.from('perfis').insert({ user_id, slug: slugTentativa, pagina_mostrar_agenda: false, ...camposComuns })
-      if (!error) {
-        await registrarIndicacao()
-        return NextResponse.json({ ok: true, criado: true, slug: slugTentativa })
-      }
-      if (error.code === '23505') {
-        // slug colidiu com outro negocio: tenta de novo com um sufixo diferente
-        const sufixo = user_id.replace(/-/g, '').slice(tentativas * 4, tentativas * 4 + 4)
-        slugTentativa = `${slugBase}${sufixo}`
-        tentativas++
-        continue
-      }
-      console.error('[criar-perfil] Erro ao criar perfil:', error.message)
-      return NextResponse.json({ error: 'Erro ao criar perfil' }, { status: 500 })
-    }
-
-    console.error('[criar-perfil] Nao foi possivel gerar slug unico apos tentativas')
-    return NextResponse.json({ error: 'Erro ao gerar link unico' }, { status: 500 })
+    const r = await criarPerfilInicial(supabase, {
+      userId: sess.user.id, email: sess.user.email || '',
+      nome_negocio: body.nome_negocio, tipo_negocio: body.tipo_negocio, plano_tipo: body.plano_tipo,
+      cpf_cnpj: body.cpf_cnpj, billing_cycle: body.billing_cycle, cupom: body.cupom,
+    })
+    if (!r.ok) return NextResponse.json({ error: r.erro }, { status: 500 })
+    return NextResponse.json(r.criado ? { ok: true, criado: true, slug: r.slug } : { ok: true, criado: false })
   } catch (err) {
     console.error('[criar-perfil] Erro interno:', err)
     return NextResponse.json({ error: 'Erro interno' }, { status: 500 })

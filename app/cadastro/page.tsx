@@ -144,93 +144,47 @@ export default function Cadastro() {
     const planoTipo = normalizarPlano(planoSalvo)
     setLoading(true)
     setMensagem('')
-    const redirectTo = montarRedirectTo()
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password: senha,
-      options: {
-        emailRedirectTo: redirectTo,
-        data: { nome_negocio: nomeUsuario, nome_usuario: nomeUsuario, cupom_indicacao: cupom || null, plano_tipo: planoTipo }
-      }
-    })
-    if (error) {
-      const msgAmigavel = erroCadastroAmigavel(error.message)
-      // E-mail ja cadastrado: nao cria conta duplicada, mas ja oferece a tela com o botao de reenvio
-      const ehDuplicado = ehEmailJaCadastrado(error)
-      if (ehDuplicado) {
+    // O cadastro e feito PELO SERVIDOR (/api/cadastro/registrar): ele cria a conta ja
+    // confirmada (sem e-mail de confirmacao), cria o perfil, grava o cupom e devolve a sessao.
+    // Plano, ciclo de cobranca e cupom seguem vindo da URL/localStorage como antes.
+    try {
+      const res = await fetch('/api/cadastro/registrar', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nome: nomeUsuario, email, senha, termos: true, plano_tipo: planoTipo, billing_cycle: billingCycleParaExibicao, cupom: cupom && cupom.trim() ? cupom.trim() : null, website: site }),
+      })
+      const dados = await res.json().catch(() => ({}))
+
+      // E-mail ja cadastrado: mostra a tela com "Entrar" e "Esqueci minha senha".
+      if (res.status === 409 && dados.codigo === 'JA_TEM_CONTA') {
         setEmailCadastrado(email)
         setDuplicado(true)
         setFase('confirmar')
         setLoading(false)
         return
       }
-      setMensagem('Erro: ' + msgAmigavel)
+      if (!res.ok) {
+        setMensagem(dados.error || 'Não conseguimos concluir seu cadastro agora. Tente novamente ou fale com nosso suporte.')
+        setLoading(false)
+        return
+      }
+
+      // Login automatico: assume a sessao devolvida; se nao vier, entra com a senha.
+      // /pos-confirmacao decide o destino: Free -> painel/onboarding; plano pago -> checkout.
+      if (dados.session?.access_token && dados.session?.refresh_token) {
+        const { error: erroSessao } = await supabase.auth.setSession({ access_token: dados.session.access_token, refresh_token: dados.session.refresh_token })
+        if (!erroSessao) { window.location.href = '/pos-confirmacao'; return }
+      }
+      const { error: erroLogin } = await supabase.auth.signInWithPassword({ email, password: senha })
+      if (!erroLogin) { window.location.href = '/pos-confirmacao'; return }
+      // Conta criada, mas o login automatico nao funcionou: manda para o login.
+      window.location.href = '/login'
+    } catch {
+      setMensagem('Não conseguimos concluir seu cadastro agora. Tente novamente ou fale com nosso suporte.')
       setLoading(false)
-      return
     }
-    // Caso "silencioso": o Supabase, por seguranca, NAO retorna erro quando o e-mail ja existe
-    // (confirmado ou nao) - so devolve o usuario com identities vazio. Sem essa checagem, a tela
-    // seguia pra "confirme seu e-mail" normalmente, mas nenhum e-mail novo era enviado de verdade.
-    const identitiesVazio = Array.isArray(data?.user?.identities) && data.user.identities.length === 0
-    if (identitiesVazio) {
-      setEmailCadastrado(email)
-      setDuplicado(true)
-      setFase('confirmar')
-      setLoading(false)
-      return
-    }
-    // CAMINHO PRINCIPAL (confirmacao de e-mail desligada no Supabase): o signUp ja devolve a
-    // sessao, entao a pessoa fica logada na hora. Criamos o perfil (a rota exige a sessao e
-    // tambem grava a indicacao do cupom, no servidor) e seguimos direto para
-    // /pos-confirmacao, que ja decide o destino: Free -> painel/onboarding; plano pago ->
-    // checkout e, depois de pago, onboarding. O plano, o ciclo de cobranca e o cupom
-    // continuam vindo da URL/localStorage/metadata exatamente como antes.
-    if (data?.session?.access_token && data?.user?.id) {
-      let perfilOk = false
-      try {
-        const resPerfil = await fetch('/api/cadastro/criar-perfil', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + data.session.access_token },
-          body: JSON.stringify({ nome_negocio: nomeUsuario, plano_tipo: planoTipo, cpf_cnpj: null, billing_cycle: billingCycleParaExibicao, cupom: cupom && cupom.trim() ? cupom.trim() : null })
-        })
-        perfilOk = resPerfil.ok
-        if (!resPerfil.ok) console.warn('Erro ao gravar perfil inicial:', resPerfil.status)
-      } catch (e) { console.warn('Erro ao gravar perfil inicial:', e) }
-      // Mesmo se a criacao do perfil falhar aqui, o painel cria o perfil automaticamente no
-      // primeiro acesso (usando o plano guardado no cadastro), entao a pessoa nao fica travada.
-      void perfilOk
-      window.location.href = '/pos-confirmacao'
-      return
-    }
-    // FALLBACK (confirmacao de e-mail ainda LIGADA no Supabase): sem sessao, mantem a tela
-    // antiga de "confirme seu e-mail" para nao quebrar o cadastro enquanto a configuracao
-    // do painel nao e alterada. A indicacao do cupom segue o caminho antigo (sem sessao).
-    if (cupom && cupom.trim()) {
-      const cupomFmt = cupom.trim().toUpperCase()
-      try {
-        const resCupom = await fetch(`/api/publico/validar-cupom?cupom=${encodeURIComponent(cupomFmt)}`)
-        const dadosCupom = await resCupom.json()
-        if (dadosCupom?.valido && dadosCupom?.parceiroId) {
-          await supabase.from('indicacoes_parceiros').upsert({
-            parceiro_id: dadosCupom.parceiroId,
-            cupom_codigo: cupomFmt,
-            nome_negocio: null,
-            nome_responsavel: nomeUsuario || null,
-            email: email.toLowerCase().trim(),
-            status: 'cadastrado',
-            is_pagante: false,
-            comissao_status: 'nenhuma',
-            comissao_valor: 0,
-            plano_tipo: planoTipo,
-          }, { onConflict: 'email,cupom_codigo', ignoreDuplicates: true })
-        }
-      } catch(e) { console.warn('Indicacao parceiro:', e) }
-    }
-    setEmailCadastrado(email)
-    setDuplicado(false)
-    setFase('confirmar')
-    setLoading(false)
   }
+
   async function esqueciSenhaDuplicado() {
     if (!emailCadastrado) return
     setReenviando(true)

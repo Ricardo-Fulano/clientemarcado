@@ -29,6 +29,7 @@ export default function AceitarConvite() {
   const [modo, setModo] = useState<'entrar' | 'criar'>('entrar')
   const [nome, setNome] = useState('')
   const [senha, setSenha] = useState('')
+  const [confirmar, setConfirmar] = useState('')
   const [termos, setTermos] = useState(false)
   const [enviando, setEnviando] = useState(false)
   const [erro, setErro] = useState('')
@@ -110,19 +111,24 @@ export default function AceitarConvite() {
     setErro(''); setInfo('')
     if (nome.trim().length < 2) { setErro('Informe seu nome.'); return }
     if (!senha || senha.length < 6) { setErro('A senha precisa ter pelo menos 6 caracteres.'); return }
+    if (senha !== confirmar) { setErro('As senhas não coincidem.'); return }
     if (!termos) { setErro('Aceite os termos de uso para continuar.'); return }
     setEnviando(true)
     try {
       const res = await fetch('/api/convite/aceitar', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token, nome: nome.trim(), senha, termos: true }),
+        body: JSON.stringify({ token, nome: nome.trim(), senha, confirmar, termos: true }),
       })
       const data = await res.json().catch(() => ({}))
       if (!res.ok) {
         if (data.codigo === 'JA_TEM_CONTA') { setContaExistente(true); setModo('entrar'); setSenha(''); setInfo('Este e-mail já possui uma conta. Entre para assumir a página.'); return }
         setErro(data.error || MSG_PADRAO)
         return
+      }
+      if (data.session?.access_token && data.session?.refresh_token) {
+        const { error: erroSessao } = await supabase.auth.setSession({ access_token: data.session.access_token, refresh_token: data.session.refresh_token })
+        if (!erroSessao) { window.location.href = '/painel'; return }
       }
       const { error: erroLogin } = await supabase.auth.signInWithPassword({ email: emailNovo, password: senha })
       if (!erroLogin) { window.location.href = '/painel'; return }
@@ -168,7 +174,7 @@ export default function AceitarConvite() {
   if (sessaoDeOutraConta) return (
     <Cartao>
       <Titulo>Este convite é para outro e-mail</Titulo>
-      <Texto>Este convite foi enviado para <strong style={{ color: '#F8F4F7' }}>{emailNovo}</strong>. Entre com esse e-mail para continuar.<br /><span style={{ fontSize: '12px' }}>Você está logado como {emailSessao}.</span></Texto>
+      <Texto>Este convite foi enviado para outro e-mail. Entre com o endereço correto para continuar.<br /><span style={{ fontSize: '12px' }}>Convite para <strong style={{ color: '#F8F4F7' }}>{emailNovo}</strong>. Você está logado como {emailSessao}.</span></Texto>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
         <button type="button" onClick={entrarComOutroEmail} style={botaoPrincipal(false)}>Entrar com outro e-mail</button>
         <button type="button" onClick={() => { window.location.href = '/painel' }} style={{ background: 'rgba(24,16,27,.92)', border: '1px solid #2A1A2F', color: '#B8AAB8', fontWeight: 600, fontSize: '14px', padding: '12px', borderRadius: '12px', cursor: 'pointer', fontFamily: 'inherit' }}>Cancelar</button>
@@ -205,6 +211,13 @@ export default function AceitarConvite() {
         <label style={rotulo}>{modo === 'criar' ? 'Crie uma senha' : 'Senha'}</label>
         <input type="password" value={senha} onChange={e => setSenha(e.target.value)} placeholder={modo === 'criar' ? 'Mínimo 6 caracteres' : 'Sua senha'} autoComplete={modo === 'criar' ? 'new-password' : 'current-password'} onKeyDown={e => { if (e.key === 'Enter') (modo === 'criar' ? criarEAssumir() : entrarEAssumir()) }} style={campo} />
       </div>
+
+      {modo === 'criar' && (
+        <div style={{ textAlign: 'left', marginBottom: '12px' }}>
+          <label style={rotulo}>Confirmar senha</label>
+          <input type="password" value={confirmar} onChange={e => setConfirmar(e.target.value)} placeholder="Repita a senha" autoComplete="new-password" onKeyDown={e => { if (e.key === 'Enter') criarEAssumir() }} style={campo} />
+        </div>
+      )}
 
       {modo === 'criar' && (
         <label style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', textAlign: 'left', fontSize: '12px', color: '#B8AAB8', lineHeight: 1.5, marginBottom: '16px', cursor: 'pointer' }}>

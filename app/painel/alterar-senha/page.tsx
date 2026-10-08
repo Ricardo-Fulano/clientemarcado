@@ -62,8 +62,8 @@ export default function AlterarSenha() {
   function emailValido(e: string) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e) }
 
   // Caminho B: convite proprio, com token controlado por nos.
-  // A pessoa cria a PROPRIA senha na pagina /convite/[token] - o admin atual nunca
-  // ve nem define essa senha. So depois que ela aceita e que o perfil e transferido.
+  // A pessoa entra (ou cria a conta) na pagina /convite/[token] - o admin atual nunca ve
+  // nem define a senha dela. So depois que ela aceita e que o perfil e transferido.
   async function transferirAcesso() {
     setTransferMsg('')
     setTransferOk(false)
@@ -88,7 +88,7 @@ export default function AlterarSenha() {
     }
     setTransferOk(true)
     setNovoEmailAcesso('')
-    setTransferMsg('Convite enviado! A pessoa vai receber um e-mail para criar a própria senha e assumir o acesso. Você não verá nem definirá essa senha em nenhum momento.')
+    setTransferMsg('Convite enviado! A pessoa receberá um link para entrar ou criar a conta e assumir esta MiniPage. Se já tiver uma conta, basta entrar. Se ainda não tiver, poderá criar o acesso pelo próprio convite.')
   }
 
   async function salvar() {
@@ -162,7 +162,7 @@ export default function AlterarSenha() {
             <button type="button" onClick={transferirAcesso} disabled={transferindo} className="btn-p" style={{ marginBottom: '12px', opacity: transferindo ? .7 : 1, cursor: transferindo ? 'not-allowed' : 'pointer' }}>
               {transferindo ? 'Enviando...' : 'Enviar convite de transferência'}
             </button>
-            <p style={{ fontSize: '11px', color: '#B8AAB8', lineHeight: 1.6 }}>A pessoa recebe um link exclusivo por e-mail para criar a própria senha e assumir o acesso. Você não vê nem define essa senha em nenhum momento.</p>
+            <p style={{ fontSize: '11px', color: '#B8AAB8', lineHeight: 1.6 }}>A pessoa recebe um link exclusivo por e-mail para entrar ou criar a conta e assumir esta MiniPage. Se já tiver uma conta, basta entrar; se ainda não tiver, cria o acesso pelo próprio convite. Você não vê nem define a senha dela em nenhum momento.</p>
             <p style={{ fontSize: '11px', color: '#B8AAB8', lineHeight: 1.6, marginTop: '6px' }}>O convite expira em 7 dias e só pode ser usado uma vez.</p>
           </div>
           )}
