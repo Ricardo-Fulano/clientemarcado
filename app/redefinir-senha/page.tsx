@@ -78,7 +78,18 @@ export default function RedefinirSenha() {
     if (error) { setErro('Não foi possível trocar a senha. Tente novamente.'); return }
     setSucesso(true)
     await supabase.auth.signOut()
-    setTimeout(() => { window.location.href = '/login' }, 2000)
+    // Se a redefinicao veio de dentro de um convite de transferencia, volta para ele (o
+    // contexto fica no localStorage por no maximo 2h). Sem convite, segue para o login.
+    let destino = '/login'
+    try {
+      const bruto = localStorage.getItem('cm_convite_pendente')
+      if (bruto) {
+        const pend = JSON.parse(bruto) as { token?: string; ate?: number }
+        if (pend.token && /^[A-Za-z0-9_-]{20,128}$/.test(pend.token) && (pend.ate || 0) > Date.now()) destino = `/convite/${pend.token}`
+        localStorage.removeItem('cm_convite_pendente')
+      }
+    } catch { /* sem contexto: login normal */ }
+    setTimeout(() => { window.location.href = destino }, 2000)
   }
 
   return (

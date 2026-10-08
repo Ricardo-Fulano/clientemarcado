@@ -35,19 +35,51 @@ export async function POST(request: NextRequest) {
     const body = await request.json().catch(() => null)
     if (!body) return NextResponse.json({ error: 'Payload invalido' }, { status: 400 })
 
-    const { user_id, nome_negocio, tipo_negocio, plano_tipo, cpf_cnpj, billing_cycle } = body
-
-    if (!user_id || typeof user_id !== 'string' || !UUID_REGEX.test(user_id)) {
-      return NextResponse.json({ error: 'user_id invalido' }, { status: 400 })
-    }
-
-    // plano_tipo aceita 'equipe' e 'minipage' explicitamente; qualquer outra coisa vira 'essencial'
-    const planoValido = normalizarPlano(plano_tipo)
+    const { nome_negocio, tipo_negocio, plano_tipo, cpf_cnpj, billing_cycle, cupom } = body
 
     const supabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.SUPABASE_SERVICE_ROLE_KEY!
     )
+
+    // SEGURANCA: o dono do perfil vem SEMPRE da sessao (Bearer), nunca de um user_id enviado
+    // no corpo. Antes, qualquer pessoa que soubesse um UUID podia alterar plano_tipo/nome de
+    // outra conta chamando esta rota. Agora so a propria pessoa autenticada cria/atualiza o
+    // proprio perfil.
+    const bearer = (request.headers.get('Authorization') || '').replace(/^Bearer\s+/i, '')
+    if (!bearer) return NextResponse.json({ error: 'Sessao obrigatoria' }, { status: 401 })
+    const { data: sess, error: erroSess } = await supabase.auth.getUser(bearer)
+    if (erroSess || !sess?.user) return NextResponse.json({ error: 'Sessao invalida' }, { status: 401 })
+    const user_id = sess.user.id
+    const emailSessao = (sess.user.email || '').toLowerCase().trim()
+    if (!UUID_REGEX.test(user_id)) return NextResponse.json({ error: 'user_id invalido' }, { status: 400 })
+
+    // plano_tipo aceita 'equipe' e 'minipage' explicitamente; qualquer outra coisa vira 'essencial'
+    const planoValido = normalizarPlano(plano_tipo)
+
+    // Indicacao de parceiro: gravada aqui no servidor (service role), com o e-mail da propria
+    // sessao - o navegador nao consegue forjar a indicacao de outro e-mail. Falha aqui nunca
+    // impede a criacao da conta.
+    async function registrarIndicacao() {
+      if (!cupom || typeof cupom !== 'string' || cupom.length > 50) return
+      try {
+        const cupomFmt = cupom.trim().toUpperCase()
+        const { data: parceiro } = await supabase.from('parceiros').select('id, ativo').eq('cupom', cupomFmt).maybeSingle()
+        if (!parceiro || !parceiro.ativo) return
+        await supabase.from('indicacoes_parceiros').upsert({
+          parceiro_id: parceiro.id,
+          cupom_codigo: cupomFmt,
+          nome_negocio: null,
+          nome_responsavel: typeof nome_negocio === 'string' ? nome_negocio : null,
+          email: emailSessao,
+          status: 'cadastrado',
+          is_pagante: false,
+          comissao_status: 'nenhuma',
+          comissao_valor: 0,
+          plano_tipo: planoValido,
+        }, { onConflict: 'email,cupom_codigo', ignoreDuplicates: true })
+      } catch (e) { console.warn('[criar-perfil] indicacao de parceiro:', e) }
+    }
 
     const camposComuns: Record<string, any> = { plano_tipo: planoValido }
     if (cpf_cnpj && typeof cpf_cnpj === 'string') camposComuns.cpf_cnpj = cpf_cnpj
@@ -68,6 +100,7 @@ export async function POST(request: NextRequest) {
         console.error('[criar-perfil] Erro ao atualizar perfil existente:', error.message)
         return NextResponse.json({ error: 'Erro ao atualizar perfil' }, { status: 500 })
       }
+      await registrarIndicacao()
       return NextResponse.json({ ok: true, criado: false })
     }
 
@@ -83,6 +116,7 @@ export async function POST(request: NextRequest) {
       // toda vez que essa rota rodasse de novo pra um user_id existente.
       const { error } = await supabase.from('perfis').insert({ user_id, slug: slugTentativa, pagina_mostrar_agenda: false, ...camposComuns })
       if (!error) {
+        await registrarIndicacao()
         return NextResponse.json({ ok: true, criado: true, slug: slugTentativa })
       }
       if (error.code === '23505') {

@@ -3,6 +3,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { supabase } from '../lib/supabase'
 import { normalizarPlano, ehPlanoFree, normalizarBillingCycle } from '../lib/planos'
+import { ehEmailJaCadastrado } from '../lib/auth-erros'
 
 const BENEFICIOS = [
   {
@@ -56,6 +57,9 @@ export default function Cadastro() {
   const [duplicado, setDuplicado] = useState(false)
   const [reenviando, setReenviando] = useState(false)
   const [reenvioMsg, setReenvioMsg] = useState('')
+  // Campo-isca (honeypot): invisivel para pessoas, bots costumam preencher. Se vier preenchido,
+  // o cadastro e descartado em silencio.
+  const [site, setSite] = useState('')
   async function validarCupom(c: string) {
     if (!c) { setCupomStatus('idle'); return }
     try {
@@ -123,6 +127,7 @@ export default function Cadastro() {
     ? normalizarBillingCycle(new URLSearchParams(window.location.search).get('billing') || localStorage.getItem('cm_billing'))
     : 'mensal'
   async function handleCadastro() {
+    if (site) { setLoading(true); return }
     const jaAceitou = typeof window !== 'undefined' && localStorage.getItem('clienteMarcadoAceitePlano') === 'true'
     if (!aceitou && !jaAceitou) {
       setMensagem('Para criar sua conta, aceite primeiro o contrato do plano.')
@@ -151,7 +156,7 @@ export default function Cadastro() {
     if (error) {
       const msgAmigavel = erroCadastroAmigavel(error.message)
       // E-mail ja cadastrado: nao cria conta duplicada, mas ja oferece a tela com o botao de reenvio
-      const ehDuplicado = error.message.toLowerCase().includes('already registered') || error.message.toLowerCase().includes('already exists') || error.message.toLowerCase().includes('user already')
+      const ehDuplicado = ehEmailJaCadastrado(error)
       if (ehDuplicado) {
         setEmailCadastrado(email)
         setDuplicado(true)
@@ -174,25 +179,38 @@ export default function Cadastro() {
       setLoading(false)
       return
     }
-    // Garante que nome_negocio/tipo_negocio/plano_tipo cheguem em `perfis`
-    // (nao existe trigger no banco que faca essa copia automaticamente)
-    if (data?.user?.id) {
+    // CAMINHO PRINCIPAL (confirmacao de e-mail desligada no Supabase): o signUp ja devolve a
+    // sessao, entao a pessoa fica logada na hora. Criamos o perfil (a rota exige a sessao e
+    // tambem grava a indicacao do cupom, no servidor) e seguimos direto para
+    // /pos-confirmacao, que ja decide o destino: Free -> painel/onboarding; plano pago ->
+    // checkout e, depois de pago, onboarding. O plano, o ciclo de cobranca e o cupom
+    // continuam vindo da URL/localStorage/metadata exatamente como antes.
+    if (data?.session?.access_token && data?.user?.id) {
+      let perfilOk = false
       try {
-        await fetch('/api/cadastro/criar-perfil', {
+        const resPerfil = await fetch('/api/cadastro/criar-perfil', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ user_id: data.user.id, nome_negocio: nomeUsuario, plano_tipo: planoTipo, cpf_cnpj: null, billing_cycle: billingCycleParaExibicao })
+          headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + data.session.access_token },
+          body: JSON.stringify({ nome_negocio: nomeUsuario, plano_tipo: planoTipo, cpf_cnpj: null, billing_cycle: billingCycleParaExibicao, cupom: cupom && cupom.trim() ? cupom.trim() : null })
         })
+        perfilOk = resPerfil.ok
+        if (!resPerfil.ok) console.warn('Erro ao gravar perfil inicial:', resPerfil.status)
       } catch (e) { console.warn('Erro ao gravar perfil inicial:', e) }
+      // Mesmo se a criacao do perfil falhar aqui, o painel cria o perfil automaticamente no
+      // primeiro acesso (usando o plano guardado no cadastro), entao a pessoa nao fica travada.
+      void perfilOk
+      window.location.href = '/pos-confirmacao'
+      return
     }
-    // Salvar indicação no banco imediatamente se cupom foi usado
+    // FALLBACK (confirmacao de e-mail ainda LIGADA no Supabase): sem sessao, mantem a tela
+    // antiga de "confirme seu e-mail" para nao quebrar o cadastro enquanto a configuracao
+    // do painel nao e alterada. A indicacao do cupom segue o caminho antigo (sem sessao).
     if (cupom && cupom.trim()) {
       const cupomFmt = cupom.trim().toUpperCase()
       try {
         const resCupom = await fetch(`/api/publico/validar-cupom?cupom=${encodeURIComponent(cupomFmt)}`)
         const dadosCupom = await resCupom.json()
         if (dadosCupom?.valido && dadosCupom?.parceiroId) {
-          // Upsert evita duplicidade por email+cupom
           await supabase.from('indicacoes_parceiros').upsert({
             parceiro_id: dadosCupom.parceiroId,
             cupom_codigo: cupomFmt,
@@ -212,6 +230,15 @@ export default function Cadastro() {
     setDuplicado(false)
     setFase('confirmar')
     setLoading(false)
+  }
+  async function esqueciSenhaDuplicado() {
+    if (!emailCadastrado) return
+    setReenviando(true)
+    setReenvioMsg('')
+    const { error } = await supabase.auth.resetPasswordForEmail(emailCadastrado, { redirectTo: window.location.origin + '/redefinir-senha' })
+    if (error) setReenvioMsg('Não conseguimos enviar agora. Tente novamente em instantes.')
+    else setReenvioMsg('Se esse e-mail estiver cadastrado, enviaremos um link para redefinir sua senha. Confira também spam e promoções.')
+    setReenviando(false)
   }
   async function reenviarConfirmacao() {
     if (!emailCadastrado) return
@@ -384,6 +411,7 @@ export default function Cadastro() {
               {cupomStatus==='idle'&&<p style={{fontSize:'11px',color:'#B8AAB8',marginTop:'5px'}}>Se recebeu um cupom de um parceiro, informe aqui. Campo opcional.</p>}
             </div>
             <div style={{marginBottom:'14px',display:'flex',alignItems:'flex-start',gap:'10px'}}><input type="checkbox" id="aceite" checked={aceitou} onChange={e=>setAceitou(e.target.checked)} style={{marginTop:'2px',accentColor:'#EC4899',width:'15px',height:'15px',flexShrink:0,cursor:'pointer'}} /><label htmlFor="aceite" style={{fontSize:'12px',color:'#B8AAB8',lineHeight:1.5,cursor:'pointer'}}>Li e aceito os <a href="/contrato-de-adesao" target="_blank" rel="noreferrer" onClick={()=>{if(cupom&&typeof window!=='undefined')localStorage.setItem('cm_cupom',cupom)}} style={{color:'#EC4899',textDecoration:'none',fontWeight:600}}>termos de uso e contrato de adesão</a> do ClienteMarcado.</label></div>
+            <input type="text" name="website" value={site} onChange={e => setSite(e.target.value)} tabIndex={-1} autoComplete="off" aria-hidden="true" style={{ position: 'absolute', left: '-9999px', width: '1px', height: '1px', opacity: 0 }} />
             <button onClick={handleCadastro} disabled={loading} className="btn-criar">
               {loading ? 'Criando conta...' : (
                 <>
@@ -400,6 +428,31 @@ export default function Cadastro() {
             </>
             ) : (
             <>
+              {duplicado ? (
+              <>
+                <div className="confirmar-icone">
+                  <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#EC4899" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+                  </svg>
+                </div>
+                <p className="card-titulo" style={{textAlign:'center'}}>Este e-mail já possui uma conta</p>
+                <p className="card-sub" style={{textAlign:'center'}}>Entre para continuar com:</p>
+                <p className="confirmar-email" style={{textAlign:'center',marginBottom:'18px'}}>{emailCadastrado}</p>
+                {reenvioMsg && (
+                  <div className={reenvioMsg.startsWith('Não') ? 'msg-err' : 'msg-ok'}>{reenvioMsg}</div>
+                )}
+                <div className="confirmar-botoes">
+                  <Link href="/login" className="btn-criar" style={{textAlign:'center',textDecoration:'none'}}>Entrar</Link>
+                  <button type="button" onClick={esqueciSenhaDuplicado} disabled={reenviando} className="btn-secundario">
+                    {reenviando ? 'Enviando...' : 'Esqueci minha senha'}
+                  </button>
+                  <button type="button" className="btn-secundario" onClick={() => { setFase('form'); setMensagem(''); setDuplicado(false); setReenvioMsg('') }}>
+                    Digitou o e-mail errado? Voltar para cadastro
+                  </button>
+                </div>
+              </>
+              ) : (
+              <>
               <div className="confirmar-icone">
                 <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#22C55E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
@@ -441,6 +494,8 @@ export default function Cadastro() {
                   Falar com o suporte
                 </a>
               </div>
+              </>
+              )}
             </>
             )}
           </div>

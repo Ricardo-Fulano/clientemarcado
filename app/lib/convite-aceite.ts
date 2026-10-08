@@ -1,5 +1,6 @@
 import crypto from 'crypto'
 import type { SupabaseClient } from '@supabase/supabase-js'
+import { ehEmailJaCadastrado } from './auth-erros'
 
 // Logica do aceite de convite de transferencia, separada da rota para ser testavel.
 // So roda no servidor (recebe um client com service_role).
@@ -10,7 +11,7 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 //   transacao), INVITE_ACCEPT.
 // Nunca logamos senha, token nem e-mail completo.
 
-export type AceiteInput = { token?: string | null; senha?: string | null; bearer?: string | null }
+export type AceiteInput = { token?: string | null; senha?: string | null; nome?: string | null; termos?: boolean | null; bearer?: string | null }
 export type AceiteResultado = { status: number; body: Record<string, unknown> }
 
 const MSG_GENERICA = 'Não foi possível concluir a transferência. Tente novamente.'
@@ -31,17 +32,7 @@ function comDetalhe(body: Record<string, unknown>, detalhe: unknown): Record<str
   return debug && detalhe ? { ...body, detalhe } : body
 }
 
-// O Supabase devolve "email_exists"/"user_already_exists" como code, e a mensagem
-// "A user with this email address has already been registered" (note: "already BEEN
-// registered"). A checagem antiga procurava so "already registered" e nao reconhecia essa
-// mensagem, caindo no erro generico. Aqui olhamos o code primeiro e depois varias formas
-// de mensagem.
-export function ehEmailJaCadastrado(err: { message?: string; code?: string } | null | undefined): boolean {
-  if (!err) return false
-  const code = (err.code || '').toLowerCase()
-  if (code === 'email_exists' || code === 'user_already_exists') return true
-  return /already\s+(been\s+)?registered|already\s+exists|email_exists/i.test(err.message || '')
-}
+export { ehEmailJaCadastrado }
 
 function mapearErroTransferencia(msg: string): AceiteResultado {
   if (msg.includes('DESTINO_JA_TEM_PAGINA'))
@@ -92,6 +83,13 @@ export async function aceitarConvite(supabase: SupabaseClient, input: AceiteInpu
   } else {
     if (!input.senha || input.senha.length < 6)
       return { status: 400, body: { codigo: 'SENHA_CURTA', error: 'A senha precisa ter pelo menos 6 caracteres.' } }
+    // Criacao de conta pelo convite: nome e aceite dos termos sao obrigatorios (validados
+    // aqui no servidor, nao so no formulario).
+    const nomeLimpo = (input.nome || '').trim()
+    if (nomeLimpo.length < 2)
+      return { status: 400, body: { codigo: 'NOME_OBRIGATORIO', error: 'Informe seu nome.' } }
+    if (input.termos !== true)
+      return { status: 400, body: { codigo: 'TERMOS_OBRIGATORIOS', error: 'Aceite os termos de uso para continuar.' } }
 
     // Lookup exato por e-mail (RPC). Se a RPC nao existir ainda, seguimos e tratamos o
     // conflito pelo erro do createUser.
@@ -101,6 +99,7 @@ export async function aceitarConvite(supabase: SupabaseClient, input: AceiteInpu
 
     const { data: criado, error: erroCriar } = await supabase.auth.admin.createUser({
       email: convite.email_novo, password: input.senha, email_confirm: true,
+      user_metadata: { nome_usuario: nomeLimpo },
     })
     if (erroCriar || !criado?.user) {
       if (ehEmailJaCadastrado(erroCriar)) {

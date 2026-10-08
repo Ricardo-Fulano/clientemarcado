@@ -14,7 +14,7 @@ export async function POST(request: NextRequest) {
     const authHeader = request.headers.get('Authorization')
     const bearer = authHeader ? authHeader.replace(/^Bearer\s+/i, '') : null
     const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
-    const r = await aceitarConvite(supabase, { token: body?.token, senha: body?.senha, bearer })
+    const r = await aceitarConvite(supabase, { token: body?.token, senha: body?.senha, nome: body?.nome, termos: body?.termos === true, bearer })
     return NextResponse.json(r.body, { status: r.status })
   } catch (err) {
     console.error('[convite/aceitar] Erro interno:', err)
