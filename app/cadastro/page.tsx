@@ -1,5 +1,5 @@
 'use client'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { supabase } from '../lib/supabase'
 import { normalizarPlano, ehPlanoFree, normalizarBillingCycle } from '../lib/planos'
@@ -105,15 +105,26 @@ export default function Cadastro() {
     }
     return 'Não conseguimos reenviar agora. Entre em contato com o suporte do ClienteMarcado.'
   }
-  if (typeof window !== 'undefined') {
-   const urlCupom = new URLSearchParams(window.location.search).get('cupom')
-    const savedCupom = localStorage.getItem('cm_cupom')
-    const cupomFinal = urlCupom || savedCupom
-    if (cupomFinal && !cupom) setTimeout(() => {
-      setCupom(cupomFinal.toUpperCase())
-      validarCupom(cupomFinal.toUpperCase())
-    }, 0)
-  }
+  // Cupom vindo da URL (?cupom=) ou guardado ao abrir o contrato. Roda UMA vez, ao abrir a
+  // pagina. So preenche o campo se o cupom for VALIDO (um valor guardado invalido - por
+  // exemplo digitado pela metade num teste antigo - e apagado em vez de reaparecer), e
+  // nunca sobrescreve o que a pessoa ja digitou.
+  useEffect(() => {
+    const urlCupom = new URLSearchParams(window.location.search).get('cupom')
+    const saved = localStorage.getItem('cm_cupom')
+    const cupomFinal = (urlCupom || saved || '').toUpperCase().replace(/[^A-Z0-9]/g, '')
+    if (!cupomFinal) return
+    ;(async () => {
+      try {
+        const res = await fetch(`/api/publico/validar-cupom?cupom=${encodeURIComponent(cupomFinal)}`)
+        const dados = await res.json()
+        if (dados?.valido) { setCupom(prev => prev || cupomFinal); setCupomStatus('ok') }
+        else if (urlCupom) { setCupom(prev => prev || cupomFinal); setCupomStatus('erro') }
+        else localStorage.removeItem('cm_cupom')
+      } catch { /* sem rede: a pessoa pode digitar o cupom normalmente */ }
+    })()
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
   // Calcula o plano da mesma forma que handleCadastro() calcula na hora de enviar - usado
   // so pra decidir o billing_cycle de exibicao aqui no JSX. CPF/CNPJ nao e mais coletado
   // nesta tela - passa a ser pedido em /pos-confirmacao, so no momento de planos pagos.
@@ -148,6 +159,23 @@ export default function Cadastro() {
     // confirmada (sem e-mail de confirmacao), cria o perfil, grava o cupom e devolve a sessao.
     // Plano, ciclo de cobranca e cupom seguem vindo da URL/localStorage como antes.
     try {
+      // Cupom preenchido precisa ser valido: antes, um cupom errado era ignorado em silencio
+      // e o parceiro perdia a indicacao sem ninguem perceber. Agora a pessoa e avisada.
+      const cupomDigitado = cupom && cupom.trim() ? cupom.trim() : ''
+      if (cupomDigitado && cupomStatus !== 'ok') {
+        let valido = true
+        try {
+          const rc = await fetch(`/api/publico/validar-cupom?cupom=${encodeURIComponent(cupomDigitado)}`)
+          const dc = await rc.json()
+          valido = !!dc?.valido
+          setCupomStatus(valido ? 'ok' : 'erro')
+        } catch { /* sem rede para validar: segue, o servidor confere de novo */ }
+        if (!valido) {
+          setMensagem(`O cupom "${cupomDigitado}" não foi encontrado. Corrija o código ou apague o campo para continuar sem cupom.`)
+          setLoading(false)
+          return
+        }
+      }
       const res = await fetch('/api/cadastro/registrar', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -171,6 +199,7 @@ export default function Cadastro() {
 
       // Login automatico: assume a sessao devolvida; se nao vier, entra com a senha.
       // /pos-confirmacao decide o destino: Free -> painel/onboarding; plano pago -> checkout.
+      try { localStorage.removeItem('cm_cupom') } catch { /* ignora */ }
       if (dados.session?.access_token && dados.session?.refresh_token) {
         const { error: erroSessao } = await supabase.auth.setSession({ access_token: dados.session.access_token, refresh_token: dados.session.refresh_token })
         if (!erroSessao) { window.location.href = '/pos-confirmacao'; return }
