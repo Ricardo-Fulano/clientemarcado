@@ -14,6 +14,27 @@ const rotulo: React.CSSProperties = { fontSize: '11px', fontWeight: 700, color: 
 const botaoPrincipal = (desabilitado: boolean): React.CSSProperties => ({ width: '100%', background: G, color: '#fff', border: 'none', fontWeight: 700, fontSize: '14px', padding: '13px', borderRadius: '12px', cursor: desabilitado ? 'not-allowed' : 'pointer', fontFamily: 'inherit', opacity: desabilitado ? .65 : 1 })
 const botaoLink: React.CSSProperties = { background: 'transparent', border: 'none', color: '#EC4899', fontSize: '13px', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', padding: '6px' }
 
+// Componentes de layout no NIVEL DO ARQUIVO (nao dentro de AceitarConvite). Antes eram
+// definidos dentro da funcao da pagina: a cada tecla o estado mudava, a funcao rodava de novo
+// e criava componentes "novos", entao o React desmontava e remontava o formulario inteiro.
+// O campo perdia o foco e a digitacao ficava quebrada (so a primeira letra entrava).
+function Cartao({ children }: { children: React.ReactNode }) {
+  return (
+    <div style={{ minHeight: '100vh', background: '#08060A', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px', fontFamily: '-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif' }}>
+      <div style={{ width: '100%', maxWidth: '420px', background: 'linear-gradient(145deg,rgba(24,16,27,.97),rgba(18,10,20,.99))', border: '1.5px solid #2A1A2F', borderRadius: '20px', padding: '32px 28px', textAlign: 'center' }}>
+        <div style={{ width: '44px', height: '44px', borderRadius: '12px', background: G, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 18px', fontSize: '18px', fontWeight: 800, color: '#fff' }}>C</div>
+        {children}
+      </div>
+    </div>
+  )
+}
+function Titulo({ children }: { children: React.ReactNode }) {
+  return <p style={{ fontSize: '19px', fontWeight: 800, color: '#F8F4F7', marginBottom: '10px' }}>{children}</p>
+}
+function Texto({ children }: { children: React.ReactNode }) {
+  return <p style={{ fontSize: '14px', color: '#B8AAB8', lineHeight: 1.6, marginBottom: '18px' }}>{children}</p>
+}
+
 export default function AceitarConvite() {
   const params = useParams()
   const token = (params?.token as string) || ''
@@ -146,17 +167,6 @@ export default function AceitarConvite() {
   }
 
   async function entrarComOutroEmail() { await supabase.auth.signOut(); setEmailSessao(''); setErro(''); setInfo('') }
-
-  const Cartao = ({ children }: { children: React.ReactNode }) => (
-    <div style={{ minHeight: '100vh', background: '#08060A', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px', fontFamily: '-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif' }}>
-      <div style={{ width: '100%', maxWidth: '420px', background: 'linear-gradient(145deg,rgba(24,16,27,.97),rgba(18,10,20,.99))', border: '1.5px solid #2A1A2F', borderRadius: '20px', padding: '32px 28px', textAlign: 'center' }}>
-        <div style={{ width: '44px', height: '44px', borderRadius: '12px', background: G, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 18px', fontSize: '18px', fontWeight: 800, color: '#fff' }}>C</div>
-        {children}
-      </div>
-    </div>
-  )
-  const Titulo = ({ children }: { children: React.ReactNode }) => <p style={{ fontSize: '19px', fontWeight: 800, color: '#F8F4F7', marginBottom: '10px' }}>{children}</p>
-  const Texto = ({ children }: { children: React.ReactNode }) => <p style={{ fontSize: '14px', color: '#B8AAB8', lineHeight: 1.6, marginBottom: '18px' }}>{children}</p>
 
   if (carregando) return <Cartao><p style={{ fontSize: '14px', color: '#B8AAB8' }}>Verificando convite...</p></Cartao>
 
