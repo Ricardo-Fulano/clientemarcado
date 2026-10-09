@@ -187,7 +187,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ ok: true })
     }
 
-    let query = supabase.from('perfis').select('user_id, billing_cycle, status_acesso, plano_tipo')
+    let query = supabase.from('perfis').select('user_id, billing_cycle, status_acesso, plano_tipo, primeiro_pagamento_confirmado, data_primeiro_pagamento')
     query = subscriptionId ? query.eq('gateway_subscription_id', subscriptionId) : query.eq('gateway_customer_id', customerId)
     const { data: perfil, error: erroBusca } = await query.maybeSingle()
 
@@ -245,6 +245,24 @@ export async function POST(request: NextRequest) {
         })
       } catch (erroComissao: any) {
         console.error('[Webhook Asaas][Comissão] Erro inesperado (fora do helper):', erroComissao?.message || erroComissao)
+      }
+
+      // PRIMEIRO pagamento confirmado: marca uma unica vez. Fica DEPOIS do acesso e da comissao
+      // de proposito: qualquer regra de comissao que olhe o estado anterior do perfil continua
+      // vendo o mesmo valor de antes, e uma falha aqui nunca desfaz a liberacao do acesso (o
+      // acesso ja foi gravado acima). Renovacoes (perfil ja marcado) nao mexem em nada disto.
+      if (perfil.primeiro_pagamento_confirmado !== true) {
+        const dataStr = payment?.paymentDate || payment?.confirmedDate
+        const dataPag = dataStr ? new Date(dataStr) : null
+        const { error: erroPrimeiro } = await supabase
+          .from('perfis')
+          .update({
+            primeiro_pagamento_confirmado: true,
+            ...(perfil.data_primeiro_pagamento ? {} : { data_primeiro_pagamento: (dataPag && !Number.isNaN(dataPag.getTime()) ? dataPag : agora).toISOString() }),
+          })
+          .eq('user_id', perfil.user_id)
+        if (erroPrimeiro) console.error('[Webhook Asaas] Erro ao marcar primeiro pagamento (acesso ja liberado):', erroPrimeiro.message)
+        else console.log(`[Webhook Asaas] Primeiro pagamento confirmado para user_id: ${perfil.user_id}`)
       }
     }
 

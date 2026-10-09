@@ -5,7 +5,7 @@ import { supabase } from '../lib/supabase'
 import { Suspense } from 'react'
 import BannerPagamentoSucesso from '../components/BannerPagamentoSucesso'
 import BloqueioPorPlano from '../components/BloqueioPorPlano'
-import { normalizarPlano, ehPlanoComGestao, podeUsarProfissionais, ehPlanoFree, ehAguardandoPagamento, statusPermiteAcessoCompleto, statusPrecisaFinalizarCheckout } from '../lib/planos'
+import { normalizarPlano, ehPlanoComGestao, podeUsarProfissionais, ehPlanoFree, ehAguardandoPagamento, statusPermiteAcessoCompleto, statusPrecisaFinalizarCheckout, obterNomePlano, obterPrecoPlanoPorCiclo, normalizarBillingCycle } from '../lib/planos'
 
 const G = 'linear-gradient(135deg,#3B82F6,#7C3AED)'
 // Nomes amigaveis pra mensagem de erro refletir o plano real da pessoa (antes ficava fixo
@@ -64,6 +64,11 @@ export default function PainelLayoutClient({ children }: { children: React.React
   const [status, setStatus] = useState<string>('ativo')
   const [planoTipo, setPlanoTipo] = useState<string>('essencial')
   const [diasAtraso, setDiasAtraso] = useState<number|null>(null)
+  // Para a tela de "primeiro pagamento" (conta que ainda nao tem assinatura no gateway nem pagou).
+  // Otimistas ate a consulta terminar, para nunca mostrar a tela errada por engano.
+  const [gatewaySubId, setGatewaySubId] = useState<string | null>('carregando')
+  const [primeiroPago, setPrimeiroPago] = useState(true)
+  const [cicloPerfil, setCicloPerfil] = useState<string | null>(null)
   const [temAssinaturaAutorizada, setTemAssinaturaAutorizada] = useState(true) // otimista ate confirmar - nunca bloqueia por engano antes da consulta terminar
   const [loadingPag, setLoadingPag] = useState(false)
   const [loading, setLoading] = useState(true)
@@ -88,7 +93,7 @@ export default function PainelLayoutClient({ children }: { children: React.React
 
       const { data: p, error: perfilError } = await supabase
         .from('perfis')
-        .select('status_acesso, trial_ends_at, plano_ativo_ate, plano_tipo, mp_subscription_id')
+        .select('status_acesso, trial_ends_at, plano_ativo_ate, plano_tipo, mp_subscription_id, gateway_subscription_id, primeiro_pagamento_confirmado, billing_cycle')
         .eq('user_id', user.id)
         .single()
 
@@ -121,6 +126,9 @@ export default function PainelLayoutClient({ children }: { children: React.React
 
       setPlanoTipo(normalizarPlano(p?.plano_tipo))
       setTemAssinaturaAutorizada(!!p?.mp_subscription_id)
+      setGatewaySubId(p?.gateway_subscription_id || null)
+      setPrimeiroPago(p?.primeiro_pagamento_confirmado === true)
+      setCicloPerfil(p?.billing_cycle || null)
 
       let st = p?.status_acesso || 'ativo'
 
@@ -237,6 +245,25 @@ export default function PainelLayoutClient({ children }: { children: React.React
   // Etapa 3, ainda nao aplicada, so vai gravar esse valor pra planos pagos). Usa o MESMO
   // botao/endpoint (abrirCheckout -> /api/mercadopago/criar-assinatura) que o resto do
   // sistema ja usa - nao cria nenhum fluxo novo de pagamento.
+  // Conta que ainda NAO tem assinatura no gateway e nunca pagou (ex: recebeu a MiniPage por
+  // transferencia): tela de "primeiro pagamento". Quem ja iniciou o checkout (tem assinatura
+  // mas ainda nao pagou) continua vendo a tela de baixo, e o mesmo botao reaproveita a cobranca.
+  const primeiroPagamentoPendente = aguardandoPagamento && !ehPlanoFree(planoTipo) && gatewaySubId === null && !primeiroPago
+  const cicloExibido = normalizarBillingCycle(cicloPerfil)   // vazio (conta antiga/transferida) = mensal
+  const precoExibido = obterPrecoPlanoPorCiclo(planoTipo, cicloExibido).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
+  if (primeiroPagamentoPendente) return (
+    <div style={{minHeight:'100vh',background:'linear-gradient(180deg,#060C18,#050B16)',display:'flex',alignItems:'center',justifyContent:'center',padding:'24px',fontFamily:'system-ui'}}>
+      <div style={{maxWidth:'440px',width:'100%',background:'rgba(15,23,42,.95)',border:'1px solid rgba(139,92,246,.30)',borderRadius:'20px',padding:'40px 32px',textAlign:'center'}}>
+        <div style={{fontSize:'36px',marginBottom:'16px'}}>🎉</div>
+        <h2 style={{fontSize:'20px',fontWeight:800,color:'#F8FAFC',marginBottom:'12px'}}>Sua MiniPage está pronta 🎉</h2>
+        <p style={{fontSize:'14px',color:'#94A3B8',marginBottom:'20px',lineHeight:1.6}}>Finalize sua assinatura para continuar usando todos os recursos da sua página profissional.</p>
+        <p style={{fontSize:'15px',fontWeight:700,color:'#F8FAFC',marginBottom:'24px'}}>Plano {obterNomePlano(planoTipo)} — {precoExibido}/{cicloExibido === 'anual' ? 'ano' : 'mês'}</p>
+        <button onClick={abrirCheckout} disabled={loadingPag} style={{display:'flex',width:'100%',alignItems:'center',justifyContent:'center',height:'48px',background:G,color:'#fff',border:'none',borderRadius:'12px',textDecoration:'none',fontSize:'14px',fontWeight:700,cursor:loadingPag?'wait':'pointer',opacity:loadingPag?.7:1,fontFamily:'inherit',marginBottom:'12px'}}>{loadingPag?'Gerando...':'Finalizar assinatura'}</button>
+        <a href={`https://wa.me/5511941059063?text=${encodeURIComponent('Olá! Preciso de ajuda para finalizar minha assinatura da MiniPage Pro.')}`} target="_blank" rel="noopener noreferrer" style={{display:'block',fontSize:'12px',color:'#64748B',textDecoration:'underline'}}>Precisa de ajuda? Fale com o suporte</a>
+      </div>
+    </div>
+  )
+
   if (aguardandoPagamento && !ehPlanoFree(planoTipo)) return (
     <div style={{minHeight:'100vh',background:'linear-gradient(180deg,#060C18,#050B16)',display:'flex',alignItems:'center',justifyContent:'center',padding:'24px',fontFamily:'system-ui'}}>
       <div style={{maxWidth:'440px',width:'100%',background:'rgba(15,23,42,.95)',border:'1px solid rgba(139,92,246,.30)',borderRadius:'20px',padding:'40px 32px',textAlign:'center'}}>
