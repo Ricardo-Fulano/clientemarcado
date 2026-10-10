@@ -43,14 +43,41 @@ function alerta(motivo: string, dados: Record<string, unknown> = {}) { console.e
 export function emProducao(env: Record<string, string | undefined>): boolean {
   return env.VERCEL_ENV ? env.VERCEL_ENV === 'production' : env.NODE_ENV === 'production'
 }
+
+// Normaliza o token antes de comparar: tira espacos, quebras de linha (\n, \r) e aspas acidentais
+// nas pontas. Aplicado dos DOIS lados (o enviado pelo Asaas e o da variavel de ambiente).
+export function limparToken(v: string | undefined | null): string {
+  let t = (v || '').trim()
+  if (t.length >= 2 && ((t.startsWith('"') && t.endsWith('"')) || (t.startsWith("'") && t.endsWith("'")))) t = t.slice(1, -1).trim()
+  return t
+}
+const impressao = (t: string) => (t ? crypto.createHash('sha256').update(t).digest('hex').slice(0, 8) : null)
+
+// Diagnostico SEM segredo: nunca contem o token. A "impressao" sao so os 8 primeiros caracteres do
+// SHA-256 do token (nao reversivel para um token longo e aleatorio); serve para comparar, sem expor
+// o valor, se o token que chegou e o configurado sao o mesmo (dá para calcular a mesma impressao do
+// token que voce tem guardado e conferir).
+export type DiagnosticoToken = {
+  tokenRecebidoExiste: boolean; tokenEsperadoExiste: boolean
+  tamanhoRecebido: number; tamanhoEsperado: number
+  tokensIguais: boolean; impressaoRecebido: string | null; impressaoEsperado: string | null
+}
+
 // Em PRODUCAO o token e obrigatorio: sem ASAAS_WEBHOOK_TOKEN configurado, TODA requisicao e recusada.
 // Fora de producao (desenvolvimento/preview) sem token configurado, nao valida (como antes).
-export function validarTokenWebhook(env: Record<string, string | undefined>, tokenRecebido: string): { ok: boolean; motivo?: string } {
-  const secret = (env.ASAAS_WEBHOOK_TOKEN || '').trim()
-  if (!secret) return emProducao(env) ? { ok: false, motivo: 'ASAAS_WEBHOOK_TOKEN ausente em producao: webhook recusado' } : { ok: true }
-  const a = crypto.createHash('sha256').update(tokenRecebido || '').digest()
-  const b = crypto.createHash('sha256').update(secret).digest()
-  return crypto.timingSafeEqual(a, b) ? { ok: true } : { ok: false, motivo: 'token invalido ou ausente' }   // comparacao em tempo constante
+export function validarTokenWebhook(env: Record<string, string | undefined>, tokenRecebido: string): { ok: boolean; motivo?: string; diagnostico: DiagnosticoToken } {
+  const esperado = limparToken(env.ASAAS_WEBHOOK_TOKEN)
+  const recebido = limparToken(tokenRecebido)
+  const a = crypto.createHash('sha256').update(recebido).digest()
+  const b = crypto.createHash('sha256').update(esperado).digest()
+  const iguais = !!esperado && crypto.timingSafeEqual(a, b)   // comparacao em tempo constante
+  const diagnostico: DiagnosticoToken = {
+    tokenRecebidoExiste: !!recebido, tokenEsperadoExiste: !!esperado,
+    tamanhoRecebido: recebido.length, tamanhoEsperado: esperado.length,
+    tokensIguais: iguais, impressaoRecebido: impressao(recebido), impressaoEsperado: impressao(esperado),
+  }
+  if (!esperado) return emProducao(env) ? { ok: false, motivo: 'ASAAS_WEBHOOK_TOKEN ausente em producao: webhook recusado', diagnostico } : { ok: true, diagnostico }
+  return iguais ? { ok: true, diagnostico } : { ok: false, motivo: recebido ? 'token recebido diferente do configurado' : 'token ausente na requisicao (nenhum header de token recebido)', diagnostico }
 }
 
 // ---------- Regra de comissao (copiada SEM alteracao do webhook anterior; idempotente por payment id no banco) ----------

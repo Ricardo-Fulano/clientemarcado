@@ -12,12 +12,32 @@ export async function POST(request: NextRequest) {
   try {
     const bodyTexto = await request.text()
 
-    const tokenRecebido = request.headers.get('asaas-access-token') || request.headers.get('access-token') || ''
+    // O Asaas envia o "authToken" configurado no webhook no header asaas-access-token.
+    // (ASAAS_API_KEY e outra coisa: e a chave que o NOSSO servidor usa para chamar a API do Asaas.)
+    const headerAsaas = request.headers.get('asaas-access-token')
+    const headerAlt = request.headers.get('access-token')
+    const tokenRecebido = headerAsaas || headerAlt || ''
     const tk = validarTokenWebhook(process.env as Record<string, string | undefined>, tokenRecebido)
-    if (!tk.ok) {
-      console.error(`[Webhook Asaas] REQUISICAO RECUSADA: ${tk.motivo}`)
-      return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
-    }
+
+    // LOG TEMPORARIO de diagnostico da autenticacao (aparece em TODA requisicao ao webhook, aceita ou recusada).
+    // NUNCA contem o token: so presenca, tamanhos (ja sem espacos/quebras de linha/aspas), se sao iguais,
+    // impressoes curtas (8 caracteres de um SHA-256), os NOMES dos headers de autenticacao e o ambiente.
+    console.log('[ASAAS WEBHOOK AUTH]', JSON.stringify({
+      headerExiste: tk.diagnostico.tokenRecebidoExiste,
+      envExiste: tk.diagnostico.tokenEsperadoExiste,
+      tamanhoHeader: tk.diagnostico.tamanhoRecebido,
+      tamanhoEnv: tk.diagnostico.tamanhoEsperado,
+      iguais: tk.diagnostico.tokensIguais,
+      impressaoHeader: tk.diagnostico.impressaoRecebido,
+      impressaoEnv: tk.diagnostico.impressaoEsperado,
+      headerUsado: headerAsaas ? 'asaas-access-token' : headerAlt ? 'access-token' : 'nenhum',
+      headersDeAutenticacaoRecebidos: Array.from(request.headers.keys()).filter(k => /token|auth/i.test(k)),   // so os NOMES
+      vercelEnv: process.env.VERCEL_ENV || null,
+      deploymentId: process.env.VERCEL_DEPLOYMENT_ID || null,
+      resultado: tk.ok ? 'aceito' : 'recusado (401)',
+      motivo: tk.motivo || null,
+    }))
+    if (!tk.ok) return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
 
     let evento: any
     try { evento = JSON.parse(bodyTexto) } catch {
