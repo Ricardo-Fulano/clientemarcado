@@ -29,7 +29,10 @@ export type WebhookDeps = {
 
 const PAGAMENTO = ['PAYMENT_CONFIRMED', 'PAYMENT_RECEIVED']
 const ATRASO = ['PAYMENT_OVERDUE', 'PAYMENT_REFUNDED', 'PAYMENT_CHARGEBACK_REQUESTED']
-const CANCELAMENTO = ['SUBSCRIPTION_DELETED', 'SUBSCRIPTION_CANCELLED']
+const CANCELAMENTO = ['SUBSCRIPTION_DELETED', 'SUBSCRIPTION_CANCELLED']   // assinatura REMOVIDA de vez: acesso cancelado (definitivo)
+// Assinatura INATIVADA (suspensa, pode ser reativada) ou ATUALIZADA: o sistema NAO confia no evento; consulta o
+// estado atual da assinatura no Asaas e age conforme ele (ver o ramo 'assinatura_estado').
+const ASSINATURA_ESTADO = ['SUBSCRIPTION_INACTIVATED', 'SUBSCRIPTION_UPDATED']
 const STATUS_PAGO = ['CONFIRMED', 'RECEIVED', 'RECEIVED_IN_CASH']
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 const COLUNAS_PERFIL = 'user_id, billing_cycle, status_acesso, plano_tipo, plano_ativo_ate, primeiro_pagamento_confirmado, data_primeiro_pagamento, gateway_customer_id, gateway_subscription_id'
@@ -269,6 +272,21 @@ async function consultarPagamento(deps: WebhookDeps, paymentId: string): Promise
   return { ok: true, pg }
 }
 
+// Estado ATUAL de uma assinatura no Asaas (ACTIVE | INACTIVE | EXPIRED). Falha temporaria => o Asaas reenvia o evento.
+async function consultarAssinatura(deps: WebhookDeps, subscriptionId: string): Promise<{ ok: true; sub: any } | { ok: false; motivo: string }> {
+  const amb = avaliarAmbienteAsaas(deps.env)
+  if (!amb.ok) throw new ErroTemporario('ambiente do Asaas invalido para consultar a assinatura: ' + amb.motivo)
+  const f = deps.fetchFn || (fetch as any)
+  const res = await f(`${amb.baseUrl}/subscriptions/${encodeURIComponent(subscriptionId)}`, { method: 'GET', headers: { 'Content-Type': 'application/json', access_token: deps.env.ASAAS_API_KEY || '' } })
+  if (res.status === 404) return { ok: false, motivo: 'assinatura nao existe no Asaas' }
+  if (!res.ok) throw new ErroTemporario(`Asaas respondeu ${res.status} ao consultar a assinatura`)
+  let sub: any = {}
+  try { sub = JSON.parse(await res.text()) } catch { /* fica vazio */ }
+  if (sub?.id !== subscriptionId) return { ok: false, motivo: 'resposta do Asaas nao corresponde a assinatura do evento' }
+  if (sub.deleted === true) return { ok: false, motivo: 'assinatura ja removida no Asaas (aguarde o evento de remocao)' }
+  return { ok: true, sub }
+}
+
 // Devolve o motivo da recusa, ou null se o pagamento confere com o perfil.
 export function conferirPagamento(pg: any, perfil: any): string | null {
   if (!STATUS_PAGO.includes(pg?.status)) return `status do pagamento no Asaas: ${pg?.status || 'desconhecido'} (nao esta pago)`
@@ -293,7 +311,7 @@ export async function processarEventoAsaas(deps: WebhookDeps, evento: any, bodyT
   const { supabase } = deps
   const tipo: string | undefined = evento?.event
   if (!tipo) return { status: 200, body: { ok: true, ignorado: 'sem campo event' } }
-  const acao = PAGAMENTO.includes(tipo) ? 'pago' : ATRASO.includes(tipo) ? 'atraso' : CANCELAMENTO.includes(tipo) ? 'cancelamento' : null
+  const acao = PAGAMENTO.includes(tipo) ? 'pago' : ATRASO.includes(tipo) ? 'atraso' : CANCELAMENTO.includes(tipo) ? 'cancelamento' : ASSINATURA_ESTADO.includes(tipo) ? 'assinatura_estado' : null
   // Eventos informativos (PAYMENT_CREATED, PAYMENT_UPDATED, PAYMENT_DELETED...) nao alteram acesso.
   // PAYMENT_DELETED NAO cancela mais a conta: excluir UMA cobranca nao e cancelar a assinatura.
   if (!acao) { log('EVENTO_INFORMATIVO', { tipo }); return { status: 200, body: { ok: true, ignorado: 'evento informativo' } } }
@@ -360,6 +378,15 @@ export async function processarEventoAsaas(deps: WebhookDeps, evento: any, bodyT
       return (data as any[])?.[0]?.vencimento || null
     }
 
+    // Quando o bloqueio por inativacao acaba (assinatura reativada ou novo pagamento), o evento que o causou e marcado
+    // como "revertido". Assim uma atualizacao futura nunca "desfaz" um bloqueio feito por OUTRO motivo (ex: manual).
+    const reverterBloqueiosDeInativacao = async (motivo: string) => {
+      const { error } = await supabase.from('asaas_eventos')
+        .update({ motivo: 'revertido: ' + motivo, atualizado_em: new Date().toISOString() })
+        .eq('user_id', userId).eq('tipo', 'SUBSCRIPTION_INACTIVATED').eq('status', 'processado').is('motivo', null)
+      if (error) console.error('[Webhook Asaas] nao foi possivel marcar o bloqueio como revertido:', error.message)
+    }
+
     // ================= PAGAMENTO CONFIRMADO/RECEBIDO =================
     if (acao === 'pago') {
       if (!paymentId) return rejeitar('evento de pagamento sem id do pagamento')
@@ -392,6 +419,7 @@ export async function processarEventoAsaas(deps: WebhookDeps, evento: any, bodyT
       const { error: erroUpd } = await supabase.from('perfis').update({ status_acesso: 'ativo', gateway: 'asaas', plano_ativo_ate: novoFim.toISOString() }).eq('user_id', userId)
       if (erroUpd) throw new ErroTemporario('erro ao liberar acesso: ' + erroUpd.message)
       log('ACESSO_LIBERADO', { userId, tipo, paymentId, ate: novoFim.toISOString().slice(0, 10) })
+      if (perfil.status_acesso === 'bloqueado') await reverterBloqueiosDeInativacao(`pagamento ${paymentId} confirmado`)
 
       // Comissao: roda DEPOIS do acesso; usa o pagamento CONFIRMADO no Asaas; a regra no banco e idempotente por payment id.
       try {
@@ -430,6 +458,49 @@ export async function processarEventoAsaas(deps: WebhookDeps, evento: any, bodyT
       if (erroUpd) throw new ErroTemporario('erro ao marcar atraso: ' + erroUpd.message)
       log('MARCADO_EM_ATRASO', { userId, tipo })
       await fechar('processado', null, { userId }); return ok('processado')
+    }
+
+    // ================= ASSINATURA INATIVADA / ATUALIZADA =================
+    // INACTIVATED = suspensa (para de gerar cobrancas, pode ser reativada). Sem tratar, o cliente ficaria "ativo" sem pagar.
+    // Bloqueia usando o status 'bloqueado' (ja entendido pelo painel; um status novo seria LIBERADO por engano, pois a regra
+    // de acesso e uma lista de proibidos). Se a assinatura voltar a ACTIVE e o periodo pago ainda valer, o acesso volta;
+    // senao volta quando o proximo pagamento for confirmado. REMOVIDA de vez (DELETED) continua indo para 'cancelado'.
+    if (acao === 'assinatura_estado') {
+      const subId = subscription?.id || null
+      if (!subId || !perfil.gateway_subscription_id || perfil.gateway_subscription_id !== subId) return ignorar('assinatura do evento nao e a atual do perfil')
+      if (!['ativo', 'em_atraso', 'bloqueado'].includes(perfil.status_acesso)) return ignorar(`conta esta "${perfil.status_acesso}": evento nao altera`)
+      // Uma atualizacao qualquer so interessa se a conta esta bloqueada (possivel reativacao): sem consulta desnecessaria ao Asaas.
+      if (tipo === 'SUBSCRIPTION_UPDATED' && perfil.status_acesso !== 'bloqueado') return ignorar('atualizacao de assinatura sem efeito no acesso')
+
+      const c = await consultarAssinatura(deps, subId)
+      if (!c.ok) return rejeitar(c.motivo)
+      if (perfil.gateway_customer_id && c.sub.customer && c.sub.customer !== perfil.gateway_customer_id) return rejeitar('assinatura pertence a outro cliente do Asaas')
+      const stAsaas = String(c.sub.status || '')
+
+      if (stAsaas === 'INACTIVE' || stAsaas === 'EXPIRED') {
+        if (perfil.status_acesso === 'bloqueado') return ignorar('conta ja bloqueada')
+        const { error: erroBloq } = await supabase.from('perfis').update({ status_acesso: 'bloqueado' }).eq('user_id', userId)
+        if (erroBloq) throw new ErroTemporario('erro ao bloquear: ' + erroBloq.message)
+        log('BLOQUEADO_ASSINATURA_INATIVA', { userId, tipo, statusAsaas: stAsaas })
+        await fechar('processado', null, { userId }); return ok('processado')
+      }
+      if (stAsaas === 'ACTIVE') {
+        if (perfil.status_acesso !== 'bloqueado') return ignorar('assinatura ativa e a conta nao estava bloqueada')
+        // So desfaz o bloqueio que ESTE fluxo criou (um bloqueio manual nunca e desfeito sozinho).
+        const { data: bloq, error: erroBloqQ } = await supabase.from('asaas_eventos').select('event_id')
+          .eq('user_id', userId).eq('tipo', 'SUBSCRIPTION_INACTIVATED').eq('status', 'processado').eq('subscription_id', subId).is('motivo', null)
+          .order('recebido_em', { ascending: false }).limit(1)
+        if (erroBloqQ) throw new ErroTemporario('erro ao consultar historico: ' + erroBloqQ.message)
+        if (!(bloq as any[])?.length) return ignorar('conta bloqueada por outro motivo: nao e desbloqueada automaticamente')
+        const ate = perfil.plano_ativo_ate ? new Date(perfil.plano_ativo_ate) : null
+        if (!ate || Number.isNaN(ate.getTime()) || ate <= new Date()) return ignorar('assinatura reativada, mas o periodo pago ja acabou: o acesso volta quando o proximo pagamento for confirmado')
+        const { error: erroLib } = await supabase.from('perfis').update({ status_acesso: 'ativo' }).eq('user_id', userId)
+        if (erroLib) throw new ErroTemporario('erro ao desbloquear: ' + erroLib.message)
+        await reverterBloqueiosDeInativacao('assinatura reativada')
+        log('DESBLOQUEADO_ASSINATURA_REATIVADA', { userId, tipo })
+        await fechar('processado', null, { userId }); return ok('processado')
+      }
+      return ignorar(`status da assinatura no Asaas: ${stAsaas || 'desconhecido'}`)
     }
 
     // ================= ASSINATURA CANCELADA =================
