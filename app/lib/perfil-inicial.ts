@@ -23,7 +23,6 @@ export type DadosPerfil = {
   nome_negocio?: unknown
   tipo_negocio?: unknown
   plano_tipo?: unknown
-  cpf_cnpj?: unknown
   billing_cycle?: unknown
   cupom?: unknown
 }
@@ -58,7 +57,7 @@ export async function criarPerfilInicial(supabase: SupabaseClient, d: DadosPerfi
   }
 
   const camposComuns: Record<string, unknown> = { plano_tipo: planoValido }
-  if (d.cpf_cnpj && typeof d.cpf_cnpj === 'string') camposComuns.cpf_cnpj = d.cpf_cnpj
+  // CPF/CNPJ NAO e guardado em "perfis" (a tabela e legivel pelo navegador): fica so no cadastro do cliente no Asaas.
   if (d.nome_negocio && typeof d.nome_negocio === 'string') camposComuns.nome_negocio = d.nome_negocio
   if (d.tipo_negocio && typeof d.tipo_negocio === 'string') camposComuns.tipo_negocio = d.tipo_negocio
   // Free nunca tem billing_cycle (nao gera cobranca). Planos pagos: sempre 'mensal'|'anual'.

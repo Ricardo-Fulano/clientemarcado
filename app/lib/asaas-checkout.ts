@@ -46,7 +46,7 @@ export async function criarOuReutilizarCheckout(
 
   try {
     const { data: perfil } = await supabase.from('perfis')
-      .select('plano_tipo, cpf_cnpj, nome_negocio, billing_cycle, status_acesso, gateway_customer_id, gateway_subscription_id, primeiro_pagamento_confirmado')
+      .select('plano_tipo, nome_negocio, billing_cycle, status_acesso, gateway_customer_id, gateway_subscription_id, primeiro_pagamento_confirmado')
       .eq('user_id', userId).maybeSingle()
     log('CHECKOUT_START', { status: perfil?.status_acesso, temCliente: !!perfil?.gateway_customer_id, temAssinatura: !!perfil?.gateway_subscription_id })
 
@@ -67,11 +67,9 @@ export async function criarOuReutilizarCheckout(
       return { status: 409, body: { codigo: 'STATUS_NAO_PERMITE', error: 'Sua conta não está aguardando pagamento.' } }
     }
 
-    // CPF/CNPJ: do corpo (coletado no checkout) ou ja salvo no perfil.
-    const cpfDoBody = String(body?.cpfCnpj || '').replace(/\D/g, '')
-    const cpfSalvo = String(perfil?.cpf_cnpj || '').replace(/\D/g, '')
-    const cpfBodyValido = cpfDoBody.length === 11 || cpfDoBody.length === 14
-    const cpf = cpfBodyValido ? cpfDoBody : cpfSalvo
+    // CPF/CNPJ: SEMPRE vem no pedido (coletado na tela de pagamento). NAO e guardado em "perfis": essa tabela e legivel pelo
+    // navegador, e o documento ja fica no cadastro do cliente no Asaas (usado so ao criar o cliente, mais abaixo).
+    const cpf = String(body?.cpfCnpj || '').replace(/\D/g, '')
     if (cpf.length !== 11 && cpf.length !== 14)
       return { status: 400, body: { error: 'Precisamos do seu CPF ou CNPJ para gerar a cobrança. Informe um documento válido e tente novamente.' } }
 
@@ -92,9 +90,6 @@ export async function criarOuReutilizarCheckout(
     const { data: liberado, error: erroLimite } = await supabase.rpc('checar_rate_limit', { p_chave: 'checkout:' + userId, p_max: 1, p_janela_segundos: 15 })
     if (erroLimite) console.error('[Asaas][checkout] limite de cliques indisponivel:', erroLimite.message)
     else if (liberado === false) return { status: 429, body: { codigo: 'AGUARDE', error: 'Estamos preparando seu pagamento. Aguarde alguns segundos e tente novamente.' } }
-
-    // CPF novo vindo do corpo: guarda no perfil (nao bloqueia se falhar).
-    if (cpfBodyValido && cpfDoBody !== cpfSalvo) await supabase.from('perfis').update({ cpf_cnpj: cpfDoBody }).eq('user_id', userId)
 
     const planoTipo = normalizarPlano(planoTipoOriginal)
     // billing_cycle vazio (conta transferida/antiga) cai em 'mensal'.

@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
     const r = await criarPerfilInicial(supabase, {
       userId: sess.user.id, email: sess.user.email || '',
       nome_negocio: body.nome_negocio, tipo_negocio: body.tipo_negocio, plano_tipo: body.plano_tipo,
-      cpf_cnpj: body.cpf_cnpj, billing_cycle: body.billing_cycle, cupom: body.cupom,
+      billing_cycle: body.billing_cycle, cupom: body.cupom,
     })
     if (!r.ok) return NextResponse.json({ error: r.erro }, { status: 500 })
     return NextResponse.json(r.criado ? { ok: true, criado: true, slug: r.slug } : { ok: true, criado: false })

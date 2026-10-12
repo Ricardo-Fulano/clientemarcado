@@ -40,7 +40,7 @@ export default function PosConfirmacao() {
 
       const { data: perfil, error: erroPerfil } = await supabase
         .from('perfis')
-        .select('plano_tipo, status_acesso, gateway_subscription_id, cpf_cnpj')
+        .select('plano_tipo, status_acesso, gateway_subscription_id')
         .eq('user_id', session.user.id)
         .maybeSingle()
 
@@ -48,7 +48,7 @@ export default function PosConfirmacao() {
         setEstado('sem_perfil')
         return
       }
-      if (perfil.cpf_cnpj) setCpfCnpj(perfil.cpf_cnpj)
+      // O CPF nao e mais guardado em "perfis": o cliente informa o documento a cada pagamento.
 
       // Free nunca passa por checkout - vai direto pro painel, como sempre.
       if (ehPlanoFree(perfil.plano_tipo)) {
