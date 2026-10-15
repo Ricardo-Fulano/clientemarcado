@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { resolverPercentualComissao } from '../../lib/comissao-parceiro'
 
 // Mascara o email preservando so a primeira letra - usado apenas se a UI realmente
 // precisar mostrar algo do email do indicado (minimiza PII exposta ao afiliado).
@@ -35,7 +36,7 @@ export async function GET(request: NextRequest) {
     // escolher arbitrariamente qual parceiro mostrar.
     const { data: parceiros, error: erroParceiro } = await supabaseAdmin
       .from('parceiros')
-      .select('id, nome, cupom, ativo, tipo')
+      .select('id, nome, cupom, ativo, tipo, percentual_comissao')
       .eq('user_id', user.id)
 
     if (erroParceiro) {
@@ -161,7 +162,8 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(
       {
-        parceiro: { nome: parceiro.nome, cupom: parceiro.cupom, ativo: parceiro.ativo, tipo: parceiro.tipo },
+        // percentualComissao: somente leitura; null se nao for exatamente 0.20/0.30 (a tela nao inventa valor).
+        parceiro: { nome: parceiro.nome, cupom: parceiro.cupom, ativo: parceiro.ativo, tipo: parceiro.tipo, percentualComissao: resolverPercentualComissao(parceiro.percentual_comissao) },
         resumo: {
           totalIndicados: indicacoes.length,
           pagantes,

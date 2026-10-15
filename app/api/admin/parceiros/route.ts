@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { percentualDaModalidade } from '../../../lib/comissao-parceiro'
 
 // Mesmos UUIDs ja usados em app/painel/parceiros/page.tsx - nao criar uma regra paralela
 // divergente. Se um dia isso mudar, precisa mudar nos dois lugares (ou extrair pra um
@@ -98,6 +99,16 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json().catch(() => null)
     const payload = extrairCamposPermitidos(body)
+
+    // Modalidade semantica (padrao | estrategico) -> percentual. O navegador NUNCA envia o numero.
+    // Se nao vier, vale o default do banco (0.20).
+    if (body?.modalidade !== undefined) {
+      const percentual = percentualDaModalidade(body.modalidade)
+      if (percentual === null) {
+        return NextResponse.json({ error: 'Modalidade inválida' }, { status: 400 })
+      }
+      payload.percentual_comissao = percentual
+    }
 
     if (!payload.nome || !payload.cupom) {
       return NextResponse.json({ error: 'Nome e cupom são obrigatórios' }, { status: 400 })

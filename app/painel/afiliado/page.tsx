@@ -169,6 +169,11 @@ export default function PainelAfiliado() {
         <button className="btn-s" onClick={() => copiar(parceiro.cupom, 'Cupom copiado!')}>Copiar cupom</button>
         <button className="btn-s" onClick={() => copiar(linkIndicacao, 'Link copiado!')}>Copiar link de indicação</button>
         {msgCopiado && <span style={{ fontSize: '12px', color: '#22C55E' }}>{msgCopiado}</span>}
+        {/* Somente leitura. percentualComissao ja vem resolvido pela rota (exatamente 0.2, 0.3 ou null).
+            Qualquer outro valor (inclusive null) nao exibe nada - sem fallback para 20% ou 30%. */}
+        {(parceiro.percentualComissao === 0.2 || parceiro.percentualComissao === 0.3) && (
+          <span style={{ fontSize: '12px', color: '#C4B5FD' }}>Comissão: {parceiro.percentualComissao === 0.3 ? '30%' : '20%'} sobre pagamentos elegíveis recebidos</span>
+        )}
       </div>
 
       {/* Cards principais */}

@@ -3,6 +3,7 @@ import { useEffect, useState, useMemo } from 'react'
 import { supabase } from '../../lib/supabase'
 import PainelSidebar from '@/app/components/PainelSidebar'
 import { normalizarPlano, obterNomePlano, obterPrecoPlano, type PlanoTipo } from '../../lib/planos'
+import { modalidadeDoPercentual, type ModalidadeParceiro } from '../../lib/comissao-parceiro'
 
 // Mesma lista ja usada em PainelSidebar.tsx - canal19horas@gmail.com (original) +
 // misteriosoviaje@gmail.com (adicionada). Continua hardcoded (sem campo de banco).
@@ -116,6 +117,7 @@ export default function Parceiros() {
   const [wpp, setWpp] = useState('')
   const [email, setEmail] = useState('')
   const [tipo, setTipo] = useState('Influencer')
+  const [modalidade, setModalidade] = useState<ModalidadeParceiro>('padrao')
   const [ativo, setAtivo] = useState(true)
 
   useEffect(() => { init() }, [])
@@ -448,19 +450,19 @@ export default function Parceiros() {
 
   function resetForm() {
     setNome(''); setCupom(''); setWpp(''); setEmail('')
-    setTipo('Influencer'); setAtivo(true); setEditando(null)
+    setTipo('Influencer'); setModalidade('padrao'); setAtivo(true); setEditando(null)
   }
 
   function abrirEditar(p: any) {
     setEditando(p); setNome(p.nome); setCupom(p.cupom); setWpp(p.whatsapp || '')
-    setEmail(p.email || ''); setTipo(p.tipo || 'Influencer'); setAtivo(p.ativo)
+    setEmail(p.email || ''); setTipo(p.tipo || 'Influencer'); setModalidade(modalidadeDoPercentual(p.percentual_comissao) ?? 'padrao'); setAtivo(p.ativo)
     setShowModal(true)
   }
 
   async function salvar() {
     const cupomFmt = cupom.toUpperCase().replace(/[^A-Z0-9]/g, '')
     if (!nome.trim() || !cupomFmt) { setMsg('Preencha nome e cupom.'); return }
-    const payload = { nome: nome.trim(), cupom: cupomFmt, whatsapp: wpp || null, email: email || null, tipo, ativo }
+    const payload = { nome: nome.trim(), cupom: cupomFmt, whatsapp: wpp || null, email: email || null, tipo, modalidade, ativo }
     try {
       if (editando) {
         await fetchAdmin(`/api/admin/parceiros/${editando.id}`, { method: 'PATCH', body: JSON.stringify(payload) })
@@ -619,7 +621,7 @@ export default function Parceiros() {
               <button className="btn-p" onClick={() => { resetForm(); setShowModal(true) }}>+ Novo parceiro</button>
             </div>
 
-            <p style={{ fontSize: '12px', color: '#C4B5FD', marginBottom: '20px' }}>Comissão: 20% recorrente sobre cada mensalidade paga pelos clientes indicados, por até 12 meses.</p>
+            <p style={{ fontSize: '12px', color: '#C4B5FD', marginBottom: '20px' }}>Comissão: 20% (parceiro padrão) ou 30% (parceiro estratégico), recorrente sobre cada mensalidade paga pelos clientes indicados, por até 12 meses.</p>
 
             {msg && <div style={{ background: 'rgba(34,197,94,.12)', border: '1px solid rgba(34,197,94,.28)', borderRadius: '10px', padding: '10px 14px', fontSize: '13px', color: '#22C55E', marginBottom: '16px' }}>{msg}</div>}
 
@@ -680,6 +682,7 @@ export default function Parceiros() {
                             <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', alignItems: 'center' }}>
                               <span style={{ fontSize: '12px', fontWeight: 800, color: '#EC4899', background: 'rgba(236,72,153,.12)', border: '1px solid rgba(236,72,153,.28)', padding: '2px 8px', borderRadius: '6px' }}>{p.cupom}</span>
                               <span style={{ fontSize: '11px', color: '#B8AAB8' }}>{p.tipo}</span>
+                              <span style={{ fontSize: '11px', color: modalidadeDoPercentual(p.percentual_comissao) === 'estrategico' ? '#C4B5FD' : '#B8AAB8' }}>{modalidadeDoPercentual(p.percentual_comissao) === 'estrategico' ? 'Estratégico · 30%' : modalidadeDoPercentual(p.percentual_comissao) === 'padrao' ? 'Padrão · 20%' : ''}</span>
                               <span className="badge" style={{ background: p.ativo ? 'rgba(34,197,94,.14)' : 'rgba(239,68,68,.14)', border: `1px solid ${p.ativo ? 'rgba(34,197,94,.28)' : 'rgba(239,68,68,.28)'}`, color: p.ativo ? '#22C55E' : '#EF4444' }}>{p.ativo ? 'Ativo' : 'Inativo'}</span>
                             </div>
                           </div>
@@ -1166,7 +1169,14 @@ export default function Parceiros() {
                   {TIPOS.map(t => <option key={t} value={t}>{t}</option>)}
                 </select>
               </div>
-              <p style={{ fontSize: '12px', color: '#B8AAB8', background: 'rgba(139,92,246,.08)', border: '1px solid rgba(139,92,246,.20)', borderRadius: '10px', padding: '10px 12px' }}>Comissão: 20% recorrente sobre cada mensalidade paga pelos clientes indicados, por até 12 meses. Regra aplicada a todos os parceiros.</p>
+              <div>
+                <label className="lbl">Tipo de parceria</label>
+                <select className="inp" value={modalidade} onChange={e => setModalidade(e.target.value as ModalidadeParceiro)} style={{ cursor: 'pointer' }}>
+                  <option value="padrao">Parceiro padrão — 20%</option>
+                  <option value="estrategico">Parceiro estratégico — 30%</option>
+                </select>
+              </div>
+              <p style={{ fontSize: '12px', color: '#B8AAB8', background: 'rgba(139,92,246,.08)', border: '1px solid rgba(139,92,246,.20)', borderRadius: '10px', padding: '10px 12px' }}>Comissão: {modalidade === 'estrategico' ? '30%' : '20%'} recorrente sobre cada mensalidade paga pelos clientes indicados, por até 12 meses. A mudança vale somente para novas comissões; as já geradas continuam com o percentual original.</p>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <button onClick={() => setAtivo(!ativo)} style={{ width: '36px', height: '20px', borderRadius: '999px', border: 'none', cursor: 'pointer', position: 'relative', background: ativo ? '#EC4899' : '#2A1A2F' }}>
                   <span style={{ position: 'absolute', top: '2px', left: ativo ? '18px' : '2px', width: '16px', height: '16px', borderRadius: '50%', background: '#fff', transition: 'left .2s' }} />

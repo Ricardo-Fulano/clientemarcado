@@ -2,6 +2,7 @@ import crypto from 'crypto'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { normalizarPlano, obterPrecoPlanoPorCiclo, normalizarBillingCycle } from './planos'
 import { avaliarAmbienteAsaas } from './asaas-ambiente'
+import { resolverPercentualComissao } from './comissao-parceiro'
 
 // =====================================================================================
 // Processamento dos webhooks do Asaas. So roda no servidor.
@@ -163,6 +164,21 @@ export async function registrarComissaoParceiro(
 
     const indicacao = indicacoes[0]
 
+    // ---- Parceiro Estrategico: o percentual vem de parceiros.percentual_comissao, validado pelo
+    // helper central (SOMENTE 0.20 ou 0.30). Sem fallback silencioso: se a leitura falhar, a coluna
+    // nao existir ou o valor for invalido, NAO gera comissao - e o pagamento/acesso ja foram tratados
+    // antes desta funcao, entao nada disso os afeta. A RPC congela o percentual na linha financeira. ----
+    const { data: parceiroPct, error: erroParceiroPct } = await supabase
+      .from('parceiros')
+      .select('percentual_comissao')
+      .eq('id', indicacao.parceiro_id)
+      .maybeSingle()
+    const percentualComissao = erroParceiroPct ? null : resolverPercentualComissao(parceiroPct?.percentual_comissao)
+    if (percentualComissao === null) {
+      console.error(`${prefixo} COMISSAO_NAO_GERADA parceiro_id=${indicacao.parceiro_id} indicacao_id=${indicacao.id} payment_id=${paymentId} motivo=${erroParceiroPct ? 'erro_leitura: ' + erroParceiroPct.message : 'percentual_invalido'}`)
+      return
+    }
+
     // ---- Chama a RPC - toda a regra de negocio (janela, limite, calculo, idempotencia)
     // fica dentro dela, nao duplicada aqui ----
     const { error: erroRpc } = await (supabase.rpc as any)('registrar_comissao_pagamento', {
@@ -172,7 +188,7 @@ export async function registrarComissaoParceiro(
       p_asaas_payment_id: paymentId,
       p_plano_tipo: planoNormalizado,
       p_valor_pago: valorPago,
-      p_percentual: 0.20,
+      p_percentual: percentualComissao,
       p_data_pagamento_cliente: dataPagamento.toISOString(),
       // Validacao estrita - NUNCA usar normalizarBillingCycle() aqui, ela transformaria
       // valor ausente em 'mensal' (fallback ja usado noutro lugar deste arquivo pra

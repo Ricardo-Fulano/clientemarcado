@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { percentualDaModalidade } from '../../../../lib/comissao-parceiro'
 
 const ADMIN_IDS = [
   '618aedd1-f174-4419-b4b2-b81b8dd1c47e', // canal19horas@gmail.com
@@ -41,6 +42,16 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     const { id } = await params
     const body = await request.json().catch(() => null)
     const payload = extrairCamposPermitidos(body)
+
+    // Modalidade semantica (padrao | estrategico) -> percentual. O navegador NUNCA envia o numero.
+    // Vale so para comissoes FUTURAS: as ja geradas ficam congeladas em comissoes_parceiros.percentual.
+    if (body?.modalidade !== undefined) {
+      const percentual = percentualDaModalidade(body.modalidade)
+      if (percentual === null) {
+        return NextResponse.json({ error: 'Modalidade inválida' }, { status: 400 })
+      }
+      payload.percentual_comissao = percentual
+    }
 
     if (Object.keys(payload).length === 0) {
       return NextResponse.json({ error: 'Nenhum campo válido para atualizar' }, { status: 400 })
