@@ -14,13 +14,16 @@ export default function Login() {
   async function handleLogin() {
     setLoading(true)
     setMensagem('')
+    setMsgRecuperar('')
     const { error } = await supabase.auth.signInWithPassword({ email, password: senha })
+    setMsgRecuperar('')
     if (error) setMensagem('E-mail ou senha incorretos.')
     else window.location.href = '/painel'
     setLoading(false)
   }
 
   async function handleEsqueciSenha() {
+    setMensagem('')
     if (!email) { setMsgRecuperar('Digite seu e-mail acima primeiro.'); return }
     setRecuperando(true)
     setMsgRecuperar('')
@@ -28,6 +31,7 @@ export default function Login() {
       redirectTo: window.location.origin + '/redefinir-senha',
     })
     setRecuperando(false)
+    setMensagem('')
     if (error) setMsgRecuperar('Erro ao enviar. Tente novamente.')
     else setMsgRecuperar('Se esse e-mail estiver cadastrado, enviaremos um link para redefinir sua senha.')
   }
