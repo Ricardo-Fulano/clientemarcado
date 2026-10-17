@@ -3,6 +3,7 @@ import { useEffect, useState, useMemo } from 'react'
 import Link from 'next/link'
 import { supabase } from '../../../lib/supabase'
 import PainelSidebar from '@/app/components/PainelSidebar'
+import AlterarPlanoModal, { BotaoAlterarPlano } from '@/app/components/AlterarPlanoModal'
 
 const G = 'linear-gradient(135deg,#EC4899,#D946EF,#8B5CF6)'
 
@@ -77,6 +78,7 @@ export default function LeadsCapturados() {
   const [filtroPeriodoCliente, setFiltroPeriodoCliente] = useState<PeriodoLeads | '7d' | 'mes'>('tudo')
   const [copiadoClientes, setCopiadoClientes] = useState('')
   const [copiadoClienteIndividual, setCopiadoClienteIndividual] = useState<number | null>(null)
+  const [clienteAlterandoPlano, setClienteAlterandoPlano] = useState<any>(null)
 
   const podeVerClientes = emailLogado.toLowerCase() === EMAIL_AUTORIZADO.toLowerCase()
 
@@ -390,6 +392,7 @@ export default function LeadsCapturados() {
                           <td style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
                             <button className="leads-copiar-btn" onClick={() => copiarEmailCliente(c, i)}>{copiadoClienteIndividual === i ? 'Copiado!' : 'Copiar e-mail'}</button>
                             {c.slug && <a href={`https://minipage.pro/${c.slug}`} target="_blank" rel="noreferrer" className="leads-copiar-btn" style={{ textDecoration: 'none', display: 'inline-block' }}>Abrir MiniPage</a>}
+                            <BotaoAlterarPlano onClick={() => setClienteAlterandoPlano(c)} />
                           </td>
                         </tr>
                       ))}
@@ -406,6 +409,7 @@ export default function LeadsCapturados() {
                       <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
                         <button className="leads-copiar-btn" onClick={() => copiarEmailCliente(c, i)}>{copiadoClienteIndividual === i ? 'Copiado!' : 'Copiar e-mail'}</button>
                         {c.slug && <a href={`https://minipage.pro/${c.slug}`} target="_blank" rel="noreferrer" className="leads-copiar-btn" style={{ textDecoration: 'none' }}>Abrir MiniPage</a>}
+                        <BotaoAlterarPlano onClick={() => setClienteAlterandoPlano(c)} />
                       </div>
                     </div>
                   ))}
@@ -416,6 +420,12 @@ export default function LeadsCapturados() {
         )}
         </div>
       </div>
+      {podeVerClientes && clienteAlterandoPlano && (
+        <AlterarPlanoModal
+          cliente={clienteAlterandoPlano}
+          onFechar={(alterou) => { setClienteAlterandoPlano(null); if (alterou) carregarClientes() }}
+        />
+      )}
     </div>
   )
 }
