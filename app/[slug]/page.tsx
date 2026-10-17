@@ -20,7 +20,8 @@ import SocialTicker from '../components/SocialTicker'
 import CardVisualItem from '../components/CardVisualItem'
 import SpotifyEmbedItem from '../components/SpotifyEmbedItem'
 import { parseSpotifyUrl } from '../lib/spotify'
-import { detectarTipoPorUrl, detectarTipoPorTitulo, TIPOS_SOCIAIS_TOPO, normalizarOrdemSecoes } from '../lib/plataformasLinks'
+import { detectarTipoPorUrl, detectarTipoPorTitulo, TIPOS_SOCIAIS_TOPO } from '../lib/plataformasLinks'
+import { resolverOrdemPagina } from '../lib/ordemPagina'
 import { resolverTema, getTema } from '../lib/tema-publico'
 import { ehPlanoComGestao, permiteVideos, permiteDestaques, permiteAgendaEventos, obterLimiteCatalogos, podeUsarCatalogo, obterLimiteSecoesDestaques, obterLimiteLinksRapidos, ehPlanoFree } from '../lib/planos'
 
@@ -888,23 +889,22 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
           </div>
         )}
 
-        {/* ORDEM DAS SECOES PUBLICAS: destaques/links/agenda/videos podem ser reordenados pelo
-            cliente em /painel/perfil. Cada secao individual (conteudo, condicao de exibir, estilo)
-            continua exatamente igual - so a ORDEM de renderizacao delas muda, via ordemSecoes. */}
+        {/* ORDEM DAS SECOES PUBLICAS: o cliente reordena em /painel/perfil. A ordem salva aceita chaves de tipo
+            (formato antigo) e instancias 'destaques:<id>' / 'cards:<id>' - resolverOrdemPagina (app/lib/ordemPagina.ts)
+            interpreta os dois formatos. Cada secao individual (conteudo, condicao de exibir, estilo)
+            continua exatamente igual - so a ORDEM de renderizacao delas muda. */}
         {(() => {
-          const ORDEM_PADRAO_SECOES = ['destaques', 'albuns', 'links', 'agenda', 'catalogo', 'videos', 'cards', 'spotify']
           const ordemSalva = (perfil as { ordem_secoes_publicas?: unknown }).ordem_secoes_publicas
-          const ordemSecoes: string[] = normalizarOrdemSecoes(ordemSalva, ORDEM_PADRAO_SECOES)
 
-          const secoesMap: Record<string, ReactNode> = {
+          // Destaques e Links visuais sao FUNCOES que desenham UMA secao (a ordem decide onde cada uma entra);
+          // os demais tipos continuam sendo um bloco unico.
+          const secoesMap: Record<string, ReactNode | ((secao: any) => ReactNode)> = {
             destaques: (
 // * DESTAQUES DA PAGINA - agora com multiplas secoes, cada uma com seu proprio titulo/
 // subtitulo, seguindo o mesmo padrao ja usado no Catalogo (secoesComItens.map(...)).
 // O formato horizontal/vertical continua sendo uma configuracao GLOBAL da conta (nao por
 // secao), exatamente como ja funcionava antes desta mudanca.
-secoesDestaquesComItens.length > 0 && permiteDestaques(perfil.plano_tipo) && (
-          <>
-            {secoesDestaquesComItens.map((secao: any) => (
+(secao: any) => (
               <div key={secao.id} style={{ marginBottom: '28px' }}>
                 <p style={{ fontSize: '17px', fontWeight: 800, color: tema.text, marginBottom: secao.subtitulo ? '2px' : '10px' }}>{secao.titulo}</p>
                 {secao.subtitulo && <p style={{ fontSize: '12px', color: tema.textMuted, marginBottom: '10px' }}>{secao.subtitulo}</p>}
@@ -964,9 +964,7 @@ secoesDestaquesComItens.length > 0 && permiteDestaques(perfil.plano_tipo) && (
                   )
                 })()}
               </div>
-            ))}
-          </>
-        )
+            )
             ),
             albuns: (
               albunsComFotos.length > 0 && (
@@ -984,9 +982,7 @@ secoesDestaquesComItens.length > 0 && permiteDestaques(perfil.plano_tipo) && (
               )
             ),
             cards: (
-              cardsSecoesComCards.length > 0 && (
-                <>
-                  {cardsSecoesComCards.map((secao: any) => (
+              (secao: any) => (
                     <div key={secao.id} style={{ marginBottom: '28px' }}>
                       <p style={{ fontSize: '17px', fontWeight: 800, color: tema.text, marginBottom: secao.subtitulo ? '2px' : '10px' }}>{secao.titulo}</p>
                       {secao.subtitulo && <p style={{ fontSize: '12px', color: tema.textMuted, marginBottom: '10px' }}>{secao.subtitulo}</p>}
@@ -1003,8 +999,6 @@ secoesDestaquesComItens.length > 0 && permiteDestaques(perfil.plano_tipo) && (
                         ))}
                       </div>
                     </div>
-                  ))}
-                </>
               )
             ),
             spotify: (
@@ -1176,9 +1170,25 @@ videos && videos.length > 0 && permiteVideos(perfil.plano_tipo) && (() => {
             ),
           }
 
-          return ordemSecoes.map(chave => (
-            <Fragment key={chave}>{secoesMap[chave]}</Fragment>
-          ))
+          // Secoes ja filtradas por ativo, itens e plano: so elas podem receber instancias individuais na ordem.
+          const secaoPorId: Record<'destaques' | 'cards', Map<string, any>> = {
+            destaques: new Map(secoesDestaquesComItens.map((s: any): [string, any] => [s.id, s])),
+            cards: new Map(cardsSecoesComCards.map((s: any): [string, any] => [s.id, s])),
+          }
+          const blocos = resolverOrdemPagina(ordemSalva, {
+            // Mesma regra de antes: Free nao exibe Destaques (permiteDestaques) e secao sem item ativo nao aparece.
+            destaques: permiteDestaques(perfil.plano_tipo) ? secoesDestaquesComItens.map((s: any) => s.id) : [],
+            cards: cardsSecoesComCards.map((s: any) => s.id),
+          })
+
+          return blocos.map(bloco => {
+            const entrada = secoesMap[bloco.tipo]
+            if (bloco.secaoId && (bloco.tipo === 'destaques' || bloco.tipo === 'cards')) {
+              const secao = secaoPorId[bloco.tipo].get(bloco.secaoId)
+              return <Fragment key={bloco.chave}>{secao && typeof entrada === 'function' ? entrada(secao) : null}</Fragment>
+            }
+            return <Fragment key={bloco.chave}>{typeof entrada === 'function' ? null : entrada}</Fragment>
+          })
         })()}
 
         {/* SERVICOS — desativado no novo layout premium (serviços continuam no fluxo /agendar). Codigo preservado, apenas nao renderiza. */}
