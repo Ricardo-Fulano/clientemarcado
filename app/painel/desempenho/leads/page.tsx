@@ -233,6 +233,21 @@ export default function LeadsCapturados() {
         )}
 
         <div style={{ flex: 1, overflowY: 'auto', padding: '18px 32px 32px' }}>
+        {/* Estilos da tabela/cards: ficam FORA dos ramos das abas para valerem tanto em "Leads capturados"
+            quanto em "Clientes cadastrados" (antes ficavam dentro do ramo da aba de leads e sumiam ao trocar de aba).
+            Desktop: tabela. Mobile: cards empilhados (a mesma <table> vira cards via CSS,
+            sem precisar duplicar a logica/dados - so a apresentacao muda por breakpoint). */}
+        <style>{`
+              .leads-tabela{width:100%;border-collapse:collapse}
+              .leads-tabela th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:#B8AAB8;padding:10px 12px;border-bottom:1px solid #2A1A2F;position:sticky;top:0;background:#18101B;z-index:1}
+              .leads-tabela td{padding:12px;font-size:13px;color:#F8F4F7;border-bottom:1px solid #2A1A2F}
+              .leads-copiar-btn{background:rgba(255,255,255,.08);border:1px solid #2A1A2F;color:#F8F4F7;border-radius:8px;padding:5px 10px;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit}
+              .leads-card-mobile{display:none}
+              @media(max-width:680px){
+                .leads-tabela-wrap{display:none}
+                .leads-card-mobile{display:block}
+              }
+            `}</style>
         {aba === 'leads' && (<>
         {carregando ? (
           <p style={{ fontSize: '13px', color: '#B8AAB8' }}>Carregando...</p>
@@ -262,20 +277,6 @@ export default function LeadsCapturados() {
               </button>
               <button onClick={exportarCSV} style={{ background: 'rgba(24,16,27,.9)', border: '1px solid #2A1A2F', color: '#F8F4F7', borderRadius: '10px', padding: '9px 16px', fontSize: '12px', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>Exportar CSV</button>
             </div>
-
-            {/* Desktop: tabela. Mobile: cards empilhados (a mesma <table> vira cards via CSS,
-                sem precisar duplicar a logica/dados - so a apresentacao muda por breakpoint). */}
-            <style>{`
-              .leads-tabela{width:100%;border-collapse:collapse}
-              .leads-tabela th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:#B8AAB8;padding:10px 12px;border-bottom:1px solid #2A1A2F;position:sticky;top:0;background:#18101B;z-index:1}
-              .leads-tabela td{padding:12px;font-size:13px;color:#F8F4F7;border-bottom:1px solid #2A1A2F}
-              .leads-copiar-btn{background:rgba(255,255,255,.08);border:1px solid #2A1A2F;color:#F8F4F7;border-radius:8px;padding:5px 10px;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit}
-              .leads-card-mobile{display:none}
-              @media(max-width:680px){
-                .leads-tabela-wrap{display:none}
-                .leads-card-mobile{display:block}
-              }
-            `}</style>
 
             <div className="leads-tabela-wrap crd" style={{ overflowX: 'auto', padding: 0 }}>
               <table className="leads-tabela">
