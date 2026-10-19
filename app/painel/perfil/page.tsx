@@ -2,7 +2,7 @@
 import { useEffect, useState, useRef } from 'react'
 import { supabase } from '../../lib/supabase'
 import { permiteDestaques, permiteVideos, permiteAgendaEventos, obterLimiteLinksRapidos, obterLimiteCatalogos, permiteAgenda, permiteSpotify } from '../../lib/planos'
-import { normalizarOrdemSecoes } from '../../lib/plataformasLinks'
+import { ORDEM_PADRAO_SECOES, resolverOrdemPagina } from '../../lib/ordemPagina'
 import Link from 'next/link'
 import { Copy, Check, ExternalLink, UploadCloud, ArrowUp, ArrowDown } from 'lucide-react'
 import PainelSidebar from '@/app/components/PainelSidebar'
@@ -137,8 +137,17 @@ export default function Perfil(){
   const [videos,setVideos]=useState<any[]>([])
   const [eventos,setEventos]=useState<any[]>([])
   const [catalogos,setCatalogos]=useState<any[]>([])
-  const ORDEM_PADRAO_SECOES=['destaques','albuns','links','agenda','catalogo','videos','cards','spotify']
-  const [ordemSecoes,setOrdemSecoes]=useState<string[]>(ORDEM_PADRAO_SECOES)
+  const [ordemSecoes,setOrdemSecoes]=useState<string[]>([...ORDEM_PADRAO_SECOES])
+  // Fase 1B - Ordem da pagina publica: Destaques e Links visuais aparecem como linhas INDIVIDUAIS (uma por secao).
+  const [secoesDestaques,setSecoesDestaques]=useState<any[]>([])
+  const [secoesCards,setSecoesCards]=useState<any[]>([])
+  // Itens ativos por secao - SO para a etiqueta "sem itens ativos" (UX); null = nao foi possivel contar.
+  const [ativosPorSecao,setAtivosPorSecao]=useState<{destaques:Record<string,number>|null;cards:Record<string,number>|null}>({destaques:null,cards:null})
+  const [ordemPronta,setOrdemPronta]=useState(false)
+  const [ordemIndisponivel,setOrdemIndisponivel]=useState(false)
+  const [ordemAlterada,setOrdemAlterada]=useState(false)
+  const ordemAtualRef=useRef<string[]>(ordemSecoes)
+  ordemAtualRef.current=ordemSecoes
   const tc = TEMA_CORES[publicTheme] ?? TEMA_CORES.modelo2
 
   // Guarda o ultimo user_id conhecido fora do state, pra comparar dentro do listener
@@ -184,6 +193,13 @@ export default function Perfil(){
     setDestaques([])
     setLinks([])
     setVideos([])
+    setOrdemSecoes([...ORDEM_PADRAO_SECOES])
+    setSecoesDestaques([])
+    setSecoesCards([])
+    setAtivosPorSecao({destaques:null,cards:null})
+    setOrdemPronta(false)
+    setOrdemIndisponivel(false)
+    setOrdemAlterada(false)
     setMsg('')
   }
 
@@ -257,26 +273,47 @@ export default function Perfil(){
       if(p.promocao_data_inicio) setPromoInicio(p.promocao_data_inicio)
       if(p.promocao_data_fim) setPromoFim(p.promocao_data_fim)
 
-      const ordemSalva=p.ordem_secoes_publicas
-      const ordemValida=normalizarOrdemSecoes(ordemSalva,ORDEM_PADRAO_SECOES)
-      setOrdemSecoes(ordemValida)
+      const ordemSalva=p.ordem_secoes_publicas   // a ordem so e montada depois de carregar as secoes (mais abaixo)
       setMostrarServicos(p.pagina_mostrar_servicos!==false)
       setMostrarEquipe(p.pagina_mostrar_equipe!==false)
       setMostrarPorQueAgendar(p.pagina_mostrar_por_que_agendar!==false)
       setMostrarContato(p.pagina_mostrar_contato!==false)
 
-    const [{data:dst},{data:lnk},{data:vid},{data:evt},{data:cat}]=await Promise.all([
+    const [{data:dst,error:errDst},{data:lnk},{data:vid},{data:evt},{data:cat},{data:secD,error:errSecD},{data:secC,error:errSecC},{data:itensC,error:errItensC}]=await Promise.all([
       supabase.from('pagina_destaques').select('*').eq('user_id',user.id).order('ordem'),
       supabase.from('pagina_links').select('*').eq('user_id',user.id).order('ordem'),
       supabase.from('pagina_videos').select('*').eq('user_id',user.id).order('ordem'),
       supabase.from('pagina_eventos').select('*').eq('user_id',user.id).order('ordem'),
       supabase.from('pagina_catalogos').select('*').eq('user_id',user.id).order('ordem'),
+      // Fase 1B: secoes (para montar a ordem) e itens de cards (so para a etiqueta "sem itens ativos")
+      supabase.from('pagina_destaques_secoes').select('id,titulo,formato,ativo,ordem').eq('user_id',user.id).order('ordem'),
+      supabase.from('pagina_cards_secoes').select('id,titulo,ativo,ordem').eq('user_id',user.id).order('ordem'),
+      supabase.from('pagina_cards').select('id,secao_id,ativo').eq('user_id',user.id),
     ])
     if(dst) setDestaques(dst)
     if(lnk) setLinks(lnk)
     if(vid) setVideos(vid)
     if(evt) setEventos(evt)
     if(cat) setCatalogos(cat)
+
+    // Ordem da pagina publica (Fase 1B). So e montada se AS DUAS consultas de secoes deram certo; se qualquer uma falhar a
+    // reordenacao fica BLOQUEADA - nunca cai no normalizador antigo, que apagaria as instancias 'destaques:<id>' / 'cards:<id>'.
+    if(errSecD||errSecC||!secD||!secC){
+      setOrdemIndisponivel(true)
+    }else{
+      setSecoesDestaques(secD)
+      setSecoesCards(secC)
+      // Contagem de itens ativos: SO para a etiqueta "sem itens ativos" (UX). Se a consulta falhar, a etiqueta simplesmente nao aparece.
+      const contarAtivos=(itens:any[]|null|undefined,falhou:any)=>{
+        if(falhou||!itens)return null
+        const mapa:Record<string,number>={}
+        for(const it of itens){if(it&&it.ativo===true&&it.secao_id)mapa[it.secao_id]=(mapa[it.secao_id]||0)+1}
+        return mapa
+      }
+      setAtivosPorSecao({destaques:contarAtivos(dst,errDst),cards:contarAtivos(itensC,errItensC)})
+      setOrdemSecoes(resolverOrdemPagina(ordemSalva,{destaques:secD.map((s:any)=>s.id),cards:secC.map((s:any)=>s.id)},{incluirGrupoVazio:true}).map(b=>b.chave))
+    }
+    setOrdemPronta(true)
   }
 
   // Cria um perfil novo e limpo pro usuario logado (usado no botao "Criar meu perfil",
@@ -346,7 +383,11 @@ export default function Perfil(){
     payloadSeguro.pagina_mostrar_equipe=mostrarEquipe
     payloadSeguro.pagina_mostrar_por_que_agendar=mostrarPorQueAgendar
     payloadSeguro.pagina_mostrar_contato=mostrarContato
-    payloadSeguro.ordem_secoes_publicas=ordemSecoes
+    // Fase 1B: a ordem so e enviada quando o cliente realmente mexeu nela (e a carga das secoes deu certo).
+    // Sem movimentacao o campo NAO entra no envio: conta antiga nao e regravada e um formato novo nunca e reescrito.
+    const enviarOrdem=ordemAlterada&&ordemPronta&&!ordemIndisponivel
+    const ordemEnviada=ordemSecoes
+    if(enviarOrdem) payloadSeguro.ordem_secoes_publicas=ordemEnviada
 
     payloadSeguro.promocao_ativa=promoAtiva
     payloadSeguro.promocao_titulo=promoTitulo.trim()||null
@@ -390,11 +431,14 @@ export default function Perfil(){
     }
 
     setSalvando(false)
+    // Gravou a ordem com sucesso -> deixa de estar "alterada" (se o cliente mexeu de novo durante o salvamento, continua).
+    if(enviarOrdem&&ordemAtualRef.current===ordemEnviada) setOrdemAlterada(false)
     setMsg('Perfil salvo com sucesso!')
     setTimeout(()=>setMsg(''),3000)
   }
 
   function moverSecao(indice:number,direcao:'up'|'down'){
+    if(!ordemPronta||ordemIndisponivel)return   // sem secoes carregadas nunca se reordena
     const novoIndice=direcao==='up'?indice-1:indice+1
     if(novoIndice<0||novoIndice>=ordemSecoes.length)return
     setOrdemSecoes(prev=>{
@@ -402,6 +446,35 @@ export default function Perfil(){
       ;[copia[indice],copia[novoIndice]]=[copia[novoIndice],copia[indice]]
       return copia
     })
+    setOrdemAlterada(true)
+  }
+
+  // Ordem da pagina publica - rotulos e descricao de cada linha. As secoes de Destaques e de Links visuais sao linhas
+  // INDIVIDUAIS ('destaques:<id>' / 'cards:<id>'); os demais tipos continuam sendo um bloco unico.
+  const ROTULOS_ORDEM:Record<string,string>={destaques:'Destaques da página',albuns:'Álbuns / Fotos',links:'Links',agenda:'Agenda / Eventos',catalogo:'Catálogo',videos:'Vídeos da página',cards:'Links visuais',spotify:'Spotify'}
+  // Mesmo mapeamento da tela da secao de Destaques: grade -> Grade; carrossel/horizontal (nome antigo) -> Carrossel; resto -> Vertical
+  function rotuloFormato(f:any){return f==='grade'?'Grade':(f==='horizontal'||f==='carrossel')?'Carrossel':'Vertical'}
+  function descreverLinha(chave:string):{titulo:string;sub?:string;etiqueta?:string;esmaecida:boolean;href?:string}{
+    const i=chave.indexOf(':')
+    // Linha de RESERVA: o tipo nao tem nenhuma secao. So guarda a posicao do tipo na ordem - nao e conteudo publico.
+    if(i<=0&&(chave==='destaques'||chave==='cards')){
+      return {titulo:`${ROTULOS_ORDEM[chave]} — nenhuma seção criada`,esmaecida:true,href:chave==='destaques'?'/painel/perfil/destaques':'/painel/perfil/cards'}
+    }
+    const tipo=i>0?chave.slice(0,i):chave
+    const id=i>0?chave.slice(i+1):''
+    if(tipo==='destaques'||tipo==='cards'){
+      const secao=(tipo==='destaques'?secoesDestaques:secoesCards).find((s:any)=>s.id===id)
+      const titulo=(secao?.titulo||'').trim()||'Seção sem título'
+      const sub=tipo==='destaques'?`Destaques · ${rotuloFormato(secao?.formato)}`:'Links visuais'
+      const ativos=tipo==='destaques'?ativosPorSecao.destaques:ativosPorSecao.cards   // so UX: null = nao foi possivel contar
+      // Mesmos criterios da pagina publica (ativo=true na secao e nos itens; Destaques bloqueados no Free). Uma etiqueta por linha.
+      let etiqueta:string|undefined
+      if(!secao||secao.ativo!==true) etiqueta='oculta na página'
+      else if(tipo==='destaques'&&!permiteDestaques(planoTipo)) etiqueta='indisponível no seu plano'
+      else if(ativos&&!((ativos[id]||0)>0)) etiqueta='sem itens ativos, oculta'
+      return {titulo,sub,etiqueta,esmaecida:!!etiqueta,href:`/painel/perfil/${tipo}/${id}`}
+    }
+    return {titulo:ROTULOS_ORDEM[chave]||chave,esmaecida:false}
   }
 
   function copiarLink(){navigator.clipboard.writeText(pubUrl);setCopied(true);setTimeout(()=>setCopied(false),2000)}
@@ -521,13 +594,28 @@ export default function Perfil(){
           <div className="crd" style={{padding:'20px'}}>
             <p style={{fontSize:'15px',fontWeight:700,color:'#F8F4F7',marginBottom:'4px'}}>Ordem da página pública</p>
             <p style={{fontSize:'12px',color:'#B8AAB8',marginBottom:'16px'}}>Altere a ordem em que as seções aparecem na sua MiniPage Pro.</p>
+            {!ordemPronta&&(
+              <p style={{fontSize:'12px',color:'#B8AAB8'}}>Carregando seções…</p>
+            )}
+            {ordemPronta&&ordemIndisponivel&&(
+              <div role="alert" style={{fontSize:'13px',color:'#EF4444',background:'rgba(239,68,68,.12)',border:'1px solid rgba(239,68,68,.28)',borderRadius:'10px',padding:'11px 14px'}}>Não foi possível carregar as seções para reordenar. Recarregue a página.</div>
+            )}
+            {ordemPronta&&!ordemIndisponivel&&(
             <div style={{display:'flex',flexDirection:'column',gap:'8px'}}>
               {ordemSecoes.map((chave,i)=>{
-                const rotulos:Record<string,string>={destaques:'Destaques da página',albuns:'Álbuns / Fotos',links:'Links',agenda:'Agenda / Eventos',catalogo:'Catálogo',videos:'Vídeos da página',cards:'Links visuais',spotify:'Spotify'}
+                const linha=descreverLinha(chave)
                 return (
                   <div key={chave} style={{display:'flex',alignItems:'center',gap:'12px',padding:'10px 14px',background:'rgba(24,16,27,.72)',border:'1px solid #2A1A2F',borderRadius:'10px'}}>
                     <span style={{fontSize:'12px',fontWeight:700,color:'#B8AAB8',width:'18px',flexShrink:0}}>{i+1}</span>
-                    <span style={{fontSize:'13px',fontWeight:600,color:'#F8F4F7',flex:1}}>{rotulos[chave]||chave}</span>
+                    <div style={{flex:1,minWidth:0,opacity:linha.esmaecida?.55:1}}>
+                      <div style={{fontSize:'13px',fontWeight:600,color:'#F8F4F7'}}>{linha.titulo}</div>
+                      {(linha.sub||linha.etiqueta)&&(
+                        <div style={{fontSize:'11px',color:'#B8AAB8',marginTop:'2px'}}>
+                          {linha.sub}{linha.sub&&linha.etiqueta?' · ':''}{linha.etiqueta&&<span style={{color:'#F59E0B',fontWeight:600}}>{linha.etiqueta}</span>}
+                        </div>
+                      )}
+                    </div>
+                    {linha.href&&<Link href={linha.href} style={{fontSize:'11px',color:'#C4B5FD',textDecoration:'none',flexShrink:0}}>Gerenciar →</Link>}
                     <div style={{display:'flex',gap:'6px',flexShrink:0}}>
                       <button type="button" onClick={()=>moverSecao(i,'up')} disabled={i===0} style={{width:'28px',height:'28px',borderRadius:'8px',background:'rgba(24,16,27,.9)',border:'1px solid #2A1A2F',color:i===0?'#4A3F4E':'#B8AAB8',cursor:i===0?'not-allowed':'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}><ArrowUp size={14}/></button>
                       <button type="button" onClick={()=>moverSecao(i,'down')} disabled={i===ordemSecoes.length-1} style={{width:'28px',height:'28px',borderRadius:'8px',background:'rgba(24,16,27,.9)',border:'1px solid #2A1A2F',color:i===ordemSecoes.length-1?'#4A3F4E':'#B8AAB8',cursor:i===ordemSecoes.length-1?'not-allowed':'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}><ArrowDown size={14}/></button>
@@ -536,6 +624,10 @@ export default function Perfil(){
                 )
               })}
             </div>
+            )}
+            {ordemPronta&&!ordemIndisponivel&&ordemAlterada&&(
+              <p role="status" style={{fontSize:'12px',fontWeight:600,color:'#F59E0B',marginTop:'12px'}}>Ordem alterada. Clique em Salvar para publicar.</p>
+            )}
           </div>
 
           <div className="crd" style={{padding:'20px'}}>

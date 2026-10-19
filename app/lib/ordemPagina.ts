@@ -34,6 +34,14 @@ export type TipoComInstancias = typeof TIPOS_COM_INSTANCIAS[number]
 export type SecoesPorTipo = { destaques?: readonly string[]; cards?: readonly string[] }
 export type BlocoOrdem = { chave: string; tipo: TipoSecaoPublica; secaoId?: string }
 
+export type OpcoesResolucao = {
+  // USO EXCLUSIVO DO PAINEL (Minha MiniPage). Quando um tipo com instancias ('destaques'/'cards') NAO tem nenhuma
+  // secao, devolve um bloco de RESERVA { chave: 'destaques' | 'cards', tipo } (sem secaoId) para a linha de reserva
+  // guardar a posicao do tipo na ordem. A reserva nao e conteudo: a pagina publica NUNCA usa esta opcao (padrao false)
+  // e, mesmo que recebesse um bloco assim, nao renderiza nada para ele.
+  incluirGrupoVazio?: boolean
+}
+
 // Protecao contra um array absurdo salvo por engano: nunca processa mais que isso.
 const MAX_TOKENS = 200
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
@@ -60,7 +68,7 @@ export function interpretarInstancia(token: string): { tipo: TipoComInstancias; 
   return { tipo, id }
 }
 
-export function resolverOrdemPagina(ordemSalva: unknown, secoes: SecoesPorTipo): BlocoOrdem[] {
+export function resolverOrdemPagina(ordemSalva: unknown, secoes: SecoesPorTipo, opcoes: OpcoesResolucao = {}): BlocoOrdem[] {
   const tokens: string[] = Array.isArray(ordemSalva)
     ? (ordemSalva as unknown[]).filter((v): v is string => typeof v === 'string').slice(0, MAX_TOKENS)
     : []
@@ -94,6 +102,8 @@ export function resolverOrdemPagina(ordemSalva: unknown, secoes: SecoesPorTipo):
     for (const [idMinusculo, idOriginal] of existentes[tipo]) {
       if (!referenciadas.has(`${tipo}:${idMinusculo}`)) colocarInstancia(tipo, idOriginal)
     }
+    // Painel: tipo sem nenhuma secao -> bloco de reserva que preserva a posicao do tipo (so quando pedido).
+    if (opcoes.incluirGrupoVazio === true && existentes[tipo].size === 0) saida.push({ chave: tipo, tipo })
   }
   const tratarTipo = (t: TipoSecaoPublica) => {
     if (tiposVistos.has(t)) return
