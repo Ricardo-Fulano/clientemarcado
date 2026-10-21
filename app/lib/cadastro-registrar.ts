@@ -3,6 +3,7 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import { ehEmailJaCadastrado } from './auth-erros'
 import { criarPerfilInicial } from './perfil-inicial'
 import { normalizarPlano } from './planos'
+import { normalizarWhatsappBR } from './whatsapp'
 
 // Cadastro feito PELO SERVIDOR: cria o usuario ja confirmado (auth.admin.createUser com
 // email_confirm:true), cria o perfil, entrega uma sessao e nunca depende do interruptor
@@ -15,7 +16,7 @@ import { normalizarPlano } from './planos'
 
 export type RegistroInput = {
   nome?: unknown; email?: unknown; senha?: unknown; termos?: unknown
-  plano_tipo?: unknown; billing_cycle?: unknown; cupom?: unknown; website?: unknown
+  plano_tipo?: unknown; billing_cycle?: unknown; cupom?: unknown; website?: unknown; whatsapp?: unknown
   ip?: string | null
 }
 export type RegistroResultado = { status: number; body: Record<string, unknown> }
@@ -62,6 +63,11 @@ export async function registrarConta(
     return { status: 400, body: { codigo: 'NOME_OBRIGATORIO', error: 'Informe seu nome.' } }
   if (input.termos !== true)
     return { status: 400, body: { codigo: 'TERMOS_OBRIGATORIOS', error: 'Aceite os termos para criar sua conta.' } }
+  // WhatsApp: obrigatorio em TODO cadastro novo (suporte e recuperacao de cadastro). Validado e normalizado aqui, no
+  // servidor, ANTES de qualquer conta ser criada. Valor salvo: so digitos com DDI (55 + DDD + 9 digitos). Nunca logamos o numero.
+  const whatsapp = normalizarWhatsappBR(input.whatsapp)
+  if (!whatsapp)
+    return { status: 400, body: { codigo: 'WHATSAPP_INVALIDO', error: 'Informe um celular com DDD, por exemplo (11) 99999-9999. Se você não vir o campo WhatsApp, atualize a página.' } }
 
   // Limite de abuso: por IP e por e-mail (chaves guardadas so como hash).
   const chaveIp = 'ip:' + (input.ip ? sha(input.ip) : 'desconhecido')
@@ -84,7 +90,7 @@ export async function registrarConta(
   // Cria o usuario JA CONFIRMADO. Nenhum e-mail do Supabase e enviado por este caminho.
   const { data: criado, error: erroCriar } = await supabase.auth.admin.createUser({
     email, password: senha, email_confirm: true,
-    user_metadata: { nome_negocio: nome, nome_usuario: nome, cupom_indicacao: cupom, plano_tipo: plano },
+    user_metadata: { nome_negocio: nome, nome_usuario: nome, cupom_indicacao: cupom, plano_tipo: plano, whatsapp },
   })
   if (erroCriar || !criado?.user) {
     if (ehEmailJaCadastrado(erroCriar)) {

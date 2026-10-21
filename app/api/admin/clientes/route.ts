@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { normalizarWhatsappBR, primeiroNome } from '../../../lib/whatsapp'
 
 // E-mail unico autorizado a ver a lista de clientes cadastrados - constante isolada aqui
 // em cima, facil de trocar se precisar no futuro. A validacao acontece 100% aqui dentro
@@ -17,6 +18,9 @@ const NOME_PLANO: Record<string, string> = {
   essencial: 'MiniPage Pro',
   equipe: 'MiniPage Equipe',
 }
+
+// Contato do responsavel pela conta (vem de auth.users.raw_user_meta_data, ja validado).
+type ContatoCliente = { whatsapp: string | null; nome_contato: string | null }
 
 export async function GET(request: NextRequest) {
   try {
@@ -62,6 +66,15 @@ export async function GET(request: NextRequest) {
     }
     const emailPorUserId = new Map(usersData.users.map(u => [u.id, u.email || '']))
 
+    // WhatsApp do RESPONSAVEL pela conta, informado no cadastro (auth.users.raw_user_meta_data.whatsapp). NAO e o
+    // perfis.whatsapp (contato publico do negocio). O valor e REVALIDADO aqui: user_metadata pode ser editado pelo
+    // proprio usuario, entao so sai da API um celular brasileiro valido (55 + DDD + 9 digitos); qualquer outra coisa vira null.
+    // Contas antigas (sem o campo) ficam com null. Nenhum outro campo do metadata e exposto.
+    const contatoPorUserId = new Map<string, ContatoCliente>(usersData.users.map((u: any): [string, ContatoCliente] => {
+      const meta = (u.user_metadata || {}) as Record<string, unknown>
+      return [u.id, { whatsapp: normalizarWhatsappBR(meta.whatsapp), nome_contato: primeiroNome(meta.nome_usuario) || null }]
+    }))
+
     // Nomes de coluna variam ao longo do historico do projeto (nome_pagina, nome_negocio,
     // nome) e o campo de origem/cupom pode nao existir em toda instalacao - por isso os
     // fallbacks defensivos abaixo, sem quebrar se algum campo nao existir na linha.
@@ -69,6 +82,8 @@ export async function GET(request: NextRequest) {
       user_id: p.user_id,
       nome_pagina: p.nome_pagina ?? p.nome_negocio ?? p.nome ?? null,
       email: emailPorUserId.get(p.user_id) || null,
+      whatsapp: contatoPorUserId.get(p.user_id)?.whatsapp ?? null,
+      nome_contato: contatoPorUserId.get(p.user_id)?.nome_contato ?? null,
       slug: p.slug || null,
       plano_tipo: p.plano_tipo || null,
       plano_nome: p.plano_tipo && NOME_PLANO[p.plano_tipo] ? NOME_PLANO[p.plano_tipo] : 'Plano não identificado',

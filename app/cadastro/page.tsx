@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { supabase } from '../lib/supabase'
 import { normalizarPlano, ehPlanoFree, normalizarBillingCycle } from '../lib/planos'
 import { ehEmailJaCadastrado } from '../lib/auth-erros'
+import { aplicarMascaraWhatsapp, normalizarWhatsappBR, TEXTO_FINALIDADE_WHATSAPP } from '../lib/whatsapp'
 
 const BENEFICIOS = [
   {
@@ -47,6 +48,8 @@ export default function Cadastro() {
   const [nomeUsuario, setNomeUsuario] = useState('')
   const [email, setEmail] = useState('')
   const [senha, setSenha] = useState('')
+  const [whatsapp, setWhatsapp] = useState('')   // o que aparece no campo (com mascara visual)
+  const [whatsappTocado, setWhatsappTocado] = useState(false)
   const [mostrarSenha, setMostrarSenha] = useState(false)
   const [loading, setLoading] = useState(false)
   const [aceitou, setAceitou] = useState(false)
@@ -144,6 +147,14 @@ export default function Cadastro() {
       setMensagem('Para criar sua conta, aceite primeiro o contrato do plano.')
       return
     }
+    // WhatsApp obrigatorio (suporte e recuperacao de cadastro). A mascara e so visual: o que vai para o servidor e o
+    // numero normalizado (55 + DDD + 9 digitos). O servidor valida de novo.
+    const whatsappNormalizado = normalizarWhatsappBR(whatsapp)
+    if (!whatsappNormalizado) {
+      setWhatsappTocado(true)
+      setMensagem('Erro: informe seu WhatsApp (celular com DDD), por exemplo (11) 99999-9999.')
+      return
+    }
     if (aceitou && typeof window !== 'undefined') {
       localStorage.setItem('clienteMarcadoAceitePlano', 'true')
     }
@@ -179,7 +190,7 @@ export default function Cadastro() {
       const res = await fetch('/api/cadastro/registrar', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ nome: nomeUsuario, email, senha, termos: true, plano_tipo: planoTipo, billing_cycle: billingCycleParaExibicao, cupom: cupom && cupom.trim() ? cupom.trim() : null, website: site }),
+        body: JSON.stringify({ nome: nomeUsuario, email, senha, termos: true, plano_tipo: planoTipo, billing_cycle: billingCycleParaExibicao, cupom: cupom && cupom.trim() ? cupom.trim() : null, whatsapp: whatsappNormalizado, website: site }),
       })
       const dados = await res.json().catch(() => ({}))
 
@@ -367,6 +378,14 @@ export default function Cadastro() {
               <div>
                 <label className="label">E-mail</label>
                 <input type="email" placeholder="ana@email.com" value={email} onChange={e => setEmail(e.target.value)} className="input" />
+              </div>
+              <div>
+                <label className="label">WhatsApp</label>
+                <input type="tel" inputMode="tel" autoComplete="tel-national" placeholder="(11) 99999-9999" value={whatsapp} onChange={e => setWhatsapp(aplicarMascaraWhatsapp(e.target.value))} onBlur={() => setWhatsappTocado(true)} className="input" />
+                {whatsappTocado && !normalizarWhatsappBR(whatsapp) && (
+                  <p style={{fontSize:'11px',color:'#EF4444',marginTop:'5px'}}>Informe um celular com DDD, por exemplo (11) 99999-9999.</p>
+                )}
+                <p style={{fontSize:'11px',color:'#B8AAB8',marginTop:'5px'}}>{TEXTO_FINALIDADE_WHATSAPP}</p>
               </div>
               <div>
                 <label className="label">Senha</label>

@@ -4,8 +4,21 @@ import Link from 'next/link'
 import { supabase } from '../../../lib/supabase'
 import PainelSidebar from '@/app/components/PainelSidebar'
 import AlterarPlanoModal, { BotaoAlterarPlano } from '@/app/components/AlterarPlanoModal'
+import { formatarWhatsappExibicao, linkWhatsappCliente } from '../../../lib/whatsapp'
 
 const G = 'linear-gradient(135deg,#EC4899,#D946EF,#8B5CF6)'
+
+// Botao "WhatsApp" da lista de clientes: abre a conversa em wa.me. A mensagem so vem PREENCHIDA (e so para quem esta
+// aguardando_pagamento) - o envio e sempre manual. So aparece se o cliente tem um celular valido salvo no cadastro;
+// contas antigas (sem o campo) ficam sem botao.
+function BotaoWhatsappCliente({ c }: { c: any }) {
+  const href = linkWhatsappCliente(c)
+  if (!href) return null
+  const destaque = c.status_acesso === 'aguardando_pagamento'
+  return (
+    <a href={href} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none', display: 'inline-block', background: destaque ? 'rgba(34,197,94,.22)' : 'rgba(34,197,94,.10)', border: '1px solid rgba(34,197,94,.45)', color: '#22C55E', borderRadius: '8px', padding: '5px 10px', fontSize: '11px', fontWeight: 600, fontFamily: 'inherit' }}>WhatsApp</a>
+  )
+}
 
 // Mesmo email usado como fonte de verdade na API /api/admin/clientes - aqui so controla
 // se a ABA aparece na tela (UX). A protecao REAL fica 100% na API, validada de novo la
@@ -384,13 +397,17 @@ export default function LeadsCapturados() {
                       {clientesFiltrados.map((c, i) => (
                         <tr key={c.user_id || i}>
                           <td style={{ fontWeight: 700 }}>{c.nome_pagina || '—'}</td>
-                          <td>{c.email || '—'}</td>
+                          <td>
+                            {c.email || '—'}
+                            <div style={{ fontSize: '11px', color: '#B8AAB8', marginTop: '2px' }}>{formatarWhatsappExibicao(c.whatsapp) || '—'}</div>
+                          </td>
                           <td style={{ color: '#B8AAB8' }}>{c.plano_nome}</td>
                           <td style={{ color: '#B8AAB8' }}>{c.slug || '—'}</td>
                           <td><span style={{ fontSize: '11px', fontWeight: 700, padding: '3px 8px', borderRadius: '999px', background: 'rgba(139,92,246,.14)', color: '#C4B5FD' }}>{statusLabel(c.status_acesso)}</span></td>
                           <td style={{ color: '#B8AAB8', whiteSpace: 'nowrap' }}>{c.created_at ? formatarData(c.created_at) : '—'}</td>
                           <td style={{ color: '#B8AAB8' }}>{c.origem || '—'}</td>
                           <td style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
+                            <BotaoWhatsappCliente c={c} />
                             <button className="leads-copiar-btn" onClick={() => copiarEmailCliente(c, i)}>{copiadoClienteIndividual === i ? 'Copiado!' : 'Copiar e-mail'}</button>
                             {c.slug && <a href={`https://minipage.pro/${c.slug}`} target="_blank" rel="noreferrer" className="leads-copiar-btn" style={{ textDecoration: 'none', display: 'inline-block' }}>Abrir MiniPage</a>}
                             <BotaoAlterarPlano onClick={() => setClienteAlterandoPlano(c)} />
@@ -406,8 +423,10 @@ export default function LeadsCapturados() {
                     <div key={c.user_id || i} className="crd" style={{ padding: '14px', marginBottom: '10px' }}>
                       <p style={{ fontSize: '14px', fontWeight: 700, color: '#F8F4F7', margin: '0 0 4px' }}>{c.nome_pagina || c.email || '—'}</p>
                       <p style={{ fontSize: '12px', color: '#B8AAB8', margin: '0 0 4px' }}>{c.email}</p>
+                      <p style={{ fontSize: '12px', color: '#B8AAB8', margin: '0 0 4px' }}>{formatarWhatsappExibicao(c.whatsapp) || '—'}</p>
                       <p style={{ fontSize: '12px', color: '#B8AAB8', margin: '0 0 8px' }}>{c.plano_nome} · {statusLabel(c.status_acesso)}</p>
                       <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                        <BotaoWhatsappCliente c={c} />
                         <button className="leads-copiar-btn" onClick={() => copiarEmailCliente(c, i)}>{copiadoClienteIndividual === i ? 'Copiado!' : 'Copiar e-mail'}</button>
                         {c.slug && <a href={`https://minipage.pro/${c.slug}`} target="_blank" rel="noreferrer" className="leads-copiar-btn" style={{ textDecoration: 'none' }}>Abrir MiniPage</a>}
                         <BotaoAlterarPlano onClick={() => setClienteAlterandoPlano(c)} />
