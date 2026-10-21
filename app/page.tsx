@@ -1,6 +1,6 @@
 'use client'
 import Link from 'next/link'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, type ReactNode } from 'react'
 import AssistenteComercial from '@/app/components/AssistenteComercial'
 import { obterNomePlano, obterPrecoPlanoPorCiclo, obterPercentualEconomiaAnual, type BillingCycle } from './lib/planos'
 const CHECKOUT_URL = "https://www.mercadopago.com.br/subscriptions/checkout?preapproval_plan_id=1a0fb25c46214e45b0eb3d21b494e5d6"
@@ -10,57 +10,128 @@ function fPreco(tipo: 'free'|'minipage'|'loja'|'essencial'|'equipe', ciclo: Bill
   const [inteiro, decimal] = p.toFixed(2).split('.')
   return { inteiro, decimal }
 }
-const inclusosFree = [
-  'Até 5 links rápidos',
-  'Foto, bio e redes sociais',
-  'Modelos básicos',
-  'Desempenho básico',
+// Beneficios de cada plano. Cada plano mostra so o que ADICIONA em relacao ao anterior ("Tudo do ... +" fica no
+// cabecalho da lista), para a cliente enxergar a evolucao. Todos os itens abaixo foram conferidos com as regras reais
+// (planos.ts, rotas e telas): nada aqui altera limite, preco ou regra - e so apresentacao.
+//   t = texto do item | hl = trecho em destaque (cor) | forte = item de destaque (chip) | nota = explicacao curta
+type ItemDoPlano = { t: string; hl?: string; forte?: boolean; nota?: string }
+const itensFree: ItemDoPlano[] = [
+  { t: 'Até 5 links rápidos', hl: 'Até 5' },
+  { t: 'Foto, bio e redes sociais' },
+  { t: 'Modelos básicos' },
+  { t: 'Desempenho básico' },
 ]
-const inclusosMiniPage = [
-  'Banner com vídeo',
-  'Links ilimitados',
-  'Destaques',
-  'Vídeos',
-  'Agenda/Eventos',
-  'Painel de desempenho',
-  'Captação de leads',
+const itensMiniPage: ItemDoPlano[] = [
+  { t: 'Banner com vídeo' },
+  { t: 'Links ilimitados', hl: 'ilimitados' },
+  { t: 'Destaques ilimitados', hl: 'ilimitados' },
+  { t: 'Vídeos' },
+  { t: 'Agenda de eventos', nota: 'Divulga eventos na sua página. Não é o agendamento de clientes.' },
+  { t: 'Todos os modelos de cor' },
+  { t: 'Spotify' },
+  { t: 'Painel de desempenho' },
 ]
-const inclusosLoja = [
-  'Tudo do MiniPage',
-  'Banner com vídeo',
-  'Destaques ilimitados',
-  'Catálogos ilimitados',
-  'WhatsApp no catálogo',
-  'Mensagem automática por item',
-  'Links de venda e achadinhos',
-  'Painel de desempenho',
-  'Desempenho por produto/link',
-  'Captação de leads',
+const itensLoja: ItemDoPlano[] = [
+  { t: 'Catálogos ilimitados', forte: true },
+  { t: 'WhatsApp no catálogo' },
+  { t: 'Mensagem automática por item' },
+  { t: 'Links de venda e achadinhos' },
+  { t: 'Desempenho por produto/link' },
+  { t: 'Captação de leads', forte: true },
 ]
-const inclusosProfissional = [
-  'Tudo do Loja',
-  'Banner com vídeo',
-  'Agenda de atendimento',
-  'Clientes',
-  'Orçamentos',
-  'Cobranças',
-  'Financeiro',
-  'Relatórios',
-  'Até 3 profissionais',
-  'Painel de desempenho',
-  'Captação de leads',
+const itensProfissional: ItemDoPlano[] = [
+  { t: 'Agendamento automático', forte: true, nota: 'Seus clientes agendam sozinhos pelo link.' },
+  { t: 'Agenda de atendimento' },
+  { t: 'Clientes' },
+  { t: 'Orçamentos' },
+  { t: 'Cobranças' },
+  { t: 'Financeiro' },
+  { t: 'Relatórios' },
+  { t: 'Até 3 profissionais', hl: 'Até 3' },
 ]
-const inclusosEquipe = [
-  'Tudo do Pro',
-  'Banner com vídeo',
-  'Até 15 profissionais',
-  'Login individual por profissional',
-  'Minha agenda',
-  'Meu desempenho',
-  'Controle de equipe',
-  'Painel de desempenho',
-  'Captação de leads',
+const itensEquipe: ItemDoPlano[] = [
+  { t: 'Até 15 profissionais', hl: 'Até 15' },
+  { t: 'Login individual por profissional' },
+  { t: 'Minha agenda' },
+  { t: 'Meu desempenho' },
+  { t: 'Controle de equipe' },
 ]
+const COR_DESTAQUE = '#F472B6'   // rosa: termos-chave (ex.: Agendamento automatico, Catalogos ilimitados)
+const COR_SUAVE = '#C4B5FD'      // violeta claro: "ilimitados", "Ate N", separador "Tudo do ... +"
+
+// Destaca (cor + negrito) um trecho do texto; sem trecho, devolve o texto como esta.
+function Destacar({ texto, hl, cor }: { texto: string; hl?: string; cor: string }) {
+  const i = hl ? texto.indexOf(hl) : -1
+  if (!hl || i < 0) return <>{texto}</>
+  return <>{texto.slice(0, i)}<strong style={{color:cor,fontWeight:800}}>{hl}</strong>{texto.slice(i + hl.length)}</>
+}
+
+// Um beneficio da lista. "forte" vira um chip rosa (so alguns itens-chave por plano, para nao poluir).
+function ItemLista({ item }: { item: ItemDoPlano }) {
+  const check = <span style={{color:'#22C55E',fontSize:'13px',flexShrink:0,fontWeight:700}}>✓</span>
+  if (item.forte) {
+    return (
+      <div style={{background:'rgba(236,72,153,.10)',border:'1px solid rgba(236,72,153,.34)',borderRadius:'10px',padding:'8px 10px',marginBottom:'11px',boxShadow:'0 0 22px rgba(236,72,153,.12)'}}>
+        <div style={{display:'flex',alignItems:'center',gap:'9px'}}>
+          {check}
+          <span style={{fontSize:'13px',fontWeight:800,color:COR_DESTAQUE,lineHeight:1.3}}>{item.t}</span>
+        </div>
+        {item.nota && <div style={{fontSize:'11px',color:'#D9CFD9',lineHeight:1.45,marginTop:'4px',paddingLeft:'22px'}}>{item.nota}</div>}
+      </div>
+    )
+  }
+  return (
+    <div style={{marginBottom:'11px'}}>
+      <div style={{display:'flex',alignItems:'flex-start',gap:'9px'}}>
+        {check}
+        <span style={{fontSize:'12px',fontWeight:600,color:'#E8DFE8',lineHeight:1.4}}><Destacar texto={item.t} hl={item.hl} cor={COR_SUAVE} /></span>
+      </div>
+      {item.nota && <div style={{fontSize:'11px',color:'#B8AAB8',lineHeight:1.45,marginTop:'3px',paddingLeft:'22px'}}>{item.nota}</div>}
+    </div>
+  )
+}
+
+type TipoPlanoLanding = 'free' | 'minipage' | 'loja' | 'essencial' | 'equipe'
+// Cartao de plano. Nome, preco e botao continuam vindo de planos.ts / dos mesmos links de antes (o botao entra pronto em "cta").
+function CartaoPlano({ tipo, billing, selo, nicho, descricao, descricaoHl, herda, itens, variante = 'padrao', cta }: {
+  tipo: TipoPlanoLanding; billing: BillingCycle; selo: string; nicho?: string; descricao?: string; descricaoHl?: string
+  herda?: string; itens: ItemDoPlano[]; variante?: 'padrao' | 'pro' | 'equipe'; cta: ReactNode
+}) {
+  const preco = fPreco(tipo, tipo === 'free' ? 'mensal' : billing)
+  const pro = variante === 'pro'
+  const fundo = pro ? 'radial-gradient(ellipse at top,rgba(236,72,153,.16),transparent 55%),rgba(24,16,27,.97)'
+    : variante === 'equipe' ? 'radial-gradient(ellipse at top,rgba(139,92,246,.16),transparent 55%),rgba(24,16,27,.97)'
+    : 'radial-gradient(ellipse at top,rgba(139,92,246,.10),transparent 55%),rgba(24,16,27,.97)'
+  return (
+    <div className="plano-card" style={{background:fundo,border:pro?'1.5px solid rgba(236,72,153,.55)':'1.5px solid #2A1A2F',borderRadius:'22px',padding:'30px 22px',boxShadow:pro?'0 0 72px rgba(236,72,153,.20)':undefined,position:'relative' as const,display:'flex',flexDirection:'column' as const,flex:'0 0 250px',minWidth:'250px',scrollSnapAlign:'start'}}>
+      {pro && <div style={{position:'absolute' as const,top:'-13px',left:'50%',transform:'translateX(-50%)',background:G,borderRadius:'999px',padding:'4px 18px',fontSize:'11px',fontWeight:700,color:'#fff',whiteSpace:'nowrap' as const}}>Mais escolhido</div>}
+      <div style={{textAlign:'center',marginBottom:'16px'}}>
+        <h3 style={{fontSize:'19px',fontWeight:900,letterSpacing:'-0.02em',marginBottom:'8px',background:'linear-gradient(135deg,#F472B6,#C4B5FD)',WebkitBackgroundClip:'text',backgroundClip:'text',WebkitTextFillColor:'transparent',color:COR_DESTAQUE}}>{obterNomePlano(tipo)}</h3>
+        <div>
+          <span style={{fontSize:'34px',fontWeight:900,color:'#F8F4F7',letterSpacing:'-0.03em'}}>R$ {preco.inteiro}</span>
+          {tipo !== 'free' && <span style={{fontSize:'16px',fontWeight:700,color:'#F8F4F7'}}>,{preco.decimal}</span>}
+          <span style={{fontSize:'14px',color:'#B8AAB8'}}>{tipo !== 'free' && billing === 'anual' ? '/ano' : '/mês'}</span>
+        </div>
+      </div>
+      <div className="plano-ideal" style={{textAlign:'center',marginBottom:'16px'}}>
+        <span style={{display:'inline-block',fontSize:'10px',fontWeight:800,letterSpacing:'.08em',textTransform:'uppercase' as const,color:'#F9A8D4',background:'rgba(236,72,153,.12)',border:'1px solid rgba(236,72,153,.32)',borderRadius:'999px',padding:'3px 10px',marginBottom:'8px'}}>{selo}</span>
+        {nicho && <p style={{fontSize:'13px',fontWeight:700,color:'#F8F4F7',lineHeight:1.4,marginBottom:descricao?'6px':0}}>{nicho}</p>}
+        {descricao && <p style={{fontSize:'12px',color:'#B8AAB8',lineHeight:1.5}}><Destacar texto={descricao} hl={descricaoHl} cor={COR_DESTAQUE} /></p>}
+      </div>
+      <div style={{flex:1,marginBottom:'18px'}}>
+        {herda && (
+          <div style={{display:'flex',alignItems:'center',gap:'8px',margin:'0 0 14px'}}>
+            <span style={{flex:1,height:'1px',background:'rgba(139,92,246,.30)'}} />
+            <span style={{fontSize:'11px',fontWeight:700,color:COR_SUAVE,whiteSpace:'nowrap' as const}}>{herda}</span>
+            <span style={{flex:1,height:'1px',background:'rgba(139,92,246,.30)'}} />
+          </div>
+        )}
+        {itens.map((item, i) => <ItemLista key={i} item={item} />)}
+      </div>
+      {cta}
+    </div>
+  )
+}
 export default function Home() {
   const [scrolled, setScrolled] = useState(false)
   const [billingSelecionado, setBillingSelecionado] = useState<BillingCycle>('mensal')
@@ -223,128 +294,51 @@ export default function Home() {
               .planos-scroll{display:grid !important;grid-template-columns:repeat(5,minmax(0,1fr)) !important;overflow-x:visible !important;}
               .plano-card{flex:none !important;min-width:0 !important;width:auto !important;}
             }
+            /* Bloco "Ideal para": altura minima igual nos cartoes, para as listas comecarem alinhadas. */
+            .plano-ideal{min-height:130px}
+            @media(min-width:900px){.plano-ideal{min-height:150px}}
           `}</style>
           <div className="planos-scroll" style={{display:'flex',flexWrap:'nowrap',overflowX:'auto',WebkitOverflowScrolling:'touch',scrollSnapType:'x proximity',gap:'18px',alignItems:'stretch',paddingTop:'20px',paddingBottom:'8px',scrollbarWidth:'none'}}>
 
             {/* PLANO FREE */}
-            <div className="plano-card" style={{background:'radial-gradient(ellipse at top,rgba(139,92,246,.10),transparent 55%),rgba(24,16,27,.97)',border:'1.5px solid #2A1A2F',borderRadius:'22px',padding:'30px 22px',position:'relative' as const,flex:'0 0 250px',minWidth:'250px',scrollSnapAlign:'start'}}>
-              <div style={{textAlign:'center',marginBottom:'20px'}}>
-                <h3 style={{fontSize:'17px',fontWeight:800,color:'#F8F4F7',marginBottom:'6px'}}>{obterNomePlano('free')}</h3>
-                <p style={{fontSize:'12px',color:'#B8AAB8',lineHeight:1.5,marginBottom:'16px',minHeight:'50px'}}>Ideal para começar sua presença online com links básicos.</p>
-                <div style={{marginBottom:'8px'}}>
-                  <span style={{fontSize:'34px',fontWeight:900,color:'#F8F4F7',letterSpacing:'-0.03em'}}>R$ {fPreco('free', 'mensal').inteiro}</span>
-                  <span style={{fontSize:'14px',color:'#B8AAB8'}}>/mês</span>
-                </div>
-              </div>
-              <div style={{marginBottom:'22px'}}>
-                {inclusosFree.map((item,i)=>(
-                  <div key={i} style={{display:'flex',alignItems:'center',gap:'9px',marginBottom:'11px'}}>
-                    <span style={{color:'#22C55E',fontSize:'13px',flexShrink:0,fontWeight:700}}>✓</span>
-                    <span style={{fontSize:'12px',color:'#B8AAB8'}}>{item}</span>
-                  </div>
-                ))}
-              </div>
-              <Link href="/cadastro?plano=free" className="btn-s" style={{width:'100%',justifyContent:'center',height:'46px',fontSize:'13px'}}>
-                Começar grátis
-              </Link>
-            </div>
+            <CartaoPlano tipo="free" billing={billingSelecionado} selo="Para começar" descricao="Presença online simples com links básicos." itens={itensFree}
+              cta={
+                <Link href="/cadastro?plano=free" className="btn-s" style={{width:'100%',justifyContent:'center',height:'46px',fontSize:'13px'}}>
+                  Começar grátis
+                </Link>
+              } />
 
             {/* PLANO MINIPAGE */}
-            <div className="plano-card" style={{background:'radial-gradient(ellipse at top,rgba(139,92,246,.10),transparent 55%),rgba(24,16,27,.97)',border:'1.5px solid #2A1A2F',borderRadius:'22px',padding:'30px 22px',position:'relative' as const,flex:'0 0 250px',minWidth:'250px',scrollSnapAlign:'start'}}>
-              <div style={{textAlign:'center',marginBottom:'20px'}}>
-                <h3 style={{fontSize:'17px',fontWeight:800,color:'#F8F4F7',marginBottom:'6px'}}>{obterNomePlano('minipage')}</h3>
-                <p style={{fontSize:'12px',color:'#B8AAB8',lineHeight:1.5,marginBottom:'16px',minHeight:'50px'}}>Página profissional com links, destaques, vídeos e agenda/eventos.</p>
-                <div style={{marginBottom:'8px'}}>
-                  <span style={{fontSize:'34px',fontWeight:900,color:'#F8F4F7',letterSpacing:'-0.03em'}}>R$ {fPreco('minipage', billingSelecionado).inteiro}</span>
-                  <span style={{fontSize:'16px',fontWeight:700,color:'#F8F4F7'}}>,{fPreco('minipage', billingSelecionado).decimal}</span>
-                  <span style={{fontSize:'14px',color:'#B8AAB8'}}>{billingSelecionado==='anual'?'/ano':'/mês'}</span>
-                </div>
-              </div>
-              <div style={{marginBottom:'22px'}}>
-                {inclusosMiniPage.map((item,i)=>(
-                  <div key={i} style={{display:'flex',alignItems:'center',gap:'9px',marginBottom:'11px'}}>
-                    <span style={{color:'#22C55E',fontSize:'13px',flexShrink:0,fontWeight:700}}>✓</span>
-                    <span style={{fontSize:'12px',color:'#B8AAB8'}}>{item}</span>
-                  </div>
-                ))}
-              </div>
-              <Link href={`/aceite-plano?plano=minipage&billing=${billingSelecionado}`} className="btn-p" style={{width:'100%',justifyContent:'center',height:'46px',fontSize:'13px'}}>
-                Começar com a MiniPage
-              </Link>
-            </div>
+            <CartaoPlano tipo="minipage" billing={billingSelecionado} selo="Ideal para" nicho="autônomos e profissionais" descricao="Página profissional com links, destaques, vídeos e agenda de eventos." herda="Tudo do Free +" itens={itensMiniPage}
+              cta={
+                <Link href={`/aceite-plano?plano=minipage&billing=${billingSelecionado}`} className="btn-p" style={{width:'100%',justifyContent:'center',height:'46px',fontSize:'13px'}}>
+                  Começar com a MiniPage
+                </Link>
+              } />
 
             {/* PLANO LOJA */}
-            <div className="plano-card" style={{background:'radial-gradient(ellipse at top,rgba(139,92,246,.10),transparent 55%),rgba(24,16,27,.97)',border:'1.5px solid #2A1A2F',borderRadius:'22px',padding:'30px 22px',position:'relative' as const,flex:'0 0 250px',minWidth:'250px',scrollSnapAlign:'start'}}>
-              <div style={{textAlign:'center',marginBottom:'20px'}}>
-                <h3 style={{fontSize:'17px',fontWeight:800,color:'#F8F4F7',marginBottom:'6px'}}>{obterNomePlano('loja')}</h3>
-                <p style={{fontSize:'12px',color:'#B8AAB8',lineHeight:1.5,marginBottom:'16px',minHeight:'50px'}}>Vitrine para produtos, achadinhos, músicas, cursos, divulgações e vendas.</p>
-                <div style={{marginBottom:'8px'}}>
-                  <span style={{fontSize:'34px',fontWeight:900,color:'#F8F4F7',letterSpacing:'-0.03em'}}>R$ {fPreco('loja', billingSelecionado).inteiro}</span>
-                  <span style={{fontSize:'16px',fontWeight:700,color:'#F8F4F7'}}>,{fPreco('loja', billingSelecionado).decimal}</span>
-                  <span style={{fontSize:'14px',color:'#B8AAB8'}}>{billingSelecionado==='anual'?'/ano':'/mês'}</span>
-                </div>
-              </div>
-              <div style={{marginBottom:'22px'}}>
-                {inclusosLoja.map((item,i)=>(
-                  <div key={i} style={{display:'flex',alignItems:'center',gap:'9px',marginBottom:'11px'}}>
-                    <span style={{color:'#22C55E',fontSize:'13px',flexShrink:0,fontWeight:700}}>✓</span>
-                    <span style={{fontSize:'12px',color:'#B8AAB8'}}>{item}</span>
-                  </div>
-                ))}
-              </div>
-              <Link href={`/aceite-plano?plano=loja&billing=${billingSelecionado}`} className="btn-p" style={{width:'100%',justifyContent:'center',height:'46px',fontSize:'13px'}}>
-                Quero o MiniPage Loja
-              </Link>
-            </div>
+            <CartaoPlano tipo="loja" billing={billingSelecionado} selo="Ideal para" nicho="quem vende produtos, cursos, achadinhos ou divulgações" herda="Tudo da MiniPage +" itens={itensLoja}
+              cta={
+                <Link href={`/aceite-plano?plano=loja&billing=${billingSelecionado}`} className="btn-p" style={{width:'100%',justifyContent:'center',height:'46px',fontSize:'13px'}}>
+                  Quero o MiniPage Loja
+                </Link>
+              } />
 
             {/* PLANO PRO (interno: essencial) */}
-            <div className="plano-card" style={{background:'radial-gradient(ellipse at top,rgba(236,72,153,.16),transparent 55%),rgba(24,16,27,.97)',border:'1.5px solid rgba(236,72,153,.50)',borderRadius:'22px',padding:'30px 22px',boxShadow:'0 0 64px rgba(236,72,153,.14)',position:'relative' as const,flex:'0 0 250px',minWidth:'250px',scrollSnapAlign:'start'}}>
-              <div style={{position:'absolute' as const,top:'-13px',left:'50%',transform:'translateX(-50%)',background:G,borderRadius:'999px',padding:'4px 18px',fontSize:'11px',fontWeight:700,color:'#fff',whiteSpace:'nowrap' as const}}>Mais escolhido</div>
-              <div style={{textAlign:'center',marginBottom:'20px'}}>
-                <h3 style={{fontSize:'17px',fontWeight:800,color:'#F8F4F7',marginBottom:'6px'}}>{obterNomePlano('essencial')}</h3>
-                <p style={{fontSize:'12px',color:'#B8AAB8',lineHeight:1.5,marginBottom:'16px',minHeight:'50px'}}>MiniPage completa com agenda, clientes e gestão.</p>
-                <div style={{marginBottom:'8px'}}>
-                  <span style={{fontSize:'34px',fontWeight:900,color:'#F8F4F7',letterSpacing:'-0.03em'}}>R$ {fPreco('essencial', billingSelecionado).inteiro}</span>
-                  <span style={{fontSize:'16px',fontWeight:700,color:'#F8F4F7'}}>,{fPreco('essencial', billingSelecionado).decimal}</span>
-                  <span style={{fontSize:'14px',color:'#B8AAB8'}}>{billingSelecionado==='anual'?'/ano':'/mês'}</span>
-                </div>
-              </div>
-              <div style={{marginBottom:'22px'}}>
-                {inclusosProfissional.map((item,i)=>(
-                  <div key={i} style={{display:'flex',alignItems:'center',gap:'9px',marginBottom:'11px'}}>
-                    <span style={{color:'#22C55E',fontSize:'13px',flexShrink:0,fontWeight:700}}>✓</span>
-                    <span style={{fontSize:'12px',color:'#B8AAB8'}}>{item}</span>
-                  </div>
-                ))}
-              </div>
-              <Link href={`/aceite-plano?plano=essencial&billing=${billingSelecionado}`} className="btn-p" style={{width:'100%',justifyContent:'center',height:'auto',minHeight:'46px',padding:'12px 14px',fontSize:'13px',whiteSpace:'normal',lineHeight:1.3,textAlign:'center' as const}}>
-                Começar com o {obterNomePlano('essencial')}
-              </Link>
-            </div>
+            <CartaoPlano tipo="essencial" billing={billingSelecionado} variante="pro" selo="Ideal para" nicho="beleza, estética, atendimento e gestão" descricao="MiniPage completa para quem precisa de agendamento automático, clientes e gestão do negócio." descricaoHl="agendamento automático" herda="Tudo da Loja +" itens={itensProfissional}
+              cta={
+                <Link href={`/aceite-plano?plano=essencial&billing=${billingSelecionado}`} className="btn-p" style={{width:'100%',justifyContent:'center',height:'auto',minHeight:'46px',padding:'12px 14px',fontSize:'13px',whiteSpace:'normal',lineHeight:1.3,textAlign:'center' as const}}>
+                  Começar com o {obterNomePlano('essencial')}
+                </Link>
+              } />
 
             {/* PLANO EQUIPE (interno: equipe) */}
-            <div className="plano-card" style={{background:'radial-gradient(ellipse at top,rgba(139,92,246,.16),transparent 55%),rgba(24,16,27,.97)',border:'1.5px solid #2A1A2F',borderRadius:'22px',padding:'30px 22px',position:'relative' as const,flex:'0 0 250px',minWidth:'250px',scrollSnapAlign:'start'}}>
-              <div style={{textAlign:'center',marginBottom:'20px'}}>
-                <h3 style={{fontSize:'17px',fontWeight:800,color:'#F8F4F7',marginBottom:'6px'}}>{obterNomePlano('equipe')}</h3>
-                <p style={{fontSize:'12px',color:'#B8AAB8',lineHeight:1.5,marginBottom:'16px',minHeight:'50px'}}>Para negócios com equipe, agenda compartilhada e controle.</p>
-                <div style={{marginBottom:'8px'}}>
-                  <span style={{fontSize:'34px',fontWeight:900,color:'#F8F4F7',letterSpacing:'-0.03em'}}>R$ {fPreco('equipe', billingSelecionado).inteiro}</span>
-                  <span style={{fontSize:'16px',fontWeight:700,color:'#F8F4F7'}}>,{fPreco('equipe', billingSelecionado).decimal}</span>
-                  <span style={{fontSize:'14px',color:'#B8AAB8'}}>{billingSelecionado==='anual'?'/ano':'/mês'}</span>
-                </div>
-              </div>
-              <div style={{marginBottom:'22px'}}>
-                {inclusosEquipe.map((item,i)=>(
-                  <div key={i} style={{display:'flex',alignItems:'center',gap:'9px',marginBottom:'11px'}}>
-                    <span style={{color:'#22C55E',fontSize:'13px',flexShrink:0,fontWeight:700}}>✓</span>
-                    <span style={{fontSize:'12px',color:'#B8AAB8'}}>{item}</span>
-                  </div>
-                ))}
-              </div>
-              <Link href={`/aceite-plano?plano=equipe&billing=${billingSelecionado}`} className="btn-p" style={{width:'100%',justifyContent:'center',height:'46px',fontSize:'13px'}}>
-                Quero o {obterNomePlano('equipe')}
-              </Link>
-            </div>
+            <CartaoPlano tipo="equipe" billing={billingSelecionado} variante="equipe" selo="Ideal para" nicho="salões, studios e negócios com equipe" descricao="Cada profissional com login, agenda e desempenho próprios." herda="Tudo do Pro +" itens={itensEquipe}
+              cta={
+                <Link href={`/aceite-plano?plano=equipe&billing=${billingSelecionado}`} className="btn-p" style={{width:'100%',justifyContent:'center',height:'46px',fontSize:'13px'}}>
+                  Quero o {obterNomePlano('equipe')}
+                </Link>
+              } />
 
           </div>
 
