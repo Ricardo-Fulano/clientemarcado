@@ -320,7 +320,11 @@ export default function GerenciarItensDoCatalogo(){
     // localmente (titulo/preco/selo que o usuario ja tenha digitado antes da imagem).
     // _novo precisa virar false aqui: o item ja existe de verdade no banco agora, entao o
     // proximo "Salvar item" precisa fazer UPDATE, nunca outro INSERT (senao duplicaria).
-    setItens(prev=>prev.map(x=>x.id===idTemporario?{...x,...data,_novo:false}:x))
+    // O rascunho e um retrato ANTIGO do item (montado com o estado de quando a funcao foi chamada), entao o que esta NA TELA e sempre
+    // mais novo: a tela vence em todos os campos e do banco entra so o ID real (e created_at). O rascunho nasce com ativo=false
+    // (invisivel na pagina publica ate o "Salvar"), mas isso NAO pode virar a escolha da pessoa. Antes o "...data" vencia: deixava o
+    // item "Oculto" sozinho (e o "Salvar" gravava false) e apagava o titulo/descricao que a previa do link tinha acabado de preencher.
+    setItens(prev=>prev.map(x=>x.id===idTemporario?{...data,...x,id:data.id,_novo:false}:x))
     // O item trocou de ID (temporario -> real do banco) - se ainda estava em edicao pelo ID
     // antigo, acompanha a troca. Sem isso, editandoId fica "orfao" apontando pro ID que nao
     // existe mais, e o card parece fechar sozinho mesmo sem o usuario clicar em Salvar/Voltar.
@@ -482,6 +486,26 @@ export default function GerenciarItensDoCatalogo(){
     setTimeout(()=>setMsg(''),3000)
   }
 
+  // Botao Ativo/Oculto do CARTAO FECHADO. Antes ele so mudava o estado da tela (editarItem): o item PARECIA ativo, mas o banco
+  // continuava com ativo=false e a mudanca sumia ao recarregar ou ao clicar em "Voltar" em qualquer item (load()).
+  // Agora grava na hora, SO a coluna "ativo", no mesmo padrao do botao Ativo/Oculto do catalogo (tela de lista): a tela so muda
+  // depois que o banco confirma. Item que ainda nao existe no banco ("novo-...") continua local e e gravado pelo "Salvar".
+  async function alternarAtivoItem(it:any){
+    if(it._novo){editarItem(it.id,'ativo',!it.ativo);return}
+    if(!(await validarSessao()))return
+    const novoValor=!it.ativo
+    // Ativar publica o item na pagina: exige o mesmo minimo do "Salvar" (titulo e destino), para um rascunho incompleto nao ir ao ar.
+    if(novoValor){
+      const faltando=!it.titulo?.trim()?'um título':(it.tipo_destino==='whatsapp'?(!it.whatsapp?.trim()?'o número de WhatsApp':''):(!it.destino_url?.trim()?'o link de destino':''))
+      if(faltando){setMsg(`Erro: para ativar o item, informe ${faltando} (botão Editar e depois Salvar).`);setTimeout(()=>setMsg(''),4000);return}
+    }
+    const {error}=await supabase.from('pagina_catalogo_itens').update({ativo:novoValor}).eq('id',it.id).eq('user_id',userId)
+    if(error){setMsg('Erro ao '+(novoValor?'ativar':'ocultar')+' o item: '+error.message);setTimeout(()=>setMsg(''),4000);return}
+    setItens(prev=>prev.map(x=>x.id===it.id?{...x,ativo:novoValor}:x))
+    setMsg(novoValor?'Item ativo na página pública.':'Item oculto da página pública.')
+    setTimeout(()=>setMsg(''),3000)
+  }
+
   // Fecha a edicao sem salvar - item novo (nunca persistido) e removido; item existente
   // recarrega do banco pra descartar qualquer alteracao nao confirmada.
   function cancelarEdicao(it:any){
@@ -584,7 +608,7 @@ export default function GerenciarItensDoCatalogo(){
                         {it.selo_tipo?` · ${it.selo_tipo==='outros'?it.selo_texto:it.selo_tipo}`:''}
                       </p>
                     </div>
-                    <button type="button" onClick={()=>editarItem(it.id,'ativo',!it.ativo)} style={{background:it.ativo?'rgba(34,197,94,.14)':'#2A1A2F',border:'1px solid '+(it.ativo?'rgba(34,197,94,.25)':'#2A1A2F'),borderRadius:10,padding:'6px 12px',fontSize:11,fontWeight:700,color:it.ativo?'#22C55E':'#B8AAB8',cursor:'pointer',fontFamily:'inherit',flexShrink:0}}>{it.ativo?'Ativo':'Oculto'}</button>
+                    <button type="button" onClick={()=>alternarAtivoItem(it)} style={{background:it.ativo?'rgba(34,197,94,.14)':'#2A1A2F',border:'1px solid '+(it.ativo?'rgba(34,197,94,.25)':'#2A1A2F'),borderRadius:10,padding:'6px 12px',fontSize:11,fontWeight:700,color:it.ativo?'#22C55E':'#B8AAB8',cursor:'pointer',fontFamily:'inherit',flexShrink:0}}>{it.ativo?'Ativo':'Oculto'}</button>
                     <div style={{display:'flex',gap:'6px',flexShrink:0}}>
                       <button type="button" onClick={()=>setEditandoId(it.id)} title="Editar" aria-label="Editar" style={{width:'32px',height:'32px',borderRadius:'8px',background:'rgba(24,16,27,.9)',border:'1px solid #2A1A2F',color:'#B8AAB8',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}><Pencil size={14}/></button>
                       <button type="button" onClick={()=>excluirItem(it.id)} title="Excluir" aria-label="Excluir" style={{width:'32px',height:'32px',borderRadius:'8px',background:'rgba(239,68,68,.10)',border:'1px solid rgba(239,68,68,.25)',color:'#EF4444',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}><Trash2 size={14}/></button>
