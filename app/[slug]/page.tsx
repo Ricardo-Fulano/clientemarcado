@@ -324,7 +324,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const { slug: slugBruto } = await params
   // Aceita tanto /gabigasparotti quanto /@gabigasparotti (link curto do minipage.pro) — mesmo perfil
   const slug = slugBruto.startsWith('@') ? slugBruto.slice(1) : slugBruto
-  const { data: perfil } = await supabase.from('perfis').select('*').eq('slug', slug).single()
+  const { data: perfil } = await supabase.from('perfis_publicos').select('*').eq('slug', slug).single()
 
   if (!perfil) {
     return {
@@ -388,7 +388,7 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
   const t = getDicionario(idiomaVisitante)
   // Aceita tanto /gabigasparotti quanto /@gabigasparotti (link curto do minipage.pro) — mesmo perfil
   const slug = slugBruto.startsWith('@') ? slugBruto.slice(1) : slugBruto
-  const { data: perfil } = await supabase.from('perfis').select('*').eq('slug', slug).single()
+  const { data: perfil } = await supabase.from('perfis_publicos').select('*').eq('slug', slug).single()
   if (!perfil) return notFound()
   // Buscar capa padrao dinamicamente pelos slugs de referencia
   let capaFallback = ''
@@ -396,7 +396,7 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
     const tipoNeg = (perfil.tipo_negocio || '').toLowerCase()
     const slugRef = tipoNeg.includes('barbearia') ? 'domcorte' : (tipoNeg.includes('est') || tipoNeg.includes('sal') || tipoNeg.includes('bel') ? 'studiobella' : '')
     if (slugRef) {
-      const { data: perfilRef } = await supabase.from('perfis').select('capa_url').eq('slug', slugRef).single()
+      const { data: perfilRef } = await supabase.from('perfis_publicos').select('capa_url').eq('slug', slugRef).single()
       capaFallback = perfilRef?.capa_url || ''
     }
   }

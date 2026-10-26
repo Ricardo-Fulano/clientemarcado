@@ -183,7 +183,7 @@ export default function CriarMiniPage() {
     const slugFmt = slug.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
 
     if (slugFmt !== slugOriginal) {
-      const { data: existente } = await supabase.from('perfis').select('user_id').eq('slug', slugFmt).maybeSingle()
+      const { data: existente } = await supabase.from('perfis_publicos').select('user_id').eq('slug', slugFmt).maybeSingle()
       if (existente && existente.user_id !== userId) {
         setMsg('Esse link já está em uso. Escolha outro.')
         setSalvando(false)

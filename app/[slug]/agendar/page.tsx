@@ -43,7 +43,7 @@ export default function Agendar() {
 
   useEffect(() => {
     async function carregar() {
-      const { data: p } = await supabase.from('perfis').select('*').eq('slug', slug).single()
+      const { data: p } = await supabase.from('perfis_publicos').select('*').eq('slug', slug).single()
       if (!p) {
         console.error('[agendar] Perfil não encontrado para slug:', slug)
         setCarregandoInicial(false)
