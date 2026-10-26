@@ -35,8 +35,10 @@ async function criarPerfilAutomatico(userId: string, metadata: any) {
   if (jaExiste) return { criado: false }
 
   const nomeNegocio = metadata?.nome_negocio || metadata?.nome_usuario || 'Meu negócio'
-  const planoMeta = metadata?.plano_tipo
-  const planoTipo = planoMeta === 'equipe' ? 'equipe' : planoMeta === 'minipage' ? 'minipage' : 'essencial'
+  // SEGURANCA (hotfix N1): o plano NUNCA vem de user_metadata (o proprio usuario consegue editar esse campo) nem de
+  // qualquer dado do navegador. Um perfil criado por este fallback nasce Free; o plano pago e concedido pelo
+  // fluxo de cadastro/pagamento (servidor).
+  const planoTipo = 'free'
   const slugBase = gerarSlugBase(nomeNegocio, userId)
 
   let slugTentativa = slugBase

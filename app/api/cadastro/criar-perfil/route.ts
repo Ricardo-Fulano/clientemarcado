@@ -4,13 +4,17 @@ import { criarPerfilInicial } from '../../../lib/perfil-inicial'
 
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
-// Cria/atualiza o perfil da PROPRIA pessoa logada. O dono vem SEMPRE da sessao (Bearer),
-// nunca de um user_id no corpo. O cadastro novo usa /api/cadastro/registrar; esta rota
-// continua disponivel (e segura) para quem ja tem sessao.
+// Rede de seguranca: cria o perfil da PROPRIA pessoa logada caso ainda nao exista. O dono vem SEMPRE da
+// sessao (Bearer), nunca de um user_id no corpo. O cadastro novo usa /api/cadastro/registrar.
+//
+// SEGURANCA (hotfix N1): esta rota NUNCA aceita plano nem ciclo de cobranca do navegador (o corpo e
+// lido so para nome_negocio, tipo_negocio e cupom). Um perfil criado aqui nasce SEMPRE Free, e um perfil que
+// ja existe NAO tem plano, ciclo nem status alterados. O plano pago so e concedido pelo fluxo de
+// cadastro/pagamento (servidor), nunca por dados enviados pelo cliente.
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json().catch(() => null)
-    if (!body) return NextResponse.json({ error: 'Payload invalido' }, { status: 400 })
+    if (!body || typeof body !== 'object' || Array.isArray(body)) return NextResponse.json({ error: 'Payload invalido' }, { status: 400 })
     const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
 
     const bearer = (request.headers.get('Authorization') || '').replace(/^Bearer\s+/i, '')
@@ -21,8 +25,9 @@ export async function POST(request: NextRequest) {
 
     const r = await criarPerfilInicial(supabase, {
       userId: sess.user.id, email: sess.user.email || '',
-      nome_negocio: body.nome_negocio, tipo_negocio: body.tipo_negocio, plano_tipo: body.plano_tipo,
-      billing_cycle: body.billing_cycle, cupom: body.cupom,
+      nome_negocio: body.nome_negocio, tipo_negocio: body.tipo_negocio, cupom: body.cupom,
+      // Plano e ciclo FIXOS no servidor: nada do corpo da requisicao entra aqui.
+      plano_tipo: 'free', billing_cycle: null,
     })
     if (!r.ok) return NextResponse.json({ error: r.erro }, { status: 500 })
     return NextResponse.json(r.criado ? { ok: true, criado: true, slug: r.slug } : { ok: true, criado: false })

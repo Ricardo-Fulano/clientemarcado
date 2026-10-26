@@ -332,8 +332,9 @@ export default function Perfil(){
 
     const metadata:any=user.user_metadata||{}
     const nomeNegocio=metadata.nome_negocio||metadata.nome_usuario||'Meu negócio'
-    const planoMeta=metadata.plano_tipo
-    const planoTipo=planoMeta==='equipe'?'equipe':planoMeta==='minipage'?'minipage':'essencial'
+    // SEGURANCA (hotfix N1): o plano NUNCA vem de user_metadata (o proprio usuario consegue editar esse campo).
+    // Um perfil criado por este fallback nasce Free; o plano pago e concedido pelo fluxo de cadastro/pagamento.
+    const planoTipo='free'
     const slugBase='negocio'+userId.replace(/-/g,'').slice(0,8)
 
     const {error}=await supabase.from('perfis').insert({user_id:userId,nome_negocio:nomeNegocio,slug:slugBase,plano_tipo:planoTipo})
@@ -419,7 +420,8 @@ export default function Perfil(){
       console.log('UPDATE resultado:', upd, 'erro:', error)
       saveError=error
     } else {
-      const {error}=await supabase.from('perfis').insert({...payloadSeguro,user_id:userId})
+      // SEGURANCA (hotfix N1): perfil criado por este fallback nasce SEMPRE Free (sem isto o banco usaria o padrao 'essencial').
+      const {error}=await supabase.from('perfis').insert({...payloadSeguro,user_id:userId,plano_tipo:'free'})
       saveError=error
     }
 
