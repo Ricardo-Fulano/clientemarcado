@@ -58,14 +58,15 @@ function AceitePlanoConteudo() {
   // seguro, exatamente como pedido.
   const billingParam = searchParams.get('billing')
   const billingCycle = normalizarBillingCycle(billingParam)
+  const cupomParam = searchParams.get('cupom')?.trim() || ''
 
   // Free nunca tem cobranca, trial nem contrato de plano pago - nao faz sentido passar por
   // essa tela. Redireciona direto pro cadastro, sem exibir nada do fluxo de aceite pago.
   useEffect(() => {
     if (ehPlanoFree(planoValido)) {
-      window.location.href = '/cadastro?plano=free'
+      window.location.href = `/cadastro?plano=free${cupomParam ? `&cupom=${encodeURIComponent(cupomParam)}` : ''}`
     }
-  }, [planoValido])
+  }, [planoValido, cupomParam])
 
   const nomeCiclo = obterNomeCiclo(billingCycle) // "Mensal" ou "Anual"
   const plano = {
@@ -115,7 +116,7 @@ function AceitePlanoConteudo() {
       // valor depois (mesmo padrao ja usado pro cm_plano).
       localStorage.setItem('cm_billing', billingCycle)
     } catch (_) {}
-    window.location.href = '/cadastro'
+    window.location.href = `/cadastro${cupomParam ? `?cupom=${encodeURIComponent(cupomParam)}` : ''}`
   }
 
   // Enquanto redireciona o Free (useEffect acima), nao renderiza nada do fluxo de aceite

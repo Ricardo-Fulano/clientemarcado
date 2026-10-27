@@ -133,6 +133,15 @@ function CartaoPlano({ tipo, billing, selo, nicho, descricao, descricaoHl, herda
   )
 }
 export default function Home() {
+  function irComCupom(e: React.MouseEvent<HTMLAnchorElement>, destino: string) {
+    const cupom = new URLSearchParams(window.location.search).get('cupom')
+    if (!cupom) return
+
+    e.preventDefault()
+    const separador = destino.includes('?') ? '&' : '?'
+    window.location.href = `${destino}${separador}cupom=${encodeURIComponent(cupom)}`
+  }
+
   const [scrolled, setScrolled] = useState(false)
   const [billingSelecionado, setBillingSelecionado] = useState<BillingCycle>('mensal')
   useEffect(() => {
@@ -303,7 +312,7 @@ export default function Home() {
             {/* PLANO FREE */}
             <CartaoPlano tipo="free" billing={billingSelecionado} selo="Para começar" descricao="Presença online simples com links básicos." itens={itensFree}
               cta={
-                <Link href="/cadastro?plano=free" className="btn-s" style={{width:'100%',justifyContent:'center',height:'46px',fontSize:'13px'}}>
+                <Link href="/cadastro?plano=free" onClick={(e) => irComCupom(e, '/cadastro?plano=free')} className="btn-s" style={{width:'100%',justifyContent:'center',height:'46px',fontSize:'13px'}}>
                   Começar grátis
                 </Link>
               } />
@@ -311,7 +320,7 @@ export default function Home() {
             {/* PLANO MINIPAGE */}
             <CartaoPlano tipo="minipage" billing={billingSelecionado} selo="Ideal para" nicho="autônomos e profissionais" descricao="Página profissional com links, destaques, vídeos e agenda de eventos." herda="Tudo do Free +" itens={itensMiniPage}
               cta={
-                <Link href={`/aceite-plano?plano=minipage&billing=${billingSelecionado}`} className="btn-p" style={{width:'100%',justifyContent:'center',height:'46px',fontSize:'13px'}}>
+                <Link href={`/aceite-plano?plano=minipage&billing=${billingSelecionado}`} onClick={(e) => irComCupom(e, `/aceite-plano?plano=minipage&billing=${billingSelecionado}`)} className="btn-p" style={{width:'100%',justifyContent:'center',height:'46px',fontSize:'13px'}}>
                   Começar com a MiniPage
                 </Link>
               } />
@@ -319,7 +328,7 @@ export default function Home() {
             {/* PLANO LOJA */}
             <CartaoPlano tipo="loja" billing={billingSelecionado} selo="Ideal para" nicho="quem vende produtos, cursos, achadinhos ou divulgações" herda="Tudo da MiniPage +" itens={itensLoja}
               cta={
-                <Link href={`/aceite-plano?plano=loja&billing=${billingSelecionado}`} className="btn-p" style={{width:'100%',justifyContent:'center',height:'46px',fontSize:'13px'}}>
+                <Link href={`/aceite-plano?plano=loja&billing=${billingSelecionado}`} onClick={(e) => irComCupom(e, `/aceite-plano?plano=loja&billing=${billingSelecionado}`)} className="btn-p" style={{width:'100%',justifyContent:'center',height:'46px',fontSize:'13px'}}>
                   Quero o MiniPage Loja
                 </Link>
               } />
@@ -327,7 +336,7 @@ export default function Home() {
             {/* PLANO PRO (interno: essencial) */}
             <CartaoPlano tipo="essencial" billing={billingSelecionado} variante="pro" selo="Ideal para" nicho="beleza, estética, atendimento e gestão" descricao="MiniPage completa para quem precisa de agendamento automático, clientes e gestão do negócio." descricaoHl="agendamento automático" herda="Tudo da Loja +" itens={itensProfissional}
               cta={
-                <Link href={`/aceite-plano?plano=essencial&billing=${billingSelecionado}`} className="btn-p" style={{width:'100%',justifyContent:'center',height:'auto',minHeight:'46px',padding:'12px 14px',fontSize:'13px',whiteSpace:'normal',lineHeight:1.3,textAlign:'center' as const}}>
+                <Link href={`/aceite-plano?plano=essencial&billing=${billingSelecionado}`} onClick={(e) => irComCupom(e, `/aceite-plano?plano=essencial&billing=${billingSelecionado}`)} className="btn-p" style={{width:'100%',justifyContent:'center',height:'auto',minHeight:'46px',padding:'12px 14px',fontSize:'13px',whiteSpace:'normal',lineHeight:1.3,textAlign:'center' as const}}>
                   Começar com o {obterNomePlano('essencial')}
                 </Link>
               } />
@@ -335,7 +344,7 @@ export default function Home() {
             {/* PLANO EQUIPE (interno: equipe) */}
             <CartaoPlano tipo="equipe" billing={billingSelecionado} variante="equipe" selo="Ideal para" nicho="salões, studios e negócios com equipe" descricao="Cada profissional com login, agenda e desempenho próprios." herda="Tudo do Pro +" itens={itensEquipe}
               cta={
-                <Link href={`/aceite-plano?plano=equipe&billing=${billingSelecionado}`} className="btn-p" style={{width:'100%',justifyContent:'center',height:'46px',fontSize:'13px'}}>
+                <Link href={`/aceite-plano?plano=equipe&billing=${billingSelecionado}`} onClick={(e) => irComCupom(e, `/aceite-plano?plano=equipe&billing=${billingSelecionado}`)} className="btn-p" style={{width:'100%',justifyContent:'center',height:'46px',fontSize:'13px'}}>
                   Quero o {obterNomePlano('equipe')}
                 </Link>
               } />

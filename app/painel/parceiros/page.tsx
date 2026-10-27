@@ -552,7 +552,7 @@ export default function Parceiros() {
   }
 
   function copiarLink(c: string) {
-    const url = `${window.location.origin}/cadastro?cupom=${c}`
+    const url = `${window.location.origin}/?cupom=${encodeURIComponent(c)}`
     navigator.clipboard.writeText(url)
     setMsg('Link copiado!')
     setTimeout(() => setMsg(''), 3000)

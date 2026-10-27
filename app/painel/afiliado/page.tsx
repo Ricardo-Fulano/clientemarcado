@@ -147,7 +147,7 @@ export default function PainelAfiliado() {
   // Ajuste 3-4: filtro compartilhado - nunca aplicado a repasses.
   const indicacoesFiltradas = filtroPlano === 'all' ? indicacoes : indicacoes.filter((i: any) => normalizarPlano(i.planoTipo) === filtroPlano)
   const comissoesFiltradas = filtroPlano === 'all' ? comissoes : comissoes.filter((c: any) => normalizarPlano(c.planoTipo) === filtroPlano)
-  const linkIndicacao = `${typeof window !== 'undefined' ? window.location.origin : ''}/cadastro?cupom=${parceiro.cupom}`
+  const linkIndicacao = `${typeof window !== 'undefined' ? window.location.origin : ''}/?cupom=${encodeURIComponent(parceiro.cupom)}`
 
   return (
     <div style={{ padding: '28px 32px', maxWidth: '1200px' }}>
