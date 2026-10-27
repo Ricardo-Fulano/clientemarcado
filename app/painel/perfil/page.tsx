@@ -1,6 +1,7 @@
 'use client'
 import { useEffect, useState, useRef } from 'react'
 import { supabase } from '../../lib/supabase'
+import { garantirPerfilNoServidor } from '../../lib/garantir-perfil-cliente'
 import { permiteDestaques, permiteVideos, permiteAgendaEventos, obterLimiteLinksRapidos, obterLimiteCatalogos, permiteAgenda, permiteSpotify } from '../../lib/planos'
 import { ORDEM_PADRAO_SECOES, resolverOrdemPagina } from '../../lib/ordemPagina'
 import Link from 'next/link'
@@ -330,15 +331,11 @@ export default function Perfil(){
     const {data:jaExiste}=await supabase.from('perfis').select('id').eq('user_id',userId).maybeSingle()
     if(jaExiste){await load();return}
 
-    const metadata:any=user.user_metadata||{}
-    const nomeNegocio=metadata.nome_negocio||metadata.nome_usuario||'Meu negócio'
-    // SEGURANCA (hotfix N1): o plano NUNCA vem de user_metadata (o proprio usuario consegue editar esse campo).
-    // Um perfil criado por este fallback nasce Free; o plano pago e concedido pelo fluxo de cadastro/pagamento.
-    const planoTipo='free'
-    const slugBase='negocio'+userId.replace(/-/g,'').slice(0,8)
-
-    const {error}=await supabase.from('perfis').insert({user_id:userId,nome_negocio:nomeNegocio,slug:slugBase,plano_tipo:planoTipo})
-    if(error){setMsg('Erro ao criar perfil: '+error.message);return}
+    // SEGURANCA (P1): a criacao do perfil acontece SO no servidor (sempre Free, nunca para profissional de equipe, sem plano
+    // nem nome vindos do navegador). Esta tela nao faz mais INSERT em "perfis".
+    const r=await garantirPerfilNoServidor()
+    if(!r.ok){setMsg('Erro ao criar perfil: '+r.erro);return}
+    if(!r.criado&&r.motivo==='PROFISSIONAL_DE_EQUIPE'){setMsg('Esta conta é de profissional de equipe e não tem página própria.');return}
     await load()
   }
 
@@ -420,9 +417,15 @@ export default function Perfil(){
       console.log('UPDATE resultado:', upd, 'erro:', error)
       saveError=error
     } else {
-      // SEGURANCA (hotfix N1): perfil criado por este fallback nasce SEMPRE Free (sem isto o banco usaria o padrao 'essencial').
-      const {error}=await supabase.from('perfis').insert({...payloadSeguro,user_id:userId,plano_tipo:'free'})
-      saveError=error
+      // SEGURANCA (P1): sem perfil, o SERVIDOR cria um perfil Free (nunca para profissional de equipe) e o salvamento segue
+      // pelo UPDATE normal. Esta tela nao faz mais INSERT em "perfis".
+      const g=await garantirPerfilNoServidor()
+      if(!g.ok){saveError={message:g.erro}}
+      else if(!g.criado&&g.motivo==='PROFISSIONAL_DE_EQUIPE'){saveError={message:'Esta conta é de profissional de equipe e não tem página própria.'}}
+      else{
+        const {error}=await supabase.from('perfis').update(payloadSeguro).eq('user_id',userId)
+        saveError=error
+      }
     }
 
     if(saveError){

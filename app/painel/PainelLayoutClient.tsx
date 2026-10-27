@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import { supabase } from '../lib/supabase'
+import { garantirPerfilNoServidor } from '../lib/garantir-perfil-cliente'
 import { Suspense } from 'react'
 import BannerPagamentoSucesso from '../components/BannerPagamentoSucesso'
 import BloqueioPorPlano from '../components/BloqueioPorPlano'
@@ -13,53 +14,24 @@ const G = 'linear-gradient(135deg,#3B82F6,#7C3AED)'
 const NOME_PLANO_AMIGAVEL: Record<string, string> = { minipage: 'MiniPage', essencial: 'Profissional', equipe: 'Equipe' }
 function nomePlanoAtual(planoTipo: string) { return NOME_PLANO_AMIGAVEL[planoTipo] || 'atual' }
 
-// Mesma normalizacao usada em app/api/cadastro/criar-perfil/route.ts (fonte original desse
-// slug). Repetida aqui porque essa e uma tela client-side, sem acesso direto ao helper da rota.
-function gerarSlugBase(nome: string, userId: string) {
-  const limpo = (nome || '')
-    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
-    .toLowerCase()
-    .replace(/[^a-z0-9]/g, '')
-    .slice(0, 30)
-  return limpo || ('negocio' + userId.replace(/-/g, '').slice(0, 8))
-}
-
 // Cria um perfil inicial seguro pra uma conta que existe no Auth mas nao tem linha em
 // `perfis` ainda (bug de cadastro: a chamada original pra /api/cadastro/criar-perfil e
 // "dispara e esquece", sem checar sucesso - se falhar por qualquer motivo, a conta fica
 // sem perfil pra sempre, sem ninguem perceber). Usa SEMPRE o auth.uid() da sessao atual
 // (nunca busca por e-mail, nunca reaproveita perfil de outra pessoa). Reconfere com
 // select antes de inserir, pra nao duplicar se outra aba/effect ja criou nesse meio-tempo.
-async function criarPerfilAutomatico(userId: string, metadata: any) {
+async function criarPerfilAutomatico(userId: string, _metadata: any) {
   const { data: jaExiste } = await supabase.from('perfis').select('id').eq('user_id', userId).maybeSingle()
   if (jaExiste) return { criado: false }
 
-  const nomeNegocio = metadata?.nome_negocio || metadata?.nome_usuario || 'Meu negócio'
-  // SEGURANCA (hotfix N1): o plano NUNCA vem de user_metadata (o proprio usuario consegue editar esse campo) nem de
-  // qualquer dado do navegador. Um perfil criado por este fallback nasce Free; o plano pago e concedido pelo
-  // fluxo de cadastro/pagamento (servidor).
-  const planoTipo = 'free'
-  const slugBase = gerarSlugBase(nomeNegocio, userId)
-
-  let slugTentativa = slugBase
-  for (let tentativa = 0; tentativa < 3; tentativa++) {
-    const { error } = await supabase.from('perfis').insert({
-      user_id: userId,
-      nome_negocio: nomeNegocio,
-      slug: slugTentativa,
-      plano_tipo: planoTipo,
-    })
-    if (!error) return { criado: true, slug: slugTentativa }
-    if (error.code === '23505') {
-      // slug colidiu: tenta de novo com sufixo curto do user_id
-      const sufixo = userId.replace(/-/g, '').slice(tentativa * 4, tentativa * 4 + 4)
-      slugTentativa = `${slugBase}${sufixo}`
-      continue
-    }
-    console.warn('[criarPerfilAutomatico] Erro ao criar perfil:', error.message)
-    return { criado: false, erro: error.message }
+  // SEGURANCA (P1): a criacao do perfil acontece SO no servidor (/api/cadastro/criar-perfil): sempre Free, nunca para
+  // profissional de equipe, e sem aceitar plano nem nome vindos do navegador. O navegador nao faz mais INSERT em "perfis".
+  const r = await garantirPerfilNoServidor()
+  if (!r.ok) {
+    console.warn('[criarPerfilAutomatico] Erro ao criar perfil:', r.erro)
+    return { criado: false, erro: r.erro }
   }
-  return { criado: false, erro: 'Não foi possível gerar um link único.' }
+  return { criado: r.criado, slug: r.slug }
 }
 
 export default function PainelLayoutClient({ children }: { children: React.ReactNode }) {
