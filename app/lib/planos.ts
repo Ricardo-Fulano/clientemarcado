@@ -196,8 +196,7 @@ export function podeUsarCatalogo(planoTipo?: string | null): boolean {
  */
 export function obterLimiteCatalogos(planoTipo?: string | null): number {
   const p = normalizarPlano(planoTipo)
-  if (p === 'free') return 0
-  if (p === 'minipage') return 1
+  if (p === 'free' || p === 'minipage') return 0   // Catalogo e exclusivo de Loja, Pro (essencial) e Equipe
   return Infinity // loja, essencial (Pro), equipe
 }
 
@@ -281,6 +280,68 @@ export function obterLimiteModelosCor(planoTipo?: string | null): number {
 }
 export function permiteTodosModelosDeCor(planoTipo?: string | null): boolean {
   return obterLimiteModelosCor(planoTipo) >= 18
+}
+
+// ===================================================================
+// REGRAS DE ACESSO POR PLANO - MATRIZ DEFINITIVA
+// ===================================================================
+// FREE      : ate 5 links comuns, foto/bio/redes sociais, modelos basicos, desempenho basico. SEM links visuais (cards),
+//             albuns/fotos, destaques, videos, Spotify, agenda de eventos, catalogo, agendamento automatico nem gestao.
+// MINIPAGE  : Free + links ilimitados, links visuais (cards), albuns/fotos, destaques, videos, Spotify, agenda de EVENTOS,
+//             todos os modelos de cor, painel de desempenho. SEM catalogo, agendamento automatico nem gestao.
+// LOJA      : MiniPage + catalogo, WhatsApp no catalogo, mensagem por item, links de venda, captacao de leads.
+//             SEM agendamento automatico nem gestao.
+// ESSENCIAL (MiniPage Pro): Loja + agendamento automatico, agenda de atendimento, clientes, orcamentos, cobrancas,
+//             financeiro, relatorios, ate 3 profissionais.
+// EQUIPE    : Pro + ate 15 profissionais, login individual, Minha Agenda, Meu Desempenho, controle de equipe.
+// "Agenda de eventos" (MiniPage+) NAO e agendamento automatico de clientes (so Pro/Equipe).
+//
+// As 3 funcoes abaixo sao ESTRITAS (mesmo cuidado de podeUsarCatalogo): valor nulo, vazio ou desconhecido NAO libera.
+function planoBruto(planoTipo?: string | null): string {
+  return (planoTipo || '').toLowerCase().trim()
+}
+
+/** Albuns/Fotos: a partir do MiniPage. Free bloqueado. */
+export function permiteAlbuns(planoTipo?: string | null): boolean {
+  const p = planoBruto(planoTipo)
+  return p === 'minipage' || p === 'loja' || p === 'essencial' || p === 'equipe'
+}
+
+/** Links visuais (cards com imagem): a partir do MiniPage. Free bloqueado. */
+export function permiteCardsVisuais(planoTipo?: string | null): boolean {
+  const p = planoBruto(planoTipo)
+  return p === 'minipage' || p === 'loja' || p === 'essencial' || p === 'equipe'
+}
+
+/** AGENDAMENTO AUTOMATICO de clientes (/[slug]/agendar): SOMENTE Pro (essencial) e Equipe. Free, MiniPage e Loja NAO. */
+export function permiteAgendamentoAutomatico(planoTipo?: string | null): boolean {
+  const p = planoBruto(planoTipo)
+  return p === 'essencial' || p === 'equipe'
+}
+
+export type BloqueioRotaPainel = { titulo: string; descricao: string }
+
+// Rotas do painel que editam UM recurso da pagina publica e o plano minimo de cada uma. Usada pelo layout do painel
+// para barrar a URL direta (nao basta esconder o botao no hub).
+const ROTAS_MODULOS_PAINEL: { prefixo: string; recurso: string; minimo: string; permite: (p?: string | null) => boolean }[] = [
+  { prefixo: '/painel/perfil/albuns', recurso: 'Álbuns / Fotos', minimo: 'MiniPage', permite: permiteAlbuns },
+  { prefixo: '/painel/perfil/cards', recurso: 'Links visuais', minimo: 'MiniPage', permite: permiteCardsVisuais },
+  { prefixo: '/painel/perfil/spotify', recurso: 'Spotify', minimo: 'MiniPage', permite: permiteSpotify },
+  { prefixo: '/painel/perfil/destaques', recurso: 'Destaques', minimo: 'MiniPage', permite: permiteDestaques },
+  { prefixo: '/painel/perfil/videos', recurso: 'Vídeos', minimo: 'MiniPage', permite: permiteVideos },
+  { prefixo: '/painel/perfil/eventos', recurso: 'Agenda / Eventos', minimo: 'MiniPage', permite: permiteAgendaEventos },
+  { prefixo: '/painel/perfil/catalogo', recurso: 'Catálogo', minimo: 'MiniPage Loja', permite: podeUsarCatalogo },
+]
+
+/** Devolve o texto de bloqueio se a ROTA do painel e de um recurso que o plano nao tem; senao null. */
+export function bloqueioPorRotaDoPainel(pathname: string, planoTipo?: string | null): BloqueioRotaPainel | null {
+  const rota = (pathname || '').split('?')[0].split('#')[0].toLowerCase().replace(/\/+$/, '')
+  const modulo = ROTAS_MODULOS_PAINEL.find(m => rota === m.prefixo || rota.startsWith(m.prefixo + '/'))
+  if (!modulo || modulo.permite(planoTipo)) return null
+  return {
+    titulo: `Recurso disponível no ${modulo.minimo}`,
+    descricao: `${modulo.recurso} faz parte do plano ${modulo.minimo} ou superior. Faça upgrade para liberar este recurso.`,
+  }
 }
 
 // ===================================================================

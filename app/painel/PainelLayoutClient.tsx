@@ -6,7 +6,7 @@ import { garantirPerfilNoServidor } from '../lib/garantir-perfil-cliente'
 import { Suspense } from 'react'
 import BannerPagamentoSucesso from '../components/BannerPagamentoSucesso'
 import BloqueioPorPlano from '../components/BloqueioPorPlano'
-import { normalizarPlano, ehPlanoComGestao, podeUsarProfissionais, ehPlanoFree, ehAguardandoPagamento, statusPermiteAcessoCompleto, statusPrecisaFinalizarCheckout, obterNomePlano, obterPrecoPlanoPorCiclo, normalizarBillingCycle } from '../lib/planos'
+import { normalizarPlano, ehPlanoComGestao, podeUsarProfissionais, ehPlanoFree, ehAguardandoPagamento, statusPermiteAcessoCompleto, statusPrecisaFinalizarCheckout, obterNomePlano, obterPrecoPlanoPorCiclo, normalizarBillingCycle, bloqueioPorRotaDoPainel } from '../lib/planos'
 
 const G = 'linear-gradient(135deg,#3B82F6,#7C3AED)'
 // Nomes amigaveis pra mensagem de erro refletir o plano real da pessoa (antes ficava fixo
@@ -191,6 +191,8 @@ export default function PainelLayoutClient({ children }: { children: React.React
   const precisaGestao = ROTAS_GESTAO.some(r => pathname === r || pathname.startsWith(r + '/'))
   const precisaProfissionais = ROTAS_PROFISSIONAIS.some(r => pathname === r || pathname.startsWith(r + '/'))
   const bloqueadoPorPlano = (precisaGestao && !ehPlanoComGestao(planoAtual)) || (precisaProfissionais && !podeUsarProfissionais(planoAtual))
+  // Rotas dos modulos da pagina (albuns, cards, Spotify, destaques, videos, eventos, catalogo): barra a URL direta conforme o plano
+  const bloqueioModulo = bloqueioPorRotaDoPainel(pathname, planoAtual)
 
   // Profissional tentando acessar rota administrativa: nao renderiza nada ate o redirecionamento
   if (isProfissional && pathname !== '/painel/minha-agenda' && pathname !== '/painel/alterar-senha' && pathname !== '/painel/meu-desempenho') return (
@@ -287,6 +289,17 @@ export default function PainelLayoutClient({ children }: { children: React.React
 
   // Bloqueio por PLANO: a rota exige gestao completa ou o plano Equipe, e a conta nao tem
   // essa permissao. So chega aqui se nao houver nenhum bloqueio de pagamento pendente antes.
+  // REGRAS DE PLANO: a URL do modulo e de um recurso que o plano nao tem (nao basta esconder o botao no hub)
+  if (bloqueioModulo) return (
+    <BloqueioPorPlano
+      permitido={false}
+      titulo={bloqueioModulo.titulo}
+      descricao={bloqueioModulo.descricao}
+    >
+      {null}
+    </BloqueioPorPlano>
+  )
+
   if (bloqueadoPorPlano) return (
     <BloqueioPorPlano
       permitido={false}

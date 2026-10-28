@@ -2,7 +2,7 @@
 import { useEffect, useState, useRef } from 'react'
 import { supabase } from '../../lib/supabase'
 import { garantirPerfilNoServidor } from '../../lib/garantir-perfil-cliente'
-import { permiteDestaques, permiteVideos, permiteAgendaEventos, obterLimiteLinksRapidos, obterLimiteCatalogos, permiteAgenda, permiteSpotify } from '../../lib/planos'
+import { permiteDestaques, permiteVideos, permiteAgendaEventos, obterLimiteLinksRapidos, obterLimiteCatalogos, permiteAgenda, permiteSpotify, permiteAlbuns, permiteCardsVisuais, podeUsarCatalogo } from '../../lib/planos'
 import { ORDEM_PADRAO_SECOES, resolverOrdemPagina } from '../../lib/ordemPagina'
 import Link from 'next/link'
 import { Copy, Check, ExternalLink, UploadCloud, ArrowUp, ArrowDown } from 'lucide-react'
@@ -475,11 +475,13 @@ export default function Perfil(){
       // Mesmos criterios da pagina publica (ativo=true na secao e nos itens; Destaques bloqueados no Free). Uma etiqueta por linha.
       let etiqueta:string|undefined
       if(!secao||secao.ativo!==true) etiqueta='oculta na página'
-      else if(tipo==='destaques'&&!permiteDestaques(planoTipo)) etiqueta='indisponível no seu plano'
+      else if((tipo==='destaques'&&!permiteDestaques(planoTipo))||(tipo==='cards'&&!permiteCardsVisuais(planoTipo))) etiqueta='indisponível no seu plano'
       else if(ativos&&!((ativos[id]||0)>0)) etiqueta='sem itens ativos, oculta'
       return {titulo,sub,etiqueta,esmaecida:!!etiqueta,href:`/painel/perfil/${tipo}/${id}`}
     }
-    return {titulo:ROTULOS_ORDEM[chave]||chave,esmaecida:false}
+    // Blocos unicos que o plano atual nao tem: a pagina publica nao os exibe (so aviso na lista)
+    const bloqueada=(chave==='albuns'&&!permiteAlbuns(planoTipo))||(chave==='spotify'&&!permiteSpotify(planoTipo))||(chave==='videos'&&!permiteVideos(planoTipo))||(chave==='agenda'&&!permiteAgendaEventos(planoTipo))||(chave==='catalogo'&&!podeUsarCatalogo(planoTipo))
+    return {titulo:ROTULOS_ORDEM[chave]||chave,etiqueta:bloqueada?'indisponível no seu plano':undefined,esmaecida:bloqueada}
   }
 
   function copiarLink(){navigator.clipboard.writeText(pubUrl);setCopied(true);setTimeout(()=>setCopied(false),2000)}
@@ -655,7 +657,11 @@ export default function Perfil(){
                 <p style={{fontSize:'15px',fontWeight:700,color:'#F8F4F7',marginBottom:'2px'}}>Álbuns / Fotos</p>
                 <p style={{fontSize:'12px',color:'#B8AAB8'}}>Galerias de fotos em faixa horizontal deslizável</p>
               </div>
-              <Link href="/painel/perfil/albuns" style={{background:G,color:'#fff',border:'1px solid rgba(255,255,255,.12)',borderRadius:'10px',padding:'10px 18px',fontSize:'13px',fontWeight:700,textDecoration:'none',flexShrink:0}}>Gerenciar álbuns</Link>
+              {permiteAlbuns(planoTipo) ? (
+                <Link href="/painel/perfil/albuns" style={{background:G,color:'#fff',border:'1px solid rgba(255,255,255,.12)',borderRadius:'10px',padding:'10px 18px',fontSize:'13px',fontWeight:700,textDecoration:'none',flexShrink:0}}>Gerenciar álbuns</Link>
+              ) : (
+                <Link href="/painel/plano" style={{background:'rgba(24,16,27,.92)',color:'#B8AAB8',border:'1px solid #2A1A2F',borderRadius:'10px',padding:'10px 18px',fontSize:'13px',fontWeight:700,textDecoration:'none',flexShrink:0}}>🔒 Disponível no MiniPage</Link>
+              )}
             </div>
           </div>
 
@@ -665,7 +671,11 @@ export default function Perfil(){
                 <p style={{fontSize:'15px',fontWeight:700,color:'#F8F4F7',marginBottom:'2px'}}>Links visuais</p>
                 <p style={{fontSize:'12px',color:'#B8AAB8'}}>Crie cards com imagem que direcionam para páginas, contatos, plataformas ou outros destinos.</p>
               </div>
-              <Link href="/painel/perfil/cards" style={{background:G,color:'#fff',border:'1px solid rgba(255,255,255,.12)',borderRadius:'10px',padding:'10px 18px',fontSize:'13px',fontWeight:700,textDecoration:'none',flexShrink:0}}>Gerenciar links visuais</Link>
+              {permiteCardsVisuais(planoTipo) ? (
+                <Link href="/painel/perfil/cards" style={{background:G,color:'#fff',border:'1px solid rgba(255,255,255,.12)',borderRadius:'10px',padding:'10px 18px',fontSize:'13px',fontWeight:700,textDecoration:'none',flexShrink:0}}>Gerenciar links visuais</Link>
+              ) : (
+                <Link href="/painel/plano" style={{background:'rgba(24,16,27,.92)',color:'#B8AAB8',border:'1px solid #2A1A2F',borderRadius:'10px',padding:'10px 18px',fontSize:'13px',fontWeight:700,textDecoration:'none',flexShrink:0}}>🔒 Disponível no MiniPage</Link>
+              )}
             </div>
           </div>
 
@@ -731,7 +741,7 @@ export default function Perfil(){
               {obterLimiteCatalogos(planoTipo)>0 ? (
                 <Link href="/painel/perfil/catalogo" style={{background:G,color:'#fff',border:'1px solid rgba(255,255,255,.12)',borderRadius:'10px',padding:'10px 18px',fontSize:'13px',fontWeight:700,textDecoration:'none',flexShrink:0}}>Gerenciar catálogos</Link>
               ) : (
-                <Link href="/painel/plano" style={{background:'rgba(24,16,27,.92)',color:'#B8AAB8',border:'1px solid #2A1A2F',borderRadius:'10px',padding:'10px 18px',fontSize:'13px',fontWeight:700,textDecoration:'none',flexShrink:0}}>🔒 Disponível no MiniPage</Link>
+                <Link href="/painel/plano" style={{background:'rgba(24,16,27,.92)',color:'#B8AAB8',border:'1px solid #2A1A2F',borderRadius:'10px',padding:'10px 18px',fontSize:'13px',fontWeight:700,textDecoration:'none',flexShrink:0}}>🔒 Disponível na Loja</Link>
               )}
             </div>
           </div>

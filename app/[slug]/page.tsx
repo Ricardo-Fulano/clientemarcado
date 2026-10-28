@@ -23,7 +23,7 @@ import { parseSpotifyUrl } from '../lib/spotify'
 import { detectarTipoPorUrl, detectarTipoPorTitulo, TIPOS_SOCIAIS_TOPO } from '../lib/plataformasLinks'
 import { resolverOrdemPagina } from '../lib/ordemPagina'
 import { resolverTema, getTema } from '../lib/tema-publico'
-import { ehPlanoComGestao, permiteVideos, permiteDestaques, permiteAgendaEventos, obterLimiteCatalogos, podeUsarCatalogo, obterLimiteSecoesDestaques, obterLimiteLinksRapidos, ehPlanoFree } from '../lib/planos'
+import { ehPlanoComGestao, permiteVideos, permiteDestaques, permiteAgendaEventos, obterLimiteCatalogos, podeUsarCatalogo, obterLimiteSecoesDestaques, obterLimiteLinksRapidos, ehPlanoFree, permiteAlbuns, permiteCardsVisuais, permiteSpotify } from '../lib/planos'
 
 const inter = Inter({ subsets: ['latin'], weight: ['400', '500', '600', '700'], display: 'swap' })
 
@@ -434,7 +434,9 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
     .filter((sec: any) => sec.itens.length > 0)
     .slice(0, limiteSecoesDestaquesPublico)
 
-  const albunsComFotos = (albunsAtivos || [])
+  // REGRAS DE PLANO (servidor): Albuns, Links visuais (cards) e Spotify so aparecem a partir do MiniPage. O plano vem da visao
+  // perfis_publicos (plano EFETIVO: conta sem pagamento confirmado conta como Free). Nada e apagado no banco; so nao e exibido.
+  const albunsComFotos = (permiteAlbuns(perfil.plano_tipo) ? (albunsAtivos || []) : [])
     .map((alb: any) => ({
       ...alb,
       fotos: (albumFotosTodas || []).filter((f: any) => f.album_id === alb.id),
@@ -444,9 +446,10 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
   // Secoes de Cards (Links visuais) + seus cards - mesmo padrao de agrupamento de Albuns:
   // secao sem nenhum card ativo nao ocupa espaco na pagina. cardsSecoesAtivas e cardsTodos
   // ja vem filtrados por ativo=true na propria query.
-  const todosCardsVisuaisAtivos = cardsTodos || []
-  const secoesCardsAtivasIds = new Set((cardsSecoesAtivas || []).map((s: any) => s.id))
-  const cardsSecoesComCards = (cardsSecoesAtivas || [])
+  const cardsLiberadosNoPlano = permiteCardsVisuais(perfil.plano_tipo)
+  const todosCardsVisuaisAtivos = cardsLiberadosNoPlano ? (cardsTodos || []) : []
+  const secoesCardsAtivasIds = new Set((cardsLiberadosNoPlano ? (cardsSecoesAtivas || []) : []).map((s: any) => s.id))
+  const cardsSecoesComCards = (cardsLiberadosNoPlano ? (cardsSecoesAtivas || []) : [])
     .map((sec: any) => ({
       ...sec,
       cards: todosCardsVisuaisAtivos.filter((c: any) => c.secao_id === sec.id),
@@ -458,7 +461,7 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
   // banco, sempre derivados da spotify_url na leitura. Um item com URL invalida (link
   // editado manualmente no banco, por exemplo) e silenciosamente ignorado - nunca quebra
   // a pagina nem tenta renderizar um iframe invalido.
-  const spotifySecoesComItens = (spotifySecoesAtivas || [])
+  const spotifySecoesComItens = (permiteSpotify(perfil.plano_tipo) ? (spotifySecoesAtivas || []) : [])
     .map((sec: any) => ({
       ...sec,
       itens: (spotifyItensTodos || [])

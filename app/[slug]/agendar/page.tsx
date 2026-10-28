@@ -6,7 +6,7 @@ import { useParams, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { Sun, Clock, Moon, Scissors, Sparkles, ClipboardList, ClipboardCheck, CalendarCheck, FileText, HeartPulse, ShieldPlus, Stethoscope, Check, Copy, Download, CalendarX2 } from 'lucide-react'
 import { resolverTema, getTema } from '../../lib/tema-publico'
-import { ehPlanoMiniPage } from '../../lib/planos'
+import { permiteAgendamentoAutomatico } from '../../lib/planos'
 
 export default function Agendar() {
   // Comeca sempre em 'pt' (mesmo valor que o SSR usaria) e so troca de idioma DEPOIS de montar
@@ -51,6 +51,8 @@ export default function Agendar() {
         return
       }
       setPerfil(p)
+      // REGRAS DE PLANO: agendamento automatico so para Pro (essencial) e Equipe. Plano sem direito nao carrega servicos nem profissionais.
+      if (!permiteAgendamentoAutomatico(p.plano_tipo)) { setCarregandoInicial(false); return }
       const { data: s } = await supabase.from('servicos').select('*').eq('user_id', p.user_id)
       setServicos(s || [])
       const { data: pr } = await supabase.from('profissionais').select('*').eq('user_id', p.user_id)
@@ -116,6 +118,7 @@ export default function Agendar() {
 
   async function handleAgendar() {
     setErro('')
+    if (!permiteAgendamentoAutomatico(perfil?.plano_tipo)) { setErro(t.agendaNaoDisponivel); return }
     if (!clienteNome) { setErro(t.informeSeuNome); return }
     if (!clienteTelefone || clienteTelefone.replace(/\D/g,'').length < 10) { setErro(t.informeSeuWhatsapp); return }
     setLoading(true)
@@ -543,11 +546,11 @@ export default function Agendar() {
     </div>
   )
 
-  if (perfil && ehPlanoMiniPage(perfil.plano_tipo)) return (
+  if (perfil && !permiteAgendamentoAutomatico(perfil.plano_tipo)) return (
     <div style={{minHeight:'100vh',background:`radial-gradient(ellipse at top,${tema.soft},transparent 50%),${tema.bg}`,display:'flex',alignItems:'center',justifyContent:'center',fontFamily:'-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif',padding:'24px'}}>
       <div style={{maxWidth:'420px',textAlign:'center',background:'var(--card)',border:`1.5px solid ${tema.border}`,borderRadius:'22px',padding:'44px 32px'}}>
         <p style={{fontSize:'19px',fontWeight:800,color:'var(--text)',marginBottom:'10px'}}>{t.agendaNaoDisponivel}</p>
-        <p style={{fontSize:'14px',color:'var(--text-muted)',lineHeight:1.6,marginBottom:'26px'}}>Este perfil usa a MiniPage apenas como página profissional de links, vídeos e divulgações.</p>
+        <p style={{fontSize:'14px',color:'var(--text-muted)',lineHeight:1.6,marginBottom:'26px'}}>Este perfil não oferece agendamento online. Use os links da página para entrar em contato.</p>
         <Link href={`/${slug}`} style={{display:'inline-block',background:`linear-gradient(135deg,${tema.accent},${tema.accent2},${tema.secondary})`,color:tema.btnText,border:'1px solid rgba(255,255,255,.12)',borderRadius:'12px',padding:'12px 24px',fontSize:'14px',fontWeight:700,textDecoration:'none'}}>{t.voltarParaMinipage}</Link>
       </div>
     </div>
