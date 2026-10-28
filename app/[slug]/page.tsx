@@ -697,8 +697,9 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
 
       {modoImersivoAtivo && (
         <>
-          <video className="modo-imersivo-video modo-imersivo-video-desktop" src={perfil.banner_video_url} poster={capaUrl || undefined} autoPlay muted loop playsInline aria-hidden="true" />
-          <video className="modo-imersivo-video modo-imersivo-video-mobile" src={midiaImersivaMobileUrl} poster={capaUrl || undefined} autoPlay muted loop playsInline aria-hidden="true" style={{ objectPosition: bannerMobilePos, transform: `scale(${bannerMobileScale}) translateZ(0)`, transformOrigin: bannerMobilePos }} />
+          {/* Os dois videos continuam no HTML (o CSS esconde um conforme a tela), mas o BannerVideo so atribui o src ao que esta visivel. */}
+          <BannerVideo className="modo-imersivo-video modo-imersivo-video-desktop" src={perfil.banner_video_url} capaFallback={capaUrl || undefined} ariaHidden fallbackErro={false} />
+          <BannerVideo className="modo-imersivo-video modo-imersivo-video-mobile" src={midiaImersivaMobileUrl} capaFallback={capaUrl || undefined} ariaHidden fallbackErro={false} style={{ objectPosition: bannerMobilePos, transform: `scale(${bannerMobileScale}) translateZ(0)`, transformOrigin: bannerMobilePos }} />
           <div className="modo-imersivo-overlay" aria-hidden="true" />
         </>
       )}
