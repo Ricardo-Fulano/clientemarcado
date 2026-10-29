@@ -115,8 +115,8 @@ export default function CriarMiniPage() {
         setInstagram(p.instagram || '')
         setTemaEscolhido(p.public_theme || p.tema_publico || 'modelo1')
       }
+      await carregarModelo()
       setCarregando(false)
-      carregarModelo()
     }
     // D2: pergunta ao SERVIDOR se esta conta deve receber o modelo. Qualquer falha = sem modelo (o onboarding segue como sempre).
     // A resposta so vale enquanto o cliente ainda esta na identidade ou no visual: depois disso a etapa de links ja pode ter sido usada.
@@ -221,7 +221,7 @@ export default function CriarMiniPage() {
     if (etapaAtual !== 'finalizar' || carregando) return
     finalizarOnboarding()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [etapaIndex])
+  }, [etapaAtual, carregando])
 
   async function finalizarOnboarding() {
     setSalvando(true)
