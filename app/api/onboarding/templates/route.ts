@@ -21,7 +21,8 @@ export async function GET(request: NextRequest) {
     }
 
     const supabaseAdmin = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
-    const r = await listarTemplatesDisponiveis(supabaseAdmin, user.id)
+    // user.created_at = auth.users.created_at: a data da conta que decide a barreira de primeira criacao (nunca vem do navegador).
+    const r = await listarTemplatesDisponiveis(supabaseAdmin, user.id, user.created_at)
     return NextResponse.json(r.body, { status: r.status, headers: { 'Cache-Control': 'no-store' } })
   } catch (e: any) {
     console.error('[onboarding/templates] Erro interno:', e?.message)

@@ -61,6 +61,7 @@ const ERROS_APLICACAO: Array<{ codigo: string; status: number; error: string }> 
   { codigo: 'PLANO_INCOMPATIVEL', status: 403, error: 'Este modelo não está disponível para o seu plano.' },
   { codigo: 'STATUS_NAO_ATIVO', status: 403, error: 'Sua assinatura precisa estar ativa para usar este modelo.' },
   { codigo: 'CONTA_JA_TEM_CONTEUDO', status: 409, error: 'Sua MiniPage já possui conteúdo e não pode receber um modelo automaticamente.' },
+  { codigo: 'CONTA_ANTERIOR_AO_MODELO', status: 403, error: 'Este modelo não está disponível para a sua conta.' },
   { codigo: 'MODELO_VAZIO', status: 409, error: 'Este modelo está sem conteúdo no momento. Escolha outro modelo ou comece do zero.' },
   { codigo: 'MODULO_NAO_SUPORTADO', status: 422, error: 'Este modelo possui um recurso ainda não suportado pela aplicação automática.' },
   { codigo: 'USUARIO_E_A_PROPRIA_FONTE', status: 409, error: 'Esta conta é a origem do modelo e não pode recebê-lo.' },
@@ -77,6 +78,28 @@ export function mapearErroAplicacao(mensagem: string | null | undefined): Result
     }
   }
   return { status: 500, body: { codigo: 'ERRO_INESPERADO', error: MSG_GENERICA } }
+}
+
+// ----- barreira de PRIMEIRA CRIACAO (espelho da funcao do banco) -----
+// So conta criada A PARTIR do corte do modelo (minipage_templates.elegivel_desde) pode receber o modelo. A data da conta e a de
+// auth.users.created_at (aqui, user.created_at do token). Compara em MICROSSEGUNDOS, como o Postgres (Date do JS so tem milissegundos).
+// Sem data da conta OU sem corte: ninguem e elegivel (fail-closed, igual a funcao do banco).
+function instanteEmMicros(v: unknown): { seg: number; micro: number } | null {
+  if (typeof v !== 'string') return null
+  const m = /^(\d{4}-\d{2}-\d{2})[T ](\d{2}:\d{2}:\d{2})(?:\.(\d{1,9}))?(Z|[+-]\d{2}(?::?\d{2})?)$/.exec(v.trim())
+  if (!m) return null
+  let tz = m[4]
+  if (tz !== 'Z') tz = tz.length === 3 ? tz + ':00' : tz.length === 5 ? tz.slice(0, 3) + ':' + tz.slice(3) : tz
+  const seg = Date.parse(`${m[1]}T${m[2]}${tz}`)
+  if (Number.isNaN(seg)) return null
+  return { seg, micro: Number(((m[3] || '') + '000000').slice(0, 6)) }
+}
+
+export function contaElegivelPeloCorte(contaCriadaEm: unknown, elegivelDesde: unknown): boolean {
+  const c = instanteEmMicros(contaCriadaEm)
+  const e = instanteEmMicros(elegivelDesde)
+  if (!c || !e) return false
+  return c.seg > e.seg || (c.seg === e.seg && c.micro >= e.micro)
 }
 
 // ----- POST: aplicar o modelo -----
@@ -106,7 +129,7 @@ export async function aplicarTemplate(admin: SupabaseClient, userId: string, tem
 }
 
 // ----- GET: modelos que ESTE usuario pode usar agora -----
-export async function listarTemplatesDisponiveis(admin: SupabaseClient, userId: string): Promise<ResultadoHttp> {
+export async function listarTemplatesDisponiveis(admin: SupabaseClient, userId: string, contaCriadaEm?: string | null): Promise<ResultadoHttp> {
   const falha = (etapa: string, detalhe: unknown): ResultadoHttp => {
     console.error(`[onboarding/templates] ${etapa}`, (detalhe as { message?: string } | null)?.message)
     return { status: 500, body: comDetalhe({ codigo: 'ERRO_INTERNO', error: 'Não foi possível carregar os modelos agora. Tente novamente.' }, (detalhe as { message?: string } | null)?.message) }
@@ -127,7 +150,7 @@ export async function listarTemplatesDisponiveis(admin: SupabaseClient, userId: 
 
   const { data: modelos, error: erroModelos } = await admin
     .from('minipage_templates')
-    .select('id, nome, descricao, resumo, source_user_id, preview_slug, planos, versao, ordem')
+    .select('id, nome, descricao, resumo, source_user_id, preview_slug, planos, versao, ordem, elegivel_desde')
     .eq('ativo', true)
     .order('ordem', { ascending: true })
     .order('id', { ascending: true })
@@ -142,15 +165,22 @@ export async function listarTemplatesDisponiveis(admin: SupabaseClient, userId: 
     return { status: 200, body: { templates: [], motivo: ativos.length === 0 ? 'NENHUM_MODELO_ATIVO' : 'PLANO_INCOMPATIVEL' } }
   }
 
+  // Barreira de primeira criacao: conta anterior ao corte do modelo (ou corte nulo) NAO recebe. Vem DEPOIS de plano e status,
+  // na mesma ordem de precedencia da funcao do banco. Conta antiga continua com o onboarding de sempre (lista vazia).
+  const elegiveis = compativeis.filter((m) => contaElegivelPeloCorte(contaCriadaEm, m.elegivel_desde))
+  if (elegiveis.length === 0) {
+    return { status: 200, body: { templates: [], motivo: 'CONTA_ANTERIOR_AO_MODELO' } }
+  }
+
   // Tema sugerido para pre-selecionar na etapa Visual: o public_theme da conta-fonte (so leitura).
-  const idsFonte = Array.from(new Set(compativeis.map((m) => m.source_user_id as string)))
+  const idsFonte = Array.from(new Set(elegiveis.map((m) => m.source_user_id as string)))
   const { data: temas, error: erroTemas } = await admin.from('perfis').select('user_id, public_theme').in('user_id', idsFonte)
   if (erroTemas) return falha('TEMAS_LEITURA_FALHOU', erroTemas)
   const temaPorFonte = new Map<string, string | null>()
   for (const t of (temas || []) as Array<{ user_id: string; public_theme: string | null }>) temaPorFonte.set(t.user_id, t.public_theme || null)
 
   // So o que a interface precisa. NAO sai daqui: source_user_id, planos, ativo, ordem.
-  const templates: TemplateDisponivel[] = compativeis.map((m) => ({
+  const templates: TemplateDisponivel[] = elegiveis.map((m) => ({
     id: m.id,
     nome: m.nome,
     descricao: m.descricao ?? null,
