@@ -241,11 +241,11 @@ export default function ListaCatalogos(){
                   <div style={{flex:1,minWidth:0}}>
                     <p style={{fontSize:'15px',fontWeight:700,color:'#F8F4F7',marginBottom:'2px'}}>{cat.titulo}</p>
                     {cat.subtitulo && <p style={{fontSize:'12px',color:'#B8AAB8',marginBottom:'6px'}}>{cat.subtitulo}</p>}
-                    <p style={{fontSize:'12px',color:'#8B7D8B',marginBottom:'14px'}}>{qtdItens} ite{qtdItens!==1?'ns':'m'} · <span style={{color:cat.ativo?'#22C55E':'#B8AAB8'}}>{cat.ativo?'Ativo':'Oculto'}</span></p>
+                    <p style={{fontSize:'12px',color:'#8B7D8B',marginBottom:'14px'}}>{qtdItens} ite{qtdItens!==1?'ns':'m'} · <span style={{color:cat.ativo?'#22C55E':'#B8AAB8'}}>{cat.ativo?'Visível':'Oculto'}</span></p>
                     <div style={{display:'flex',gap:'6px',flexWrap:'wrap'}}>
                       <Link href={`/painel/perfil/catalogo/${cat.id}`} style={{background:G,color:'#fff',borderRadius:'8px',padding:'8px 14px',fontSize:'12px',fontWeight:700,textDecoration:'none',fontFamily:'inherit'}}>Gerenciar itens</Link>
                       <button type="button" onClick={()=>abrirEditar(cat)} style={{background:'rgba(24,16,27,.9)',border:'1px solid #2A1A2F',color:'#B8AAB8',borderRadius:'8px',padding:'8px 14px',fontSize:'12px',fontWeight:600,cursor:'pointer',fontFamily:'inherit'}}>Editar</button>
-                      <button type="button" onClick={()=>toggleAtivo(cat)} style={{background:cat.ativo?'rgba(34,197,94,.14)':'#2A1A2F',border:'1px solid '+(cat.ativo?'rgba(34,197,94,.25)':'#2A1A2F'),borderRadius:8,padding:'8px 14px',fontSize:12,fontWeight:700,color:cat.ativo?'#22C55E':'#B8AAB8',cursor:'pointer',fontFamily:'inherit'}}>{cat.ativo?'Desativar':'Ativar'}</button>
+                      <button type="button" onClick={()=>toggleAtivo(cat)} style={{background:cat.ativo?'rgba(34,197,94,.14)':'#2A1A2F',border:'1px solid '+(cat.ativo?'rgba(34,197,94,.25)':'#2A1A2F'),borderRadius:8,padding:'8px 14px',fontSize:12,fontWeight:700,color:cat.ativo?'#22C55E':'#B8AAB8',cursor:'pointer',fontFamily:'inherit'}}>{cat.ativo?'Ocultar':'Mostrar'}</button>
                       <button type="button" onClick={()=>excluirCatalogo(cat)} style={{background:'rgba(239,68,68,.10)',border:'1px solid rgba(239,68,68,.25)',color:'#EF4444',borderRadius:'8px',padding:'8px 14px',fontSize:'12px',fontWeight:600,cursor:'pointer',fontFamily:'inherit'}}>Excluir</button>
                     </div>
                   </div>

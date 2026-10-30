@@ -158,8 +158,9 @@ export default function DestaqueItemCard({
             ) : (
               <div style={{ width: '100%', height: '100%', background: `linear-gradient(135deg,${tema.accent},${tema.secondary})` }} />
             )}
+            {(!grade || !!d.titulo?.trim()) && (
             <div className="destaque-overlay">
-              <p className="destaque-titulo-v2">{d.titulo}</p>
+              {!!d.titulo?.trim() && <p className="destaque-titulo-v2">{d.titulo}</p>}
               {!grade && (infoPreco() ? (
                 <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px', flexWrap: 'wrap', margin: '2px 0 3px' }}>
                   <p style={{ fontSize: '14px', fontWeight: 800, color: '#fff', margin: 0, textShadow: '0 1px 3px rgba(0,0,0,.6)' }}>{infoPreco()}</p>
@@ -172,6 +173,7 @@ export default function DestaqueItemCard({
               ) : null)}
               {!grade && <span className="destaque-action-v2">{d.texto_botao || textoVerMais} →</span>}
             </div>
+            )}
           </div>
         </div>
       </button>
@@ -195,7 +197,7 @@ export default function DestaqueItemCard({
                 {playerCarregado ? (
                   <iframe
                     src={embed.embedUrl}
-                    title={d.titulo}
+                    title={d.titulo || 'Vídeo'}
                     allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
                     allowFullScreen
                     style={{ width: '100%', height: '100%', border: 'none', display: 'block' }}
@@ -219,13 +221,13 @@ export default function DestaqueItemCard({
             )}
             <div style={{ padding: '20px' }}>
               <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '12px', marginBottom: '12px' }}>
-                <p style={{ fontSize: '17px', fontWeight: 800, color: tema.text, flex: 1, margin: 0 }}>{d.titulo}</p>
+                {!!d.titulo?.trim() && <p style={{ fontSize: '17px', fontWeight: 800, color: tema.text, flex: 1, margin: 0 }}>{d.titulo}</p>}
                 <button
                   type="button"
                   onClick={compartilharItem}
                   disabled={compartilhando}
                   className="destaque-btn-compartilhar"
-                  style={{ flexShrink: 0, display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '7px 12px', borderRadius: '999px', background: `${tema.accent}14`, border: `1px solid ${tema.accent}55`, color: tema.accent, fontSize: '12px', fontWeight: 700, cursor: compartilhando ? 'wait' : 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap' }}
+                  style={{ ...(d.titulo?.trim() ? {} : { marginLeft: 'auto' }), flexShrink: 0, display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '7px 12px', borderRadius: '999px', background: `${tema.accent}14`, border: `1px solid ${tema.accent}55`, color: tema.accent, fontSize: '12px', fontWeight: 700, cursor: compartilhando ? 'wait' : 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap' }}
                 >
                   {linkCopiado ? <Check size={14} /> : <Share2 size={14} />}
                   {linkCopiado ? 'Copiado!' : 'Compartilhar'}

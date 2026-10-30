@@ -237,11 +237,11 @@ export default function ListaSecoesDestaques(){
                   <div style={{flex:1,minWidth:0}}>
                     <p style={{fontSize:'15px',fontWeight:700,color:'#F8F4F7',marginBottom:'2px'}}>{sec.titulo}</p>
                     {sec.subtitulo && <p style={{fontSize:'12px',color:'#B8AAB8',marginBottom:'6px'}}>{sec.subtitulo}</p>}
-                    <p style={{fontSize:'12px',color:'#8B7D8B',marginBottom:'14px'}}>{qtdItens} destaque{qtdItens!==1?'s':''} · <span style={{color:sec.ativo?'#22C55E':'#B8AAB8'}}>{sec.ativo?'Ativo':'Oculto'}</span></p>
+                    <p style={{fontSize:'12px',color:'#8B7D8B',marginBottom:'14px'}}>{qtdItens} destaque{qtdItens!==1?'s':''} · <span style={{color:sec.ativo?'#22C55E':'#B8AAB8'}}>{sec.ativo?'Visível':'Oculto'}</span></p>
                     <div style={{display:'flex',gap:'6px',flexWrap:'wrap'}}>
                       <Link href={`/painel/perfil/destaques/${sec.id}`} style={{background:G,color:'#fff',borderRadius:'8px',padding:'8px 14px',fontSize:'12px',fontWeight:700,textDecoration:'none',fontFamily:'inherit'}}>Gerenciar destaques</Link>
                       <button type="button" onClick={()=>abrirEditar(sec)} style={{background:'rgba(24,16,27,.9)',border:'1px solid #2A1A2F',color:'#B8AAB8',borderRadius:'8px',padding:'8px 14px',fontSize:'12px',fontWeight:600,cursor:'pointer',fontFamily:'inherit'}}>Editar</button>
-                      <button type="button" onClick={()=>toggleAtivo(sec)} style={{background:sec.ativo?'rgba(34,197,94,.14)':'#2A1A2F',border:'1px solid '+(sec.ativo?'rgba(34,197,94,.25)':'#2A1A2F'),borderRadius:8,padding:'8px 14px',fontSize:12,fontWeight:700,color:sec.ativo?'#22C55E':'#B8AAB8',cursor:'pointer',fontFamily:'inherit'}}>{sec.ativo?'Desativar':'Ativar'}</button>
+                      <button type="button" onClick={()=>toggleAtivo(sec)} style={{background:sec.ativo?'rgba(34,197,94,.14)':'#2A1A2F',border:'1px solid '+(sec.ativo?'rgba(34,197,94,.25)':'#2A1A2F'),borderRadius:8,padding:'8px 14px',fontSize:12,fontWeight:700,color:sec.ativo?'#22C55E':'#B8AAB8',cursor:'pointer',fontFamily:'inherit'}}>{sec.ativo?'Ocultar':'Mostrar'}</button>
                       <button type="button" onClick={()=>excluirSecao(sec)} style={{background:'rgba(239,68,68,.10)',border:'1px solid rgba(239,68,68,.25)',color:'#EF4444',borderRadius:'8px',padding:'8px 14px',fontSize:'12px',fontWeight:600,cursor:'pointer',fontFamily:'inherit'}}>Excluir</button>
                     </div>
                   </div>

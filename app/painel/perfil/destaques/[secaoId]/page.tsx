@@ -302,9 +302,8 @@ export default function GerenciarDestaques(){
 
   async function salvarDestaque(d:any){
     if(!(await validarSessao()))return
-    if(!d.titulo?.trim()){setMsg('Dê um título para o destaque.');return}
     setSalvandoId(d.id)
-    const payload={user_id:userId,secao_id:secaoId,titulo:d.titulo.trim(),descricao:d.descricao?.trim()||null,texto_botao:d.texto_botao?.trim()||'Ver mais',url:normalizarLinkDestaque(d.url)||null,imagem_url:d.imagem_url?.trim()||null,ativo:!!d.ativo,ordem:d.ordem||0,
+    const payload={user_id:userId,secao_id:secaoId,titulo:d.titulo?.trim()||'',descricao:d.descricao?.trim()||null,texto_botao:d.texto_botao?.trim()||'Ver mais',url:normalizarLinkDestaque(d.url)||null,imagem_url:d.imagem_url?.trim()||null,ativo:!!d.ativo,ordem:d.ordem||0,
       preco: d.preco_exibicao==='mostrar'&&d.preco!==''&&d.preco!==null&&d.preco!==undefined ? parseFloat(String(d.preco).replace(',','.'))||null : null,
       preco_anterior: d.preco_exibicao==='mostrar'&&d.preco_anterior!==''&&d.preco_anterior!==null&&d.preco_anterior!==undefined ? parseFloat(String(d.preco_anterior).replace(',','.'))||null : null,
       preco_exibicao: d.preco_exibicao||'nao_mostrar',
@@ -387,8 +386,8 @@ export default function GerenciarDestaques(){
     if(imgRef.current)imgRef.current.value=''
   }
 
-  // Insere um rascunho minimo no banco (sem exigir titulo, que so e obrigatorio no "Salvar
-  // destaque" de verdade) - existe so pra dar um ID real ao destaque logo apos a imagem
+  // Insere um rascunho minimo no banco (o titulo e opcional, ate no "Salvar destaque") -
+  // existe so pra dar um ID real ao destaque logo apos a imagem
   // principal ser definida. Preserva todos os campos ja preenchidos localmente (titulo,
   // descricao, link, preco, selo etc) - mesma logica de conversao ja usada em salvarDestaque.
   async function salvarRascunhoSeNecessario(idTemporario:string,imagemUrl:string):Promise<string|null>{
@@ -516,7 +515,7 @@ export default function GerenciarDestaques(){
                 </div>
                 <div style={{flex:1,minWidth:0}}>
                   <div className="fg2" style={{marginBottom:'10px'}}>
-                    <div><label className="lbl">Título</label><input className="inp" autoFocus={!!d._novo} value={d.titulo||''} onChange={e=>editarDestaque(d.id,'titulo',e.target.value)} placeholder="Ex: Curso Presencial"/></div>
+                    <div><label className="lbl">Título (opcional)</label><input className="inp" autoFocus={!!d._novo} value={d.titulo||''} onChange={e=>editarDestaque(d.id,'titulo',e.target.value)} placeholder="Ex: Curso Presencial"/><p style={{fontSize:'11px',color:'#8B7D8B',marginTop:'5px',lineHeight:1.4}}>Deixe vazio se a arte já tem o título escrito.</p></div>
                     <div><label className="lbl">Texto do botão</label><input className="inp" value={d.texto_botao||''} onChange={e=>editarDestaque(d.id,'texto_botao',e.target.value)} placeholder="Ex: Saiba mais"/></div>
                   </div>
                   <div style={{marginBottom:'10px'}}>
