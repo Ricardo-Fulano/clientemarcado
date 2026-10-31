@@ -2,6 +2,7 @@
 import { useState, useRef } from 'react'
 import { Share2, Check } from 'lucide-react'
 import { registrarEvento } from '../lib/analyticsClient'
+import { dispararPixels } from '../lib/pixelsPublicos'
 
 // Card compacto do carrossel + modal de detalhes ao clicar. Client Component porque a
 // pagina publica (app/[slug]/page.tsx) e Server Component e nao pode ter onClick/useState.
@@ -173,11 +174,13 @@ export default function CatalogoItemCard({
     setErroCaptura('')
     setEnviandoCaptura(true)
     try {
-      await fetch('/api/leads/capturar', {
+      const respLead = await fetch('/api/leads/capturar', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ slug, email: emailLimpo, origem: 'catalogo', item_id: item.id, item_titulo: item.titulo }),
       })
+      // Lead para o Meta Pixel / GA4 SO se o servidor confirmou (resp.ok). Nunca envia o e-mail.
+      if (respLead.ok) dispararPixels('lead')
       try { localStorage.setItem(CHAVE_VISTO, 'cadastrou') } catch {}
     } catch {
       // Mesmo se falhar ao salvar, NUNCA bloqueia a venda - segue pro destino normalmente.

@@ -1,5 +1,6 @@
 'use client'
 import { useEffect } from 'react'
+import { dispararPixels } from '../lib/pixelsPublicos'
 
 // Componente minusculo, sem nenhuma renderizacao visual, que escuta cliques na pagina INTEIRA
 // (delegacao de evento no document) e registra o clique quando o elemento clicado - ou algum
@@ -29,6 +30,9 @@ export default function RegistradorDeCliques({ perfilId }: { perfilId: string })
 
       const tipoEvento = elementoRastreado.getAttribute('data-track-tipo')
       if (!tipoEvento || !TIPOS_EVENTO_PERMITIDOS.includes(tipoEvento)) return // valida tipo
+
+      // Repassa ao Meta Pixel / GA4 (so se carregados apos o aceite do visitante; senao nao faz nada).
+      dispararPixels(tipoEvento, { titulo: elementoRastreado.getAttribute('data-track-item-titulo') })
 
       const payload = JSON.stringify({
         perfil_id: perfilId,

@@ -13,6 +13,7 @@ import CatalogoItemCard from '../components/CatalogoItemCard'
 import VideoItemCard from '../components/VideoItemCard'
 import RegistrarPageView from '../components/RegistrarPageView'
 import RegistradorDeCliques from '../components/RegistradorDeCliques'
+import PixelsPublicos from '../components/PixelsPublicos'
 import BannerVideo from '../components/BannerVideo'
 import DestaqueItemCard from '../components/DestaqueItemCard'
 import AlbumFaixa from '../components/AlbumFaixa'
@@ -705,6 +706,7 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
       )}
       <RegistrarPageView perfilId={perfil.id} />
       <RegistradorDeCliques perfilId={perfil.id} />
+      <PixelsPublicos slug={perfil.slug || slug} metaPixelId={perfil.meta_pixel_id} ga4Id={perfil.ga4_measurement_id} idioma={idiomaVisitante} />
 
       {/* CONTEUDO */}
       <div className="wrap" style={{ paddingTop: '20px', paddingBottom: '60px' }}>

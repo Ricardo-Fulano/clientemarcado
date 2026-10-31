@@ -28,6 +28,7 @@ const LINKS: ItemMenu[] = [
 
   { h: '/painel/perfil',        l: 'Minha MiniPage', grupo: 'MINHA MINIPAGE' },
   { h: '/painel/desempenho',    l: 'Desempenho',      grupo: 'MINHA MINIPAGE' },
+  { h: '/painel/integracoes',    l: 'Integrações',     grupo: 'MINHA MINIPAGE' },
   { h: '/painel/perfil/catalogo', l: 'Catálogo',      grupo: 'MINHA MINIPAGE', requerCatalogo: true },
 
   { h: '/painel/agendamentos',  l: 'Agenda',        grupo: 'GESTÃO', requerGestao: true },

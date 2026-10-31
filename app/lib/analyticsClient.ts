@@ -6,6 +6,8 @@
 // Nao mexe nos componentes que ja funcionam (RegistrarPageView, RegistradorDeCliques) -
 // eles continuam com a propria copia da logica, sem risco de regressao.
 
+import { dispararPixels } from './pixelsPublicos'
+
 export type PayloadEvento = {
   perfil_id: string
   tipo_evento: string
@@ -18,6 +20,9 @@ export type PayloadEvento = {
 
 export function registrarEvento(payload: PayloadEvento) {
   if (!payload?.perfil_id || !payload?.tipo_evento) return
+
+  // Repassa ao Meta Pixel / GA4 (so se foram carregados apos o aceite do visitante; senao nao faz nada).
+  dispararPixels(payload.tipo_evento, { titulo: payload.item_titulo, acao: payload.metadata?.acao })
 
   const corpo = JSON.stringify(payload)
 
