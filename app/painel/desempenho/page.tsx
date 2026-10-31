@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { supabase } from '../../lib/supabase'
 import PainelSidebar from '@/app/components/PainelSidebar'
 import { permiteDestaques, permiteVideos, obterLimiteCatalogos, permiteCatalogoWhatsapp } from '../../lib/planos'
+import { gerarCsvBlob, gerarXlsxBlob, montarNomeArquivo, baixarArquivo } from '../../lib/exportarDesempenho'
 
 const G = 'linear-gradient(135deg,#EC4899,#D946EF,#8B5CF6)'
 
@@ -77,6 +78,10 @@ export default function Desempenho() {
   const [periodo, setPeriodo] = useState<Periodo>('30d')
   const [copiado, setCopiado] = useState(false)
   const [leads, setLeads] = useState<any[]>([])
+  const [inicioCarregado, setInicioCarregado] = useState<string | null>(null)
+  const [menuExportar, setMenuExportar] = useState(false)
+  const [exportando, setExportando] = useState(false)
+  const [erroExportar, setErroExportar] = useState('')
 
   useEffect(() => { carregar() }, [periodo])
 
@@ -89,6 +94,7 @@ export default function Desempenho() {
     setPerfil(p)
 
     const dataInicio = calcularDataInicio(periodo)
+    setInicioCarregado(dataInicio)
     // Sempre filtra explicitamente por user_id (defesa em profundidade, alem do RLS que ja
     // restringe "dono le so os proprios eventos" - nunca confia so numa camada).
     let query = supabase.from('mini_page_eventos').select('tipo_evento, item_titulo, created_at').eq('user_id', user.id)
@@ -131,6 +137,52 @@ export default function Desempenho() {
   const planoAtual = perfil?.plano_tipo
   const temAlgumDado = eventos.length > 0
 
+  // Exportacao (CSV / XLSX): usa SO os dados que a tela ja carregou (mesmo periodo, mesmo user_id da consulta acima) - nenhuma consulta nova.
+  async function exportar(formato: 'csv' | 'xlsx') {
+    setMenuExportar(false)
+    setErroExportar('')
+    setExportando(true)
+    try {
+      const geradoEm = new Date()
+      const inicio = inicioCarregado ? new Date(inicioCarregado) : null
+      // O card "Leads capturados" da tela mostra o total historico; na exportacao os leads respeitam o periodo selecionado.
+      const leadsPeriodo = inicio ? leads.filter(l => l.created_at && new Date(l.created_at) >= inicio) : leads
+      const rk = (tipo: string, permitido: boolean) => ({ permitido, itens: permitido ? agruparPorTitulo(eventos, tipo, Infinity) : [] })
+      const dados = {
+        periodo,
+        periodoLabel: OPCOES_PERIODO.find(o => o.valor === periodo)?.label || periodo,
+        inicio,
+        geradoEm,
+        pubUrl,
+        visualizacoes: totalPageViews,
+        cliquesTotais,
+        cliquesWhatsapp,
+        taxaClique,
+        leadsPermitido: permiteCatalogoWhatsapp(planoAtual),
+        leads: leadsPeriodo,
+        leadsTotalHistorico: leads.length,
+        rankings: {
+          links: rk('link_rapido_click', true),
+          social: rk('social_click', true),
+          destaques: rk('destaque_click', permiteDestaques(planoAtual)),
+          videos: rk('video_click', permiteVideos(planoAtual)),
+          catalogo: rk('catalogo_click', obterLimiteCatalogos(planoAtual) > 0),
+          whatsapp: rk('whatsapp_click', permiteCatalogoWhatsapp(planoAtual)),
+        },
+        limiteEventos: LIMITE_EVENTOS_TUDO,
+        eventosCarregados: eventos.length,
+      }
+      const blob = formato === 'csv' ? gerarCsvBlob(dados) : await gerarXlsxBlob(dados)
+      baixarArquivo(blob, montarNomeArquivo(periodo, geradoEm, formato))
+    } catch (e) {
+      console.error('Falha ao exportar o desempenho', e)
+      setErroExportar('Não foi possível gerar o arquivo.')
+      setTimeout(() => setErroExportar(''), 6000)
+    } finally {
+      setExportando(false)
+    }
+  }
+
   return (
     <div style={{ display: 'flex', minHeight: '100vh', background: '#08060A', fontFamily: '-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif', overflowX: 'hidden', width: '100%' }}>
       <style dangerouslySetInnerHTML={{ __html: `
@@ -144,11 +196,26 @@ export default function Desempenho() {
 
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px', flexWrap: 'wrap', marginBottom: '6px' }}>
             <p style={{ fontSize: '22px', fontWeight: 800, color: '#F8F4F7', letterSpacing: '-0.02em' }}>Desempenho</p>
-            <select value={periodo} onChange={e => setPeriodo(e.target.value as Periodo)} style={{ background: 'rgba(24,16,27,.92)', border: '1px solid #2A1A2F', borderRadius: '10px', padding: '9px 14px', fontSize: '13px', color: '#F8F4F7', cursor: 'pointer' }}>
-              {OPCOES_PERIODO.map(o => <option key={o.valor} value={o.valor}>{o.label}</option>)}
-            </select>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+              <select value={periodo} onChange={e => setPeriodo(e.target.value as Periodo)} style={{ background: 'rgba(24,16,27,.92)', border: '1px solid #2A1A2F', borderRadius: '10px', padding: '9px 14px', fontSize: '13px', color: '#F8F4F7', cursor: 'pointer' }}>
+                {OPCOES_PERIODO.map(o => <option key={o.valor} value={o.valor}>{o.label}</option>)}
+              </select>
+              <div style={{ position: 'relative' }} onKeyDown={e => { if (e.key === 'Escape') setMenuExportar(false) }}>
+                <button type="button" aria-haspopup="menu" aria-expanded={menuExportar} disabled={carregando || exportando} onClick={() => setMenuExportar(v => !v)} style={{ background: 'rgba(24,16,27,.92)', border: '1px solid #2A1A2F', borderRadius: '10px', padding: '9px 14px', fontSize: '13px', fontWeight: 600, color: '#F8F4F7', cursor: carregando || exportando ? 'default' : 'pointer', opacity: carregando || exportando ? .6 : 1, fontFamily: 'inherit' }}>{exportando ? 'Gerando arquivo...' : 'Exportar ▾'}</button>
+                {menuExportar && (
+                  <>
+                    <div onClick={() => setMenuExportar(false)} style={{ position: 'fixed', top: 0, right: 0, bottom: 0, left: 0, zIndex: 40 }} />
+                    <div role="menu" style={{ position: 'absolute', right: 0, top: 'calc(100% + 6px)', zIndex: 41, minWidth: '190px', background: 'rgba(24,16,27,.98)', border: '1px solid #2A1A2F', borderRadius: '10px', padding: '6px', display: 'flex', flexDirection: 'column', gap: '2px', boxShadow: '0 10px 30px rgba(0,0,0,.45)' }}>
+                      <button type="button" role="menuitem" onClick={() => exportar('csv')} style={{ background: 'transparent', border: 'none', color: '#F8F4F7', textAlign: 'left', padding: '9px 12px', borderRadius: '8px', fontSize: '13px', cursor: 'pointer', fontFamily: 'inherit' }}>Exportar CSV</button>
+                      <button type="button" role="menuitem" onClick={() => exportar('xlsx')} style={{ background: 'transparent', border: 'none', color: '#F8F4F7', textAlign: 'left', padding: '9px 12px', borderRadius: '8px', fontSize: '13px', cursor: 'pointer', fontFamily: 'inherit' }}>Exportar Excel (.xlsx)</button>
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
           </div>
-          <p style={{ fontSize: '13px', color: '#B8AAB8', marginBottom: '20px' }}>Acompanhe acessos e cliques da sua MiniPage.</p>
+          <p style={{ fontSize: '13px', color: '#B8AAB8', marginBottom: erroExportar ? '8px' : '20px' }}>Acompanhe acessos e cliques da sua MiniPage.</p>
+          {erroExportar && <p role="alert" style={{ fontSize: '12px', fontWeight: 600, color: '#EF4444', marginBottom: '14px' }}>{erroExportar}</p>}
 
           {pubUrl && (
             <div className="crd" style={{ padding: '14px 18px', marginBottom: '24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap' }}>
