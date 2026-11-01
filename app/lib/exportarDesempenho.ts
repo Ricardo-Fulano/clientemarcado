@@ -7,7 +7,16 @@ export type ItemRanking = { titulo: string; qtd: number }
 export type LeadExport = { email?: string | null; item_titulo?: string | null; origem?: string | null; created_at?: string | null }
 export type ChaveRanking = 'links' | 'social' | 'destaques' | 'videos' | 'catalogo' | 'whatsapp'
 export type DadosRanking = { permitido: boolean; itens: ItemRanking[] }
-// As 6 categorias de ranking (e suas abas) sao fixas AQUI: o arquivo sempre sai com as mesmas 8 abas, independente de quem chama.
+// Vendas externas (Etapa D). Valores em UNIDADE MAIOR por moeda (nunca somados entre moedas); `casas` = casas decimais da moeda (BRL 2, JPY 0...).
+export type VendasExport = {
+  permitido: boolean; temConexoes: boolean; testes: number; truncado: boolean; limite: number; viaMinipage: number; totalVendas: number
+  moedas: { currency: string; casas: number; vendas: number; bruta: number; reembolsosQtd: number; reembolsosValor: number; chargebacksQtd: number; chargebacksValor: number; liquida: number }[]
+  porProvedor: { nome: string; currency: string; casas: number; vendas: number; receita: number }[]
+  porItem: { nome: string; currency: string; casas: number; vendas: number; receita: number }[]
+  cliquesVendas: { nome: string; vendas: number; cliques: number | null; taxa: number | null }[]
+}
+// As 6 categorias de ranking (e suas abas) sao fixas AQUI: o arquivo sempre sai com as mesmas 8 abas, independente de quem chama
+// (e, SO quando `vendasExternas` vem preenchido, com mais 3 abas de vendas externas ao final: as 8 primeiras nunca mudam).
 const CATEGORIAS: { chave: ChaveRanking; aba: string; titulo: string }[] = [
   { chave: 'links', aba: 'Links', titulo: 'Links mais clicados' },
   { chave: 'social', aba: 'Redes sociais', titulo: 'Redes sociais mais clicadas' },
@@ -33,10 +42,11 @@ export type DadosExportacao = {
   rankings: Partial<Record<ChaveRanking, DadosRanking>> // categoria ausente = "Sem dados no período"
   limiteEventos: number
   eventosCarregados: number
+  vendasExternas?: VendasExport // ausente = arquivo identico ao da Parte 1
 }
 
 type ColunaCsv = 'Item' | 'Valor' | 'Origem' | 'Item de origem' | 'Data'
-type Celula = string | number | { pct: number } // pct = percentual "em %" (12.5 => 12,5%)
+type Celula = string | number | { pct: number } | { num: number; casas: number } // pct = percentual "em %" (12.5 => 12,5%); num = numero com N casas decimais (valores em moeda)
 type Coluna = { csv: ColunaCsv; rotulo: string; largura: number }
 type Tabela = { aba: string; secao: string; colunas: Coluna[]; linhas: Celula[][] }
 
@@ -77,7 +87,7 @@ export function neutralizarFormula(texto: string): string {
 
 function textoCsv(celula: Celula): string {
   if (typeof celula === 'number') return String(celula)
-  if (typeof celula === 'object') return `${celula.pct.toFixed(1).replace('.', ',')}%`
+  if (typeof celula === 'object') return 'pct' in celula ? `${celula.pct.toFixed(1).replace('.', ',')}%` : celula.num.toFixed(celula.casas).replace('.', ',')
   return neutralizarFormula(limparTexto(celula))
 }
 
@@ -129,7 +139,37 @@ export function montarTabelas(d: DadosExportacao): Tabela[] {
   else if (d.leads.length === 0) leads.linhas = linhaSemDados(leads, SEM_DADOS)
   else leads.linhas = d.leads.map((l): Celula[] => [l.email || '', l.origem || '', l.item_titulo || '', l.created_at && !isNaN(new Date(l.created_at).getTime()) ? formatarDataHora(new Date(l.created_at)) : ''])
   tabelas.push(leads)
+  if (d.vendasExternas) tabelas.push(...tabelasVendasExternas(d.vendasExternas))
   return tabelas
+}
+
+// Tres abas novas ao final (Etapa D). Mesmo formato longo do CSV: as colunas fixas do cabecalho sao reaproveitadas (Item = metrica/nome, Origem = moeda,
+// "Item de origem" = metrica, Valor = numero). Cada moeda em linhas separadas: NUNCA somadas.
+function tabelasVendasExternas(v: VendasExport): Tabela[] {
+  const colsMetrica: Coluna[] = [{ csv: 'Item', rotulo: 'Métrica', largura: 44 }, { csv: 'Origem', rotulo: 'Moeda', largura: 10 }, { csv: 'Valor', rotulo: 'Valor', largura: 20 }]
+  const colsRanking = (rotuloNome: string): Coluna[] => [{ csv: 'Item', rotulo: rotuloNome, largura: 44 }, { csv: 'Origem', rotulo: 'Moeda', largura: 10 }, { csv: 'Item de origem', rotulo: 'Métrica', largura: 18 }, { csv: 'Valor', rotulo: 'Valor', largura: 20 }]
+  const resumo: Tabela = { aba: 'Vendas externas', secao: 'Vendas externas', colunas: colsMetrica, linhas: [] }
+  const porProvedor: Tabela = { aba: 'Receita por provedor', secao: 'Receita por provedor', colunas: colsRanking('Plataforma'), linhas: [] }
+  const porItem: Tabela = { aba: 'Receita por item', secao: 'Receita por item', colunas: colsRanking('Item'), linhas: [] }
+  if (!v.permitido) { for (const t of [resumo, porProvedor, porItem]) t.linhas = linhaSemDados(t, BLOQUEADO); return [resumo, porProvedor, porItem] }
+  const din = (n: number, casas: number): Celula => ({ num: n, casas })
+  for (const m of v.moedas) {
+    resumo.linhas.push(['Vendas confirmadas', m.currency, m.vendas], ['Receita bruta', m.currency, din(m.bruta, m.casas)], ['Reembolsos (quantidade)', m.currency, m.reembolsosQtd], ['Reembolsos (valor)', m.currency, din(m.reembolsosValor, m.casas)],
+      ['Chargebacks (quantidade)', m.currency, m.chargebacksQtd], ['Chargebacks (valor)', m.currency, din(m.chargebacksValor, m.casas)], ['Receita líquida', m.currency, din(m.liquida, m.casas)])
+  }
+  if (v.moedas.length === 0) resumo.linhas.push([v.temConexoes ? SEM_DADOS : 'Nenhuma plataforma de venda conectada', '', ''])
+  else resumo.linhas.push(['Vendas com origem na MiniPage', '', v.viaMinipage])
+  if (v.testes > 0) resumo.linhas.push(['Eventos de teste (fora dos totais)', '', v.testes])
+  if (v.truncado) resumo.linhas.push(['Observação', '', `O painel carrega no máximo ${milhar(v.limite)} vendas por consulta (as mais recentes). Neste período o limite foi atingido, então os totais podem estar incompletos.`])
+  for (const c of v.cliquesVendas) {
+    if (c.cliques !== null && c.taxa !== null) resumo.linhas.push([`Cliques → vendas: ${c.nome} (cliques)`, '', c.cliques], [`Cliques → vendas: ${c.nome} (vendas)`, '', c.vendas], [`Cliques → vendas: ${c.nome} (taxa)`, '', { pct: c.taxa }])
+    else resumo.linhas.push([`Cliques → vendas: ${c.nome}`, '', `${c.vendas} ${c.vendas === 1 ? 'venda' : 'vendas'} (sem dados comparáveis de cliques)`])
+  }
+  for (const [t, lista] of [[porProvedor, v.porProvedor], [porItem, v.porItem]] as const) {
+    if (lista.length === 0) t.linhas = linhaSemDados(t, SEM_DADOS)
+    else for (const r of lista) t.linhas.push([r.nome, r.currency, 'Vendas', r.vendas], [r.nome, r.currency, 'Receita bruta', din(r.receita, r.casas)])
+  }
+  return [resumo, porProvedor, porItem]
 }
 
 export function gerarCsv(d: DadosExportacao): string {
@@ -161,6 +201,7 @@ export async function gerarXlsxBlob(d: DadosExportacao): Promise<Blob> {
         t.colunas.map((_, i) => {
           const v = linha[i] ?? ''
           if (typeof v === 'number') return { value: v, type: Number }
+          if (typeof v === 'object' && 'num' in v) return { value: Number(v.num.toFixed(v.casas)), type: Number, format: v.casas > 0 ? '#,##0.' + '0'.repeat(v.casas) : '#,##0' }
           if (typeof v === 'object') return { value: Math.round(Number(v.pct.toFixed(1)) * 10) / 1000, type: Number, format: '0.0%' }
           // Texto SEMPRE como texto (nunca formula, nunca numero/data "interpretado"): nada vindo de visitante vira formula no Excel.
           return { value: limparTexto(v), type: String, format: '@', wrap: true }

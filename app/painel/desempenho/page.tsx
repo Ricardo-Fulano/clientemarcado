@@ -3,8 +3,13 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { supabase } from '../../lib/supabase'
 import PainelSidebar from '@/app/components/PainelSidebar'
-import { permiteDestaques, permiteVideos, obterLimiteCatalogos, permiteCatalogoWhatsapp } from '../../lib/planos'
+import { permiteDestaques, permiteVideos, obterLimiteCatalogos, permiteCatalogoWhatsapp, permiteIntegracoesExternas } from '../../lib/planos'
 import { gerarCsvBlob, gerarXlsxBlob, montarNomeArquivo, baixarArquivo } from '../../lib/exportarDesempenho'
+import DesempenhoVendasExternas, { rotuloDoItem } from '@/app/components/DesempenhoVendasExternas'
+import { carregarVendasExternas, LIMITE_CONVERSOES, type DadosVendas } from '../../lib/integracoes/carregarVendas'
+import { cliquesVsVendas, montarVendasExport, resumirVendas } from '../../lib/integracoes/resumo'
+import { nomeDoProvedor } from '../../lib/integracoes/catalogo'
+import { tipoDeItemRotulo } from '../../lib/integracoes/textosVendas'
 
 const G = 'linear-gradient(135deg,#EC4899,#D946EF,#8B5CF6)'
 
@@ -82,6 +87,8 @@ export default function Desempenho() {
   const [menuExportar, setMenuExportar] = useState(false)
   const [exportando, setExportando] = useState(false)
   const [erroExportar, setErroExportar] = useState('')
+  const [vendas, setVendas] = useState<DadosVendas | null>(null)
+  const [vendasErro, setVendasErro] = useState(false)
 
   useEffect(() => { carregar() }, [periodo])
 
@@ -90,14 +97,14 @@ export default function Desempenho() {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) { window.location.href = '/login'; return }
 
-    const { data: p } = await supabase.from('perfis').select('user_id, slug, nome_negocio, plano_tipo').eq('user_id', user.id).maybeSingle()
+    const { data: p } = await supabase.from('perfis').select('user_id, slug, nome_negocio, plano_tipo, status_acesso').eq('user_id', user.id).maybeSingle()
     setPerfil(p)
 
     const dataInicio = calcularDataInicio(periodo)
     setInicioCarregado(dataInicio)
     // Sempre filtra explicitamente por user_id (defesa em profundidade, alem do RLS que ja
     // restringe "dono le so os proprios eventos" - nunca confia so numa camada).
-    let query = supabase.from('mini_page_eventos').select('tipo_evento, item_titulo, created_at').eq('user_id', user.id)
+    let query = supabase.from('mini_page_eventos').select('tipo_evento, item_titulo, item_id, created_at').eq('user_id', user.id)
     if (dataInicio) query = query.gte('created_at', dataInicio)
     query = query.order('created_at', { ascending: false }).limit(LIMITE_EVENTOS_TUDO)
 
@@ -110,6 +117,11 @@ export default function Desempenho() {
       const { data: lds } = await supabase.from('minipage_leads').select('email, item_titulo, origem, created_at').eq('user_id', user.id).order('created_at', { ascending: false })
       setLeads(lds || [])
     }
+
+    // Vendas externas (Etapa D): MESMA data inicial do seletor de periodo (nenhum filtro paralelo). So le se o plano permitir (a RLS do banco tambem exige).
+    if (permiteIntegracoesExternas(p?.plano_tipo, p?.status_acesso)) {
+      try { setVendas(await carregarVendasExternas(supabase, user.id, dataInicio)); setVendasErro(false) } catch { setVendas(null); setVendasErro(true) }
+    } else { setVendas(null); setVendasErro(false) }
     setCarregando(false)
   }
 
@@ -135,6 +147,7 @@ export default function Desempenho() {
   const topSocial = agruparPorTitulo(eventos, 'social_click')
 
   const planoAtual = perfil?.plano_tipo
+  const vendasPermitido = permiteIntegracoesExternas(planoAtual, perfil?.status_acesso)
   const temAlgumDado = eventos.length > 0
 
   // Exportacao (CSV / XLSX): usa SO os dados que a tela ja carregou (mesmo periodo, mesmo user_id da consulta acima) - nenhuma consulta nova.
@@ -171,6 +184,11 @@ export default function Desempenho() {
         },
         limiteEventos: LIMITE_EVENTOS_TUDO,
         eventosCarregados: eventos.length,
+        vendasExternas: montarVendasExport(
+          vendasPermitido && vendas ? resumirVendas(vendas.linhas, vendas.titulos) : null,
+          vendasPermitido && vendas ? cliquesVsVendas(vendas.linhas, eventos, { eventosTruncados: eventos.length >= LIMITE_EVENTOS_TUDO }, vendas.titulos) : [],
+          { permitido: vendasPermitido, temConexoes: (vendas?.conexoes.total ?? 0) > 0, testes: vendas?.testes ?? 0, truncado: vendas?.truncado ?? false, limite: LIMITE_CONVERSOES, nomeProvedor: nomeDoProvedor, rotuloItem: rotuloDoItem, rotuloTipo: tipoDeItemRotulo },
+        ),
       }
       const blob = formato === 'csv' ? gerarCsvBlob(dados) : await gerarXlsxBlob(dados)
       baixarArquivo(blob, montarNomeArquivo(periodo, geradoEm, formato))
@@ -288,6 +306,10 @@ export default function Desempenho() {
                 ) : <CardBloqueado titulo="Cliques no WhatsApp (detalhado)" />}
               </div>
             </>
+          )}
+
+          {!carregando && (
+            <DesempenhoVendasExternas permitido={vendasPermitido} carregando={false} erro={vendasErro} aoTentarDeNovo={carregar} periodoLabel={OPCOES_PERIODO.find(o => o.valor === periodo)?.label || periodo} dados={vendas} eventos={eventos} limiteEventos={LIMITE_EVENTOS_TUDO} />
           )}
         </div>
       </div>
