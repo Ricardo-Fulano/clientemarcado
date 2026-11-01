@@ -379,3 +379,18 @@ export function statusPrecisaFinalizarCheckout(status?: string | null): boolean 
   return ehAguardandoPagamento(status)
 }
 
+/**
+ * Integracoes externas de venda (Kiwify e outras plataformas): so Loja, Pro (essencial) e Equipe.
+ *
+ * Checa o valor BRUTO (como podeUsarCatalogo): nao usa normalizarPlano(), cujo fallback para 'essencial' liberaria
+ * plano nulo/invalido por engano. O status da conta tambem conta: 'aguardando_pagamento', 'bloqueado' e 'cancelado'
+ * valem como SEM acesso; 'em_atraso' mantem o plano. Esta e a mesma regra da funcao integracoes_elegivel() do banco
+ * (quem decide de verdade no servidor): um teste confere as duas lado a lado.
+ */
+export function permiteIntegracoesExternas(planoTipo?: string | null, statusAcesso?: string | null): boolean {
+  const s = statusAcesso ?? 'ativo'
+  if (s === 'aguardando_pagamento' || s === 'bloqueado' || s === 'cancelado') return false
+  const p = (planoTipo || '').replace(/^ +| +$/g, '').toLowerCase()
+  return p === 'loja' || p === 'essencial' || p === 'equipe'
+}
+
