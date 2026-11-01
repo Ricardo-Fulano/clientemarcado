@@ -36,12 +36,6 @@ const ROTULO_ESTADO: Record<EstadoEfetivo, { texto: string; cor: string; fundo: 
 }
 const MSG_GENERICA = 'Não foi possível concluir. Tente novamente em instantes.'
 
-// "A", "A e B", "A, B e C": os exemplos citados nos textos vêm do catálogo (nada fixo na tela).
-function listaDeNomes(nomes: string[]): string {
-  if (nomes.length <= 1) return nomes.join('')
-  return nomes.slice(0, -1).join(', ') + ' e ' + nomes[nomes.length - 1]
-}
-
 function fmt(iso: string | null | undefined): string {
   if (!iso) return ''
   const d = new Date(iso)
@@ -273,7 +267,6 @@ export default function VendasExternas() {
   const planoPermite = permiteIntegracoesExternas(perfil?.plano_tipo, perfil?.status_acesso)
   const permitido = planoPermite && Boolean(dados?.elegivel)
   const temConexoes = conexoes.length > 0
-  const exemplos = listaDeNomes(CATALOGO_PROVEDORES.map((p) => p.nome))
 
   return (
     <div style={{ display: 'flex', minHeight: '100vh', background: '#08060A', fontFamily: '-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif', overflowX: 'hidden', width: '100%' }}>
@@ -282,7 +275,7 @@ export default function VendasExternas() {
       <div className="psb-main">
         <div className="pg"><div className="bdy">
           <p style={{ fontSize: '22px', fontWeight: 800, color: '#F8F4F7', letterSpacing: '-0.02em', marginBottom: '8px' }}>Vendas externas</p>
-          <p style={{ fontSize: '13px', color: '#B8AAB8', marginBottom: '18px' }}>Conecte plataformas de venda{exemplos ? `, como ${exemplos},` : ''} para saber quais vendas vieram da sua MiniPage.</p>
+          <p style={{ fontSize: '13px', color: '#B8AAB8', marginBottom: '18px' }}>Conecte suas plataformas de venda para acompanhar vendas e conversões geradas pela sua MiniPage.</p>
 
           {erroCarga && (
             <div className="crd" role="alert" style={{ padding: '14px 16px', marginBottom: '16px' }}>
@@ -294,7 +287,7 @@ export default function VendasExternas() {
           <BloqueioPorPlano
             permitido={permitido || temConexoes}
             titulo="Vendas externas está disponível nos planos Loja, Pro e Equipe"
-            descricao={`Seu plano atual é ${obterNomePlano(perfil?.plano_tipo)}. Com este recurso você conecta plataformas de venda${exemplos ? ` (${exemplos})` : ''} e vê quais vendas vieram da sua MiniPage.`}
+            descricao={`Seu plano atual é ${obterNomePlano(perfil?.plano_tipo)}. Com este recurso você conecta suas plataformas de venda e acompanha as vendas e conversões geradas pela sua MiniPage.`}
           >
             <div className="crd" style={{ padding: '14px 16px', marginBottom: '16px' }}>
               <p style={{ fontSize: '12px', color: '#B8AAB8', lineHeight: 1.7 }}>
