@@ -394,3 +394,13 @@ export function permiteIntegracoesExternas(planoTipo?: string | null, statusAces
   return p === 'loja' || p === 'essencial' || p === 'equipe'
 }
 
+/**
+ * MCP / IA (Parte 4): MESMOS planos e MESMA regra das integracoes externas (Loja, Pro (essencial) e Equipe; os mesmos
+ * status bloqueiam; 'em_atraso' mantem o plano). Delega de proposito: NAO existe segunda interpretacao nem lista propria.
+ * Quem decide de verdade no servidor e mcp_eligible() no banco, que apenas delega a integracoes_elegivel(). Esta funcao
+ * serve a interface (por exemplo, o cartao "Conexoes de IA" do painel). Se o comercial separar as regras um dia, e uma
+ * unica edicao aqui e outra no banco.
+ */
+export function permiteMcp(planoTipo?: string | null, statusAcesso?: string | null): boolean {
+  return permiteIntegracoesExternas(planoTipo, statusAcesso)
+}
