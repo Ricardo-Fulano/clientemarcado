@@ -258,7 +258,8 @@ export default function PainelAfiliado() {
                     <div>
                       <p style={{ fontSize: '14px', fontWeight: 700, color: '#F8F4F7' }}>{ind.nomeNegocio || ind.nomeResponsavel || '—'}</p>
                       <div style={{ display: 'flex', gap: '6px', marginTop: '4px', flexWrap: 'wrap' }}>
-                        <span className="badge" style={{ background: 'rgba(139,92,246,.12)', border: '1px solid rgba(139,92,246,.26)', color: '#C4B5FD' }}>{ind.planoTipo ? obterNomePlano(normalizarPlano(ind.planoTipo)) : '—'}</span>
+                        <span className="badge" style={{ background: 'rgba(139,92,246,.12)', border: '1px solid rgba(139,92,246,.26)', color: '#C4B5FD' }}>Plano escolhido: {ind.planoTipo ? obterNomePlano(normalizarPlano(ind.planoTipo)) : '—'}</span>
+                        {ind.primeiroPagamento ? <span className="badge" style={{ background: 'rgba(34,197,94,.12)', color: '#22C55E' }}>Pagamento registrado</span> : <span className="badge" style={{ background: 'rgba(250,204,21,.12)', color: '#FACC15' }}>Sem pagamento confirmado para comissão</span>}
                         {st && <span className="badge" style={{ background: st.bg, border: `1px solid ${st.borda}`, color: st.cor }}>{st.texto}</span>}
                       </div>
                       <p style={{ fontSize: '11px', color: '#B8AAB8', marginTop: '6px' }}>Cadastro: {fData(ind.createdAt)} · 1º pagamento: {fData(ind.primeiroPagamento)} · Último: {fData(ind.ultimoPagamento)}</p>
