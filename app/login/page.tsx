@@ -1,6 +1,7 @@
 'use client'
 import { useState } from 'react'
 import { supabase } from '../lib/supabase'
+import { destinoAposLogin } from '../lib/oauthConsent'
 
 export default function Login() {
   const [email, setEmail] = useState('')
@@ -18,7 +19,7 @@ export default function Login() {
     const { error } = await supabase.auth.signInWithPassword({ email, password: senha })
     setMsgRecuperar('')
     if (error) setMensagem('E-mail ou senha incorretos.')
-    else window.location.href = '/painel'
+    else window.location.href = destinoAposLogin(window.location.search)
     setLoading(false)
   }
 

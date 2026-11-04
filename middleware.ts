@@ -34,6 +34,15 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(novaUrl, 308)
   }
 
+  // Etapa 3D: tela de consentimento OAuth (somente clientemarcado.com.br). O token da solicitacao (?req=) vive na URL enquanto o fluxo esta ativo:
+  // nada de cache e nada de Referer. As regras de minipage.pro acima NAO sao afetadas (este bloco so roda fora de minipage.pro).
+  if (!ehMinipage && pathname === '/oauth/consent') {
+    const resposta = NextResponse.next()
+    resposta.headers.set('Cache-Control', 'no-store')
+    resposta.headers.set('Referrer-Policy', 'no-referrer')
+    return resposta
+  }
+
   return NextResponse.next()
 }
 
