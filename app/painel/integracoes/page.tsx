@@ -28,6 +28,8 @@ const MSG_INVALIDO: Record<Chave, string> = {
 
 export default function Integracoes() {
   const [userId, setUserId] = useState('')
+  const [planoTipo, setPlanoTipo] = useState<string | null>(null)
+  const [statusAcesso, setStatusAcesso] = useState<string | null>(null)
   const [carregando, setCarregando] = useState(true)
   const [salvo, setSalvo] = useState<Record<Chave, string | null>>({ meta_pixel_id: null, ga4_measurement_id: null })
   const [campo, setCampo] = useState<Record<Chave, string>>({ meta_pixel_id: '', ga4_measurement_id: '' })
@@ -40,7 +42,9 @@ export default function Integracoes() {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) { window.location.href = '/login'; return }
     setUserId(user.id)
-    const { data } = await supabase.from('perfis').select('meta_pixel_id, ga4_measurement_id').eq('user_id', user.id).maybeSingle()
+    const { data } = await supabase.from('perfis').select('meta_pixel_id, ga4_measurement_id, plano_tipo, status_acesso').eq('user_id', user.id).maybeSingle()
+    setPlanoTipo(data?.plano_tipo ?? null)
+    setStatusAcesso(data?.status_acesso ?? null)
     const meta = data?.meta_pixel_id || null
     const ga = data?.ga4_measurement_id || null
     setSalvo({ meta_pixel_id: meta, ga4_measurement_id: ga })
@@ -51,6 +55,10 @@ export default function Integracoes() {
   // Grava SO a coluna escolhida, SO na linha do usuario logado, e confere que 1 linha foi mesmo atualizada
   // (a RLS pode bloquear sem devolver erro). O banco ainda tem CHECK de formato: nada alem de ID valido entra.
   async function gravar(chave: Chave, valor: string | null) {
+    if (!integracoesPermitidas) {
+      setMsg({ chave, ok: false, texto: 'Meta Pixel e Google Analytics 4 estão disponíveis nos planos pagos.' })
+      return
+    }
     setMsg(null)
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) { window.location.href = '/login'; return }
@@ -76,6 +84,8 @@ export default function Integracoes() {
     gravar(chave, valor)
   }
 
+  const integracoesPermitidas = ['minipage','loja','essencial','equipe'].includes(String(planoTipo ?? '').trim().toLowerCase()) && !['aguardando_pagamento','bloqueado','cancelado'].includes(String(statusAcesso ?? '').trim().toLowerCase())
+
   if (carregando) return (<div style={{ minHeight: '100vh', background: '#08060A', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'system-ui' }}><p style={{ color: '#B8AAB8', fontSize: '14px' }}>Carregando...</p></div>)
 
   const blocos: { chave: Chave; titulo: string; rotulo: string; exemplo: string; ajuda: string }[] = [
@@ -98,6 +108,12 @@ export default function Integracoes() {
             </p>
           </div>
 
+          {!integracoesPermitidas ? (
+            <div className="crd" style={{ padding: '24px', textAlign: 'center' }}>
+              <p style={{ color: '#F8F4F7', fontWeight: 700, marginBottom: '10px' }}>Meta Pixel e Google Analytics 4 sao recursos dos planos pagos.</p>
+              <a href="/painel/plano" style={{ color: '#EC4899', fontWeight: 700, textDecoration: 'none' }}>Conhecer planos</a>
+            </div>
+          ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             {blocos.map(b => {
               const conectado = !!salvo[b.chave]
@@ -121,6 +137,8 @@ export default function Integracoes() {
               )
             })}
           </div>
+
+          )}
 
           <div className="crd" style={{ padding: '16px 18px', marginTop: '20px' }}>
             <p style={{ fontSize: '13px', fontWeight: 700, color: '#F8F4F7', marginBottom: '8px' }}>O que é enviado</p>

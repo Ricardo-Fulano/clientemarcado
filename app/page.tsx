@@ -30,6 +30,8 @@ const itensMiniPage: ItemDoPlano[] = [
   { t: 'Todos os modelos de cor' },
   { t: 'Spotify' },
   { t: 'Painel de desempenho' },
+  { t: 'Exportação CSV e Excel' },
+  { t: 'Meta Pixel e Google Analytics 4' },
 ]
 const itensLoja: ItemDoPlano[] = [
   { t: 'Catálogos ilimitados', forte: true },
@@ -38,6 +40,8 @@ const itensLoja: ItemDoPlano[] = [
   { t: 'Links de venda e achadinhos' },
   { t: 'Desempenho por produto/link' },
   { t: 'Captação de leads', forte: true },
+  { t: 'Integrações de vendas externas' },
+  { t: 'IA com ChatGPT e Claude', forte: true },
 ]
 const itensProfissional: ItemDoPlano[] = [
   { t: 'Agendamento automático', forte: true, nota: 'Seus clientes agendam sozinhos pelo link.' },
@@ -209,14 +213,15 @@ export default function Home() {
             <span style={{fontSize:'12px',fontWeight:600,color:'#EC4899',letterSpacing:'.04em'}}>Crie sua MiniPage profissional</span>
           </div>
           <h1 style={{fontSize:'clamp(38px,6vw,66px)',fontWeight:900,color:'#F8F4F7',letterSpacing:'-0.04em',lineHeight:1.05,marginBottom:'24px'}}>
-            Transforme sua bio<br/>em uma MiniPage profissional.
+            Muito mais que um link na bio.<br/>Sua presença digital em um só lugar.
           </h1>
           <p style={{fontSize:'clamp(17px,2.4vw,20px)',fontWeight:700,background:G,WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent',backgroundClip:'text',marginBottom:'20px'}}>
-            Crie em poucos cliques uma página moderna para organizar seus links, vídeos, divulgações, produtos, agenda e contatos em um só lugar.
+            Crie sua página profissional, organize links e produtos, acompanhe resultados e vendas, conecte suas ferramentas de marketing e descubra o poder da inteligência artificial.
           </p>
           <p style={{fontSize:'clamp(15px,2vw,17px)',color:'#B8AAB8',lineHeight:1.75,marginBottom:'32px',maxWidth:'580px',margin:'0 auto 32px'}}>
             Pronta para divulgar no Instagram, WhatsApp, TikTok e onde quiser.
           </p>
+          <div className="hero-btns" style={{display:'flex',justifyContent:'center',gap:'12px',flexWrap:'wrap',marginTop:'24px'}}><Link href="/cadastro?plano=free" onClick={(e) => irComCupom(e, '/cadastro?plano=free')} className="btn-p">Criar minha MiniPage grátis</Link><a href="#recursos" className="btn-s">Conhecer os recursos</a></div>
           <p style={{fontSize:'13px',color:'#B8AAB8',marginTop:'18px'}}>Quer ver exemplos antes de criar? <a href="https://minipage.pro/modelos" style={{color:'#EC4899',fontWeight:600,textDecoration:'none'}}>Veja os melhores modelos</a>.</p>
           <p style={{fontSize:'12px',color:'#B8AAB8',marginTop:'10px'}}>Comece no plano grátis. Planos pagos a partir de R$ 39,90/mês. Sem fidelidade.</p>
         </div>
@@ -267,6 +272,32 @@ export default function Home() {
               </div>
             )
           })}
+        </div>
+      </section>
+      {/* NOVOS RECURSOS MINIPAGE PRO */}
+      <section id="recursos" style={{padding:'88px 24px',background:'radial-gradient(ellipse at 50% 0%,rgba(139,92,246,.13),transparent 65%)'}}>
+        <div style={{maxWidth:'1100px',margin:'0 auto'}}>
+          <div style={{textAlign:'center',maxWidth:'720px',margin:'0 auto 44px'}}>
+            <span style={{display:'inline-block',color:'#EC4899',fontSize:'12px',fontWeight:800,letterSpacing:'.12em',textTransform:'uppercase',marginBottom:'14px'}}>Mais controle. Mais possibilidades.</span>
+            <h2 style={{fontSize:'clamp(28px,4vw,42px)',fontWeight:900,color:'#F8F4F7',letterSpacing:'-.035em',lineHeight:1.12,marginBottom:'16px'}}>Sua MiniPage faz muito mais por você.</h2>
+            <p style={{fontSize:'16px',color:'#B8AAB8',lineHeight:1.75}}>Não basta ter uma página bonita. Entenda seu desempenho, acompanhe resultados e tome decisões com mais informação.</p>
+          </div>
+          <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(min(100%,245px),1fr))',gap:'18px'}}>
+            {[
+              {numero:'01',titulo:'Seus dados, do seu jeito',recurso:'Exportação CSV e Excel',descricao:'Exporte dados de desempenho para analisar suas visualizações, cliques e resultados em planilhas.',cor:'#A78BFA'},
+              {numero:'02',titulo:'Marketing com inteligência',recurso:'Meta Pixel e Google Analytics 4',descricao:'Configure ferramentas de rastreamento para acompanhar eventos e entender melhor as interações com sua página.',cor:'#F472B6'},
+              {numero:'03',titulo:'Vendas além do clique',recurso:'Vendas externas e conversões',descricao:'Consulte vendas, receitas, reembolsos e atribuições registradas pelas integrações externas disponíveis.',cor:'#C084FC'},
+              {numero:'04',titulo:'Converse com seus resultados',recurso:'IA com ChatGPT e Claude',descricao:'Conecte ferramentas de IA autorizadas e faça perguntas sobre visitas, cliques e vendas registradas na MiniPage.',cor:'#F9A8D4'},
+            ].map((item)=>(
+              <article key={item.numero} style={{background:'linear-gradient(160deg,rgba(42,25,51,.88),rgba(18,12,25,.92))',border:'1px solid rgba(193,132,230,.20)',borderRadius:'20px',padding:'28px 24px',boxShadow:'0 12px 32px rgba(0,0,0,.16)'}}>
+                <span style={{display:'inline-flex',width:'38px',height:'38px',alignItems:'center',justifyContent:'center',borderRadius:'12px',background:'rgba(139,92,246,.14)',color:item.cor,fontSize:'14px',fontWeight:900,marginBottom:'24px'}}>{item.numero}</span>
+                <h3 style={{fontSize:'19px',fontWeight:800,color:'#F8F4F7',lineHeight:1.3,marginBottom:'10px'}}>{item.titulo}</h3>
+                <p style={{fontSize:'12px',fontWeight:800,color:item.cor,marginBottom:'14px'}}>{item.recurso}</p>
+                <p style={{fontSize:'14px',color:'#B8AAB8',lineHeight:1.7,margin:0}}>{item.descricao}</p>
+              </article>
+            ))}
+          </div>
+          <p style={{textAlign:'center',fontSize:'12px',color:'#B8AAB8',lineHeight:1.6,marginTop:'26px'}}>A disponibilidade dos recursos depende do plano contratado e das integrações configuradas.</p>
         </div>
       </section>
       {/* CHAMADA PARA MODELOS REAIS */}

@@ -147,11 +147,17 @@ export default function Desempenho() {
   const topSocial = agruparPorTitulo(eventos, 'social_click')
 
   const planoAtual = perfil?.plano_tipo
+  const exportacaoPermitida = ['minipage','loja','essencial','equipe'].includes(String(planoAtual ?? '').trim().toLowerCase()) && !['aguardando_pagamento','bloqueado','cancelado'].includes(String(perfil?.status_acesso ?? '').trim().toLowerCase())
   const vendasPermitido = permiteIntegracoesExternas(planoAtual, perfil?.status_acesso)
   const temAlgumDado = eventos.length > 0
 
   // Exportacao (CSV / XLSX): usa SO os dados que a tela ja carregou (mesmo periodo, mesmo user_id da consulta acima) - nenhuma consulta nova.
   async function exportar(formato: 'csv' | 'xlsx') {
+    if (!exportacaoPermitida) {
+      setMenuExportar(false)
+      setErroExportar('A exportação CSV e Excel está disponível nos planos pagos.')
+      return
+    }
     setMenuExportar(false)
     setErroExportar('')
     setExportando(true)
@@ -218,6 +224,7 @@ export default function Desempenho() {
               <select value={periodo} onChange={e => setPeriodo(e.target.value as Periodo)} style={{ background: 'rgba(24,16,27,.92)', border: '1px solid #2A1A2F', borderRadius: '10px', padding: '9px 14px', fontSize: '13px', color: '#F8F4F7', cursor: 'pointer' }}>
                 {OPCOES_PERIODO.map(o => <option key={o.valor} value={o.valor}>{o.label}</option>)}
               </select>
+              {exportacaoPermitida && (
               <div style={{ position: 'relative' }} onKeyDown={e => { if (e.key === 'Escape') setMenuExportar(false) }}>
                 <button type="button" aria-haspopup="menu" aria-expanded={menuExportar} disabled={carregando || exportando} onClick={() => setMenuExportar(v => !v)} style={{ background: 'rgba(24,16,27,.92)', border: '1px solid #2A1A2F', borderRadius: '10px', padding: '9px 14px', fontSize: '13px', fontWeight: 600, color: '#F8F4F7', cursor: carregando || exportando ? 'default' : 'pointer', opacity: carregando || exportando ? .6 : 1, fontFamily: 'inherit' }}>{exportando ? 'Gerando arquivo...' : 'Exportar ▾'}</button>
                 {menuExportar && (
@@ -230,6 +237,7 @@ export default function Desempenho() {
                   </>
                 )}
               </div>
+              )}
             </div>
           </div>
           <p style={{ fontSize: '13px', color: '#B8AAB8', marginBottom: erroExportar ? '8px' : '20px' }}>Acompanhe acessos e cliques da sua MiniPage.</p>
