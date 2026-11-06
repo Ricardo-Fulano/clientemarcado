@@ -22,6 +22,48 @@ html,body{overflow-x:hidden;width:100%;max-width:100%;background:#08060A}
 @media(max-width:640px){.bdy{padding:20px 16px 60px}}
 `
 
+type ConviteRecente = {
+  email: string
+  status: string
+  criado_em: string
+  email_status: string | null
+  email_entregue_em: string | null
+  email_erro: string | null
+}
+
+const ROTULO_CONVITE: Record<string, string> = { pendente: 'Aguardando aceite', aceito: 'Aceito', cancelado: 'Cancelado ou substituído', expirado: 'Expirado' }
+
+function fmtDataHora(iso: string | null): string {
+  if (!iso) return ''
+  const d = new Date(iso)
+  return Number.isNaN(d.getTime()) ? '' : d.toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })
+}
+
+// Rotulos honestos: "aceito pelo provedor" NAO e "entregue". A entrega efetiva so aparece quando o Resend a confirma (webhook).
+function rotuloEmail(c: ConviteRecente): { texto: string; cor: string } {
+  switch (c.email_status) {
+    case 'entregue': return { texto: 'Entregue' + (c.email_entregue_em ? ' em ' + fmtDataHora(c.email_entregue_em) : ''), cor: '#22C55E' }
+    case 'solicitado': return { texto: 'Aceito pelo provedor, aguardando confirmação de entrega', cor: '#B8AAB8' }
+    case 'atrasado': return { texto: 'Entrega atrasada', cor: '#FCD34D' }
+    case 'devolvido': return { texto: 'Não entregue: endereço recusado' + (c.email_erro ? ' (' + c.email_erro + ')' : ''), cor: '#EF4444' }
+    case 'spam': return { texto: 'Entregue, mas marcado como spam pelo destinatário', cor: '#FCD34D' }
+    case 'falhou': return { texto: 'Falhou: o envio foi recusado', cor: '#EF4444' }
+    case 'indeterminado': return { texto: 'Envio não confirmado: aguarde ou envie novamente', cor: '#FCD34D' }
+    default: return { texto: 'Sem informação (convite anterior ao acompanhamento)', cor: '#B8AAB8' }
+  }
+}
+
+async function buscarConvites(): Promise<{ convites: ConviteRecente[]; erro: boolean }> {
+  try {
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session) return { convites: [], erro: false }
+    const res = await fetch('/api/convite/status', { headers: { Authorization: 'Bearer ' + session.access_token }, cache: 'no-store' })
+    if (!res.ok) return { convites: [], erro: true }
+    const j = await res.json()
+    return { convites: Array.isArray(j.convites) ? j.convites : [], erro: false }
+  } catch { return { convites: [], erro: true } }
+}
+
 export default function AlterarSenha() {
   const [senha, setSenha] = useState('')
   const [confirmar, setConfirmar] = useState('')
@@ -38,6 +80,8 @@ export default function AlterarSenha() {
   const [transferindo, setTransferindo] = useState(false)
   const [transferMsg, setTransferMsg] = useState('')
   const [transferOk, setTransferOk] = useState(false)
+  const [convitesRecentes, setConvitesRecentes] = useState<ConviteRecente[]>([])
+  const [convitesErro, setConvitesErro] = useState(false)
 
   useEffect(() => {
     async function carregar() {
@@ -57,6 +101,20 @@ export default function AlterarSenha() {
       }
     }
     carregar()
+  }, [])
+
+  // Acompanhamento dos ultimos convites (status do e-mail confirmado pelo Resend). Somente leitura; e-mail mascarado pela API.
+  // A busca e uma funcao pura (buscarConvites, fora do componente); o setState so acontece em callbacks, nunca direto no efeito.
+  function aplicarConvites(r: { convites: ConviteRecente[]; erro: boolean }) {
+    if (!r.erro) setConvitesRecentes(r.convites)
+    setConvitesErro(r.erro)
+  }
+  async function carregarConvites() { aplicarConvites(await buscarConvites()) }
+
+  useEffect(() => {
+    let ativo = true
+    buscarConvites().then((r) => { if (ativo) aplicarConvites(r) })
+    return () => { ativo = false }
   }, [])
 
   function emailValido(e: string) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e) }
@@ -81,6 +139,7 @@ export default function AlterarSenha() {
     })
     const data = await res.json().catch(() => ({}))
     setTransferindo(false)
+    carregarConvites()
     if (!res.ok) {
       console.warn('Erro ao criar convite:', data.error)
       setTransferMsg(data.error || 'Não foi possível enviar o convite. Verifique o e-mail e tente novamente.')
@@ -88,7 +147,9 @@ export default function AlterarSenha() {
     }
     setTransferOk(true)
     setNovoEmailAcesso('')
-    setTransferMsg('Convite enviado! A pessoa receberá um link para entrar ou criar a conta e assumir esta MiniPage. Se já tiver uma conta, basta entrar. Se ainda não tiver, poderá criar o acesso pelo próprio convite.')
+    setTransferMsg(data.acompanhamento === false
+      ? 'Convite enviado ao provedor de e-mail, mas o acompanhamento da entrega não pôde ser registrado. Confirme com a pessoa se o e-mail chegou.'
+      : 'Convite aceito para envio. A pessoa receberá um link para entrar ou criar a conta e assumir esta MiniPage. Acompanhe a entrega abaixo; se ela não encontrar o e-mail, peça para olhar o spam.')
   }
 
   async function salvar() {
@@ -164,6 +225,27 @@ export default function AlterarSenha() {
             </button>
             <p style={{ fontSize: '11px', color: '#B8AAB8', lineHeight: 1.6 }}>A pessoa recebe um link exclusivo por e-mail para entrar ou criar a conta e assumir esta MiniPage. Se já tiver uma conta, basta entrar; se ainda não tiver, cria o acesso pelo próprio convite. Você não vê nem define a senha dela em nenhum momento.</p>
             <p style={{ fontSize: '11px', color: '#B8AAB8', lineHeight: 1.6, marginTop: '6px' }}>O convite expira em 7 dias e só pode ser usado uma vez.</p>
+
+            {convitesRecentes.length > 0 && (
+              <div style={{ marginTop: '18px', borderTop: '1px solid #2A1A2F', paddingTop: '14px' }}>
+                <p className="lbl">Convites recentes</p>
+                {convitesRecentes.map((c, i) => {
+                  const em = rotuloEmail(c)
+                  return (
+                    <div key={i} style={{ fontSize: '12px', color: '#B8AAB8', lineHeight: 1.6, marginBottom: '10px' }}>
+                      <span style={{ color: '#F8F4F7', fontWeight: 600 }}>{c.email}</span>
+                      <br />
+                      Convite: {ROTULO_CONVITE[c.status] || c.status} · {fmtDataHora(c.criado_em)}
+                      <br />
+                      E-mail: <span style={{ color: em.cor }}>{em.texto}</span>
+                    </div>
+                  )
+                })}
+                <p style={{ fontSize: '11px', color: '#B8AAB8', lineHeight: 1.6, marginBottom: '8px' }}>Se a pessoa não receber, peça para olhar o spam e confirme se o endereço está correto. Você pode enviar um novo convite: o anterior só é cancelado depois que o novo for aceito para envio.</p>
+                <button type="button" onClick={carregarConvites} style={{ background: 'none', border: '1px solid #2A1A2F', borderRadius: '10px', color: '#F8F4F7', fontSize: '12px', padding: '6px 12px', cursor: 'pointer', fontFamily: 'inherit' }}>Atualizar status</button>
+              </div>
+            )}
+            {convitesErro && <p style={{ fontSize: '11px', color: '#EF4444', marginTop: '10px' }}>Não foi possível carregar o acompanhamento dos convites agora.</p>}
           </div>
           )}
 
