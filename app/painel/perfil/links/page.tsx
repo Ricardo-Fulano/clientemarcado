@@ -6,7 +6,9 @@ import { ArrowLeft, ArrowUp, ArrowDown, Pencil, Trash2, Mail, MapPin, Link2, Mus
 import PainelSidebar from '@/app/components/PainelSidebar'
 import VerMiniPageButton from '@/app/components/VerMiniPageButton'
 import { obterLimiteLinksRapidos } from '../../../lib/planos'
-import { PLATAFORMAS_LINK, placeholderPlataforma, normalizarInstagram, normalizarFacebook } from '../../../lib/plataformasLinks'
+import { PLATAFORMAS_LINK, placeholderPlataforma, normalizarInstagram, normalizarFacebook, detectarTipoPorUrl, detectarTipoPorTitulo, escolherTipoDoIcone } from '../../../lib/plataformasLinks'
+import { MARCAS, detectarOrigemDoLink, rotuloDaMarca, iconeDaMarca, corDaMarcaParaTema, escolhaManualValida } from '../../../lib/marcas'
+import IconeMarca from '../../../components/IconeMarca'
 
 const G='linear-gradient(135deg,#EC4899,#D946EF,#8B5CF6)'
 
@@ -31,6 +33,10 @@ input,select,textarea{color-scheme:dark}
 // ja usados na pagina publica (slug) pra garantir fidelidade visual identica.
 function IconePlataforma({ tipo }: { tipo: string }) {
   const tamanho = 18
+  // marcas com icone verificado (Simple Icons, CC0): mesmo desenho da pagina publica, cor da marca com contraste no painel escuro
+  const marca = iconeDaMarca(tipo)
+  if (marca) return <span style={{ color: corDaMarcaParaTema(marca.cor, 'dark'), display: 'inline-flex' }}><IconeMarca id={tipo} size={tamanho} /></span>
+  if (tipo === 'minipage') return <IconeMarca id="minipage" size={tamanho} />
   switch (tipo) {
     case 'whatsapp': return (
       <svg width={tamanho} height={tamanho} viewBox="0 0 24 24" fill="#22C55E">
@@ -88,8 +94,14 @@ export default function GerenciarLinks(){
   const [salvandoId,setSalvandoId]=useState('')
   // Controla qual card esta em modo edicao - null significa que todos aparecem compactos.
   const [editandoId,setEditandoId]=useState<string|null>(null)
+  // A escolha manual do icone depende da coluna opcional pagina_links.icone_marca (SQL separado). Sem a coluna, o recurso fica desabilitado (nunca finge que salvou).
+  const [iconeManualOk,setIconeManualOk]=useState(false)
+  const MARCAS_COM_ICONE=MARCAS.filter(m=>iconeDaMarca(m.id)).map(m=>({id:m.id,rotulo:m.rotulo})).concat([{id:'minipage',rotulo:'MiniPage Pro'}])
+  // Mesmo criterio da pagina publica (URL > titulo > tipo; escolha manual vence): a previa mostra exatamente o que o visitante vera
+  const iconeDoLink=(l:any):string=>escolherTipoDoIcone(detectarTipoPorUrl(l.url)||detectarTipoPorTitulo(l.titulo)||l.tipo||'outro',l.icone_marca)
 
   useEffect(()=>{load()},[])
+  useEffect(()=>{supabase.from('pagina_links').select('icone_marca').limit(1).then(({error})=>setIconeManualOk(!error))},[])
 
   async function load(){
     const {data:{user}}=await supabase.auth.getUser()
@@ -144,19 +156,10 @@ export default function GerenciarLinks(){
     }
     return v
   }
-  // Deteccao de plataforma pela URL - usada so como SUGESTAO (nunca troca o tipo sozinha)
+  // Deteccao de plataforma pela URL - usada so como SUGESTAO (nunca troca o tipo sozinha). Agora pelo HOSTNAME (modulo central de marcas); so sugere tipos que existem no seletor.
   function detectarTipoPelaUrl(url:string):string|null{
-    const u=(url||'').toLowerCase()
-    if(!u)return null
-    if(u.includes('instagram.com'))return 'instagram'
-    if(u.includes('threads.net'))return 'threads'
-    if(u.includes('t.me/'))return 'telegram'
-    if(u.includes('youtube.com')||u.includes('youtu.be'))return 'youtube'
-    if(u.includes('tiktok.com'))return 'tiktok'
-    if(u.includes('facebook.com')||u.includes('fb.com'))return 'facebook'
-    if(u.includes('x.com')||u.includes('twitter.com'))return 'x'
-    if(u.includes('open.spotify.com')||u.includes('spotify.com'))return 'spotify'
-    return null
+    const m=detectarOrigemDoLink(url).marca
+    return m&&PLATAFORMAS_LINK.some(p=>p.id===m)?m:null
   }
   function emailValido(e:string){return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test((e||'').trim())}
   async function salvarLink(l:any){
@@ -175,7 +178,7 @@ export default function GerenciarLinks(){
     else if(l.tipo==='email')urlFinal=`mailto:${l.url.trim()}`
     else if(l.tipo==='instagram')urlFinal=normalizarInstagram(l.url)
     else if(l.tipo==='facebook')urlFinal=normalizarFacebook(l.url)
-    const payload={user_id:userId,tipo:l.tipo||'outro',titulo:l.titulo.trim(),descricao:l.descricao?.trim()||null,url:urlFinal,ativo:!!l.ativo,ordem:l.ordem||0}
+    const payload={user_id:userId,tipo:l.tipo||'outro',titulo:l.titulo.trim(),descricao:l.descricao?.trim()||null,url:urlFinal,ativo:!!l.ativo,ordem:l.ordem||0,...(iconeManualOk?{icone_marca:escolhaManualValida(l.icone_marca)||null}:{})}
     if(l._novo){
       const {data,error}=await supabase.from('pagina_links').insert(payload).select().single()
       if(error){setMsg('Erro ao salvar link: '+error.message)}
@@ -249,6 +252,7 @@ export default function GerenciarLinks(){
             <p style={{fontSize:'22px',fontWeight:800,color:'#F8F4F7',letterSpacing:'-0.02em'}}>Links</p>
             <div style={{display:'flex',gap:'10px',flexWrap:'wrap'}}>
               <VerMiniPageButton/>
+              <Link href="/painel/perfil/pix" style={{background:'rgba(24,16,27,.9)',color:'#F8F4F7',border:'1px solid #2A1A2F',borderRadius:'10px',padding:'10px 18px',fontSize:'13px',fontWeight:700,textDecoration:'none',fontFamily:'inherit'}}>Receber por Pix</Link>
               <button type="button" onClick={novoLink} style={{background:G,color:'#fff',border:'1px solid rgba(255,255,255,.12)',borderRadius:'10px',padding:'10px 18px',fontSize:'13px',fontWeight:700,cursor:'pointer',fontFamily:'inherit'}}>+ Novo link</button>
             </div>
           </div>
@@ -270,7 +274,7 @@ export default function GerenciarLinks(){
                       <button type="button" onClick={()=>mover(l.id,'down')} disabled={i===links.length-1} style={{width:'22px',height:'22px',borderRadius:'6px',background:'rgba(24,16,27,.9)',border:'1px solid #2A1A2F',color:i===links.length-1?'#4A3F4E':'#B8AAB8',cursor:i===links.length-1?'not-allowed':'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}><ArrowDown size={12}/></button>
                     </div>
                     <div style={{width:'36px',height:'36px',borderRadius:'10px',background:'rgba(255,255,255,.04)',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
-                      <IconePlataforma tipo={l.tipo}/>
+                      <IconePlataforma tipo={iconeDoLink(l)}/>
                     </div>
                     <div style={{flex:1,minWidth:0}}>
                       <p style={{fontSize:'14px',fontWeight:700,color:'#F8F4F7',whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{l.titulo||'(sem título)'}</p>
@@ -311,10 +315,34 @@ export default function GerenciarLinks(){
                     {l.tipo==='email'&&<p style={{fontSize:'11px',color:'#B8AAB8',marginTop:'6px'}}>Só o e-mail, sem precisar escrever &quot;mailto:&quot; — isso é feito automaticamente. Ao clicar no card, abre o app de e-mail do visitante.</p>}
                     {tipoSugerido&&(
                       <button type="button" onClick={()=>editarLink(l.id,'tipo',tipoSugerido)} style={{marginTop:'8px',background:'rgba(236,72,153,.10)',border:'1px solid rgba(236,72,153,.28)',color:'#EC4899',borderRadius:'8px',padding:'6px 12px',fontSize:'11px',fontWeight:700,cursor:'pointer',fontFamily:'inherit'}}>
-                        Esse link parece ser {tipoSugerido==='x'?'X / Twitter':tipoSugerido} — usar esse tipo?
+                        Esse link parece ser {rotuloDaMarca(tipoSugerido)||tipoSugerido} — usar esse tipo?
                       </button>
                     )}
                   </div>
+                  {(()=>{
+                    const o=detectarOrigemDoLink(l.url)
+                    const sugestao=rotuloDaMarca(o.marca||'')||(l.tipo&&l.tipo!=='outro'?rotuloDaMarca(l.tipo):null)
+                    return (
+                      <div style={{marginBottom:'12px'}}>
+                        <div style={{display:'flex',alignItems:'center',gap:'10px',flexWrap:'wrap',marginBottom:'8px'}}>
+                          <div style={{width:'36px',height:'36px',borderRadius:'10px',background:'rgba(255,255,255,.04)',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}><IconePlataforma tipo={iconeDoLink(l)}/></div>
+                          <p style={{fontSize:'12px',color:'#B8AAB8',flex:'1 1 200px',lineHeight:1.5}}>
+                            {o.marca&&rotuloDaMarca(o.marca)?<>Reconhecido: <strong style={{color:'#F8F4F7'}}>{rotuloDaMarca(o.marca)}</strong>. O ícone aparece automaticamente na sua MiniPage.</>:o.motivo==='encurtador'?'Link encurtado: não dá para saber o destino com segurança. Escolha o ícone abaixo, se quiser.':l.url?'Plataforma não reconhecida: será usado o ícone do tipo escolhido.':'Cole o link para reconhecer a plataforma automaticamente.'}
+                          </p>
+                        </div>
+                        {!l.titulo?.trim()&&sugestao&&(
+                          <button type="button" onClick={()=>editarLink(l.id,'titulo',sugestao)} style={{marginBottom:'8px',background:'rgba(236,72,153,.10)',border:'1px solid rgba(236,72,153,.28)',color:'#EC4899',borderRadius:'8px',padding:'6px 12px',fontSize:'11px',fontWeight:700,cursor:'pointer',fontFamily:'inherit'}}>Usar o título &quot;{sugestao}&quot;</button>
+                        )}
+                        <label className="lbl">Ícone exibido</label>
+                        <select className="inp" style={{cursor:iconeManualOk?'pointer':'not-allowed'}} disabled={!iconeManualOk} value={l.icone_marca||''} onChange={e=>editarLink(l.id,'icone_marca',e.target.value||null)}>
+                          <option value="">Automático (recomendado)</option>
+                          <option value="generico">Ícone genérico</option>
+                          {MARCAS_COM_ICONE.map(m=><option key={m.id} value={m.id}>{m.rotulo}</option>)}
+                        </select>
+                        {!iconeManualOk&&<p style={{fontSize:'11px',color:'#B8AAB8',marginTop:'6px'}}>A escolha manual do ícone fica disponível depois que o administrador aplicar a atualização do banco de dados (script 01). Até lá, o ícone é automático.</p>}
+                      </div>
+                    )
+                  })()}
                   <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:'8px',flexWrap:'wrap'}}>
                     <button type="button" onClick={()=>editarLink(l.id,'ativo',!l.ativo)} style={{background:l.ativo?'rgba(34,197,94,.14)':'#2A1A2F',border:'1px solid '+(l.ativo?'rgba(34,197,94,.25)':'#2A1A2F'),borderRadius:10,padding:'6px 14px',fontSize:12,fontWeight:700,color:l.ativo?'#22C55E':'#B8AAB8',cursor:'pointer',fontFamily:'inherit'}}>{l.ativo?'Ativo':'Oculto'}</button>
                     <div style={{display:'flex',gap:'8px'}}>
@@ -334,4 +362,3 @@ export default function GerenciarLinks(){
     </div>
   )
 }
-

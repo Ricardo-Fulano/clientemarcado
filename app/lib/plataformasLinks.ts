@@ -1,3 +1,5 @@
+import { detectarOrigemDoLink, escolhaManualValida } from './marcas'
+
 // Fonte unica das plataformas disponiveis pra Links - usada em /painel/perfil/links e no
 // onboarding (/painel/criar-minipage), pra nunca mais existirem 2 listas divergentes.
 // Nao inclui logica de deteccao por URL/icones da pagina publica (isso continua em
@@ -24,6 +26,32 @@ export const PLATAFORMAS_LINK = [
   { id: 'secreto', label: 'Secreto', placeholder: 'https://...' },
   { id: 'shopee', label: 'Shopee', placeholder: 'https://shopee.com.br/...' },
   { id: 'mercadolivre', label: 'Mercado Livre', placeholder: 'https://mercadolivre.com.br/...' },
+  { id: 'amazon', label: 'Amazon', placeholder: 'https://amazon.com.br/...' },
+  { id: 'aliexpress', label: 'AliExpress', placeholder: 'https://aliexpress.com/...' },
+  { id: 'shein', label: 'SHEIN', placeholder: 'https://br.shein.com/...' },
+  { id: 'shopify', label: 'Shopify', placeholder: 'https://sualoja.myshopify.com' },
+  { id: 'tiktok_shop', label: 'TikTok Shop', placeholder: 'https://shop.tiktok.com/...' },
+  { id: 'kiwify', label: 'Kiwify', placeholder: 'https://pay.kiwify.com.br/...' },
+  { id: 'hotmart', label: 'Hotmart', placeholder: 'https://pay.hotmart.com/...' },
+  { id: 'eduzz', label: 'Eduzz', placeholder: 'https://sun.eduzz.com/...' },
+  { id: 'monetizze', label: 'Monetizze', placeholder: 'https://app.monetizze.com.br/...' },
+  { id: 'braip', label: 'Braip', placeholder: 'https://...' },
+  { id: 'kirvano', label: 'Kirvano', placeholder: 'https://pay.kirvano.com/...' },
+  { id: 'perfectpay', label: 'Perfect Pay', placeholder: 'https://go.perfectpay.com.br/...' },
+  { id: 'gumroad', label: 'Gumroad', placeholder: 'https://usuario.gumroad.com' },
+  { id: 'udemy', label: 'Udemy', placeholder: 'https://udemy.com/course/...' },
+  { id: 'messenger', label: 'Messenger', placeholder: 'https://m.me/usuario' },
+  { id: 'snapchat', label: 'Snapchat', placeholder: 'https://snapchat.com/add/usuario' },
+  { id: 'reddit', label: 'Reddit', placeholder: 'https://reddit.com/user/usuario' },
+  { id: 'pinterest', label: 'Pinterest', placeholder: 'https://pinterest.com/usuario' },
+  { id: 'twitch', label: 'Twitch', placeholder: 'https://twitch.tv/usuario' },
+  { id: 'discord', label: 'Discord', placeholder: 'https://discord.gg/convite' },
+  { id: 'soundcloud', label: 'SoundCloud', placeholder: 'https://soundcloud.com/usuario' },
+  { id: 'linktree', label: 'Linktree', placeholder: 'https://linktr.ee/usuario' },
+  { id: 'linkme', label: 'Link.me', placeholder: 'https://link.me/usuario' },
+  { id: 'beacons', label: 'Beacons', placeholder: 'https://beacons.ai/usuario' },
+  { id: 'carrd', label: 'Carrd', placeholder: 'https://usuario.carrd.co' },
+  { id: 'minipage', label: 'MiniPage Pro', placeholder: 'https://minipage.pro/usuario' },
   { id: 'site', label: 'Site', placeholder: 'https://seusite.com' },
   { id: 'curso', label: 'Curso', placeholder: 'https://...' },
   { id: 'mentoria', label: 'Mentoria', placeholder: 'https://...' },
@@ -69,35 +97,22 @@ export function normalizarFacebook(valor: string): string {
 // ===================================================================================
 export const TIPOS_SOCIAIS_TOPO = ['whatsapp', 'instagram', 'threads', 'youtube', 'youtube_music', 'tiktok', 'spotify', 'deezer', 'soundcloud', 'shopee', 'telegram', 'facebook', 'x', 'linkedin', 'pinterest', 'twitch', 'discord', 'email', 'site', 'apple_music', 'amazon_music', 'tidal', 'tinder']
 
+// Reconhecimento pelo HOSTNAME (parser de URL), centralizado em ./marcas. Substitui a antiga busca por texto (includes), que gerava falsos positivos
+// (ex.: "dropbox.com" e "netflix.com" contem "x.com"). Nao segue redirecionamentos e nao faz rede: link encurtado de terceiros => null (icone generico / escolha manual).
 export function detectarTipoPorUrl(url?: string): string | null {
   const u = (url || '').trim()
   if (!u) return null
-  const uMin = u.toLowerCase()
-  if (uMin.startsWith('mailto:') || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(u)) return 'email'
-  if (uMin.startsWith('tel:')) return 'telefone'
-  if (uMin.includes('music.youtube.com')) return 'youtube_music'
-  if (uMin.includes('open.spotify.com') || uMin.includes('spotify.com')) return 'spotify'
-  if (uMin.includes('deezer.com') || uMin.includes('deezer.page.link')) return 'deezer'
-  if (uMin.includes('soundcloud.com')) return 'soundcloud'
-  if (uMin.includes('threads.net')) return 'threads'
-  if (uMin.includes('instagram.com')) return 'instagram'
-  if (uMin.includes('tiktok.com')) return 'tiktok'
-  if (uMin.includes('youtube.com') || uMin.includes('youtu.be')) return 'youtube'
-  if (uMin.includes('wa.me') || uMin.includes('api.whatsapp.com') || uMin.includes('whatsapp.com')) return 'whatsapp'
-  if (uMin.includes('shopee.com')) return 'shopee'
-  if (uMin.includes('mercadolivre.com') || uMin.includes('mercadolibre.com')) return 'mercadolivre'
-  if (uMin.includes('facebook.com') || uMin.includes('fb.com')) return 'facebook'
-  if (uMin.includes('x.com') || uMin.includes('twitter.com')) return 'x'
-  if (uMin.includes('t.me') || uMin.includes('telegram.me') || uMin.includes('telegram.org')) return 'telegram'
-  if (uMin.includes('linkedin.com')) return 'linkedin'
-  if (uMin.includes('pinterest.com') || uMin.includes('pin.it')) return 'pinterest'
-  if (uMin.includes('twitch.tv')) return 'twitch'
-  if (uMin.includes('discord.gg') || uMin.includes('discord.com')) return 'discord'
-  if (uMin.includes('music.apple.com')) return 'apple_music'
-  if (uMin.includes('music.amazon.com') || uMin.includes('amazon.com/music') || uMin.includes('amzn_music') || uMin.includes('amazonmusic')) return 'amazon_music'
-  if (uMin.includes('tidal.com')) return 'tidal'
-  if (uMin.includes('tinder.com')) return 'tinder'
-  return null
+  return detectarOrigemDoLink(u).marca
+}
+
+/**
+ * Tipo usado SO para escolher o ICONE: a escolha manual do dono (coluna opcional pagina_links.icone_marca) vence; senao vale o tipo efetivo atual.
+ * "generico" => 'outro' (icone padrao de link). Nao altera o comportamento do link (e-mail, endereco...), so a imagem.
+ */
+export function escolherTipoDoIcone(tipoEfetivo: string, iconeManual: unknown): string {
+  const m = escolhaManualValida(iconeManual)
+  if (!m) return tipoEfetivo
+  return m === 'generico' ? 'outro' : m
 }
 
 export function detectarTipoPorTitulo(titulo?: string): string | null {

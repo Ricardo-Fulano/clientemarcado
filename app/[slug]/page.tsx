@@ -21,7 +21,11 @@ import SocialTicker from '../components/SocialTicker'
 import CardVisualItem from '../components/CardVisualItem'
 import SpotifyEmbedItem from '../components/SpotifyEmbedItem'
 import { parseSpotifyUrl } from '../lib/spotify'
-import { detectarTipoPorUrl, detectarTipoPorTitulo, TIPOS_SOCIAIS_TOPO } from '../lib/plataformasLinks'
+import { detectarTipoPorUrl, detectarTipoPorTitulo, escolherTipoDoIcone, TIPOS_SOCIAIS_TOPO } from '../lib/plataformasLinks'
+import { iconeDaMarca, corDaMarcaParaTema } from '../lib/marcas'
+import IconeMarca from '../components/IconeMarca'
+import PixCardPublico from '../components/PixCardPublico'
+import { buscarResumoPix } from '../lib/pix-servidor'
 import { resolverOrdemPagina } from '../lib/ordemPagina'
 import { resolverTema, getTema } from '../lib/tema-publico'
 import { ehPlanoComGestao, permiteVideos, permiteDestaques, permiteAgendaEventos, obterLimiteCatalogos, podeUsarCatalogo, obterLimiteSecoesDestaques, obterLimiteLinksRapidos, ehPlanoFree, permiteAlbuns, permiteCardsVisuais, permiteSpotify } from '../lib/planos'
@@ -503,6 +507,17 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
   // Fallback automatico: sem video real cadastrado (ou plano sem direito a video), o campo
   // layout_slug='imersivo' e simplesmente ignorado e a slug renderiza o layout padrao de
   // sempre - nunca quebra, mesmo que o dado no banco esteja desatualizado.
+  // MiniPage Pix (opcional, todos os planos): o banco NAO tem leitura publica do Pix; o servidor consulta UMA MiniPage por slug (funcao SQL so para service_role, ver
+  // lib/pix-servidor.ts) e recebe so titulo/descricao/posicao, sem o codigo. Sem a funcao/chave de servidor ou sem Pix ativo => nada aparece. O codigo so sai em /api/pix/{slug}.
+  const pixPublico = await buscarResumoPix(perfil.slug || slug)
+  const itensLinks: any[] = (() => {
+    const base = (linksRapidos || []).slice(0, obterLimiteLinksRapidos(perfil.plano_tipo))
+    if (!pixPublico) return base
+    const i = base.findIndex((x: any) => (x.ordem ?? 0) >= pixPublico.ordem)
+    const arr = [...base]
+    arr.splice(i === -1 ? arr.length : i, 0, { __pix: true, id: '__pix' })
+    return arr
+  })()
   const modoImersivoAtivo = perfil.layout_slug === 'imersivo' && perfil.banner_tipo === 'video' && !!perfil.banner_video_url && !ehPlanoFree(perfil.plano_tipo)
   // Midia mobile dedicada (Topo no celular) - MESMOS campos ja usados pelo hero tradicional,
   // nenhum campo novo. So conta como "video mobile especifico" se o tipo cadastrado for
@@ -550,6 +565,11 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
 
   // Icone/cor de cada tipo de link rapido
   function iconeLink(tipo:string){
+    // Icones de marca com TRACADO do Simple Icons (CC0; ver app/lib/marcas.ts) e a cor da marca ajustada ao contraste do tema. Marcas sem icone verificado
+    // (LinkedIn, Mercado Livre...) seguem com o icone anterior abaixo; o design do card/circulo nao muda.
+    const marca = iconeDaMarca(tipo)
+    if (marca) return { color: corDaMarcaParaTema(marca.cor, tema.mode), svg: <IconeMarca id={tipo} size={tipo === 'x' || tipo === 'threads' ? 16 : 18} /> }
+    if (tipo === 'minipage') return { color: tema.accent, svg: <IconeMarca id="minipage" size={18} /> }
     switch(tipo){
       case 'whatsapp': return { color:'#22C55E', svg:(<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>) }
       case 'instagram': return { color:'#EC4899', svg:(<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1112.63 8 4 4 0 0116 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>) }
@@ -589,7 +609,7 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
   // Reconhece a plataforma automaticamente pela URL, usando o helper central (mesma
   // deteccao usada pelos cards visuais abaixo, sem duplicar regras em 2 lugares).
   const linksSociaisBrutos = (linksRapidos || [])
-    .map(l => ({ ...l, tipoEfetivo: detectarTipoPorUrl(l.url) || detectarTipoPorTitulo(l.titulo) || l.tipo }))
+    .map(l => { const te = detectarTipoPorUrl(l.url) || detectarTipoPorTitulo(l.titulo) || l.tipo; return { ...l, tipoEfetivo: te, tipoIcone: escolherTipoDoIcone(te, (l as any).icone_marca) } })
     .filter(l => TIPOS_SOCIAIS_TOPO.includes(l.tipoEfetivo))
   // Deduplica por tipo - se houver 2 links de WhatsApp (ou Instagram em campo fixo + em
   // link rapido), mostra so o primeiro de cada tipo, nunca 2 icones iguais. Sem limite de
@@ -783,7 +803,7 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
                   <div style={{ marginTop: '2px', width: '100%', minWidth: 0, alignSelf: 'stretch' }}>
                     <SocialTicker>
                       {linksSociais.map(l => {
-                        const cfg = iconeLink(l.tipoEfetivo)
+                        const cfg = iconeLink((l as any).tipoIcone || l.tipoEfetivo)
                         return (
                           <a key={l.id} href={l.url} target={l.url && l.url.startsWith('http') ? '_blank' : '_self'} rel="noopener noreferrer" className="social-ic" style={{ background: iconeBg, border: `1px solid ${iconeBorder}`, color: cfg.color || iconeCor }} aria-label={l.titulo} data-track-tipo="social_click" data-track-item-titulo={l.titulo} data-track-item-url={l.url}>
                             {cfg.svg ? cfg.svg : (cfg.I ? <cfg.I size={16} color={cfg.color || iconeCor} /> : null)}
@@ -830,7 +850,7 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
                   <div style={{ marginTop: '2px', width: '100%', minWidth: 0, alignSelf: 'stretch' }}>
                     <SocialTicker>
                       {linksSociais.map(l => {
-                        const cfg = iconeLink(l.tipoEfetivo)
+                        const cfg = iconeLink((l as any).tipoIcone || l.tipoEfetivo)
                         return (
                           <a key={l.id} href={l.url} target={l.url && l.url.startsWith('http') ? '_blank' : '_self'} rel="noopener noreferrer" className="social-ic" style={{ background: iconeBg, border: `1px solid ${iconeBorder}`, color: cfg.color || iconeCor }} aria-label={l.titulo} data-track-tipo="social_click" data-track-item-titulo={l.titulo} data-track-item-url={l.url}>
                             {cfg.svg ? cfg.svg : (cfg.I ? <cfg.I size={16} color={cfg.color || iconeCor} /> : null)}
@@ -1028,7 +1048,7 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
             ),
             links: (
 // * LINKS RAPIDOS: apenas o que o cliente configurou no painel + fallback de agenda, se aplicavel
-(mostrarAgendaFallback || (linksRapidos && linksRapidos.length > 0)) && (
+(mostrarAgendaFallback || pixPublico || (linksRapidos && linksRapidos.length > 0)) && (
           <div style={{ marginBottom: '32px' }}>
             <div className="link-grid">
               {mostrarAgendaFallback && (
@@ -1043,7 +1063,10 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
                   <span className="link-arrow" style={{ color: setaCor }}>›</span>
                 </a>
               )}
-              {linksRapidos && linksRapidos.slice(0, obterLimiteLinksRapidos(perfil.plano_tipo)).map(l => {
+              {itensLinks.map((l: any) => {
+                if (l.__pix) return (
+                  <PixCardPublico key="pix" slug={slug} titulo={pixPublico?.titulo || 'Receber por Pix'} descricao={pixPublico?.descricao} cardBorder={cardBorderFinal} cardShadow={cardShadowNeon} iconeBg={iconeBg} iconeBorder={iconeBorder} iconeCor={corDaMarcaParaTema(iconeDaMarca('pix')!.cor, tema.mode)} setaCor={setaCor} />
+                )
                 const tipoEfetivo = detectarTipoPorUrl(l.url) || detectarTipoPorTitulo(l.titulo) || l.tipo
                 if (tipoEfetivo === 'email') {
                   const emailPuro = (l.url || '').replace(/^mailto:/i, '').trim()
@@ -1051,7 +1074,7 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
                     <EmailLinkCard key={l.id} itemId={l.id} email={emailPuro} titulo={l.titulo || 'E-mail'} descricao={l.descricao} iconeBg={iconeBg} iconeBorder={iconeBorder} iconeCor={iconeCor} setaCor={setaCor} textoCopiado={t.emailCopiado} />
                   )
                 }
-                const cfg = iconeLink(tipoEfetivo)
+                const cfg = iconeLink(escolherTipoDoIcone(tipoEfetivo, l.icone_marca))
                 const hrefFinal = urlFinalLink(l)
                 return (
                   <a key={l.id} href={hrefFinal} target={hrefFinal.startsWith('http') ? '_blank' : '_self'} rel="noopener noreferrer" className="crd link-card" style={{ textDecoration: 'none', color: 'inherit', border: cardBorderFinal, boxShadow: cardShadowNeon }} data-track-tipo="link_rapido_click" data-track-item-id={l.id} data-track-item-titulo={l.titulo || ''} data-track-item-url={hrefFinal}>
