@@ -1,3 +1,4 @@
+import { gerarCodigoTransferencia, hashConviteProtegido } from './convite-seguranca'
 // Criacao de convites de transferencia: LOGICA PURA (sem Next, sem Supabase, sem rede). Tudo que toca o mundo externo entra por
 // "deps" (banco e e-mail), para ser testada de verdade com falsos programaveis.
 //
@@ -77,16 +78,16 @@ export function montarEmail(nomeNegocio: string, linkConvite: string): { assunto
   const html = `
       <div style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;padding:32px;color:#181018;">
         <h1 style="font-size:24px;margin-bottom:16px;">
-          Você recebeu acesso a uma página profissional
+          VocÃª recebeu acesso a uma pÃ¡gina profissional
         </h1>
 
         <p style="font-size:16px;line-height:1.6;color:#3f3540;">
-          Você foi convidada(o) a assumir o acesso da página profissional
-          <strong>${nome}</strong> no ClienteMarcado.
+          VocÃª foi convidada(o) a assumir o acesso da pÃ¡gina profissional
+          <strong>${nome}</strong> na MiniPage Pro.
         </p>
 
         <p style="font-size:16px;line-height:1.6;color:#3f3540;">
-          Clique no botão abaixo para aceitar o convite e criar sua própria senha de acesso.
+          Clique no botÃ£o abaixo para aceitar o convite e criar sua prÃ³pria senha de acesso.
         </p>
 
         <p style="margin:28px 0;">
@@ -97,19 +98,19 @@ export function montarEmail(nomeNegocio: string, linkConvite: string): { assunto
         </p>
 
         <p style="font-size:13px;color:#6b5f6b;">
-          Este link expira em 7 dias e só pode ser usado uma vez.
-          Se você não esperava este convite, pode ignorar este e-mail.
+          Este link expira em 7 dias e sÃ³ pode ser usado uma vez.
+          Se vocÃª nÃ£o esperava este convite, pode ignorar este e-mail.
         </p>
 
         <hr style="border:0;border-top:1px solid #eee2ee;margin:28px 0;" />
 
         <p style="font-size:13px;color:#8a7c8a;">
-          ClienteMarcado<br/>
-          Página profissional, agenda online e gestão para beleza e estética.
+          MiniPage Pro<br/>
+          PÃ¡gina profissional, agenda online e gestÃ£o para beleza e estÃ©tica.
         </p>
       </div>
     `
-  return { assunto: `Você recebeu acesso à página profissional ${nomeNegocio}`, html }
+  return { assunto: `VocÃª recebeu acesso Ã  pÃ¡gina profissional ${nomeNegocio}`, html }
 }
 
 /** executa uma operacao de banco com UMA nova tentativa (falha transitoria); devolve o erro final em vez de lancar */
@@ -131,7 +132,7 @@ export async function criarConvite(input: CriarInput, deps: CriarDeps): Promise<
   const { store, email, agora, gerarToken, esperar, log } = deps
 
   const emailNovo = typeof input.emailNovo === 'string' ? input.emailNovo.trim().toLowerCase() : ''
-  if (!emailNovo || !EMAIL_RE.test(emailNovo)) return { status: 400, body: { error: 'Informe um e-mail válido.' } }
+  if (!emailNovo || !EMAIL_RE.test(emailNovo)) return { status: 400, body: { error: 'Informe um e-mail vÃ¡lido.' } }
   if (emailNovo === (input.adminEmail || '').toLowerCase()) {
     return { status: 400, body: { error: 'O novo e-mail precisa ser diferente do e-mail atual.' } }
   }
@@ -144,11 +145,15 @@ export async function criarConvite(input: CriarInput, deps: CriarDeps): Promise<
     }
   } catch (e) {
     log('cooldown_falhou', { erro: curto(e) })
-    return { status: 500, body: { error: 'Não foi possível criar o convite agora.' } }
+    return { status: 500, body: { error: 'NÃ£o foi possÃ­vel criar o convite agora.' } }
   }
 
   // 1) convite novo, PENDENTE, sem cancelar nada
-  const { tokenCru, tokenHash } = gerarToken()
+  // O token do link e o codigo de autorizacao sao independentes.
+  // O codigo e mostrado apenas UMA VEZ ao proprietario, nunca enviado no mesmo e-mail.
+  const { tokenCru } = gerarToken()
+  const codigoAutorizacao = gerarCodigoTransferencia()
+  const tokenHash = hashConviteProtegido(tokenCru, codigoAutorizacao)
   let novo: ConviteCriado
   try {
     novo = await store.inserirPendente({
@@ -160,12 +165,12 @@ export async function criarConvite(input: CriarInput, deps: CriarDeps): Promise<
     })
   } catch (e) {
     log('insercao_falhou', { erro: curto(e) })
-    return { status: 500, body: { error: 'Não foi possível criar o convite agora.' } } // nada foi enviado, nada foi cancelado
+    return { status: 500, body: { error: 'NÃ£o foi possÃ­vel criar o convite agora.' } } // nada foi enviado, nada foi cancelado
   }
 
   // 2) envio (a mesma chave e o mesmo conteudo em todas as tentativas: o Resend nao duplica o e-mail)
   const link = `${input.siteUrl.replace(/\/$/, '')}/convite/${tokenCru}`
-  const { assunto, html } = montarEmail(input.perfil.nome_negocio || 'ClienteMarcado', link)
+  const { assunto, html } = montarEmail(input.perfil.nome_negocio || 'MiniPage Pro', link)
   const chave = `convite-transferencia-${novo.id}`
   let envio: EnvioResultado = { tipo: 'incerto', motivo: 'nao_tentou' }
   for (let tentativa = 1; tentativa <= TENTATIVAS_ENVIO; tentativa++) {
@@ -185,7 +190,7 @@ export async function criarConvite(input: CriarInput, deps: CriarDeps): Promise<
     if (!r.ok) log('registro_falha_falhou', { conviteId: novo.id, erro: curto(r.erro) })
     return {
       status: 502,
-      body: { error: 'Não foi possível enviar o e-mail do convite. O convite anterior, se existir, continua válido.', codigo: 'ENVIO_REJEITADO' },
+      body: { error: 'NÃ£o foi possÃ­vel enviar o e-mail do convite. O convite anterior, se existir, continua vÃ¡lido.', codigo: 'ENVIO_REJEITADO' },
     }
   }
 
@@ -197,7 +202,7 @@ export async function criarConvite(input: CriarInput, deps: CriarDeps): Promise<
     return {
       status: 503,
       body: {
-        error: 'Não foi possível confirmar o envio do e-mail. O convite anterior continua válido. Aguarde alguns instantes, confira o status abaixo e, se o e-mail não chegar, envie novamente.',
+        error: 'NÃ£o foi possÃ­vel confirmar o envio do e-mail. O convite anterior continua vÃ¡lido. Aguarde alguns instantes, confira o status abaixo e, se o e-mail nÃ£o chegar, envie novamente.',
         codigo: 'ENVIO_INDETERMINADO',
       },
     }
@@ -214,7 +219,7 @@ export async function criarConvite(input: CriarInput, deps: CriarDeps): Promise<
     return {
       status: 503,
       body: {
-        error: 'O e-mail do novo convite foi enviado, mas não foi possível cancelar os convites anteriores. Eles continuam válidos até expirarem; envie o convite novamente para concluir.',
+        error: 'O e-mail do novo convite foi enviado, mas nÃ£o foi possÃ­vel cancelar os convites anteriores. Eles continuam vÃ¡lidos atÃ© expirarem; envie o convite novamente para concluir.',
         codigo: 'CANCELAMENTO_PENDENTE',
         email_enviado: true,
       },
@@ -227,7 +232,9 @@ export async function criarConvite(input: CriarInput, deps: CriarDeps): Promise<
       ok: true,
       estado: 'solicitado', // o provedor ACEITOU o envio; a entrega efetiva so e confirmada pelo webhook
       anteriores_canceladas: cancel.valor,
-      acompanhamento: registro.ok, // false = o e-mail saiu, mas o id nao pode ser registrado (sem acompanhamento de entrega)
+      acompanhamento: registro.ok, // false = o e-mail saiu, mas o id nao pode ser registrado
+      link_convite: link,
+      codigo_autorizacao: codigoAutorizacao, // so devolvido ao dono autenticado, uma vez
     },
   }
 }

@@ -1,4 +1,4 @@
-import crypto from 'crypto'
+import { codigoValido, hashConviteProtegido } from './convite-seguranca'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { ehEmailJaCadastrado } from './auth-erros'
 
@@ -16,7 +16,7 @@ import { ehEmailJaCadastrado } from './auth-erros'
 
 export type AceiteInput = {
   token?: string | null; senha?: string | null; confirmar?: string | null
-  nome?: string | null; termos?: boolean | null; bearer?: string | null
+  nome?: string | null; termos?: boolean | null; bearer?: string | null; codigo?: string | null
 }
 export type AceiteResultado = { status: number; body: Record<string, unknown> }
 
@@ -62,7 +62,9 @@ export async function aceitarConvite(
   if (!token) return { status: 400, body: { codigo: 'CONVITE_INVALIDO', error: 'Convite inválido.' } }
 
   // ---- 1) Validar o convite (so pelo token; nunca pela sessao) ----
-  const tokenHash = crypto.createHash('sha256').update(token).digest('hex')
+  // Sem o codigo separado, o link sozinho nao autoriza NENHUMA transferencia.
+  if (!codigoValido(input.codigo)) return { status: 403, body: { codigo: 'CODIGO_NECESSARIO', error: 'Informe o codigo de autorizacao fornecido pelo proprietario.' } }
+  const tokenHash = hashConviteProtegido(token, input.codigo.toLowerCase())
   const { data: convite, error: erroConvite } = await supabase
     .from('convites_transferencia').select('*').eq('token_hash', tokenHash).maybeSingle()
   log('TRANSFER_VALIDATE_TOKEN', { achou: !!convite, status: convite?.status, erroBanco: erroConvite?.message })

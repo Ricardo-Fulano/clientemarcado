@@ -17,7 +17,7 @@ export async function POST(request: NextRequest) {
     const supabase = createClient(url, process.env.SUPABASE_SERVICE_ROLE_KEY!)
     const criarClienteAnon = () => createClient(url, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, { auth: { persistSession: false, autoRefreshToken: false } })
     const r = await aceitarConvite(supabase, {
-      token: body?.token, senha: body?.senha, confirmar: body?.confirmar, nome: body?.nome, termos: body?.termos === true, bearer,
+      token: body?.token, senha: body?.senha, confirmar: body?.confirmar, nome: body?.nome, termos: body?.termos === true, bearer, codigo: body?.codigo,
     }, criarClienteAnon)
     return NextResponse.json(r.body, { status: r.status })
   } catch (err) {

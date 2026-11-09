@@ -31,6 +31,8 @@ type ConviteRecente = {
   email_erro: string | null
 }
 
+const botaoLinkLocal: React.CSSProperties = { background: 'none', color: '#EC4899', border: '1px solid #EC4899', padding: '6px 10px', borderRadius: '8px', marginLeft: '8px', cursor: 'pointer' }
+
 const ROTULO_CONVITE: Record<string, string> = { pendente: 'Aguardando aceite', aceito: 'Aceito', cancelado: 'Cancelado ou substituído', expirado: 'Expirado' }
 
 function fmtDataHora(iso: string | null): string {
@@ -80,6 +82,7 @@ export default function AlterarSenha() {
   const [transferindo, setTransferindo] = useState(false)
   const [transferMsg, setTransferMsg] = useState('')
   const [transferOk, setTransferOk] = useState(false)
+  const [dadosConvite, setDadosConvite] = useState<{ link: string; codigo: string } | null>(null)
   const [convitesRecentes, setConvitesRecentes] = useState<ConviteRecente[]>([])
   const [convitesErro, setConvitesErro] = useState(false)
 
@@ -125,6 +128,7 @@ export default function AlterarSenha() {
   async function transferirAcesso() {
     setTransferMsg('')
     setTransferOk(false)
+    setDadosConvite(null)
     const novo = novoEmailAcesso.trim().toLowerCase()
     if (!novo) { setTransferMsg('Informe um e-mail válido.'); return }
     if (!emailValido(novo)) { setTransferMsg('Informe um e-mail válido.'); return }
@@ -146,10 +150,12 @@ export default function AlterarSenha() {
       return
     }
     setTransferOk(true)
+    if (typeof data.link_convite === 'string' && typeof data.codigo_autorizacao === 'string')
+      setDadosConvite({ link: data.link_convite, codigo: data.codigo_autorizacao })
     setNovoEmailAcesso('')
     setTransferMsg(data.acompanhamento === false
       ? 'Convite enviado ao provedor de e-mail, mas o acompanhamento da entrega não pôde ser registrado. Confirme com a pessoa se o e-mail chegou.'
-      : 'Convite aceito para envio. A pessoa receberá um link para entrar ou criar a conta e assumir esta MiniPage. Acompanhe a entrega abaixo; se ela não encontrar o e-mail, peça para olhar o spam.')
+      : 'Convite aceito para envio. Salve o link e o código acima agora. Compartilhe o link por WhatsApp, se necessário, e o código separadamente. O código não estará disponível depois de sair desta tela.')
   }
 
   async function salvar() {
@@ -207,7 +213,7 @@ export default function AlterarSenha() {
           {!souProfissional && (
           <div className="crd" style={{ marginTop: '18px' }}>
             <h2 style={{ fontSize: '15px', fontWeight: 700, color: '#F8F4F7', marginBottom: '4px' }}>Transferir acesso da MiniPage</h2>
-            <p style={{ fontSize: '12px', color: '#B8AAB8', marginBottom: '20px', lineHeight: 1.6 }}>Transfira esta página profissional para outro e-mail com segurança. O e-mail atual autoriza a transferência e o novo e-mail cria a própria senha de acesso.</p>
+            <p style={{ fontSize: '12px', color: '#B8AAB8', marginBottom: '20px', lineHeight: 1.6 }}>Transfira esta página profissional para outro e-mail com segurança. O proprietário cria um convite protegido por código separado; o destinatário cria sua própria senha de acesso.</p>
 
             <div style={{ marginBottom: '14px' }}>
               <label className="lbl">E-mail atual</label>
@@ -220,10 +226,22 @@ export default function AlterarSenha() {
 
             {transferMsg && <p style={{ fontSize: '12px', marginBottom: '14px', color: transferOk ? '#22C55E' : '#EF4444' }}>{transferOk ? '✓ ' : ''}{transferMsg}</p>}
 
+            {dadosConvite && (
+              <div className="msg-ok" style={{ wordBreak: 'break-word' }}>
+                <strong>Convite criado. Guarde estes dados agora!</strong>
+                <p style={{ marginTop: '10px' }}>1. Link do convite (pode ser enviado por WhatsApp):</p>
+                <code style={{ userSelect: 'all' }}>{dadosConvite.link}</code>
+                <button type="button" onClick={() => navigator.clipboard.writeText(dadosConvite.link)} style={{ ...botaoLinkLocal }}>Copiar link</button>
+                <p style={{ marginTop: '10px' }}>2. Código de autorização (ENTREGUE SEPARADAMENTE, de preferência por ligação):</p>
+                <code style={{ userSelect: 'all' }}>{dadosConvite.codigo}</code>
+                <button type="button" onClick={() => navigator.clipboard.writeText(dadosConvite.codigo)} style={{ ...botaoLinkLocal }}>Copiar código</button>
+                <p style={{ marginTop: '10px' }}>Não envie link e código na mesma mensagem. O código não poderá ser consultado novamente; se perdê-lo, crie outro convite.</p>
+              </div>
+            )}
             <button type="button" onClick={transferirAcesso} disabled={transferindo} className="btn-p" style={{ marginBottom: '12px', opacity: transferindo ? .7 : 1, cursor: transferindo ? 'not-allowed' : 'pointer' }}>
               {transferindo ? 'Enviando...' : 'Enviar convite de transferência'}
             </button>
-            <p style={{ fontSize: '11px', color: '#B8AAB8', lineHeight: 1.6 }}>A pessoa recebe um link exclusivo por e-mail para entrar ou criar a conta e assumir esta MiniPage. Se já tiver uma conta, basta entrar; se ainda não tiver, cria o acesso pelo próprio convite. Você não vê nem define a senha dela em nenhum momento.</p>
+            <p style={{ fontSize: '11px', color: '#B8AAB8', lineHeight: 1.6 }}>A pessoa recebe um link exclusivo por e-mail para entrar ou criar a conta. Também precisará do código mostrado acima, fornecido separadamente por você. Se já tiver uma conta, basta entrar; se ainda não tiver, cria o acesso pelo próprio convite. Você não vê nem define a senha dela em nenhum momento.</p>
             <p style={{ fontSize: '11px', color: '#B8AAB8', lineHeight: 1.6, marginTop: '6px' }}>O convite expira em 7 dias e só pode ser usado uma vez.</p>
 
             {convitesRecentes.length > 0 && (

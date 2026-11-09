@@ -1,6 +1,6 @@
+import { codigoValido, hashConviteProtegido } from '../../../lib/convite-seguranca'
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
-import crypto from 'crypto'
 
 // Valida um token de convite (rota publica, sem login). O e-mail devolvido vem SEMPRE do
 // convite deste token - nunca da sessao. Informa tambem se esse e-mail ja tem conta, para a
@@ -11,7 +11,9 @@ export async function GET(request: NextRequest) {
     if (!token) return NextResponse.json({ valido: false, motivo: 'Link inválido.' }, { status: 400 })
 
     const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
-    const tokenHash = crypto.createHash('sha256').update(token).digest('hex')
+    const codigo = request.nextUrl.searchParams.get('codigo')
+    if (!codigoValido(codigo)) return NextResponse.json({ valido: false, motivo: 'Informe o codigo de autorizacao.' }, { status: 403 })
+    const tokenHash = hashConviteProtegido(token, codigo.toLowerCase())
 
     const { data: convite } = await supabase
       .from('convites_transferencia')

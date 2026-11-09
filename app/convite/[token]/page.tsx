@@ -39,7 +39,9 @@ export default function AceitarConvite() {
   const params = useParams()
   const token = (params?.token as string) || ''
 
-  const [carregando, setCarregando] = useState(true)
+  const [carregando, setCarregando] = useState(false)
+  const [codigoAutorizacao, setCodigoAutorizacao] = useState('')
+  const [codigoConfirmado, setCodigoConfirmado] = useState('')
   const [valido, setValido] = useState(false)
   const [motivo, setMotivo] = useState('')
   const [nomeNegocio, setNomeNegocio] = useState('')
@@ -59,24 +61,23 @@ export default function AceitarConvite() {
   // E-mail da sessao atual do navegador: serve so para avisar quando e outra conta.
   const [emailSessao, setEmailSessao] = useState('')
 
-  useEffect(() => {
-    async function validar() {
-      const res = await fetch(`/api/convite/validar?token=${encodeURIComponent(token)}`)
+  async function validarComCodigo() {
+    const codigo = codigoAutorizacao.trim().replace(/[\s-]/g, '').toLowerCase()
+    if (!/^[0-9a-f]{32}$/.test(codigo)) { setMotivo('O codigo de autorizacao deve ter 32 caracteres.'); return }
+    setCarregando(true); setMotivo('')
+    try {
+      const res = await fetch(`/api/convite/validar?token=${encodeURIComponent(token)}&codigo=${encodeURIComponent(codigo)}`, { cache: 'no-store' })
       const data = await res.json()
-      setValido(!!data.valido)
       if (data.valido) {
+        setValido(true); setCodigoConfirmado(codigo)
         setNomeNegocio(data.nome_negocio)
         setEmailNovo(data.email_novo)
         setContaExistente(typeof data.conta_existente === 'boolean' ? data.conta_existente : null)
-        // Conta existente -> entrar. E-mail sem conta -> criar. Incerto -> entrar (com link para criar).
         setModo(data.conta_existente === false ? 'criar' : 'entrar')
-      } else {
-        setMotivo(data.motivo || 'Não foi possível validar este convite.')
-      }
-      setCarregando(false)
-    }
-    if (token) validar()
-  }, [token])
+      } else setMotivo(data.motivo || 'Convite ou codigo incorreto.')
+    } catch { setMotivo('Nao foi possivel validar o convite agora.') }
+    finally { setCarregando(false) }
+  }
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => setEmailSessao(data.session?.user?.email || ''))
@@ -91,7 +92,7 @@ export default function AceitarConvite() {
     const res = await fetch('/api/convite/aceitar', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + accessToken },
-      body: JSON.stringify({ token }),
+      body: JSON.stringify({ token, codigo: codigoConfirmado }),
     })
     const data = await res.json().catch(() => ({}))
     if (!res.ok) { setErro(data.error || MSG_PADRAO); return false }
@@ -139,7 +140,7 @@ export default function AceitarConvite() {
       const res = await fetch('/api/convite/aceitar', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token, nome: nome.trim(), senha, confirmar, termos: true }),
+        body: JSON.stringify({ token, codigo: codigoConfirmado, nome: nome.trim(), senha, confirmar, termos: true }),
       })
       const data = await res.json().catch(() => ({}))
       if (!res.ok) {
@@ -170,7 +171,18 @@ export default function AceitarConvite() {
 
   if (carregando) return <Cartao><p style={{ fontSize: '14px', color: '#B8AAB8' }}>Verificando convite...</p></Cartao>
 
-  if (!valido) return <Cartao><Titulo>Convite indisponível</Titulo><Texto>{motivo}</Texto></Cartao>
+  if (!valido) return (
+    <Cartao>
+      <Titulo>Confirmar convite de transferência</Titulo>
+      <Texto>Peça ao proprietário da MiniPage o código de autorização. O link sozinho não permite assumir a página.</Texto>
+      <div style={{ textAlign: 'left', marginBottom: '14px' }}>
+        <label style={rotulo}>Código de autorização (32 caracteres)</label>
+        <input type="text" autoComplete="off" spellCheck={false} value={codigoAutorizacao} onChange={e => setCodigoAutorizacao(e.target.value)} placeholder="Cole o código recebido separadamente" style={campo} />
+      </div>
+      {motivo && <p style={{ color: '#EF4444', fontSize: '13px', marginBottom: '12px' }}>{motivo}</p>}
+      <button type="button" disabled={carregando} onClick={validarComCodigo} style={botaoPrincipal(carregando)}>{carregando ? 'Validando...' : 'Validar convite'}</button>
+    </Cartao>
+  )
 
   if (concluidoSemLogin) return (
     <Cartao>

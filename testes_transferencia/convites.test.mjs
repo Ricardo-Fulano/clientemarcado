@@ -1,3 +1,4 @@
+import { hashConviteProtegido } from '../app/lib/convite-seguranca.ts'
 // Testes de COMPORTAMENTO da transferencia de MiniPages (nao procuram texto no codigo: executam a logica real com banco e Resend falsos).
 //   node --test "testes_transferencia/*.test.mjs"   (aspas obrigatorias no CMD/PowerShell; Node >= 22.18; em 22.6-22.17 acrescente --experimental-strip-types)
 // Nenhum teste usa rede, Supabase, Resend ou dados reais. O convite real da Ana e apenas reproduzido em memoria.
@@ -53,7 +54,12 @@ test('3) sucesso: novo pendente com id do Resend registrado; SO os anteriores do
   const c = cenario()
   const r = await c.criar()
   assert.equal(r.status, 200)
-  assert.deepEqual(r.body, { ok: true, estado: 'solicitado', anteriores_canceladas: 1, acompanhamento: true })
+  assert.equal(r.body.ok, true)
+  assert.equal(r.body.estado, 'solicitado')
+  assert.equal(r.body.anteriores_canceladas, 1)
+  assert.equal(r.body.acompanhamento, true)
+  assert.ok(r.body.link_convite)
+  assert.match(r.body.codigo_autorizacao, /^[0-9a-f]{32}$/)
   const novo = novoConvite(c.db)
   assert.equal(novo.status, 'pendente')
   assert.equal(novo.email_status, 'solicitado') // aceito pelo provedor, NAO "entregue"
@@ -73,7 +79,9 @@ test('4) so o HASH do token vai ao banco; o link do e-mail leva o token cru e co
   const novo = novoConvite(c.db)
   const msg = c.email.chamadas[0]
   const token = /\/convite\/([^"]+)"/.exec(msg.html)[1]
-  assert.equal(sha256(token), novo.token_hash)
+  assert.equal(hashConviteProtegido(token, r.body.codigo_autorizacao), novo.token_hash)
+  assert.notEqual(sha256(token), novo.token_hash, 'link isolado nao pode autorizar a transferencia')
+  assert.equal(msg.html.includes(r.body.codigo_autorizacao), false, 'o codigo nao pode ser enviado junto com o link')
   assert.equal(JSON.stringify(c.db.estado.rows).includes(token), false, 'token cru nao pode estar no banco')
   assert.ok(msg.html.includes('Studio &lt;img src=x onerror=1&gt; &amp; &quot;Cia&quot;'))
   assert.equal(msg.html.includes('<img src=x'), false)
