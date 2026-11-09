@@ -6,7 +6,7 @@ import { supabase } from '../lib/supabase'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { headers } from 'next/headers'
-import { Inter } from 'next/font/google'
+
 import { Zap, CalendarDays, CheckCircle, Sparkles, GraduationCap, Crown, Globe, Link2, ShoppingBag, PlayCircle, BadgeCheck, MapPin, Calendar, Lock, Mail, Phone } from 'lucide-react'
 import EmailLinkCard from '../components/EmailLinkCard'
 import CatalogoItemCard from '../components/CatalogoItemCard'
@@ -30,7 +30,7 @@ import { resolverOrdemPagina } from '../lib/ordemPagina'
 import { resolverTema, getTema } from '../lib/tema-publico'
 import { ehPlanoComGestao, permiteVideos, permiteDestaques, permiteAgendaEventos, obterLimiteCatalogos, podeUsarCatalogo, obterLimiteSecoesDestaques, obterLimiteLinksRapidos, ehPlanoFree, permiteAlbuns, permiteCardsVisuais, permiteSpotify } from '../lib/planos'
 
-const inter = Inter({ subsets: ['latin'], weight: ['400', '500', '600', '700'], display: 'swap' })
+
 
 // Forca a pagina publica a NUNCA cachear dados - sem isso, o Next.js pode servir uma
 // versao antiga da pagina mesmo depois de o dono editar links/destaques/catalogo, ate
@@ -694,7 +694,7 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
   const promoVisivel = !!(perfil.promocao_ativa && perfil.promocao_titulo && perfil.promocao_preco_novo && promoDentroPeriodo)
 
   return (
-    <main className={`${inter.className}${modoImersivoAtivo ? ' modo-imersivo' : ''}`} style={{ minHeight: '100vh', background: modoImersivoAtivo ? 'transparent' : 'var(--bg)', color: 'var(--text)' }}>
+    <main className={modoImersivoAtivo ? 'modo-imersivo' : ''} style={{ minHeight: '100vh', background: modoImersivoAtivo ? 'transparent' : 'var(--bg)', color: 'var(--text)' }}>
       <style dangerouslySetInnerHTML={{ __html: CSS + `
         :root { --accent: ${tema.accent}; --accent-border: ${tema.border}; --accent-glow: ${tema.glow}; --bg: ${tema.bg}; --bg-rgb: ${tema.bgRGB}; --card: ${tema.card}; --text: ${tema.text}; --text-muted: ${tema.textMuted}; }
         @media(max-width:767px){
