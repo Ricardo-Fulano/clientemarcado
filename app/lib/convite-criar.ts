@@ -78,16 +78,16 @@ export function montarEmail(nomeNegocio: string, linkConvite: string): { assunto
   const html = `
       <div style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;padding:32px;color:#181018;">
         <h1 style="font-size:24px;margin-bottom:16px;">
-          VocÃª recebeu acesso a uma pÃ¡gina profissional
+          Você recebeu acesso a uma página profissional
         </h1>
 
         <p style="font-size:16px;line-height:1.6;color:#3f3540;">
-          VocÃª foi convidada(o) a assumir o acesso da pÃ¡gina profissional
+          Você foi convidada(o) a assumir o acesso da página profissional
           <strong>${nome}</strong> na MiniPage Pro.
         </p>
 
         <p style="font-size:16px;line-height:1.6;color:#3f3540;">
-          Clique no botÃ£o abaixo para aceitar o convite e criar sua prÃ³pria senha de acesso.
+          Clique no botão abaixo para aceitar o convite e criar sua própria senha de acesso.
         </p>
 
         <p style="margin:28px 0;">
@@ -98,19 +98,19 @@ export function montarEmail(nomeNegocio: string, linkConvite: string): { assunto
         </p>
 
         <p style="font-size:13px;color:#6b5f6b;">
-          Este link expira em 7 dias e sÃ³ pode ser usado uma vez.
-          Se vocÃª nÃ£o esperava este convite, pode ignorar este e-mail.
+          Este link expira em 7 dias e só pode ser usado uma vez.
+          Se você não esperava este convite, pode ignorar este e-mail.
         </p>
 
         <hr style="border:0;border-top:1px solid #eee2ee;margin:28px 0;" />
 
         <p style="font-size:13px;color:#8a7c8a;">
           MiniPage Pro<br/>
-          PÃ¡gina profissional, agenda online e gestÃ£o para beleza e estÃ©tica.
+          Página profissional, agenda online e gestão para beleza e estética.
         </p>
       </div>
     `
-  return { assunto: `VocÃª recebeu acesso Ã  pÃ¡gina profissional ${nomeNegocio}`, html }
+  return { assunto: `Você recebeu acesso à página profissional ${nomeNegocio}`, html }
 }
 
 /** executa uma operacao de banco com UMA nova tentativa (falha transitoria); devolve o erro final em vez de lancar */
