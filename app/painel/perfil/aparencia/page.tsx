@@ -19,6 +19,39 @@ const TEMAS=TEMAS_MINIPAGE
 
 const BANNERS_PRONTOS=Array.from({length:14},(_,i)=>`/banners/prontos/banner-${String(i+1).padStart(2,'0')}.webp`)
 
+// Reduz o peso de banners novos sem cortar a imagem ou alterar sua proporcao.
+// Usa WebP (inclusive para preservar transparencia) e so substitui o original
+// quando a conversao realmente produzir um arquivo menor.
+async function otimizarBanner(file: File, maxDimensao: number): Promise<File> {
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file)
+    const img = new Image()
+    img.onload = () => {
+      URL.revokeObjectURL(url)
+      const escala = Math.min(1, maxDimensao / Math.max(img.naturalWidth, img.naturalHeight))
+      const largura = Math.max(1, Math.round(img.naturalWidth * escala))
+      const altura = Math.max(1, Math.round(img.naturalHeight * escala))
+      const canvas = document.createElement('canvas')
+      canvas.width = largura
+      canvas.height = altura
+      const ctx = canvas.getContext('2d')
+      if (!ctx) { reject(new Error('Canvas indisponivel')); return }
+      ctx.drawImage(img, 0, 0, largura, altura)
+      canvas.toBlob(blob => {
+        if (!blob || blob.type !== 'image/webp') {
+          resolve(file) // navegador sem suporte: mantem o original
+          return
+        }
+        if (blob.size >= file.size) { resolve(file); return }
+        const nome = file.name.replace(/\.[^.]+$/, '') + '.webp'
+        resolve(new File([blob], nome, { type: 'image/webp' }))
+      }, 'image/webp', 0.82)
+    }
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('Imagem invalida')) }
+    img.src = url
+  })
+}
+
 const CSS=`
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html,body{overflow-x:hidden;width:100%;max-width:100%;background:#08060A}
@@ -125,9 +158,15 @@ export default function GerenciarAparencia(){
     if(!allowedTypes.includes(file.type)){setMsg('Envie uma imagem JPG, PNG ou WEBP.');return}
     if(file.size>5*1024*1024){setMsg('A imagem deve ter no máximo 5MB.');return}
 
-    const ext=file.name.split('.').pop()?.toLowerCase()||'png'
+    let arquivo: File
+    try {
+      arquivo = await otimizarBanner(file, 1920)
+    } catch {
+      setMsg('Nao foi possivel processar a imagem da capa. Tente outra imagem.');return
+    }
+    const ext=arquivo.type==='image/webp'?'webp':(arquivo.name.split('.').pop()?.toLowerCase()||'jpg')
     const path=`capas/${userId}-${Date.now()}.${ext}`
-    const {error:uploadError}=await supabase.storage.from('fotos').upload(path,file,{upsert:true,contentType:file.type,cacheControl:'3600'})
+    const {error:uploadError}=await supabase.storage.from('fotos').upload(path,arquivo,{upsert:true,contentType:arquivo.type,cacheControl:'3600'})
     if(uploadError){setMsg('Erro no upload: '+uploadError.message);return}
 
     const {data}=supabase.storage.from('fotos').getPublicUrl(path)
@@ -144,34 +183,40 @@ export default function GerenciarAparencia(){
   }
 
   async function uploadCapaVideo(e:React.ChangeEvent<HTMLInputElement>){
-    const file=e.target.files?.[0];if(!file)return
+    const fileOriginal=e.target.files?.[0];if(!fileOriginal)return
     if(!(await validarSessao()))return
-
-    // So aceita MP4 (o formato que a capa em video foi pensada pra usar - outros formatos/
-    // origens como YouTube/Instagram/TikTok ficam pra "Videos em destaque", que ja tem seu
-    // proprio fluxo separado).
-    if(file.type!=='video/mp4'){setMsg('Envie um vídeo no formato MP4.');return}
-    // Limite generoso o suficiente pra um video curto (10-15s) em boa qualidade, mas que
-    // protege a pagina de ficar lenta com arquivos gigantes.
-    if(file.size>25*1024*1024){setMsg('O vídeo deve ter no máximo 25MB. Tente comprimir ou encurtar o vídeo.');return}
+    if(fileOriginal.type!=='video/mp4'){setMsg('Envie um vídeo no formato MP4.');return}
+    if(fileOriginal.size>25*1024*1024){setMsg('O vídeo deve ter no máximo 25MB. Tente comprimir ou encurtar o vídeo.');return}
 
     setEnviandoVideo(true)
-    const path=`capas/${userId}-${Date.now()}.mp4`
-    const {error:uploadError}=await supabase.storage.from('fotos').upload(path,file,{upsert:true,contentType:'video/mp4',cacheControl:'3600'})
-    if(uploadError){setMsg('Erro no upload do vídeo: '+uploadError.message);setEnviandoVideo(false);return}
+    try {
+      setMsg('Preparando vídeo para envio...')
+      // Comprime antes do upload. Em caso de erro, nao envia o original silenciosamente.
+      const { comprimirVideo } = await import('@/lib/video/comprimirVideo')
+      const arquivo = await comprimirVideo(fileOriginal)
 
-    const {data}=supabase.storage.from('fotos').getPublicUrl(path)
-    setBannerVideoUrl(data.publicUrl)
-    setEnviandoVideo(false)
-    if(videoRef.current)videoRef.current.value=''
+      const path=`capas/${userId}-${Date.now()}.mp4`
+      const {error:uploadError}=await supabase.storage.from('fotos').upload(path,arquivo,{upsert:true,contentType:'video/mp4',cacheControl:'3600'})
+      if(uploadError){setMsg('Erro no upload do vídeo: '+uploadError.message);return}
+
+      const {data}=supabase.storage.from('fotos').getPublicUrl(path)
+      setBannerVideoUrl(data.publicUrl)
+      const economia=Math.round((1-arquivo.size/fileOriginal.size)*100)
+      setMsg(economia>0?`Vídeo enviado! Redução de ${economia}% no tamanho.`:'Vídeo enviado com sucesso!')
+    } catch (erro) {
+      console.error('[MiniPage video] Upload desktop cancelado:', erro)
+      setMsg('Vídeo não enviado: falha no processamento. Confira o Console.')
+    } finally {
+      setEnviandoVideo(false)
+      if(videoRef.current)videoRef.current.value=''
+    }
   }
 
   async function uploadTopoMobile(e:React.ChangeEvent<HTMLInputElement>){
     const file=e.target.files?.[0];if(!file)return
     if(!(await validarSessao()))return
 
-    // Defesa extra: mesmo que a UI ja bloqueie o clique, essa checagem impede o upload de
-    // video se o estado for manipulado externamente (ex: DevTools) - Free nunca envia video.
+    // Mantém a proteção original: contas Free não enviam vídeo mobile.
     if(topoMobileTipo==='video'&&ehPlanoFree(planoTipo)){
       setMsg('Topo em vídeo no celular disponível no plano MiniPage Pro.')
       return
@@ -187,15 +232,39 @@ export default function GerenciarAparencia(){
     }
 
     setEnviandoTopoMobile(true)
-    const ext=topoMobileTipo==='video'?'mp4':(file.name.split('.').pop()?.toLowerCase()||'jpg')
-    const path=`topo-mobile/${userId}-${Date.now()}.${ext}`
-    const {error:uploadError}=await supabase.storage.from('fotos').upload(path,file,{upsert:true,contentType:file.type,cacheControl:'3600'})
-    if(uploadError){setMsg('Erro no upload: '+uploadError.message);setEnviandoTopoMobile(false);return}
+    try {
+      let arquivo: File = file
+      if(topoMobileTipo==='video') {
+        setMsg('Preparando vídeo mobile para envio...')
+        const { comprimirVideo } = await import('@/lib/video/comprimirVideo')
+        arquivo = await comprimirVideo(file)
+      } else {
+        try {
+          arquivo = await otimizarBanner(file, 1600)
+        } catch {
+          setMsg('Não foi possível processar a imagem do topo mobile. Tente outra imagem.')
+          return
+        }
+      }
 
-    const {data}=supabase.storage.from('fotos').getPublicUrl(path)
-    setTopoMobileUrl(data.publicUrl)
-    setEnviandoTopoMobile(false)
-    if(topoMobileRef.current)topoMobileRef.current.value=''
+      const ext=topoMobileTipo==='video'?'mp4':(arquivo.type==='image/webp'?'webp':(arquivo.name.split('.').pop()?.toLowerCase()||'jpg'))
+      const path=`topo-mobile/${userId}-${Date.now()}.${ext}`
+      const {error:uploadError}=await supabase.storage.from('fotos').upload(path,arquivo,{upsert:true,contentType:arquivo.type,cacheControl:'3600'})
+      if(uploadError){setMsg('Erro no upload: '+uploadError.message);return}
+
+      const {data}=supabase.storage.from('fotos').getPublicUrl(path)
+      setTopoMobileUrl(data.publicUrl)
+      if(topoMobileTipo==='video'){
+        const economia=Math.round((1-arquivo.size/file.size)*100)
+        setMsg(economia>0?`Vídeo mobile enviado! Redução de ${economia}% no tamanho.`:'Vídeo mobile enviado com sucesso!')
+      }
+    } catch (erro) {
+      console.error('[MiniPage video] Upload mobile cancelado:', erro)
+      setMsg('Não foi possível processar/enviar o topo mobile. Confira o Console.')
+    } finally {
+      setEnviandoTopoMobile(false)
+      if(topoMobileRef.current)topoMobileRef.current.value=''
+    }
   }
 
   // Comprime a imagem no navegador ANTES do upload - redimensiona pra no maximo 800x800px
