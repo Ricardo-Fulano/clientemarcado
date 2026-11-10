@@ -6,8 +6,7 @@ import Link from 'next/link'
 import { ArrowLeft, ArrowUp, ArrowDown, Pencil, Trash2, PlayCircle } from 'lucide-react'
 import PainelSidebar from '@/app/components/PainelSidebar'
 import VerMiniPageButton from '@/app/components/VerMiniPageButton'
-import BloqueioPorPlano from '@/app/components/BloqueioPorPlano'
-import { permiteVideos } from '../../../lib/planos'
+import { ehPlanoFree } from '../../../lib/planos'
 
 const G='linear-gradient(135deg,#EC4899,#D946EF,#8B5CF6)'
 
@@ -99,7 +98,84 @@ export default function GerenciarVideos(){
     if(v.plataforma==='vimeo')return 'Vídeo'
     return 'Conteúdo em vídeo'
   }
+  // O banco tambem valida a plataforma e o limite do Free (trigger ja aplicado).
+  // Esta checagem melhora a experiencia, sem depender dela para seguranca.
+  function youtubePermitidoNoFree(url: string): boolean {
+    return /^https?:\/\/(?:(?:www|m)\.)?youtube\.com\/watch\?([^#]*&)?v=[a-zA-Z0-9_-]{11}([&#]|$)/i.test(url)
+      || /^https?:\/\/(?:(?:www|m)\.)?youtube\.com\/(shorts|embed|live)\/[a-zA-Z0-9_-]{11}([/?#]|$)/i.test(url)
+      || /^https?:\/\/youtu\.be\/[a-zA-Z0-9_-]{11}([/?#]|$)/i.test(url)
+  }
+  const planoFree = ehPlanoFree(planoTipo)
+  const videosPersistidos = videos.filter(v => !v._novo)
+  const freeAtingiuLimite = planoFree && videosPersistidos.length >= 1
+
+  // A API existente usa oEmbed. A imagem pode funcionar mesmo quando o titulo
+  // nao e retornado, portanto a busca nunca e obrigatoria para salvar.
+  const urlVideoEmEdicao = videos.find(v => v.id === editandoId)?.url_video || ''
+  const [buscandoTituloId, setBuscandoTituloId] = useState('')
+  const [avisoTitulo, setAvisoTitulo] = useState<{ id: string; texto: string } | null>(null)
+  const tentativasAutomaticas = useRef<Set<string>>(new Set())
+
+  // Mesmo comportamento do modulo Destaques: usa a API de previa existente
+  // e preenche apenas campos vazios. O titulo continua opcional.
+  async function buscarTituloVideo(id: string, urlOriginal: string) {
+    const url = normalizarUrl(urlOriginal)
+    if (!url || !/^https?:\/\//i.test(url)) {
+      setAvisoTitulo({ id, texto: 'Cole um link válido antes de gerar a prévia.' })
+      return
+    }
+    setBuscandoTituloId(id)
+    setAvisoTitulo(null)
+    try {
+      const dados = await chamarPreviewLink({ url })
+      const titulo = typeof dados?.titulo === 'string' ? dados.titulo.trim() : ''
+      const tituloFallback = typeof dados?.titulo_fallback === 'string' ? dados.titulo_fallback.trim() : ''
+      const imagem = typeof dados?.imagem_url === 'string' ? dados.imagem_url.trim() : ''
+      if (dados?.success || tituloFallback) {
+        setVideos(prev => prev.map(v => {
+          if (v.id !== id || normalizarUrl(v.url_video) !== url) return v
+          return {
+            ...v,
+            titulo: v.titulo?.trim() ? v.titulo : (titulo || tituloFallback || v.titulo),
+            thumbnail_url: v.thumbnail_url?.trim() ? v.thumbnail_url : (imagem || v.thumbnail_url),
+          }
+        }))
+      }
+      if (dados?.success && titulo) {
+        setAvisoTitulo({ id, texto: 'Prévia encontrada! O título e a capa são preenchidos apenas se estiverem vazios.' })
+      } else if (dados?.success && imagem) {
+        setAvisoTitulo({ id, texto: 'A capa foi encontrada, mas o título não foi disponibilizado. Você pode deixar o campo vazio.' })
+      } else {
+        setAvisoTitulo({ id, texto: dados?.message || 'Não foi possível buscar a prévia. Você pode preencher manualmente ou salvar sem título.' })
+      }
+    } catch {
+      setAvisoTitulo({ id, texto: 'Não foi possível buscar a prévia agora. Você pode salvar sem título.' })
+    } finally {
+      setBuscandoTituloId(atual => atual === id ? '' : atual)
+    }
+  }
+
+  useEffect(() => {
+    if (!editandoId) return
+    const url = normalizarUrl(urlVideoEmEdicao)
+    if (!youtubePermitidoNoFree(url)) return
+    const chave = `${editandoId}|${url}`
+    if (tentativasAutomaticas.current.has(chave)) return
+    tentativasAutomaticas.current.add(chave)
+    const timer = setTimeout(() => {
+      const v = videos.find(item => item.id === editandoId)
+      if (v && !v.titulo?.trim() && normalizarUrl(v.url_video) === url) {
+        void buscarTituloVideo(editandoId, url)
+      }
+    }, 650)
+    return () => clearTimeout(timer)
+  }, [editandoId, urlVideoEmEdicao])
+
   function novoVideo(){
+    if (planoFree && videos.length >= 1) {
+      setMsg('Seu plano Free inclui 1 video do YouTube. Para adicionar mais, conheca o MiniPage.')
+      return
+    }
     const novoId='novo-'+Date.now()
     setVideos(prev=>[{id:novoId,user_id:userId,titulo:'',descricao:'',url_video:'',plataforma:'youtube',thumbnail_url:'',formato:'16:9',link_destino:'',texto_cta:'',texto_botao_video:'Assistir vídeo',ordem:prev.length,ativo:true,_novo:true},...prev])
     setEditandoId(novoId)
@@ -140,15 +216,34 @@ export default function GerenciarVideos(){
   }
   async function salvarVideo(v:any){
     if(!(await validarSessao()))return
-    if(!v.titulo?.trim()){setMsg('Dê um título para o vídeo.');return}
     const urlVideoNorm=normalizarUrl(v.url_video)
     const linkDestinoNorm=normalizarUrl(v.link_destino)
     if(!urlVideoNorm||!/^https?:\/\//i.test(urlVideoNorm)){setMsg('Informe um link de vídeo válido.');return}
     if(v.link_destino?.trim()&&(!linkDestinoNorm||!/^https?:\/\//i.test(linkDestinoNorm))){setMsg('Informe um link de destino válido.');return}
+    if (planoFree) {
+      if (!youtubePermitidoNoFree(urlVideoNorm)) {
+        setMsg('No Free, use um link valido de video do YouTube (watch, Shorts ou youtu.be).')
+        return
+      }
+      if (v._novo) {
+        // Nao conta rascunhos e consulta o banco para nao depender so do estado local.
+        const { count, error: erroContagem } = await supabase
+          .from('pagina_videos').select('id', { count: 'exact', head: true }).eq('user_id', userId)
+        if (erroContagem) {
+          setMsg('Nao foi possivel confirmar o limite de videos. Tente novamente.')
+          return
+        }
+        if ((count ?? 0) >= 1) {
+          setMsg('Seu video gratuito ja esta cadastrado. Faca upgrade para adicionar outro.')
+          await load()
+          return
+        }
+      }
+    }
     setSalvandoId(v.id)
     const payload={
       user_id:userId,
-      titulo:v.titulo.trim(),
+      titulo:v.titulo?.trim()||'',
       descricao:v.descricao?.trim()||null,
       url_video:urlVideoNorm,
       plataforma:v.plataforma||detectarVideo(urlVideoNorm).plataforma,
@@ -162,11 +257,11 @@ export default function GerenciarVideos(){
     }
     if(v._novo){
       const {data,error}=await supabase.from('pagina_videos').insert(payload).select().single()
-      if(error){setMsg('Erro ao salvar vídeo: '+error.message)}
+      if(error){setMsg(error.message.includes('VIDEO_FREE_LIMITE_1')?'Seu plano Free permite apenas 1 video. Conheca os planos pagos.':error.message.includes('VIDEO_FREE_SOMENTE_YOUTUBE')?'O Free aceita apenas links validos do YouTube.':'Erro ao salvar vídeo: '+error.message)}
       else{setVideos(prev=>prev.map(x=>x.id===v.id?data:x));setMsg('Vídeo salvo!');setEditandoId(null)}
     } else {
       const {error}=await supabase.from('pagina_videos').update(payload).eq('id',v.id).eq('user_id',userId)
-      if(error){setMsg('Erro ao salvar vídeo: '+error.message)}
+      if(error){setMsg(error.message.includes('VIDEO_FREE_LIMITE_1')?'Seu plano Free permite apenas 1 video. Conheca os planos pagos.':error.message.includes('VIDEO_FREE_SOMENTE_YOUTUBE')?'O Free aceita apenas links validos do YouTube.':'Erro ao salvar vídeo: '+error.message)}
       else{setMsg('Vídeo salvo!');setEditandoId(null)}
     }
     setSalvandoId('')
@@ -233,7 +328,6 @@ export default function GerenciarVideos(){
       <PainelSidebar tituloMobile="Vídeos"/>
       <div className="psb-main">
         <div className="pg"><div className="bdy">
-        <BloqueioPorPlano permitido={permiteVideos(planoTipo)} titulo="Vídeos disponível a partir do plano MiniPage" descricao="O plano Free é uma amostra limitada da MiniPage Pro. Faça upgrade para usar Vídeos em destaque na sua página.">
 
           {msg&&(
             <div style={{position:'fixed',top:'20px',left:'50%',transform:'translateX(-50%)',background:msg.includes('rro')?'rgba(239,68,68,.16)':'rgba(34,197,94,.16)',border:`1px solid ${msg.includes('rro')?'rgba(239,68,68,.36)':'rgba(34,197,94,.36)'}`,borderRadius:'10px',padding:'10px 20px',zIndex:99,color:msg.includes('rro')?'#EF4444':'#22C55E',fontSize:'13px',fontWeight:700,backdropFilter:'blur(20px)',whiteSpace:'nowrap'}}>
@@ -247,10 +341,21 @@ export default function GerenciarVideos(){
             <p style={{fontSize:'22px',fontWeight:800,color:'#F8F4F7',letterSpacing:'-0.02em'}}>Vídeos da página</p>
             <div style={{display:'flex',gap:'10px',flexWrap:'wrap'}}>
               <VerMiniPageButton/>
-              <button type="button" onClick={novoVideo} style={{background:G,color:'#fff',border:'1px solid rgba(255,255,255,.12)',borderRadius:'10px',padding:'10px 18px',fontSize:'13px',fontWeight:700,cursor:'pointer',fontFamily:'inherit'}}>+ Novo vídeo</button>
+              {freeAtingiuLimite ? (
+                <Link href="/painel/plano" style={{background:G,color:'#fff',border:'1px solid rgba(255,255,255,.12)',borderRadius:'10px',padding:'10px 18px',fontSize:'13px',fontWeight:700,textDecoration:'none'}}>Desbloquear mais vídeos</Link>
+              ) : (
+                <button type="button" onClick={novoVideo} style={{background:G,color:'#fff',border:'1px solid rgba(255,255,255,.12)',borderRadius:'10px',padding:'10px 18px',fontSize:'13px',fontWeight:700,cursor:'pointer',fontFamily:'inherit'}}>+ Novo vídeo</button>
+              )}
             </div>
           </div>
-          <p style={{fontSize:'13px',color:'#B8AAB8',marginBottom:'4px'}}>Cole o link de um vídeo do YouTube, Instagram, TikTok ou outra plataforma. O formato ideal é detectado automaticamente.</p>
+          {planoFree && (
+            <div className="crd" style={{padding:'14px 16px',marginBottom:'16px',border:'1px solid rgba(139,92,246,.30)'}}>
+              <p style={{color:'#F8F4F7',fontSize:'13px',fontWeight:700}}>Seu Free inclui 1 vídeo do YouTube</p>
+              <p style={{color:'#B8AAB8',fontSize:'12px',marginTop:'6px'}}>Divulgue sua música, lançamento ou conteúdo. Para publicar vários vídeos e organizar seções, faça upgrade para MiniPage.</p>
+              {freeAtingiuLimite && <Link href="/painel/plano" style={{color:'#C4B5FD',fontSize:'12px',fontWeight:700,display:'inline-block',marginTop:'10px'}}>Conhecer planos e adicionar mais vídeos</Link>}
+            </div>
+          )}
+          <p style={{fontSize:'13px',color:'#B8AAB8',marginBottom:'4px'}}>{planoFree ? 'Cole o link de um vídeo do YouTube (inclusive Shorts).' : 'Cole o link de um vídeo do YouTube, Instagram, TikTok ou outra plataforma. O formato ideal é detectado automaticamente.'}</p>
           <p style={{fontSize:'13px',color:'#B8AAB8',marginBottom:'24px'}}>Use as setas para mudar a ordem de exibição.</p>
 
           {videos.length===0&&<p style={{fontSize:'13px',color:'#B8AAB8',padding:'12px 0'}}>Nenhum vídeo cadastrado ainda. Adicione vídeos para destacar conteúdos, cursos, mentorias ou produtos na sua página.</p>}
@@ -273,7 +378,7 @@ export default function GerenciarVideos(){
                       <div style={{width:'52px',height:'52px',borderRadius:'10px',background:'rgba(255,255,255,.04)',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}><PlayCircle size={20} color="#B8AAB8"/></div>
                     )}
                     <div style={{flex:1,minWidth:0}}>
-                      <p style={{fontSize:'14px',fontWeight:700,color:'#F8F4F7',whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{v.titulo||'(sem título)'}</p>
+                      <p style={{fontSize:'14px',fontWeight:700,color:'#F8F4F7',whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{v.titulo||'Vídeo sem título'}</p>
                       <p style={{fontSize:'12px',color:'#B8AAB8',whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{formatoLabel(v.formato)}{v.descricao?` · ${v.descricao}`:''}</p>
                     </div>
                     <button type="button" onClick={()=>editarVideo(v.id,'ativo',!v.ativo)} style={{background:v.ativo?'rgba(34,197,94,.14)':'#2A1A2F',border:'1px solid '+(v.ativo?'rgba(34,197,94,.25)':'#2A1A2F'),borderRadius:10,padding:'6px 12px',fontSize:11,fontWeight:700,color:v.ativo?'#22C55E':'#B8AAB8',cursor:'pointer',fontFamily:'inherit',flexShrink:0}}>{v.ativo?'Ativo':'Oculto'}</button>
@@ -293,13 +398,17 @@ export default function GerenciarVideos(){
                   <button type="button" onClick={()=>mover(v.id,'down')} disabled={i===videos.length-1} style={{width:'28px',height:'28px',borderRadius:'8px',background:'rgba(24,16,27,.9)',border:'1px solid #2A1A2F',color:i===videos.length-1?'#4A3F4E':'#B8AAB8',cursor:i===videos.length-1?'not-allowed':'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}><ArrowDown size={14}/></button>
                 </div>
                 <div style={{flex:1,minWidth:0}}>
-                  <div style={{marginBottom:'10px'}}><label className="lbl">Título</label><input className="inp" autoFocus={!!v._novo} value={v.titulo||''} onChange={e=>editarVideo(v.id,'titulo',e.target.value)} placeholder="Ex: Lançamento da Mentoria Nail Designer"/></div>
+                  <div style={{marginBottom:'10px'}}><label className="lbl">Título (opcional)</label><input className="inp" autoFocus={!!v._novo} value={v.titulo||''} onChange={e=>editarVideo(v.id,'titulo',e.target.value)} placeholder="Deixe vazio para usar apenas a capa"/>
+                    <p style={{fontSize:'11px',color:'#B8AAB8',marginTop:'6px'}}>Se a capa já tem texto, você pode salvar sem título.</p>
+</div>
                   <div style={{marginBottom:'10px'}}><label className="lbl">Descrição (opcional)</label><input className="inp" value={v.descricao||''} onChange={e=>editarVideo(v.id,'descricao',e.target.value)} placeholder="Ex: Veja como funciona a mentoria para profissionais da beleza."/></div>
                   <div style={{marginBottom:'6px'}}>
                     <label className="lbl">Link do vídeo</label>
-                    <input className="inp" value={v.url_video||''} onChange={e=>editarVideo(v.id,'url_video',e.target.value)} placeholder="https://youtube.com/... ou Reels/TikTok"/>
+                    <input className="inp" value={v.url_video||''} onChange={e=>editarVideo(v.id,'url_video',e.target.value)} placeholder={planoFree ? "https://www.youtube.com/watch?v=..." : "https://youtube.com/... ou Reels/TikTok"}/>
                     {v.url_video && <p style={{fontSize:'11px',color:'#22C55E',marginTop:'6px'}}>✓ {formatoLabel(v.formato)}</p>}
-                    {!v.url_video && <p style={{fontSize:'11px',color:'#B8AAB8',marginTop:'6px'}}>Cole o link do YouTube, Reels, TikTok, Vimeo etc. O formato ideal é detectado automaticamente.</p>}
+                    {!v.url_video && <p style={{fontSize:'11px',color:'#B8AAB8',marginTop:'6px'}}>{planoFree ? 'No Free, use somente links do YouTube.' : 'Cole o link do YouTube, Reels, TikTok, Vimeo etc. O formato ideal é detectado automaticamente.'}</p>}
+                    <button type="button" onClick={()=>buscarTituloVideo(v.id,v.url_video)} disabled={buscandoTituloId===v.id || !v.url_video?.trim()} style={{background:'rgba(139,92,246,.12)',border:'1px solid rgba(139,92,246,.28)',color:'#C4B5FD',borderRadius:'8px',padding:'7px 14px',fontSize:'12px',fontWeight:700,cursor:buscandoTituloId===v.id?'wait':'pointer',fontFamily:'inherit',opacity:buscandoTituloId===v.id || !v.url_video?.trim() ? .6 : 1,marginTop:'9px'}}>{buscandoTituloId===v.id?'Buscando prévia...':'Gerar prévia pelo link'}</button>
+                    {avisoTitulo && avisoTitulo.id===v.id && <p style={{fontSize:'11px',color:'#B8AAB8',marginTop:'7px'}}>{avisoTitulo.texto}</p>}
                   </div>
                   {v.url_video && (
                     <div style={{marginBottom:'14px'}}>
@@ -352,7 +461,6 @@ export default function GerenciarVideos(){
           </div>
           <input ref={imgRef} type="file" accept="image/*" onChange={uploadCapaVideo} style={{display:'none'}}/>
 
-        </BloqueioPorPlano>
         </div></div>
       </div>
     </div>

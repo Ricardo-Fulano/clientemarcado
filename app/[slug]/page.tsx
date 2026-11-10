@@ -110,13 +110,14 @@ html,body{overflow-x:hidden;width:100%;max-width:100%}
 .destaque-action-v2{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:600;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.6);margin-top:1px}
 .destaque-desc-v2{display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden;font-size:10px;color:rgba(255,255,255,.85);text-shadow:0 1px 3px rgba(0,0,0,.5);margin:1px 0 2px}
 .destaque-titulo-v2{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;line-height:1.2;font-weight:700;font-size:12.5px;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.6);margin:0}
-.video-grid{display:flex;flex-wrap:nowrap;overflow-x:auto;overflow-y:hidden;gap:12px;width:100%;max-width:100%;align-items:flex-start;padding-bottom:6px;scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch}
-.video-grid::-webkit-scrollbar{height:5px}
-.video-grid::-webkit-scrollbar-thumb{background:var(--accent-border);border-radius:99px}
-.video-card-v2{position:relative;overflow:hidden;border-radius:13px;transition:transform .18s,box-shadow .18s,border-color .18s;box-sizing:border-box;width:180px;flex-shrink:0;scroll-snap-align:start}
+.video-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;width:100%;max-width:100%;align-items:start}
+.video-card-v2{position:relative;overflow:hidden;border-radius:16px;transition:transform .18s,box-shadow .18s,border-color .18s;box-sizing:border-box;width:100%;min-width:0}
 .video-card-v2:hover{transform:translateY(-4px);border-color:var(--accent)!important}
-.video-thumb-wrap-v2{position:relative;display:block;width:100%;aspect-ratio:4/5;overflow:hidden;text-decoration:none;background:#000}
-.video-thumb-wrap-v2 img{width:100%;height:100%;object-fit:cover;display:block}
+.video-thumb-wrap-v2{position:relative;display:block;width:100%;aspect-ratio:16/9;overflow:hidden;text-decoration:none;background:#090909}
+.video-thumb-bg-v2{position:absolute;inset:-12%;width:124%;height:124%;object-fit:cover;filter:blur(16px) brightness(.50);pointer-events:none}
+.video-thumb-main-v2{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;display:block}
+@media(min-width:768px) and (max-width:1023px){.video-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:767px){.video-grid{grid-template-columns:minmax(0,1fr);gap:12px}}
 .video-placeholder{width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:14px;text-align:center}
 .video-placeholder-label{font-size:11px;font-weight:700;color:#fff;letter-spacing:.02em}
 .video-overlay-v2{position:absolute;left:0;right:0;bottom:0;padding:22px 10px 10px;background:linear-gradient(to top,rgba(0,0,0,.85) 0%,rgba(0,0,0,.45) 55%,transparent 100%);pointer-events:none}
@@ -249,8 +250,6 @@ html,body{overflow-x:hidden;width:100%;max-width:100%}
   .destaque-grid .destaque-item{max-width:100%!important;flex-basis:auto!important}
   .destaque-scroll{display:flex!important;grid-template-columns:none!important;gap:16px!important;overflow-x:auto!important;overflow-y:hidden!important;padding-bottom:6px;scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch}
   .destaque-item-h{flex:0 0 82vw!important;max-width:360px!important;min-width:0!important;scroll-snap-align:start}
-  .video-grid{gap:10px!important}
-  .video-card-v2{width:170px!important}
   .link-grid,.card-visual-lista{grid-template-columns:1fr!important;gap:10px!important}
   .hero-btns{flex-direction:column}
   .hero-btns a{width:100%;justify-content:center;text-align:center}
@@ -787,9 +786,9 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
               <div className="mobile-hero-content">
                 {isPlanoFree && (
                   fotoPerfilUrl ? (
-                    <img src={fotoPerfilUrl} alt={nomeBusiness} className="avatar-pro" decoding="async" fetchPriority="high" style={{ width: '112px', height: '112px', border: `3px solid ${tema.accent}`, boxShadow: `0 0 24px ${tema.glow}`, margin: '0 auto 16px' }} />
+                    <img src={fotoPerfilUrl} alt={nomeBusiness} className="avatar-pro" decoding="async" fetchPriority="high" style={{ width: '136px', height: '136px', border: `3px solid ${tema.accent}`, boxShadow: `0 0 24px ${tema.glow}`, margin: '0 auto 16px' }} />
                   ) : (
-                    <div className="avatar-pro" style={{ width: '112px', height: '112px', background: `linear-gradient(135deg,${tema.accent},${tema.secondary})`, border: `3px solid ${tema.accent}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '40px', fontWeight: 800, color: tema.btnText, boxShadow: `0 0 24px ${tema.glow}`, margin: '0 auto 16px' }}>
+                    <div className="avatar-pro" style={{ width: '136px', height: '136px', background: `linear-gradient(135deg,${tema.accent},${tema.secondary})`, border: `3px solid ${tema.accent}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '40px', fontWeight: 800, color: tema.btnText, boxShadow: `0 0 24px ${tema.glow}`, margin: '0 auto 16px' }}>
                       {nomeBusiness.charAt(0).toUpperCase()}
                     </div>
                   )
@@ -1143,7 +1142,6 @@ videos && videos.length > 0 && permiteVideos(perfil.plano_tipo) && (() => {
             <div style={{ marginBottom: '28px' }}>
               <p style={{ fontSize: '20px', fontWeight: 900, color: 'var(--text)', letterSpacing: '-0.02em', marginBottom: '6px' }}>{t.videosEmDestaque}</p>
               <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '10px' }}>Veja conteúdos, vídeos, apresentações e novidades em destaque.</p>
-              <p className="scroll-hint">Deslize para ver mais →</p>
               <div className="video-grid">
                 {videos.map((v: any) => (
                   <VideoItemCard

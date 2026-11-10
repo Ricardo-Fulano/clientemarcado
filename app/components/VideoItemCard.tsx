@@ -39,7 +39,10 @@ export default function VideoItemCard({
       <div className="crd video-card-v2" style={{ border: cardBorderFinal, boxShadow: cardShadowNeon }}>
         <a href={v.url_video} target={v.abrir_nova_aba === false ? '_self' : '_blank'} rel="noopener noreferrer" className="video-thumb-wrap-v2" onClick={abrirCard} data-track-tipo="video_click" data-track-item-id={v.id} data-track-item-titulo={v.titulo || ''} data-track-item-url={v.url_video}>
           {thumb ? (
-            <img src={thumb} alt={v.titulo} loading="lazy" decoding="async" />
+            <>
+              <img src={thumb} alt="" aria-hidden="true" className="video-thumb-bg-v2" loading="lazy" decoding="async" />
+              <img src={thumb} alt={v.titulo || labelPlaceholder} className="video-thumb-main-v2" loading="lazy" decoding="async" />
+            </>
           ) : (
             <div className="video-placeholder" style={{ background: `radial-gradient(circle at 30% 20%,${tema.soft},transparent 60%),linear-gradient(135deg,${tema.accent},${tema.secondary})` }}>
               <span className="video-placeholder-label">{labelPlaceholder}</span>
@@ -55,9 +58,11 @@ export default function VideoItemCard({
               {v.texto_cta || textoSaibaMais}
             </span>
           )}
-          <div className="video-overlay-v2">
-            <p className="video-title-v2">{v.titulo}</p>
-          </div>
+          {!!v.titulo?.trim() && (
+            <div className="video-overlay-v2">
+              <p className="video-title-v2">{v.titulo}</p>
+            </div>
+          )}
         </a>
       </div>
 
@@ -76,14 +81,14 @@ export default function VideoItemCard({
               {playerCarregado ? (
                 <iframe
                   src={`https://www.youtube.com/embed/${youtubeId}?autoplay=1`}
-                  title={v.titulo}
+                  title={v.titulo || "Vídeo do YouTube"}
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                   allowFullScreen
                   style={{ width: '100%', height: '100%', border: 'none', display: 'block' }}
                 />
               ) : (
                 <button type="button" onClick={() => setPlayerCarregado(true)} style={{ width: '100%', height: '100%', border: 'none', padding: 0, cursor: 'pointer', position: 'relative', background: '#000' }}>
-                  {thumb && <img src={thumb} alt={v.titulo} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', opacity: .75 }} />}
+                  {thumb && <img src={thumb} alt={v.titulo} style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block', opacity: .75 }} />}
                   <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', width: '64px', height: '64px', borderRadius: '999px', background: 'rgba(0,0,0,.6)', border: '2px solid rgba(255,255,255,.85)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     <PlayCircle size={30} color="#fff" />
                   </div>
@@ -91,7 +96,7 @@ export default function VideoItemCard({
               )}
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '14px', flexWrap: 'wrap', gap: '10px' }}>
-              <p style={{ color: '#fff', fontSize: '14px', fontWeight: 700, flex: 1, minWidth: '120px' }}>{v.titulo}</p>
+              {!!v.titulo?.trim() && <p style={{ color: '#fff', fontSize: '14px', fontWeight: 700, flex: 1, minWidth: '120px' }}>{v.titulo}</p>}
               <div style={{ display: 'flex', gap: '8px', flexShrink: 0 }}>
                 <a href={v.url_video} target="_blank" rel="noopener noreferrer" style={{ background: tema.accent, color: tema.btnText, fontSize: '12px', fontWeight: 700, padding: '9px 14px', borderRadius: '9px', textDecoration: 'none', whiteSpace: 'nowrap' }}>Abrir no YouTube</a>
                 <button type="button" onClick={() => setModalAberto(false)} style={{ background: 'rgba(255,255,255,.12)', border: '1px solid rgba(255,255,255,.28)', color: '#fff', fontSize: '12px', fontWeight: 600, padding: '9px 14px', borderRadius: '9px', cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap' }}>Fechar</button>

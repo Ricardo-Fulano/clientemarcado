@@ -249,7 +249,7 @@ export function permiteDestaques(planoTipo?: string | null): boolean {
 
 /** Quantos videos em destaque o plano permite. Free bloqueado (0). */
 export function obterLimiteVideos(planoTipo?: string | null): number {
-  return normalizarPlano(planoTipo) === 'free' ? 0 : Infinity
+  return normalizarPlano(planoTipo) === 'free' ? 1 : Infinity
 }
 export function permiteVideos(planoTipo?: string | null): boolean {
   return obterLimiteVideos(planoTipo) > 0
