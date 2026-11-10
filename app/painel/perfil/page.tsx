@@ -142,8 +142,9 @@ export default function Perfil(){
   // Fase 1B - Ordem da pagina publica: Destaques e Links visuais aparecem como linhas INDIVIDUAIS (uma por secao).
   const [secoesDestaques,setSecoesDestaques]=useState<any[]>([])
   const [secoesCards,setSecoesCards]=useState<any[]>([])
+  const [secoesVideos,setSecoesVideos]=useState<any[]>([])
   // Itens ativos por secao - SO para a etiqueta "sem itens ativos" (UX); null = nao foi possivel contar.
-  const [ativosPorSecao,setAtivosPorSecao]=useState<{destaques:Record<string,number>|null;cards:Record<string,number>|null}>({destaques:null,cards:null})
+  const [ativosPorSecao,setAtivosPorSecao]=useState<{destaques:Record<string,number>|null;cards:Record<string,number>|null;videos:Record<string,number>|null}>({destaques:null,cards:null,videos:null})
   const [ordemPronta,setOrdemPronta]=useState(false)
   const [ordemIndisponivel,setOrdemIndisponivel]=useState(false)
   const [ordemAlterada,setOrdemAlterada]=useState(false)
@@ -197,7 +198,7 @@ export default function Perfil(){
     setOrdemSecoes([...ORDEM_PADRAO_SECOES])
     setSecoesDestaques([])
     setSecoesCards([])
-    setAtivosPorSecao({destaques:null,cards:null})
+    setAtivosPorSecao({destaques:null,cards:null,videos:null})
     setOrdemPronta(false)
     setOrdemIndisponivel(false)
     setOrdemAlterada(false)
@@ -280,7 +281,7 @@ export default function Perfil(){
       setMostrarPorQueAgendar(p.pagina_mostrar_por_que_agendar!==false)
       setMostrarContato(p.pagina_mostrar_contato!==false)
 
-    const [{data:dst,error:errDst},{data:lnk},{data:vid},{data:evt},{data:cat},{data:secD,error:errSecD},{data:secC,error:errSecC},{data:itensC,error:errItensC}]=await Promise.all([
+    const [{data:dst,error:errDst},{data:lnk},{data:vid},{data:evt},{data:cat},{data:secD,error:errSecD},{data:secC,error:errSecC},{data:itensC,error:errItensC},{data:secV,error:errSecV}]=await Promise.all([
       supabase.from('pagina_destaques').select('*').eq('user_id',user.id).order('ordem'),
       supabase.from('pagina_links').select('*').eq('user_id',user.id).order('ordem'),
       supabase.from('pagina_videos').select('*').eq('user_id',user.id).order('ordem'),
@@ -290,6 +291,7 @@ export default function Perfil(){
       supabase.from('pagina_destaques_secoes').select('id,titulo,formato,ativo,ordem').eq('user_id',user.id).order('ordem'),
       supabase.from('pagina_cards_secoes').select('id,titulo,ativo,ordem').eq('user_id',user.id).order('ordem'),
       supabase.from('pagina_cards').select('id,secao_id,ativo').eq('user_id',user.id),
+      supabase.from('pagina_videos_secoes').select('id,titulo,ativo,ordem').eq('user_id',user.id).order('ordem'),
     ])
     if(dst) setDestaques(dst)
     if(lnk) setLinks(lnk)
@@ -299,11 +301,12 @@ export default function Perfil(){
 
     // Ordem da pagina publica (Fase 1B). So e montada se AS DUAS consultas de secoes deram certo; se qualquer uma falhar a
     // reordenacao fica BLOQUEADA - nunca cai no normalizador antigo, que apagaria as instancias 'destaques:<id>' / 'cards:<id>'.
-    if(errSecD||errSecC||!secD||!secC){
+    if(errSecD||errSecC||errSecV||!secD||!secC||!secV){
       setOrdemIndisponivel(true)
     }else{
       setSecoesDestaques(secD)
       setSecoesCards(secC)
+      setSecoesVideos(secV)
       // Contagem de itens ativos: SO para a etiqueta "sem itens ativos" (UX). Se a consulta falhar, a etiqueta simplesmente nao aparece.
       const contarAtivos=(itens:any[]|null|undefined,falhou:any)=>{
         if(falhou||!itens)return null
@@ -311,8 +314,8 @@ export default function Perfil(){
         for(const it of itens){if(it&&it.ativo===true&&it.secao_id)mapa[it.secao_id]=(mapa[it.secao_id]||0)+1}
         return mapa
       }
-      setAtivosPorSecao({destaques:contarAtivos(dst,errDst),cards:contarAtivos(itensC,errItensC)})
-      setOrdemSecoes(resolverOrdemPagina(ordemSalva,{destaques:secD.map((s:any)=>s.id),cards:secC.map((s:any)=>s.id)},{incluirGrupoVazio:true}).map(b=>b.chave))
+      setAtivosPorSecao({destaques:contarAtivos(dst,errDst),cards:contarAtivos(itensC,errItensC),videos:contarAtivos(vid,null)})
+      setOrdemSecoes(resolverOrdemPagina(ordemSalva,{destaques:secD.map((s:any)=>s.id),cards:secC.map((s:any)=>s.id),videos:secV.filter((s:any)=>["minipage","loja","essencial","equipe"].includes(String(p.plano_tipo||"").trim().toLowerCase())).map((s:any)=>s.id)},{incluirGrupoVazio:true}).map(b=>b.chave))
     }
     setOrdemPronta(true)
   }
@@ -467,6 +470,28 @@ export default function Perfil(){
     }
     const tipo=i>0?chave.slice(0,i):chave
     const id=i>0?chave.slice(i+1):''
+    if(tipo==='videos'&&id){
+      const secao=secoesVideos.find((s:any)=>s.id===id)
+      const titulo=String(secao?.titulo||'').trim()||'Seção sem título'
+      const ativos=ativosPorSecao.videos
+      let etiqueta:string|undefined
+
+      if(!secao||secao.ativo!==true){
+        etiqueta='oculta na página'
+      }else if(!['minipage','loja','essencial','equipe'].includes(String(planoTipo||'').trim().toLowerCase())){
+        etiqueta='indisponível no seu plano'
+      }else if(ativos&&(ativos[id]||0)===0){
+        etiqueta='sem vídeos ativos, oculta'
+      }
+
+      return {
+        titulo,
+        sub:'Vídeos',
+        etiqueta,
+        esmaecida:!!etiqueta,
+        href:'/painel/perfil/videos/'+id
+      }
+    }
     if(tipo==='destaques'||tipo==='cards'){
       const secao=(tipo==='destaques'?secoesDestaques:secoesCards).find((s:any)=>s.id===id)
       const titulo=(secao?.titulo||'').trim()||'Seção sem título'

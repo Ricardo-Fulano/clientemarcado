@@ -405,13 +405,14 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
     }
   }
 
-  const [{ data: servicos }, { data: profissionais }, { data: destaques }, { data: destaquesSecoesAtivas }, { data: linksRapidos }, { data: videos }, { data: eventos }, { data: catalogosAtivos }, { data: catalogoItensTodos }, { data: catalogoImagensTodas }, { data: albunsAtivos }, { data: albumFotosTodas }, { data: cardsSecoesAtivas }, { data: cardsTodos }, { data: spotifySecoesAtivas }, { data: spotifyItensTodos }] = await Promise.all([
+  const [{ data: servicos }, { data: profissionais }, { data: destaques }, { data: destaquesSecoesAtivas }, { data: linksRapidos }, { data: videos }, { data: videosSecoesAtivas }, { data: eventos }, { data: catalogosAtivos }, { data: catalogoItensTodos }, { data: catalogoImagensTodas }, { data: albunsAtivos }, { data: albumFotosTodas }, { data: cardsSecoesAtivas }, { data: cardsTodos }, { data: spotifySecoesAtivas }, { data: spotifyItensTodos }] = await Promise.all([
     supabase.from('servicos').select('*').eq('user_id', perfil.user_id).eq('ativo', true).order('nome'),
     supabase.from('profissionais').select('*').eq('user_id', perfil.user_id).eq('ativo', true).order('nome'),
     supabase.from('pagina_destaques').select('*').eq('user_id', perfil.user_id).eq('ativo', true).order('ordem').order('created_at'),
     supabase.from('pagina_destaques_secoes').select('id,titulo,subtitulo,formato').eq('user_id', perfil.user_id).eq('ativo', true).order('ordem'),
     supabase.from('pagina_links').select('*').eq('user_id', perfil.user_id).eq('ativo', true).order('ordem').order('created_at'),
     supabase.from('pagina_videos').select('*').eq('user_id', perfil.user_id).eq('ativo', true).order('ordem').order('created_at'),
+    supabase.from('pagina_videos_secoes').select('id,titulo,subtitulo').eq('user_id', perfil.user_id).eq('ativo', true).order('ordem'),
     supabase.from('pagina_eventos').select('*').eq('user_id', perfil.user_id).eq('ativo', true).order('ordem').order('created_at'),
     supabase.from('pagina_catalogos').select('id,titulo,subtitulo').eq('user_id', perfil.user_id).eq('ativo', true).order('ordem'),
     supabase.from('pagina_catalogo_itens').select('id,catalogo_id,titulo,descricao_curta,descricao_completa,preco,preco_anterior,preco_exibicao,preco_texto_personalizado,selo_tipo,selo_texto,imagem_url,botao_texto,tipo_destino,destino_url,whatsapp,mensagem_whatsapp').eq('user_id', perfil.user_id).eq('ativo', true).order('ordem').order('created_at'),
@@ -459,6 +460,16 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
       cards: todosCardsVisuaisAtivos.filter((c: any) => c.secao_id === sec.id),
     }))
     .filter((sec: any) => sec.cards.length > 0)
+
+  // Seções personalizadas só para planos pagos. O Free preserva o bloco fixo original.
+  // Se a consulta falhar, não expor vídeos de seções ocultas por engano.
+  const videosPersonalizadosLiberados = ['minipage', 'loja', 'essencial', 'equipe'].includes(String(perfil.plano_tipo || '').trim().toLowerCase())
+  const secoesVideosComItens = (videosPersonalizadosLiberados ? (videosSecoesAtivas || []) : [])
+    .map((sec: any) => ({
+      ...sec,
+      itens: (videos || []).filter((v: any) => v.secao_id === sec.id),
+    }))
+    .filter((sec: any) => sec.itens.length > 0)
 
   // Secoes de Spotify + seus itens - mesmo padrao de agrupamento de Cards/Albuns. Cada
   // item e revalidado aqui (parseSpotifyUrl) - tipo/id/embedUrl nunca sao persistidos no
@@ -1135,34 +1146,37 @@ eventos && eventos.length > 0 && permiteAgendaEventos(perfil.plano_tipo) && (
           </div>
         )
             ),
-            videos: (
-// * VIDEOS EM DESTAQUE: aparece somente se houver pelo menos 1 video ativo. Fica depois de Links Rapidos.
-videos && videos.length > 0 && permiteVideos(perfil.plano_tipo) && (() => {
-          return (
-            <div style={{ marginBottom: '28px' }}>
-              <p style={{ fontSize: '20px', fontWeight: 900, color: 'var(--text)', letterSpacing: '-0.02em', marginBottom: '6px' }}>{t.videosEmDestaque}</p>
-              <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '10px' }}>Veja conteúdos, vídeos, apresentações e novidades em destaque.</p>
-              <div className="video-grid">
-                {videos.map((v: any) => (
-                  <VideoItemCard
-                    key={v.id}
-                    v={v}
-                    thumb={thumbnailVideo(v)}
-                    youtubeId={extrairYoutubeId(v.url_video)}
-                    iconeBorder={iconeBorder}
-                    cardBorderFinal={cardBorderFinal}
-                    cardShadowNeon={cardShadowNeon}
-                    tema={tema}
-                    iconeCor={iconeCor}
-                    textoAssistir={t.assistirVideo}
-                    textoSaibaMais={t.saibaMais}
-                    labelPlaceholder={labelPlaceholder(v)}
-                  />
-                ))}
+            videos: videosPersonalizadosLiberados ? ((secao: any) => (
+              <div key={secao.id} style={{ marginBottom: '28px' }}>
+                <p style={{ fontSize: '20px', fontWeight: 900, color: 'var(--text)', letterSpacing: '-0.02em', marginBottom: secao.subtitulo ? '3px' : '12px' }}>{secao.titulo}</p>
+                {secao.subtitulo && <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '10px' }}>{secao.subtitulo}</p>}
+                <div className="video-grid">
+                  {secao.itens.map((v: any) => (
+                    <VideoItemCard key={v.id} v={v} thumb={thumbnailVideo(v)}
+                      youtubeId={extrairYoutubeId(v.url_video)} iconeBorder={iconeBorder}
+                      cardBorderFinal={cardBorderFinal} cardShadowNeon={cardShadowNeon}
+                      tema={tema} iconeCor={iconeCor} textoAssistir={t.assistirVideo}
+                      textoSaibaMais={t.saibaMais} labelPlaceholder={labelPlaceholder(v)} />
+                  ))}
+                </div>
               </div>
-            </div>
-          )
-        })()
+            )) : (
+              // O Free continua com o bloco fixo, um único YouTube e sem seções personalizadas.
+              !videosPersonalizadosLiberados && videos && videos.length > 0 && permiteVideos(perfil.plano_tipo) && (
+                <div style={{ marginBottom: '28px' }}>
+                  <p style={{ fontSize: '20px', fontWeight: 900, color: 'var(--text)', letterSpacing: '-0.02em', marginBottom: '6px' }}>{t.videosEmDestaque}</p>
+                  <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '10px' }}>Veja conteúdos, vídeos, apresentações e novidades em destaque.</p>
+                  <div className="video-grid">
+                    {videos.map((v: any) => (
+                      <VideoItemCard key={v.id} v={v} thumb={thumbnailVideo(v)}
+                        youtubeId={extrairYoutubeId(v.url_video)} iconeBorder={iconeBorder}
+                        cardBorderFinal={cardBorderFinal} cardShadowNeon={cardShadowNeon}
+                        tema={tema} iconeCor={iconeCor} textoAssistir={t.assistirVideo}
+                        textoSaibaMais={t.saibaMais} labelPlaceholder={labelPlaceholder(v)} />
+                    ))}
+                  </div>
+                </div>
+              )
             ),
             catalogo: (
               podeUsarCatalogo(perfil.plano_tipo) && catalogosComItens.length > 0 && (
@@ -1200,19 +1214,21 @@ videos && videos.length > 0 && permiteVideos(perfil.plano_tipo) && (() => {
           }
 
           // Secoes ja filtradas por ativo, itens e plano: so elas podem receber instancias individuais na ordem.
-          const secaoPorId: Record<'destaques' | 'cards', Map<string, any>> = {
+          const secaoPorId: Record<'destaques' | 'cards' | 'videos', Map<string, any>> = {
             destaques: new Map(secoesDestaquesComItens.map((s: any): [string, any] => [s.id, s])),
             cards: new Map(cardsSecoesComCards.map((s: any): [string, any] => [s.id, s])),
+            videos: new Map(secoesVideosComItens.map((s: any): [string, any] => [s.id, s])),
           }
           const blocos = resolverOrdemPagina(ordemSalva, {
             // Mesma regra de antes: Free nao exibe Destaques (permiteDestaques) e secao sem item ativo nao aparece.
             destaques: permiteDestaques(perfil.plano_tipo) ? secoesDestaquesComItens.map((s: any) => s.id) : [],
             cards: cardsSecoesComCards.map((s: any) => s.id),
+            videos: secoesVideosComItens.map((s: any) => s.id),
           })
 
           return blocos.map(bloco => {
             const entrada = secoesMap[bloco.tipo]
-            if (bloco.secaoId && (bloco.tipo === 'destaques' || bloco.tipo === 'cards')) {
+            if (bloco.secaoId && (bloco.tipo === 'destaques' || bloco.tipo === 'cards' || bloco.tipo === 'videos')) {
               const secao = secaoPorId[bloco.tipo].get(bloco.secaoId)
               return <Fragment key={bloco.chave}>{secao && typeof entrada === 'function' ? entrada(secao) : null}</Fragment>
             }

@@ -28,10 +28,10 @@ export type TipoSecaoPublica = typeof ORDEM_PADRAO_SECOES[number]
 
 // Tipos que aceitam instancias individuais nesta fase. Links comuns, Spotify, Catalogo e Albuns
 // continuam como bloco unico por tipo.
-export const TIPOS_COM_INSTANCIAS = ['destaques', 'cards'] as const
+export const TIPOS_COM_INSTANCIAS = ['destaques', 'cards', 'videos'] as const
 export type TipoComInstancias = typeof TIPOS_COM_INSTANCIAS[number]
 
-export type SecoesPorTipo = { destaques?: readonly string[]; cards?: readonly string[] }
+export type SecoesPorTipo = { destaques?: readonly string[]; cards?: readonly string[]; videos?: readonly string[] }
 export type BlocoOrdem = { chave: string; tipo: TipoSecaoPublica; secaoId?: string }
 
 export type OpcoesResolucao = {
@@ -63,7 +63,7 @@ export function interpretarInstancia(token: string): { tipo: TipoComInstancias; 
   if (i <= 0) return null
   const tipo = token.slice(0, i)
   const id = token.slice(i + 1)
-  if (tipo !== 'destaques' && tipo !== 'cards') return null
+  if (tipo !== 'destaques' && tipo !== 'cards' && tipo !== 'videos') return null
   if (!UUID_RE.test(id)) return null
   return { tipo, id }
 }
@@ -74,7 +74,7 @@ export function resolverOrdemPagina(ordemSalva: unknown, secoes: SecoesPorTipo, 
     : []
 
   // Secoes existentes por tipo: id (minusculo) -> id original, preservando a ordem recebida.
-  const existentes: Record<TipoComInstancias, Map<string, string>> = { destaques: new Map(), cards: new Map() }
+  const existentes: Record<TipoComInstancias, Map<string, string>> = { destaques: new Map(), cards: new Map(), videos: new Map() }
   for (const tipo of TIPOS_COM_INSTANCIAS) {
     for (const id of secoes[tipo] ?? []) {
       if (typeof id === 'string' && !existentes[tipo].has(id.toLowerCase())) existentes[tipo].set(id.toLowerCase(), id)
