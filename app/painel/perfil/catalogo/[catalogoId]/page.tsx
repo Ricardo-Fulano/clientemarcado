@@ -2,6 +2,7 @@
 import { useEffect, useState, useRef } from 'react'
 import { useParams } from 'next/navigation'
 import { supabase } from '../../../../lib/supabase'
+import { chamarPreviewLink } from '../../../../lib/preview-link-cliente'
 import Link from 'next/link'
 import { ArrowLeft, ArrowUp, ArrowDown, UploadCloud, Pencil, Trash2 } from 'lucide-react'
 import PainelSidebar from '@/app/components/PainelSidebar'
@@ -194,8 +195,7 @@ export default function GerenciarItensDoCatalogo(){
     if(!it.destino_url?.trim()){setMsg('Cole um link no campo "Link de destino" antes de gerar a prévia.');return}
     setGerandoPreviaId(it.id)
     try{
-      const res=await fetch('/api/catalogo/preview-link',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({url:it.destino_url.trim()})})
-      const dados=await res.json()
+      const dados=await chamarPreviewLink({url:it.destino_url.trim()})
       if(!dados.success){
         setMsg(dados.message||'Não foi possível gerar a prévia automaticamente. Você pode preencher manualmente.')
         // Mesmo quando a previa falha, se sobrou um nome legivel extraido da URL (fallback

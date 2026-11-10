@@ -1,6 +1,7 @@
 'use client'
 import { useEffect, useState, useRef } from 'react'
 import { supabase } from '../../../lib/supabase'
+import { chamarPreviewLink } from '../../../lib/preview-link-cliente'
 import Link from 'next/link'
 import { ArrowLeft, ArrowUp, ArrowDown, Pencil, Trash2, Calendar, UploadCloud } from 'lucide-react'
 import PainelSidebar from '@/app/components/PainelSidebar'
@@ -99,10 +100,9 @@ export default function GerenciarEventos(){
     if(!e.url?.trim()){setMsg('Cole o link do evento antes de extrair os dados.');return}
     setExtraindoId(e.id)
     try{
-      const res=await fetch('/api/catalogo/preview-link',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({url:e.url.trim(),tipo:'evento'})})
-      const dados=await res.json()
+      const dados=await chamarPreviewLink({url:e.url.trim(),tipo:'evento'})
       if(!dados.success){
-        setMsg('Não conseguimos encontrar dados nesse link. Preencha manualmente.')
+        setMsg(dados.origemCliente?dados.message:'Não conseguimos encontrar dados nesse link. Preencha manualmente.')
       }else{
         const tituloEncontrado = !!dados.titulo
         const imagemEncontrada = !!dados.imagem_url

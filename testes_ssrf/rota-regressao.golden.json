@@ -1,0 +1,400 @@
+[
+ {
+  "id": "youtube-watch",
+  "entrada": {
+   "url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+  },
+  "status": 200,
+  "corpo": {
+   "success": true,
+   "tipo_destino": "youtube",
+   "titulo": "Video de Teste",
+   "descricao": null,
+   "imagem_url": "https://img.youtube.com/vi/dQw4w9WgXcQ/mqdefault.jpg",
+   "url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+  }
+ },
+ {
+  "id": "youtube-shorts",
+  "entrada": {
+   "url": "https://www.youtube.com/shorts/abc123DEF45"
+  },
+  "status": 200,
+  "corpo": {
+   "success": true,
+   "tipo_destino": "youtube_shorts",
+   "titulo": "Short de Teste",
+   "descricao": null,
+   "imagem_url": "https://img.youtube.com/vi/abc123DEF45/mqdefault.jpg",
+   "url": "https://www.youtube.com/shorts/abc123DEF45"
+  }
+ },
+ {
+  "id": "youtu-be",
+  "entrada": {
+   "url": "https://youtu.be/dQw4w9WgXcQ?t=10"
+  },
+  "status": 200,
+  "corpo": {
+   "success": true,
+   "tipo_destino": "youtube",
+   "titulo": "Video de Teste",
+   "descricao": null,
+   "imagem_url": "https://img.youtube.com/vi/dQw4w9WgXcQ/mqdefault.jpg",
+   "url": "https://youtu.be/dQw4w9WgXcQ?t=10"
+  }
+ },
+ {
+  "id": "youtube-oembed-404",
+  "entrada": {
+   "url": "https://www.youtube.com/watch?v=naoexiste01"
+  },
+  "status": 200,
+  "corpo": {
+   "success": true,
+   "tipo_destino": "youtube",
+   "titulo": null,
+   "descricao": null,
+   "imagem_url": "https://img.youtube.com/vi/naoexiste01/mqdefault.jpg",
+   "url": "https://www.youtube.com/watch?v=naoexiste01"
+  }
+ },
+ {
+  "id": "tiktok-video",
+  "entrada": {
+   "url": "https://www.tiktok.com/@usuario/video/7234567890123456789"
+  },
+  "status": 200,
+  "corpo": {
+   "success": true,
+   "tipo_destino": "tiktok",
+   "titulo": "Dancinha",
+   "descricao": null,
+   "imagem_url": "https://p16.tiktokcdn.com/obj/t.jpg",
+   "url": "https://www.tiktok.com/@usuario/video/7234567890123456789"
+  }
+ },
+ {
+  "id": "tiktok-perfil",
+  "entrada": {
+   "url": "https://www.tiktok.com/@usuario"
+  },
+  "status": 200,
+  "corpo": {
+   "success": false,
+   "partial": true,
+   "platform": "tiktok",
+   "tipo_destino": "tiktok",
+   "message": "Conseguimos identificar o produto pelo link, mas o TikTok não liberou a imagem automaticamente. Revise o título e envie uma imagem manualmente.",
+   "titulo_fallback": "@usuario"
+  }
+ },
+ {
+  "id": "spotify-track",
+  "entrada": {
+   "url": "https://open.spotify.com/track/4uLU6hMCjMI75M1A2tKUQC"
+  },
+  "status": 200,
+  "corpo": {
+   "success": true,
+   "tipo_destino": "spotify",
+   "titulo": "Musica de Teste",
+   "descricao": null,
+   "imagem_url": "https://i.scdn.co/image/abc",
+   "url": "https://open.spotify.com/track/4uLU6hMCjMI75M1A2tKUQC"
+  }
+ },
+ {
+  "id": "spotify-404",
+  "entrada": {
+   "url": "https://open.spotify.com/album/naoexiste"
+  },
+  "status": 200,
+  "corpo": {
+   "success": false,
+   "partial": true,
+   "platform": "spotify",
+   "tipo_destino": "spotify",
+   "message": "Não foi possível gerar a prévia automaticamente. Você pode preencher manualmente.",
+   "titulo_fallback": "naoexiste"
+  }
+ },
+ {
+  "id": "generico-og-jsonld",
+  "entrada": {
+   "url": "https://loja.exemplo.com.br/produto/camiseta-azul?utm_source=x&fbclid=1"
+  },
+  "status": 200,
+  "corpo": {
+   "success": true,
+   "partial": false,
+   "platform": "site",
+   "tipo_destino": "site",
+   "message": "Prévia gerada com sucesso. Importamos título, imagem principal e imagens adicionais do item.",
+   "titulo": "Camiseta Azul & Branca",
+   "descricao": "Algod&atilde;o 100% & confort&aacute;vel",
+   "imagem_url": "https://cdn.exemplo.com.br/p/1.jpg",
+   "imagens_extras": [
+    "https://cdn.exemplo.com.br/p/2.jpg"
+   ],
+   "url": "https://loja.exemplo.com.br/produto/camiseta-azul?utm_source=x&fbclid=1"
+  }
+ },
+ {
+  "id": "generico-so-title",
+  "entrada": {
+   "url": "https://blog.exemplo.com/post"
+  },
+  "status": 200,
+  "corpo": {
+   "success": true,
+   "partial": true,
+   "platform": "site",
+   "tipo_destino": "site",
+   "message": "Conseguimos identificar o item pelo link, mas esta plataforma não liberou a imagem automaticamente. Revise o título e envie a imagem manualmente.",
+   "titulo": "Meu Post de Blog",
+   "descricao": null,
+   "imagem_url": null,
+   "imagens_extras": [],
+   "url": "https://blog.exemplo.com/post"
+  }
+ },
+ {
+  "id": "generico-sem-meta",
+  "entrada": {
+   "url": "https://vazio.exemplo.com/"
+  },
+  "status": 200,
+  "corpo": {
+   "success": false,
+   "partial": false,
+   "platform": "site",
+   "tipo_destino": "site",
+   "message": "Não foi possível gerar a prévia automaticamente. Você pode preencher manualmente.",
+   "titulo_fallback": null
+  }
+ },
+ {
+  "id": "shopee-403",
+  "entrada": {
+   "url": "https://shopee.com.br/Camiseta-Azul-Masculina-i.123.456"
+  },
+  "status": 200,
+  "corpo": {
+   "success": false,
+   "partial": true,
+   "platform": "shopee",
+   "tipo_destino": "shopee",
+   "message": "Conseguimos identificar o produto pelo link, mas a Shopee não liberou a imagem automaticamente. Revise o título e envie uma imagem manualmente.",
+   "titulo_fallback": "Camiseta Azul Masculina"
+  }
+ },
+ {
+  "id": "mercadolivre-200",
+  "entrada": {
+   "url": "https://produto.mercadolivre.com.br/MLB-123456-camiseta-_JM"
+  },
+  "status": 200,
+  "corpo": {
+   "success": true,
+   "partial": true,
+   "platform": "mercadolivre",
+   "tipo_destino": "mercadolivre",
+   "message": "Conseguimos importar a imagem principal do item. Algumas imagens adicionais podem não ter sido liberadas pela plataforma.",
+   "titulo": "Camiseta Azul - Mercado Livre",
+   "descricao": "Frete gratis",
+   "imagem_url": "https://http2.mlstatic.com/D_NQ_NP_123-F.jpg",
+   "imagens_extras": [],
+   "url": "https://produto.mercadolivre.com.br/MLB-123456-camiseta-_JM"
+  }
+ },
+ {
+  "id": "evento-jsonld",
+  "entrada": {
+   "url": "https://eventos.exemplo.com/show-2026",
+   "tipo": "evento"
+  },
+  "status": 200,
+  "corpo": {
+   "success": true,
+   "partial": true,
+   "platform": "site",
+   "tipo_destino": "site",
+   "message": "Conseguimos importar a imagem principal do item. Algumas imagens adicionais podem não ter sido liberadas pela plataforma.",
+   "titulo": "Show de Verao 2026",
+   "descricao": null,
+   "imagem_url": "https://cdn.exemplo.com/evento.jpg",
+   "imagens_extras": [],
+   "url": "https://eventos.exemplo.com/show-2026"
+  }
+ },
+ {
+  "id": "erro-500",
+  "entrada": {
+   "url": "https://erro.exemplo.com/x"
+  },
+  "status": 200,
+  "corpo": {
+   "success": false,
+   "partial": false,
+   "platform": "site",
+   "tipo_destino": "site",
+   "message": "Não foi possível gerar a prévia automaticamente. Você pode preencher manualmente.",
+   "titulo_fallback": null
+  }
+ },
+ {
+  "id": "rede-falha",
+  "entrada": {
+   "url": "https://rede-fora.exemplo.com/x"
+  },
+  "status": 200,
+  "corpo": {
+   "success": false,
+   "partial": false,
+   "platform": "site",
+   "tipo_destino": "site",
+   "message": "Não foi possível gerar a prévia automaticamente. Você pode preencher manualmente.",
+   "titulo_fallback": null
+  }
+ },
+ {
+  "id": "http-antigo",
+  "entrada": {
+   "url": "http://antigo.exemplo.com/produto"
+  },
+  "status": 200,
+  "corpo": {
+   "success": true,
+   "partial": true,
+   "platform": "site",
+   "tipo_destino": "site",
+   "message": "Conseguimos importar a imagem principal do item. Algumas imagens adicionais podem não ter sido liberadas pela plataforma.",
+   "titulo": "Produto Antigo",
+   "descricao": null,
+   "imagem_url": "/img/antigo.png",
+   "imagens_extras": [],
+   "url": "http://antigo.exemplo.com/produto"
+  }
+ },
+ {
+  "id": "kiwify-vazio",
+  "entrada": {
+   "url": "https://pay.kiwify.com.br/abc123"
+  },
+  "status": 200,
+  "corpo": {
+   "success": false,
+   "partial": true,
+   "platform": "kiwify",
+   "tipo_destino": "kiwify",
+   "message": "Não foi possível gerar a prévia automaticamente. Você pode preencher manualmente.",
+   "titulo_fallback": "abc123"
+  }
+ },
+ {
+  "id": "url-com-espacos",
+  "entrada": {
+   "url": "  https://blog.exemplo.com/post  "
+  },
+  "status": 200,
+  "corpo": {
+   "success": true,
+   "partial": true,
+   "platform": "site",
+   "tipo_destino": "site",
+   "message": "Conseguimos identificar o item pelo link, mas esta plataforma não liberou a imagem automaticamente. Revise o título e envie a imagem manualmente.",
+   "titulo": "Meu Post de Blog",
+   "descricao": null,
+   "imagem_url": null,
+   "imagens_extras": [],
+   "url": "https://blog.exemplo.com/post"
+  }
+ },
+ {
+  "id": "url-vazia",
+  "entrada": {
+   "url": ""
+  },
+  "status": 400,
+  "corpo": {
+   "success": false,
+   "message": "Informe um link válido (começando com http:// ou https://)."
+  }
+ },
+ {
+  "id": "url-nula",
+  "entrada": {
+   "url": null
+  },
+  "status": 400,
+  "corpo": {
+   "success": false,
+   "message": "Informe um link válido (começando com http:// ou https://)."
+  }
+ },
+ {
+  "id": "url-numero",
+  "entrada": {
+   "url": 123
+  },
+  "status": 400,
+  "corpo": {
+   "success": false,
+   "message": "Informe um link válido (começando com http:// ou https://)."
+  }
+ },
+ {
+  "id": "ftp",
+  "entrada": {
+   "url": "ftp://exemplo.com/x"
+  },
+  "status": 400,
+  "corpo": {
+   "success": false,
+   "message": "Informe um link válido (começando com http:// ou https://)."
+  }
+ },
+ {
+  "id": "javascript",
+  "entrada": {
+   "url": "javascript:alert(1)"
+  },
+  "status": 400,
+  "corpo": {
+   "success": false,
+   "message": "Informe um link válido (começando com http:// ou https://)."
+  }
+ },
+ {
+  "id": "sem-protocolo",
+  "entrada": {
+   "url": "exemplo.com/sem-protocolo"
+  },
+  "status": 400,
+  "corpo": {
+   "success": false,
+   "message": "Informe um link válido (começando com http:// ou https://)."
+  }
+ },
+ {
+  "id": "objeto",
+  "entrada": {
+   "url": {}
+  },
+  "status": 400,
+  "corpo": {
+   "success": false,
+   "message": "Informe um link válido (começando com http:// ou https://)."
+  }
+ },
+ {
+  "id": "sem-campo",
+  "entrada": {},
+  "status": 400,
+  "corpo": {
+   "success": false,
+   "message": "Informe um link válido (começando com http:// ou https://)."
+  }
+ }
+]

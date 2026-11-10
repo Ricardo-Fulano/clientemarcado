@@ -1,4 +1,12 @@
 import { NextResponse } from 'next/server'
+import { fetchSeguro } from '../../../lib/seguranca/fetch-seguro'
+import { validarUrlExterna } from '../../../lib/seguranca/url-externa'
+import { usuarioDoBearer } from '../../../lib/auth-bearer-servidor'
+import { TEMPO_CORPO_MS, concorrenciaPreview, lerJsonLimitado, verificarLimiteUsuario } from '../../../lib/preview-link-limite'
+
+// B1 (SSRF): esta rota usa node:dns/http/https (fetchSeguro), entao precisa do runtime Node.js. Exige Authorization: Bearer (sessao Supabase) e nunca confia em dados de usuario vindos do cliente.
+export const runtime = 'nodejs'
+export const dynamic = 'force-dynamic'
 
 // Gera previa automatica (titulo/descricao/imagem/tipo_destino) a partir de um link colado
 // pelo administrador no cadastro de item do catalogo. E so uma AJUDA - nunca obrigatoria,
@@ -58,15 +66,10 @@ function extrairVideoIdYoutube(url: string): string | null {
   return null
 }
 
-async function buscarComTimeout(url: string, init?: RequestInit) {
-  const controller = new AbortController()
-  const timer = setTimeout(() => controller.abort(), TIMEOUT_MS)
-  try {
-    const res = await fetch(url, { ...init, signal: controller.signal })
-    return res
-  } finally {
-    clearTimeout(timer)
-  }
+// B1 (SSRF): TODA busca externa passa por fetchSeguro (conexao fixada em IP publico validado, redirecionamentos revalidados, TLS padrao, limites). Mesma forma de uso de antes: ok / text() / json().
+// Falha, bloqueio, tempo, tipo inesperado ou resposta ACIMA DO LIMITE => ok:false (o fluxo existente usa o fallback; um corpo truncado nunca e processado como previa valida).
+async function buscarComTimeout(url: string, init?: { headers?: Record<string, string> }) {
+  return fetchSeguro(url, { headers: init?.headers, timeoutMs: TIMEOUT_MS + 2000, maxBytes: /\/oembed\?/.test(url) ? 256 * 1024 : undefined })
 }
 
 function extrairMetaTag(html: string, propriedade: string): string | null {
@@ -207,11 +210,11 @@ function decodificarEntidadesHtml(texto: string): string {
     .replace(/&lt;/g, '<').replace(/&gt;/g, '>')
 }
 
-export async function POST(request: Request) {
+async function processarPreview(corpo: Record<string, unknown>) {
   try {
-    const { url, tipo } = await request.json()
+    const { url, tipo } = corpo
     const tipoAlvo: 'Product' | 'Event' = tipo === 'evento' ? 'Event' : 'Product'
-    if (!url || typeof url !== 'string' || !/^https?:\/\//i.test(url.trim())) {
+    if (!url || typeof url !== 'string' || !validarUrlExterna(url.trim()).ok) {
       return NextResponse.json({ success: false, message: 'Informe um link válido (começando com http:// ou https://).' }, { status: 400 })
     }
     const urlLimpa = url.trim()
@@ -420,6 +423,28 @@ export async function POST(request: Request) {
       })
     } catch {
       return respostaFallback()
+    }
+  } catch (e: any) {
+    console.error('[preview-link] Erro:', e?.message)
+    return NextResponse.json({ success: false, message: 'Não foi possível gerar a prévia automaticamente. Você pode preencher manualmente.' }, { status: 500 })
+  }
+}
+
+// B1 (SSRF): ponto de entrada autenticado. Ordem: autenticacao -> corpo (teto de 4 KB e prazo de TEMPO_CORPO_MS, ANTES de ocupar vaga: cliente lento nunca retem vaga) -> concorrencia (POR INSTANCIA, nao e
+// protecao global) -> limite por usuario (PENDENTE/desativado) -> logica original.
+export async function POST(request: Request) {
+  try {
+    const usuario = await usuarioDoBearer(request.headers.get('authorization'))
+    if (!usuario) return NextResponse.json({ success: false, message: 'Sua sessão expirou. Entre novamente.' }, { status: 401 })
+    const corpo = await lerJsonLimitado(request, 4096, TEMPO_CORPO_MS)
+    const liberar = concorrenciaPreview.tentar()
+    if (!liberar) return NextResponse.json({ success: false, message: 'Muitas tentativas. Aguarde um minuto e tente novamente.' }, { status: 429 })
+    try {
+      const limite = await verificarLimiteUsuario(usuario.id)
+      if (!limite.permitido) return NextResponse.json({ success: false, message: 'Muitas tentativas. Aguarde um minuto e tente novamente.' }, { status: 429 })
+      return await processarPreview(corpo ?? {})
+    } finally {
+      liberar()
     }
   } catch (e: any) {
     console.error('[preview-link] Erro:', e?.message)

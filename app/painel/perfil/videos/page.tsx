@@ -1,6 +1,7 @@
 'use client'
 import { useEffect, useState, useRef } from 'react'
 import { supabase } from '../../../lib/supabase'
+import { chamarPreviewLink } from '../../../lib/preview-link-cliente'
 import Link from 'next/link'
 import { ArrowLeft, ArrowUp, ArrowDown, Pencil, Trash2, PlayCircle } from 'lucide-react'
 import PainelSidebar from '@/app/components/PainelSidebar'
@@ -124,10 +125,9 @@ export default function GerenciarVideos(){
     if(!v.url_video?.trim()){setMsg('Cole o link do vídeo antes de gerar a capa.');return}
     setGerandoCapaId(v.id)
     try{
-      const res=await fetch('/api/catalogo/preview-link',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({url:v.url_video.trim()})})
-      const dados=await res.json()
+      const dados=await chamarPreviewLink({url:v.url_video.trim()})
       if(!dados.success||!dados.imagem_url){
-        setMsg('Não foi possível gerar a capa automaticamente. Você pode enviar uma manualmente.')
+        setMsg(dados.origemCliente?dados.message:'Não foi possível gerar a capa automaticamente. Você pode enviar uma manualmente.')
       }else{
         editarVideo(v.id,'thumbnail_url',dados.imagem_url)
         setMsg('Capa encontrada! Revise antes de salvar.')
