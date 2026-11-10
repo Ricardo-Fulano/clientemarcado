@@ -1226,7 +1226,18 @@ eventos && eventos.length > 0 && permiteAgendaEventos(perfil.plano_tipo) && (
             videos: secoesVideosComItens.map((s: any) => s.id),
           })
 
-          return blocos.map(bloco => {
+          // Garante a presença do bloco tradicional de vídeos no Free.
+// As seções personalizadas dos planos pagos permanecem inalteradas.
+const blocosParaRenderizar = videosPersonalizadosLiberados
+  ? blocos
+  : blocos.some(bloco => bloco.tipo === 'videos')
+    ? blocos
+    : [
+        ...blocos,
+        { chave: 'videos', tipo: 'videos' as const }
+      ]
+
+return blocosParaRenderizar.map(bloco => {
             const entrada = secoesMap[bloco.tipo]
             if (bloco.secaoId && (bloco.tipo === 'destaques' || bloco.tipo === 'cards' || bloco.tipo === 'videos')) {
               const secao = secaoPorId[bloco.tipo].get(bloco.secaoId)
