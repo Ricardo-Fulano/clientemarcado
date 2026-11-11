@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../../lib/supabase'
 import { ehPlanoMiniPage } from '../../lib/planos'
-import { Sparkles, Search, Plus, Pencil, Power, Trash2, Tag } from 'lucide-react'
+import { Sparkles, Search, Plus, Pencil, Power, Trash2, Tag, Wallet } from 'lucide-react'
 import PainelSidebar from '@/app/components/PainelSidebar'
 const G='linear-gradient(135deg,#EC4899,#D946EF,#8B5CF6)'
 const FILTROS=['Todos','Ativos','Inativos']
@@ -72,6 +72,73 @@ export default function Servicos(){
   const [fCat,setFCat]=useState('Beleza')
   const [fProfTipo,setFProfTipo]=useState<'todos'|'especificos'>('especificos')
   const [fProfIds,setFProfIds]=useState<string[]>([])
+  // Resumo operacional: leitura direta dos agendamentos, sem criar recebimentos.
+  const [finPeriodo,setFinPeriodo]=useState<'hoje'|'semana'|'mes'|'historico'>('hoje')
+  const [finMes,setFinMes]=useState(()=>{const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`})
+  const [finAgendamentos,setFinAgendamentos]=useState<any[]>([])
+  const [finCarregando,setFinCarregando]=useState(true)
+  const [finErro,setFinErro]=useState('')
+  const mesesHistorico=Array.from({length:24},(_,i)=>{const d=new Date();d.setDate(1);d.setMonth(d.getMonth()-i);return {valor:`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`,rotulo:d.toLocaleDateString('pt-BR',{month:'long',year:'numeric'})}})
+  useEffect(()=>{
+    let cancelado=false
+    async function buscarResumo(){
+      setFinCarregando(true);setFinErro('')
+      const {data:{user},error:erroAuth}=await supabase.auth.getUser()
+      if(cancelado)return
+      if(erroAuth||!user){setFinErro('Não foi possível consultar o resumo. Entre novamente na sua conta.');setFinCarregando(false);return}
+      const agora=new Date()
+      let inicio=new Date(agora.getFullYear(),agora.getMonth(),agora.getDate())
+      let fim=new Date(inicio)
+      if(finPeriodo==='hoje'){fim.setDate(fim.getDate()+1)}
+      else if(finPeriodo==='semana'){
+        inicio.setDate(inicio.getDate()-((inicio.getDay()+6)%7))
+        fim=new Date(inicio);fim.setDate(fim.getDate()+7)
+      }else{
+        let ano=agora.getFullYear(),mes=agora.getMonth()
+        if(finPeriodo==='historico'){
+          if(!mesesHistorico.some(m=>m.valor===finMes)){setFinErro('Selecione um mês dos últimos 24 meses.');setFinCarregando(false);return}
+          const [a,m]=finMes.split('-').map(Number);ano=a;mes=m-1
+        }
+        inicio=new Date(ano,mes,1);fim=new Date(ano,mes+1,1)
+      }
+      const todos:any[]=[]
+      for(let pagina=0;pagina<100;pagina++){
+        const {data,error}=await supabase.from('agendamentos')
+          .select('*,servicos(nome,preco)')
+          .eq('user_id',user.id)
+          .gte('data_hora',inicio.toISOString())
+          .lt('data_hora',fim.toISOString())
+          .order('data_hora',{ascending:true})
+          .order('id',{ascending:true})
+          .range(pagina*1000,pagina*1000+999)
+        if(cancelado)return
+        if(error){setFinErro('Não foi possível carregar os atendimentos deste período.');setFinCarregando(false);return}
+        todos.push(...(data||[]))
+        if((data||[]).length<1000){setFinAgendamentos(todos);setFinCarregando(false);return}
+      }
+      setFinErro('O período possui muitos registros. Não foi possível conferir o total completo.');setFinCarregando(false)
+    }
+    buscarResumo()
+    return ()=>{cancelado=true}
+  },[finPeriodo,finMes])
+  // Apenas status explicitamente concluídos. 'Compareceu' não comprova realização.
+  const finRealizados=finAgendamentos.filter(a=>['realizado','concluido','concluído','finalizado','finalizada'].includes(String(a.status||'').trim().toLowerCase()))
+  const finGrupos=new Map<string,{nome:string,qtd:number,total:number,semValor:number}>()
+  let finSemValor=0,finPrecoCatalogo=0,finTotal=0
+  for(const a of finRealizados){
+    const nome=String(a.servicos?.nome||a.servico_nome||'Serviço não identificado')
+    const id=String(a.servico_id||nome)
+    const atual=finGrupos.get(id)||{nome,qtd:0,total:0,semValor:0}
+    atual.qtd++
+    // Preferir valor gravado no atendimento. Fallback para o preço ATUAL do catálogo;
+    // nesse caso o painel sinaliza expressamente que não é histórico congelado.
+    const valorRegistro=[a.valor_total,a.valor_servico,a.valor,a.preco_cobrado].find(v=>v!==null&&v!==undefined&&v!==''&&Number.isFinite(Number(v))&&Number(v)>=0)
+    const valorCatalogo=a.servicos?.preco
+    const temValor=valorRegistro!==undefined||(valorCatalogo!==null&&valorCatalogo!==undefined&&valorCatalogo!==''&&Number.isFinite(Number(valorCatalogo)))
+    if(temValor){const valor=Number(valorRegistro!==undefined?valorRegistro:valorCatalogo);finTotal+=valor;atual.total+=valor;if(valorRegistro===undefined)finPrecoCatalogo++}
+    else{atual.semValor++;finSemValor++}
+    finGrupos.set(id,atual)
+  }
   useEffect(()=>{load()},[])
   async function load(){
     const {data:{user}}=await supabase.auth.getUser()
@@ -251,6 +318,53 @@ export default function Servicos(){
               </div>
             ))}
           </div>
+          {/* Resumo financeiro básico do plano Agenda: sem cobrança, sem criação de lançamentos. */}
+          <section className="crd" style={{padding:'20px',marginBottom:24,border:'1px solid rgba(139,92,246,.30)'}}>
+            <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:12}}>
+              <Wallet size={20} color="#C4B5FD"/>
+              <div>
+                <h2 style={{color:'#F8F4F7',fontSize:17,fontWeight:800}}>Resumo financeiro dos atendimentos</h2>
+                <p style={{color:'#B8AAB8',fontSize:12,marginTop:3}}>Valores dos procedimentos marcados como realizados. Não representa pagamentos recebidos.</p>
+              </div>
+            </div>
+            <div style={{display:'flex',gap:8,flexWrap:'wrap',marginBottom:14}}>
+              {([['hoje','Hoje'],['semana','Semana'],['mes','Mês'],['historico','Consultar mês']] as const).map(([chave,rotulo])=>(
+                <button key={chave} type="button" onClick={()=>setFinPeriodo(chave)} className={'pill'+(finPeriodo===chave?' on':'')} style={{borderRadius:9}}>{rotulo}</button>
+              ))}
+            </div>
+            {finPeriodo==='historico'&&(
+              <div style={{maxWidth:310,marginBottom:14}}>
+                <label htmlFor="fin-mes" className="lbl">Mês e ano (últimos 24 meses)</label>
+                <select id="fin-mes" className="inp" value={finMes} onChange={e=>setFinMes(e.target.value)}>
+                  {mesesHistorico.map(m=><option key={m.valor} value={m.valor}>{m.rotulo}</option>)}
+                </select>
+              </div>
+            )}
+            {finErro?<p role="alert" style={{fontSize:13,color:'#FCA5A5'}}>{finErro}</p>:finCarregando?<p style={{fontSize:13,color:'#B8AAB8'}}>Consultando atendimentos...</p>:(
+              <>
+                <div className="fg2" style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12,marginBottom:14}}>
+                  <div style={{background:'rgba(34,197,94,.07)',border:'1px solid rgba(34,197,94,.20)',padding:16,borderRadius:12}}>
+                    <p className="lbl">Atendimentos realizados</p><p style={{fontSize:26,fontWeight:800,color:'#4ADE80'}}>{finRealizados.length}</p>
+                  </div>
+                  <div style={{background:'rgba(139,92,246,.09)',border:'1px solid rgba(139,92,246,.24)',padding:16,borderRadius:12}}>
+                    <p className="lbl">Valor dos serviços realizados</p><p style={{fontSize:26,fontWeight:800,color:'#C4B5FD'}}>{fBRL(finTotal)}</p>
+                  </div>
+                </div>
+                {finRealizados.length===0?<p style={{fontSize:13,color:'#B8AAB8'}}>Nenhum atendimento realizado neste período.</p>:(
+                  <div style={{overflowX:'auto'}}>
+                    <table style={{width:'100%',borderCollapse:'collapse',fontSize:13,color:'#F8F4F7'}}>
+                      <thead><tr style={{color:'#B8AAB8',textAlign:'left',borderBottom:'1px solid #2A1A2F'}}><th style={{padding:'10px 8px'}}>Procedimento</th><th style={{padding:'10px 8px',textAlign:'center'}}>Qtd.</th><th style={{padding:'10px 8px',textAlign:'right'}}>Valor</th></tr></thead>
+                      <tbody>{Array.from(finGrupos.entries()).sort((a,b)=>a[1].nome.localeCompare(b[1].nome)).map(([chave,g])=>(
+                        <tr key={chave} style={{borderBottom:'1px solid #2A1A2F'}}><td style={{padding:'10px 8px'}}>{g.nome}</td><td style={{padding:'10px 8px',textAlign:'center'}}>{g.qtd}</td><td style={{padding:'10px 8px',textAlign:'right'}}>{fBRL(g.total)}{g.semValor>0?' *':''}</td></tr>
+                      ))}</tbody>
+                    </table>
+                  </div>
+                )}
+                {finPrecoCatalogo>0&&<p style={{fontSize:11,color:'#FCD34D',marginTop:12}}>Atenção: {finPrecoCatalogo} atendimento(s) usam o preço atual do cadastro do serviço. Alterações de preço podem modificar esses totais históricos; não são valores congelados na data do atendimento.</p>}
+                {finSemValor>0&&<p style={{fontSize:11,color:'#FCD34D',marginTop:8}}>* {finSemValor} atendimento(s) sem valor registrado não foram somados. O total monetário é parcial.</p>}
+              </>
+            )}
+          </section>
           <div style={{position:'relative',marginBottom:'12px'}}>
             <Search size={15} color="#B8AAB8" style={{position:'absolute',left:'14px',top:'50%',transform:'translateY(-50%)',pointerEvents:'none'}}/>
             <input type="text" placeholder="Buscar servico, categoria ou profissional..." value={busca} onChange={e=>setBusca(e.target.value)}

@@ -160,6 +160,9 @@ html,body{overflow-x:hidden;width:100%;max-width:100%}
 .video-mais-grid{display:flex;flex-wrap:wrap;gap:18px;margin-top:16px;align-items:flex-start}
 .link-card{display:flex;align-items:center;gap:14px;padding:16px 18px;box-sizing:border-box;border-radius:16px}
 .link-icon{width:54px;height:54px;border-radius:16px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.agenda-cta-publico{min-height:90px;transition:transform .2s ease,box-shadow .2s ease,border-color .2s ease}
+.agenda-cta-publico:hover{transform:translateY(-2px);box-shadow:0 12px 32px var(--accent-glow)!important}
+.agenda-cta-icone{width:58px;height:58px;border-radius:17px}
 .link-card:hover{border-color:var(--accent)!important;box-shadow:0 0 10px var(--accent-glow)}
 .link-grid,.card-visual-lista{display:grid;grid-template-columns:1fr;gap:11px;width:100%}
 .link-title{font-size:16px;font-weight:600;color:var(--text);margin-bottom:2px;line-height:1.25}
@@ -275,7 +278,9 @@ html,body{overflow-x:hidden;width:100%;max-width:100%}
    regras especificas de altura/padding no celular. */
 @media(max-width:480px){
   .link-card{height:76px!important;min-height:0!important;max-height:78px!important;padding:10px 14px!important;gap:12px!important;border-radius:16px!important}
-  .link-icon{width:44px!important;height:44px!important;min-width:44px!important;border-radius:12px!important}
+  .agenda-cta-publico{height:auto!important;max-height:none!important;min-height:90px!important;padding:13px 14px!important}
+  .agenda-cta-publico .agenda-cta-icone{width:52px!important;height:52px!important;min-width:52px!important;border-radius:15px!important}
+   .link-icon{width:44px!important;height:44px!important;min-width:44px!important;border-radius:12px!important}
   .link-title{font-size:16px!important;font-weight:600!important;line-height:1.2!important;margin-bottom:0!important}
   .link-sub{font-size:13px!important;font-weight:400!important;line-height:1.25!important;margin-top:2px!important}
   .link-grid,.card-visual-lista{gap:10px!important}
@@ -558,6 +563,7 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
   const capaUrl = isPlanoFree ? '' : (perfil.capa_url || perfil.imagem_capa || perfil.banner_url || capaFallback || '')
   const fotoPerfilUrl = perfil.foto_perfil_url || ''
   const tituloBotaoAgenda = perfil.pagina_titulo_botao_agenda || t.agendarAgora
+  const descricaoBotaoAgenda = perfil.pagina_subtitulo_botao_agenda?.trim() || t.rapidoPraticoSeguro
   // Toggles: null/undefined = comportamento antigo (tudo visivel)
   const mostrarAgenda = perfil.pagina_mostrar_agenda !== false && ehPlanoComGestao(perfil.plano_tipo)
   const mostrarServicos = perfil.pagina_mostrar_servicos !== false
@@ -1062,15 +1068,15 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
           <div style={{ marginBottom: '32px' }}>
             <div className="link-grid">
               {mostrarAgendaFallback && (
-                <a href={`/${slug}/agendar`} className="crd link-card" style={{ textDecoration: 'none', color: 'inherit', border: cardBorderFinal, boxShadow: cardShadowNeon }} data-track-tipo="agendar_click" data-track-item-titulo={tituloBotaoAgenda} data-track-item-url={`/${slug}/agendar`}>
-                  <div className="link-icon" style={{ background: iconeBg, border: `1px solid ${iconeBorder}` }}>
-                    <Calendar size={21} color={iconeCor} />
+                <a href={`/${slug}/agendar`} className="crd link-card agenda-cta-publico" style={{ textDecoration: 'none', color: 'inherit', border: `1.5px solid ${tema.accent}`, boxShadow: `0 0 0 1px ${tema.soft}, 0 8px 26px ${tema.glow}` }} data-track-tipo="agendar_click" data-track-item-titulo={tituloBotaoAgenda} data-track-item-url={`/${slug}/agendar`}>
+                  <div className="link-icon agenda-cta-icone" style={{ background: `linear-gradient(145deg, ${tema.accent}, ${tema.secondary})`, border: `1px solid ${tema.accent}`, boxShadow: `0 4px 16px ${tema.glow}` }}>
+                    <CalendarDays size={26} color={tema.btnText} strokeWidth={2.4} aria-hidden="true" />
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <p className="link-title">{tituloBotaoAgenda}</p>
-                    <p className="link-sub">{t.rapidoPraticoSeguro}</p>
+                    <p className="link-title" style={{ fontWeight: 800 }}>{tituloBotaoAgenda}</p>
+                    <p className="link-sub">{descricaoBotaoAgenda}</p>
                   </div>
-                  <span className="link-arrow" style={{ color: setaCor }}>›</span>
+                  <span className="link-arrow" style={{ color: tema.accent, fontSize: 24, fontWeight: 700 }}>›</span>
                 </a>
               )}
               {itensLinks.map((l: any) => {

@@ -2,7 +2,7 @@
 import { useEffect, useState, useRef } from 'react'
 import { supabase } from '../../lib/supabase'
 import { garantirPerfilNoServidor } from '../../lib/garantir-perfil-cliente'
-import { permiteDestaques, permiteVideos, permiteAgendaEventos, obterLimiteLinksRapidos, obterLimiteCatalogos, permiteAgenda, permiteSpotify, permiteAlbuns, permiteCardsVisuais, podeUsarCatalogo } from '../../lib/planos'
+import { permiteDestaques, permiteVideos, permiteAgendaEventos, obterLimiteLinksRapidos, obterLimiteCatalogos, permiteSpotify, permiteAlbuns, permiteCardsVisuais, podeUsarCatalogo } from '../../lib/planos'
 import { ORDEM_PADRAO_SECOES, resolverOrdemPagina } from '../../lib/ordemPagina'
 import Link from 'next/link'
 import { Copy, Check, ExternalLink, UploadCloud, ArrowUp, ArrowDown } from 'lucide-react'
@@ -596,20 +596,6 @@ export default function Perfil(){
             <div style={{marginBottom:'14px'}}>
               <label className="lbl">Cidade / Estado</label>
               <input className="inp" type="text" placeholder="Ex: São Paulo - SP" value={cidade} onChange={e=>setCidade(e.target.value)}/>
-            </div>
-          </div>
-
-          <div className="crd">
-            <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',flexWrap:'wrap',gap:'12px'}}>
-              <div>
-                <p style={{fontSize:'15px',fontWeight:700,color:'#F8F4F7',marginBottom:'2px'}}>Agenda e horários</p>
-                <p style={{fontSize:'12px',color:'#B8AAB8'}}>Configure dias de atendimento, horários, intervalo entre horários e antecedência mínima.</p>
-              </div>
-              {permiteAgenda(planoTipo) ? (
-                <Link href="/painel/perfil/agenda" style={{background:G,color:'#fff',border:'1px solid rgba(255,255,255,.12)',borderRadius:'10px',padding:'10px 18px',fontSize:'13px',fontWeight:700,textDecoration:'none',flexShrink:0}}>Gerenciar agenda</Link>
-              ) : (
-                <Link href="/painel/plano" style={{background:'rgba(24,16,27,.92)',color:'#B8AAB8',border:'1px solid #2A1A2F',borderRadius:'10px',padding:'10px 18px',fontSize:'13px',fontWeight:700,textDecoration:'none',flexShrink:0}}>🔒 Disponível no MiniPage Pro</Link>
-              )}
             </div>
           </div>
 

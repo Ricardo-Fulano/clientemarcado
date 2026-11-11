@@ -117,7 +117,16 @@ export default function Agendamentos(){
     verificarPlanoMiniPage()
   }, [])
   const [perfil,setPerfil]=useState<any>(null)
+  // Configuracao do CTA publico de agendamento (sem interferir nos horarios/profissionais).
+  const [agendaPublicaAtiva,setAgendaPublicaAtiva]=useState(false)
+  const [tituloAgendaPublica,setTituloAgendaPublica]=useState('')
+  const [descricaoAgendaPublica,setDescricaoAgendaPublica]=useState('')
+  const [salvandoAgendaPublica,setSalvandoAgendaPublica]=useState(false)
+  const [mensagemAgendaPublica,setMensagemAgendaPublica]=useState('')
   const [profs,setProfs]=useState<any[]>([])
+  const [servicosAtivos,setServicosAtivos]=useState<number|null>(null)
+  const [erroServicos,setErroServicos]=useState(false)
+  const [erroProfissionais,setErroProfissionais]=useState(false)
   const [ags,setAgs]=useState<any[]>([])
   const [loading,setLoading]=useState(true)
   const [view,setView]=useState<'hoje'|'semana'|'todos'>('hoje')
@@ -159,8 +168,18 @@ export default function Agendamentos(){
     if(!user){window.location.href='/login';return}
     const{data:p}=await supabase.from('perfis').select('*').eq('user_id',user.id).single()
     setPerfil(p)
-    const{data:pr}=await supabase.from('profissionais').select('*').eq('user_id',user.id)
+    if(p){
+      setAgendaPublicaAtiva(p.pagina_mostrar_agenda===true)
+      setTituloAgendaPublica(p.pagina_titulo_botao_agenda||'')
+      setDescricaoAgendaPublica(p.pagina_subtitulo_botao_agenda||'')
+    }
+    const{data:pr,error:erroPr}=await supabase.from('profissionais').select('*').eq('user_id',user.id)
+    setErroProfissionais(!!erroPr)
+    if(erroPr) console.error('[Agenda] Nao foi possivel consultar profissionais:',erroPr.message)
     setProfs(pr||[])
+    const {data:listaServicos,error:erroSv}=await supabase.from('servicos').select('id').eq('user_id',user.id).eq('ativo',true)
+    setErroServicos(!!erroSv)
+    setServicosAtivos(erroSv?null:(listaServicos||[]).length)
     // Carregar 90 dias atrás até 60 dias à frente (cobre aba Todos/mês/ano também)
     const fim=new Date();fim.setDate(fim.getDate()+60)
     const atas=new Date();atas.setFullYear(atas.getFullYear()-1)
@@ -180,10 +199,45 @@ export default function Agendamentos(){
 
   function toast(m:string){setMsg(m);setTimeout(()=>setMsg(''),2500)}
 
+  async function salvarAgendaPublica(){
+    setMensagemAgendaPublica('')
+    if(erroProfissionais){setMensagemAgendaPublica('Não foi possível verificar os profissionais. Atualize a página.');return}
+    if(agendaPublicaAtiva&&erroServicos){setMensagemAgendaPublica('Não foi possível verificar os serviços. Atualize a página.');return}
+    if(agendaPublicaAtiva&&servicosAtivos===0){setMensagemAgendaPublica('Cadastre e ative pelo menos um serviço antes de disponibilizar o agendamento online.');return}
+    if(agendaPublicaAtiva&&profs.filter(p=>p.ativo!==false).length===0){
+      setMensagemAgendaPublica('Cadastre e ative pelo menos um profissional antes de disponibilizar o agendamento online.')
+      return
+    }
+    setSalvandoAgendaPublica(true)
+    try{
+      const {data:{user},error:authError}=await supabase.auth.getUser()
+      if(authError||!user||!perfil||perfil.user_id!==user.id){
+        setMensagemAgendaPublica('Sua sessão mudou. Recarregue a página antes de salvar.');return
+      }
+      const {error}=await supabase.from('perfis').update({
+        pagina_mostrar_agenda:agendaPublicaAtiva,
+        pagina_titulo_botao_agenda:tituloAgendaPublica.trim()||null,
+        pagina_subtitulo_botao_agenda:descricaoAgendaPublica.trim()||null,
+      }).eq('user_id',user.id)
+      if(error){
+        console.error('[Agenda] Falha ao salvar configuração pública:',error.message)
+        setMensagemAgendaPublica('Não foi possível salvar. Verifique se a nova coluna foi criada no Supabase.')
+        return
+      }
+      setMensagemAgendaPublica('Configuração da agenda pública salva!')
+    }catch{
+      setMensagemAgendaPublica('Não foi possível salvar a configuração. Tente novamente.')
+    }finally{setSalvandoAgendaPublica(false)}
+  }
+
   async function updSt(id:string,status:string){
-    await supabase.from('agendamentos').update({status}).eq('id',id)
+    const {data:{user},error:authError}=await supabase.auth.getUser()
+    if(authError||!user){toast('Sessão expirada. Entre novamente.');return}
+    const {error}=await supabase.from('agendamentos').update({status}).eq('id',id).eq('user_id',user.id)
+    if(error){toast('Erro ao atualizar status. Tente novamente.');return}
     setAgs(p=>p.map(a=>a.id===id?{...a,status}:a))
     if(sel?.id===id)setSel((s:any)=>({...s,status}))
+    setBsAg((s:any)=>s?.id===id?{...s,status}:s)
     toast('Status atualizado!')
     if(status==='realizado'||status==='pendente'){
       supabase.auth.getSession().then(({data:{session}})=>{
@@ -196,6 +250,10 @@ export default function Agendamentos(){
         }).catch(()=>{})
       })
     }
+  }
+
+  function marcarRealizado(id:string){
+    if(window.confirm('Confirma que este atendimento foi realizado? Ele entrará no resumo financeiro de serviços realizados.')) updSt(id,'realizado')
   }
 
   async function updConf(id:string,status:string){
@@ -346,8 +404,9 @@ export default function Agendamentos(){
           {wW&&<a href={wW} target="_blank" rel="noreferrer" className="card-btn card-btn-wpp" style={{background:'rgba(24,16,27,.75)',color:'#F8F4F7',border:'1px solid #2A1A2F'}}>WhatsApp</a>}
           {wC2&&!jaRealizado&&<a href={wC2} target="_blank" rel="noreferrer" className="card-btn card-btn-confirm" onClick={()=>updConf(a.id,'mensagem_enviada')} style={{background:'rgba(24,16,27,.75)',color:'#F8F4F7',border:'1px solid #2A1A2F'}}>Enviar confirmação</a>}
           {!jaRealizado&&a.status!=='cancelado'&&a.status!=='faltou'&&(
-            <button className="card-btn card-btn-real" onClick={()=>updSt(a.id,'realizado')} style={{background:'rgba(24,16,27,.75)',color:'#F8F4F7',border:'1px solid #2A1A2F'}}>✓ Realizado</button>
+            <button className="card-btn card-btn-real" onClick={()=>marcarRealizado(a.id)} style={{background:'rgba(24,16,27,.75)',color:'#F8F4F7',border:'1px solid #2A1A2F'}}>✓ Realizado</button>
           )}
+          {jaRealizado&&<button className="card-btn bs-item-desfazer" onClick={()=>{if(window.confirm('Desfazer realizado e voltar o atendimento para pendente? O resumo financeiro será recalculado.'))updSt(a.id,'pendente')}} style={{background:'rgba(139,92,246,.08)',color:'#C4B5FD',border:'1px solid rgba(139,92,246,.25)'}}>↩ Desfazer realizado</button>}
           <button className="card-btn card-btn-mais" onClick={()=>setBsAg(a)} style={{background:'rgba(24,16,27,.75)',color:'#B8AAB8',border:'1px solid #2A1A2F'}}>⋯ Mais</button>
         </div>
         {!jaRealizado&&a.status!=='faltou'&&a.status!=='cancelado'&&(
@@ -407,7 +466,8 @@ export default function Agendamentos(){
           <div style={g2}>
             {wC&&(sel.status==='pendente'||!sel.status||sel.status==='retorno')&&<a href={wC} target="_blank" rel="noreferrer" style={dBtn({background:'rgba(34,197,94,.12)',borderColor:'rgba(34,197,94,.25)',color:'#22C55E'})}>✓ Confirmar</a>}
             {wL&&<a href={wL} target="_blank" rel="noreferrer" style={dBtn({background:'rgba(250,204,21,.10)',borderColor:'rgba(250,204,21,.22)',color:'#FCD34D'})}>Lembrete</a>}
-            {sel.status!=='realizado'&&<button onClick={()=>updSt(sel.id,'realizado')} style={dBtn({background:'rgba(34,197,94,.10)',borderColor:'rgba(34,197,94,.20)',color:'#22C55E'})}>✓ Realizado</button>}
+            {sel.status==='realizado'&&<button onClick={()=>{if(window.confirm('Desfazer realizado e voltar o atendimento para pendente?'))updSt(sel.id,'pendente')}} style={dBtn({background:'rgba(139,92,246,.10)',borderColor:'rgba(139,92,246,.25)',color:'#C4B5FD'})}>↩ Desfazer realizado</button>}
+            {sel.status!=='realizado'&&<button onClick={()=>marcarRealizado(sel.id)} style={dBtn({background:'rgba(34,197,94,.10)',borderColor:'rgba(34,197,94,.20)',color:'#22C55E'})}>✓ Realizado</button>}
             {sel.status!=='faltou'&&<button onClick={()=>updSt(sel.id,'faltou')} style={dBtn({background:'rgba(239,68,68,.08)',borderColor:'rgba(239,68,68,.18)',color:'#EF4444'})}>✗ Faltou</button>}
             {sel.status!=='retorno'&&<button onClick={()=>updSt(sel.id,'retorno')} style={dBtn({background:'rgba(139,92,246,.10)',borderColor:'rgba(139,92,246,.22)',color:'#C4B5FD'})}>↩ Retorno</button>}
             {sel.status!=='cancelado'&&<button onClick={()=>updSt(sel.id,'cancelado')} style={dBtn({background:'rgba(239,68,68,.06)',borderColor:'rgba(239,68,68,.14)',color:'#EF4444'})}>✕ Cancelar</button>}
@@ -471,10 +531,76 @@ export default function Agendamentos(){
               <p style={{fontSize:13,color:'#B8AAB8',lineHeight:1.4}}>Veja seus horários, confirme clientes e acompanhe os atendimentos do dia.</p>
             </div>
             <div className="hdr-btns">
-              <Link href="/painel/agendamentos/novo" style={btnP}>+ Novo agendamento</Link>
+              <Link href={profs.length===0&&!erroProfissionais?'/painel/profissionais':'/painel/agendamentos/novo'} style={btnP}>{profs.length===0&&!erroProfissionais?'Cadastrar profissional':'+ Novo agendamento'}</Link>
               <button className="btn-bloq" style={btnS} onClick={()=>setShowBloqueio(true)}>Bloquear horário</button>
             </div>
           </div>
+
+          {/* Configuracoes centralizadas no modulo Agenda; as rotas existentes continuam as mesmas. */}
+          <div style={{display:'flex',gap:8,flexWrap:'wrap',marginBottom:16}}>
+            <Link href="/painel/perfil/agenda" style={{...btnS,minHeight:40}}>Configurar dias e horários</Link>
+            <Link href="/painel/profissionais" style={{...btnS,minHeight:40}}>Gerenciar profissionais</Link>
+            <Link href="/painel/servicos" style={{...btnS,minHeight:40}}>Gerenciar serviços</Link>
+          </div>
+
+          {!erroProfissionais&&profs.length===0&&(
+            <div role="status" style={{background:'rgba(245,158,11,.08)',border:'1px solid rgba(245,158,11,.30)',borderRadius:16,padding:'18px 20px',marginBottom:18,display:'flex',alignItems:'flex-start',gap:14,flexWrap:'wrap'}}>
+              <div style={{flex:1,minWidth:230}}>
+                <p style={{fontSize:15,fontWeight:800,color:'#FCD34D',marginBottom:6}}>Configure sua agenda para começar</p>
+                <p style={{fontSize:13,color:'#F8F4F7',lineHeight:1.6}}>Para utilizar agendamentos automáticos ou online, cadastre pelo menos um profissional e configure seus horários de atendimento.</p>
+              </div>
+              <Link href="/painel/profissionais" style={{...btnP,minHeight:40}}>Cadastrar profissional</Link>
+            </div>
+          )}
+          {!erroServicos&&servicosAtivos===0&&(
+            <div role="status" style={{background:'rgba(245,158,11,.08)',border:'1px solid rgba(245,158,11,.30)',borderRadius:16,padding:'18px 20px',marginBottom:18,display:'flex',alignItems:'center',gap:14,flexWrap:'wrap'}}>
+              <div style={{flex:1,minWidth:230}}>
+                <p style={{fontSize:15,fontWeight:800,color:'#FCD34D',marginBottom:6}}>Cadastre um serviço para receber agendamentos</p>
+                <p style={{fontSize:13,color:'#F8F4F7',lineHeight:1.6}}>O agendamento online precisa de pelo menos um serviço ativo, associado a um profissional e seus horários. Cadastre o serviço para que o cliente possa selecionar o procedimento na MiniPage.</p>
+              </div>
+              <Link href="/painel/servicos" style={{...btnP,minHeight:40}}>Cadastrar serviço</Link>
+            </div>
+          )}
+          {erroServicos&&<div role="alert" style={{background:'rgba(239,68,68,.10)',border:'1px solid rgba(239,68,68,.30)',borderRadius:12,padding:'12px 16px',marginBottom:16,color:'#FCA5A5',fontSize:13}}>Não foi possível verificar os serviços cadastrados. Atualize a página antes de ativar o agendamento online.</div>}
+          {erroProfissionais&&(
+            <div role="alert" style={{background:'rgba(239,68,68,.10)',border:'1px solid rgba(239,68,68,.30)',borderRadius:12,padding:'12px 16px',marginBottom:16,color:'#FCA5A5',fontSize:13}}>
+              Não foi possível verificar os profissionais cadastrados. Atualize a página antes de criar um agendamento.
+            </div>
+          )}
+
+          {/* O botão de agendamento da slug é ativado aqui, não em Minha MiniPage. */}
+          <section style={{background:'radial-gradient(circle at top right,rgba(236,72,153,.09),transparent 46%),linear-gradient(145deg,rgba(24,16,27,.98),rgba(18,10,20,.99))',border:'1.5px solid rgba(236,72,153,.28)',borderRadius:18,padding:'20px',marginBottom:18}}>
+            <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:12,flexWrap:'wrap',marginBottom:14}}>
+              <div>
+                <h2 style={{fontSize:16,fontWeight:800,color:'#F8F4F7',marginBottom:5}}>Agendamento online na MiniPage</h2>
+                <p style={{fontSize:12,color:'#B8AAB8',lineHeight:1.55}}>Ative o botão público e personalize a mensagem que seus visitantes verão.</p>
+              </div>
+              <button type="button" disabled={erroProfissionais||erroServicos||salvandoAgendaPublica||(!agendaPublicaAtiva&&(profs.filter(p=>p.ativo!==false).length===0||servicosAtivos===0))}
+                onClick={()=>{setAgendaPublicaAtiva(v=>!v);setMensagemAgendaPublica('')}}
+                aria-pressed={agendaPublicaAtiva}
+                style={{background:agendaPublicaAtiva?'rgba(34,197,94,.14)':'rgba(255,255,255,.05)',border:'1px solid '+(agendaPublicaAtiva?'rgba(34,197,94,.35)':'#2A1A2F'),borderRadius:10,padding:'10px 16px',fontSize:12,fontWeight:700,color:agendaPublicaAtiva?'#4ADE80':'#B8AAB8',cursor:'pointer',fontFamily:'inherit'}}>
+                {agendaPublicaAtiva?'✓ Exibição ativada':'Ativar agendamento online'}
+              </button>
+            </div>
+            <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(220px,1fr))',gap:12,marginBottom:12}}>
+              <div>
+                <label htmlFor="agenda-cta-titulo" style={{display:'block',color:'#B8AAB8',fontSize:11,fontWeight:700,marginBottom:6}}>Título do botão</label>
+                <input id="agenda-cta-titulo" type="text" maxLength={65} value={tituloAgendaPublica} onChange={e=>setTituloAgendaPublica(e.target.value)} placeholder="Agendar agora"
+                  style={{width:'100%',background:'rgba(8,6,10,.55)',border:'1px solid #2A1A2F',borderRadius:10,padding:'12px',color:'#F8F4F7',fontSize:13,fontFamily:'inherit',boxSizing:'border-box'}}/>
+              </div>
+              <div>
+                <label htmlFor="agenda-cta-descricao" style={{display:'block',color:'#B8AAB8',fontSize:11,fontWeight:700,marginBottom:6}}>Descrição curta do botão</label>
+                <input id="agenda-cta-descricao" type="text" maxLength={100} value={descricaoAgendaPublica} onChange={e=>setDescricaoAgendaPublica(e.target.value)} placeholder="Rápido, prático e seguro"
+                  style={{width:'100%',background:'rgba(8,6,10,.55)',border:'1px solid #2A1A2F',borderRadius:10,padding:'12px',color:'#F8F4F7',fontSize:13,fontFamily:'inherit',boxSizing:'border-box'}}/>
+              </div>
+            </div>
+            <div style={{display:'flex',alignItems:'center',gap:12,flexWrap:'wrap',justifyContent:'space-between'}}>
+              <p style={{fontSize:12,color:'#B8AAB8'}}>Para receber agendamentos, configure também os serviços e horários dos profissionais.</p>
+              <button type="button" disabled={salvandoAgendaPublica||erroProfissionais} onClick={salvarAgendaPublica}
+                style={{...btnP,minHeight:42,opacity:salvandoAgendaPublica?.6:1}}>{salvandoAgendaPublica?'Salvando...':'Salvar botão de agendamento'}</button>
+            </div>
+            {mensagemAgendaPublica&&<p role="status" style={{fontSize:12,color:mensagemAgendaPublica.includes('salva!')?'#4ADE80':'#FCD34D',marginTop:12}}>{mensagemAgendaPublica}</p>}
+          </section>
 
           {/* KPIs */}
           <div className="kpi-g">
@@ -522,7 +648,7 @@ export default function Agendamentos(){
                   <div style={{background:'linear-gradient(145deg,rgba(24,16,27,.98),rgba(18,10,20,.99))',border:'1px solid #2A1A2F',borderRadius:20,padding:32,textAlign:'center'}}>
                     <p style={{fontSize:15,fontWeight:600,color:'#F8F4F7',marginBottom:6}}>Nenhum atendimento hoje</p>
                     <p style={{fontSize:13,color:'#B8AAB8',marginBottom:16}}>Sem agendamentos para hoje.</p>
-                    <Link href="/painel/agendamentos/novo" style={{...btnP,display:'inline-flex'}}>+ Novo agendamento</Link>
+                    <Link href={profs.length===0&&!erroProfissionais?'/painel/profissionais':'/painel/agendamentos/novo'} style={{...btnP,display:'inline-flex'}}>{profs.length===0&&!erroProfissionais?'Cadastrar profissional':'+ Novo agendamento'}</Link>
                   </div>
                 ):agsF.map(a=><AgCard key={a.id} a={a}/>)}
                 {bloqueios.filter(b=>b.data===hoje).map(b=>(
@@ -711,7 +837,7 @@ export default function Agendamentos(){
                 </button>
               </>
             ):jaCancelado?null:(
-              <button className="bs-item" style={{color:'#22C55E'}} onClick={()=>{updSt(bsAg.id,'realizado');setBsAg(null)}}>
+              <button className="bs-item" style={{color:'#22C55E'}} onClick={()=>{marcarRealizado(bsAg.id);setBsAg(null)}}>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
                 ✓ Marcar como realizado
               </button>
