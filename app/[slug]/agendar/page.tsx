@@ -121,11 +121,24 @@ export default function Agendar() {
     if (!permiteAgendamentoAutomatico(perfil?.plano_tipo)) { setErro(t.agendaNaoDisponivel); return }
     if (!clienteNome) { setErro(t.informeSeuNome); return }
     if (!clienteTelefone || clienteTelefone.replace(/\D/g,'').length < 10) { setErro(t.informeSeuWhatsapp); return }
+    // O preço precisa ser persistido junto ao agendamento, não consultado depois
+    // no cadastro do serviço (que pode ser reajustado).
+    const servicoEscolhido = servicos.find(s => s.id === servicoId)
+    if (!servicoEscolhido || !profissionalId || !dataSelecionada || !horarioSelecionado) {
+      setErro(t.selecioneDataEHorario); return
+    }
+    const precoSelecionado = servicoEscolhido.preco
+    const valorHistorico = precoSelecionado === null || precoSelecionado === undefined || precoSelecionado === ''
+      ? null : Number(precoSelecionado)
+    if (valorHistorico !== null && (!Number.isFinite(valorHistorico) || valorHistorico < 0)) {
+      setErro(t.erroAoAgendar); return
+    }
     setLoading(true)
     const { error } = await supabase.from('agendamentos').insert({
       user_id: perfil.user_id, servico_id: servicoId, profissional_id: profissionalId,
       data_hora: dataSelecionada + 'T' + horarioSelecionado + ':00',
       cliente_nome: clienteNome, cliente_telefone: clienteTelefone,
+      valor: valorHistorico,
     })
     setLoading(false)
     if (error) { setErro(t.erroAoAgendar); return }

@@ -132,7 +132,9 @@ export default function Servicos(){
     atual.qtd++
     // Preferir valor gravado no atendimento. Fallback para o preço ATUAL do catálogo;
     // nesse caso o painel sinaliza expressamente que não é histórico congelado.
-    const valorRegistro=[a.valor_total,a.valor_servico,a.valor,a.preco_cobrado].find(v=>v!==null&&v!==undefined&&v!==''&&Number.isFinite(Number(v))&&Number(v)>=0)
+    // A coluna real da tabela agendamentos é "valor". Prioridade absoluta ao
+    // preço congelado, inclusive zero. Usar catálogo apenas para registros antigos.
+    const valorRegistro=a.valor!==null&&a.valor!==undefined&&a.valor!==''&&Number.isFinite(Number(a.valor))&&Number(a.valor)>=0 ? a.valor : undefined
     const valorCatalogo=a.servicos?.preco
     const temValor=valorRegistro!==undefined||(valorCatalogo!==null&&valorCatalogo!==undefined&&valorCatalogo!==''&&Number.isFinite(Number(valorCatalogo)))
     if(temValor){const valor=Number(valorRegistro!==undefined?valorRegistro:valorCatalogo);finTotal+=valor;atual.total+=valor;if(valorRegistro===undefined)finPrecoCatalogo++}

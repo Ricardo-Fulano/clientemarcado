@@ -85,7 +85,14 @@ export default function NovoAgendamento(){
     setPerfil(p);setServs(sv||[]);setProfs(pr||[]);setClis(cl||[]);setLoading(false)
   }
   function selCli(c:any){setCNome(c.nome);setCWpp(c.whatsapp||'');setCEmail(c.email||'');setBusca(c.nome);setShowSug(false)}
-  function selServ(id:string){setServId(id);const s=servs.find(s=>s.id===id);if(s?.preco)setValor(parseFloat(s.preco).toFixed(2))}
+  function selServ(id:string){
+    setServId(id)
+    const s=servs.find(item=>item.id===id)
+    // 0 é um preço válido. Ao trocar para serviço sem preço, não reutilizar valor anterior.
+    const preco=s?.preco
+    setValor(preco!==null&&preco!==undefined&&preco!==''&&Number.isFinite(Number(preco))
+      ? Number(preco).toFixed(2) : '')
+  }
   async function salvar(){
     const err:string[]=[]
     if(!cNome.trim()) err.push('Informe o nome.')
@@ -113,7 +120,14 @@ export default function NovoAgendamento(){
       if(confError){console.error('Erro ao validar conflito:',confError);setErros(['Erro ao validar horario. Tente novamente.']);setSalvando(false);return}
       const conflitoAtivo=(conf||[]).some((a:any)=>a.status?.toLowerCase()!=='cancelado')
       if(conflitoAtivo){setErros(['Esse horario ja esta ocupado. Escolha outro horario.']);setSalvando(false);return}
-      const {error}=await supabase.from("agendamentos").insert({user_id:user.id,cliente_nome:cNome.trim(),cliente_whatsapp:wpp||null,servico_id:servId||null,profissional_id:profId||null,data_hora:data+"T"+hora+":00",status:status,observacoes:obs.trim()||null,valor:valor?parseFloat(valor):null})
+      // Congelar no agendamento o valor escolhido pelo profissional; zero é válido.
+      // Sem serviço nem preço informado, manter NULL (não inventar valor).
+      const valorTexto=valor.trim().replace(',','.')
+      const valorHistorico=valorTexto===''?null:Number(valorTexto)
+      if(valorHistorico!==null&&(!Number.isFinite(valorHistorico)||valorHistorico<0)){
+        setErros(['Informe um valor válido, maior ou igual a zero.']);setSalvando(false);return
+      }
+      const {error}=await supabase.from("agendamentos").insert({user_id:user.id,cliente_nome:cNome.trim(),cliente_whatsapp:wpp||null,servico_id:servId||null,profissional_id:profId||null,data_hora:data+"T"+hora+":00",status:status,observacoes:obs.trim()||null,valor:valorHistorico})
       if(error){console.error("Erro:",JSON.stringify(error));setErros(["Erro ao salvar. Tente novamente."]);setSalvando(false);return}
       router.push("/painel/agendamentos")
     }catch(e){console.error("Erro inesperado:",e);setErros(["Erro inesperado."]);setSalvando(false)}

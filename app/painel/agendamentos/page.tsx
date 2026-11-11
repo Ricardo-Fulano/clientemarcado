@@ -103,6 +103,23 @@ function fTel(t:string){
 }
 function gTel(a:any){return(a.cliente_whatsapp||a.cliente_telefone||'').replace(/\D/g,'')}
 
+// O valor gravado no agendamento é o preço histórico.
+// Para agendamentos antigos sem valor, sinalizamos quando exibimos o preço atual.
+function valorDoAgendamento(a:any):{texto:string,estimado:boolean}|null{
+  const historico=a?.valor
+  if(historico!==null&&historico!==undefined&&historico!==''){
+    const numero=Number(historico)
+    if(Number.isFinite(numero))return {texto:numero.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}),estimado:false}
+  }
+  const atual=a?.servicos?.preco
+  if(atual!==null&&atual!==undefined&&atual!==''){
+    const numero=Number(atual)
+    if(Number.isFinite(numero))return {texto:numero.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}),estimado:true}
+  }
+  return null
+}
+
+
 export default function Agendamentos(){
   const [bloqueadoMiniPage, setBloqueadoMiniPage] = useState(false)
   const [verificandoPlanoMiniPage, setVerificandoPlanoMiniPage] = useState(true)
@@ -398,7 +415,7 @@ export default function Agendamentos(){
         {tf&&<p style={{fontSize:11,color:'#B8AAB8',marginBottom:2}}>{tf}</p>}
         <p style={{fontSize:11,color:'#B8AAB8',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap' as const,marginBottom:8}}>
           {a.servicos?.nome||'Serviço não informado'}{a.profissionais?.nome?' · Prof. '+a.profissionais.nome:''}
-          {a.servicos?.preco?<span style={{color:'#22C55E'}}> · R$ {a.servicos.preco}</span>:null}
+          {valorDoAgendamento(a)&&<span style={{color:'#22C55E'}}> · R$ {valorDoAgendamento(a)!.texto}{valorDoAgendamento(a)!.estimado?' (estimado)':''}</span>}
         </p>
         <div className="card-btns" onClick={e=>e.stopPropagation()}>
           {wW&&<a href={wW} target="_blank" rel="noreferrer" className="card-btn card-btn-wpp" style={{background:'rgba(24,16,27,.75)',color:'#F8F4F7',border:'1px solid #2A1A2F'}}>WhatsApp</a>}
@@ -457,7 +474,7 @@ export default function Agendamentos(){
         </div>
         <div style={sec}>
           <p style={secT}>Atendimento</p>
-          {[{l:'Serviço',v:sel.servicos?.nome||'Não informado',c:'#F8F4F7'},{l:'Profissional',v:sel.profissionais?.nome||'Não informado',c:'#F8F4F7'},{l:'Data',v:fDF(sel.data_hora),c:'#B8AAB8',fs:10},{l:'Horário',v:fH(sel.data_hora),c:'#EC4899'},...(sel.servicos?.preco?[{l:'Valor',v:'R$ '+sel.servicos.preco,c:'#22C55E'}]:[])].map(({l,v,c,fs}:any)=>(
+          {[{l:'Serviço',v:sel.servicos?.nome||'Não informado',c:'#F8F4F7'},{l:'Profissional',v:sel.profissionais?.nome||'Não informado',c:'#F8F4F7'},{l:'Data',v:fDF(sel.data_hora),c:'#B8AAB8',fs:10},{l:'Horário',v:fH(sel.data_hora),c:'#EC4899'},...(valorDoAgendamento(sel)?[{l:valorDoAgendamento(sel)!.estimado?'Valor estimado':'Valor',v:'R$ '+valorDoAgendamento(sel)!.texto,c:'#22C55E'}]:[])].map(({l,v,c,fs}:any)=>(
             <div key={l} style={row}><span style={{fontSize:11,color:'#B8AAB8'}}>{l}</span><span style={{fontSize:fs||11,fontWeight:700,color:c,textAlign:'right' as const,maxWidth:'58%'}}>{v}</span></div>
           ))}
         </div>
