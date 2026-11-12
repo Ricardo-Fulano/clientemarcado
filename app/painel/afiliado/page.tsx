@@ -65,7 +65,7 @@ export default function PainelAfiliado() {
   const [temMiniPage, setTemMiniPage] = useState<boolean | null>(null)
   // Ajuste 3: filtro compartilhado entre Clientes e Comissoes; nunca filtra Repasses
   // (agregado por parceiro+competencia, pode ter varios planos misturados).
-  const [filtroPlano, setFiltroPlano] = useState<'all' | 'minipage' | 'loja' | 'essencial' | 'equipe'>('all')
+  const [filtroPlano, setFiltroPlano] = useState<'all' | 'minipage' | 'agenda' | 'loja' | 'essencial' | 'equipe'>('all')
 
   useEffect(() => { carregar(); verificarMiniPage() }, [])
 
@@ -135,7 +135,7 @@ export default function PainelAfiliado() {
   const comissoesValidasPorIndicacao = new Set(
     comissoes.filter((c: any) => c.status === 'pendente' || c.status === 'paga').map((c: any) => c.indicacaoId)
   )
-  const desempenhoPorPlano = (['minipage', 'loja', 'essencial', 'equipe'] as const).map(chave => {
+  const desempenhoPorPlano = (['minipage', 'agenda', 'loja', 'essencial', 'equipe'] as const).map(chave => {
     const indicadosDoPlano = indicacoes.filter((i: any) => normalizarPlano(i.planoTipo) === chave)
     const pagantesDoPlano = indicadosDoPlano.filter((i: any) => comissoesValidasPorIndicacao.has(i.id)).length
     const comissaoDoPlano = comissoes
@@ -166,8 +166,8 @@ export default function PainelAfiliado() {
 
       <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'center', marginBottom: '20px' }}>
         <span style={{ fontSize: '12px', fontWeight: 800, color: '#EC4899', background: 'rgba(236,72,153,.12)', border: '1px solid rgba(236,72,153,.28)', padding: '5px 12px', borderRadius: '8px' }}>Cupom: {parceiro.cupom}</span>
-        <button className="btn-s" onClick={() => copiar(parceiro.cupom, 'Cupom copiado!')}>Copiar cupom</button>
-        <button className="btn-s" onClick={() => copiar(linkIndicacao, 'Link copiado!')}>Copiar link de indicação</button>
+        {parceiro.ativo && <button className="btn-s" onClick={() => copiar(parceiro.cupom, 'Cupom copiado!')}>Copiar cupom</button>}
+        {parceiro.ativo && <button className="btn-s" onClick={() => copiar(linkIndicacao, 'Link copiado!')}>Copiar link de indicação</button>}
         {msgCopiado && <span style={{ fontSize: '12px', color: '#22C55E' }}>{msgCopiado}</span>}
         {/* Somente leitura. percentualComissao ja vem resolvido pela rota (exatamente 0.2, 0.3 ou null).
             Qualquer outro valor (inclusive null) nao exibe nada - sem fallback para 20% ou 30%. */}
@@ -192,19 +192,7 @@ export default function PainelAfiliado() {
         ))}
       </div>
 
-      {/* Segunda linha - status dos clientes */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(120px,1fr))', gap: '10px', marginBottom: '24px' }}>
-        {[
-          { l: 'Ativos', v: String(resumo.ativos), c: '#22C55E' },
-          { l: 'Em atraso', v: String(resumo.emAtraso), c: '#FACC15' },
-          { l: 'Cancelados', v: String(resumo.cancelados), c: '#F87171' },
-        ].map(k => (
-          <div key={k.l} style={{ background: 'rgba(24,16,27,.5)', border: '1px solid #2A1A2F', borderRadius: '12px', padding: '10px 14px' }}>
-            <p style={{ fontSize: '10px', color: '#B8AAB8', marginBottom: '2px' }}>{k.l}</p>
-            <p style={{ fontSize: '14px', fontWeight: 700, color: k.c }}>{k.v}</p>
-          </div>
-        ))}
-      </div>
+      {/* A API ainda nao retorna status_acesso confiavel para clientes indicados. Nao exibir zeros enganadores. */}
 
       {/* Desempenho por plano - compacto, nao compete visualmente com os cards principais */}
       {desempenhoPorPlano.length > 0 && (
@@ -228,7 +216,7 @@ export default function PainelAfiliado() {
         <select value={filtroPlano} onChange={e => setFiltroPlano(e.target.value as any)}
           style={{ background: 'rgba(24,16,27,.92)', border: '1px solid #2A1A2F', borderRadius: '10px', padding: '8px 12px', color: '#F8F4F7', fontSize: '13px', fontFamily: 'inherit' }}>
           <option value="all">Todos os planos</option>
-          {(['minipage', 'loja', 'essencial', 'equipe'] as const).map(chave => (
+          {(['minipage', 'agenda', 'loja', 'essencial', 'equipe'] as const).map(chave => (
             <option key={chave} value={chave}>{obterNomePlano(chave)}</option>
           ))}
         </select>

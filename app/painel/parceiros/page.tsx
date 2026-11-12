@@ -2,7 +2,7 @@
 import { useEffect, useState, useMemo } from 'react'
 import { supabase } from '../../lib/supabase'
 import PainelSidebar from '@/app/components/PainelSidebar'
-import { normalizarPlano, obterNomePlano, obterPrecoPlano, type PlanoTipo } from '../../lib/planos'
+import { normalizarPlano, obterNomePlano, obterPrecoPlano, obterPrecoAnualPlano, type PlanoTipo } from '../../lib/planos'
 import { modalidadeDoPercentual, type ModalidadeParceiro } from '../../lib/comissao-parceiro'
 
 // Mesma lista ja usada em PainelSidebar.tsx - canal19horas@gmail.com (original) +
@@ -438,13 +438,13 @@ export default function Parceiros() {
   function resumoPorPlano(inds: any[], comissoesRelevantes: any[]) {
     const comPlanoDefinido = inds.filter(i => i.plano_tipo !== null && i.plano_tipo !== undefined && i.plano_tipo !== '')
     const comissoesValidasRelevantes = comissoesRelevantes.filter(c => c.status === 'pendente' || c.status === 'paga')
-    const chaves = ['minipage', 'loja', 'essencial', 'equipe'] as const
+    const chaves = ['minipage', 'agenda', 'loja', 'essencial', 'equipe'] as const
     return chaves.map(chave => {
       const doPlano = comPlanoDefinido.filter(i => normalizarPlano(i.plano_tipo) === chave)
       const comissoesDoPlano = comissoesValidasRelevantes.filter(c => normalizarPlano(c.plano_tipo) === chave)
       const pagantesDoPlano = new Set(comissoesDoPlano.map(c => c.indicacao_id)).size
       const comissao = comissoesDoPlano.reduce((a, c) => a + Number(c.valor_comissao || 0), 0)
-      return { chave, nome: infoDoPlano(chave).nomeComercial, cadastros: doPlano.length, pagantes: pagantesDoPlano, comissao }
+      return { chave, nome: infoDoPlano(chave).nomeComercial, mensalidade: obterPrecoPlano(chave), anualidade: obterPrecoAnualPlano(chave), cadastros: doPlano.length, pagantes: pagantesDoPlano, comissao }
     })
   }
 
@@ -558,12 +558,13 @@ export default function Parceiros() {
     setTimeout(() => setMsg(''), 3000)
   }
 
-  function copiarPainelParceiro(c: string) {
-    const base = process.env.NEXT_PUBLIC_SITE_URL || window.location.origin
-    const url = `${base}/parceiro/${c}`
+  function copiarPainelParceiro() {
+    // O cupom identifica indicacoes comerciais, NAO autentica acesso financeiro.
+    // O painel de afiliado resolve o parceiro via sessao autenticada no servidor.
+    const url = `${window.location.origin}/painel/afiliado`
     navigator.clipboard.writeText(url)
-    setMsg('Link do painel do parceiro copiado!')
-    setTimeout(() => setMsg(''), 3000)
+    setMsg('Link do painel autenticado copiado! Vincule a conta do parceiro antes de enviar.')
+    setTimeout(() => setMsg(''), 5000)
   }
 
   const fBRL = (v: number) => `R$ ${(v || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`
@@ -621,7 +622,8 @@ export default function Parceiros() {
               <button className="btn-p" onClick={() => { resetForm(); setShowModal(true) }}>+ Novo parceiro</button>
             </div>
 
-            <p style={{ fontSize: '12px', color: '#C4B5FD', marginBottom: '20px' }}>Comissão: 20% (parceiro padrão) ou 30% (parceiro estratégico), recorrente sobre cada mensalidade paga pelos clientes indicados, por até 12 meses.</p>
+            <p style={{ fontSize: '12px', color: '#C4B5FD', marginBottom: '8px' }}>Comissões conforme o percentual cadastrado (20% padrão ou 30% estratégico); regras históricas preservadas. Planos anuais são cobrados à vista.</p>
+            <p style={{ fontSize: '11px', color: '#B8AAB8', marginBottom: '20px' }}>Valores pendentes e pagos incluem registros históricos, inclusive de parceiros inativos. Consulte os fechamentos e a situação de cada comissão antes de realizar repasses.</p>
 
             {msg && <div style={{ background: 'rgba(34,197,94,.12)', border: '1px solid rgba(34,197,94,.28)', borderRadius: '10px', padding: '10px 14px', fontSize: '13px', color: '#22C55E', marginBottom: '16px' }}>{msg}</div>}
 
@@ -631,7 +633,7 @@ export default function Parceiros() {
                 { l: 'Parceiros ativos', v: String(totalAtivos), c: '#EC4899', bd: 'rgba(236,72,153,.25)' },
                 { l: 'Indicações pagantes', v: `${totalPagantes} de ${totalCadastros}`, c: '#22C55E', bd: 'rgba(34,197,94,.25)' },
                 { l: 'Comissão pendente', v: fBRL(totalPendente), c: '#FACC15', bd: 'rgba(250,204,21,.25)' },
-                { l: 'Comissão paga', v: fBRL(totalPago), c: '#22C55E', bd: 'rgba(34,197,94,.22)' },
+                { l: 'Comissão paga (histórico)', v: fBRL(totalPago), c: '#22C55E', bd: 'rgba(34,197,94,.22)' },
               ].map(k => (
                 <div key={k.l} style={{ background: '#18101B', border: `1.5px solid ${k.bd}`, borderRadius: '18px', padding: '18px 16px' }}>
                   <p style={{ fontSize: '10px', fontWeight: 700, color: '#B8AAB8', textTransform: 'uppercase', letterSpacing: '.07em', marginBottom: '6px' }}>{k.l}</p>
@@ -706,7 +708,7 @@ export default function Parceiros() {
                       <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
                         <button className="btn-s" onClick={() => { setVerDetalhes(p); setFiltroPeriodo('tudo') }}>Ver detalhes</button>
                         <button className="btn-s" onClick={() => copiarLink(p.cupom)}>Copiar link</button>
-                        <button className="btn-s" onClick={() => copiarPainelParceiro(p.cupom)}>Copiar painel do parceiro</button>
+                        <button className="btn-s" onClick={() => copiarPainelParceiro()}>Copiar painel do parceiro</button>
                         <button className="btn-s" onClick={() => abrirEditar(p)}>Editar</button>
                         <button className={p.ativo ? 'btn-s btn-desativar' : 'btn-s'} onClick={() => toggleAtivo(p)}>{p.ativo ? 'Desativar' : 'Ativar'}</button>
                         <button className="btn-s" style={{ color: '#F87171', borderColor: 'rgba(248,113,113,.35)' }} onClick={() => abrirConfirmacaoExclusao(p)}>Excluir</button>
@@ -748,7 +750,7 @@ export default function Parceiros() {
                       <label className="lbl">Plano</label>
                       <select className="inp" style={{ cursor: 'pointer' }} value={filtroPlano} onChange={e => setFiltroPlano(e.target.value)}>
                         <option value="">Todos os planos</option>
-                        {(['minipage', 'loja', 'essencial', 'equipe'] as const).map(chave => (
+                        {(['minipage', 'agenda', 'loja', 'essencial', 'equipe'] as const).map(chave => (
                           <option key={chave} value={chave}>{obterNomePlano(chave)}</option>
                         ))}
                       </select>
@@ -987,10 +989,11 @@ export default function Parceiros() {
 
               {/* Resumo por plano */}
               <p style={{ fontSize: '13px', fontWeight: 700, color: '#F8F4F7', marginBottom: '10px' }}>Resumo por plano</p>
-              <div className="resumo-plano-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '10px', marginBottom: '22px' }}>
+              <div className="resumo-plano-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(155px,1fr))', gap: '10px', marginBottom: '22px' }}>
                 {resumo.map(r => (
                   <div key={r.chave} style={{ background: 'rgba(139,92,246,.06)', border: '1px solid rgba(139,92,246,.20)', borderRadius: '12px', padding: '12px 10px' }}>
                     <p style={{ fontSize: '11px', fontWeight: 800, color: '#C4B5FD', marginBottom: '8px' }}>{r.nome}</p>
+                    <p style={{ fontSize: '10px', color: '#B8AAB8', marginBottom: '6px' }}>Mensal: {fBRL(r.mensalidade)} · Anual: {fBRL(r.anualidade)}</p>
                     <p style={{ fontSize: '11px', color: '#B8AAB8', marginBottom: '2px' }}>Cadastros: <span style={{ color: '#F8F4F7', fontWeight: 700 }}>{r.cadastros}</span></p>
                     <p style={{ fontSize: '11px', color: '#B8AAB8', marginBottom: '2px' }}>Pagantes: <span style={{ color: '#22C55E', fontWeight: 700 }}>{r.pagantes}</span></p>
                     <p style={{ fontSize: '11px', color: '#B8AAB8' }}>Comissão: <span style={{ color: '#EC4899', fontWeight: 700 }}>{fBRL(r.comissao)}</span></p>
@@ -1000,6 +1003,7 @@ export default function Parceiros() {
 
               {/* Acesso ao painel de afiliado (Fase 4A) */}
               <p style={{ fontSize: '13px', fontWeight: 700, color: '#F8F4F7', marginBottom: '10px' }}>Acesso ao painel de afiliado</p>
+              <p style={{ fontSize: '11px', color: '#B8AAB8', marginBottom: '10px' }}>Vínculo administrativo: verifique a conta MiniPage do parceiro e confirme em Vincular acesso. A conta autenticada vê somente seus próprios dados em /painel/afiliado; verificar o e-mail sozinho não concede acesso.</p>
               <div style={{ border: '1px solid #2A1A2F', borderRadius: '12px', padding: '14px', marginBottom: '22px', background: 'rgba(24,16,27,.4)' }}>
                 {verDetalhes.user_id ? (
                   <>
