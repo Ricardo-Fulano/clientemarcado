@@ -1,20 +1,21 @@
 // Fonte UNICA de verdade pros planos da MiniPage Pro / ClienteMarcado (Etapa 2 - nova
-// estrutura comercial de 5 planos).
+// estrutura comercial de 6 planos).
 //
-// plano_tipo no banco (perfis.plano_tipo) aceita: 'free' | 'minipage' | 'loja' | 'essencial' | 'equipe'
+// plano_tipo no banco (perfis.plano_tipo) aceita: 'free' | 'minipage' | 'agenda' | 'loja' | 'essencial' | 'equipe'
 //
 // IMPORTANTE - mapeamento comercial x interno (nao mexer sem avisar antes):
 //   free      -> "MiniPage Free"  (R$ 0)
-//   minipage  -> "MiniPage"       (R$ 39,90)
-//   loja      -> "MiniPage Loja"  (R$ 59,90)
-//   essencial -> "MiniPage Pro"   (R$ 79,90) - NAO renomeado no banco de proposito,
+//   minipage  -> "MiniPage"       (R$ 29,90)
+//   agenda    -> "MiniPage Agenda" (R$ 39,90)
+//   loja      -> "MiniPage Loja"  (R$ 49,90)
+//   essencial -> "MiniPage Pro"   (R$ 59,90) - NAO renomeado no banco de proposito,
 //                                              pra nao exigir migration em contas ja existentes
 //   equipe    -> "MiniPage Equipe" (R$ 149,90)
 //
 // O valor interno do banco NUNCA muda so por causa do nome comercial - o nome exibido
 // pro cliente sempre passa por obterNomePlano(), nunca aparece plano_tipo cru na tela.
 
-export type PlanoTipo = 'free' | 'minipage' | 'loja' | 'essencial' | 'equipe'
+export type PlanoTipo = 'free' | 'minipage' | 'agenda' | 'loja' | 'essencial' | 'equipe'
 // Mantido por compatibilidade com qualquer import antigo que possa existir.
 export type PlanoNormalizado = PlanoTipo
 
@@ -27,6 +28,7 @@ export function normalizarPlano(planoTipo?: string | null): PlanoTipo {
   const p = (planoTipo || '').toLowerCase().trim()
   if (p === 'free') return 'free'
   if (p === 'minipage') return 'minipage'
+  if (p === 'agenda') return 'agenda'
   if (p === 'loja') return 'loja'
   if (p === 'equipe') return 'equipe'
   return 'essencial'
@@ -37,6 +39,7 @@ export function obterNomePlano(planoTipo?: string | null): string {
   const p = normalizarPlano(planoTipo)
   if (p === 'free') return 'MiniPage Free'
   if (p === 'minipage') return 'MiniPage'
+  if (p === 'agenda') return 'MiniPage Agenda'
   if (p === 'loja') return 'MiniPage Loja'
   if (p === 'equipe') return 'MiniPage Equipe'
   return 'MiniPage Pro'
@@ -46,10 +49,11 @@ export function obterNomePlano(planoTipo?: string | null): string {
 export function obterPrecoPlano(planoTipo?: string | null): number {
   const p = normalizarPlano(planoTipo)
   if (p === 'free') return 0
-  if (p === 'minipage') return 39.90
-  if (p === 'loja') return 59.90
+  if (p === 'minipage') return 29.90
+  if (p === 'agenda') return 39.90
+  if (p === 'loja') return 49.90
   if (p === 'equipe') return 149.90
-  return 79.90
+  return 59.90
 }
 
 // ===================================================================
@@ -69,6 +73,7 @@ export function obterPrecoAnualPlano(planoTipo?: string | null): number {
   const p = normalizarPlano(planoTipo)
   if (p === 'free') return 0
   if (p === 'minipage') return 397.00
+  if (p === 'agenda') return 0 // Preco anual indefinido; checkout anual bloqueado
   if (p === 'loja') return 597.00
   if (p === 'equipe') return 1497.00
   return 797.00 // essencial/Pro
@@ -109,6 +114,7 @@ export function obterReasonMercadoPago(planoTipo?: string | null): string {
   const p = normalizarPlano(planoTipo)
   if (p === 'free') return 'MiniPage Pro - Plano Free'
   if (p === 'minipage') return 'MiniPage Pro - Plano MiniPage'
+  if (p === 'agenda') return 'MiniPage Pro - Plano Agenda'
   if (p === 'loja') return 'MiniPage Pro - Plano MiniPage Loja'
   if (p === 'equipe') return 'MiniPage Pro - Plano MiniPage Equipe'
   return 'MiniPage Pro - Plano MiniPage Pro'
@@ -152,7 +158,8 @@ export function podeUsarProfissionais(planoTipo?: string | null): boolean {
 
 /** Mesmo comportamento de ehPlanoComGestao() - nome semantico especifico pra agenda. */
 export function permiteAgenda(planoTipo?: string | null): boolean {
-  return ehPlanoComGestao(planoTipo)
+  const p = (planoTipo || '').toLowerCase().trim()
+  return p === 'agenda' || p === 'essencial' || p === 'equipe'
 }
 
 /** Mesmo comportamento de ehPlanoComGestao() - nome semantico especifico pro financeiro. */
@@ -304,19 +311,19 @@ function planoBruto(planoTipo?: string | null): string {
 /** Albuns/Fotos: a partir do MiniPage. Free bloqueado. */
 export function permiteAlbuns(planoTipo?: string | null): boolean {
   const p = planoBruto(planoTipo)
-  return p === 'minipage' || p === 'loja' || p === 'essencial' || p === 'equipe'
+  return p === 'minipage' || p === 'agenda' || p === 'loja' || p === 'essencial' || p === 'equipe'
 }
 
 /** Links visuais (cards com imagem): a partir do MiniPage. Free bloqueado. */
 export function permiteCardsVisuais(planoTipo?: string | null): boolean {
   const p = planoBruto(planoTipo)
-  return p === 'minipage' || p === 'loja' || p === 'essencial' || p === 'equipe'
+  return p === 'minipage' || p === 'agenda' || p === 'loja' || p === 'essencial' || p === 'equipe'
 }
 
 /** AGENDAMENTO AUTOMATICO de clientes (/[slug]/agendar): SOMENTE Pro (essencial) e Equipe. Free, MiniPage e Loja NAO. */
 export function permiteAgendamentoAutomatico(planoTipo?: string | null): boolean {
   const p = planoBruto(planoTipo)
-  return p === 'essencial' || p === 'equipe'
+  return p === 'agenda' || p === 'essencial' || p === 'equipe'
 }
 
 export type BloqueioRotaPainel = { titulo: string; descricao: string }

@@ -2,7 +2,7 @@ import crypto from 'crypto'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { ehEmailJaCadastrado } from './auth-erros'
 import { criarPerfilInicial } from './perfil-inicial'
-import { normalizarPlano } from './planos'
+import { normalizarPlano, normalizarBillingCycle } from './planos'
 import { normalizarWhatsappBR } from './whatsapp'
 
 // Cadastro feito PELO SERVIDOR: cria o usuario ja confirmado (auth.admin.createUser com
@@ -85,6 +85,9 @@ export async function registrarConta(
     return { status: 409, body: { codigo: 'JA_TEM_CONTA', error: 'Este e-mail já possui uma conta. Entre para continuar.' } }
 
   const plano = normalizarPlano(typeof input.plano_tipo === 'string' ? input.plano_tipo : null)
+  // Nao criar uma conta paga anual enquanto essa oferta estiver indisponivel.
+  if (plano !== 'free' && normalizarBillingCycle(input.billing_cycle as string) === 'anual')
+    return { status: 409, body: { codigo: 'PRECO_ANUAL_PENDENTE', error: 'Plano anual temporariamente indisponivel. Volte aos planos e escolha Mensal.' } }
   const cupom = typeof input.cupom === 'string' && input.cupom.trim() && input.cupom.length <= 50 ? input.cupom.trim().toUpperCase() : null
 
   // Cria o usuario JA CONFIRMADO. Nenhum e-mail do Supabase e enviado por este caminho.

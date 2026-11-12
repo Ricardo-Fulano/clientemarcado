@@ -3,9 +3,9 @@ import Link from 'next/link'
 import { useState, useEffect, type ReactNode } from 'react'
 import AssistenteComercial from '@/app/components/AssistenteComercial'
 import { obterNomePlano, obterPrecoPlanoPorCiclo, obterPercentualEconomiaAnual, type BillingCycle } from './lib/planos'
-const CHECKOUT_URL = "https://www.mercadopago.com.br/subscriptions/checkout?preapproval_plan_id=1a0fb25c46214e45b0eb3d21b494e5d6"
+const CHECKOUT_URL = "https://minipage.pro/#plano"
 const G = 'linear-gradient(135deg,#EC4899,#D946EF,#8B5CF6)'
-function fPreco(tipo: 'free'|'minipage'|'loja'|'essencial'|'equipe', ciclo: BillingCycle) {
+function fPreco(tipo: 'free'|'minipage'|'agenda'|'loja'|'essencial'|'equipe', ciclo: BillingCycle) {
   const p = obterPrecoPlanoPorCiclo(tipo, ciclo)
   const [inteiro, decimal] = p.toFixed(2).split('.')
   return { inteiro, decimal }
@@ -32,6 +32,11 @@ const itensMiniPage: ItemDoPlano[] = [
   { t: 'Painel de desempenho' },
   { t: 'Exportação CSV e Excel' },
   { t: 'Meta Pixel e Google Analytics 4' },
+]
+const itensAgenda: ItemDoPlano[] = [
+  { t: 'Agendamento automático de clientes', forte: true },
+  { t: 'Agenda de atendimento' },
+  { t: 'Gestão de horários e disponibilidade' },
 ]
 const itensLoja: ItemDoPlano[] = [
   { t: 'Catálogos ilimitados', forte: true },
@@ -95,7 +100,7 @@ function ItemLista({ item }: { item: ItemDoPlano }) {
   )
 }
 
-type TipoPlanoLanding = 'free' | 'minipage' | 'loja' | 'essencial' | 'equipe'
+type TipoPlanoLanding = 'free' | 'minipage' | 'agenda' | 'loja' | 'essencial' | 'equipe'
 // Cartao de plano. Nome, preco e botao continuam vindo de planos.ts / dos mesmos links de antes (o botao entra pronto em "cta").
 function CartaoPlano({ tipo, billing, selo, nicho, descricao, descricaoHl, herda, itens, variante = 'padrao', cta }: {
   tipo: TipoPlanoLanding; billing: BillingCycle; selo: string; nicho?: string; descricao?: string; descricaoHl?: string
@@ -147,7 +152,7 @@ export default function Home() {
   }
 
   const [scrolled, setScrolled] = useState(false)
-  const [billingSelecionado, setBillingSelecionado] = useState<BillingCycle>('mensal')
+  const billingSelecionado: BillingCycle = 'mensal'
   useEffect(() => {
     const h = () => setScrolled(window.scrollY > 20)
     window.addEventListener('scroll', h)
@@ -316,22 +321,14 @@ export default function Home() {
             <p style={{fontSize:'15px',color:'#B8AAB8',lineHeight:1.6,maxWidth:'560px',margin:'0 auto'}}>Comece com uma MiniPage para organizar seus links ou escolha um plano com loja, agenda e gestão para vender e atender melhor.</p>
           </div>
 
-          <div style={{display:'flex',justifyContent:'center',marginBottom:'24px'}}>
-            <div style={{display:'inline-flex',background:'rgba(24,16,27,.9)',border:'1px solid #2A1A2F',borderRadius:'999px',padding:'4px'}}>
-              <button type="button" onClick={()=>setBillingSelecionado('mensal')} style={{background:billingSelecionado==='mensal'?G:'transparent',color:billingSelecionado==='mensal'?'#fff':'#B8AAB8',border:'none',borderRadius:'999px',padding:'8px 18px',fontSize:'13px',fontWeight:700,cursor:'pointer',fontFamily:'inherit'}}>Mensal</button>
-              <button type="button" onClick={()=>setBillingSelecionado('anual')} style={{background:billingSelecionado==='anual'?G:'transparent',color:billingSelecionado==='anual'?'#fff':'#B8AAB8',border:'none',borderRadius:'999px',padding:'8px 18px',fontSize:'13px',fontWeight:700,cursor:'pointer',fontFamily:'inherit',display:'inline-flex',alignItems:'center',gap:'6px'}}>
-                Anual
-                <span style={{background:'rgba(34,197,94,.20)',color:'#22C55E',fontSize:'10px',fontWeight:800,padding:'2px 7px',borderRadius:'999px'}}>-17%</span>
-              </button>
-            </div>
-          </div>
+          <p style={{textAlign:'center',color:'#B8AAB8',fontSize:'13px',marginBottom:'24px'}}>Valores mensais. Assinaturas anuais temporariamente indisponíveis.</p>
           <style>{`
             .planos-scroll::-webkit-scrollbar{display:none}
-            /* Desktop com espaco suficiente: os 5 cards cabem inteiros numa grade fluida,
+            /* Desktop com espaco suficiente: os 6 cards distribuidos em duas linhas,
                sem scroll horizontal nenhum. !important e necessario pra sobrescrever os
                estilos inline (base mobile) so a partir deste breakpoint. */
             @media(min-width:900px){
-              .planos-scroll{display:grid !important;grid-template-columns:repeat(5,minmax(0,1fr)) !important;overflow-x:visible !important;}
+              .planos-scroll{display:grid !important;grid-template-columns:repeat(3,minmax(0,1fr)) !important;overflow-x:visible !important;}
               .plano-card{flex:none !important;min-width:0 !important;width:auto !important;}
             }
             /* Bloco "Ideal para": altura minima igual nos cartoes, para as listas comecarem alinhadas. */
@@ -353,6 +350,14 @@ export default function Home() {
               cta={
                 <Link href={`/aceite-plano?plano=minipage&billing=${billingSelecionado}`} onClick={(e) => irComCupom(e, `/aceite-plano?plano=minipage&billing=${billingSelecionado}`)} className="btn-p" style={{width:'100%',justifyContent:'center',height:'46px',fontSize:'13px'}}>
                   Começar com a MiniPage
+                </Link>
+              } />
+
+            {/* PLANO AGENDA */}
+            <CartaoPlano tipo="agenda" billing={billingSelecionado} selo="Ideal para" nicho="profissionais que trabalham com horários" descricao="MiniPage com agendamento automático para clientes." herda="Tudo da MiniPage +" itens={itensAgenda}
+              cta={
+                <Link href={`/aceite-plano?plano=agenda&billing=mensal`} onClick={(e) => irComCupom(e, '/aceite-plano?plano=agenda&billing=mensal')} className="btn-p" style={{width:'100%',justifyContent:'center',height:'46px',fontSize:'13px'}}>
+                  Quero o MiniPage Agenda
                 </Link>
               } />
 
@@ -382,7 +387,7 @@ export default function Home() {
 
           </div>
 
-          <p style={{textAlign:'center',fontSize:'13px',color:'#B8AAB8',marginTop:'32px'}}>{billingSelecionado==='anual' ? 'Planos anuais com cobrança única e renovação anual. MiniPage Pro é uma solução ClienteMarcado.' : 'Planos pagos com cobrança mensal recorrente. MiniPage Pro é uma solução ClienteMarcado.'}</p>
+          <p style={{textAlign:'center',fontSize:'13px',color:'#B8AAB8',marginTop:'32px'}}>Planos pagos com cobrança mensal recorrente. MiniPage Pro é uma solução ClienteMarcado.</p>
         </div>
       </section>
       {/* CTA FINAL */}

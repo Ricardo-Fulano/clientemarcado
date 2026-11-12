@@ -54,7 +54,7 @@ export async function criarOuReutilizarCheckout(
     // Free nunca gera assinatura.
     if (ehPlanoFree(planoTipoOriginal)) return { status: 400, body: { error: 'Plano Free não gera assinatura.' } }
     // So os 4 planos pagos conhecidos - nunca assume um valor para uma cobranca real.
-    const PLANOS_PAGOS_VALIDOS = ['minipage', 'loja', 'essencial', 'equipe']
+    const PLANOS_PAGOS_VALIDOS = ['minipage', 'agenda', 'loja', 'essencial', 'equipe']
     if (!planoTipoOriginal || !PLANOS_PAGOS_VALIDOS.includes(planoTipoOriginal)) {
       console.error('[Asaas][checkout] plano_tipo invalido/desconhecido - bloqueando por seguranca:', planoTipoOriginal)
       return { status: 400, body: { error: 'Não foi possível identificar seu plano. Entre em contato com o suporte.' } }
@@ -94,6 +94,10 @@ export async function criarOuReutilizarCheckout(
     const planoTipo = normalizarPlano(planoTipoOriginal)
     // billing_cycle vazio (conta transferida/antiga) cai em 'mensal'.
     const ciclo = normalizarBillingCycle(perfil?.billing_cycle || body?.billing_cycle)
+    // O catalogo anual dos seis planos ainda exige precos novos definidos.
+    // Nunca gerar uma cobranca anual com tabela antiga so porque o mensal mudou.
+    const bloquearAnual = () => ciclo === 'anual'
+    if (bloquearAnual()) return { status: 409, body: { codigo: 'PRECO_ANUAL_PENDENTE', error: 'Plano anual temporariamente indisponivel. Escolha o mensal ou fale com o suporte.' } }
     const valor = obterPrecoPlanoPorCiclo(planoTipo, ciclo)
     const descricao = `${obterReasonMercadoPago(planoTipo)} (${ciclo === 'anual' ? 'Anual' : 'Mensal'})`
     const SITE_URL = env.NEXT_PUBLIC_SITE_URL || 'https://clientemarcado.com.br'
@@ -170,7 +174,11 @@ export async function criarOuReutilizarCheckout(
       let criadaAgora = false
       if (subscriptionId) {
         const r = await asaas('GET', `/subscriptions/${subscriptionId}`)
-        if (r.ok && r.data?.id && r.data.deleted !== true && r.data.status === 'ACTIVE' && r.data.customer === customerId) log('CHECKOUT_SUBSCRIPTION_REUSED')
+        if (r.ok && r.data?.id && r.data.deleted !== true && r.data.status === 'ACTIVE' && r.data.customer === customerId) {
+          if (Math.abs(Number(r.data.value) - valor) > 0.009 || !Number.isFinite(Number(r.data.value)))
+            return { status: 409, body: { codigo: 'ASSINATURA_PRECO_DIVERGENTE', error: 'Esta assinatura possui um valor contratado diferente do plano atual. Fale com o suporte antes de pagar.' } }
+          log('CHECKOUT_SUBSCRIPTION_REUSED')
+        }
         else if (r.status === 404 || r.data?.deleted === true || (r.ok && r.data?.id && (r.data.status !== 'ACTIVE' || r.data.customer !== customerId))) { log('CHECKOUT_SUBSCRIPTION_STALE', { motivo: 'inexistente, inativa ou de outro cliente' }); subscriptionId = null }
         else erroTemporario()
       }
@@ -178,7 +186,11 @@ export async function criarOuReutilizarCheckout(
         const lista = await asaas('GET', `/subscriptions?customer=${customerId}&status=ACTIVE&limit=10`)
         if (!lista.ok) erroTemporario()
         const achada = (Array.isArray(lista.data?.data) ? lista.data.data : []).find((s: any) => s?.id && s.deleted !== true && s.customer === customerId && s.status === 'ACTIVE')
-        if (achada) { subscriptionId = achada.id; log('CHECKOUT_SUBSCRIPTION_FOUND') }
+        if (achada) {
+          if (!Number.isFinite(Number(achada.value)) || Math.abs(Number(achada.value) - valor) > 0.009)
+            return { status: 409, body: { codigo: 'ASSINATURA_PRECO_DIVERGENTE', error: 'Existe uma assinatura com valor diferente. Fale com o suporte antes de pagar.' } }
+          subscriptionId = achada.id; log('CHECKOUT_SUBSCRIPTION_FOUND')
+        }
         else {
           const s = await asaas('POST', '/subscriptions', { customer: customerId, billingType: metodo, value: valor, nextDueDate, cycle: 'MONTHLY', description: descricao, externalReference: userId, callback: { successUrl } })
           if (!s.ok || !s.data?.id) throw new ErroCheckout(500, { error: 'Não foi possível criar a assinatura. Tente novamente ou fale com o suporte.' })
@@ -199,6 +211,8 @@ export async function criarOuReutilizarCheckout(
         await esperar(700)   // a primeira cobranca de uma assinatura nova pode demorar um instante
       }
       const pend = cobrancas.find(p => p.status === 'PENDING' && p.invoiceUrl) || cobrancas.find(p => p.status === 'OVERDUE' && p.invoiceUrl)
+      if (pend && (!Number.isFinite(Number(pend.value)) || Math.abs(Number(pend.value) - valor) > 0.009))
+        return { status: 409, body: { codigo: 'COBRANCA_PRECO_DIVERGENTE', error: 'A cobranca existente tem valor diferente do plano atual. Fale com o suporte antes de pagar.' } }
       if (!pend) {
         if (cobrancas.some(p => PAGAS.includes(p.status)))
           return { status: 409, body: { codigo: 'PAGAMENTO_EM_PROCESSAMENTO', error: 'Seu pagamento já foi identificado. Aguarde alguns instantes que a confirmação é automática.' } }

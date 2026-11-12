@@ -6,6 +6,7 @@ import { conferirPagamento } from '../app/lib/asaas-webhook.ts'
 const perfil = {
   user_id: '00000000-0000-4000-8000-000000000001',
   plano_tipo: 'essencial',
+  valor_contratado: 79.90, // contrato historico: nao alterar para o preco publico atual
   billing_cycle: 'mensal',
   gateway_customer_id: 'cus_teste',
   gateway_subscription_id: 'sub_teste',
@@ -19,7 +20,7 @@ const pagamento = {
   subscription: 'sub_teste',
 }
 
-test('plano pago atual, com pagamento correto, e aceito', () => {
+test('contrato historico de R$ 79,90, com pagamento correto, e aceito', () => {
   assert.equal(conferirPagamento(pagamento, perfil), null)
 })
 
@@ -69,4 +70,11 @@ test('perfil Free continua impedido de ativar sem reconciliacao', () => {
       plano_anterior_downgrade: 'essencial',
     }
   )), /perfil e Free/)
+})
+
+// Conta nova sem preco historico usa a tabela comercial vigente.
+test('novo contrato Pro sem valor congelado exige R$ 59,90', () => {
+  const novo = { ...perfil, valor_contratado: undefined }
+  assert.equal(conferirPagamento({ ...pagamento, value: 59.90 }, novo), null)
+  assert.match(String(conferirPagamento(pagamento, novo)), /diferente do esperado/)
 })

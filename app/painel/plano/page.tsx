@@ -13,7 +13,7 @@ const WPP = '5511941059063'
 
 // Ordem comercial dos 5 planos (do mais simples ao mais completo) - usada pra decidir se um
 // botao mostra "Fazer upgrade" ou "Alterar plano" (downgrade), comparando posicoes nessa lista.
-const ORDEM_PLANOS: PlanoTipo[] = ['free', 'minipage', 'loja', 'essencial', 'equipe']
+const ORDEM_PLANOS: PlanoTipo[] = ['free', 'minipage', 'agenda', 'loja', 'essencial', 'equipe']
 function indexPlano(tipo: PlanoTipo) { return ORDEM_PLANOS.indexOf(tipo) }
 
 function formatarPreco(tipo: PlanoTipo) {
@@ -46,6 +46,17 @@ const PLANOS: Record<PlanoTipo, { desc: string; beneficios: string[]; icone: any
       'Todos os modelos de cor',
       'Painel de desempenho',
       'Captação de leads',
+    ],
+  },
+  agenda: {
+    desc: 'Pagina profissional com agenda para atendimentos e agendamentos.',
+    icone: CreditCard,
+    beneficios: [
+      'Pagina profissional',
+      'Links e destaques',
+      'Videos e eventos',
+      'Agenda de atendimentos',
+      'Agendamento de clientes',
     ],
   },
   loja: {
