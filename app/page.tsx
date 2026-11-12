@@ -120,6 +120,7 @@ function CartaoPlano({ tipo, billing, selo, nicho, descricao, descricaoHl, herda
           <span style={{fontSize:'34px',fontWeight:900,color:'#F8F4F7',letterSpacing:'-0.03em'}}>R$ {preco.inteiro}</span>
           {tipo !== 'free' && <span style={{fontSize:'16px',fontWeight:700,color:'#F8F4F7'}}>,{preco.decimal}</span>}
           <span style={{fontSize:'14px',color:'#B8AAB8'}}>{tipo !== 'free' && billing === 'anual' ? '/ano' : '/mês'}</span>
+          {tipo !== 'free' && billing === 'anual' && <div style={{fontSize:'11px',color:'#F9A8D4',fontWeight:800,marginTop:'6px'}}>17% de desconto · pagamento único</div>}
         </div>
       </div>
       <div className="plano-ideal" style={{textAlign:'center',marginBottom:'16px'}}>
@@ -152,7 +153,7 @@ export default function Home() {
   }
 
   const [scrolled, setScrolled] = useState(false)
-  const billingSelecionado: BillingCycle = 'mensal'
+  const [billingSelecionado, setBillingSelecionado] = useState<BillingCycle>('mensal')
   useEffect(() => {
     const h = () => setScrolled(window.scrollY > 20)
     window.addEventListener('scroll', h)
@@ -188,10 +189,10 @@ export default function Home() {
         }
         @media(max-width:768px){
           .hero-btns{flex-direction:column!important;align-items:stretch!important;gap:10px!important}
-          .hero-btns a{width:100%!important}
+          .hero-btns a,.hero-btns button{width:100%!important}
           .grid-3{grid-template-columns:1fr!important}
           .cta-btns{flex-direction:column!important;align-items:stretch!important;gap:10px!important}
-          .cta-btns a{width:100%!important}
+          .cta-btns a,.cta-btns button{width:100%!important}
         }
       `}</style>
       {/* HEADER */}
@@ -215,20 +216,20 @@ export default function Home() {
         <div style={{maxWidth:'760px',margin:'0 auto'}}>
           <div style={{display:'inline-flex',alignItems:'center',gap:'8px',background:'rgba(236,72,153,.10)',border:'1px solid rgba(236,72,153,.22)',borderRadius:'999px',padding:'6px 18px',marginBottom:'36px'}}>
             <span style={{width:'6px',height:'6px',borderRadius:'50%',background:'#EC4899',display:'inline-block',flexShrink:0}}/>
-            <span style={{fontSize:'12px',fontWeight:600,color:'#EC4899',letterSpacing:'.04em'}}>Crie sua MiniPage profissional</span>
+            <span style={{fontSize:'12px',fontWeight:600,color:'#EC4899',letterSpacing:'.04em'}}>Tudo o que seu negócio precisa, em um link</span>
           </div>
           <h1 style={{fontSize:'clamp(38px,6vw,66px)',fontWeight:900,color:'#F8F4F7',letterSpacing:'-0.04em',lineHeight:1.05,marginBottom:'24px'}}>
-            Muito mais que um link na bio.<br/>Sua presença digital em um só lugar.
+            Sua bio pode fazer mais.<br/>Transforme visitas em oportunidades.
           </h1>
           <p style={{fontSize:'clamp(17px,2.4vw,20px)',fontWeight:700,background:G,WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent',backgroundClip:'text',marginBottom:'20px'}}>
-            Crie sua página profissional, organize links e produtos, acompanhe resultados e vendas, conecte suas ferramentas de marketing e descubra o poder da inteligência artificial.
+            Reúna seus links, conteúdos, produtos e agendamentos em uma página profissional. Escolha os recursos certos para o seu negócio e acompanhe os resultados.
           </p>
           <p style={{fontSize:'clamp(15px,2vw,17px)',color:'#B8AAB8',lineHeight:1.75,marginBottom:'32px',maxWidth:'580px',margin:'0 auto 32px'}}>
-            Pronta para divulgar no Instagram, WhatsApp, TikTok e onde quiser.
+            Uma presença digital profissional para divulgar no Instagram, WhatsApp, TikTok e onde seu público estiver.
           </p>
-          <div className="hero-btns" style={{display:'flex',justifyContent:'center',gap:'12px',flexWrap:'wrap',marginTop:'24px'}}><Link href="/cadastro?plano=free" onClick={(e) => irComCupom(e, '/cadastro?plano=free')} className="btn-p">Criar minha MiniPage grátis</Link><a href="#recursos" className="btn-s">Conhecer os recursos</a></div>
-          <p style={{fontSize:'13px',color:'#B8AAB8',marginTop:'18px'}}>Quer ver exemplos antes de criar? <a href="https://minipage.pro/modelos" style={{color:'#EC4899',fontWeight:600,textDecoration:'none'}}>Veja os melhores modelos</a>.</p>
-          <p style={{fontSize:'12px',color:'#B8AAB8',marginTop:'10px'}}>Comece no plano grátis. Planos pagos a partir de R$ 39,90/mês. Sem fidelidade.</p>
+          <div className="hero-btns" style={{display:'flex',justifyContent:'center',gap:'12px',flexWrap:'wrap',marginTop:'24px'}}><button type="button" onClick={scrollToPlano} className="btn-p">Comparar os 6 planos</button><a href="https://minipage.pro/modelos" className="btn-s">Ver exemplos reais</a></div>
+          <p style={{fontSize:'13px',color:'#B8AAB8',marginTop:'18px'}}>Do link na bio à loja e à agenda: escolha o plano que acompanha seu momento.</p>
+          <p style={{fontSize:'12px',color:'#B8AAB8',marginTop:'10px'}}>Plano gratuito disponível. Planos pagos a partir de R$ 29,90/mês, sem fidelidade.</p>
         </div>
       </section>
       {/* TUDO CONECTADO */}
@@ -317,11 +318,15 @@ export default function Home() {
       <section id="plano" style={{padding:'80px 24px',background:'radial-gradient(ellipse at 50% 50%,rgba(139,92,246,.09),transparent 65%)'}}>
         <div style={{maxWidth:'1100px',margin:'0 auto'}}>
           <div style={{textAlign:'center',marginBottom:'48px'}}>
-            <h2 style={{fontSize:'clamp(22px,4vw,34px)',fontWeight:800,color:'#F8F4F7',letterSpacing:'-0.03em',marginBottom:'12px'}}>Escolha o plano ideal para sua presença profissional</h2>
-            <p style={{fontSize:'15px',color:'#B8AAB8',lineHeight:1.6,maxWidth:'560px',margin:'0 auto'}}>Comece com uma MiniPage para organizar seus links ou escolha um plano com loja, agenda e gestão para vender e atender melhor.</p>
+            <h2 style={{fontSize:'clamp(22px,4vw,34px)',fontWeight:800,color:'#F8F4F7',letterSpacing:'-0.03em',marginBottom:'12px'}}>Seis planos. Um que faz sentido para você.</h2>
+            <p style={{fontSize:'15px',color:'#B8AAB8',lineHeight:1.6,maxWidth:'560px',margin:'0 auto'}}>Compare recursos e preços antes de criar sua conta. Comece com uma bio profissional ou avance para loja, agendamento e gestão.</p>
           </div>
 
-          <p style={{textAlign:'center',color:'#B8AAB8',fontSize:'13px',marginBottom:'24px'}}>Valores mensais. Assinaturas anuais temporariamente indisponíveis.</p>
+          <div role="group" aria-label="Periodicidade da assinatura" style={{display:'flex',justifyContent:'center',gap:'8px',marginBottom:'12px',flexWrap:'wrap'}}>
+            <button type="button" aria-pressed={billingSelecionado === 'mensal'} onClick={() => setBillingSelecionado('mensal')} style={{cursor:'pointer',padding:'12px 22px',borderRadius:'12px',fontWeight:800,color:'#fff',background:billingSelecionado === 'mensal' ? G : '#201527',border:'1px solid #6B3A73'}}>Mensal</button>
+            <button type="button" aria-pressed={billingSelecionado === 'anual'} onClick={() => setBillingSelecionado('anual')} style={{cursor:'pointer',padding:'12px 22px',borderRadius:'12px',fontWeight:800,color:'#fff',background:billingSelecionado === 'anual' ? G : '#201527',border:'1px solid #6B3A73'}}>Anual · economize 17%</button>
+          </div>
+          <p style={{textAlign:'center',color:'#B8AAB8',fontSize:'12px',marginBottom:'24px'}}>{billingSelecionado === 'anual' ? 'Pagamento único antecipado. Acesso por 12 meses após a confirmação do pagamento.' : 'Assinaturas mensais recorrentes. Você escolhe o plano ideal.'}</p>
           <style>{`
             .planos-scroll::-webkit-scrollbar{display:none}
             /* Desktop com espaco suficiente: os 6 cards distribuidos em duas linhas,
@@ -356,7 +361,7 @@ export default function Home() {
             {/* PLANO AGENDA */}
             <CartaoPlano tipo="agenda" billing={billingSelecionado} selo="Ideal para" nicho="profissionais que trabalham com horários" descricao="MiniPage com agendamento automático para clientes." herda="Tudo da MiniPage +" itens={itensAgenda}
               cta={
-                <Link href={`/aceite-plano?plano=agenda&billing=mensal`} onClick={(e) => irComCupom(e, '/aceite-plano?plano=agenda&billing=mensal')} className="btn-p" style={{width:'100%',justifyContent:'center',height:'46px',fontSize:'13px'}}>
+                <Link href={`/aceite-plano?plano=agenda&billing=${billingSelecionado}`} onClick={(e) => irComCupom(e, `/aceite-plano?plano=agenda&billing=${billingSelecionado}`)} className="btn-p" style={{width:'100%',justifyContent:'center',height:'46px',fontSize:'13px'}}>
                   Quero o MiniPage Agenda
                 </Link>
               } />
@@ -387,23 +392,23 @@ export default function Home() {
 
           </div>
 
-          <p style={{textAlign:'center',fontSize:'13px',color:'#B8AAB8',marginTop:'32px'}}>Planos pagos com cobrança mensal recorrente. MiniPage Pro é uma solução ClienteMarcado.</p>
+          <p style={{textAlign:'center',fontSize:'13px',color:'#B8AAB8',marginTop:'32px'}}>Compare os recursos e escolha pagamento mensal recorrente ou anual à vista com 17% de desconto. MiniPage Pro é uma solução ClienteMarcado.</p>
         </div>
       </section>
       {/* CTA FINAL */}
       <section style={{padding:'80px 24px',textAlign:'center',background:'radial-gradient(ellipse at 50% 50%,rgba(139,92,246,.10),transparent 60%)'}}>
         <div style={{maxWidth:'600px',margin:'0 auto'}}>
           <h2 style={{fontSize:'clamp(22px,4vw,32px)',fontWeight:800,color:'#F8F4F7',letterSpacing:'-0.03em',marginBottom:'16px',lineHeight:1.2}}>
-            Pronto para transformar sua bio em uma MiniPage profissional?
+            Sua próxima oportunidade começa na sua página.
           </h2>
           <p style={{fontSize:'15px',color:'#B8AAB8',marginBottom:'36px',lineHeight:1.7}}>
-            Crie uma página completa para divulgar seus links, vídeos, publicidades, produtos, serviços e agenda.
+            Compare os seis planos e escolha a presença digital certa para você — com links, catálogo, agenda ou gestão, conforme sua necessidade.
           </p>
           <div className="cta-btns" style={{display:'flex',gap:'12px',justifyContent:'center',flexWrap:'wrap'}}>
-            <Link href="/aceite-plano?plano=minipage" className="btn-p">Criar minha MiniPage</Link>
-            <Link href="/login" className="btn-s">Já tenho conta</Link>
+            <button type="button" onClick={scrollToPlano} className="btn-p">Ver planos e preços</button>
+            <a href="https://minipage.pro/modelos" className="btn-s">Explorar exemplos</a>
           </div>
-          <p style={{fontSize:'13px',color:'#B8AAB8',marginTop:'20px'}}>Comece no plano grátis. Planos pagos a partir de R$ 39,90/mês. Sem fidelidade.</p>
+          <p style={{fontSize:'13px',color:'#B8AAB8',marginTop:'20px'}}>Plano gratuito disponível. Planos pagos a partir de R$ 29,90/mês, sem fidelidade.</p>
         </div>
       </section>
       <footer style={{borderTop:'1px solid #2A1A2F',padding:'32px 24px',textAlign:'center'}}>

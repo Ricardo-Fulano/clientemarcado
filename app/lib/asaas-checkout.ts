@@ -94,10 +94,8 @@ export async function criarOuReutilizarCheckout(
     const planoTipo = normalizarPlano(planoTipoOriginal)
     // billing_cycle vazio (conta transferida/antiga) cai em 'mensal'.
     const ciclo = normalizarBillingCycle(perfil?.billing_cycle || body?.billing_cycle)
-    // O catalogo anual dos seis planos ainda exige precos novos definidos.
-    // Nunca gerar uma cobranca anual com tabela antiga so porque o mensal mudou.
-    const bloquearAnual = () => ciclo === 'anual'
-    if (bloquearAnual()) return { status: 409, body: { codigo: 'PRECO_ANUAL_PENDENTE', error: 'Plano anual temporariamente indisponivel. Escolha o mensal ou fale com o suporte.' } }
+    // Plano anual: pagamento unico que concede 12 meses de acesso apos confirmacao.
+    // Os precos sao centralizados em planos.ts (17% sobre 12 mensalidades).
     const valor = obterPrecoPlanoPorCiclo(planoTipo, ciclo)
     const descricao = `${obterReasonMercadoPago(planoTipo)} (${ciclo === 'anual' ? 'Anual' : 'Mensal'})`
     const SITE_URL = env.NEXT_PUBLIC_SITE_URL || 'https://clientemarcado.com.br'

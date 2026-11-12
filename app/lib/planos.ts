@@ -72,11 +72,11 @@ export function obterPrecoMensalPlano(planoTipo?: string | null): number {
 export function obterPrecoAnualPlano(planoTipo?: string | null): number {
   const p = normalizarPlano(planoTipo)
   if (p === 'free') return 0
-  if (p === 'minipage') return 397.00
-  if (p === 'agenda') return 0 // Preco anual indefinido; checkout anual bloqueado
-  if (p === 'loja') return 597.00
-  if (p === 'equipe') return 1497.00
-  return 797.00 // essencial/Pro
+  if (p === 'minipage') return 297.80
+  if (p === 'agenda') return 397.40
+  if (p === 'loja') return 497.00
+  if (p === 'equipe') return 1493.00
+  return 596.60 // essencial/Pro
 }
 
 export type BillingCycle = 'mensal' | 'anual'

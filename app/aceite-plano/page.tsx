@@ -59,16 +59,6 @@ function AceitePlanoConteudo() {
   const billingParam = searchParams.get('billing')
   const billingCycle = normalizarBillingCycle(billingParam)
   const cupomParam = searchParams.get('cupom')?.trim() || ''
-  // A contratacao anual esta indisponivel: redireciona links antigos para o mensal
-  // ANTES de mostrar valores/condicoes anuais desatualizados.
-  useEffect(() => {
-    if (billingParam === 'anual') {
-      const query = new URLSearchParams({ plano: planoValido, billing: 'mensal' })
-      if (cupomParam) query.set('cupom', cupomParam)
-      window.location.replace(`/aceite-plano?${query.toString()}`)
-    }
-  }, [billingParam, planoValido, cupomParam])
-
   // Free nunca tem cobranca, trial nem contrato de plano pago - nao faz sentido passar por
   // essa tela. Redireciona direto pro cadastro, sem exibir nada do fluxo de aceite pago.
   useEffect(() => {
@@ -114,7 +104,6 @@ function AceitePlanoConteudo() {
   const tudo = c1 && c2 && c3
 
   function handleConfirmar() {
-    if (billingParam === 'anual') return
     if (!tudo) { setErro('Para continuar, aceite todos os termos do plano.'); return }
     setErro('')
     try {
@@ -131,7 +120,7 @@ function AceitePlanoConteudo() {
 
   // Enquanto redireciona o Free (useEffect acima), nao renderiza nada do fluxo de aceite
   // pago - evita qualquer flash do contrato/aviso de cobranca antes do redirect completar.
-  if (ehPlanoFree(planoValido) || billingParam === 'anual') return null
+  if (ehPlanoFree(planoValido)) return null
 
   return (
     <div className="pg">
