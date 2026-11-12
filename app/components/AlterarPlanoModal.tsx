@@ -17,7 +17,7 @@ import { obterNomePlano, obterPrecoPlano } from '../lib/planos'
 const ENDPOINT = '/api/admin/clientes/alterar-plano'
 const PALAVRA_CONFIRMACAO = 'CONFIRMAR'
 // Opcoes do seletor (so apresentacao). O backend decide o que e permitido; o Free nao e oferecido.
-const PLANOS_PAGOS = ['minipage', 'loja', 'essencial', 'equipe'] as const
+const PLANOS_PAGOS = ['minipage', 'agenda', 'loja', 'essencial', 'equipe'] as const
 
 export type ClienteAlterarPlano = {
   user_id: string

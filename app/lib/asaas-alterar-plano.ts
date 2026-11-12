@@ -8,7 +8,7 @@ import { avaliarAmbienteAsaas } from './asaas-ambiente'
 // administrador e chama alterarPlano().
 //
 // DUAS operacoes (primeira versao):
-//   upgrade        plano mensal -> plano mensal SUPERIOR (minipage < loja < essencial < equipe).
+//   upgrade        plano mensal -> plano mensal SUPERIOR (minipage < agenda < loja < essencial < equipe).
 //                  Ordem: ASAAS PRIMEIRO, confirmado e verificado; BANCO DEPOIS (perfis.plano_tipo).
 //                  Se o Asaas falhar, o plano antigo e mantido. Se o banco falhar, o valor e revertido.
 //   sincronizacao  o plano do sistema ja esta certo, mas o valor da assinatura no Asaas esta MENOR
@@ -36,7 +36,7 @@ export function ehAdminAlterarPlano(email?: string | null): boolean {
 
 // Ordem crescente. Lista EXPLICITA: normalizarPlano() de planos.ts cai em 'essencial' (R$ 79,90) para
 // qualquer valor desconhecido, entao NUNCA pode validar o plano de destino.
-const ORDEM_PLANOS = ['minipage', 'loja', 'essencial', 'equipe'] as const
+const ORDEM_PLANOS = ['minipage', 'agenda', 'loja', 'essencial', 'equipe'] as const
 type PlanoPago = typeof ORDEM_PLANOS[number]
 function planoPagoOuNull(v: unknown): PlanoPago | null {
   return typeof v === 'string' && (ORDEM_PLANOS as readonly string[]).includes(v) ? (v as PlanoPago) : null
@@ -319,7 +319,7 @@ export async function alterarPlano(deps: AlterarPlanoDeps, input: AlterarPlanoIn
     const userId = typeof input.userId === 'string' ? input.userId.trim() : ''
     if (!UUID_RE.test(userId)) return { status: 400, body: { codigo: 'USER_ID_INVALIDO', error: 'userId inválido.' } }
     const novo = planoPagoOuNull(input.novoPlano)
-    if (!novo) return { status: 400, body: { codigo: 'PLANO_INVALIDO', error: 'Plano de destino inválido. Use minipage, loja, essencial ou equipe.' } }
+    if (!novo) return { status: 400, body: { codigo: 'PLANO_INVALIDO', error: 'Plano de destino inválido. Use minipage, agenda, loja, essencial ou equipe.' } }
     // dryRun e o PADRAO: so a execucao real exige o booleano false explicito.
     const dryRun = input.dryRun !== false
 

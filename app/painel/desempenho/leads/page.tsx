@@ -219,7 +219,7 @@ export default function LeadsCapturados() {
   return (
     <div style={{ display: 'flex', minHeight: '100vh', background: '#0A0611' }}>
       <PainelSidebar />
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden', maxWidth: '900px', margin: '0 auto', width: '100%' }}>
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden', maxWidth: '1480px', minWidth: 0, margin: '0 auto', width: '100%' }}>
         {/* Cabecalho fixo (nunca rola) - titulo, subtitulo, busca e periodo sempre visiveis */}
         <div style={{ padding: '32px 32px 0', flexShrink: 0 }}>
           <Link href="/painel/desempenho" style={{ fontSize: '13px', color: '#B8AAB8', textDecoration: 'none', display: 'inline-block', marginBottom: '16px' }}>← Voltar para Desempenho</Link>
@@ -245,7 +245,7 @@ export default function LeadsCapturados() {
           </div>
         )}
 
-        <div style={{ flex: 1, overflowY: 'auto', padding: '18px 32px 32px' }}>
+        <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', padding: '18px 32px 32px' }}>
         {/* Estilos da tabela/cards: ficam FORA dos ramos das abas para valerem tanto em "Leads capturados"
             quanto em "Clientes cadastrados" (antes ficavam dentro do ramo da aba de leads e sumiam ao trocar de aba).
             Desktop: tabela. Mobile: cards empilhados (a mesma <table> vira cards via CSS,
@@ -256,9 +256,15 @@ export default function LeadsCapturados() {
               .leads-tabela td{padding:12px;font-size:13px;color:#F8F4F7;border-bottom:1px solid #2A1A2F}
               .leads-copiar-btn{background:rgba(255,255,255,.08);border:1px solid #2A1A2F;color:#F8F4F7;border-radius:8px;padding:5px 10px;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit}
               .leads-card-mobile{display:none}
+              .clientes-grade{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;align-items:stretch}
+              .clientes-grade .cliente-cartao{min-width:0;margin:0;padding:18px;border-radius:14px;overflow-wrap:anywhere}
+              .clientes-grade .cliente-acoes{display:flex;gap:7px;flex-wrap:wrap;margin-top:14px}
+              .clientes-grade .cliente-acoes > *{min-height:30px}
+              @media(max-width:950px){.clientes-grade{grid-template-columns:minmax(0,1fr)}}
               @media(max-width:680px){
                 .leads-tabela-wrap{display:none}
                 .leads-card-mobile{display:block}
+                .clientes-grade{display:none}
               }
             `}</style>
         {aba === 'leads' && (<>
@@ -361,6 +367,7 @@ export default function LeadsCapturados() {
                     <option value="todos">Todos os planos</option>
                     <option value="free">MiniPage Free</option>
                     <option value="minipage">MiniPage</option>
+                    <option value="agenda">MiniPage Agenda</option>
                     <option value="loja">MiniPage Loja</option>
                     <option value="essencial">MiniPage Pro</option>
                     <option value="equipe">MiniPage Equipe</option>
@@ -379,43 +386,32 @@ export default function LeadsCapturados() {
                   </button>
                 </div>
 
-                <div className="leads-tabela-wrap crd" style={{ overflowX: 'auto', padding: 0 }}>
-                  <table className="leads-tabela">
-                    <thead>
-                      <tr>
-                        <th>Nome</th>
-                        <th>E-mail</th>
-                        <th>Plano</th>
-                        <th>Slug</th>
-                        <th>Status</th>
-                        <th>Cadastro</th>
-                        <th>Origem</th>
-                        <th></th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {clientesFiltrados.map((c, i) => (
-                        <tr key={c.user_id || i}>
-                          <td style={{ fontWeight: 700 }}>{c.nome_pagina || '—'}</td>
-                          <td>
-                            {c.email || '—'}
-                            <div style={{ fontSize: '11px', color: '#B8AAB8', marginTop: '2px' }}>{formatarWhatsappExibicao(c.whatsapp) || '—'}</div>
-                          </td>
-                          <td style={{ color: '#B8AAB8' }}>{c.plano_nome}</td>
-                          <td style={{ color: '#B8AAB8' }}>{c.slug || '—'}</td>
-                          <td><span style={{ fontSize: '11px', fontWeight: 700, padding: '3px 8px', borderRadius: '999px', background: 'rgba(139,92,246,.14)', color: '#C4B5FD' }}>{statusLabel(c.status_acesso)}</span></td>
-                          <td style={{ color: '#B8AAB8', whiteSpace: 'nowrap' }}>{c.created_at ? formatarData(c.created_at) : '—'}</td>
-                          <td style={{ color: '#B8AAB8' }}>{c.origem || '—'}</td>
-                          <td style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
-                            <BotaoWhatsappCliente c={c} />
-                            <button className="leads-copiar-btn" onClick={() => copiarEmailCliente(c, i)}>{copiadoClienteIndividual === i ? 'Copiado!' : 'Copiar e-mail'}</button>
-                            {c.slug && <a href={`https://minipage.pro/${c.slug}`} target="_blank" rel="noreferrer" className="leads-copiar-btn" style={{ textDecoration: 'none', display: 'inline-block' }}>Abrir MiniPage</a>}
-                            <BotaoAlterarPlano onClick={() => setClienteAlterandoPlano(c)} />
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                {/* Clientes em cartoes: desktop e mobile sem rolagem horizontal escondida. */}
+                <div className="clientes-grade">
+                  {clientesFiltrados.map((c, i) => (
+                    <div key={c.user_id || i} className="crd cliente-cartao">
+                      <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', alignItems: 'flex-start', marginBottom: '12px' }}>
+                        <div style={{ minWidth: 0 }}>
+                          <p style={{ fontSize: '15px', fontWeight: 750, color: '#F8F4F7', margin: '0 0 5px' }}>{c.nome_pagina || c.email || '—'}</p>
+                          <p style={{ fontSize: '12px', color: '#B8AAB8', margin: 0, overflowWrap: 'anywhere' }}>{c.email || '—'}</p>
+                        </div>
+                        <span style={{ flexShrink: 0, fontSize: '11px', fontWeight: 700, padding: '5px 9px', borderRadius: '999px', background: 'rgba(139,92,246,.14)', color: '#C4B5FD', textAlign: 'center' }}>{statusLabel(c.status_acesso)}</span>
+                      </div>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2,minmax(0,1fr))', gap: '10px 14px', fontSize: '12px' }}>
+                        <div style={{ minWidth: 0 }}><span style={{ color: '#9F91A5' }}>Plano</span><div style={{ color: '#F8F4F7', fontWeight: 600, marginTop: '3px' }}>{c.plano_nome || 'Não identificado'}</div></div>
+                        <div style={{ minWidth: 0 }}><span style={{ color: '#9F91A5' }}>MiniPage</span><div style={{ color: '#F8F4F7', fontWeight: 600, marginTop: '3px', overflowWrap: 'anywhere' }}>{c.slug || '—'}</div></div>
+                        <div style={{ minWidth: 0 }}><span style={{ color: '#9F91A5' }}>Cadastro</span><div style={{ color: '#B8AAB8', marginTop: '3px' }}>{c.created_at ? formatarData(c.created_at) : '—'}</div></div>
+                        <div style={{ minWidth: 0 }}><span style={{ color: '#9F91A5' }}>Origem</span><div style={{ color: '#B8AAB8', marginTop: '3px', overflowWrap: 'anywhere' }}>{c.origem || '—'}</div></div>
+                      </div>
+                      {formatarWhatsappExibicao(c.whatsapp) && <p style={{ fontSize: '12px', color: '#B8AAB8', margin: '12px 0 0' }}>WhatsApp: {formatarWhatsappExibicao(c.whatsapp)}</p>}
+                      <div className="cliente-acoes">
+                        <BotaoWhatsappCliente c={c} />
+                        <button className="leads-copiar-btn" onClick={() => copiarEmailCliente(c, i)}>{copiadoClienteIndividual === i ? 'Copiado!' : 'Copiar e-mail'}</button>
+                        {c.slug && <a href={`https://minipage.pro/${c.slug}`} target="_blank" rel="noreferrer" className="leads-copiar-btn" style={{ textDecoration: 'none', display: 'inline-flex', alignItems: 'center' }}>Abrir MiniPage</a>}
+                        <BotaoAlterarPlano onClick={() => setClienteAlterandoPlano(c)} />
+                      </div>
+                    </div>
+                  ))}
                 </div>
 
                 <div className="leads-card-mobile">
