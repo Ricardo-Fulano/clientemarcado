@@ -3,6 +3,7 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import { normalizarPlano, obterPrecoPlanoPorCiclo, normalizarBillingCycle } from './planos'
 import { avaliarAmbienteAsaas } from './asaas-ambiente'
 import { resolverPercentualComissao } from './comissao-parceiro'
+import { conciliarRecuperacaoAsaas } from './conciliacao-recuperacao'
 
 // =====================================================================================
 // Processamento dos webhooks do Asaas. So roda no servidor.
@@ -36,7 +37,7 @@ const CANCELAMENTO = ['SUBSCRIPTION_DELETED', 'SUBSCRIPTION_CANCELLED']   // ass
 const ASSINATURA_ESTADO = ['SUBSCRIPTION_INACTIVATED', 'SUBSCRIPTION_UPDATED']
 const STATUS_PAGO = ['CONFIRMED', 'RECEIVED', 'RECEIVED_IN_CASH']
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
-const COLUNAS_PERFIL = 'user_id, billing_cycle, status_acesso, plano_tipo, plano_ativo_ate, primeiro_pagamento_confirmado, data_primeiro_pagamento, gateway_customer_id, gateway_subscription_id'
+const COLUNAS_PERFIL = 'user_id, billing_cycle, status_acesso, plano_tipo, plano_ativo_ate, primeiro_pagamento_confirmado, data_primeiro_pagamento, gateway_customer_id, gateway_subscription_id, modalidade_acesso, valor_contratado, plano_anterior_downgrade, motivo_downgrade, pagamento_origem_downgrade, downgrade_em'
 
 class ErroTemporario extends Error {}   // o Asaas deve tentar de novo (responde 500)
 
@@ -316,8 +317,18 @@ export function conferirPagamento(pg: any, perfil: any): string | null {
   if (ciclo === 'mensal') {
     if (!perfil.gateway_subscription_id || pg.subscription !== perfil.gateway_subscription_id) return 'pagamento nao pertence a assinatura registrada no perfil'
   } else if (pg.subscription) return 'ciclo anual mas o pagamento e de uma assinatura recorrente'
-  // 3) valor: o preco do plano/ciclo na configuracao do sistema (mesma fonte usada para criar a cobranca)
-  const esperado = obterPrecoPlanoPorCiclo(plano, ciclo)
+  // 3) valor: contratos antigos devem respeitar o valor congelado em perfis.
+  // Se o contrato ainda nao tem valor registrado, conserva a regra existente
+  // de precificacao do plano, sem inferir nem gravar preco historico.
+  const valorContratado = perfil.valor_contratado
+  const existeContrato = valorContratado !== null && valorContratado !== undefined
+  const valorContratoNumero = Number(valorContratado)
+  if (existeContrato && (!Number.isFinite(valorContratoNumero) || valorContratoNumero <= 0)) {
+    return 'valor contratado invalido; exige conciliacao manual'
+  }
+  const esperado = existeContrato
+    ? valorContratoNumero
+    : obterPrecoPlanoPorCiclo(plano, ciclo)
   if (!Number.isFinite(Number(pg.value)) || Math.abs(Number(pg.value) - esperado) > 0.009) return `valor pago R$ ${pg.value} diferente do esperado R$ ${esperado} (${plano}/${ciclo})`
   return null
 }
@@ -417,6 +428,134 @@ export async function processarEventoAsaas(deps: WebhookDeps, evento: any, bodyT
       const v = await consultarPagamento(deps, paymentId)
       if (!v.ok) return rejeitar(v.motivo)
       const pg = v.pg
+
+      // Recuperacao de conta Free apos downgrade por inadimplencia.
+      // Mantida DESLIGADA por padrao durante a homologacao.
+      // NUNCA ativar a flag em producao sem testes ponta a ponta,
+      // reconciliacao de eventos e garantia contra corridas cron/webhook.
+      if (perfil.plano_tipo === 'free') {
+        if (perfil.motivo_downgrade !== 'inadimplencia') {
+          return rejeitar('conta Free sem downgrade financeiro elegivel')
+        }
+        if (deps.env.ASAAS_RECUPERACAO_AUTOMATICA_ENABLED !== 'true') {
+          // Recusar efeito automatico, mas manter evento para reconciliacao
+          // posterior. Nao fechar como processado ou rejeitado definitivo.
+          throw new ErroTemporario('recuperacao automatica ainda desativada; evento exige conciliacao')
+        }
+
+        const planoOriginal = perfil.plano_anterior_downgrade
+        const planosAnteriores = ['minipage', 'agenda', 'loja', 'essencial', 'equipe', 'profissional']
+        if (!planosAnteriores.includes(planoOriginal)) {
+          return rejeitar('plano original do downgrade ausente ou invalido')
+        }
+        if (perfil.modalidade_acesso !== 'comercial') {
+          return rejeitar('conta nao comercial nao pode ser restaurada automaticamente')
+        }
+        if (!perfil.gateway_customer_id || !perfil.gateway_subscription_id) {
+          return rejeitar('dados financeiros da conta incompletos')
+        }
+        if (!perfil.pagamento_origem_downgrade || !perfil.downgrade_em) {
+          return rejeitar('metadados do downgrade incompletos')
+        }
+        // Usar o plano CONTRATADO, nao o Free temporario, para
+        // conferir titularidade, ciclo e valor historico congelado.
+        const motivoContrato = conferirPagamento(pg, {
+          ...perfil,
+          plano_tipo: planoOriginal,
+        })
+        if (motivoContrato) return rejeitar(motivoContrato)
+        if (perfil.valor_contratado === null || perfil.valor_contratado === undefined) {
+          return rejeitar('valor contratado nao registrado para a recuperacao')
+        }
+
+        const amb = avaliarAmbienteAsaas(deps.env)
+        if (!amb.ok) throw new ErroTemporario('ambiente Asaas invalido na conciliacao')
+        const requisitar = deps.fetchFn || (fetch as any)
+        const consultar = async (caminho: string): Promise<unknown> => {
+          const resposta = await requisitar(`${amb.baseUrl}${caminho}`, {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json',
+              access_token: deps.env.ASAAS_API_KEY || '',
+            },
+          })
+          if (!resposta.ok) throw new ErroTemporario(`consulta Asaas falhou: ${resposta.status}`)
+          return JSON.parse(await resposta.text())
+        }
+
+        const conciliacao = await conciliarRecuperacaoAsaas(
+          consultar,
+          perfil.gateway_subscription_id,
+          perfil.gateway_customer_id,
+          paymentId
+        )
+        if (!conciliacao.apta) {
+          // Nao perder o pagamento: podera haver outras mensalidades
+          // abertas; manter o evento para tentativa posterior.
+          throw new ErroTemporario(`recuperacao ainda nao conciliada: ${conciliacao.motivo}`)
+        }
+        // Conferir se a segunda consulta do Asaas manteve a mesma
+        // identidade e o mesmo valor verificado individualmente.
+        const pgConciliado = conciliacao.pagamento
+        if (
+          pgConciliado.id !== pg.id ||
+          pgConciliado.customer !== pg.customer ||
+          pgConciliado.subscription !== pg.subscription ||
+          pgConciliado.status !== pg.status ||
+          Math.round(Number(pgConciliado.value) * 100) !== Math.round(Number(pg.value) * 100)
+        ) {
+          throw new ErroTemporario('pagamento mudou durante conciliacao')
+        }
+        const cicloOriginal = normalizarBillingCycle(perfil.billing_cycle)
+        const vencimento = dataISO(pg.dueDate)
+        const fim = fimDoAcesso(pg, cicloOriginal)
+        if (!fim || !vencimento) {
+          return rejeitar('pagamento sem periodo de vigencia verificavel')
+        }
+        const atual = perfil.plano_ativo_ate ? new Date(perfil.plano_ativo_ate) : null
+        const novoFim = atual && !Number.isNaN(atual.getTime()) && atual > fim ? atual : fim
+
+        // A funcao SQL valida novamente estado de perfil, evento
+        // reivindicado e valor antes de alterar plano + gravar historico.
+        const { data: restaurou, error: erroRest } = await supabase.rpc(
+          'restaurar_plano_apos_pagamento',
+          {
+            p_user_id: userId,
+            p_subscription_id: perfil.gateway_subscription_id,
+            p_payment_id: paymentId,
+            p_event_id: eventId,
+            p_valor_pagamento: Number(pg.value),
+            p_novo_plano_ativo_ate: novoFim.toISOString(),
+            p_regularizacao_completa: true,
+          }
+        )
+        if (erroRest || restaurou !== true) {
+          throw new ErroTemporario(
+            `restauracao atomica nao confirmada: ${erroRest?.message || 'RPC retornou false'}`
+          )
+        }
+
+        log('PLANO_RESTAURADO', { userId, paymentId, plano: planoOriginal })
+        // Comissoes permanecem idempotentes no banco por payment_id.
+        await registrarComissaoParceiro(supabase, {
+          userId,
+          planoTipo: planoOriginal,
+          payment: pg,
+          cicloCobranca: perfil.billing_cycle,
+        })
+        if (perfil.primeiro_pagamento_confirmado !== true) {
+          const dp = dataISO(pg.paymentDate) || dataISO(pg.confirmedDate)
+          const dataPrimeiro = dp ? new Date(dp + 'T00:00:00.000Z') : new Date()
+          const { error: erroPrim } = await supabase.from('perfis').update({
+            primeiro_pagamento_confirmado: true,
+            ...(perfil.data_primeiro_pagamento ? {} : { data_primeiro_pagamento: dataPrimeiro.toISOString() }),
+          }).eq('user_id', userId)
+          if (erroPrim) throw new ErroTemporario('erro ao registrar primeiro pagamento: ' + erroPrim.message)
+        }
+        await fechar('processado', null, { userId, vencimento, valor: Number(pg.value) })
+        return ok('plano_restaurado', { plano: planoOriginal })
+      }
+
       const motivoRecusa = conferirPagamento(pg, perfil)
       if (motivoRecusa) return rejeitar(motivoRecusa, { valorPago: pg.value })
 
@@ -432,8 +571,9 @@ export async function processarEventoAsaas(deps: WebhookDeps, evento: any, bodyT
       const atual = perfil.plano_ativo_ate ? new Date(perfil.plano_ativo_ate) : null
       const novoFim = atual && !Number.isNaN(atual.getTime()) && atual > fim ? atual : fim   // nunca reduz
 
-      const { error: erroUpd } = await supabase.from('perfis').update({ status_acesso: 'ativo', gateway: 'asaas', plano_ativo_ate: novoFim.toISOString() }).eq('user_id', userId)
+      const { data: perfisAtualizados, error: erroUpd } = await supabase.from('perfis').update({ status_acesso: 'ativo', gateway: 'asaas', plano_ativo_ate: novoFim.toISOString() }).eq('user_id', userId).eq('plano_tipo', perfil.plano_tipo).eq('status_acesso', perfil.status_acesso).select('user_id')
       if (erroUpd) throw new ErroTemporario('erro ao liberar acesso: ' + erroUpd.message)
+      if (!perfisAtualizados?.length) throw new ErroTemporario('perfil mudou durante processamento; exige nova conciliacao')
       log('ACESSO_LIBERADO', { userId, tipo, paymentId, ate: novoFim.toISOString().slice(0, 10) })
       if (perfil.status_acesso === 'bloqueado') await reverterBloqueiosDeInativacao(`pagamento ${paymentId} confirmado`)
 
@@ -459,6 +599,8 @@ export async function processarEventoAsaas(deps: WebhookDeps, evento: any, bodyT
 
     // ================= ATRASO / ESTORNO / CONTESTACAO =================
     if (acao === 'atraso') {
+      // Nao bloquear o Free por evento financeiro de uma assinatura antiga.
+      if (perfil.plano_tipo === 'free') return ignorar('perfil Free: atraso de assinatura nao altera o acesso gratuito')
       // So derruba quem esta ATIVO; nunca mexe em conta aguardando o 1o pagamento, ja em atraso ou cancelada.
       if (perfil.status_acesso !== 'ativo') return ignorar(`conta esta "${perfil.status_acesso}": evento nao altera`)
       if (perfil.gateway_customer_id && customerId && perfil.gateway_customer_id !== customerId) return rejeitar('evento de outro cliente do Asaas')
@@ -482,6 +624,7 @@ export async function processarEventoAsaas(deps: WebhookDeps, evento: any, bodyT
     // de acesso e uma lista de proibidos). Se a assinatura voltar a ACTIVE e o periodo pago ainda valer, o acesso volta;
     // senao volta quando o proximo pagamento for confirmado. REMOVIDA de vez (DELETED) continua indo para 'cancelado'.
     if (acao === 'assinatura_estado') {
+      if (perfil.plano_tipo === 'free') return ignorar('perfil Free: estado da assinatura nao altera o acesso gratuito')
       const subId = subscription?.id || null
       if (!subId || !perfil.gateway_subscription_id || perfil.gateway_subscription_id !== subId) return ignorar('assinatura do evento nao e a atual do perfil')
       if (!['ativo', 'em_atraso', 'bloqueado'].includes(perfil.status_acesso)) return ignorar(`conta esta "${perfil.status_acesso}": evento nao altera`)
@@ -520,6 +663,7 @@ export async function processarEventoAsaas(deps: WebhookDeps, evento: any, bodyT
     }
 
     // ================= ASSINATURA CANCELADA =================
+    if (perfil.plano_tipo === 'free') return ignorar('perfil Free: cancelamento de assinatura nao altera o acesso gratuito')
     const subId = subscription?.id || payment?.subscription || null
     if (!perfil.gateway_subscription_id || perfil.gateway_subscription_id !== subId) return ignorar('assinatura cancelada nao e a atual do perfil (ex: duplicada removida)')
     if (perfil.status_acesso === 'cancelado') return ignorar('conta ja cancelada')
