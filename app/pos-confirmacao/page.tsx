@@ -10,7 +10,7 @@ import { ehPlanoFree } from '../lib/planos'
 // PainelLayoutClient, que continua funcionando como ultima linha de defesa se o usuario
 // tentar burlar essa pagina de alguma forma.
 export default function PosConfirmacao() {
-  const [estado, setEstado] = useState<'carregando' | 'erro' | 'sem_perfil' | 'escolher_pagamento' | 'confirmando'>('carregando')
+  const [estado, setEstado] = useState<'carregando' | 'erro' | 'sem_perfil' | 'escolher_pagamento' | 'confirmando' | 'retorno_sem_sessao'>('carregando')
   const [mensagemErro, setMensagemErro] = useState('')
   const [metodoEscolhendo, setMetodoEscolhendo] = useState<'CREDIT_CARD' | 'PIX' | null>(null)
   const [tempoEsgotado, setTempoEsgotado] = useState(false)
@@ -33,8 +33,7 @@ export default function PosConfirmacao() {
     try {
       const { data: { session } } = await supabase.auth.getSession()
       if (!session?.user) {
-        setEstado('erro')
-        setMensagemErro('Não conseguimos confirmar sua sessão. Faça login novamente.')
+        setEstado(new URLSearchParams(window.location.search).get('aguardando') === '1' ? 'retorno_sem_sessao' : 'erro')
         return
       }
 
@@ -220,6 +219,22 @@ export default function PosConfirmacao() {
               </button>
             </>
           )}
+        </div>
+      </div>
+    )
+  }
+
+  // O retorno do Asaas pode ocorrer muito depois do checkout, em outro host ou
+  // depois de expirar a sessao. Isso nao significa falha no pagamento.
+  // Nunca oferecemos nova cobranca nesta situacao.
+  if (estado === 'retorno_sem_sessao') {
+    return (
+      <div style={{ minHeight: '100vh', background: 'linear-gradient(180deg,#060C18,#050B16)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px', fontFamily: 'system-ui' }}>
+        <div style={{ maxWidth: '420px', width: '100%', background: 'rgba(15,23,42,.95)', border: '1px solid rgba(139,92,246,.30)', borderRadius: '20px', padding: '40px 32px', textAlign: 'center' }}>
+          <h2 style={{ fontSize: '20px', fontWeight: 800, color: '#F8FAFC', marginBottom: '12px' }}>Volte para sua MiniPage</h2>
+          <p style={{ fontSize: '14px', color: '#94A3B8', marginBottom: '20px', lineHeight: 1.6 }}>Se voce ja pagou pelo Asaas, nao precisa pagar novamente. Entre na sua conta para conferir a ativacao do plano. Sua sessao pode ter expirado enquanto voce estava no pagamento.</p>
+          <a href="/login" style={{ display: 'block', height: '46px', lineHeight: '46px', background: 'linear-gradient(135deg,#EC4899,#D946EF,#8B5CF6)', color: '#fff', borderRadius: '12px', textDecoration: 'none', fontSize: '14px', fontWeight: 700, marginBottom: '12px' }}>Entrar na minha conta</a>
+          <a href="/painel/plano" style={{ fontSize: '13px', color: '#CBD5E1', textDecoration: 'underline' }}>Ja estou conectado: ver meu plano</a>
         </div>
       </div>
     )
