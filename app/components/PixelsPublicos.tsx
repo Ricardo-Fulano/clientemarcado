@@ -1,7 +1,7 @@
 'use client'
 import { useEffect, useState } from 'react'
 import Script from 'next/script'
-import { ehMetaPixelIdValido, ehGa4IdValido, lerConsentimento, salvarConsentimento, textosConsentimento, type Decisao } from '../lib/pixelsPublicos'
+import { ehMetaPixelIdValido, ehGa4IdValido, lerConsentimento, salvarConsentimento, configurarPixels, limparPixels, textosConsentimento, type Decisao } from '../lib/pixelsPublicos'
 
 // Meta Pixel + GA4 da MiniPage - SO carrega depois que o visitante aceita (consentimento guardado POR MiniPage).
 //  - sem Pixel ID nem Measurement ID validos: nao renderiza nada (sem banner, sem script, sem leitura de armazenamento);
@@ -13,14 +13,41 @@ export default function PixelsPublicos({ slug, metaPixelId, ga4Id, idioma }: { s
   const meta = ehMetaPixelIdValido(metaPixelId) ? metaPixelId : null
   const ga = ehGa4IdValido(ga4Id) ? ga4Id : null
   const [decisao, setDecisao] = useState<Decisao | null | undefined>(undefined) // undefined = ainda nao leu (servidor/1o render)
+  const [configVerificada, setConfigVerificada] = useState<string | null>(null)
+  const configAtual = JSON.stringify([slug, meta, ga])
 
   useEffect(() => {
     if (!meta && !ga) return
+    const w = window as Window & { __minipageUltimaConfig?: string }
+    if (w.__minipageUltimaConfig && w.__minipageUltimaConfig !== configAtual) {
+      window.location.reload()
+      return
+    }
+    w.__minipageUltimaConfig = configAtual
     setDecisao(lerConsentimento(slug))
+    setConfigVerificada(configAtual)
   }, [slug, meta, ga])
 
+  useEffect(() => {
+    if (configVerificada !== configAtual) {
+      limparPixels(slug)
+      return
+    }
+    if (decisao === 'aceito' && (meta || ga)) {
+      configurarPixels(slug, meta, ga)
+      return () => limparPixels(slug)
+    }
+    limparPixels(slug)
+  }, [slug, meta, ga, decisao, configVerificada, configAtual])
+
+  function revogarConsentimento() {
+    salvarConsentimento(slug, 'recusado')
+    limparPixels(slug)
+    window.location.reload()
+  }
+
   if (!meta && !ga) return null
-  if (decisao === undefined || decisao === 'recusado') return null
+  if (configVerificada !== configAtual || decisao === undefined || decisao === 'recusado') return null
 
   if (decisao === null) {
     const t = textosConsentimento(idioma)
@@ -40,14 +67,22 @@ export default function PixelsPublicos({ slug, metaPixelId, ga4Id, idioma }: { s
     <>
       {meta && (
         // autoConfig=false ANTES do init: o Pixel nao le campos de formulario (ex.: e-mail do lead) nem textos de botoes - so os eventos que NOS enviamos.
-        <Script id="mp-meta-pixel" strategy="afterInteractive">{`!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,document,'script','https://connect.facebook.net/en_US/fbevents.js');fbq('set','autoConfig',false,'${meta}');fbq('init','${meta}');fbq('track','PageView');`}</Script>
+        <Script id="mp-meta-pixel" strategy="afterInteractive">{`!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,document,'script','https://connect.facebook.net/en_US/fbevents.js');fbq('set','autoConfig',false,'${meta}');fbq('init','${meta}');fbq('trackSingle','${meta}','PageView');`}</Script>
       )}
       {ga && (
         <>
           <Script id="mp-ga4-lib" src={`https://www.googletagmanager.com/gtag/js?id=${ga}`} strategy="afterInteractive" />
-          <Script id="mp-ga4-init" strategy="afterInteractive">{`window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}window.gtag=gtag;gtag('js',new Date());gtag('config','${ga}');`}</Script>
+          <Script id="mp-ga4-init" strategy="afterInteractive">{`window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}window.gtag=gtag;gtag('js',new Date());gtag('config','${ga}',{'send_page_view':false});gtag('event','page_view',{'send_to':'${ga}'});`}</Script>
         </>
       )}
+      <button
+        type="button"
+        data-revogar-pixels
+        onClick={revogarConsentimento}
+        style={{ position: 'fixed', right: '12px', bottom: '12px', zIndex: 9998, padding: '8px 12px', borderRadius: '10px', background: 'rgba(18,12,20,.95)', color: '#fff', border: '1px solid rgba(255,255,255,.3)', fontSize: '11px', cursor: 'pointer' }}
+      >
+        {idioma === 'en' ? 'Revoke tracking consent' : idioma === 'es' ? 'Revocar consentimiento' : 'Revogar rastreamento'}
+      </button>
     </>
   )
 }

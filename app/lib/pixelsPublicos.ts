@@ -44,7 +44,30 @@ const MAPA: Record<string, { meta: string; padrao: boolean; ga: string }> = {
   catalogo_click: { meta: 'ViewContent', padrao: true, ga: 'select_item' },
   lead: { meta: 'Lead', padrao: true, ga: 'generate_lead' },
 }
-type Janela = Window & { fbq?: (...args: unknown[]) => void; gtag?: (...args: unknown[]) => void }
+type ConfigPixels = { slug: string; meta: string | null; ga: string | null }
+type Janela = Window & {
+  fbq?: (...args: unknown[]) => void
+  gtag?: (...args: unknown[]) => void
+  __minipagePixels?: ConfigPixels
+  __minipageUltimoSlug?: string
+}
+
+export function configurarPixels(slug: string, meta: string | null, ga: string | null) {
+  if (typeof window === 'undefined') return
+  const w = window as Janela
+  if (lerConsentimento(slug) !== 'aceito') return
+  w.__minipagePixels = {
+    slug,
+    meta: ehMetaPixelIdValido(meta) ? meta : null,
+    ga: ehGa4IdValido(ga) ? ga : null
+  }
+}
+
+export function limparPixels(slug: string) {
+  if (typeof window === 'undefined') return
+  const w = window as Janela
+  if (w.__minipagePixels?.slug === slug) delete w.__minipagePixels
+}
 
 // Chamada segura: se os pixels NAO foram carregados (sem ID, sem aceite ou recusado), nao faz nada. Nunca lanca erro.
 // Nao envia e-mail, telefone, URL de destino nem nada do visitante: so o nome (ate 100 caracteres) do item clicado, que e conteudo do dono da pagina.
@@ -55,16 +78,23 @@ export function dispararPixels(tipoEvento: string, opcoes?: { titulo?: string | 
   // 1 produto = 1 ViewContent: o segundo catalogo_click do mesmo produto (botao principal) nao e repassado ao pixel.
   if (tipoEvento === 'catalogo_click' && opcoes?.acao === 'botao_principal') return
   const w = window as Janela
+  const config = w.__minipagePixels
+  if (!config || lerConsentimento(config.slug) !== 'aceito') return
+  let slugAtual = ''
+  try {
+    slugAtual = decodeURIComponent(window.location.pathname.split('/')[1] || '')
+  } catch { return }
+  if (slugAtual !== config.slug) return
   const nome = opcoes?.titulo ? String(opcoes.titulo).slice(0, 100) : ''
   try {
-    if (typeof w.fbq === 'function') w.fbq(m.padrao ? 'track' : 'trackCustom', m.meta, nome ? { content_name: nome } : {})
+    if (config.meta && typeof w.fbq === 'function') w.fbq(m.padrao ? 'trackSingle' : 'trackSingleCustom', config.meta, m.meta, nome ? { content_name: nome } : {})
   } catch { /* o pixel nunca pode quebrar a pagina */ }
   try {
-    if (typeof w.gtag === 'function') {
+    if (config.ga && typeof w.gtag === 'function') {
       const params = tipoEvento === 'catalogo_click'
         ? { item_list_name: 'catalogo', items: nome ? [{ item_name: nome }] : [] }
         : tipoEvento === 'lead' ? {} : nome ? { content_name: nome } : {}
-      w.gtag('event', m.ga, params)
+      w.gtag('event', m.ga, { ...params, send_to: config.ga })
     }
   } catch { /* idem */ }
 }
