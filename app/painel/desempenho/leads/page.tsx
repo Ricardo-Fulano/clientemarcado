@@ -217,9 +217,9 @@ export default function LeadsCapturados() {
   }
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', background: '#0A0611' }}>
+    <div className="leads-pagina" style={{ display: 'flex', minHeight: '100vh', background: '#0A0611' }}>
       <PainelSidebar />
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden', maxWidth: '1480px', minWidth: 0, margin: '0 auto', width: '100%' }}>
+      <div className="leads-conteudo" style={{ flex: 1, display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden', maxWidth: '1480px', minWidth: 0, margin: '0 auto', width: '100%' }}>
         {/* Cabecalho fixo (nunca rola) - titulo, subtitulo, busca e periodo sempre visiveis */}
         <div style={{ padding: '32px 32px 0', flexShrink: 0 }}>
           <Link href="/painel/desempenho" style={{ fontSize: '13px', color: '#B8AAB8', textDecoration: 'none', display: 'inline-block', marginBottom: '16px' }}>← Voltar para Desempenho</Link>
@@ -256,7 +256,13 @@ export default function LeadsCapturados() {
               .leads-tabela td{padding:12px;font-size:13px;color:#F8F4F7;border-bottom:1px solid #2A1A2F}
               .leads-copiar-btn{background:rgba(255,255,255,.08);border:1px solid #2A1A2F;color:#F8F4F7;border-radius:8px;padding:5px 10px;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit}
               .leads-card-mobile{display:none}
-              .clientes-grade{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;align-items:stretch}
+              /* O sidebar do painel usa posicao fixa no desktop: reservar seu espaco
+                 evita que titulos e cards fiquem escondidos sob ele. */
+              @media(min-width:769px){
+                .leads-pagina .leads-conteudo{margin-left:240px !important;width:calc(100% - 240px) !important;max-width:none !important;flex:1 1 auto}
+              }
+              /* Uma pessoa por linha, com todo o card visivel sem barra lateral. */
+              .clientes-grade{display:grid;grid-template-columns:minmax(0,1fr);gap:12px;align-items:stretch;max-width:1120px;margin:0 auto}
               .clientes-grade .cliente-cartao{min-width:0;margin:0;padding:18px;border-radius:14px;overflow-wrap:anywhere}
               .clientes-grade .cliente-acoes{display:flex;gap:7px;flex-wrap:wrap;margin-top:14px}
               .clientes-grade .cliente-acoes > *{min-height:30px}
