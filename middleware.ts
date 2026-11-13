@@ -9,6 +9,10 @@ export function middleware(request: NextRequest) {
   const ehMinipage = hostLower === 'minipage.pro' || hostLower === 'www.minipage.pro'
   const pathname = decodeURIComponent(request.nextUrl.pathname)
   const ehRaiz = pathname === '/'
+  const dominioAntigo = hostLower === 'clientemarcado.com.br' || hostLower === 'www.clientemarcado.com.br'
+  if (dominioAntigo && ehRaiz && process.env.MINIPAGE_DOMINIO_UNICO_ENABLED === 'true') {
+    return NextResponse.redirect('https://minipage.pro/', 307)
+  }
 
   // www.minipage.pro/{slug} deve virar minipage.pro/{slug} (redirect permanente) - evita
   // que o Google veja as duas versoes como paginas diferentes (conteudo duplicado). Como
