@@ -6,7 +6,7 @@ import { NextRequest, NextResponse } from 'next/server'
 export function middleware(request: NextRequest) {
   const host = request.headers.get('host') || ''
   const hostLower = host.toLowerCase()
-  const ehMinipage = hostLower.includes('minipage.pro')
+  const ehMinipage = hostLower === 'minipage.pro' || hostLower === 'www.minipage.pro'
   const pathname = decodeURIComponent(request.nextUrl.pathname)
   const ehRaiz = pathname === '/'
 
@@ -21,7 +21,9 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(destino, 308)
   }
 
-  if (ehMinipage && ehRaiz) {
+  // Ativacao controlada: sem esta flag, a raiz continua usando o dominio comercial antigo.
+  // Somente habilite apos revisar Supabase, Asaas, links de retorno, Vercel e DNS.
+  if (ehMinipage && ehRaiz && process.env.MINIPAGE_DOMINIO_UNICO_ENABLED !== 'true') {
     return NextResponse.redirect('https://www.clientemarcado.com.br')
   }
 
@@ -36,7 +38,7 @@ export function middleware(request: NextRequest) {
 
   // Etapa 3D: tela de consentimento OAuth (somente clientemarcado.com.br). O token da solicitacao (?req=) vive na URL enquanto o fluxo esta ativo:
   // nada de cache e nada de Referer. As regras de minipage.pro acima NAO sao afetadas (este bloco so roda fora de minipage.pro).
-  if (!ehMinipage && pathname === '/oauth/consent') {
+  if (pathname === '/oauth/consent') {
     const resposta = NextResponse.next()
     resposta.headers.set('Cache-Control', 'no-store')
     resposta.headers.set('Referrer-Policy', 'no-referrer')

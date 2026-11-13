@@ -38,7 +38,9 @@ export async function POST(request: NextRequest) {
         adminEmail: admin.email || '',
         perfil: { id: perfil.id, nome_negocio: perfil.nome_negocio },
         emailNovo: body?.email_novo,
-        siteUrl: process.env.NEXT_PUBLIC_SITE_URL || 'https://clientemarcado.com.br',
+        siteUrl: process.env.MINIPAGE_DOMINIO_UNICO_ENABLED === 'true'
+          ? 'https://minipage.pro'
+          : (process.env.NEXT_PUBLIC_SITE_URL || 'https://clientemarcado.com.br'),
       },
       {
         store: criarConviteStore(supabase),

@@ -202,7 +202,7 @@ export default function Home() {
             <img src="/minipage-pro-icon.png" alt="MiniPage Pro" width={36} height={36} style={{borderRadius:'9px',flexShrink:0,objectFit:'contain'}}/>
             <div style={{display:'flex',flexDirection:'column',lineHeight:1.15}}>
               <span style={{fontSize:'17px',fontWeight:800,color:'#F8F4F7',letterSpacing:'-0.02em'}}>MiniPage Pro</span>
-              <span style={{fontSize:'11px',fontWeight:600,color:'#B8AAB8',letterSpacing:'.02em'}}>por ClienteMarcado</span>
+              <span style={{fontSize:'11px',fontWeight:600,color:'#B8AAB8',letterSpacing:'.02em'}}>MiniPage Pro</span>
             </div>
           </div>
           <div style={{display:'flex',gap:'12px',alignItems:'center'}}>
@@ -392,7 +392,7 @@ export default function Home() {
 
           </div>
 
-          <p style={{textAlign:'center',fontSize:'13px',color:'#B8AAB8',marginTop:'32px'}}>Compare os recursos e escolha pagamento mensal recorrente ou anual à vista com 17% de desconto. MiniPage Pro é uma solução ClienteMarcado.</p>
+          <p style={{textAlign:'center',fontSize:'13px',color:'#B8AAB8',marginTop:'32px'}}>Compare os recursos e escolha pagamento mensal recorrente ou anual à vista com 17% de desconto.</p>
         </div>
       </section>
       {/* CTA FINAL */}
@@ -412,9 +412,9 @@ export default function Home() {
         </div>
       </section>
       <footer style={{borderTop:'1px solid #2A1A2F',padding:'32px 24px',textAlign:'center'}}>
-        <p style={{fontSize:'13px',color:'#B8AAB8'}}>© 2026 ClienteMarcado. MiniPage Pro é uma solução ClienteMarcado.</p>
+        <p style={{fontSize:'13px',color:'#B8AAB8'}}>© 2026 MiniPage Pro.</p>
         <p style={{fontSize:'11px',color:'#475569',marginTop:'4px'}}>CNPJ: 31.671.616/0001-18</p>
-        <a href='https://instagram.com/clientemarcado' target='_blank' rel='noreferrer' style={{fontSize:'15px',color:'#E1306C',textDecoration:'none',marginTop:'16px',marginBottom:'60px',display:'inline-flex',alignItems:'center',gap:'6px',fontWeight:700}}><svg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='#E1306C' strokeWidth='2' strokeLinecap='round' strokeLinejoin='round'><rect x='2' y='2' width='20' height='20' rx='5' ry='5'/><path d='M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z'/><line x1='17.5' y1='6.5' x2='17.51' y2='6.5'/></svg>@clientemarcado</a>
+        <a href='https://instagram.com/clientemarcado' target='_blank' rel='noreferrer' style={{fontSize:'15px',color:'#E1306C',textDecoration:'none',marginTop:'16px',marginBottom:'60px',display:'inline-flex',alignItems:'center',gap:'6px',fontWeight:700}}><svg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='#E1306C' strokeWidth='2' strokeLinecap='round' strokeLinejoin='round'><rect x='2' y='2' width='20' height='20' rx='5' ry='5'/><path d='M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z'/><line x1='17.5' y1='6.5' x2='17.51' y2='6.5'/></svg>Instagram</a>
       </footer>
       <AssistenteComercial checkoutUrl={CHECKOUT_URL} />
     </div>

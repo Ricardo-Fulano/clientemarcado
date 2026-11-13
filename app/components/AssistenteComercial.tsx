@@ -5,15 +5,15 @@ import { X, MessageCircle, Send, ChevronRight } from 'lucide-react'
 const COMERCIAL_WHATSAPP = '5511941059063'
 
 const RESPOSTAS: Record<string, string> = {
-  'como-funciona': 'O ClienteMarcado é um painel simples para negócios organizarem agenda, clientes, serviços, orçamentos, cobranças e pagamentos. Você também recebe uma página pública para seus clientes agendarem online.',
-  'quanto-custa': 'O plano ClienteMarcado custa R$ 79,90 por mês após o período grátis. Você pode começar com 7 dias grátis e cancelar quando quiser.',
-  'fidelidade': 'Não. O ClienteMarcado não tem fidelidade. Você pode cancelar quando quiser, sem multa ou prazo mínimo.',
-  'dias-gratis': 'Você começa usando o sistema por 7 dias grátis, sem precisar de cartão. Depois desse período, a mensalidade passa a ser R$ 79,90 por mês.',
-  'meu-negocio': 'O ClienteMarcado foi pensado para barbearias, salões, estética, clínicas, consultórios, odontologia, profissionais autônomos e pequenos negócios que trabalham com horário marcado.',
-  'app': 'Não. O ClienteMarcado funciona pelo navegador, no celular, tablet ou computador. Você e seus clientes acessam por um link, sem instalar nada.',
+  'como-funciona': 'O MiniPage Pro permite criar uma página profissional para reunir links, vídeos, produtos, WhatsApp e, conforme o plano, catálogo, agendamento, desempenho e ferramentas de gestão.',
+  'quanto-custa': 'O MiniPage Pro possui plano gratuito e opções pagas: MiniPage R$ 29,90, Agenda R$ 39,90, Loja R$ 49,90, Pro R$ 59,90 e Equipe R$ 149,90 por mês. Consulte a seção de planos para os recursos e valores vigentes.',
+  'fidelidade': 'O MiniPage Pro oferece planos mensais e anuais. Confira os termos e as condições do ciclo escolhido antes da contratação.',
+  'dias-gratis': 'Existe um plano Free e opções pagas. Quando elegível, o período de teste gratuito é de 7 dias. Confira as condições apresentadas no cadastro.',
+  'meu-negocio': 'O MiniPage Pro atende criadores, afiliados, profissionais autônomos, lojas e negócios que precisam divulgar links, produtos ou agendamentos.',
+  'app': 'Não precisa instalar aplicativo: o MiniPage Pro funciona no navegador, pelo celular, tablet ou computador.',
   'whatsapp': 'Sim. O sistema facilita o contato pelo WhatsApp, permite copiar confirmação, abrir conversa com o cliente e organizar melhor os atendimentos.',
-  'incluso': 'O plano inclui agenda online, página pública de agendamento, cadastro de clientes, serviços, profissionais, orçamentos, cobranças, pagamentos, relatórios simples e mensagens prontas para WhatsApp.',
-  'como-comecar': 'Clique em "Começar 7 dias grátis", crie sua conta e configure seu negócio. Depois você poderá cadastrar serviços, horários, profissionais e compartilhar sua página de agendamento.',
+  'incluso': 'Os recursos dependem do plano contratado. Há opções para links e vídeos, agenda, catálogo, gestão e equipe. Consulte a comparação de planos no site.',
+  'como-comecar': 'Veja os planos, escolha a opção que atende às suas necessidades, crie sua conta e personalize sua MiniPage.',
 }
 
 const KEYWORDS: Array<{ key: string; words: string[] }> = [
@@ -77,7 +77,7 @@ export default function AssistenteComercial({ checkoutUrl = '/cadastro' }: Props
     setInput('')
   }
 
-  const linkWpp = 'https://wa.me/' + COMERCIAL_WHATSAPP + '?text=' + encodeURIComponent('Olá! Tenho interesse no ClienteMarcado e gostaria de tirar uma dúvida.')
+  const linkWpp = 'https://wa.me/' + COMERCIAL_WHATSAPP + '?text=' + encodeURIComponent('Olá! Tenho interesse no MiniPage Pro e gostaria de tirar uma dúvida.')
 
   return (
     <>
@@ -127,7 +127,7 @@ export default function AssistenteComercial({ checkoutUrl = '/cadastro' }: Props
                 <MessageCircle size={16} color="#fff" />
               </div>
               <div>
-                <p style={{ fontSize: 13, fontWeight: 800, color: '#F8F4F7', margin: 0 }}>Assistente ClienteMarcado</p>
+                <p style={{ fontSize: 13, fontWeight: 800, color: '#F8F4F7', margin: 0 }}>Assistente MiniPage Pro</p>
                 <p style={{ fontSize: 11, color: '#B8AAB8', margin: 0 }}>Tire dúvidas antes de começar</p>
               </div>
             </div>
@@ -140,7 +140,7 @@ export default function AssistenteComercial({ checkoutUrl = '/cadastro' }: Props
           <div style={{ flex: 1, overflowY: 'auto', padding: '16px 16px 12px' }}>
             <div style={{ background: 'rgba(236,72,153,.10)', border: '1px solid rgba(236,72,153,.20)', borderRadius: 14, padding: '12px 14px', marginBottom: 14 }}>
               <p style={{ fontSize: 13, color: '#B8AAB8', lineHeight: 1.6, margin: 0 }}>
-                Olá! Posso te ajudar a entender se o ClienteMarcado serve para o seu negócio, como funcionam os <strong style={{ color: '#F9A8D4' }}>7 dias grátis</strong> e o que está incluso no plano.
+                Olá! Posso te ajudar a entender qual plano MiniPage Pro atende ao seu negócio, quais recursos estão incluídos e como começar.
               </p>
             </div>
 

@@ -4,18 +4,18 @@ import Link from 'next/link'
 const hoje = new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' })
 
 const SECOES = [
-  { t: '1. Sobre o ClienteMarcado', c: 'O ClienteMarcado é uma plataforma digital de gestão para pequenos negócios, incluindo barbearias, salões, estéticas, consultórios simples, clínicas e odontologia básica.' },
-  { t: '2. Plano contratado', c: 'O plano inicial da plataforma é o Plano ClienteMarcado, no valor de R$ 79,90 por mês, com 7 dias grátis, sem fidelidade e com possibilidade de cancelamento quando o cliente desejar.' },
-  { t: '3. Período gratuito', c: 'O usuário poderá testar a plataforma gratuitamente por 7 dias. Após esse período, a assinatura poderá ser cobrada, caso o cancelamento não seja realizado antes do fim do período gratuito.' },
-  { t: '4. Funcionalidades incluídas', c: 'A plataforma poderá incluir agenda, clientes, serviços, profissionais, página pública de agendamento, orçamentos, cobranças, pagamentos, relatórios, lembretes, confirmações e outras funcionalidades de gestão.' },
+  { t: '1. Sobre a MiniPage Pro', c: 'A MiniPage Pro é uma plataforma digital para criação de páginas profissionais, links, conteúdos, catálogos, agendamentos e ferramentas de gestão, conforme o plano contratado.' },
+  { t: '2. Plano contratado', c: 'Existem planos gratuitos e pagos. Os valores, períodos de teste, ciclos de cobrança e recursos válidos são apresentados durante a contratação; contratos anteriores preservam as condições contratadas.' },
+  { t: '3. Período gratuito', c: 'Quando houver período de teste, suas condições e eventual cobrança posterior serão informadas no fluxo de contratação.' },
+  { t: '4. Funcionalidades incluídas', c: 'Os recursos podem incluir página pública, links, vídeos, catálogos, agendamento, clientes, cobranças e relatórios, dependendo do plano contratado.' },
   { t: '5. Responsabilidades do usuário', c: 'O usuário é responsável pelas informações cadastradas, pelos dados de seus clientes, pelos valores informados, pelos serviços cadastrados, pelos horários configurados e pelo uso correto da plataforma.' },
-  { t: '6. Responsabilidades do ClienteMarcado', c: 'O ClienteMarcado se compromete a oferecer uma plataforma funcional, organizada e segura, podendo realizar melhorias, ajustes e atualizações sempre que necessário.' },
-  { t: '7. Uso do WhatsApp', c: 'O ClienteMarcado poderá facilitar o envio de mensagens via WhatsApp, mas não se responsabiliza por bloqueios, limitações, indisponibilidades ou alterações de regras feitas pelo WhatsApp ou por terceiros.' },
-  { t: '8. Orçamentos, cobranças e pagamentos', c: 'A plataforma poderá permitir a criação de orçamentos, cobranças e registro de pagamentos. O ClienteMarcado organiza as informações, mas não substitui nota fiscal, recibo contábil ou documento fiscal oficial.' },
+  { t: '6. Responsabilidades da MiniPage Pro', c: 'A operadora da MiniPage Pro se compromete a oferecer uma plataforma funcional, organizada e segura, podendo realizar melhorias, ajustes e atualizações sempre que necessário.' },
+  { t: '7. Uso do WhatsApp', c: 'A MiniPage Pro poderá facilitar o envio de mensagens via WhatsApp, mas não se responsabiliza por bloqueios, limitações, indisponibilidades ou alterações de regras feitas pelo WhatsApp ou por terceiros.' },
+  { t: '8. Orçamentos, cobranças e pagamentos', c: 'A plataforma poderá permitir a criação de orçamentos, cobranças e registro de pagamentos. A MiniPage Pro organiza as informações, mas não substitui nota fiscal, recibo contábil ou documento fiscal oficial.' },
   { t: '9. Dados e privacidade', c: 'O tratamento de dados pessoais seguirá a Política de Privacidade da plataforma.' },
   { t: '10. Cancelamento', c: 'O usuário poderá solicitar cancelamento conforme as condições exibidas no momento da contratação. Após o cancelamento, o acesso poderá ser limitado ou encerrado.' },
   { t: '11. Suspensão de acesso', c: 'O acesso poderá ser suspenso em caso de inadimplência, uso indevido, tentativa de fraude, violação dos termos ou comportamento que prejudique a plataforma.' },
-  { t: '12. Atualizações', c: 'O ClienteMarcado poderá alterar funcionalidades, telas, recursos e condições da plataforma para melhorar o serviço.' },
+  { t: '12. Atualizações', c: 'A operadora da MiniPage Pro poderá alterar funcionalidades, telas, recursos e condições da plataforma para melhorar o serviço.' },
   { t: '13. Aceite eletrônico', c: 'Ao marcar a opção de aceite e continuar o cadastro ou assinatura, o usuário declara que leu, entendeu e concorda com estes Termos de Uso.' },
   { t: '14. Disposições finais', c: 'Estes termos poderão ser atualizados periodicamente. A versão vigente ficará disponível na própria plataforma.' },
 ]
@@ -47,7 +47,7 @@ export default function TermosDeUso() {
               <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
             </svg>
           </div>
-          <span style={{ fontSize: '15px', fontWeight: 800, color: '#F8F4F7', letterSpacing: '-0.02em' }}>ClienteMarcado</span>
+          <span style={{ fontSize: '15px', fontWeight: 800, color: '#F8F4F7', letterSpacing: '-0.02em' }}>MiniPage Pro</span>
         </div>
 
         <div className="card">
@@ -55,7 +55,7 @@ export default function TermosDeUso() {
           <div style={{ marginBottom: '28px', paddingBottom: '24px', borderBottom: '1px solid rgba(42,26,47,.12)' }}>
             <div style={{ width: '48px', height: '48px', borderRadius: '14px', background: 'rgba(236,72,153,.14)', border: '1px solid rgba(236,72,153,.28)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '22px', marginBottom: '16px' }}>📄</div>
             <h1 style={{ fontSize: '26px', fontWeight: 800, color: '#F8F4F7', letterSpacing: '-0.03em', marginBottom: '8px' }}>Termos de Uso</h1>
-            <p style={{ fontSize: '14px', color: '#B8AAB8', lineHeight: 1.6 }}>Estes Termos de Uso regulam o acesso e a utilização da plataforma ClienteMarcado, sistema digital destinado à gestão de agenda, clientes, serviços, profissionais, orçamentos, cobranças, pagamentos e organização de atendimentos para pequenos negócios.</p>
+            <p style={{ fontSize: '14px', color: '#B8AAB8', lineHeight: 1.6 }}>Estes Termos de Uso regulam o acesso e a utilização da plataforma MiniPage Pro, operada pela empresa identificada pelo CNPJ 31.671.616/0001-18. Os recursos disponíveis dependem do plano contratado.</p>
           </div>
 
           {/* Seções */}

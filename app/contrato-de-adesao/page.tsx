@@ -4,19 +4,19 @@ import Link from 'next/link'
 const hoje = new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' })
 
 const CLAUSULAS = [
-  { t: '1. Contratante', c: 'Pessoa física ou jurídica que realiza o cadastro e utiliza a plataforma ClienteMarcado.' },
-  { t: '2. Contratada', c: 'ClienteMarcado, plataforma digital de gestão para pequenos negócios.' },
-  { t: '3. Objeto', c: 'Disponibilização de acesso à plataforma ClienteMarcado para gestão de agenda, clientes, serviços, profissionais, orçamentos, cobranças, pagamentos, relatórios e página pública de agendamento.' },
-  { t: '4. Plano', c: 'Plano ClienteMarcado no valor de R$ 79,90/mês, com 7 dias grátis, sem fidelidade.' },
-  { t: '5. Teste grátis', c: 'O contratante poderá utilizar a plataforma por 7 dias gratuitamente. Após esse período, poderá ocorrer cobrança da assinatura mensal, caso o cancelamento não seja realizado.' },
+  { t: '1. Contratante', c: 'Pessoa física ou jurídica que realiza o cadastro e utiliza a plataforma MiniPage Pro.' },
+  { t: '2. Contratada', c: 'A pessoa jurídica responsável pela operação da plataforma MiniPage Pro, inscrita no CNPJ 31.671.616/0001-18.' },
+  { t: '3. Objeto', c: 'Disponibilização da plataforma MiniPage Pro, com páginas profissionais, links, conteúdos, catálogos, agenda e outros recursos de acordo com o plano contratado.' },
+  { t: '4. Plano', c: 'O plano, o ciclo de cobrança, o preço e os benefícios aplicáveis são os informados e aceitos durante a contratação. Condições de contratos históricos permanecem conforme a contratação original.' },
+  { t: '5. Teste grátis', c: 'Períodos de teste, quando oferecidos, seguem as condições apresentadas na contratação. A cobrança depende do plano e do ciclo escolhidos.' },
   { t: '6. Pagamento', c: 'O pagamento da assinatura será feito conforme a forma de pagamento escolhida no momento da contratação.' },
   { t: '7. Cancelamento', c: 'O contratante poderá cancelar a assinatura quando desejar, respeitando as regras apresentadas no fluxo de contratação.' },
   { t: '8. Uso da plataforma', c: 'O contratante deve utilizar a plataforma de forma lícita, correta e responsável, mantendo seus dados atualizados.' },
   { t: '9. Dados cadastrados', c: 'O contratante é responsável pelos dados dos clientes, pacientes, profissionais, serviços, valores, horários, orçamentos e pagamentos inseridos no sistema.' },
-  { t: '10. Limitação de responsabilidade', c: 'O ClienteMarcado é uma ferramenta de organização e gestão. A plataforma não substitui consultoria contábil, jurídica, fiscal, odontológica, médica ou financeira.' },
+  { t: '10. Limitação de responsabilidade', c: 'A MiniPage Pro é uma plataforma digital. A plataforma não substitui consultoria contábil, jurídica, fiscal, odontológica, médica ou financeira.' },
   { t: '11. Suporte', c: 'O suporte será fornecido conforme os canais disponíveis pela plataforma.' },
   { t: '12. Aceite eletrônico', c: 'O aceite eletrônico por checkbox, botão de confirmação ou continuidade no cadastro terá validade como manifestação de concordância com este contrato.' },
-  { t: '13. Atualizações', c: 'O ClienteMarcado poderá atualizar este contrato, funcionalidades e condições da plataforma.' },
+  { t: '13. Atualizações', c: 'A operadora da MiniPage Pro poderá atualizar este contrato, funcionalidades e condições da plataforma.' },
   { t: '14. Foro', c: 'As partes elegem o foro competente conforme a legislação aplicável, salvo disposição legal em contrário.' },
 ]
 
@@ -46,14 +46,14 @@ export default function ContratoDeAdesao() {
               <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
             </svg>
           </div>
-          <span style={{ fontSize: '15px', fontWeight: 800, color: '#F8F4F7', letterSpacing: '-0.02em' }}>ClienteMarcado</span>
+          <span style={{ fontSize: '15px', fontWeight: 800, color: '#F8F4F7', letterSpacing: '-0.02em' }}>MiniPage Pro</span>
         </div>
 
         <div className="card">
           <div style={{ marginBottom: '28px', paddingBottom: '24px', borderBottom: '1px solid rgba(42,26,47,.12)' }}>
             <div style={{ width: '48px', height: '48px', borderRadius: '14px', background: 'rgba(139,92,246,.14)', border: '1px solid rgba(139,92,246,.28)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '22px', marginBottom: '16px' }}>📋</div>
             <h1 style={{ fontSize: '26px', fontWeight: 800, color: '#F8F4F7', letterSpacing: '-0.03em', marginBottom: '8px' }}>Contrato de Adesão</h1>
-            <p style={{ fontSize: '14px', color: '#B8AAB8', lineHeight: 1.6 }}>Contrato de Adesão ao Plano ClienteMarcado entre o contratante e a plataforma ClienteMarcado.</p>
+            <p style={{ fontSize: '14px', color: '#B8AAB8', lineHeight: 1.6 }}>Contrato de Adesão à plataforma MiniPage Pro entre o contratante e a empresa responsável identificada pelo CNPJ 31.671.616/0001-18.</p>
           </div>
 
           {CLAUSULAS.map(c => (
@@ -72,7 +72,7 @@ export default function ContratoDeAdesao() {
           <Link href="/" className="btn-v">← Voltar</Link>
           <Link href="/termos-de-uso" className="btn-v">Termos de Uso</Link>
           <Link href="/politica-de-privacidade" className="btn-v">Política de Privacidade</Link>
-          <Link href="/cadastro" className="btn-p">Começar 7 dias grátis →</Link>
+          <Link href="/cadastro" className="btn-p">Ver planos →</Link>
         </div>
       </div>
     </div>

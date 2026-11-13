@@ -311,14 +311,14 @@ export default function Login() {
           <img src="/minipage-pro-icon.png" alt="MiniPage Pro" width={36} height={36} style={{ borderRadius: '10px', objectFit: 'contain', flexShrink: 0 }} />
           <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.15 }}>
             <span className="logo-txt">MiniPage Pro</span>
-            <span style={{ fontSize: '11px', fontWeight: 600, color: '#B8AAB8', letterSpacing: '.02em' }}>por ClienteMarcado</span>
+            <span style={{ fontSize: '11px', fontWeight: 600, color: '#B8AAB8', letterSpacing: '.02em' }}>MiniPage Pro</span>
           </div>
         </a>
 
         {/* Headline */}
         <div className="headline">
           <h1>Entrar no painel</h1>
-          <p>Acesse sua agenda, clientes, cobranças e relatórios em um só lugar.</p>
+          <p>Gerencie sua MiniPage, links, produtos, agendamentos e resultados em um só lugar.</p>
         </div>
 
         {/* Card */}
@@ -390,7 +390,7 @@ export default function Login() {
 
           {/* Benefícios */}
           <div className="beneficios">
-            {['Agenda organizada em um só lugar','Clientes e cobranças centralizados','Relatórios e pagamentos simplificados'].map(b => (
+            {['Links e conteúdos organizados','Produtos e agendamentos conforme seu plano','Acompanhe os resultados da sua MiniPage'].map(b => (
               <div key={b} className="beneficio">
                 <div className="beneficio-dot">✓</div>
                 <span>{b}</span>

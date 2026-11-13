@@ -106,7 +106,7 @@ export default function Cadastro() {
     if (m.includes('invalid') && m.includes('email')) {
       return 'Confira se o e-mail foi digitado corretamente.'
     }
-    return 'Não conseguimos reenviar agora. Entre em contato com o suporte do ClienteMarcado.'
+    return 'Não conseguimos reenviar agora. Entre em contato com o suporte do MiniPage Pro.'
   }
   // Cupom vindo da URL (?cupom=) ou guardado ao abrir o contrato. Roda UMA vez, ao abrir a
   // pagina. So preenche o campo se o cupom for VALIDO (um valor guardado invalido - por
@@ -332,7 +332,7 @@ export default function Cadastro() {
             <img src="/minipage-pro-icon.png" alt="MiniPage Pro" width={36} height={36} style={{borderRadius:'10px',objectFit:'contain',flexShrink:0}}/>
             <div style={{display:'flex',flexDirection:'column',lineHeight:1.15}}>
               <span className="desk-logo-texto">MiniPage Pro</span>
-              <span style={{fontSize:'11px',fontWeight:600,color:'#B8AAB8',letterSpacing:'.02em'}}>por ClienteMarcado</span>
+              <span style={{fontSize:'11px',fontWeight:600,color:'#B8AAB8',letterSpacing:'.02em'}}>MiniPage Pro</span>
             </div>
           </div>
           <div>
@@ -412,7 +412,7 @@ export default function Cadastro() {
               {cupomStatus==='erro'&&<p style={{fontSize:'11px',color:'#EF4444',marginTop:'5px'}}>Cupom não encontrado. Você pode continuar sem cupom.</p>}
               {cupomStatus==='idle'&&<p style={{fontSize:'11px',color:'#B8AAB8',marginTop:'5px'}}>Se recebeu um cupom de um parceiro, informe aqui. Campo opcional.</p>}
             </div>
-            <div style={{marginBottom:'14px',display:'flex',alignItems:'flex-start',gap:'10px'}}><input type="checkbox" id="aceite" checked={aceitou} onChange={e=>setAceitou(e.target.checked)} style={{marginTop:'2px',accentColor:'#EC4899',width:'15px',height:'15px',flexShrink:0,cursor:'pointer'}} /><label htmlFor="aceite" style={{fontSize:'12px',color:'#B8AAB8',lineHeight:1.5,cursor:'pointer'}}>Li e aceito os <a href="/contrato-de-adesao" target="_blank" rel="noreferrer" onClick={()=>{if(cupom&&typeof window!=='undefined')localStorage.setItem('cm_cupom',cupom)}} style={{color:'#EC4899',textDecoration:'none',fontWeight:600}}>termos de uso e contrato de adesão</a> do ClienteMarcado.</label></div>
+            <div style={{marginBottom:'14px',display:'flex',alignItems:'flex-start',gap:'10px'}}><input type="checkbox" id="aceite" checked={aceitou} onChange={e=>setAceitou(e.target.checked)} style={{marginTop:'2px',accentColor:'#EC4899',width:'15px',height:'15px',flexShrink:0,cursor:'pointer'}} /><label htmlFor="aceite" style={{fontSize:'12px',color:'#B8AAB8',lineHeight:1.5,cursor:'pointer'}}>Li e aceito os <a href="/contrato-de-adesao" target="_blank" rel="noreferrer" onClick={()=>{if(cupom&&typeof window!=='undefined')localStorage.setItem('cm_cupom',cupom)}} style={{color:'#EC4899',textDecoration:'none',fontWeight:600}}>termos de uso e contrato de adesão</a> do MiniPage Pro.</label></div>
             <input type="text" name="website" value={site} onChange={e => setSite(e.target.value)} tabIndex={-1} autoComplete="off" aria-hidden="true" style={{ position: 'absolute', left: '-9999px', width: '1px', height: '1px', opacity: 0 }} />
             <button onClick={handleCadastro} disabled={loading} className="btn-criar">
               {loading ? 'Criando conta...' : (
@@ -490,7 +490,7 @@ export default function Cadastro() {
                   Digitou o e-mail errado? Voltar para cadastro
                 </button>
                 <a
-                  href={`https://wa.me/5511941059063?text=${encodeURIComponent('Olá! Fiz meu cadastro no ClienteMarcado, mas não recebi o e-mail de confirmação.')}`}
+                  href={`https://wa.me/5511941059063?text=${encodeURIComponent('Olá! Fiz meu cadastro no MiniPage Pro, mas não recebi o e-mail de confirmação.')}`}
                   target="_blank" rel="noreferrer" className="btn-whatsapp"
                 >
                   Falar com o suporte

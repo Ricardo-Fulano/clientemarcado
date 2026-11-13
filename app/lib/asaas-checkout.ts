@@ -98,7 +98,10 @@ export async function criarOuReutilizarCheckout(
     // Os precos sao centralizados em planos.ts (17% sobre 12 mensalidades).
     const valor = obterPrecoPlanoPorCiclo(planoTipo, ciclo)
     const descricao = `${obterReasonMercadoPago(planoTipo)} (${ciclo === 'anual' ? 'Anual' : 'Mensal'})`
-    const SITE_URL = env.NEXT_PUBLIC_SITE_URL || 'https://clientemarcado.com.br'
+    // Mesma chave de ativacao do middleware; nao altera nenhuma regra de cobranca.
+    const SITE_URL = env.MINIPAGE_DOMINIO_UNICO_ENABLED === 'true'
+      ? 'https://minipage.pro'
+      : (env.NEXT_PUBLIC_SITE_URL || 'https://clientemarcado.com.br')
     const successUrl = `${SITE_URL}/pos-confirmacao?aguardando=1`
     const nextDueDate = new Date().toISOString().slice(0, 10)
 

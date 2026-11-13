@@ -219,7 +219,7 @@ export default function MeuPlano() {
             return
           }
           setAvisoDowngrade('')
-          window.open(linkWpp('Olá! Quero solicitar a mudança do meu plano do ClienteMarcado para o plano MiniPage.'), '_blank', 'noopener,noreferrer')
+          window.open(linkWpp('Olá! Quero solicitar a mudança do meu plano do MiniPage Pro para o plano MiniPage.'), '_blank', 'noopener,noreferrer')
         }} style={{ width: '100%', background: 'rgba(24,16,27,.92)', color: '#F8F4F7', border: '1px solid rgba(229,72,184,.28)', borderRadius: '12px', padding: '12px', fontSize: '13px', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
           Alterar para MiniPage
         </button>
@@ -227,8 +227,8 @@ export default function MeuPlano() {
     }
 
     const mensagem = ehUpgrade
-      ? `Olá! Quero fazer upgrade do meu plano do ClienteMarcado para o Plano ${nomeAlvo}.`
-      : `Olá! Quero alterar meu plano do ClienteMarcado para o Plano ${nomeAlvo}.`
+      ? `Olá! Quero fazer upgrade do meu plano do MiniPage Pro para o Plano ${nomeAlvo}.`
+      : `Olá! Quero alterar meu plano do MiniPage Pro para o Plano ${nomeAlvo}.`
 
     return (
       <a href={linkWpp(mensagem)} target="_blank" rel="noopener noreferrer"
@@ -340,7 +340,7 @@ export default function MeuPlano() {
                     <Users size={17} color="#F59E0B" style={{ flexShrink: 0, marginTop: '2px' }} />
                     <p style={{ fontSize: '13px', color: '#F8F4F7', lineHeight: 1.55 }}>{avisoDowngrade}</p>
                   </div>
-                  <a href={linkWpp('Olá! Quero alterar meu plano do ClienteMarcado.')} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', alignSelf: 'flex-start', background: 'rgba(24,16,27,.92)', color: '#F8F4F7', border: '1px solid rgba(245,158,11,.35)', borderRadius: '10px', padding: '9px 16px', fontSize: '13px', fontWeight: 600, textDecoration: 'none' }}>
+                  <a href={linkWpp('Olá! Quero alterar meu plano do MiniPage Pro.')} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', alignSelf: 'flex-start', background: 'rgba(24,16,27,.92)', color: '#F8F4F7', border: '1px solid rgba(245,158,11,.35)', borderRadius: '10px', padding: '9px 16px', fontSize: '13px', fontWeight: 600, textDecoration: 'none' }}>
                     <MessageCircle size={15} color="#22C55E" /> Falar com suporte
                   </a>
                 </div>
@@ -350,7 +350,7 @@ export default function MeuPlano() {
                 <div className="mp-card" style={{ padding: '26px 24px' }}>
                   <p style={{ fontSize: '16px', fontWeight: 800, color: '#F8F4F7', marginBottom: '8px' }}>Pronto para ir além do básico?</p>
                   <p style={{ fontSize: '13px', color: '#B8AAB8', lineHeight: 1.65, marginBottom: '18px' }}>Com o Plano MiniPage, você libera links ilimitados, destaques, vídeos, agenda/eventos e catálogo.</p>
-                  <a href={linkWpp('Olá! Quero fazer upgrade do meu plano do ClienteMarcado para o Plano MiniPage.')} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: G, color: '#fff', border: '1px solid rgba(255,255,255,.12)', borderRadius: '12px', padding: '12px 22px', fontSize: '13px', fontWeight: 700, textDecoration: 'none' }}>
+                  <a href={linkWpp('Olá! Quero fazer upgrade do meu plano do MiniPage Pro para o Plano MiniPage.')} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: G, color: '#fff', border: '1px solid rgba(255,255,255,.12)', borderRadius: '12px', padding: '12px 22px', fontSize: '13px', fontWeight: 700, textDecoration: 'none' }}>
                     <Sparkles size={15} /> Fazer upgrade para MiniPage
                   </a>
                 </div>

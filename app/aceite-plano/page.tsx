@@ -78,8 +78,8 @@ function AceitePlanoConteudo() {
   // sempre um plano PAGO nesse ponto (Free ja foi redirecionado acima antes de chegar aqui).
   const CLAUSULAS = [
     { t: '1. Contratante', c: 'Pessoa física ou jurídica que realiza o cadastro e utiliza a plataforma MiniPage Pro.' },
-    { t: '2. Contratada', c: 'MiniPage Pro, uma solução ClienteMarcado, plataforma digital para criação de página profissional e gestão de pequenos negócios.' },
-    { t: '3. Objeto', c: 'Disponibilização de acesso à plataforma MiniPage Pro, uma solução ClienteMarcado, para criação de página profissional, divulgação de links, redes sociais, conteúdos, vídeos, catálogos, contatos, análise de desempenho e, conforme o plano contratado, recursos de agenda, clientes, cobranças, financeiro, relatórios e equipe.' },
+    { t: '2. Contratada', c: 'A plataforma MiniPage Pro é disponibilizada pela pessoa jurídica inscrita no CNPJ 31.671.616/0001-18 e oferece recursos para criação de páginas profissionais e gestão de negócios.' },
+    { t: '3. Objeto', c: 'Disponibilização de acesso à plataforma MiniPage Pro para criação de página profissional, divulgação de links, redes sociais, conteúdos, vídeos, catálogos, contatos, análise de desempenho e, conforme o plano contratado, recursos de agenda, clientes, cobranças, financeiro, relatórios e equipe.' },
     { t: '4. Plano', c: billingCycle === 'anual'
         ? `${plano.nome} (Anual) - pagamento único de ${plano.preco}, com acesso à plataforma por 12 meses.`
         : `${plano.nome} no valor de ${plano.preco}/mês, sem fidelidade.` },
@@ -90,10 +90,10 @@ function AceitePlanoConteudo() {
     { t: '7. Cancelamento', c: 'O contratante poderá solicitar o cancelamento conforme as condições informadas na plataforma, sem fidelidade, permanecendo responsável por valores já confirmados até a data do cancelamento, quando aplicável.' },
     { t: '8. Uso da plataforma', c: 'O contratante deve utilizar a plataforma de forma lícita, correta e responsável, mantendo seus dados atualizados.' },
     { t: '9. Dados cadastrados', c: 'O contratante é responsável pelos dados, links, imagens, descrições, produtos, conteúdos, contatos, clientes, serviços, valores, horários, orçamentos e pagamentos inseridos na plataforma, conforme os recursos disponíveis em seu plano.' },
-    { t: '10. Limitacao de responsabilidade', c: 'O ClienteMarcado e uma ferramenta de organização e gestão. A plataforma não substitui consultoria contábil, jurídica, fiscal, odontológica, medica ou financeira.' },
+    { t: '10. Limitacao de responsabilidade', c: 'O MiniPage Pro é uma plataforma digital de divulgação e gestão. A plataforma não substitui consultoria contábil, jurídica, fiscal, odontológica, medica ou financeira.' },
     { t: '11. Suporte', c: 'O suporte sera fornecido conforme os canais disponíveis pela plataforma.' },
     { t: '12. Aceite eletronico', c: 'O aceite eletronico por checkbox, botao de confirmacao ou continuidade no cadastro tera validade como manifestação de concordância com este contrato.' },
-    { t: '13. Atualizacoes', c: 'O ClienteMarcado poderá atualizar este contrato, funcionalidades e condições da plataforma.' },
+    { t: '13. Atualizacoes', c: 'A pessoa jurídica responsável pelo MiniPage Pro poderá atualizar este contrato, suas funcionalidades e as condições da plataforma, respeitada a legislação aplicável.' },
     { t: '14. Foro', c: 'As partes elegem o foro competente conforme a legislacao aplicável, salvo disposição legal em contrário.' },
   ]
   const [c1, setC1] = useState(false)
@@ -133,7 +133,7 @@ function AceitePlanoConteudo() {
             <img src="/minipage-pro-icon.png" alt="MiniPage Pro" width={32} height={32} style={{borderRadius:'8px',objectFit:'contain',flexShrink:0}}/>
             <div style={{display:'flex',flexDirection:'column',lineHeight:1.1}}>
               <span className="logo-txt">MiniPage Pro</span>
-              <span style={{fontSize:'10px',fontWeight:600,color:'#B8AAB8',letterSpacing:'.02em'}}>por ClienteMarcado</span>
+              <span style={{fontSize:'10px',fontWeight:600,color:'#B8AAB8',letterSpacing:'.02em'}}>MiniPage Pro</span>
             </div>
           </a>
           <a href="/" className="btn-v">← Voltar</a>
@@ -208,7 +208,7 @@ function AceitePlanoConteudo() {
             <div className={'chk-box' + (c1 ? ' on' : '')}>
               {c1 && <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>}
             </div>
-            <p style={{ fontSize: '13px', color: '#B8AAB8', lineHeight: 1.5 }}>Li e aceito o <Link href="/contrato-de-adesao" target="_blank" onClick={e => e.stopPropagation()} style={{ color: '#8B5CF6', fontWeight: 600 }}>Contrato de Adesão</Link> do ClienteMarcado.</p>
+            <p style={{ fontSize: '13px', color: '#B8AAB8', lineHeight: 1.5 }}>Li e aceito o <Link href="/contrato-de-adesao" target="_blank" onClick={e => e.stopPropagation()} style={{ color: '#8B5CF6', fontWeight: 600 }}>Contrato de Adesão</Link> do MiniPage Pro.</p>
           </div>
 
           <div className="chk-row" onClick={() => { setC2(!c2); setErro('') }}>

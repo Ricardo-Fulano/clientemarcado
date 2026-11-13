@@ -34,14 +34,15 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Home institucional - precisa estar listada explicitamente aqui, o Next.js nao inclui
   // automaticamente so por existir metadata em layout.tsx.
   const home: MetadataRoute.Sitemap = [{
-    url: 'https://www.clientemarcado.com.br',
+    url: process.env.MINIPAGE_DOMINIO_UNICO_ENABLED === 'true'
+      ? 'https://minipage.pro'
+      : 'https://www.clientemarcado.com.br',
     lastModified: new Date(),
     changeFrequency: 'weekly',
     priority: 1,
   }]
 
-  // minipage.pro (raiz) redireciona para www.clientemarcado.com.br (ver middleware.ts),
-  // entao nao faz sentido divulgar a raiz do minipage.pro no sitemap - so a home e as
-  // paginas de perfil.
+  // A home no sitemap acompanha a mesma flag de dominio do middleware e do SEO.
+  // Enquanto desativada, continua apontando para o endereco comercial antigo.
   return [...home, ...urlsPerfis]
 }
