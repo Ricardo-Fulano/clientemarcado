@@ -253,7 +253,7 @@ export default function RegistrarAtendimento() {
       <style>{css}</style>
 
       <nav className="nav">
-        <span className="nav-logo">ClienteMarcado</span>
+        <span className="nav-logo">MiniPage Pro</span>
         <Link href="/painel" className="nav-back">← Voltar ao painel</Link>
       </nav>
 

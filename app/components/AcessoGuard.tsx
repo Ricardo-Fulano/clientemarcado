@@ -82,7 +82,7 @@ export default function AcessoGuard({ children }: { children: React.ReactNode })
             {bloqueado ? 'Acesso temporariamente bloqueado' : 'Acesso cancelado'}
           </h2>
           <p style={{ fontSize: '14px', color: '#94A3B8', lineHeight: 1.7, marginBottom: '8px' }}>
-            {bloqueado ? 'Identificamos uma pendencia na sua mensalidade. Regularize o pagamento para voltar a acessar o ClienteMarcado.' : 'Seu acesso ao ClienteMarcado foi encerrado. Para reativar sua conta, entre em contato com o suporte.'}
+            {bloqueado ? 'Identificamos uma pendencia na sua mensalidade. Regularize o pagamento para voltar a acessar o MiniPage Pro.' : 'Seu acesso ao MiniPage Pro foi encerrado. Para reativar sua conta, entre em contato com o suporte.'}
           </p>
           <p style={{ fontSize: '13px', color: '#475569', lineHeight: 1.6, marginBottom: '32px' }}>
             {bloqueado ? 'Assim que o pagamento for confirmado, seu acesso sera liberado.' : 'Podemos ajuda-lo a reativar sua conta.'}
@@ -94,7 +94,7 @@ export default function AcessoGuard({ children }: { children: React.ReactNode })
               </a>
             )}
             {SUPORTE_WHATSAPP && (
-              <a href={`https://wa.me/${SUPORTE_WHATSAPP}?text=${encodeURIComponent('Ola! Preciso regularizar meu acesso ao ClienteMarcado.')}`} target="_blank" rel="noreferrer" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '44px', background: 'rgba(15,23,42,.88)', color: '#CBD5E1', border: '1px solid rgba(148,163,184,.18)', borderRadius: '12px', textDecoration: 'none', fontSize: '13px', fontWeight: 600 }}>
+              <a href={`https://wa.me/${SUPORTE_WHATSAPP}?text=${encodeURIComponent('Ola! Preciso regularizar meu acesso ao MiniPage Pro.')}`} target="_blank" rel="noreferrer" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '44px', background: 'rgba(15,23,42,.88)', color: '#CBD5E1', border: '1px solid rgba(148,163,184,.18)', borderRadius: '12px', textDecoration: 'none', fontSize: '13px', fontWeight: 600 }}>
                 Falar com suporte
               </a>
             )}

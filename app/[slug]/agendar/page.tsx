@@ -338,7 +338,7 @@ export default function Agendar() {
   </div>
 
   <div class="footer">
-    <div class="footer-brand">ClienteMarcado \u00b7 Gerado em ${agora}</div>
+    <div class="footer-brand">MiniPage Pro \u00b7 Gerado em ${agora}</div>
     <div class="footer-right">Documento n\u00e3o possui validade jur\u00eddica sem assinatura</div>
   </div>
 </div>

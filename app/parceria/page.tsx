@@ -2,13 +2,13 @@ import type { Metadata } from 'next'
 
 const PROPOSTA_PDF_URL = "https://patolrzrcgnopvxgrnvv.supabase.co/storage/v1/object/public/documentos/proposta-clientemarcado.pdf"
 const PARCERIA_WHATSAPP = '5511941059063'
-const linkWppParceria = 'https://wa.me/' + PARCERIA_WHATSAPP + '?text=' + encodeURIComponent('Olá! Tenho interesse em ser parceira ClienteMarcado e gostaria de saber mais.')
+const linkWppParceria = 'https://wa.me/' + PARCERIA_WHATSAPP + '?text=' + encodeURIComponent('Olá! Tenho interesse em ser parceira MiniPage Pro e gostaria de saber mais.')
 const G = 'linear-gradient(135deg,#EC4899,#D946EF,#8B5CF6)'
 
 // Página exclusiva de parceria — não faz parte da navegação principal e não deve ser indexada pelos buscadores.
 export const metadata: Metadata = {
-  title: 'Seja parceira ClienteMarcado',
-  description: 'Indique o ClienteMarcado e ganhe por cada nova assinatura.',
+  title: 'Seja parceira MiniPage Pro',
+  description: 'Indique o MiniPage Pro e ganhe por cada nova assinatura.',
   robots: { index: false, follow: false },
 }
 
@@ -44,7 +44,7 @@ export default function Parceria() {
           <div style={{ width: '32px', height: '32px', borderRadius: '9px', background: G, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 20px rgba(139,92,246,.45)', flexShrink: 0 }}>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" /></svg>
           </div>
-          <span style={{ fontSize: '15px', fontWeight: 800, color: '#F8F4F7', letterSpacing: '-0.02em' }}>ClienteMarcado</span>
+          <span style={{ fontSize: '15px', fontWeight: 800, color: '#F8F4F7', letterSpacing: '-0.02em' }}>MiniPage Pro</span>
         </div>
       </header>
 
@@ -56,10 +56,10 @@ export default function Parceria() {
             <span style={{ fontSize: '12px', fontWeight: 600, color: '#EC4899', letterSpacing: '.04em' }}>Programa de parceria</span>
           </div>
           <h1 style={{ fontSize: 'clamp(32px,5.5vw,52px)', fontWeight: 900, color: '#F8F4F7', letterSpacing: '-0.04em', lineHeight: 1.1, marginBottom: '20px' }}>
-            Seja parceira ClienteMarcado
+            Seja parceira MiniPage Pro
           </h1>
           <p style={{ fontSize: 'clamp(16px,2.2vw,19px)', color: '#B8AAB8', lineHeight: 1.6, marginBottom: '36px' }}>
-            Indique o ClienteMarcado para suas alunas, seguidores ou profissionais da sua comunidade e ganhe por cada nova assinatura.
+            Indique o MiniPage Pro para suas alunas, seguidores ou profissionais da sua comunidade e ganhe por cada nova assinatura.
           </p>
           <div className="parceria-btns" style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
             <a href={PROPOSTA_PDF_URL} target="_blank" rel="noopener noreferrer" className="btn-p">Ver proposta completa</a>
@@ -114,7 +114,7 @@ export default function Parceria() {
       </section>
 
       <footer style={{ borderTop: '1px solid #2A1A2F', padding: '32px 24px', textAlign: 'center' }}>
-        <p style={{ fontSize: '13px', color: '#B8AAB8' }}>© 2026 ClienteMarcado. Todos os direitos reservados.</p>
+        <p style={{ fontSize: '13px', color: '#B8AAB8' }}>© 2026 MiniPage Pro. Todos os direitos reservados.</p>
         <p style={{ fontSize: '11px', color: '#475569', marginTop: '4px' }}>CNPJ: 31.671.616/0001-18</p>
       </footer>
     </div>

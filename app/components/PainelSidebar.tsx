@@ -223,7 +223,7 @@ export default function PainelSidebar({ nome = '', tituloMobile = 'Painel' }: Pr
       {/* Drawer mobile */}
       <div className={`psb-drw${mob ? ' open' : ''}`}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 18px', borderBottom: '1px solid #2A1A2F' }}>
-          <span style={{ fontSize: '14px', fontWeight: 800, color: '#F8F4F7' }}>ClienteMarcado</span>
+          <span style={{ fontSize: '14px', fontWeight: 800, color: '#F8F4F7' }}>MiniPage Pro</span>
           <button onClick={() => setMob(false)} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,.5)', cursor: 'pointer', fontSize: '22px', lineHeight: 1 }}>×</button>
         </div>
         <nav style={{ flex: 1, minHeight: 0, padding: '10px 8px', overflowY: 'auto' }}>
@@ -246,7 +246,7 @@ export default function PainelSidebar({ nome = '', tituloMobile = 'Painel' }: Pr
                 <line x1="3" y1="10" x2="21" y2="10"/>
               </svg>
             </div>
-            <span style={{ fontSize: '14px', fontWeight: 800, color: '#F8F4F7', letterSpacing: '-0.02em' }}>ClienteMarcado</span>
+            <span style={{ fontSize: '14px', fontWeight: 800, color: '#F8F4F7', letterSpacing: '-0.02em' }}>MiniPage Pro</span>
           </div>
           {!carregandoPapel && <NotificacoesSino alinhamento="left" />}
         </div>

@@ -623,7 +623,7 @@ export default function Orcamentos(){
 
   <!-- RODAPÉ -->
   <div class="footer">
-    <div class="fl"><strong>ClienteMarcado</strong> · Gerado em ${agora}</div>
+    <div class="fl"><strong>MiniPage Pro</strong> · Gerado em ${agora}</div>
     <div class="fr">Documento não possui validade jurídica sem assinatura</div>
   </div>
 

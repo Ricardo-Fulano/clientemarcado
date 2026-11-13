@@ -89,8 +89,8 @@ export default function Suporte() {
   }, [])
   const linkWpp = (duvida?: string) => {
     const msg = duvida
-      ? `Olá! Preciso de ajuda com o ClienteMarcado.\n\nDúvida: ${duvida}`
-      : 'Olá! Preciso de ajuda com o ClienteMarcado.'
+      ? `Olá! Preciso de ajuda com o MiniPage Pro.\n\nDúvida: ${duvida}`
+      : 'Olá! Preciso de ajuda com o MiniPage Pro.'
     return `https://wa.me/${SUPORTE_WHATSAPP}?text=${encodeURIComponent(msg)}`
   }
   const itensFiltrados = (): HelpItem[] => {
@@ -117,7 +117,7 @@ export default function Suporte() {
             <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap', marginBottom: 28 }}>
               <div>
                 <h1 style={{ fontSize: 22, fontWeight: 800, color: '#F8F4F7', letterSpacing: '-0.04em', marginBottom: 5 }}>Central de Ajuda</h1>
-                <p style={{ fontSize: 13, color: '#B8AAB8' }}>Tire dúvidas sobre o ClienteMarcado e encontre respostas rápidas.</p>
+                <p style={{ fontSize: 13, color: '#B8AAB8' }}>Tire dúvidas sobre o MiniPage Pro e encontre respostas rápidas.</p>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginTop: 8, background: 'rgba(236,72,153,.08)', border: '1px solid rgba(236,72,153,.18)', borderRadius: 8, padding: '5px 10px', width: 'fit-content' }}>
                   <Clock size={12} style={{ color: '#EC4899', flexShrink: 0 }} />
                   <span style={{ fontSize: 11, color: '#F9A8D4', fontWeight: 600 }}>Suporte humano: seg a sex, das 08h às 17h</span>
@@ -127,7 +127,7 @@ export default function Suporte() {
             </div>
             {/* Assistente */}
             <div className="crd" style={{ marginBottom: 20 }}>
-              <p style={{ fontSize: 15, fontWeight: 700, color: '#F8F4F7', marginBottom: 4 }}>Assistente ClienteMarcado</p>
+              <p style={{ fontSize: 15, fontWeight: 700, color: '#F8F4F7', marginBottom: 4 }}>Assistente MiniPage Pro</p>
               <p style={{ fontSize: 12, color: '#B8AAB8', marginBottom: 16 }}>Digite ou escolha uma dúvida para receber uma resposta rápida.</p>
               <div style={{ position: 'relative', marginBottom: 16 }}>
                 <Search size={16} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: '#B8AAB8', pointerEvents: 'none' }} />

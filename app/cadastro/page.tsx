@@ -474,7 +474,7 @@ export default function Cadastro() {
                 Verifique sua caixa de entrada, spam, promoções ou lixo eletrônico.
               </p>
               <p style={{fontSize:'13px',color:'#B8AAB8',lineHeight:1.6,textAlign:'center',marginBottom:'18px'}}>
-                Procure por <strong style={{color:'#F8F4F7'}}>ClienteMarcado</strong> ou <strong style={{color:'#F8F4F7'}}>noreply</strong>.
+                Procure por <strong style={{color:'#F8F4F7'}}>MiniPage Pro</strong> ou <strong style={{color:'#F8F4F7'}}>noreply</strong>.
               </p>
               {reenvioMsg && (
                 <div className={reenvioMsg.startsWith('Não') || reenvioMsg.startsWith('Por segurança') || reenvioMsg.startsWith('Confira') ? 'msg-err' : 'msg-ok'}>

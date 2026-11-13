@@ -67,7 +67,7 @@ const pt = {
   profissional: 'Profissional',
   crieSuaMiniPagePro: 'Crie sua MiniPage Pro',
   querUmaPaginaComoEsta: 'Quer uma página como esta?',
-  umaSolucaoClienteMarcado: '· uma solução ClienteMarcado',
+  umaSolucaoClienteMarcado: '· uma solução MiniPage Pro',
   emailCopiado: 'E-mail copiado!',
   // ---------- agendamento publico ----------
   carregando: 'Carregando...',
@@ -120,7 +120,7 @@ const pt = {
   estabelecimento: 'Estabelecimento',
   assinaturaCarimbo: 'Assinatura / Carimbo',
   assinaturaDoCliente: 'Assinatura do cliente',
-  agendamentoFeitoPeloClienteMarcado: 'Agendamento feito pelo ClienteMarcado.',
+  agendamentoFeitoPeloClienteMarcado: 'Agendamento feito pelo MiniPage Pro.',
 }
 
 type Dicionario = typeof pt
@@ -160,7 +160,7 @@ const en: Dicionario = {
   profissional: 'Professional',
   crieSuaMiniPagePro: 'Create your MiniPage Pro',
   querUmaPaginaComoEsta: 'Want a page like this?',
-  umaSolucaoClienteMarcado: '· a ClienteMarcado solution',
+  umaSolucaoClienteMarcado: '· powered by MiniPage Pro',
   emailCopiado: 'Email copied!',
   carregando: 'Loading...',
   agendaNaoDisponivel: 'Online booking is not available for this MiniPage.',
@@ -211,7 +211,7 @@ const en: Dicionario = {
   estabelecimento: 'Business',
   assinaturaCarimbo: 'Signature / Stamp',
   assinaturaDoCliente: "Client's signature",
-  agendamentoFeitoPeloClienteMarcado: 'Booking made through ClienteMarcado.',
+  agendamentoFeitoPeloClienteMarcado: 'Booking made through MiniPage Pro.',
 }
 
 const es: Dicionario = {
@@ -249,7 +249,7 @@ const es: Dicionario = {
   profissional: 'Profesional',
   crieSuaMiniPagePro: 'Crea tu MiniPage Pro',
   querUmaPaginaComoEsta: '¿Quieres una página como esta?',
-  umaSolucaoClienteMarcado: '· una solución de ClienteMarcado',
+  umaSolucaoClienteMarcado: '· una solución de MiniPage Pro',
   emailCopiado: '¡Correo copiado!',
   carregando: 'Cargando...',
   agendaNaoDisponivel: 'La reserva online no está disponible en esta MiniPage.',
@@ -300,7 +300,7 @@ const es: Dicionario = {
   estabelecimento: 'Negocio',
   assinaturaCarimbo: 'Firma / Sello',
   assinaturaDoCliente: 'Firma del cliente',
-  agendamentoFeitoPeloClienteMarcado: 'Reserva realizada a través de ClienteMarcado.',
+  agendamentoFeitoPeloClienteMarcado: 'Reserva realizada a través de MiniPage Pro.',
 }
 
 const DICIONARIOS: Record<Idioma, Dicionario> = { pt, en, es }

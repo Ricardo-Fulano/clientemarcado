@@ -9,13 +9,13 @@ import {
 // Página demonstrativa estática — não usa Supabase, não usa dados reais.
 // Isolada de /demo, /[slug], painel e agenda reais.
 export const metadata: Metadata = {
-  title: 'ClienteMarcado | Conheça o sistema',
-  description: 'Veja como o ClienteMarcado une página profissional, agenda online, links personalizados, financeiro e painel de gestão para beleza e estética.',
+  title: 'MiniPage Pro | Conheça o sistema',
+  description: 'Veja como o MiniPage Pro une página profissional, agenda online, links personalizados, financeiro e painel de gestão para beleza e estética.',
 }
 
 const G = 'linear-gradient(135deg,#EC4899,#D946EF,#8B5CF6)'
-const WPP_INFO = 'https://wa.me/5511941059063?text=Ol%C3%A1%21%20Quero%20saber%20mais%20sobre%20o%20ClienteMarcado.'
-const WPP_CRIAR = 'https://wa.me/5511941059063?text=Ol%C3%A1%21%20Quero%20criar%20minha%20p%C3%A1gina%20profissional%20no%20ClienteMarcado.'
+const WPP_INFO = 'https://wa.me/5511941059063?text=Ol%C3%A1%21%20Quero%20saber%20mais%20sobre%20o%20MiniPage Pro.'
+const WPP_CRIAR = 'https://wa.me/5511941059063?text=Ol%C3%A1%21%20Quero%20criar%20minha%20p%C3%A1gina%20profissional%20no%20MiniPage Pro.'
 
 const InstagramIcon = ({ size = 16, color = '#EC4899' }: { size?: number; color?: string }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -115,7 +115,7 @@ export default function DemoSistema() {
             <div style={{ width: '32px', height: '32px', borderRadius: '9px', background: G, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
               <Calendar size={16} color="#fff" />
             </div>
-            <span style={{ fontSize: '15px', fontWeight: 800, letterSpacing: '-0.02em' }}>ClienteMarcado</span>
+            <span style={{ fontSize: '15px', fontWeight: 800, letterSpacing: '-0.02em' }}>MiniPage Pro</span>
           </div>
           <Link href="/demo" className="btn-s-ds" style={{ height: '40px', padding: '0 18px', fontSize: '13px' }}>← Voltar para demonstração</Link>
         </div>
@@ -133,7 +133,7 @@ export default function DemoSistema() {
               Conheça o sistema que transforma o link da bio em uma página profissional com agenda e gestão
             </h1>
             <p style={{ fontSize: '17px', color: '#D8C7D8', lineHeight: 1.65, marginBottom: '32px', maxWidth: '520px' }}>
-              Com o ClienteMarcado, profissionais da beleza divulgam serviços, cursos, mentorias e redes sociais, recebem agendamentos e acompanham o financeiro em um só painel.
+              Com o MiniPage Pro, profissionais da beleza divulgam serviços, cursos, mentorias e redes sociais, recebem agendamentos e acompanham o financeiro em um só painel.
             </p>
             <div className="btn-row" style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
               <Link href="/cadastro" className="btn-p-ds">Quero criar minha página <ArrowRight size={16} /></Link>
@@ -184,7 +184,7 @@ export default function DemoSistema() {
       {/* 2. O QUE É */}
       <section className="sec-pad" style={{ padding: '80px 0' }}>
         <div className="wrap-ds">
-          <SectionTitle kicker="O que é o ClienteMarcado" titulo="Mais que uma agenda: uma página profissional para o seu negócio" sub="O ClienteMarcado centraliza em um único link tudo que uma profissional da beleza precisa para se apresentar melhor, atender com mais organização e vender com mais confiança." />
+          <SectionTitle kicker="O que é o MiniPage Pro" titulo="Mais que uma agenda: uma página profissional para o seu negócio" sub="O MiniPage Pro centraliza em um único link tudo que uma profissional da beleza precisa para se apresentar melhor, atender com mais organização e vender com mais confiança." />
           <div className="grid-4">
             {RECURSOS.map(r => (
               <div key={r.titulo} className="card-ds">
@@ -419,7 +419,7 @@ export default function DemoSistema() {
       {/* 9. PARA QUEM */}
       <section className="sec-pad" style={{ padding: '80px 0', background: 'radial-gradient(circle at 50% 0%,rgba(139,92,246,.10),transparent 45%)' }}>
         <div className="wrap-ds">
-          <SectionTitle kicker="Para quem é" titulo="Feito para profissionais e negócios da beleza" sub="Se você atende, vende, ensina ou divulga serviços na área da beleza, o ClienteMarcado pode centralizar sua presença profissional em um único link." />
+          <SectionTitle kicker="Para quem é" titulo="Feito para profissionais e negócios da beleza" sub="Se você atende, vende, ensina ou divulga serviços na área da beleza, o MiniPage Pro pode centralizar sua presença profissional em um único link." />
           <div className="para-quem-grid">
             {PARA_QUEM.map(p => (
               <span key={p} style={{ fontSize: '13px', fontWeight: 600, color: '#F8F4F7', background: 'rgba(24,16,27,.86)', border: '1px solid rgba(236,72,153,.25)', borderRadius: '999px', padding: '10px 18px' }}>{p}</span>
@@ -475,7 +475,7 @@ export default function DemoSistema() {
       <footer style={{ borderTop: '1px solid rgba(255,255,255,.06)', padding: '36px 0' }}>
         <div className="wrap-ds" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '14px', textAlign: 'center' }}>
           <div>
-            <p style={{ fontSize: '14px', fontWeight: 800, color: '#fff', marginBottom: '4px' }}>ClienteMarcado</p>
+            <p style={{ fontSize: '14px', fontWeight: 800, color: '#fff', marginBottom: '4px' }}>MiniPage Pro</p>
             <p style={{ fontSize: '12px', color: '#B8AAB8' }}>Página profissional, agenda online e gestão para beleza e estética.</p>
           </div>
           <div style={{ display: 'flex', gap: '18px', flexWrap: 'wrap', justifyContent: 'center' }}>

@@ -30,7 +30,7 @@ export default function BannerPagamentoSucesso() {
   if (!visivel) return null
 
   const textos = {
-    sucesso: { titulo: '✅ Plano ativado com sucesso!', sub: 'Seu acesso premium está ativo. Aproveite o ClienteMarcado!', cor: 'rgba(16,185,129,.10)', borda: 'rgba(52,211,153,.30)', texto: '#34D399' },
+    sucesso: { titulo: '✅ Plano ativado com sucesso!', sub: 'Seu acesso premium está ativo. Aproveite o MiniPage Pro!', cor: 'rgba(16,185,129,.10)', borda: 'rgba(52,211,153,.30)', texto: '#34D399' },
     processando: { titulo: '⏳ Pagamento em processamento.', sub: 'Aguarde alguns instantes e atualize a página.', cor: 'rgba(245,158,11,.08)', borda: 'rgba(245,158,11,.28)', texto: '#FCD34D' },
     aguardando: { titulo: '✉️ Pagamento recebido!', sub: 'Estamos confirmando sua assinatura. Se aprovado, seu acesso será ativado automaticamente em instantes.', cor: 'rgba(59,130,246,.08)', borda: 'rgba(96,165,250,.22)', texto: '#93C5FD' },
   }
