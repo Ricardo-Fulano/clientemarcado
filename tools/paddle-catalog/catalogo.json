@@ -1,36 +1,359 @@
 {
   "schema_version": 1,
   "approved_for_write": false,
-  "note": "PRECOS DE TESTE. Revise antes de permitir aplicacao. Nao muda faturamento real.",
+  "note": "PROPOSTA BLOCO 7: regionais Loja, Essencial e Equipe aguardam aprovacao; todos os 3 planos permanecem disabled. Sandbox/Live sem alteracoes.",
   "plans": [
     {
-      "code": "minipage", "enabled": true, "name": "MiniPage Pro — MiniPage",
+      "code": "minipage",
+      "enabled": true,
+      "name": "MiniPage Pro — MiniPage",
       "description": "Assinatura SaaS para pagina profissional com links, redes sociais, videos e divulgacao digital.",
-      "base": {"currency": "BRL", "amount": "29.90"},
+      "base": {
+        "currency": "BRL",
+        "amount": "29.90"
+      },
       "regional": {
-        "PY": {"currency":"USD","amount":"3.90"},
-        "BO": {"currency":"USD","amount":"3.90"},
-        "HN": {"currency":"USD","amount":"3.90"},
-        "NI": {"currency":"USD","amount":"3.90"},
-        "CO": {"currency":"USD","amount":"4.90"},
-        "AR": {"currency":"USD","amount":"4.90"},
-        "PE": {"currency":"USD","amount":"4.90"},
-        "GT": {"currency":"USD","amount":"4.90"},
-        "SV": {"currency":"USD","amount":"4.90"},
-        "BZ": {"currency":"USD","amount":"4.90"},
-        "MX": {"currency":"USD","amount":"5.90"},
-        "CL": {"currency":"USD","amount":"5.90"},
-        "CR": {"currency":"USD","amount":"6.90"},
-        "PA": {"currency":"USD","amount":"6.90"},
-        "ES": {"currency":"EUR","amount":"7.90"},
-        "PT": {"currency":"EUR","amount":"7.90"},
-        "DE": {"currency":"EUR","amount":"8.90"},
-        "FR": {"currency":"EUR","amount":"8.90"},
-        "US": {"currency":"USD","amount":"8.90"}
+        "PY": {
+          "currency": "USD",
+          "amount": "3.90"
+        },
+        "BO": {
+          "currency": "USD",
+          "amount": "3.90"
+        },
+        "HN": {
+          "currency": "USD",
+          "amount": "3.90"
+        },
+        "NI": {
+          "currency": "USD",
+          "amount": "3.90"
+        },
+        "CO": {
+          "currency": "USD",
+          "amount": "4.90"
+        },
+        "AR": {
+          "currency": "USD",
+          "amount": "4.90"
+        },
+        "PE": {
+          "currency": "USD",
+          "amount": "4.90"
+        },
+        "GT": {
+          "currency": "USD",
+          "amount": "4.90"
+        },
+        "SV": {
+          "currency": "USD",
+          "amount": "4.90"
+        },
+        "BZ": {
+          "currency": "USD",
+          "amount": "4.90"
+        },
+        "MX": {
+          "currency": "USD",
+          "amount": "5.90"
+        },
+        "CL": {
+          "currency": "USD",
+          "amount": "5.90"
+        },
+        "CR": {
+          "currency": "USD",
+          "amount": "6.90"
+        },
+        "PA": {
+          "currency": "USD",
+          "amount": "6.90"
+        },
+        "ES": {
+          "currency": "EUR",
+          "amount": "7.90"
+        },
+        "PT": {
+          "currency": "EUR",
+          "amount": "7.90"
+        },
+        "DE": {
+          "currency": "EUR",
+          "amount": "8.90"
+        },
+        "FR": {
+          "currency": "EUR",
+          "amount": "8.90"
+        },
+        "US": {
+          "currency": "USD",
+          "amount": "8.90"
+        }
       }
     },
-    {"code":"loja","enabled":false,"name":"MiniPage Pro — Loja","description":"Assinatura SaaS do plano Loja MiniPage Pro.","base":{"currency":"BRL","amount":"59.90"},"regional":{}},
-    {"code":"essencial","enabled":false,"name":"MiniPage Pro — Essencial","description":"Assinatura SaaS do plano Essencial MiniPage Pro.","base":{"currency":"BRL","amount":"79.90"},"regional":{}},
-    {"code":"equipe","enabled":false,"name":"MiniPage Pro — Equipe","description":"Assinatura SaaS do plano Equipe MiniPage Pro.","base":{"currency":"BRL","amount":"149.90"},"regional":{}}
+    {
+      "code": "loja",
+      "enabled": false,
+      "name": "MiniPage Pro — Loja",
+      "description": "Assinatura SaaS do plano Loja MiniPage Pro.",
+      "base": {
+        "currency": "BRL",
+        "amount": "59.90"
+      },
+      "regional": {
+        "PY": {
+          "currency": "USD",
+          "amount": "7.90"
+        },
+        "BO": {
+          "currency": "USD",
+          "amount": "7.90"
+        },
+        "HN": {
+          "currency": "USD",
+          "amount": "7.90"
+        },
+        "NI": {
+          "currency": "USD",
+          "amount": "7.90"
+        },
+        "CO": {
+          "currency": "USD",
+          "amount": "9.90"
+        },
+        "AR": {
+          "currency": "USD",
+          "amount": "9.90"
+        },
+        "PE": {
+          "currency": "USD",
+          "amount": "9.90"
+        },
+        "GT": {
+          "currency": "USD",
+          "amount": "9.90"
+        },
+        "SV": {
+          "currency": "USD",
+          "amount": "9.90"
+        },
+        "BZ": {
+          "currency": "USD",
+          "amount": "9.90"
+        },
+        "MX": {
+          "currency": "USD",
+          "amount": "11.90"
+        },
+        "CL": {
+          "currency": "USD",
+          "amount": "11.90"
+        },
+        "CR": {
+          "currency": "USD",
+          "amount": "13.90"
+        },
+        "PA": {
+          "currency": "USD",
+          "amount": "13.90"
+        },
+        "ES": {
+          "currency": "EUR",
+          "amount": "15.90"
+        },
+        "PT": {
+          "currency": "EUR",
+          "amount": "15.90"
+        },
+        "DE": {
+          "currency": "EUR",
+          "amount": "17.90"
+        },
+        "FR": {
+          "currency": "EUR",
+          "amount": "17.90"
+        },
+        "US": {
+          "currency": "USD",
+          "amount": "17.90"
+        }
+      }
+    },
+    {
+      "code": "essencial",
+      "enabled": false,
+      "name": "MiniPage Pro — Essencial",
+      "description": "Assinatura SaaS do plano Essencial MiniPage Pro.",
+      "base": {
+        "currency": "BRL",
+        "amount": "79.90"
+      },
+      "regional": {
+        "PY": {
+          "currency": "USD",
+          "amount": "10.90"
+        },
+        "BO": {
+          "currency": "USD",
+          "amount": "10.90"
+        },
+        "HN": {
+          "currency": "USD",
+          "amount": "10.90"
+        },
+        "NI": {
+          "currency": "USD",
+          "amount": "10.90"
+        },
+        "CO": {
+          "currency": "USD",
+          "amount": "13.90"
+        },
+        "AR": {
+          "currency": "USD",
+          "amount": "13.90"
+        },
+        "PE": {
+          "currency": "USD",
+          "amount": "13.90"
+        },
+        "GT": {
+          "currency": "USD",
+          "amount": "13.90"
+        },
+        "SV": {
+          "currency": "USD",
+          "amount": "13.90"
+        },
+        "BZ": {
+          "currency": "USD",
+          "amount": "13.90"
+        },
+        "MX": {
+          "currency": "USD",
+          "amount": "15.90"
+        },
+        "CL": {
+          "currency": "USD",
+          "amount": "15.90"
+        },
+        "CR": {
+          "currency": "USD",
+          "amount": "18.90"
+        },
+        "PA": {
+          "currency": "USD",
+          "amount": "18.90"
+        },
+        "ES": {
+          "currency": "EUR",
+          "amount": "21.90"
+        },
+        "PT": {
+          "currency": "EUR",
+          "amount": "21.90"
+        },
+        "DE": {
+          "currency": "EUR",
+          "amount": "24.90"
+        },
+        "FR": {
+          "currency": "EUR",
+          "amount": "24.90"
+        },
+        "US": {
+          "currency": "USD",
+          "amount": "24.90"
+        }
+      }
+    },
+    {
+      "code": "equipe",
+      "enabled": false,
+      "name": "MiniPage Pro — Equipe",
+      "description": "Assinatura SaaS do plano Equipe MiniPage Pro.",
+      "base": {
+        "currency": "BRL",
+        "amount": "149.90"
+      },
+      "regional": {
+        "PY": {
+          "currency": "USD",
+          "amount": "19.90"
+        },
+        "BO": {
+          "currency": "USD",
+          "amount": "19.90"
+        },
+        "HN": {
+          "currency": "USD",
+          "amount": "19.90"
+        },
+        "NI": {
+          "currency": "USD",
+          "amount": "19.90"
+        },
+        "CO": {
+          "currency": "USD",
+          "amount": "24.90"
+        },
+        "AR": {
+          "currency": "USD",
+          "amount": "24.90"
+        },
+        "PE": {
+          "currency": "USD",
+          "amount": "24.90"
+        },
+        "GT": {
+          "currency": "USD",
+          "amount": "24.90"
+        },
+        "SV": {
+          "currency": "USD",
+          "amount": "24.90"
+        },
+        "BZ": {
+          "currency": "USD",
+          "amount": "24.90"
+        },
+        "MX": {
+          "currency": "USD",
+          "amount": "29.90"
+        },
+        "CL": {
+          "currency": "USD",
+          "amount": "29.90"
+        },
+        "CR": {
+          "currency": "USD",
+          "amount": "34.90"
+        },
+        "PA": {
+          "currency": "USD",
+          "amount": "34.90"
+        },
+        "ES": {
+          "currency": "EUR",
+          "amount": "39.90"
+        },
+        "PT": {
+          "currency": "EUR",
+          "amount": "39.90"
+        },
+        "DE": {
+          "currency": "EUR",
+          "amount": "44.90"
+        },
+        "FR": {
+          "currency": "EUR",
+          "amount": "44.90"
+        },
+        "US": {
+          "currency": "USD",
+          "amount": "44.90"
+        }
+      }
+    }
   ]
 }
