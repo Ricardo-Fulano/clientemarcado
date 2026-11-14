@@ -1,9 +1,9 @@
 /** Contratos independentes de gateway. Nenhuma funcao neste modulo inicia pagamentos. */
 import type { BillingCycle, PlanoTipo } from '../planos'
 
-export type MoedaBilling = 'BRL' | 'USD'
+export type MoedaBilling = 'BRL' | 'USD' | 'EUR'
 export type ProvedorBilling = 'asaas' | 'paddle'
-export type MercadoBilling = 'BR' | 'GLOBAL'
+export type MercadoBilling = 'BR' | 'EU' | 'GLOBAL'
 export type StatusAssinaturaBilling =
   | 'rascunho' | 'aguardando_pagamento' | 'ativa' | 'em_atraso'
   | 'cancelamento_agendado' | 'cancelada' | 'expirada'

@@ -1,4 +1,6 @@
 'use client'
+import SeletorIdiomaGlobal from '../components/SeletorIdiomaGlobal'
+import { useIdiomaGlobal } from '../components/IdiomaProviderGlobal'
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { supabase } from '../lib/supabase'
@@ -43,6 +45,7 @@ const EyeOffIcon = () => (
   </svg>
 )
 export default function Cadastro() {
+  const { t } = useIdiomaGlobal()
   const [cupom, setCupom] = useState('')
   const [cupomStatus, setCupomStatus] = useState<'idle'|'ok'|'erro'>('idle')
   const [nomeUsuario, setNomeUsuario] = useState('')
@@ -326,6 +329,7 @@ export default function Cadastro() {
   return (
     <div className="pg">
       <style>{css}</style>
+      <div style={{position:"fixed",top:10,right:12,zIndex:70,background:"#1a1020",padding:6,borderRadius:8}}><SeletorIdiomaGlobal compacto /></div>
       <div className="pg-body">
         <div className="col-esquerda">
           <div className="desk-logo-row">
@@ -361,7 +365,7 @@ export default function Cadastro() {
           <span className="logo-texto">MiniPage Pro</span>
         </div>
         <div className="headline-bloco">
-          <h1 className="headline-titulo">{ehPlanoFree(planoParaExibicao) ? 'Crie sua conta grátis' : 'Crie sua conta'}</h1>
+          <h1 className="headline-titulo">{ehPlanoFree(planoParaExibicao) ? t('plans.free') + ' — ' + t('nav.signup') : t('nav.signup')}</h1>
           <p className="headline-sub">Configure sua Página de agendamento em poucos minutos.</p>
         </div>
         <div className="form-bloco">

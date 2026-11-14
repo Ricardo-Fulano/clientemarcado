@@ -2,6 +2,8 @@
 import Link from 'next/link'
 import { useState, useEffect, type ReactNode } from 'react'
 import AssistenteComercial from '@/app/components/AssistenteComercial'
+import SeletorIdiomaGlobal from './components/SeletorIdiomaGlobal'
+import { useIdiomaGlobal } from './components/IdiomaProviderGlobal'
 import { obterNomePlano, obterPrecoPlanoPorCiclo, obterPercentualEconomiaAnual, type BillingCycle } from './lib/planos'
 const CHECKOUT_URL = "https://minipage.pro/#plano"
 const G = 'linear-gradient(135deg,#EC4899,#D946EF,#8B5CF6)'
@@ -143,6 +145,7 @@ function CartaoPlano({ tipo, billing, selo, nicho, descricao, descricaoHl, herda
   )
 }
 export default function Home() {
+  const { idioma, t } = useIdiomaGlobal()
   function irComCupom(e: React.MouseEvent<HTMLAnchorElement>, destino: string) {
     const cupom = new URLSearchParams(window.location.search).get('cupom')
     if (!cupom) return
@@ -206,8 +209,9 @@ export default function Home() {
             </div>
           </div>
           <div style={{display:'flex',gap:'12px',alignItems:'center'}}>
-            <Link href="/login" style={{fontSize:'13px',color:'#B8AAB8',textDecoration:'none',fontWeight:500}}>Entrar</Link>
-            <button onClick={scrollToPlano} className="btn-p" style={{height:'40px',padding:'0 20px',fontSize:'13px',borderRadius:'10px'}}>Ver planos</button>
+            <SeletorIdiomaGlobal compacto />
+            <Link href="/login" style={{fontSize:'13px',color:'#B8AAB8',textDecoration:'none',fontWeight:500}}>{t('nav.login')}</Link>
+            <button onClick={scrollToPlano} className="btn-p" style={{height:'40px',padding:'0 20px',fontSize:'13px',borderRadius:'10px'}}>{t('nav.pricing')}</button>
           </div>
         </div>
       </header>
@@ -219,17 +223,18 @@ export default function Home() {
             <span style={{fontSize:'12px',fontWeight:600,color:'#EC4899',letterSpacing:'.04em'}}>Tudo o que seu negócio precisa, em um link</span>
           </div>
           <h1 style={{fontSize:'clamp(38px,6vw,66px)',fontWeight:900,color:'#F8F4F7',letterSpacing:'-0.04em',lineHeight:1.05,marginBottom:'24px'}}>
-            Sua bio pode fazer mais.<br/>Transforme visitas em oportunidades.
+            {idioma === 'pt-BR' ? <>Sua bio pode fazer mais.<br/>Transforme visitas em oportunidades.</> : t('home.headline')}
           </h1>
           <p style={{fontSize:'clamp(17px,2.4vw,20px)',fontWeight:700,background:G,WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent',backgroundClip:'text',marginBottom:'20px'}}>
-            Reúna seus links, conteúdos, produtos e agendamentos em uma página profissional. Escolha os recursos certos para o seu negócio e acompanhe os resultados.
+            {idioma === 'pt-BR' ? 'Reúna seus links, conteúdos, produtos e agendamentos em uma página profissional. Escolha os recursos certos para o seu negócio e acompanhe os resultados.' : t('home.subtitle')}
           </p>
           <p style={{fontSize:'clamp(15px,2vw,17px)',color:'#B8AAB8',lineHeight:1.75,marginBottom:'32px',maxWidth:'580px',margin:'0 auto 32px'}}>
             Uma presença digital profissional para divulgar no Instagram, WhatsApp, TikTok e onde seu público estiver.
           </p>
-          <div className="hero-btns" style={{display:'flex',justifyContent:'center',gap:'12px',flexWrap:'wrap',marginTop:'24px'}}><button type="button" onClick={scrollToPlano} className="btn-p">Comparar os 6 planos</button><a href="https://minipage.pro/modelos" className="btn-s">Ver exemplos reais</a></div>
+          <div className="hero-btns" style={{display:'flex',justifyContent:'center',gap:'12px',flexWrap:'wrap',marginTop:'24px'}}><button type="button" onClick={scrollToPlano} className="btn-p">{idioma === 'pt-BR' ? 'Comparar os 6 planos' : t('nav.pricing')}</button><a href="https://minipage.pro/modelos" className="btn-s">{idioma === 'pt-BR' ? 'Ver exemplos reais' : t('nav.examples')}</a></div>
           <p style={{fontSize:'13px',color:'#B8AAB8',marginTop:'18px'}}>Do link na bio à loja e à agenda: escolha o plano que acompanha seu momento.</p>
           <p style={{fontSize:'12px',color:'#B8AAB8',marginTop:'10px'}}>Plano gratuito disponível. Planos pagos a partir de R$ 29,90/mês, sem fidelidade.</p>
+          {idioma !== 'pt-BR' && <p style={{fontSize:'12px',color:'#FCD34D',marginTop:'12px'}}>International billing is not yet available. Prices shown are Brazilian prices (BRL); choosing a language does not change the checkout currency.</p>}
         </div>
       </section>
       {/* TUDO CONECTADO */}

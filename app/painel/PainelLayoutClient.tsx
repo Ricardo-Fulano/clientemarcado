@@ -1,4 +1,5 @@
 'use client'
+import SeletorIdiomaGlobal from '../components/SeletorIdiomaGlobal'
 import { useEffect, useState } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import { supabase } from '../lib/supabase'
@@ -312,6 +313,7 @@ export default function PainelLayoutClient({ children }: { children: React.React
 
   return (
     <>
+      <div style={{display:'flex',justifyContent:'flex-end',padding:'5px 16px',background:'#08060A'}}><SeletorIdiomaGlobal compacto /></div>
       {nivelAtraso === 'leve' && (
         <div style={{background:'rgba(245,158,11,.08)',border:'1px solid rgba(245,158,11,.28)',borderRadius:'0',padding:'12px 24px',display:'flex',alignItems:'center',justifyContent:'space-between',flexWrap:'wrap',gap:'12px',position:'sticky',top:0,zIndex:40}}>
           <p style={{fontSize:'13px',fontWeight:600,color:'#FCD34D',margin:0}}>

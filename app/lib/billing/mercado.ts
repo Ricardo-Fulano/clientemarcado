@@ -1,10 +1,18 @@
 import type { MercadoBilling, MoedaBilling } from './types'
 
-/** Mercado vem do pais de faturamento declarado/validado, NUNCA do idioma, IP ou bandeira visual. */
+/** Zona do euro em novembro de 2026 (inclui Bulgaria desde janeiro de 2026). */
+export const PAISES_EURO = new Set([
+  'AT', 'BE', 'BG', 'HR', 'CY', 'EE', 'FI', 'FR', 'DE', 'GR', 'IE',
+  'IT', 'LV', 'LT', 'LU', 'MT', 'NL', 'PT', 'SK', 'SI', 'ES',
+])
+
+/** Pais de cobranca declarado e validado; idioma, navegador e IP nao determinam moeda. */
 export function selecionarMercado(paisCobranca: string): { mercado: MercadoBilling; moeda: MoedaBilling } {
   const pais = paisCobranca.trim().toUpperCase()
   if (!/^[A-Z]{2}$/.test(pais)) throw new Error('PAIS_COBRANCA_INVALIDO')
-  return pais === 'BR' ? { mercado: 'BR', moeda: 'BRL' } : { mercado: 'GLOBAL', moeda: 'USD' }
+  if (pais === 'BR') return { mercado: 'BR', moeda: 'BRL' }
+  if (PAISES_EURO.has(pais)) return { mercado: 'EU', moeda: 'EUR' }
+  return { mercado: 'GLOBAL', moeda: 'USD' }
 }
 
 export function validarMoedaParaPais(paisCobranca: string, moeda: string): MoedaBilling {

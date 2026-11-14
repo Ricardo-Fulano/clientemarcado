@@ -1,9 +1,12 @@
 'use client'
+import SeletorIdiomaGlobal from '../components/SeletorIdiomaGlobal'
+import { useIdiomaGlobal } from '../components/IdiomaProviderGlobal'
 import { useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { destinoAposLogin } from '../lib/oauthConsent'
 
 export default function Login() {
+  const { t } = useIdiomaGlobal()
   const [email, setEmail] = useState('')
   const [senha, setSenha] = useState('')
   const [mostrarSenha, setMostrarSenha] = useState(false)
@@ -304,6 +307,7 @@ export default function Login() {
   return (
     <div className="pg">
       <style>{css}</style>
+      <div style={{position:"fixed",top:10,right:12,zIndex:70,background:"#1a1020",padding:6,borderRadius:8}}><SeletorIdiomaGlobal compacto /></div>
       <div className="wrap">
 
         {/* Logo */}
@@ -317,7 +321,7 @@ export default function Login() {
 
         {/* Headline */}
         <div className="headline">
-          <h1>Entrar no painel</h1>
+          <h1>{t('nav.login')}</h1>
           <p>Gerencie sua MiniPage, links, produtos, agendamentos e resultados em um só lugar.</p>
         </div>
 
