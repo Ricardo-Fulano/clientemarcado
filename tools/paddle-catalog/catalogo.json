@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "approved_for_write": false,
-  "note": "BLOCO 7B: precos oficiais brasileiros corrigidos; valores regionais de Agenda, Loja, Pro e Equipe sao propostas NAO APROVADAS. Somente MiniPage ativo; sem escrita na Paddle. Anuais requerem implementacao separada.",
+  "note": "BLOCO 8: anuidades oficiais BRL registradas; regionais anuais pendentes de aprovacao. Somente MiniPage mensal habilitado. NENHUMA escrita autorizada.",
   "plans": [
     {
       "code": "minipage",
@@ -89,7 +89,15 @@
           "currency": "USD",
           "amount": "8.90"
         }
-      }
+      },
+      "annual": {
+        "base": {
+          "currency": "BRL",
+          "amount": "297.80"
+        },
+        "regional": {}
+      },
+      "annual_enabled": false
     },
     {
       "code": "agenda",
@@ -177,7 +185,15 @@
           "currency": "USD",
           "amount": "13.90"
         }
-      }
+      },
+      "annual": {
+        "base": {
+          "currency": "BRL",
+          "amount": "397.40"
+        },
+        "regional": {}
+      },
+      "annual_enabled": false
     },
     {
       "code": "loja",
@@ -265,7 +281,15 @@
           "currency": "USD",
           "amount": "17.90"
         }
-      }
+      },
+      "annual": {
+        "base": {
+          "currency": "BRL",
+          "amount": "497.00"
+        },
+        "regional": {}
+      },
+      "annual_enabled": false
     },
     {
       "code": "essencial",
@@ -353,7 +377,15 @@
           "currency": "USD",
           "amount": "24.90"
         }
-      }
+      },
+      "annual": {
+        "base": {
+          "currency": "BRL",
+          "amount": "596.60"
+        },
+        "regional": {}
+      },
+      "annual_enabled": false
     },
     {
       "code": "equipe",
@@ -441,7 +473,15 @@
           "currency": "USD",
           "amount": "44.90"
         }
-      }
+      },
+      "annual": {
+        "base": {
+          "currency": "BRL",
+          "amount": "1493.00"
+        },
+        "regional": {}
+      },
+      "annual_enabled": false
     }
   ]
 }

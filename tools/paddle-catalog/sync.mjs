@@ -24,6 +24,21 @@ export function validate(manifest) {
     if (typeof p.name !== 'string' || !p.name.trim() || !p.base) throw new Error(`Dados ausentes: ${p.code}`);
     if (!currencies.has(p.base.currency)) throw new Error(`Moeda nao permitida: ${p.code}`);
     minor(p.base.amount);
+    if (p.annual !== undefined) {
+      if (!p.annual.base || p.annual.base.currency !== 'BRL') throw new Error(`Anual deve ter base BRL: ${p.code}`);
+      minor(p.annual.base.amount);
+      if (p.annual_enabled !== true && p.annual_enabled !== false) throw new Error(`annual_enabled obrigatorio: ${p.code}`);
+      if (p.annual_enabled && !p.enabled) throw new Error(`Anual nao pode estar ativo com mensal desativado: ${p.code}`);
+      for (const [country, entry] of Object.entries(p.annual.regional || {})) {
+        if (!/^[A-Z]{2}$/.test(country) || country==='BR' || !currencies.has(entry.currency)) throw new Error(`Anual regiao/moeda invalida: ${country}`);
+        minor(entry.amount);
+      }
+      if (p.annual_enabled) {
+        const mensal = Object.keys(p.regional || {}).sort().join(',');
+        const anual = Object.keys(p.annual.regional || {}).sort().join(',');
+        if (!mensal || mensal !== anual) throw new Error(`Anual ${p.code}: faltam precos regionais aprovados`);
+      }
+    } else if (p.annual_enabled) throw new Error(`Anual sem preco: ${p.code}`);
     for (const [country, entry] of Object.entries(p.regional || {})) {
       if (!/^[A-Z]{2}$/.test(country) || !currencies.has(entry.currency)) throw new Error(`Regiao/moeda invalida: ${country}`);
       minor(entry.amount);
@@ -32,22 +47,25 @@ export function validate(manifest) {
   }
   return manifest;
 }
-export function desiredPrice(plan) {
+export function desiredPrice(plan, cycle='mensal') {
+  if (!['mensal','anual'].includes(cycle)) throw new Error('Ciclo invalido');
+  const config = cycle==='mensal' ? plan : plan.annual;
+  if (!config) throw new Error(`Anual ausente: ${plan.code}`);
   return {
-    description: `${plan.code}_mensal_brl`,
-    name: `${plan.name} — Mensal`,
-    billing_cycle: { interval: 'month', frequency: 1 },
-    unit_price: {amount: minor(plan.base.amount), currency_code: plan.base.currency},
-    unit_price_overrides: Object.entries(plan.regional || {}).map(([country, info]) => ({
+    description: `${plan.code}_${cycle}_brl`,
+    name: `${plan.name} — ${cycle==='mensal'?'Mensal':'Anual'}`,
+    billing_cycle: { interval: cycle==='mensal'?'month':'year', frequency: 1 },
+    unit_price: {amount: minor(config.base.amount), currency_code: config.base.currency},
+    unit_price_overrides: Object.entries(config.regional || {}).map(([country, info]) => ({
       country_codes: [country], unit_price: {amount: minor(info.amount), currency_code: info.currency}
     })),
     quantity: {minimum:1, maximum:1},
     tax_mode: 'account_setting',
-    custom_data: {plan_code:plan.code, billing_cycle:'mensal'}
+    custom_data: {plan_code:plan.code, billing_cycle:cycle}
   };
 }
 function pricesEqual(a,b) {return a?.amount===b?.amount && a?.currency_code===b?.currency_code;}
-function recurringMonthly(p) {return p.billing_cycle?.interval==='month' && p.billing_cycle?.frequency===1;}
+function recurringCycle(p,cycle) {return p.billing_cycle?.interval===(cycle==='mensal'?'month':'year') && p.billing_cycle?.frequency===1;}
 function countryMap(overrides=[]) {
   const m=new Map();
   for(const o of overrides) for(const country of o.country_codes||[]) {
@@ -56,42 +74,44 @@ function countryMap(overrides=[]) {
   }
   return m;
 }
+function priceChanges(plan, product, prices, cycle) {
+  const desired=desiredPrice(plan,cycle);
+  const candidates=prices.filter(p=>p.product_id===product.id && recurringCycle(p,cycle) && p.status==='active');
+  const matched=candidates.filter(p=>pricesEqual(p.unit_price,desired.unit_price));
+  if(matched.length>1) throw new Error(`Precos ${cycle} ambiguos para ${plan.code}`);
+  if(!matched.length) {
+    if(candidates.length) throw new Error(`Preco ${cycle} base diferente para ${plan.code}; revisao manual obrigatoria`);
+    return {action:'create_price',code:plan.code,cycle,productId:product.id,detail:desired.unit_price,desired};
+  }
+  const current=matched[0];
+  if(current.trial_period) throw new Error(`Preco ${plan.code} ${cycle} tem trial; nao atualizar automaticamente`);
+  const existing=countryMap(current.unit_price_overrides || []);
+  const target=countryMap(desired.unit_price_overrides);
+  const toChange=[];
+  for(const [country,val] of target) if(!pricesEqual(existing.get(country),val)) toChange.push(country);
+  if(toChange.length) {
+    const merged=new Map([...existing,...target]);
+    return {action:'update_overrides',code:plan.code,cycle,priceId:current.id,detail:toChange,
+      overrides:[...merged].map(([country,unit_price])=>({country_codes:[country],unit_price}))};
+  }
+  return {action:'keep',code:plan.code,cycle,detail:current.id};
+}
 export function planChanges(manifest, products, prices) {
   validate(manifest);
   const changes=[];
   for(const plan of manifest.plans.filter(p=>p.enabled)) {
-    const found = products.filter(p=>p.custom_data?.plan_code===plan.code || p.name===plan.name);
+    const found=products.filter(p=>p.custom_data?.plan_code===plan.code || p.name===plan.name);
     if(found.length>1) throw new Error(`Produto ambiguo: ${plan.code}; resolva manualmente`);
-    if(!found.length) {changes.push({action:'create_product',code:plan.code,detail:plan.name,plan}); continue;}
+    if(!found.length) {changes.push({action:'create_product',code:plan.code,detail:plan.name,plan});continue;}
     const product=found[0];
-    if(product.tax_category !== 'saas') throw new Error(`Categoria nao SaaS em ${plan.code}`);
-    const desired=desiredPrice(plan);
-    const candidates=prices.filter(p=>p.product_id===product.id && recurringMonthly(p) && p.status==='active');
-    // Nao reutilizar um preco com base divergente, mesmo que nome parecido.
-    const matched=candidates.filter(p=>pricesEqual(p.unit_price, desired.unit_price));
-    if(matched.length>1) throw new Error(`Precos mensais ambiguos para ${plan.code}`);
-    if(!matched.length) {
-      if(candidates.length) throw new Error(`Preco mensal base diferente para ${plan.code}; revisao manual obrigatoria`);
-      changes.push({action:'create_price',code:plan.code,productId:product.id,detail:desired.unit_price,desired});
-      continue;
-    }
-    const current=matched[0];
-    if(current.trial_period) throw new Error(`Preco ${plan.code} tem trial; nao atualizar automaticamente`);
-    const existing=countryMap(current.unit_price_overrides || []);
-    const target=countryMap(desired.unit_price_overrides);
-    const toChange=[];
-    for(const [country, val] of target) if(!pricesEqual(existing.get(country),val)) toChange.push(country);
-    if(toChange.length) {
-      // Reune overrides antigos com os desejados, preservando paises fora do manifesto.
-      const merged=new Map([...existing, ...target]);
-      changes.push({action:'update_overrides',code:plan.code,priceId:current.id,detail:toChange,
-        overrides:[...merged].map(([country,unit_price])=>({country_codes:[country],unit_price}))});
-    } else changes.push({action:'keep',code:plan.code,detail:current.id});
+    if(product.tax_category!=='saas') throw new Error(`Categoria nao SaaS em ${plan.code}`);
+    changes.push(priceChanges(plan,product,prices,'mensal'));
+    if(plan.annual_enabled===true) changes.push(priceChanges(plan,product,prices,'anual'));
   }
   return changes;
 }
 export function mockPlan(manifest){
-  return manifest.plans.map(p=>({plan:p.code, enabled:!!p.enabled, base:`${p.base.currency} ${p.base.amount}`, countries:Object.keys(p.regional||{}).length}));
+  return manifest.plans.map(p=>({plan:p.code, enabled:!!p.enabled, base:`${p.base.currency} ${p.base.amount}`, countries:Object.keys(p.regional||{}).length, annual:p.annual?`${p.annual.base.currency} ${p.annual.base.amount}`:null,annual_enabled:!!p.annual_enabled,annual_countries:Object.keys(p.annual?.regional||{}).length}));
 }
 async function apiRequest(base,key,endpoint,method='GET',body) {
   const response=await fetch(base+endpoint, {method, headers:{Authorization:`Bearer ${key}`,'Content-Type':'application/json'}, body:body?JSON.stringify(body):undefined});
@@ -118,7 +138,7 @@ export async function remotePlan(base,key,manifest) {
   const prices=await getAll(base,key,'/prices?per_page=200&status=active');
   return planChanges(manifest,products,prices);
 }
-function concise(changes){ return changes.map(c=>({action:c.action,plan:c.code,detail:c.detail})); }
+function concise(changes){ return changes.map(c=>({action:c.action,plan:c.code,...(c.cycle?{cycle:c.cycle}:{}),detail:c.detail})); }
 export async function main(args=process.argv.slice(2)) {
   const mode=args[0]||'offline';
   const env=args[1]||'sandbox';
@@ -145,13 +165,18 @@ export async function main(args=process.argv.slice(2)) {
       console.log(`Criado produto ${c.code}: ${result.data?.id}`);
       const p=desiredPrice(c.plan);
       const pr=await apiRequest(base,key,'/prices','POST',{...p,product_id:result.data.id});
-      console.log(`Criado preco ${c.code}: ${pr.data?.id}`);
+      console.log(`Criado preco ${c.code} mensal: ${pr.data?.id}`);
+      if(c.plan.annual_enabled===true) {
+        const ap=desiredPrice(c.plan,'anual');
+        const apr=await apiRequest(base,key,'/prices','POST',{...ap,product_id:result.data.id});
+        console.log(`Criado preco ${c.code} anual: ${apr.data?.id}`);
+      }
     } else if(c.action==='create_price') {
       result=await apiRequest(base,key,'/prices','POST',{...c.desired,product_id:c.productId});
-      console.log(`Criado preco ${c.code}: ${result.data?.id}`);
+      console.log(`Criado preco ${c.code} ${c.cycle||'mensal'}: ${result.data?.id}`);
     } else if(c.action==='update_overrides') {
       result=await apiRequest(base,key,`/prices/${encodeURIComponent(c.priceId)}`,'PATCH',{unit_price_overrides:c.overrides});
-      console.log(`Atualizados paises ${c.code}: ${c.detail.join(',')}`);
+      console.log(`Atualizados paises ${c.code} ${c.cycle||'mensal'}: ${c.detail.join(',')}`);
     }
   }
   console.log('Aplicacao encerrada. Execute preview de novo para conferir.');
