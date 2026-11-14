@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "approved_for_write": false,
-  "note": "PROPOSTA BLOCO 7: regionais Loja, Essencial e Equipe aguardam aprovacao; todos os 3 planos permanecem disabled. Sandbox/Live sem alteracoes.",
+  "note": "BLOCO 7B: precos oficiais brasileiros corrigidos; valores regionais de Agenda, Loja, Pro e Equipe sao propostas NAO APROVADAS. Somente MiniPage ativo; sem escrita na Paddle. Anuais requerem implementacao separada.",
   "plans": [
     {
       "code": "minipage",
@@ -92,13 +92,101 @@
       }
     },
     {
+      "code": "agenda",
+      "enabled": false,
+      "name": "MiniPage Pro — Agenda",
+      "description": "Assinatura SaaS MiniPage Agenda para agendamento automatico de clientes e gestao de horarios.",
+      "base": {
+        "currency": "BRL",
+        "amount": "39.90"
+      },
+      "regional": {
+        "PY": {
+          "currency": "USD",
+          "amount": "5.90"
+        },
+        "BO": {
+          "currency": "USD",
+          "amount": "5.90"
+        },
+        "HN": {
+          "currency": "USD",
+          "amount": "5.90"
+        },
+        "NI": {
+          "currency": "USD",
+          "amount": "5.90"
+        },
+        "CO": {
+          "currency": "USD",
+          "amount": "7.90"
+        },
+        "AR": {
+          "currency": "USD",
+          "amount": "7.90"
+        },
+        "PE": {
+          "currency": "USD",
+          "amount": "7.90"
+        },
+        "GT": {
+          "currency": "USD",
+          "amount": "7.90"
+        },
+        "SV": {
+          "currency": "USD",
+          "amount": "7.90"
+        },
+        "BZ": {
+          "currency": "USD",
+          "amount": "7.90"
+        },
+        "MX": {
+          "currency": "USD",
+          "amount": "9.90"
+        },
+        "CL": {
+          "currency": "USD",
+          "amount": "9.90"
+        },
+        "CR": {
+          "currency": "USD",
+          "amount": "11.90"
+        },
+        "PA": {
+          "currency": "USD",
+          "amount": "11.90"
+        },
+        "ES": {
+          "currency": "EUR",
+          "amount": "11.90"
+        },
+        "PT": {
+          "currency": "EUR",
+          "amount": "11.90"
+        },
+        "DE": {
+          "currency": "EUR",
+          "amount": "13.90"
+        },
+        "FR": {
+          "currency": "EUR",
+          "amount": "13.90"
+        },
+        "US": {
+          "currency": "USD",
+          "amount": "13.90"
+        }
+      }
+    },
+    {
       "code": "loja",
       "enabled": false,
       "name": "MiniPage Pro — Loja",
       "description": "Assinatura SaaS do plano Loja MiniPage Pro.",
       "base": {
         "currency": "BRL",
-        "amount": "59.90"
+        "amount": "49.90"
       },
       "regional": {
         "PY": {
@@ -182,11 +270,11 @@
     {
       "code": "essencial",
       "enabled": false,
-      "name": "MiniPage Pro — Essencial",
-      "description": "Assinatura SaaS do plano Essencial MiniPage Pro.",
+      "name": "MiniPage Pro — Pro",
+      "description": "Assinatura SaaS do plano MiniPage Pro, com agendamento, clientes e gestao profissional.",
       "base": {
         "currency": "BRL",
-        "amount": "79.90"
+        "amount": "59.90"
       },
       "regional": {
         "PY": {
