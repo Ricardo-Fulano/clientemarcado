@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "approved_for_write": false,
-  "note": "BLOCO 8: anuidades oficiais BRL registradas; regionais anuais pendentes de aprovacao. Somente MiniPage mensal habilitado. NENHUMA escrita autorizada.",
+  "note": "BLOCO 8B: 95 precos regionais anuais PROPOSTOS e NAO APROVADOS. Anuidades desabilitadas; somente MiniPage mensal ativo; approved_for_write FALSE; nenhuma escrita na Paddle.",
   "plans": [
     {
       "code": "minipage",
@@ -95,7 +95,84 @@
           "currency": "BRL",
           "amount": "297.80"
         },
-        "regional": {}
+        "regional": {
+          "PY": {
+            "currency": "USD",
+            "amount": "38.90"
+          },
+          "BO": {
+            "currency": "USD",
+            "amount": "38.90"
+          },
+          "HN": {
+            "currency": "USD",
+            "amount": "38.90"
+          },
+          "NI": {
+            "currency": "USD",
+            "amount": "38.90"
+          },
+          "CO": {
+            "currency": "USD",
+            "amount": "48.90"
+          },
+          "AR": {
+            "currency": "USD",
+            "amount": "48.90"
+          },
+          "PE": {
+            "currency": "USD",
+            "amount": "48.90"
+          },
+          "GT": {
+            "currency": "USD",
+            "amount": "48.90"
+          },
+          "SV": {
+            "currency": "USD",
+            "amount": "48.90"
+          },
+          "BZ": {
+            "currency": "USD",
+            "amount": "48.90"
+          },
+          "MX": {
+            "currency": "USD",
+            "amount": "58.90"
+          },
+          "CL": {
+            "currency": "USD",
+            "amount": "58.90"
+          },
+          "CR": {
+            "currency": "USD",
+            "amount": "68.90"
+          },
+          "PA": {
+            "currency": "USD",
+            "amount": "68.90"
+          },
+          "ES": {
+            "currency": "EUR",
+            "amount": "78.90"
+          },
+          "PT": {
+            "currency": "EUR",
+            "amount": "78.90"
+          },
+          "DE": {
+            "currency": "EUR",
+            "amount": "88.90"
+          },
+          "FR": {
+            "currency": "EUR",
+            "amount": "88.90"
+          },
+          "US": {
+            "currency": "USD",
+            "amount": "88.90"
+          }
+        }
       },
       "annual_enabled": false
     },
@@ -191,7 +268,84 @@
           "currency": "BRL",
           "amount": "397.40"
         },
-        "regional": {}
+        "regional": {
+          "PY": {
+            "currency": "USD",
+            "amount": "58.90"
+          },
+          "BO": {
+            "currency": "USD",
+            "amount": "58.90"
+          },
+          "HN": {
+            "currency": "USD",
+            "amount": "58.90"
+          },
+          "NI": {
+            "currency": "USD",
+            "amount": "58.90"
+          },
+          "CO": {
+            "currency": "USD",
+            "amount": "78.90"
+          },
+          "AR": {
+            "currency": "USD",
+            "amount": "78.90"
+          },
+          "PE": {
+            "currency": "USD",
+            "amount": "78.90"
+          },
+          "GT": {
+            "currency": "USD",
+            "amount": "78.90"
+          },
+          "SV": {
+            "currency": "USD",
+            "amount": "78.90"
+          },
+          "BZ": {
+            "currency": "USD",
+            "amount": "78.90"
+          },
+          "MX": {
+            "currency": "USD",
+            "amount": "98.90"
+          },
+          "CL": {
+            "currency": "USD",
+            "amount": "98.90"
+          },
+          "CR": {
+            "currency": "USD",
+            "amount": "118.90"
+          },
+          "PA": {
+            "currency": "USD",
+            "amount": "118.90"
+          },
+          "ES": {
+            "currency": "EUR",
+            "amount": "118.90"
+          },
+          "PT": {
+            "currency": "EUR",
+            "amount": "118.90"
+          },
+          "DE": {
+            "currency": "EUR",
+            "amount": "138.90"
+          },
+          "FR": {
+            "currency": "EUR",
+            "amount": "138.90"
+          },
+          "US": {
+            "currency": "USD",
+            "amount": "138.90"
+          }
+        }
       },
       "annual_enabled": false
     },
@@ -287,7 +441,84 @@
           "currency": "BRL",
           "amount": "497.00"
         },
-        "regional": {}
+        "regional": {
+          "PY": {
+            "currency": "USD",
+            "amount": "78.90"
+          },
+          "BO": {
+            "currency": "USD",
+            "amount": "78.90"
+          },
+          "HN": {
+            "currency": "USD",
+            "amount": "78.90"
+          },
+          "NI": {
+            "currency": "USD",
+            "amount": "78.90"
+          },
+          "CO": {
+            "currency": "USD",
+            "amount": "98.90"
+          },
+          "AR": {
+            "currency": "USD",
+            "amount": "98.90"
+          },
+          "PE": {
+            "currency": "USD",
+            "amount": "98.90"
+          },
+          "GT": {
+            "currency": "USD",
+            "amount": "98.90"
+          },
+          "SV": {
+            "currency": "USD",
+            "amount": "98.90"
+          },
+          "BZ": {
+            "currency": "USD",
+            "amount": "98.90"
+          },
+          "MX": {
+            "currency": "USD",
+            "amount": "118.90"
+          },
+          "CL": {
+            "currency": "USD",
+            "amount": "118.90"
+          },
+          "CR": {
+            "currency": "USD",
+            "amount": "138.90"
+          },
+          "PA": {
+            "currency": "USD",
+            "amount": "138.90"
+          },
+          "ES": {
+            "currency": "EUR",
+            "amount": "157.90"
+          },
+          "PT": {
+            "currency": "EUR",
+            "amount": "157.90"
+          },
+          "DE": {
+            "currency": "EUR",
+            "amount": "177.90"
+          },
+          "FR": {
+            "currency": "EUR",
+            "amount": "177.90"
+          },
+          "US": {
+            "currency": "USD",
+            "amount": "177.90"
+          }
+        }
       },
       "annual_enabled": false
     },
@@ -383,7 +614,84 @@
           "currency": "BRL",
           "amount": "596.60"
         },
-        "regional": {}
+        "regional": {
+          "PY": {
+            "currency": "USD",
+            "amount": "108.90"
+          },
+          "BO": {
+            "currency": "USD",
+            "amount": "108.90"
+          },
+          "HN": {
+            "currency": "USD",
+            "amount": "108.90"
+          },
+          "NI": {
+            "currency": "USD",
+            "amount": "108.90"
+          },
+          "CO": {
+            "currency": "USD",
+            "amount": "138.90"
+          },
+          "AR": {
+            "currency": "USD",
+            "amount": "138.90"
+          },
+          "PE": {
+            "currency": "USD",
+            "amount": "138.90"
+          },
+          "GT": {
+            "currency": "USD",
+            "amount": "138.90"
+          },
+          "SV": {
+            "currency": "USD",
+            "amount": "138.90"
+          },
+          "BZ": {
+            "currency": "USD",
+            "amount": "138.90"
+          },
+          "MX": {
+            "currency": "USD",
+            "amount": "157.90"
+          },
+          "CL": {
+            "currency": "USD",
+            "amount": "157.90"
+          },
+          "CR": {
+            "currency": "USD",
+            "amount": "187.90"
+          },
+          "PA": {
+            "currency": "USD",
+            "amount": "187.90"
+          },
+          "ES": {
+            "currency": "EUR",
+            "amount": "217.90"
+          },
+          "PT": {
+            "currency": "EUR",
+            "amount": "217.90"
+          },
+          "DE": {
+            "currency": "EUR",
+            "amount": "247.90"
+          },
+          "FR": {
+            "currency": "EUR",
+            "amount": "247.90"
+          },
+          "US": {
+            "currency": "USD",
+            "amount": "247.90"
+          }
+        }
       },
       "annual_enabled": false
     },
@@ -479,7 +787,84 @@
           "currency": "BRL",
           "amount": "1493.00"
         },
-        "regional": {}
+        "regional": {
+          "PY": {
+            "currency": "USD",
+            "amount": "197.90"
+          },
+          "BO": {
+            "currency": "USD",
+            "amount": "197.90"
+          },
+          "HN": {
+            "currency": "USD",
+            "amount": "197.90"
+          },
+          "NI": {
+            "currency": "USD",
+            "amount": "197.90"
+          },
+          "CO": {
+            "currency": "USD",
+            "amount": "247.90"
+          },
+          "AR": {
+            "currency": "USD",
+            "amount": "247.90"
+          },
+          "PE": {
+            "currency": "USD",
+            "amount": "247.90"
+          },
+          "GT": {
+            "currency": "USD",
+            "amount": "247.90"
+          },
+          "SV": {
+            "currency": "USD",
+            "amount": "247.90"
+          },
+          "BZ": {
+            "currency": "USD",
+            "amount": "247.90"
+          },
+          "MX": {
+            "currency": "USD",
+            "amount": "297.90"
+          },
+          "CL": {
+            "currency": "USD",
+            "amount": "297.90"
+          },
+          "CR": {
+            "currency": "USD",
+            "amount": "347.90"
+          },
+          "PA": {
+            "currency": "USD",
+            "amount": "347.90"
+          },
+          "ES": {
+            "currency": "EUR",
+            "amount": "397.90"
+          },
+          "PT": {
+            "currency": "EUR",
+            "amount": "397.90"
+          },
+          "DE": {
+            "currency": "EUR",
+            "amount": "446.90"
+          },
+          "FR": {
+            "currency": "EUR",
+            "amount": "446.90"
+          },
+          "US": {
+            "currency": "USD",
+            "amount": "446.90"
+          }
+        }
       },
       "annual_enabled": false
     }
