@@ -1,0 +1,36 @@
+{
+  "schema_version": 1,
+  "approved_for_write": false,
+  "note": "PRECOS DE TESTE. Revise antes de permitir aplicacao. Nao muda faturamento real.",
+  "plans": [
+    {
+      "code": "minipage", "enabled": true, "name": "MiniPage Pro — MiniPage",
+      "description": "Assinatura SaaS para pagina profissional com links, redes sociais, videos e divulgacao digital.",
+      "base": {"currency": "BRL", "amount": "29.90"},
+      "regional": {
+        "PY": {"currency":"USD","amount":"3.90"},
+        "BO": {"currency":"USD","amount":"3.90"},
+        "HN": {"currency":"USD","amount":"3.90"},
+        "NI": {"currency":"USD","amount":"3.90"},
+        "CO": {"currency":"USD","amount":"4.90"},
+        "AR": {"currency":"USD","amount":"4.90"},
+        "PE": {"currency":"USD","amount":"4.90"},
+        "GT": {"currency":"USD","amount":"4.90"},
+        "SV": {"currency":"USD","amount":"4.90"},
+        "BZ": {"currency":"USD","amount":"4.90"},
+        "MX": {"currency":"USD","amount":"5.90"},
+        "CL": {"currency":"USD","amount":"5.90"},
+        "CR": {"currency":"USD","amount":"6.90"},
+        "PA": {"currency":"USD","amount":"6.90"},
+        "ES": {"currency":"EUR","amount":"7.90"},
+        "PT": {"currency":"EUR","amount":"7.90"},
+        "DE": {"currency":"EUR","amount":"8.90"},
+        "FR": {"currency":"EUR","amount":"8.90"},
+        "US": {"currency":"USD","amount":"8.90"}
+      }
+    },
+    {"code":"loja","enabled":false,"name":"MiniPage Pro — Loja","description":"Assinatura SaaS do plano Loja MiniPage Pro.","base":{"currency":"BRL","amount":"59.90"},"regional":{}},
+    {"code":"essencial","enabled":false,"name":"MiniPage Pro — Essencial","description":"Assinatura SaaS do plano Essencial MiniPage Pro.","base":{"currency":"BRL","amount":"79.90"},"regional":{}},
+    {"code":"equipe","enabled":false,"name":"MiniPage Pro — Equipe","description":"Assinatura SaaS do plano Equipe MiniPage Pro.","base":{"currency":"BRL","amount":"149.90"},"regional":{}}
+  ]
+}
