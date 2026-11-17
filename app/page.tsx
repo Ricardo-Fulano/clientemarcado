@@ -1,15 +1,16 @@
 'use client'
 import Link from 'next/link'
-import { useState, useEffect, type ReactNode } from 'react'
+import { useState, useEffect, useRef, type ReactNode } from 'react'
 import AssistenteComercial from '@/app/components/AssistenteComercial'
+import SeletorIdiomaGlobal from './components/SeletorIdiomaGlobal'
+import { useIdiomaGlobal } from './components/IdiomaProviderGlobal'
+import type { Idioma } from './lib/i18n-global/idiomas'
+import { traduzirLanding } from './lib/i18n-global/landing'
+import { TEXTOS_MARCA_MINIPAGE } from './lib/i18n-global/marca-minipage'
 import { obterNomePlano, obterPrecoPlanoPorCiclo, obterPercentualEconomiaAnual, type BillingCycle } from './lib/planos'
+import { PAISES_REGIONAIS, normalizarPaisRegional, nomePaisRegional, precoRegional, mostrarPrecoRegional, TEXTOS_PRECOS, type PaisRegional } from './lib/billing/precos-regionais-publicos'
 const CHECKOUT_URL = "https://minipage.pro/#plano"
 const G = 'linear-gradient(135deg,#EC4899,#D946EF,#8B5CF6)'
-function fPreco(tipo: 'free'|'minipage'|'agenda'|'loja'|'essencial'|'equipe', ciclo: BillingCycle) {
-  const p = obterPrecoPlanoPorCiclo(tipo, ciclo)
-  const [inteiro, decimal] = p.toFixed(2).split('.')
-  return { inteiro, decimal }
-}
 // Beneficios de cada plano. Cada plano mostra so o que ADICIONA em relacao ao anterior ("Tudo do ... +" fica no
 // cabecalho da lista), para a cliente enxergar a evolucao. Todos os itens abaixo foram conferidos com as regras reais
 // (planos.ts, rotas e telas): nada aqui altera limite, preco ou regra - e so apresentacao.
@@ -70,7 +71,7 @@ const COR_SUAVE = '#C4B5FD'      // violeta claro: "ilimitados", "Ate N", separa
 
 // Destaca (cor + negrito) um trecho do texto; sem trecho, devolve o texto como esta.
 function Destacar({ texto, hl, cor }: { texto: string; hl?: string; cor: string }) {
-  const i = hl ? texto.indexOf(hl) : -1
+  const i = hl ? texto.toLocaleLowerCase().indexOf(hl.toLocaleLowerCase()) : -1
   if (!hl || i < 0) return <>{texto}</>
   return <>{texto.slice(0, i)}<strong style={{color:cor,fontWeight:800}}>{hl}</strong>{texto.slice(i + hl.length)}</>
 }
@@ -102,47 +103,56 @@ function ItemLista({ item }: { item: ItemDoPlano }) {
 
 type TipoPlanoLanding = 'free' | 'minipage' | 'agenda' | 'loja' | 'essencial' | 'equipe'
 // Cartao de plano. Nome, preco e botao continuam vindo de planos.ts / dos mesmos links de antes (o botao entra pronto em "cta").
-function CartaoPlano({ tipo, billing, selo, nicho, descricao, descricaoHl, herda, itens, variante = 'padrao', cta }: {
-  tipo: TipoPlanoLanding; billing: BillingCycle; selo: string; nicho?: string; descricao?: string; descricaoHl?: string
+function CartaoPlano({ tipo, billing, idioma, pais, selo, nicho, descricao, descricaoHl, herda, itens, variante = 'padrao', cta }: {
+  tipo: TipoPlanoLanding; billing: BillingCycle; idioma: Idioma; pais: PaisRegional; selo: string; nicho?: string; descricao?: string; descricaoHl?: string
   herda?: string; itens: ItemDoPlano[]; variante?: 'padrao' | 'pro' | 'equipe'; cta: ReactNode
 }) {
-  const preco = fPreco(tipo, tipo === 'free' ? 'mensal' : billing)
+  const lp = (texto: string) => traduzirLanding(idioma, texto)
+  const preco = precoRegional(tipo, tipo === 'free' ? 'mensal' : billing, pais, obterPrecoPlanoPorCiclo(tipo, tipo === 'free' ? 'mensal' : billing))
+  const textoPreco = tipo === 'free' ? TEXTOS_PRECOS[idioma].gratuito : (preco ? mostrarPrecoRegional(preco, idioma) : (pais === 'OUTROS' ? TEXTOS_PRECOS[idioma].selecionarPais : TEXTOS_PRECOS[idioma].precoEmPreparacao))
   const pro = variante === 'pro'
   const fundo = pro ? 'radial-gradient(ellipse at top,rgba(236,72,153,.16),transparent 55%),rgba(24,16,27,.97)'
     : variante === 'equipe' ? 'radial-gradient(ellipse at top,rgba(139,92,246,.16),transparent 55%),rgba(24,16,27,.97)'
     : 'radial-gradient(ellipse at top,rgba(139,92,246,.10),transparent 55%),rgba(24,16,27,.97)'
   return (
     <div className="plano-card" style={{background:fundo,border:pro?'1.5px solid rgba(236,72,153,.55)':'1.5px solid #2A1A2F',borderRadius:'22px',padding:'30px 22px',boxShadow:pro?'0 0 72px rgba(236,72,153,.20)':undefined,position:'relative' as const,display:'flex',flexDirection:'column' as const,flex:'0 0 250px',minWidth:'250px',scrollSnapAlign:'start'}}>
-      {pro && <div style={{position:'absolute' as const,top:'-13px',left:'50%',transform:'translateX(-50%)',background:G,borderRadius:'999px',padding:'4px 18px',fontSize:'11px',fontWeight:700,color:'#fff',whiteSpace:'nowrap' as const}}>Mais escolhido</div>}
+      {pro && <div style={{position:'absolute' as const,top:'-13px',left:'50%',transform:'translateX(-50%)',background:G,borderRadius:'999px',padding:'4px 18px',fontSize:'11px',fontWeight:700,color:'#fff',whiteSpace:'nowrap' as const}}>{lp("Mais escolhido")}</div>}
       <div style={{textAlign:'center',marginBottom:'16px'}}>
         <h3 style={{fontSize:'19px',fontWeight:900,letterSpacing:'-0.02em',marginBottom:'8px',background:'linear-gradient(135deg,#F472B6,#C4B5FD)',WebkitBackgroundClip:'text',backgroundClip:'text',WebkitTextFillColor:'transparent',color:COR_DESTAQUE}}>{obterNomePlano(tipo)}</h3>
         <div>
-          <span style={{fontSize:'34px',fontWeight:900,color:'#F8F4F7',letterSpacing:'-0.03em'}}>R$ {preco.inteiro}</span>
-          {tipo !== 'free' && <span style={{fontSize:'16px',fontWeight:700,color:'#F8F4F7'}}>,{preco.decimal}</span>}
-          <span style={{fontSize:'14px',color:'#B8AAB8'}}>{tipo !== 'free' && billing === 'anual' ? '/ano' : '/mês'}</span>
-          {tipo !== 'free' && billing === 'anual' && <div style={{fontSize:'11px',color:'#F9A8D4',fontWeight:800,marginTop:'6px'}}>17% de desconto · pagamento único</div>}
+          <span style={{fontSize:'30px',fontWeight:900,color:'#F8F4F7',letterSpacing:'-0.03em',whiteSpace:'nowrap'}}>{textoPreco}</span>
+          {(tipo !== 'free' && preco) && <span style={{fontSize:'13px',color:'#B8AAB8',marginLeft:'3px'}}>{lp(billing === 'anual' ? '/ano' : '/mês')}</span>}
+          {pais !== 'BR' && tipo !== 'free' && preco && <div style={{fontSize:'11px',color:'#FCD34D',marginTop:'5px'}}>{TEXTOS_PRECOS[idioma].referencia}</div>}
+          {tipo !== 'free' && preco && billing === 'anual' && <div style={{fontSize:'11px',color:'#F9A8D4',fontWeight:800,marginTop:'6px'}}>{lp("17% de desconto · pagamento único")}</div>}
         </div>
       </div>
       <div className="plano-ideal" style={{textAlign:'center',marginBottom:'16px'}}>
-        <span style={{display:'inline-block',fontSize:'10px',fontWeight:800,letterSpacing:'.08em',textTransform:'uppercase' as const,color:'#F9A8D4',background:'rgba(236,72,153,.12)',border:'1px solid rgba(236,72,153,.32)',borderRadius:'999px',padding:'3px 10px',marginBottom:'8px'}}>{selo}</span>
-        {nicho && <p style={{fontSize:'13px',fontWeight:700,color:'#F8F4F7',lineHeight:1.4,marginBottom:descricao?'6px':0}}>{nicho}</p>}
-        {descricao && <p style={{fontSize:'12px',color:'#B8AAB8',lineHeight:1.5}}><Destacar texto={descricao} hl={descricaoHl} cor={COR_DESTAQUE} /></p>}
+        <span style={{display:'inline-block',fontSize:'10px',fontWeight:800,letterSpacing:'.08em',textTransform:'uppercase' as const,color:'#F9A8D4',background:'rgba(236,72,153,.12)',border:'1px solid rgba(236,72,153,.32)',borderRadius:'999px',padding:'3px 10px',marginBottom:'8px'}}>{lp(selo)}</span>
+        {nicho && <p style={{fontSize:'13px',fontWeight:700,color:'#F8F4F7',lineHeight:1.4,marginBottom:descricao?'6px':0}}>{lp(nicho)}</p>}
+        {descricao && <p style={{fontSize:'12px',color:'#B8AAB8',lineHeight:1.5}}><Destacar texto={lp(descricao)} hl={descricaoHl ? lp(descricaoHl) : undefined} cor={COR_DESTAQUE} /></p>}
       </div>
       <div style={{flex:1,marginBottom:'18px'}}>
         {herda && (
           <div style={{display:'flex',alignItems:'center',gap:'8px',margin:'0 0 14px'}}>
             <span style={{flex:1,height:'1px',background:'rgba(139,92,246,.30)'}} />
-            <span style={{fontSize:'11px',fontWeight:700,color:COR_SUAVE,whiteSpace:'nowrap' as const}}>{herda}</span>
+            <span style={{fontSize:'11px',fontWeight:700,color:COR_SUAVE,whiteSpace:'nowrap' as const}}>{lp(herda)}</span>
             <span style={{flex:1,height:'1px',background:'rgba(139,92,246,.30)'}} />
           </div>
         )}
-        {itens.map((item, i) => <ItemLista key={i} item={item} />)}
+        {itens.map((item, i) => <ItemLista key={i} item={{ ...item, t: lp(item.t), hl: item.hl ? lp(item.hl) : undefined, nota: item.nota ? lp(item.nota) : undefined }} />)}
       </div>
-      {cta}
+      {tipo !== 'free' && pais !== 'BR' ? (
+        <button type="button" disabled aria-disabled="true" title={TEXTOS_PRECOS[idioma].aviso}
+          style={{width:'100%',padding:'12px 10px',minHeight:'46px',borderRadius:'12px',background:'#33263b',color:'#d9c6e0',border:'1px solid #67516c',fontWeight:700,cursor:'not-allowed'}}>
+          {TEXTOS_PRECOS[idioma].indisponivel}
+        </button>
+      ) : cta}
     </div>
   )
 }
 export default function Home() {
+  const { idioma, t } = useIdiomaGlobal()
+  const lp = (texto: string) => traduzirLanding(idioma, texto)
   function irComCupom(e: React.MouseEvent<HTMLAnchorElement>, destino: string) {
     const cupom = new URLSearchParams(window.location.search).get('cupom')
     if (!cupom) return
@@ -152,8 +162,50 @@ export default function Home() {
     window.location.href = `${destino}${separador}cupom=${encodeURIComponent(cupom)}`
   }
 
+  const planosScrollRef = useRef<HTMLDivElement>(null)
   const [scrolled, setScrolled] = useState(false)
   const [billingSelecionado, setBillingSelecionado] = useState<BillingCycle>('mensal')
+  const [paisPrecos, setPaisPrecos] = useState<PaisRegional>('BR')
+  const [paisBusca, setPaisBusca] = useState('')
+  const [paisListaAberta, setPaisListaAberta] = useState(false)
+  const [paisOrigem, setPaisOrigem] = useState<'padrao' | 'sugerido' | 'manual'>('padrao')
+  const marca = TEXTOS_MARCA_MINIPAGE[idioma]
+  const textosPais = TEXTOS_PRECOS[idioma]
+  const precoMinipage = precoRegional('minipage', billingSelecionado, paisPrecos, obterPrecoPlanoPorCiclo('minipage', billingSelecionado))
+  const listaPaises = [...PAISES_REGIONAIS].sort((a, b) => nomePaisRegional(a, idioma).localeCompare(nomePaisRegional(b, idioma), idioma))
+  const buscaNormalizada = paisBusca.trim().normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
+  const paisesFiltrados = listaPaises.filter(p => {
+    if (!buscaNormalizada) return true
+    const nome = nomePaisRegional(p, idioma).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
+    return nome.includes(buscaNormalizada) || p.toLowerCase().includes(buscaNormalizada)
+  })
+  const paisesSugeridos: PaisRegional[] = ['BR','PY','AR','US','CA','MX','PT','FR','DE','ES','TH','JP']
+  const paisesVisiveis = buscaNormalizada ? paisesFiltrados.slice(0, 20) : paisesSugeridos
+  useEffect(() => {
+    let ativo = true
+    // Apenas sugestao visual; nunca determina o preco que sera cobrado.
+    // Se nao existir localizacao de borda (localhost), usa regiao do navegador como pista.
+    async function sugerirPais() {
+      let sugestao = ''
+      try {
+        const r = await fetch('/api/geo/pais-preco', { cache: 'no-store' })
+        if (r.ok) { const d: unknown = await r.json();
+          if (d && typeof d === 'object' && 'pais' in d && typeof (d as {pais:unknown}).pais === 'string') sugestao = (d as {pais:string}).pais
+        }
+      } catch { /* local ou rede indisponivel */ }
+      if (!sugestao && typeof navigator !== 'undefined') {
+        const linguagens = navigator.languages?.length ? navigator.languages : [navigator.language]
+        const loc = linguagens.map(v => v?.match(/[-_]([a-z]{2})$/i)?.[1]).find(Boolean)
+        sugestao = loc || ''
+      }
+      if (ativo && sugestao) {
+        setPaisPrecos(normalizarPaisRegional(sugestao))
+        setPaisOrigem('sugerido')
+      }
+    }
+    void sugerirPais()
+    return () => { ativo = false }
+  }, [])
   useEffect(() => {
     const h = () => setScrolled(window.scrollY > 20)
     window.addEventListener('scroll', h)
@@ -161,6 +213,13 @@ export default function Home() {
   }, [])
   const scrollToPlano = () => {
     document.getElementById('plano')?.scrollIntoView({ behavior: 'smooth' })
+  }
+  const moverCarrosselPlanos = (direcao: -1 | 1) => {
+    const elemento = planosScrollRef.current
+    if (!elemento) return
+    const cartao = elemento.querySelector<HTMLElement>('.plano-card')
+    const distancia = (cartao?.getBoundingClientRect().width ?? 250) + 18
+    elemento.scrollBy({ left: direcao * distancia, behavior: 'smooth' })
   }
   return (
     <div style={{background:'#08060A',minHeight:'100vh',fontFamily:'-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif',overflowX:'hidden',width:'100%'}}>
@@ -187,6 +246,18 @@ export default function Home() {
           .tudo-conectado-central{position:static;transform:none;grid-column:1/-1;width:100%;max-width:220px;margin:0 auto 6px;animation:none}
           .tudo-conectado-pill{position:static;transform:none;width:100%}
         }
+        /* Mobile: header sem sobreposicoes e transicao compacta entre hero e secoes. */
+        @media(max-width:640px){
+          .mp-header-inner{height:auto!important;min-height:64px;display:flex!important;flex-direction:column;gap:10px;padding:10px 0 12px;align-items:stretch!important}
+          .mp-header-brand{justify-content:center;min-width:0}
+          .mp-header-nav{width:100%;justify-content:center;flex-wrap:wrap;gap:8px!important;min-width:0}
+          .mp-header-nav select{max-width:min(100%,210px)}
+          .mp-header-nav .btn-p{padding:0 14px!important}
+          .mp-hero-section{padding:52px 20px 16px!important}
+          .tudo-conectado-section{padding:20px 20px 42px!important}
+          .tudo-conectado-section > div:first-child{margin-bottom:34px!important}
+          .mp-recursos-section{padding:42px 20px!important}
+        }
         @media(max-width:768px){
           .hero-btns{flex-direction:column!important;align-items:stretch!important;gap:10px!important}
           .hero-btns a,.hero-btns button{width:100%!important}
@@ -197,46 +268,50 @@ export default function Home() {
       `}</style>
       {/* HEADER */}
       <header style={{position:'sticky',top:0,zIndex:50,background:scrolled?'rgba(8,6,10,.97)':'transparent',backdropFilter:'blur(20px)',borderBottom:scrolled?'1px solid #2A1A2F':'1px solid transparent',transition:'all .3s',padding:'0 24px'}}>
-        <div style={{maxWidth:'1100px',margin:'0 auto',height:'64px',display:'flex',alignItems:'center',justifyContent:'space-between'}}>
-          <div style={{display:'flex',alignItems:'center',gap:'10px'}}>
+        <div className="mp-header-inner" style={{maxWidth:'1100px',margin:'0 auto',height:'64px',display:'flex',alignItems:'center',justifyContent:'space-between'}}>
+          <div className="mp-header-brand" style={{display:'flex',alignItems:'center',gap:'10px'}}>
             <img src="/minipage-pro-icon.png" alt="MiniPage Pro" width={36} height={36} style={{borderRadius:'9px',flexShrink:0,objectFit:'contain'}}/>
             <div style={{display:'flex',flexDirection:'column',lineHeight:1.15}}>
               <span style={{fontSize:'17px',fontWeight:800,color:'#F8F4F7',letterSpacing:'-0.02em'}}>MiniPage Pro</span>
               <span style={{fontSize:'11px',fontWeight:600,color:'#B8AAB8',letterSpacing:'.02em'}}>MiniPage Pro</span>
             </div>
           </div>
-          <div style={{display:'flex',gap:'12px',alignItems:'center'}}>
-            <Link href="/login" style={{fontSize:'13px',color:'#B8AAB8',textDecoration:'none',fontWeight:500}}>Entrar</Link>
-            <button onClick={scrollToPlano} className="btn-p" style={{height:'40px',padding:'0 20px',fontSize:'13px',borderRadius:'10px'}}>Ver planos</button>
+          <div className="mp-header-nav" style={{display:'flex',gap:'12px',alignItems:'center'}}>
+            <SeletorIdiomaGlobal compacto />
+            <Link href="/login" style={{fontSize:'13px',color:'#B8AAB8',textDecoration:'none',fontWeight:500}}>{t('nav.login')}</Link>
+            <button onClick={scrollToPlano} className="btn-p" style={{height:'40px',padding:'0 20px',fontSize:'13px',borderRadius:'10px'}}>{t('nav.pricing')}</button>
           </div>
         </div>
       </header>
       {/* HERO */}
-      <section style={{padding:'100px 24px 80px',textAlign:'center',background:'radial-gradient(ellipse at 50% -10%,rgba(139,92,246,.22),transparent 55%)'}}>
+      <section className="mp-hero-section" style={{padding:'100px 24px 80px',textAlign:'center',background:'radial-gradient(ellipse at 50% -10%,rgba(139,92,246,.22),transparent 55%)'}}>
         <div style={{maxWidth:'760px',margin:'0 auto'}}>
-          <div style={{display:'inline-flex',alignItems:'center',gap:'8px',background:'rgba(236,72,153,.10)',border:'1px solid rgba(236,72,153,.22)',borderRadius:'999px',padding:'6px 18px',marginBottom:'36px'}}>
-            <span style={{width:'6px',height:'6px',borderRadius:'50%',background:'#EC4899',display:'inline-block',flexShrink:0}}/>
-            <span style={{fontSize:'12px',fontWeight:600,color:'#EC4899',letterSpacing:'.04em'}}>Tudo o que seu negócio precisa, em um link</span>
+          <div style={{display:'inline-flex',alignItems:'center',justifyContent:'center',gap:'10px',background:'linear-gradient(110deg,rgba(22,163,74,.24),rgba(34,197,94,.13))',border:'1.5px solid rgba(74,222,128,.76)',borderRadius:'22px',padding:'12px 20px',marginBottom:'34px',boxShadow:'0 0 26px rgba(34,197,94,.22),inset 0 1px 0 rgba(255,255,255,.10)',maxWidth:'100%'}}>
+            <span style={{width:'9px',height:'9px',borderRadius:'50%',background:'#4ADE80',display:'inline-block',flexShrink:0,boxShadow:'0 0 13px rgba(74,222,128,.90)'}}/>
+            <span style={{fontSize:'clamp(14px,2.1vw,17px)',fontWeight:900,color:'#BBF7D0',letterSpacing:'-.01em',lineHeight:1.4,textAlign:'center',textShadow:'0 0 14px rgba(34,197,94,.26)'}}>{marca.selo}</span>
           </div>
           <h1 style={{fontSize:'clamp(38px,6vw,66px)',fontWeight:900,color:'#F8F4F7',letterSpacing:'-0.04em',lineHeight:1.05,marginBottom:'24px'}}>
-            Sua bio pode fazer mais.<br/>Transforme visitas em oportunidades.
+            {marca.titulo1}<br/>{marca.titulo2}
           </h1>
           <p style={{fontSize:'clamp(17px,2.4vw,20px)',fontWeight:700,background:G,WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent',backgroundClip:'text',marginBottom:'20px'}}>
-            Reúna seus links, conteúdos, produtos e agendamentos em uma página profissional. Escolha os recursos certos para o seu negócio e acompanhe os resultados.
+            {marca.subtitulo}
           </p>
           <p style={{fontSize:'clamp(15px,2vw,17px)',color:'#B8AAB8',lineHeight:1.75,marginBottom:'32px',maxWidth:'580px',margin:'0 auto 32px'}}>
-            Uma presença digital profissional para divulgar no Instagram, WhatsApp, TikTok e onde seu público estiver.
+            {marca.descricao}
           </p>
-          <div className="hero-btns" style={{display:'flex',justifyContent:'center',gap:'12px',flexWrap:'wrap',marginTop:'24px'}}><button type="button" onClick={scrollToPlano} className="btn-p">Comparar os 6 planos</button><a href="https://minipage.pro/modelos" className="btn-s">Ver exemplos reais</a></div>
-          <p style={{fontSize:'13px',color:'#B8AAB8',marginTop:'18px'}}>Do link na bio à loja e à agenda: escolha o plano que acompanha seu momento.</p>
-          <p style={{fontSize:'12px',color:'#B8AAB8',marginTop:'10px'}}>Plano gratuito disponível. Planos pagos a partir de R$ 29,90/mês, sem fidelidade.</p>
+          <div className="hero-btns" style={{display:'flex',justifyContent:'center',gap:'12px',flexWrap:'wrap',marginTop:'24px'}}><button type="button" onClick={scrollToPlano} className="btn-p">{marca.botaoPlanos}</button><a href="https://minipage.pro/modelos" className="btn-s">{lp('Ver exemplos reais')}</a></div>
+          <p style={{fontSize:'13px',color:'#D9BEDF',marginTop:'22px',display:'flex',justifyContent:'center',alignItems:'center',gap:'8px',flexWrap:'wrap'}}><span aria-hidden="true">▦</span>{marca.qr}</p>
+          <p style={{fontSize:'clamp(17px,2.8vw,23px)',color:'#F3B3EA',fontWeight:800,marginTop:'18px',letterSpacing:'-0.02em'}}>“{marca.assinatura}”</p>
+          <p style={{fontSize:'14px',color:'#E9D4EF',fontWeight:700,marginTop:'12px'}}>{marca.chamadaGratis}</p>
+          <p style={{fontSize:'12px',color:'#B8AAB8',marginTop:'6px'}}>{marca.orientarPlanos}</p>
+          {paisPrecos !== 'BR' && paisPrecos !== 'OUTROS' && <p style={{fontSize:'12px',color:'#FCD34D',marginTop:'12px'}}>{textosPais.aviso}</p>}
         </div>
       </section>
       {/* TUDO CONECTADO */}
       <section className="tudo-conectado-section" style={{padding:'90px 24px',textAlign:'center',position:'relative',overflow:'hidden'}}>
         <div style={{maxWidth:'620px',margin:'0 auto 56px'}}>
-          <h2 style={{fontSize:'clamp(24px,4vw,36px)',fontWeight:900,color:'#F8F4F7',letterSpacing:'-0.03em',marginBottom:'12px'}}>Tudo conectado.<br/>Em um só lugar.</h2>
-          <p style={{fontSize:'15px',color:'#B8AAB8',lineHeight:1.6}}>WhatsApp, Instagram, TikTok, catálogo, agenda e muito mais — tudo reunido numa única página profissional.</p>
+          <h2 style={{fontSize:'clamp(24px,4vw,36px)',fontWeight:900,color:'#F8F4F7',letterSpacing:'-0.03em',marginBottom:'12px'}}>{lp("Tudo conectado.")}<br/>{lp("Em um só lugar.")}</h2>
+          <p style={{fontSize:'15px',color:'#B8AAB8',lineHeight:1.6}}>{lp("WhatsApp, Instagram, TikTok, catálogo, agenda e muito mais — tudo reunido numa única página profissional.")}</p>
         </div>
 
         <div className="tudo-conectado-orbita">
@@ -251,7 +326,7 @@ export default function Home() {
 
           <div className="tudo-conectado-central">
             <img src="/minipage-pro-icon.png" alt="MiniPage Pro" width={60} height={60} style={{borderRadius:'15px',objectFit:'contain'}}/>
-            <p style={{fontSize:'10px',fontWeight:600,color:'#B8AAB8',marginTop:'9px',letterSpacing:'.01em'}}>minipage.pro/seunome</p>
+            <p style={{fontSize:'10px',fontWeight:600,color:'#B8AAB8',marginTop:'9px',letterSpacing:'.01em'}}>{lp("minipage.pro/seunome")}</p>
           </div>
 
           {[
@@ -281,12 +356,12 @@ export default function Home() {
         </div>
       </section>
       {/* NOVOS RECURSOS MINIPAGE PRO */}
-      <section id="recursos" style={{padding:'88px 24px',background:'radial-gradient(ellipse at 50% 0%,rgba(139,92,246,.13),transparent 65%)'}}>
+      <section id="recursos" className="mp-recursos-section" style={{padding:'88px 24px',background:'radial-gradient(ellipse at 50% 0%,rgba(139,92,246,.13),transparent 65%)'}}>
         <div style={{maxWidth:'1100px',margin:'0 auto'}}>
           <div style={{textAlign:'center',maxWidth:'720px',margin:'0 auto 44px'}}>
-            <span style={{display:'inline-block',color:'#EC4899',fontSize:'12px',fontWeight:800,letterSpacing:'.12em',textTransform:'uppercase',marginBottom:'14px'}}>Mais controle. Mais possibilidades.</span>
-            <h2 style={{fontSize:'clamp(28px,4vw,42px)',fontWeight:900,color:'#F8F4F7',letterSpacing:'-.035em',lineHeight:1.12,marginBottom:'16px'}}>Sua MiniPage faz muito mais por você.</h2>
-            <p style={{fontSize:'16px',color:'#B8AAB8',lineHeight:1.75}}>Não basta ter uma página bonita. Entenda seu desempenho, acompanhe resultados e tome decisões com mais informação.</p>
+            <span style={{display:'inline-block',color:'#EC4899',fontSize:'12px',fontWeight:800,letterSpacing:'.12em',textTransform:'uppercase',marginBottom:'14px'}}>{lp("Mais controle. Mais possibilidades.")}</span>
+            <h2 style={{fontSize:'clamp(28px,4vw,42px)',fontWeight:900,color:'#F8F4F7',letterSpacing:'-.035em',lineHeight:1.12,marginBottom:'16px'}}>{lp("Sua MiniPage faz muito mais por você.")}</h2>
+            <p style={{fontSize:'16px',color:'#B8AAB8',lineHeight:1.75}}>{lp("Não basta ter uma página bonita. Entenda seu desempenho, acompanhe resultados e tome decisões com mais informação.")}</p>
           </div>
           <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(min(100%,245px),1fr))',gap:'18px'}}>
             {[
@@ -297,38 +372,75 @@ export default function Home() {
             ].map((item)=>(
               <article key={item.numero} style={{background:'linear-gradient(160deg,rgba(42,25,51,.88),rgba(18,12,25,.92))',border:'1px solid rgba(193,132,230,.20)',borderRadius:'20px',padding:'28px 24px',boxShadow:'0 12px 32px rgba(0,0,0,.16)'}}>
                 <span style={{display:'inline-flex',width:'38px',height:'38px',alignItems:'center',justifyContent:'center',borderRadius:'12px',background:'rgba(139,92,246,.14)',color:item.cor,fontSize:'14px',fontWeight:900,marginBottom:'24px'}}>{item.numero}</span>
-                <h3 style={{fontSize:'19px',fontWeight:800,color:'#F8F4F7',lineHeight:1.3,marginBottom:'10px'}}>{item.titulo}</h3>
-                <p style={{fontSize:'12px',fontWeight:800,color:item.cor,marginBottom:'14px'}}>{item.recurso}</p>
-                <p style={{fontSize:'14px',color:'#B8AAB8',lineHeight:1.7,margin:0}}>{item.descricao}</p>
+                <h3 style={{fontSize:'19px',fontWeight:800,color:'#F8F4F7',lineHeight:1.3,marginBottom:'10px'}}>{lp(item.titulo)}</h3>
+                <p style={{fontSize:'12px',fontWeight:800,color:item.cor,marginBottom:'14px'}}>{lp(item.recurso)}</p>
+                <p style={{fontSize:'14px',color:'#B8AAB8',lineHeight:1.7,margin:0}}>{lp(item.descricao)}</p>
               </article>
             ))}
           </div>
-          <p style={{textAlign:'center',fontSize:'12px',color:'#B8AAB8',lineHeight:1.6,marginTop:'26px'}}>A disponibilidade dos recursos depende do plano contratado e das integrações configuradas.</p>
+          <p style={{textAlign:'center',fontSize:'12px',color:'#B8AAB8',lineHeight:1.6,marginTop:'26px'}}>{lp("A disponibilidade dos recursos depende do plano contratado e das integrações configuradas.")}</p>
         </div>
       </section>
       {/* CHAMADA PARA MODELOS REAIS */}
       <section style={{padding:'60px 24px',textAlign:'center'}}>
         <div style={{maxWidth:'560px',margin:'0 auto'}}>
-          <h2 style={{fontSize:'clamp(20px,3.5vw,28px)',fontWeight:800,color:'#F8F4F7',letterSpacing:'-0.03em',marginBottom:'12px'}}>Você cria sua MiniPage em poucos cliques</h2>
-          <p style={{fontSize:'14px',color:'#B8AAB8',lineHeight:1.65,marginBottom:'28px'}}>Escolha um modelo, personalize sua página, adicione seus links e publique seu endereço profissional para divulgar nas redes sociais.</p>
-          <a href="https://minipage.pro/modelos" className="btn-p" style={{height:'56px',padding:'0 36px',fontSize:'15px',boxShadow:'0 16px 40px rgba(236,72,153,.34),0 0 40px rgba(139,92,246,.20)'}}>Ver modelos de MiniPage</a>
+          <h2 style={{fontSize:'clamp(20px,3.5vw,28px)',fontWeight:800,color:'#F8F4F7',letterSpacing:'-0.03em',marginBottom:'12px'}}>{lp("Você cria sua MiniPage em poucos cliques")}</h2>
+          <p style={{fontSize:'14px',color:'#B8AAB8',lineHeight:1.65,marginBottom:'28px'}}>{lp("Escolha um modelo, personalize sua página, adicione seus links e publique seu endereço profissional para divulgar nas redes sociais.")}</p>
+          <a href="https://minipage.pro/modelos" className="btn-p" style={{height:'56px',padding:'0 36px',fontSize:'15px',boxShadow:'0 16px 40px rgba(236,72,153,.34),0 0 40px rgba(139,92,246,.20)'}}>{lp("Ver modelos de MiniPage")}</a>
         </div>
       </section>
       {/* PLANO */}
-      <section id="plano" style={{padding:'80px 24px',background:'radial-gradient(ellipse at 50% 50%,rgba(139,92,246,.09),transparent 65%)'}}>
+      <section id="plano" style={{scrollMarginTop:'80px',padding:'80px 24px',background:'radial-gradient(ellipse at 50% 50%,rgba(139,92,246,.09),transparent 65%)'}}>
         <div style={{maxWidth:'1100px',margin:'0 auto'}}>
           <div style={{textAlign:'center',marginBottom:'48px'}}>
-            <h2 style={{fontSize:'clamp(22px,4vw,34px)',fontWeight:800,color:'#F8F4F7',letterSpacing:'-0.03em',marginBottom:'12px'}}>Seis planos. Um que faz sentido para você.</h2>
-            <p style={{fontSize:'15px',color:'#B8AAB8',lineHeight:1.6,maxWidth:'560px',margin:'0 auto'}}>Compare recursos e preços antes de criar sua conta. Comece com uma bio profissional ou avance para loja, agendamento e gestão.</p>
+            <h2 style={{fontSize:'clamp(22px,4vw,34px)',fontWeight:800,color:'#F8F4F7',letterSpacing:'-0.03em',marginBottom:'12px'}}>{lp("Seis planos. Um que faz sentido para você.")}</h2>
+            <p style={{fontSize:'15px',color:'#B8AAB8',lineHeight:1.6,maxWidth:'560px',margin:'0 auto'}}>{lp("Compare recursos e preços antes de criar sua conta. Comece com uma bio profissional ou avance para loja, agendamento e gestão.")}</p>
           </div>
 
-          <div role="group" aria-label="Periodicidade da assinatura" style={{display:'flex',justifyContent:'center',gap:'8px',marginBottom:'12px',flexWrap:'wrap'}}>
-            <button type="button" aria-pressed={billingSelecionado === 'mensal'} onClick={() => setBillingSelecionado('mensal')} style={{cursor:'pointer',padding:'12px 22px',borderRadius:'12px',fontWeight:800,color:'#fff',background:billingSelecionado === 'mensal' ? G : '#201527',border:'1px solid #6B3A73'}}>Mensal</button>
-            <button type="button" aria-pressed={billingSelecionado === 'anual'} onClick={() => setBillingSelecionado('anual')} style={{cursor:'pointer',padding:'12px 22px',borderRadius:'12px',fontWeight:800,color:'#fff',background:billingSelecionado === 'anual' ? G : '#201527',border:'1px solid #6B3A73'}}>Anual · economize 17%</button>
+          <div role="group" aria-label={lp('Periodicidade da assinatura')} style={{display:'flex',justifyContent:'center',gap:'8px',marginBottom:'12px',flexWrap:'wrap'}}>
+            <button type="button" aria-pressed={billingSelecionado === 'mensal'} onClick={() => setBillingSelecionado('mensal')} style={{cursor:'pointer',padding:'12px 22px',borderRadius:'12px',fontWeight:800,color:'#fff',background:billingSelecionado === 'mensal' ? G : '#201527',border:'1px solid #6B3A73'}}>{lp("Mensal")}</button>
+            <button type="button" aria-pressed={billingSelecionado === 'anual'} onClick={() => setBillingSelecionado('anual')} style={{cursor:'pointer',padding:'12px 22px',borderRadius:'12px',fontWeight:800,color:'#fff',background:billingSelecionado === 'anual' ? G : '#201527',border:'1px solid #6B3A73'}}>{lp("Anual · economize 17%")}</button>
           </div>
-          <p style={{textAlign:'center',color:'#B8AAB8',fontSize:'12px',marginBottom:'24px'}}>{billingSelecionado === 'anual' ? 'Pagamento único antecipado. Acesso por 12 meses após a confirmação do pagamento.' : 'Assinaturas mensais recorrentes. Você escolhe o plano ideal.'}</p>
+          <p style={{textAlign:'center',color:'#B8AAB8',fontSize:'12px',marginBottom:'24px'}}>{billingSelecionado === 'anual' ? lp('Pagamento único antecipado. Acesso por 12 meses após a confirmação do pagamento.') : lp('Assinaturas mensais recorrentes. Você escolhe o plano ideal.')}</p>
+          <div style={{maxWidth:'570px',margin:'0 auto 24px',padding:'14px 16px',background:'#1d1527',border:'1px solid #493450',borderRadius:'14px',color:'#fff'}}>
+            <label htmlFor="pais-precos" style={{display:'block',fontSize:'13px',fontWeight:700,marginBottom:'8px'}}>{textosPais.pais}</label>
+            <button id="pais-precos" type="button" aria-expanded={paisListaAberta} aria-controls="lista-paises-precos"
+              onClick={() => setPaisListaAberta(v => !v)}
+              style={{width:'100%',textAlign:'left',padding:'12px',borderRadius:'9px',background:'#241a2d',color:'#fff',border:'1px solid #775d87',cursor:'pointer',display:'flex',justifyContent:'space-between',gap:'12px'}}>
+              <span>{paisPrecos === 'OUTROS' ? textosPais.selecionarPais : `${nomePaisRegional(paisPrecos, idioma)} (${paisPrecos})`}</span>
+              <span aria-hidden="true">{paisListaAberta ? '▲' : '▼'}</span>
+            </button>
+            {paisListaAberta && <div id="lista-paises-precos" style={{marginTop:'10px',border:'1px solid #775d87',borderRadius:'10px',padding:'10px',background:'#170e20'}}>
+              <label htmlFor="buscar-pais-precos" style={{display:'block',fontSize:'12px',marginBottom:'6px',color:'#DDD0E5'}}>{textosPais.buscarPais}</label>
+              <input id="buscar-pais-precos" type="search" autoComplete="off" value={paisBusca} onChange={(e)=>setPaisBusca(e.target.value)} placeholder={textosPais.buscarPais}
+                style={{width:'100%',padding:'10px',borderRadius:'8px',border:'1px solid #775d87',background:'#241a2d',color:'#fff'}} />
+              <p style={{fontSize:'11px',color:'#C9B8D2',margin:'7px 0'}}>{buscaNormalizada ? `${paisesFiltrados.length} / ${PAISES_REGIONAIS.length}` : `${PAISES_REGIONAIS.length} ${textosPais.paisesListados.toLowerCase()}`}</p>
+              <div style={{maxHeight:'230px',overflowY:'auto'}}>
+                {paisesVisiveis.length === 0 && <p style={{padding:'12px',fontSize:'12px',color:'#FCD34D'}}>{textosPais.semResultados}</p>}
+                {paisesVisiveis.map(p => <button key={p} type="button" onClick={()=>{setPaisPrecos(p);setPaisOrigem('manual');setPaisListaAberta(false);setPaisBusca('')}}
+                    aria-pressed={paisPrecos === p}
+                    style={{width:'100%',display:'block',textAlign:'left',padding:'10px',border:0,borderBottom:'1px solid #3D2D49',background:paisPrecos===p?'#503062':'transparent',color:'#fff',cursor:'pointer'}}>
+                    {nomePaisRegional(p, idioma)} ({p}){paisPrecos===p?' ✓':''}
+                  </button>)}
+              </div>
+            </div>}
+            <p style={{fontSize:'12px',color:'#F8D4F0',fontWeight:800,marginTop:'10px'}}>
+              {paisPrecos === 'BR' ? 'BRL · R$' : (precoMinipage?.moeda === 'EUR' ? 'EUR · €' : precoMinipage?.moeda === 'USD' ? 'USD · US$' : '')}
+            </p>
+            <p style={{fontSize:'12px',color:'#C9B8D2',lineHeight:1.5,marginTop:'9px'}}>{textosPais.dica}</p>
+            {paisOrigem !== 'padrao' && <p style={{fontSize:'11px',color:'#B8AAB8',marginTop:'5px'}}>{paisOrigem === 'sugerido' ? textosPais.auto : textosPais.escolha}</p>}
+            {paisPrecos !== 'BR' && paisPrecos !== 'OUTROS' && <p role="status" style={{fontSize:'12px',color:'#FCD34D',lineHeight:1.5,marginTop:'9px'}}>{textosPais.aviso}</p>}
+          </div>
           <style>{`
             .planos-scroll::-webkit-scrollbar{display:none}
+            .planos-navegacao-mobile{display:none}
+            @media(max-width:899px){
+              .planos-navegacao-mobile{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;margin:0 0 8px}
+              .planos-navegacao-mobile .planos-navegacao-setas{display:flex;align-items:center;justify-content:center;gap:28px}
+              .planos-navegacao-mobile button{width:42px;height:42px;border-radius:50%;border:1px solid rgba(244,114,182,.65);background:rgba(64,30,68,.9);color:#FCE7F3;font-size:22px;font-weight:900;cursor:pointer;box-shadow:0 3px 14px rgba(236,72,153,.15)}
+              .planos-navegacao-mobile button:focus-visible{outline:2px solid #F9A8D4;outline-offset:3px}
+              .planos-navegacao-mobile span{font-size:13px;font-weight:700;color:#E9D5FF;text-align:center}
+            }
             /* Desktop com espaco suficiente: os 6 cards distribuidos em duas linhas,
                sem scroll horizontal nenhum. !important e necessario pra sobrescrever os
                estilos inline (base mobile) so a partir deste breakpoint. */
@@ -340,75 +452,83 @@ export default function Home() {
             .plano-ideal{min-height:130px}
             @media(min-width:900px){.plano-ideal{min-height:150px}}
           `}</style>
-          <div className="planos-scroll" style={{display:'flex',flexWrap:'nowrap',overflowX:'auto',WebkitOverflowScrolling:'touch',scrollSnapType:'x proximity',gap:'18px',alignItems:'stretch',paddingTop:'20px',paddingBottom:'8px',scrollbarWidth:'none'}}>
+          <div className="planos-navegacao-mobile">
+            <div className="planos-navegacao-setas">
+              <button type="button" onClick={() => moverCarrosselPlanos(-1)} aria-label={idioma === 'pt-BR' ? 'Plano anterior' : 'Previous plan'}>‹</button>
+              <button type="button" onClick={() => moverCarrosselPlanos(1)} aria-label={idioma === 'pt-BR' ? 'Próximo plano' : 'Next plan'}>›</button>
+            </div>
+            <span>{idioma === 'pt-BR' ? 'Deslize ou use as setas para ver os planos' : idioma === 'es-ES' ? 'Desliza o usa las flechas para ver los planes' : idioma === 'fr-FR' ? 'Balayez ou utilisez les fleches pour voir les offres' : idioma === 'de-DE' ? 'Wischen oder Pfeile nutzen, um Tarife zu sehen' : idioma === 'it-IT' ? 'Scorri o usa le frecce per vedere i piani' : 'Swipe or use arrows to explore plans'}</span>
+          </div>
+          <div ref={planosScrollRef} className="planos-scroll" style={{display:'flex',flexWrap:'nowrap',overflowX:'auto',WebkitOverflowScrolling:'touch',scrollSnapType:'x proximity',gap:'18px',alignItems:'stretch',paddingTop:'20px',paddingBottom:'8px',scrollbarWidth:'none'}}>
 
             {/* PLANO FREE */}
-            <CartaoPlano tipo="free" billing={billingSelecionado} selo="Para começar" descricao="Presença online simples com links básicos." itens={itensFree}
+            <CartaoPlano tipo="free" idioma={idioma} pais={paisPrecos} billing={billingSelecionado} selo="Para começar" descricao="Presença online simples com links básicos." itens={itensFree}
               cta={
                 <Link href="/cadastro?plano=free" onClick={(e) => irComCupom(e, '/cadastro?plano=free')} className="btn-s" style={{width:'100%',justifyContent:'center',height:'46px',fontSize:'13px'}}>
-                  Começar grátis
+                  {lp("Começar grátis")}
                 </Link>
               } />
 
             {/* PLANO MINIPAGE */}
-            <CartaoPlano tipo="minipage" billing={billingSelecionado} selo="Ideal para" nicho="autônomos e profissionais" descricao="Página profissional com links, destaques, vídeos e agenda de eventos." herda="Tudo do Free +" itens={itensMiniPage}
+            <CartaoPlano tipo="minipage" idioma={idioma} pais={paisPrecos} billing={billingSelecionado} selo="Ideal para" nicho="autônomos e profissionais" descricao="Página profissional com links, destaques, vídeos e agenda de eventos." herda="Tudo do Free +" itens={itensMiniPage}
               cta={
                 <Link href={`/aceite-plano?plano=minipage&billing=${billingSelecionado}`} onClick={(e) => irComCupom(e, `/aceite-plano?plano=minipage&billing=${billingSelecionado}`)} className="btn-p" style={{width:'100%',justifyContent:'center',height:'46px',fontSize:'13px'}}>
-                  Começar com a MiniPage
+                  {lp("Começar com a MiniPage")}
                 </Link>
               } />
 
             {/* PLANO AGENDA */}
-            <CartaoPlano tipo="agenda" billing={billingSelecionado} selo="Ideal para" nicho="profissionais que trabalham com horários" descricao="MiniPage com agendamento automático para clientes." herda="Tudo da MiniPage +" itens={itensAgenda}
+            <CartaoPlano tipo="agenda" idioma={idioma} pais={paisPrecos} billing={billingSelecionado} selo="Ideal para" nicho="profissionais que trabalham com horários" descricao="MiniPage com agendamento automático para clientes." herda="Tudo da MiniPage +" itens={itensAgenda}
               cta={
                 <Link href={`/aceite-plano?plano=agenda&billing=${billingSelecionado}`} onClick={(e) => irComCupom(e, `/aceite-plano?plano=agenda&billing=${billingSelecionado}`)} className="btn-p" style={{width:'100%',justifyContent:'center',height:'46px',fontSize:'13px'}}>
-                  Quero o MiniPage Agenda
+                  {lp("Quero o MiniPage Agenda")}
                 </Link>
               } />
 
             {/* PLANO LOJA */}
-            <CartaoPlano tipo="loja" billing={billingSelecionado} selo="Ideal para" nicho="quem vende produtos, cursos, achadinhos ou divulgações" herda="Tudo da MiniPage +" itens={itensLoja}
+            <CartaoPlano tipo="loja" idioma={idioma} pais={paisPrecos} billing={billingSelecionado} selo="Ideal para" nicho="quem vende produtos, cursos, achadinhos ou divulgações" herda="Tudo da MiniPage +" itens={itensLoja}
               cta={
                 <Link href={`/aceite-plano?plano=loja&billing=${billingSelecionado}`} onClick={(e) => irComCupom(e, `/aceite-plano?plano=loja&billing=${billingSelecionado}`)} className="btn-p" style={{width:'100%',justifyContent:'center',height:'46px',fontSize:'13px'}}>
-                  Quero o MiniPage Loja
+                  {lp("Quero o MiniPage Loja")}
                 </Link>
               } />
 
             {/* PLANO PRO (interno: essencial) */}
-            <CartaoPlano tipo="essencial" billing={billingSelecionado} variante="pro" selo="Ideal para" nicho="beleza, estética, atendimento e gestão" descricao="MiniPage completa para quem precisa de agendamento automático, clientes e gestão do negócio." descricaoHl="agendamento automático" herda="Tudo da Loja +" itens={itensProfissional}
+            <CartaoPlano tipo="essencial" idioma={idioma} pais={paisPrecos} billing={billingSelecionado} variante="pro" selo="Ideal para" nicho="beleza, estética, atendimento e gestão" descricao="MiniPage completa para quem precisa de agendamento automático, clientes e gestão do negócio." descricaoHl="agendamento automático" herda="Tudo da Loja +" itens={itensProfissional}
               cta={
                 <Link href={`/aceite-plano?plano=essencial&billing=${billingSelecionado}`} onClick={(e) => irComCupom(e, `/aceite-plano?plano=essencial&billing=${billingSelecionado}`)} className="btn-p" style={{width:'100%',justifyContent:'center',height:'auto',minHeight:'46px',padding:'12px 14px',fontSize:'13px',whiteSpace:'normal',lineHeight:1.3,textAlign:'center' as const}}>
-                  Começar com o {obterNomePlano('essencial')}
+                  {idioma === 'de-DE' ? `${obterNomePlano('essencial')} wählen` : `${lp('Começar com o ')}${obterNomePlano('essencial')}`}
                 </Link>
               } />
 
             {/* PLANO EQUIPE (interno: equipe) */}
-            <CartaoPlano tipo="equipe" billing={billingSelecionado} variante="equipe" selo="Ideal para" nicho="salões, studios e negócios com equipe" descricao="Cada profissional com login, agenda e desempenho próprios." herda="Tudo do Pro +" itens={itensEquipe}
+            <CartaoPlano tipo="equipe" idioma={idioma} pais={paisPrecos} billing={billingSelecionado} variante="equipe" selo="Ideal para" nicho="salões, studios e negócios com equipe" descricao="Cada profissional com login, agenda e desempenho próprios." herda="Tudo do Pro +" itens={itensEquipe}
               cta={
                 <Link href={`/aceite-plano?plano=equipe&billing=${billingSelecionado}`} onClick={(e) => irComCupom(e, `/aceite-plano?plano=equipe&billing=${billingSelecionado}`)} className="btn-p" style={{width:'100%',justifyContent:'center',height:'46px',fontSize:'13px'}}>
-                  Quero o {obterNomePlano('equipe')}
+                  {idioma === 'de-DE' ? `${obterNomePlano('equipe')} wählen` : `${lp('Quero o ')}${obterNomePlano('equipe')}`}
                 </Link>
               } />
 
           </div>
 
-          <p style={{textAlign:'center',fontSize:'13px',color:'#B8AAB8',marginTop:'32px'}}>Compare os recursos e escolha pagamento mensal recorrente ou anual à vista com 17% de desconto.</p>
+          <p style={{textAlign:'center',fontSize:'13px',color:'#B8AAB8',marginTop:'32px'}}>{lp("Compare os recursos e escolha pagamento mensal recorrente ou anual à vista com 17% de desconto.")}</p>
         </div>
       </section>
       {/* CTA FINAL */}
       <section style={{padding:'80px 24px',textAlign:'center',background:'radial-gradient(ellipse at 50% 50%,rgba(139,92,246,.10),transparent 60%)'}}>
         <div style={{maxWidth:'600px',margin:'0 auto'}}>
           <h2 style={{fontSize:'clamp(22px,4vw,32px)',fontWeight:800,color:'#F8F4F7',letterSpacing:'-0.03em',marginBottom:'16px',lineHeight:1.2}}>
-            Sua próxima oportunidade começa na sua página.
+            {lp("Sua próxima oportunidade começa na sua página.")}
           </h2>
           <p style={{fontSize:'15px',color:'#B8AAB8',marginBottom:'36px',lineHeight:1.7}}>
-            Compare os seis planos e escolha a presença digital certa para você — com links, catálogo, agenda ou gestão, conforme sua necessidade.
+            {lp("Compare os seis planos e escolha a presença digital certa para você — com links, catálogo, agenda ou gestão, conforme sua necessidade.")}
           </p>
           <div className="cta-btns" style={{display:'flex',gap:'12px',justifyContent:'center',flexWrap:'wrap'}}>
-            <button type="button" onClick={scrollToPlano} className="btn-p">Ver planos e preços</button>
-            <a href="https://minipage.pro/modelos" className="btn-s">Explorar exemplos</a>
+            <button type="button" onClick={scrollToPlano} className="btn-p">{marca.botaoPlanos}</button>
+            <a href="https://minipage.pro/modelos" className="btn-s">{lp("Explorar exemplos")}</a>
           </div>
-          <p style={{fontSize:'13px',color:'#B8AAB8',marginTop:'20px'}}>Plano gratuito disponível. Planos pagos a partir de R$ 29,90/mês, sem fidelidade.</p>
+          <p style={{fontSize:'13px',color:'#E9D4EF',fontWeight:700,marginTop:'20px'}}>{marca.chamadaGratis}</p>
+          <p style={{fontSize:'12px',color:'#B8AAB8',marginTop:'6px'}}>{marca.orientarPlanos}</p>
         </div>
       </section>
       <footer style={{borderTop:'1px solid #2A1A2F',padding:'32px 24px',textAlign:'center'}}>

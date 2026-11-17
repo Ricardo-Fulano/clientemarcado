@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import type { ReactNode } from 'react'
 import { Fragment } from 'react'
-import { detectarIdiomaHeader, getDicionario } from '../lib/i18n-publico'
+import { detectarIdiomaHeader, getDicionario, type Idioma } from '../lib/i18n-publico'
 import { supabase } from '../lib/supabase'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
@@ -389,7 +389,7 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
   // Idioma do visitante, detectado pelo header enviado pelo navegador (server-side - o HTML
   // ja nasce traduzido, sem nenhuma logica no cliente, entao nao ha risco de hidratacao).
   // So traduz textos FIXOS do sistema; nada do conteudo cadastrado pelo cliente e afetado.
-  let idiomaVisitante: 'pt' | 'en' | 'es' = 'pt'
+  let idiomaVisitante: Idioma = 'pt'
   try {
     const h = await headers()
     idiomaVisitante = detectarIdiomaHeader(h.get('accept-language'))
