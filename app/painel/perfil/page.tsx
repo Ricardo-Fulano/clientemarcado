@@ -8,8 +8,8 @@ import Link from 'next/link'
 import { Copy, Check, ExternalLink, UploadCloud, ArrowUp, ArrowDown } from 'lucide-react'
 import PainelSidebar from '@/app/components/PainelSidebar'
 
-const G='linear-gradient(135deg,#EC4899,#D946EF,#8B5CF6)'
-const AV='linear-gradient(135deg,rgba(236,72,153,.95),rgba(139,92,246,.95))'
+const G='#C9FA45'
+const AV='linear-gradient(135deg,#6D43B8,#8B5CF6)'
 
 const DIAS=['Dom','Seg','Ter','Qua','Qui','Sex','Sáb']
 
@@ -535,7 +535,7 @@ export default function Perfil(){
             <div className="crd" style={{textAlign:'center',padding:'48px 24px',maxWidth:'480px',margin:'40px auto'}}>
               <p style={{fontSize:'19px',fontWeight:800,color:'#F8F4F7',marginBottom:'10px'}}>Nenhum perfil encontrado para esta conta</p>
               <p style={{fontSize:'14px',color:'#B8AAB8',lineHeight:1.6,marginBottom:'24px'}}>Esta conta ainda não possui uma página profissional. Crie um novo perfil para começar.</p>
-              <button type="button" onClick={criarPerfilNovo} style={{background:G,color:'#fff',border:'1px solid rgba(255,255,255,.12)',borderRadius:'12px',padding:'13px 28px',fontSize:'14px',fontWeight:700,cursor:'pointer',fontFamily:'inherit'}}>
+              <button type="button" onClick={criarPerfilNovo} style={{background:G,color:'#15180D',border:'1px solid rgba(255,255,255,.12)',borderRadius:'12px',padding:'13px 28px',fontSize:'14px',fontWeight:700,cursor:'pointer',fontFamily:'inherit'}}>
                 Criar meu perfil
               </button>
             </div>
@@ -558,7 +558,7 @@ export default function Perfil(){
                 <span style={{fontSize:'13px',color:'#8B5CF6',fontFamily:'monospace',fontWeight:600,whiteSpace:'nowrap'}}>{pubUrl}</span>
               </div>
               <div className="link-btns" style={{display:'flex',gap:'8px',flexWrap:'wrap'}}>
-                <button onClick={copiarLink} style={{background:G,color:'#fff',border:'1px solid rgba(255,255,255,.12)',borderRadius:'12px',height:'42px',padding:'0 18px',fontSize:'13px',fontWeight:700,display:'inline-flex',alignItems:'center',gap:'6px',cursor:'pointer',fontFamily:'inherit',boxShadow:'0 8px 24px rgba(236,72,153,.28)',whiteSpace:'nowrap'}}>
+                <button onClick={copiarLink} style={{background:G,color:'#15180D',border:'1px solid rgba(255,255,255,.12)',borderRadius:'12px',height:'42px',padding:'0 18px',fontSize:'13px',fontWeight:700,display:'inline-flex',alignItems:'center',gap:'6px',cursor:'pointer',fontFamily:'inherit',boxShadow:'0 8px 24px rgba(236,72,153,.28)',whiteSpace:'nowrap'}}>
                   {copied?<Check size={14}/>:<Copy size={14}/>}{copied?'Copiado!':'Copiar link'}
                 </button>
                 <a href={pubUrl} target="_blank" rel="noreferrer" className="btn-verpag" style={{background:'rgba(139,92,246,.12)',border:'1.5px solid rgba(139,92,246,.45)',color:'#E9D5FF',borderRadius:'12px',height:'42px',padding:'0 18px',fontSize:'13px',fontWeight:700,display:'inline-flex',alignItems:'center',gap:'6px',textDecoration:'none',whiteSpace:'nowrap'}}><ExternalLink size={14}/>Ver MiniPage</a>
@@ -605,7 +605,7 @@ export default function Perfil(){
                 <p style={{fontSize:'15px',fontWeight:700,color:'#F8F4F7',marginBottom:'2px'}}>Aparência da MiniPage</p>
                 <p style={{fontSize:'12px',color:'#B8AAB8'}}>Banner, foto, cores e visual da página pública.</p>
               </div>
-              <Link href="/painel/perfil/aparencia" style={{background:G,color:'#fff',border:'1px solid rgba(255,255,255,.12)',borderRadius:'10px',padding:'10px 18px',fontSize:'13px',fontWeight:700,textDecoration:'none',flexShrink:0}}>Gerenciar aparência</Link>
+              <Link href="/painel/perfil/aparencia" style={{background:G,color:'#15180D',border:'1px solid rgba(255,255,255,.12)',borderRadius:'10px',padding:'10px 18px',fontSize:'13px',fontWeight:700,textDecoration:'none',flexShrink:0}}>Gerenciar aparência</Link>
             </div>
           </div>
 
@@ -655,7 +655,7 @@ export default function Perfil(){
                 <p style={{fontSize:'12px',color:'#B8AAB8'}}>{destaques.length} destaque{destaques.length!==1?'s':''} cadastrado{destaques.length!==1?'s':''}</p>
               </div>
               {permiteDestaques(planoTipo) ? (
-                <Link href="/painel/perfil/destaques" style={{background:G,color:'#fff',border:'1px solid rgba(255,255,255,.12)',borderRadius:'10px',padding:'10px 18px',fontSize:'13px',fontWeight:700,textDecoration:'none',flexShrink:0}}>Gerenciar destaques</Link>
+                <Link href="/painel/perfil/destaques" style={{background:G,color:'#15180D',border:'1px solid rgba(255,255,255,.12)',borderRadius:'10px',padding:'10px 18px',fontSize:'13px',fontWeight:700,textDecoration:'none',flexShrink:0}}>Gerenciar destaques</Link>
               ) : (
                 <Link href="/painel/plano" style={{background:'rgba(24,16,27,.92)',color:'#B8AAB8',border:'1px solid #2A1A2F',borderRadius:'10px',padding:'10px 18px',fontSize:'13px',fontWeight:700,textDecoration:'none',flexShrink:0}}>🔒 Disponível no MiniPage</Link>
               )}
@@ -669,7 +669,7 @@ export default function Perfil(){
                 <p style={{fontSize:'12px',color:'#B8AAB8'}}>Galerias de fotos em faixa horizontal deslizável</p>
               </div>
               {permiteAlbuns(planoTipo) ? (
-                <Link href="/painel/perfil/albuns" style={{background:G,color:'#fff',border:'1px solid rgba(255,255,255,.12)',borderRadius:'10px',padding:'10px 18px',fontSize:'13px',fontWeight:700,textDecoration:'none',flexShrink:0}}>Gerenciar álbuns</Link>
+                <Link href="/painel/perfil/albuns" style={{background:G,color:'#15180D',border:'1px solid rgba(255,255,255,.12)',borderRadius:'10px',padding:'10px 18px',fontSize:'13px',fontWeight:700,textDecoration:'none',flexShrink:0}}>Gerenciar álbuns</Link>
               ) : (
                 <Link href="/painel/plano" style={{background:'rgba(24,16,27,.92)',color:'#B8AAB8',border:'1px solid #2A1A2F',borderRadius:'10px',padding:'10px 18px',fontSize:'13px',fontWeight:700,textDecoration:'none',flexShrink:0}}>🔒 Disponível no MiniPage</Link>
               )}
@@ -683,7 +683,7 @@ export default function Perfil(){
                 <p style={{fontSize:'12px',color:'#B8AAB8'}}>Crie cards com imagem que direcionam para páginas, contatos, plataformas ou outros destinos.</p>
               </div>
               {permiteCardsVisuais(planoTipo) ? (
-                <Link href="/painel/perfil/cards" style={{background:G,color:'#fff',border:'1px solid rgba(255,255,255,.12)',borderRadius:'10px',padding:'10px 18px',fontSize:'13px',fontWeight:700,textDecoration:'none',flexShrink:0}}>Gerenciar links visuais</Link>
+                <Link href="/painel/perfil/cards" style={{background:G,color:'#15180D',border:'1px solid rgba(255,255,255,.12)',borderRadius:'10px',padding:'10px 18px',fontSize:'13px',fontWeight:700,textDecoration:'none',flexShrink:0}}>Gerenciar links visuais</Link>
               ) : (
                 <Link href="/painel/plano" style={{background:'rgba(24,16,27,.92)',color:'#B8AAB8',border:'1px solid #2A1A2F',borderRadius:'10px',padding:'10px 18px',fontSize:'13px',fontWeight:700,textDecoration:'none',flexShrink:0}}>🔒 Disponível no MiniPage</Link>
               )}
@@ -697,7 +697,7 @@ export default function Perfil(){
                 <p style={{fontSize:'12px',color:'#B8AAB8'}}>Incorpore músicas, álbuns, playlists, artistas e podcasts do Spotify na sua MiniPage.</p>
               </div>
               {permiteSpotify(planoTipo) ? (
-                <Link href="/painel/perfil/spotify" style={{background:G,color:'#fff',border:'1px solid rgba(255,255,255,.12)',borderRadius:'10px',padding:'10px 18px',fontSize:'13px',fontWeight:700,textDecoration:'none',flexShrink:0}}>Gerenciar Spotify</Link>
+                <Link href="/painel/perfil/spotify" style={{background:G,color:'#15180D',border:'1px solid rgba(255,255,255,.12)',borderRadius:'10px',padding:'10px 18px',fontSize:'13px',fontWeight:700,textDecoration:'none',flexShrink:0}}>Gerenciar Spotify</Link>
               ) : (
                 <Link href="/painel/plano" style={{background:'rgba(24,16,27,.92)',color:'#B8AAB8',border:'1px solid #2A1A2F',borderRadius:'10px',padding:'10px 18px',fontSize:'13px',fontWeight:700,textDecoration:'none',flexShrink:0}}>🔒 Disponível no MiniPage</Link>
               )}
@@ -710,7 +710,7 @@ export default function Perfil(){
                 <p style={{fontSize:'15px',fontWeight:700,color:'#F8F4F7',marginBottom:'2px'}}>Links</p>
                 <p style={{fontSize:'12px',color:'#B8AAB8'}}>{links.length}{obterLimiteLinksRapidos(planoTipo)!==Infinity?` de ${obterLimiteLinksRapidos(planoTipo)}`:''} link{links.length!==1?'s':''} cadastrado{links.length!==1?'s':''}</p>
               </div>
-              <Link href="/painel/perfil/links" style={{background:G,color:'#fff',border:'1px solid rgba(255,255,255,.12)',borderRadius:'10px',padding:'10px 18px',fontSize:'13px',fontWeight:700,textDecoration:'none',flexShrink:0}}>Gerenciar links</Link>
+              <Link href="/painel/perfil/links" style={{background:G,color:'#15180D',border:'1px solid rgba(255,255,255,.12)',borderRadius:'10px',padding:'10px 18px',fontSize:'13px',fontWeight:700,textDecoration:'none',flexShrink:0}}>Gerenciar links</Link>
             </div>
           </div>
 
@@ -721,7 +721,7 @@ export default function Perfil(){
                 <p style={{fontSize:'12px',color:'#B8AAB8'}}>{eventos.length} evento{eventos.length!==1?'s':''} cadastrado{eventos.length!==1?'s':''}</p>
               </div>
               {permiteAgendaEventos(planoTipo) ? (
-                <Link href="/painel/perfil/eventos" style={{background:G,color:'#fff',border:'1px solid rgba(255,255,255,.12)',borderRadius:'10px',padding:'10px 18px',fontSize:'13px',fontWeight:700,textDecoration:'none',flexShrink:0}}>Gerenciar eventos</Link>
+                <Link href="/painel/perfil/eventos" style={{background:G,color:'#15180D',border:'1px solid rgba(255,255,255,.12)',borderRadius:'10px',padding:'10px 18px',fontSize:'13px',fontWeight:700,textDecoration:'none',flexShrink:0}}>Gerenciar eventos</Link>
               ) : (
                 <Link href="/painel/plano" style={{background:'rgba(24,16,27,.92)',color:'#B8AAB8',border:'1px solid #2A1A2F',borderRadius:'10px',padding:'10px 18px',fontSize:'13px',fontWeight:700,textDecoration:'none',flexShrink:0}}>🔒 Disponível no MiniPage</Link>
               )}
@@ -735,7 +735,7 @@ export default function Perfil(){
                 <p style={{fontSize:'12px',color:'#B8AAB8'}}>{videos.length} vídeo{videos.length!==1?'s':''} cadastrado{videos.length!==1?'s':''}</p>
               </div>
               {permiteVideos(planoTipo) ? (
-                <Link href="/painel/perfil/videos" style={{background:G,color:'#fff',border:'1px solid rgba(255,255,255,.12)',borderRadius:'10px',padding:'10px 18px',fontSize:'13px',fontWeight:700,textDecoration:'none',flexShrink:0}}>Gerenciar vídeos</Link>
+                <Link href="/painel/perfil/videos" style={{background:G,color:'#15180D',border:'1px solid rgba(255,255,255,.12)',borderRadius:'10px',padding:'10px 18px',fontSize:'13px',fontWeight:700,textDecoration:'none',flexShrink:0}}>Gerenciar vídeos</Link>
               ) : (
                 <Link href="/painel/plano" style={{background:'rgba(24,16,27,.92)',color:'#B8AAB8',border:'1px solid #2A1A2F',borderRadius:'10px',padding:'10px 18px',fontSize:'13px',fontWeight:700,textDecoration:'none',flexShrink:0}}>🔒 Disponível no MiniPage</Link>
               )}
@@ -750,7 +750,7 @@ export default function Perfil(){
                 <p style={{fontSize:'12px',color:'#B8AAB8'}}>{catalogos.length} catálogo{catalogos.length!==1?'s':''} cadastrado{catalogos.length!==1?'s':''}</p>
               </div>
               {obterLimiteCatalogos(planoTipo)>0 ? (
-                <Link href="/painel/perfil/catalogo" style={{background:G,color:'#fff',border:'1px solid rgba(255,255,255,.12)',borderRadius:'10px',padding:'10px 18px',fontSize:'13px',fontWeight:700,textDecoration:'none',flexShrink:0}}>Gerenciar catálogos</Link>
+                <Link href="/painel/perfil/catalogo" style={{background:G,color:'#15180D',border:'1px solid rgba(255,255,255,.12)',borderRadius:'10px',padding:'10px 18px',fontSize:'13px',fontWeight:700,textDecoration:'none',flexShrink:0}}>Gerenciar catálogos</Link>
               ) : (
                 <Link href="/painel/plano" style={{background:'rgba(24,16,27,.92)',color:'#B8AAB8',border:'1px solid #2A1A2F',borderRadius:'10px',padding:'10px 18px',fontSize:'13px',fontWeight:700,textDecoration:'none',flexShrink:0}}>🔒 Disponível na Loja</Link>
               )}
@@ -851,7 +851,7 @@ export default function Perfil(){
           </div>
           )}
 
-          <button onClick={salvar} disabled={salvando} style={{width:'100%',marginTop:24,background:G,color:'#fff',border:'1px solid rgba(255,255,255,.12)',borderRadius:'14px',height:'52px',fontSize:'15px',fontWeight:800,cursor:salvando?'not-allowed':'pointer',fontFamily:'inherit',boxShadow:'0 12px 32px rgba(236,72,153,.30),0 0 28px rgba(139,92,246,.22)',opacity:salvando?.7:1,transition:'all .18s'}}>
+          <button onClick={salvar} disabled={salvando} style={{width:'100%',marginTop:24,background:G,color:'#15180D',border:'1px solid rgba(255,255,255,.12)',borderRadius:'14px',height:'52px',fontSize:'15px',fontWeight:800,cursor:salvando?'not-allowed':'pointer',fontFamily:'inherit',boxShadow:'0 12px 32px rgba(236,72,153,.30),0 0 28px rgba(139,92,246,.22)',opacity:salvando?.7:1,transition:'all .18s'}}>
             {salvando?'Salvando...':'Salvar perfil'}
           </button>
 

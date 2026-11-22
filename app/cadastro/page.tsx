@@ -1,28 +1,87 @@
 'use client'
 import SeletorIdiomaGlobal from '../components/SeletorIdiomaGlobal'
 import { useIdiomaGlobal } from '../components/IdiomaProviderGlobal'
+import { textoInterface } from '../lib/i18n-global/telas-core'
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { supabase } from '../lib/supabase'
-import { normalizarPlano, ehPlanoFree, normalizarBillingCycle } from '../lib/planos'
+import { ehPlanoFree, normalizarBillingCycle } from '../lib/planos'
+import { planoEstaNaOferta } from '../lib/comercial/planos-ofertados'
 import { ehEmailJaCadastrado } from '../lib/auth-erros'
-import { aplicarMascaraWhatsapp, normalizarWhatsappBR, TEXTO_FINALIDADE_WHATSAPP } from '../lib/whatsapp'
+import { normalizarTelefoneCadastro } from '../lib/telefone-cadastro-global'
+
+const TEXTOS_GLOBAIS = {
+  "pt-BR": {
+    "subtitulo": "Crie sua MiniPage em poucos passos.",
+    "card": "Comece com seus dados básicos. Você poderá personalizar depois.",
+    "endereco": "Seu endereço escolhido",
+    "slugAviso": "A disponibilidade definitiva será verificada ao criar sua página.",
+    "telefone": "Telefone / WhatsApp (com código do país)",
+    "telefoneAjuda": "Inclua + e o código do país. Ex.: +55 11 99999 9999, +1 415 555 0123, +595 981 123456. Usaremos apenas para suporte e contato sobre a assinatura.",
+    "telefoneErro": "Informe um telefone com código internacional, começando por +."
+  },
+  "en-US": {
+    "subtitulo": "Create your MiniPage in a few steps.",
+    "card": "Start with the essentials. You can customize it later.",
+    "endereco": "Your chosen address",
+    "slugAviso": "Final availability will be checked when your page is created.",
+    "telefone": "Phone / WhatsApp (country code)",
+    "telefoneAjuda": "Include + and your country code. E.g. +1 415 555 0123, +55 11 99999 9999. Used for subscription support and contact only.",
+    "telefoneErro": "Enter a phone number with international country code, starting with +."
+  },
+  "es-ES": {
+    "subtitulo": "Crea tu MiniPage en pocos pasos.",
+    "card": "Empieza con lo esencial. Podrás personalizarla después.",
+    "endereco": "Tu dirección elegida",
+    "slugAviso": "La disponibilidad definitiva se comprobará al crear tu página.",
+    "telefone": "Teléfono / WhatsApp (código de país)",
+    "telefoneAjuda": "Incluye + y el código de país. Ej.: +34 612 345 678, +595 981 123456. Solo para soporte y contacto sobre tu suscripción.",
+    "telefoneErro": "Introduce un teléfono con código internacional, empezando por +."
+  },
+  "fr-FR": {
+    "subtitulo": "Créez votre MiniPage en quelques étapes.",
+    "card": "Commencez par l’essentiel. Personnalisez-la ensuite.",
+    "endereco": "Votre adresse choisie",
+    "slugAviso": "La disponibilité sera vérifiée lors de la création de la page.",
+    "telefone": "Téléphone / WhatsApp (indicatif du pays)",
+    "telefoneAjuda": "Indiquez + et votre indicatif. Ex. : +33 6 12 34 56 78. Utilisé uniquement pour le support et le suivi de l’abonnement.",
+    "telefoneErro": "Saisissez un numéro international commençant par +."
+  },
+  "de-DE": {
+    "subtitulo": "Erstelle deine MiniPage in wenigen Schritten.",
+    "card": "Beginne mit den Grundlagen. Später kannst du alles anpassen.",
+    "endereco": "Deine gewählte Adresse",
+    "slugAviso": "Die Verfügbarkeit wird beim Erstellen deiner Seite endgültig geprüft.",
+    "telefone": "Telefon / WhatsApp (Ländervorwahl)",
+    "telefoneAjuda": "Gib + und die Ländervorwahl ein, z. B. +49 151 23456789. Nur für Support und Kontakt zum Abonnement.",
+    "telefoneErro": "Gib eine internationale Telefonnummer ein, die mit + beginnt."
+  },
+  "it-IT": {
+    "subtitulo": "Crea la tua MiniPage in pochi passaggi.",
+    "card": "Inizia dalle informazioni essenziali. Potrai personalizzarla dopo.",
+    "endereco": "Il tuo indirizzo scelto",
+    "slugAviso": "La disponibilità definitiva verrà verificata durante la creazione.",
+    "telefone": "Telefono / WhatsApp (prefisso internazionale)",
+    "telefoneAjuda": "Inserisci + e il prefisso nazionale, ad es. +39 312 345 6789. Solo per assistenza e contatti relativi all’abbonamento.",
+    "telefoneErro": "Inserisci un numero internazionale che inizi con +."
+  }
+} as const
 
 const BENEFICIOS = [
   {
     icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>,
-    titulo: 'Sua MiniPage pronta',
-    desc: 'Crie sua página profissional com seus links, conteúdos e serviços.',
+    titulo: 'signup.benefit1',
+    desc: 'signup.benefit1desc',
   },
   {
     icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>,
-    titulo: 'Tudo em um só lugar',
-    desc: 'Redes sociais, vídeos, eventos, serviços e muito mais.',
+    titulo: 'signup.benefit2',
+    desc: 'signup.benefit2desc',
   },
   {
     icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>,
-    titulo: 'Fácil de personalizar',
-    desc: 'Escolha cores, banner, links e deixe a página com a sua identidade.',
+    titulo: 'signup.benefit3',
+    desc: 'signup.benefit3desc',
   },
 ]
 const CalIcon = () => (
@@ -45,14 +104,37 @@ const EyeOffIcon = () => (
   </svg>
 )
 export default function Cadastro() {
-  const { t } = useIdiomaGlobal()
+  const { t, idioma } = useIdiomaGlobal()
+  const tr = (chave: string) => textoInterface(idioma, chave)
+  const textoGlobal = TEXTOS_GLOBAIS[idioma]
+  const textosConsentimento: Record<string, { inicio: string; fim: string; aviso: string }> = {
+    'pt-BR': { inicio: 'Li e aceito os', fim: 'da MiniPage Pro.', aviso: 'Sem cartão para começar. Seu nome e telefone poderão ser adicionados depois.' },
+    'en-US': { inicio: 'I have read and agree to the', fim: 'of MiniPage Pro.', aviso: 'No card required. You can add your name and private phone later.' },
+    'es-ES': { inicio: 'He leído y acepto los', fim: 'de MiniPage Pro.', aviso: 'Sin tarjeta. Podrás añadir tu nombre y teléfono privado después.' },
+    'fr-FR': { inicio: 'J’ai lu et j’accepte les', fim: 'de MiniPage Pro.', aviso: 'Sans carte bancaire. Ajoutez votre nom et votre téléphone privé plus tard.' },
+    'de-DE': { inicio: 'Ich habe die', fim: 'von MiniPage Pro gelesen und akzeptiert.', aviso: 'Keine Karte nötig. Name und private Telefonnummer kannst du später hinzufügen.' },
+    'it-IT': { inicio: 'Ho letto e accetto i', fim: 'di MiniPage Pro.', aviso: 'Nessuna carta richiesta. Puoi aggiungere nome e telefono privato dopo.' },
+  }
+  const consentimento = textosConsentimento[idioma] || textosConsentimento['pt-BR']
   const [cupom, setCupom] = useState('')
   const [cupomStatus, setCupomStatus] = useState<'idle'|'ok'|'erro'>('idle')
   const [nomeUsuario, setNomeUsuario] = useState('')
   const [email, setEmail] = useState('')
   const [senha, setSenha] = useState('')
-  const [whatsapp, setWhatsapp] = useState('')   // o que aparece no campo (com mascara visual)
+  const [whatsapp, setWhatsapp] = useState('') // numero internacional completo, com +DDI
   const [whatsappTocado, setWhatsappTocado] = useState(false)
+  const [mostrarCupom, setMostrarCupom] = useState(true)
+  const [slugDesejado, setSlugDesejado] = useState('')
+  useEffect(() => {
+    try {
+      const parametro = new URLSearchParams(window.location.search).get('slug') || sessionStorage.getItem('mp_slug_desejado') || ''
+      const valido = parametro.trim().toLowerCase()
+      if (/^[a-z0-9][a-z0-9-]{2,31}$/.test(valido)) {
+        setSlugDesejado(valido)
+        sessionStorage.setItem('mp_slug_desejado', valido)
+      }
+    } catch { /* sem armazenamento: cadastro segue normalmente */ }
+  }, [])
   const [mostrarSenha, setMostrarSenha] = useState(false)
   const [loading, setLoading] = useState(false)
   const [aceitou, setAceitou] = useState(false)
@@ -63,6 +145,27 @@ export default function Cadastro() {
   const [duplicado, setDuplicado] = useState(false)
   const [reenviando, setReenviando] = useState(false)
   const [reenvioMsg, setReenvioMsg] = useState('')
+  // OAuth: a configuracao de provedores, callback e provisionamento e feita no Supabase.
+  // A UI nao afirma que uma conta foi criada antes de o provedor confirmar.
+  const [oauthLoading,setOauthLoading] = useState<'google'|'apple'|null>(null)
+  const oauthLabels: Record<string, {or:string,google:string,apple:string,failed:string}> = {
+    'pt-BR':{or:'ou continue com',google:'Continuar com Google',apple:'Continuar com Apple',failed:'Não foi possível conectar. Verifique a configuração do provedor.'},
+    'en-US':{or:'or continue with',google:'Continue with Google',apple:'Continue with Apple',failed:'Could not connect. Check provider configuration.'},
+    'es-ES':{or:'o continúa con',google:'Continuar con Google',apple:'Continuar con Apple',failed:'No fue posible conectar. Revisa la configuración.'},
+    'fr-FR':{or:'ou continuer avec',google:'Continuer avec Google',apple:'Continuer avec Apple',failed:'Connexion impossible. Vérifiez la configuration.'},
+    'de-DE':{or:'oder weiter mit',google:'Mit Google fortfahren',apple:'Mit Apple fortfahren',failed:'Verbindung fehlgeschlagen. Konfiguration prüfen.'},
+    'it-IT':{or:'oppure continua con',google:'Continua con Google',apple:'Continua con Apple',failed:'Connessione non riuscita. Verifica la configurazione.'},
+  }
+  const oauthText = oauthLabels[idioma] || oauthLabels['pt-BR']
+  async function iniciarOAuth(provider: 'google'|'apple') {
+    if (!aceitou) {setMensagem(consentimento.inicio+' '+consentimento.fim);return}
+    setOauthLoading(provider); setMensagem('')
+    try {
+      if (cupom.trim()) localStorage.setItem('cm_cupom',cupom.trim())
+      const {error} = await supabase.auth.signInWithOAuth({provider,options:{redirectTo:`${window.location.origin}/auth/concluir-social`}})
+      if(error) {setMensagem(oauthText.failed);setOauthLoading(null)}
+    } catch {setMensagem(oauthText.failed);setOauthLoading(null)}
+  }
   // Campo-isca (honeypot): invisivel para pessoas, bots costumam preencher. Se vier preenchido,
   // o cadastro e descartado em silencio.
   const [site, setSite] = useState('')
@@ -135,7 +238,11 @@ export default function Cadastro() {
   // so pra decidir o billing_cycle de exibicao aqui no JSX. CPF/CNPJ nao e mais coletado
   // nesta tela - passa a ser pedido em /pos-confirmacao, so no momento de planos pagos.
   const planoParaExibicao = typeof window !== 'undefined'
-    ? normalizarPlano(new URLSearchParams(window.location.search).get('plano') || localStorage.getItem('cm_plano'))
+    ? (() => {
+        const valor = new URLSearchParams(window.location.search).get('plano') ||
+          (localStorage.getItem('clienteMarcadoAceitePlano') === 'true' ? localStorage.getItem('cm_plano') : null) || 'free'
+        return planoEstaNaOferta(valor) ? valor : 'free'
+      })()
     : 'free'
   // Mesmo padrao ja usado pro plano: le da URL (?billing=anual) OU do localStorage
   // (cm_billing, salvo pelo aceite-plano), sempre normalizado - Free nunca usa isso de
@@ -150,12 +257,11 @@ export default function Cadastro() {
       setMensagem('Para criar sua conta, aceite primeiro o contrato do plano.')
       return
     }
-    // WhatsApp obrigatorio (suporte e recuperacao de cadastro). A mascara e so visual: o que vai para o servidor e o
-    // numero normalizado (55 + DDD + 9 digitos). O servidor valida de novo.
-    const whatsappNormalizado = normalizarWhatsappBR(whatsapp)
-    if (!whatsappNormalizado) {
+    // Pago mantem telefone necessario ao fluxo de cobranca atual; Free solicita depois.
+    const whatsappNormalizado = whatsapp ? normalizarTelefoneCadastro(whatsapp) : null
+    if (!ehPlanoFree(planoParaExibicao) && !whatsappNormalizado) {
       setWhatsappTocado(true)
-      setMensagem('Erro: informe seu WhatsApp (celular com DDD), por exemplo (11) 99999-9999.')
+      setMensagem('Erro: ' + textoGlobal.telefoneErro)
       return
     }
     if (aceitou && typeof window !== 'undefined') {
@@ -165,8 +271,12 @@ export default function Cadastro() {
     // cadastro sem passar por /aceite-plano) quanto do localStorage (fluxo de planos pagos,
     // que passa por /aceite-plano antes) - a URL tem prioridade quando presente.
     const planoDaUrl = typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('plano') : null
-    const planoSalvo = planoDaUrl || (typeof window !== 'undefined' ? localStorage.getItem('cm_plano') : null)
-    const planoTipo = normalizarPlano(planoSalvo)
+    const planoSalvo = planoDaUrl || (typeof window !== 'undefined' && localStorage.getItem('clienteMarcadoAceitePlano') === 'true' ? localStorage.getItem('cm_plano') : null) || 'free'
+    if (!planoEstaNaOferta(planoSalvo)) {
+      setMensagem('Este plano nao esta mais disponivel para novas assinaturas. Escolha uma das cinco opcoes na pagina de precos.')
+      return
+    }
+    const planoTipo = planoSalvo
     setLoading(true)
     setMensagem('')
     // O cadastro e feito PELO SERVIDOR (/api/cadastro/registrar): ele cria a conta ja
@@ -216,10 +326,10 @@ export default function Cadastro() {
       try { localStorage.removeItem('cm_cupom') } catch { /* ignora */ }
       if (dados.session?.access_token && dados.session?.refresh_token) {
         const { error: erroSessao } = await supabase.auth.setSession({ access_token: dados.session.access_token, refresh_token: dados.session.refresh_token })
-        if (!erroSessao) { window.location.href = '/pos-confirmacao'; return }
+        if (!erroSessao) { window.location.href = '/pos-confirmacao?novo=1'; return }
       }
       const { error: erroLogin } = await supabase.auth.signInWithPassword({ email, password: senha })
-      if (!erroLogin) { window.location.href = '/pos-confirmacao'; return }
+      if (!erroLogin) { window.location.href = '/pos-confirmacao?novo=1'; return }
       // Conta criada, mas o login automatico nao funcionou: manda para o login.
       window.location.href = '/login'
     } catch {
@@ -257,14 +367,14 @@ export default function Cadastro() {
   }
   const css = `
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    body { background: #08060A; }
-    .pg { min-height: 100vh; background: radial-gradient(circle at 20% 20%,rgba(236,72,153,.12),transparent 30%),radial-gradient(circle at 80% 15%,rgba(139,92,246,.14),transparent 32%),#08060A;
+    body { background: #0B0A10; }
+    .pg { min-height: 100vh; background: radial-gradient(circle at 70% 15%,rgba(149,82,245,.15),transparent 44%),#0B0A10;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       display: flex; flex-direction: column; }
     .col-esquerda { display: none; }
     .pg-body { flex: 1; display: flex; flex-direction: column; align-items: center; padding: 32px 16px 40px; gap: 0; }
     .logo-bloco { width: 100%; max-width: 480px; display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 24px; }
-    .logo-icone { width: 34px; height: 34px; border-radius: 10px; background: #EC4899; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .logo-icone { width: 34px; height: 34px; border-radius: 10px; background: #8B5CF6; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
     .logo-texto { font-size: 18px; font-weight: 800; color: #F8F4F7; letter-spacing: -0.02em; }
     .headline-bloco { width: 100%; max-width: 480px; text-align: center; margin-bottom: 24px; }
     .headline-titulo { font-size: 24px; font-weight: 800; color: #F8F4F7; letter-spacing: -0.02em; margin-bottom: 8px; line-height: 1.2; }
@@ -272,7 +382,7 @@ export default function Cadastro() {
     .form-bloco { width: 100%; max-width: 480px; margin-bottom: 20px; }
     .beneficios-mobile { width: 100%; max-width: 480px; display: flex; flex-direction: column; gap: 8px; }
     .beneficio-mobile-item { display: flex; align-items: center; gap: 12px; padding: 13px 15px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); border-radius: 11px; }
-    .beneficio-mobile-icone { width: 32px; height: 32px; border-radius: 8px; flex-shrink: 0; background: rgba(236,72,153,0.1); border: 1px solid rgba(236,72,153,0.15); display: flex; align-items: center; justify-content: center; color: #EC4899; }
+    .beneficio-mobile-icone { width: 32px; height: 32px; border-radius: 8px; flex-shrink: 0; background: rgba(139,92,246,0.1); border: 1px solid rgba(139,92,246,0.15); display: flex; align-items: center; justify-content: center; color: #8B5CF6; }
     .beneficio-mobile-titulo { font-size: 13px; font-weight: 600; color: #B8AAB8; }
     @media (min-width: 900px) {
       .col-esquerda { display: flex; flex-direction: column; gap: 36px; flex: 1; }
@@ -284,17 +394,17 @@ export default function Cadastro() {
       .pg-body > .col-esquerda, .pg-body > .form-bloco { max-width: 480px; }
     }
     .desk-logo-row { display: flex; align-items: center; gap: 10px; }
-    .desk-logo-icone { width: 36px; height: 36px; border-radius: 10px; background: #EC4899; display: flex; align-items: center; justify-content: center; }
+    .desk-logo-icone { width: 36px; height: 36px; border-radius: 10px; background: #8B5CF6; display: flex; align-items: center; justify-content: center; }
     .desk-logo-texto { font-size: 18px; font-weight: 800; color: #F8F4F7; letter-spacing: -0.02em; }
     .desk-hero-titulo { font-size: 38px; font-weight: 800; color: #F8F4F7; letter-spacing: -0.03em; line-height: 1.15; margin-bottom: 14px; }
-    .desk-hero-titulo span { color: #EC4899; }
+    .desk-hero-titulo span { color: #C9FA45; }
     .desk-hero-sub { font-size: 16px; color: #B8AAB8; line-height: 1.6; }
     .desk-beneficios { display: flex; flex-direction: column; gap: 14px; }
-    .desk-beneficio { display: flex; align-items: flex-start; gap: 14px; background: linear-gradient(180deg, rgba(18,22,30,0.92) 0%, rgba(10,12,16,0.92) 100%); border: 1px solid rgba(255,255,255,0.07); border-radius: 12px; padding: 16px 18px; }
-    .desk-beneficio-icone { width: 36px; height: 36px; border-radius: 9px; flex-shrink: 0; background: rgba(236,72,153,0.12); border: 1px solid rgba(236,72,153,0.2); display: flex; align-items: center; justify-content: center; color: #EC4899; }
+    .desk-beneficio { display: flex; align-items: flex-start; gap: 14px; background: #191520; border: 1px solid #35293D; border-radius: 12px; padding: 16px 18px; }
+    .desk-beneficio-icone { width: 36px; height: 36px; border-radius: 9px; flex-shrink: 0; background: rgba(139,92,246,0.12); border: 1px solid rgba(139,92,246,0.2); display: flex; align-items: center; justify-content: center; color: #8B5CF6; }
     .desk-beneficio-titulo { font-size: 14px; font-weight: 700; color: #F8F4F7; margin-bottom: 3px; }
     .desk-beneficio-desc { font-size: 13px; color: #B8AAB8; line-height: 1.45; }
-    .card { background: radial-gradient(circle at top right,rgba(139,92,246,.08),transparent 35%),linear-gradient(180deg, rgba(16,20,30,0.98) 0%, rgba(10,12,18,0.98) 100%); border: 1px solid rgba(255,255,255,0.09); border-radius: 20px; padding: 24px 20px; box-shadow: 0 8px 40px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.03); }
+    .card { background: linear-gradient(155deg,#21182D,#15111B 70%); border: 1px solid #493854; border-radius: 24px; padding: 24px 20px; box-shadow: 0 18px 60px rgba(0,0,0,0.35); }
     @media (min-width: 900px) { .card { padding: 36px 32px; } }
     .card-titulo { font-size: 19px; font-weight: 800; color: #F8F4F7; letter-spacing: -0.02em; margin-bottom: 3px; }
     .card-sub { font-size: 13px; color: #B8AAB8; margin-bottom: 22px; }
@@ -302,17 +412,17 @@ export default function Cadastro() {
     .label { display: block; font-size: 11px; font-weight: 600; color: #B8AAB8; text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 7px; }
     .hint { font-size: 11px; color: #B8AAB8; margin-top: 5px; }
     .input { width: 100%; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; padding: 14px 16px; color: #F8F4F7; font-size: 16px; outline: none; transition: border-color 0.15s, box-shadow 0.15s; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; -webkit-appearance: none; }
-    .input:focus { border-color: rgba(236,72,153,0.5); box-shadow: 0 0 0 3px rgba(236,72,153,0.1); }
+    .input:focus { border-color: rgba(201,250,69,0.7); box-shadow:0 0 0 3px rgba(201,250,69,.10); }
     .input::placeholder { color: #B8AAB8; }
     .senha-wrap { position: relative; }
     .senha-wrap .input { padding-right: 48px; }
     .olho { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: #B8AAB8; display: flex; align-items: center; padding: 4px; -webkit-tap-highlight-color: transparent; }
     .olho:hover { color: #B8AAB8; }
-    .btn-criar { width: 100%; background: linear-gradient(135deg,#EC4899,#D946EF,#8B5CF6); color: #fff; font-size: 15px; font-weight: 700; padding: 15px; border: none; border-radius: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 20px rgba(236,72,153,0.35); transition: background 0.15s, box-shadow 0.15s, opacity 0.15s; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; -webkit-tap-highlight-color: transparent; margin-bottom: 14px; }
-    .btn-criar:hover { box-shadow: 0 4px 28px rgba(236,72,153,0.5); }
+    .btn-criar { width: 100%; background: #C9FA45; color: #151809; font-size: 15px; font-weight: 700; padding: 15px; border: none; border-radius: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 6px 20px rgba(149,82,245,0.15); transition: background 0.15s, box-shadow 0.15s, opacity 0.15s; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; -webkit-tap-highlight-color: transparent; margin-bottom: 14px; }
+    .btn-criar:hover { background:#D7FF70; box-shadow:0 6px 24px rgba(201,250,69,.18); }
     .btn-criar:disabled { opacity: 0.6; cursor: not-allowed; }
     .link-login { text-align: center; font-size: 13px; color: #B8AAB8; }
-    .link-login a { color: #EC4899; font-weight: 600; text-decoration: none; }
+    .link-login a { color: #8B5CF6; font-weight: 600; text-decoration: none; }
     .link-login a:hover { text-decoration: underline; }
     .msg-ok { background: rgba(34,197,94,0.08); border: 1px solid rgba(34,197,94,0.2); border-radius: 10px; padding: 11px 14px; font-size: 13px; color: #22C55E; margin-bottom: 14px; text-align: center; }
     .msg-err { background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.2); border-radius: 10px; padding: 11px 14px; font-size: 13px; color: #EF4444; margin-bottom: 14px; text-align: center; }
@@ -333,68 +443,72 @@ export default function Cadastro() {
       <div className="pg-body">
         <div className="col-esquerda">
           <div className="desk-logo-row">
-            <img src="/minipage-pro-icon.png" alt="MiniPage Pro" width={36} height={36} style={{borderRadius:'10px',objectFit:'contain',flexShrink:0}}/>
+            <img src="/brand/minipage-icone.svg" alt="MiniPage Pro" width={36} height={36} style={{borderRadius:'10px',objectFit:'contain',flexShrink:0}}/>
             <div style={{display:'flex',flexDirection:'column',lineHeight:1.15}}>
-              <span className="desk-logo-texto">MiniPage Pro</span>
-              <span style={{fontSize:'11px',fontWeight:600,color:'#B8AAB8',letterSpacing:'.02em'}}>MiniPage Pro</span>
+              <span className="desk-logo-texto">MiniPage <span style={{color:"#C9FA45"}}>Pro</span></span>
+              <span style={{fontSize:'11px',fontWeight:600,color:'#B8AAB8',letterSpacing:'.02em'}}>MiniPage <span style={{color:"#C9FA45"}}>Pro</span></span>
             </div>
           </div>
           <div>
             <h1 className="desk-hero-titulo">
-              Crie sua página profissional<br />com a <span>MiniPage Pro</span>
+              {tr('signup.hero')}<br />{idioma === 'pt-BR' ? 'com a' : idioma === 'en-US' ? 'with' : idioma === 'es-ES' ? 'con' : idioma === 'fr-FR' ? 'avec' : idioma === 'de-DE' ? 'mit' : 'con'} <span>MiniPage <span style={{color:"#C9FA45"}}>Pro</span></span>
             </h1>
             <p className="desk-hero-sub">
-              Seus links, conteúdos e serviços<br />
-              em uma página profissional.
+              {tr('signup.heroSub1')}<br />
+              {tr('signup.heroSub2')}
             </p>
           </div>
           <div className="desk-beneficios">
             {BENEFICIOS.map(b => (
-              <div key={b.titulo} className="desk-beneficio">
+              <div key={tr(b.titulo)} className="desk-beneficio">
                 <div className="desk-beneficio-icone">{b.icon}</div>
                 <div>
-                  <p className="desk-beneficio-titulo">{b.titulo}</p>
-                  <p className="desk-beneficio-desc">{b.desc}</p>
+                  <p className="desk-beneficio-titulo">{tr(b.titulo)}</p>
+                  <p className="desk-beneficio-desc">{tr(b.desc)}</p>
                 </div>
               </div>
             ))}
           </div>
         </div>
         <div className="logo-bloco">
-          <img src="/minipage-pro-icon.png" alt="MiniPage Pro" width={34} height={34} style={{borderRadius:'10px',objectFit:'contain',flexShrink:0}}/>
-          <span className="logo-texto">MiniPage Pro</span>
+          <img src="/brand/minipage-icone.svg" alt="MiniPage Pro" width={34} height={34} style={{borderRadius:'10px',objectFit:'contain',flexShrink:0}}/>
+          <span className="logo-texto">MiniPage <span style={{color:"#C9FA45"}}>Pro</span></span>
         </div>
         <div className="headline-bloco">
           <h1 className="headline-titulo">{ehPlanoFree(planoParaExibicao) ? t('plans.free') + ' — ' + t('nav.signup') : t('nav.signup')}</h1>
-          <p className="headline-sub">Configure sua Página de agendamento em poucos minutos.</p>
+          <p className="headline-sub">{textoGlobal.subtitulo}</p>
         </div>
         <div className="form-bloco">
           <div className="card">
             {fase === 'form' ? (
             <>
-            <p className="card-titulo">{ehPlanoFree(planoParaExibicao) ? 'Criar conta grátis' : 'Criar conta'}</p>
-            <p className="card-sub">É rápido, fácil e sem compromisso.</p>
+            <p className="card-titulo">{ehPlanoFree(planoParaExibicao) ? tr('login.free') : tr('signup.create')}</p>
+            <p className="card-sub">{textoGlobal.card}</p>
+            {ehPlanoFree(planoParaExibicao) && <p style={{fontSize:"12px",color:"#C9FA45",marginBottom:"12px"}}>{consentimento.aviso}</p>}
+            {slugDesejado && <p role="status" style={{padding:'11px 13px',border:'1px solid #55426A',borderRadius:'10px',background:'#21182D',color:'#F5F2FF',fontSize:'13px',marginBottom:'13px',overflowWrap:'anywhere'}}>{textoGlobal.endereco}: <strong style={{color:'#C9FA45'}}>minipage.pro/{slugDesejado}</strong><br/><span style={{fontSize:'11px',color:'#B9B0C9'}}>{textoGlobal.slugAviso}</span></p>}
             <div className="campos">
-              <div>
-                <label className="label">Seu nome</label>
+              {!ehPlanoFree(planoParaExibicao) && <div>
+                <label className="label">{tr('signup.yourName')}</label>
                 <input type="text" placeholder="Ex: Ana Carolina" value={nomeUsuario} onChange={e => setNomeUsuario(e.target.value)} className="input" />
-              </div>
+              </div>}
               <div>
-                <label className="label">E-mail</label>
+                <label className="label">{t('account.email')}</label>
                 <input type="email" placeholder="ana@email.com" value={email} onChange={e => setEmail(e.target.value)} className="input" />
               </div>
+              {!ehPlanoFree(planoParaExibicao) && (<>
               <div>
-                <label className="label">WhatsApp</label>
-                <input type="tel" inputMode="tel" autoComplete="tel-national" placeholder="(11) 99999-9999" value={whatsapp} onChange={e => setWhatsapp(aplicarMascaraWhatsapp(e.target.value))} onBlur={() => setWhatsappTocado(true)} className="input" />
-                {whatsappTocado && !normalizarWhatsappBR(whatsapp) && (
-                  <p style={{fontSize:'11px',color:'#EF4444',marginTop:'5px'}}>Informe um celular com DDD, por exemplo (11) 99999-9999.</p>
+                <label className="label" htmlFor="cadastro-telefone-global">{textoGlobal.telefone}</label>
+                <input id="cadastro-telefone-global" type="tel" inputMode="tel" autoComplete="tel" placeholder="+55 11 99999 9999" value={whatsapp} onChange={e => setWhatsapp(e.target.value)} onBlur={() => setWhatsappTocado(true)} className="input" aria-invalid={whatsappTocado && !normalizarTelefoneCadastro(whatsapp)} aria-describedby="cadastro-telefone-ajuda" />
+                {whatsappTocado && !normalizarTelefoneCadastro(whatsapp) && (
+                  <p role="alert" style={{fontSize:'11px',color:'#FF9A9A',marginTop:'5px'}}>{textoGlobal.telefoneErro}</p>
                 )}
-                <p style={{fontSize:'11px',color:'#B8AAB8',marginTop:'5px'}}>{TEXTO_FINALIDADE_WHATSAPP}</p>
+                <p id="cadastro-telefone-ajuda" style={{fontSize:'11px',color:'#B9B0C9',marginTop:'5px'}}>{textoGlobal.telefoneAjuda}</p>
               </div>
+              </>)}
               <div>
-                <label className="label">Senha</label>
+                <label className="label">{t('account.password')}</label>
                 <div className="senha-wrap">
-                  <input type={mostrarSenha ? 'text' : 'password'} placeholder="Mínimo 6 caracteres" value={senha} onChange={e => setSenha(e.target.value)} className="input" />
+                  <input type={mostrarSenha ? 'text' : 'password'} placeholder={tr('signup.passwordMin')} value={senha} onChange={e => setSenha(e.target.value)} className="input" />
                   <button className="olho" type="button" onClick={() => setMostrarSenha(!mostrarSenha)}>
                     {mostrarSenha ? <EyeOffIcon /> : <EyeIcon />}
                   </button>
@@ -406,8 +520,10 @@ export default function Cadastro() {
                 {mensagem}
               </div>
             )}
+            {(cupom && cupomStatus === 'ok') || mostrarCupom ? (
+              <div>
             <div style={{marginBottom:'16px'}}>
-              <label style={{display:'block',fontSize:'11px',fontWeight:700,color:'#B8AAB8',textTransform:'uppercase' as const,letterSpacing:'.08em',marginBottom:'7px'}}>Cupom de indicação</label>
+              <label style={{display:'block',fontSize:'11px',fontWeight:700,color:'#B8AAB8',textTransform:'uppercase' as const,letterSpacing:'.08em',marginBottom:'7px'}}>{tr('signup.coupon')}</label>
               <input type="text" placeholder="Ex: ANNA10" value={cupom}
                 onChange={e => { setCupom(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g,'')); setCupomStatus('idle') }}
                 onBlur={() => validarCupom(cupom)}
@@ -416,20 +532,31 @@ export default function Cadastro() {
               {cupomStatus==='erro'&&<p style={{fontSize:'11px',color:'#EF4444',marginTop:'5px'}}>Cupom não encontrado. Você pode continuar sem cupom.</p>}
               {cupomStatus==='idle'&&<p style={{fontSize:'11px',color:'#B8AAB8',marginTop:'5px'}}>Se recebeu um cupom de um parceiro, informe aqui. Campo opcional.</p>}
             </div>
-            <div style={{marginBottom:'14px',display:'flex',alignItems:'flex-start',gap:'10px'}}><input type="checkbox" id="aceite" checked={aceitou} onChange={e=>setAceitou(e.target.checked)} style={{marginTop:'2px',accentColor:'#EC4899',width:'15px',height:'15px',flexShrink:0,cursor:'pointer'}} /><label htmlFor="aceite" style={{fontSize:'12px',color:'#B8AAB8',lineHeight:1.5,cursor:'pointer'}}>Li e aceito os <a href="/contrato-de-adesao" target="_blank" rel="noreferrer" onClick={()=>{if(cupom&&typeof window!=='undefined')localStorage.setItem('cm_cupom',cupom)}} style={{color:'#EC4899',textDecoration:'none',fontWeight:600}}>termos de uso e contrato de adesão</a> do MiniPage Pro.</label></div>
+              </div>
+            ) : (
+              <button type="button" onClick={() => setMostrarCupom(true)} style={{display:'block',background:'transparent',border:0,color:'#D5CBE2',textDecoration:'underline',marginBottom:'13px',cursor:'pointer',fontSize:'12px'}}>{tr('signup.coupon')} +</button>
+            )}
+            <div style={{marginBottom:'14px',display:'flex',alignItems:'flex-start',gap:'10px'}}><input type="checkbox" id="aceite" checked={aceitou} onChange={e=>setAceitou(e.target.checked)} style={{marginTop:'2px',accentColor:'#8B5CF6',width:'15px',height:'15px',flexShrink:0,cursor:'pointer'}} /><label htmlFor="aceite" style={{fontSize:'12px',color:'#B8AAB8',lineHeight:1.5,cursor:'pointer'}}>{consentimento.inicio} <a href="/contrato-de-adesao" target="_blank" rel="noreferrer" onClick={()=>{if(cupom&&typeof window!=='undefined')localStorage.setItem('cm_cupom',cupom)}} style={{color:'#8B5CF6',textDecoration:'none',fontWeight:600}}>{idioma === 'en-US' ? 'terms of use and agreement' : idioma === 'es-ES' ? 'términos de uso y acuerdo' : idioma === 'fr-FR' ? 'conditions d’utilisation et contrat' : idioma === 'de-DE' ? 'Nutzungsbedingungen und Vereinbarung' : idioma === 'it-IT' ? 'termini di utilizzo e contratto' : 'termos de uso e contrato de adesão'}</a> {consentimento.fim}</label></div>
             <input type="text" name="website" value={site} onChange={e => setSite(e.target.value)} tabIndex={-1} autoComplete="off" aria-hidden="true" style={{ position: 'absolute', left: '-9999px', width: '1px', height: '1px', opacity: 0 }} />
             <button onClick={handleCadastro} disabled={loading} className="btn-criar">
-              {loading ? 'Criando conta...' : (
+              {loading ? tr('signup.creating') : (
                 <>
-                  Criar minha conta
+                  {tr('signup.createMine')}
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                     <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
                   </svg>
                 </>
               )}
             </button>
+            {ehPlanoFree(planoParaExibicao) && <div style={{margin:'16px 0',textAlign:'center'}}>
+              <div style={{color:'#B9B0C9',fontSize:12,marginBottom:12}}>{oauthText.or}</div>
+              <div style={{display:'grid',gap:9}}>
+                <button type="button" disabled={!!oauthLoading||loading} onClick={()=>iniciarOAuth('google')} style={{background:'#201928',color:'#F9F6FD',border:'1px solid #55465D',padding:13,borderRadius:12,fontWeight:650,cursor:'pointer'}}>{oauthLoading==='google'?'…':oauthText.google}</button>
+                <button type="button" disabled={!!oauthLoading||loading} onClick={()=>iniciarOAuth('apple')} style={{background:'#201928',color:'#F9F6FD',border:'1px solid #55465D',padding:13,borderRadius:12,fontWeight:650,cursor:'pointer'}}>{oauthLoading==='apple'?'…':oauthText.apple}</button>
+              </div>
+            </div>}
             <p className="link-login">
-              Já tem conta? <Link href="/login">Entrar</Link>
+              {tr('signup.hasAccount')} <Link href="/login">{t('nav.login')}</Link>
             </p>
             </>
             ) : (
@@ -437,23 +564,23 @@ export default function Cadastro() {
               {duplicado ? (
               <>
                 <div className="confirmar-icone">
-                  <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#EC4899" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#8B5CF6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
                   </svg>
                 </div>
-                <p className="card-titulo" style={{textAlign:'center'}}>Este e-mail já possui uma conta</p>
-                <p className="card-sub" style={{textAlign:'center'}}>Entre para continuar com:</p>
+                <p className="card-titulo" style={{textAlign:'center'}}>{tr('signup.alreadyEmail')}</p>
+                <p className="card-sub" style={{textAlign:'center'}}>{tr('signup.enterToContinue')}</p>
                 <p className="confirmar-email" style={{textAlign:'center',marginBottom:'18px'}}>{emailCadastrado}</p>
                 {reenvioMsg && (
                   <div className={reenvioMsg.startsWith('Não') ? 'msg-err' : 'msg-ok'}>{reenvioMsg}</div>
                 )}
                 <div className="confirmar-botoes">
-                  <Link href="/login" className="btn-criar" style={{textAlign:'center',textDecoration:'none'}}>Entrar</Link>
+                  <Link href="/login" className="btn-criar" style={{textAlign:'center',textDecoration:'none'}}>{t('nav.login')}</Link>
                   <button type="button" onClick={esqueciSenhaDuplicado} disabled={reenviando} className="btn-secundario">
-                    {reenviando ? 'Enviando...' : 'Esqueci minha senha'}
+                    {reenviando ? tr('login.sending') : tr('login.forgot')}
                   </button>
                   <button type="button" className="btn-secundario" onClick={() => { setFase('form'); setMensagem(''); setDuplicado(false); setReenvioMsg('') }}>
-                    Digitou o e-mail errado? Voltar para cadastro
+                    {tr('signup.wrongEmail')}
                   </button>
                 </div>
               </>
@@ -466,19 +593,19 @@ export default function Cadastro() {
                 </svg>
               </div>
               <p className="card-titulo" style={{textAlign:'center'}}>
-                {duplicado ? 'Esse e-mail já tem cadastro' : 'Conta criada com sucesso!'}
+                {duplicado ? tr('signup.alreadyEmail') : tr('signup.success')}
               </p>
               <p className="card-sub" style={{textAlign:'center'}}>
                 {duplicado
-                  ? 'Enviamos (ou reenviamos) o e-mail de confirmação para:'
-                  : 'Enviamos um e-mail de confirmação para:'}
+                  ? tr('signup.confirmEmailAgain')
+                  : tr('signup.confirmEmail')}
               </p>
               <p className="confirmar-email" style={{textAlign:'center',marginBottom:'18px'}}>{emailCadastrado}</p>
               <p style={{fontSize:'13px',color:'#B8AAB8',lineHeight:1.6,textAlign:'center',marginBottom:'6px'}}>
-                Verifique sua caixa de entrada, spam, promoções ou lixo eletrônico.
+                {tr('signup.checkInbox')}
               </p>
               <p style={{fontSize:'13px',color:'#B8AAB8',lineHeight:1.6,textAlign:'center',marginBottom:'18px'}}>
-                Procure por <strong style={{color:'#F8F4F7'}}>MiniPage Pro</strong> ou <strong style={{color:'#F8F4F7'}}>noreply</strong>.
+                {tr('signup.searchEmail')} <strong style={{color:'#F8F4F7'}}>MiniPage Pro</strong> {tr('signup.or')} <strong style={{color:'#F8F4F7'}}>noreply</strong>.
               </p>
               {reenvioMsg && (
                 <div className={reenvioMsg.startsWith('Não') || reenvioMsg.startsWith('Por segurança') || reenvioMsg.startsWith('Confira') ? 'msg-err' : 'msg-ok'}>
@@ -487,17 +614,17 @@ export default function Cadastro() {
               )}
               <div className="confirmar-botoes">
                 <button onClick={reenviarConfirmacao} disabled={reenviando} className="btn-criar">
-                  {reenviando ? 'Reenviando...' : 'Reenviar e-mail de confirmação'}
+                  {reenviando ? tr('signup.resending') : tr('signup.resend')}
                 </button>
-                <Link href="/login" className="btn-secundario">Ir para login</Link>
+                <Link href="/login" className="btn-secundario">{tr('signup.toLogin')}</Link>
                 <button type="button" className="btn-secundario" onClick={() => { setFase('form'); setMensagem(''); setDuplicado(false) }}>
-                  Digitou o e-mail errado? Voltar para cadastro
+                  {tr('signup.wrongEmail')}
                 </button>
                 <a
                   href={`https://wa.me/5511941059063?text=${encodeURIComponent('Olá! Fiz meu cadastro no MiniPage Pro, mas não recebi o e-mail de confirmação.')}`}
                   target="_blank" rel="noreferrer" className="btn-whatsapp"
                 >
-                  Falar com o suporte
+                  {tr('signup.support')}
                 </a>
               </div>
               </>
@@ -508,9 +635,9 @@ export default function Cadastro() {
         </div>
         <div className="beneficios-mobile">
           {BENEFICIOS.map(b => (
-            <div key={b.titulo} className="beneficio-mobile-item">
+            <div key={tr(b.titulo)} className="beneficio-mobile-item">
               <div className="beneficio-mobile-icone">{b.icon}</div>
-              <span className="beneficio-mobile-titulo">{b.titulo}</span>
+              <span className="beneficio-mobile-titulo">{tr(b.titulo)}</span>
             </div>
           ))}
         </div>
@@ -519,7 +646,7 @@ export default function Cadastro() {
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#B8AAB8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
         </svg>
-        Seus dados estão protegidos com segurança de nível empresarial.
+        {tr('signup.secure')}
       </div>
     </div>
   )

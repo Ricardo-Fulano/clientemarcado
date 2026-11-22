@@ -15,6 +15,10 @@ export function IdiomaProviderGlobal({ children, idiomaInicial = IDIOMA_PADRAO }
       if (salvo) setIdioma(normalizarIdioma(salvo))
     } catch { /* navegacao privada: preferencia fica nesta visita */ }
   }, [])
+  useEffect(() => {
+    // Mantem o idioma semantico do documento alinhado ao seletor manual.
+    document.documentElement.lang = idioma
+  }, [idioma])
   const definirIdioma = useCallback((proximo: Idioma) => {
     const valido = normalizarIdioma(proximo)
     setIdioma(valido)

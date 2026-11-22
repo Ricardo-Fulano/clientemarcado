@@ -2,20 +2,46 @@
 import { IDIOMAS, NOMES_IDIOMAS } from '../lib/i18n-global/idiomas'
 import { useIdiomaGlobal } from './IdiomaProviderGlobal'
 
-/** Seletor pronto para integrar na landing, painel ou configuracoes. Nao altera moedas nem URLs. */
-export default function SeletorIdiomaGlobal({ compacto = false }: { compacto?: boolean }) {
+/** Seletor de idioma com contraste legivel tambem na lista nativa do Windows. */
+export default function SeletorIdiomaGlobal({ compacto = false, abreviadoMobile = false }: { compacto?: boolean; abreviadoMobile?: boolean }) {
   const { idioma, definirIdioma, t } = useIdiomaGlobal()
-  return (
+
+  const seletor = (reduzido: boolean) => (
     <label style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
       {!compacto && <span>{t('account.language')}</span>}
       <select
         aria-label={t('account.language')}
         value={idioma}
         onChange={(evento) => definirIdioma(evento.target.value as typeof idioma)}
-        style={{ padding: '8px 10px', borderRadius: 8, maxWidth: '100%' }}
+        style={{
+          padding: '8px 10px',
+          borderRadius: 8,
+          maxWidth: '100%',
+          backgroundColor: '#1d1527',
+          color: '#ffffff',
+          border: '1px solid #6c597c',
+          colorScheme: 'dark',
+          cursor: 'pointer',
+        }}
       >
-        {IDIOMAS.map((opcao) => <option key={opcao} value={opcao}>{NOMES_IDIOMAS[opcao]}</option>)}
+        {IDIOMAS.map((opcao) => (
+          <option
+            key={opcao}
+            value={opcao}
+            style={{ backgroundColor: '#1d1527', color: '#ffffff' }}
+          >
+            {reduzido ? opcao.toUpperCase() : NOMES_IDIOMAS[opcao]}
+          </option>
+        ))}
       </select>
     </label>
+  )
+  if (!abreviadoMobile) return seletor(false)
+  return (
+    <>
+      <style>{`@media(max-width:640px){.mp-lang-full{display:none!important}.mp-lang-short{display:block!important}}`}</style>
+      <span className="mp-lang-full">{seletor(false)}</span>
+      <span className="mp-lang-short" style={{display:'none'}}>{seletor(true)}</span>
+    </>
   )
 }

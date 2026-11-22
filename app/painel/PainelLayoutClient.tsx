@@ -7,7 +7,7 @@ import { garantirPerfilNoServidor } from '../lib/garantir-perfil-cliente'
 import { Suspense } from 'react'
 import BannerPagamentoSucesso from '../components/BannerPagamentoSucesso'
 import BloqueioPorPlano from '../components/BloqueioPorPlano'
-import { normalizarPlano, ehPlanoComGestao, podeUsarProfissionais, ehPlanoFree, ehAguardandoPagamento, statusPermiteAcessoCompleto, statusPrecisaFinalizarCheckout, obterNomePlano, obterPrecoPlanoPorCiclo, normalizarBillingCycle, bloqueioPorRotaDoPainel } from '../lib/planos'
+import { normalizarPlano, ehPlanoComGestao, permiteAgenda, podeUsarProfissionais, ehPlanoFree, ehAguardandoPagamento, statusPermiteAcessoCompleto, statusPrecisaFinalizarCheckout, obterNomePlano, obterPrecoPlanoPorCiclo, normalizarBillingCycle, bloqueioPorRotaDoPainel } from '../lib/planos'
 
 const G = 'linear-gradient(135deg,#3B82F6,#7C3AED)'
 // Nomes amigaveis pra mensagem de erro refletir o plano real da pessoa (antes ficava fixo
@@ -187,11 +187,16 @@ export default function PainelLayoutClient({ children }: { children: React.React
   // planos com gestao completa (Pro/Equipe) ou exclusivamente pro plano Equipe. Sempre via
   // funcoes centralizadas de app/lib/planos.ts - nunca comparacao solta tipo plano==='x'.
   const planoAtual = normalizarPlano(planoTipo)
-  const ROTAS_GESTAO = ['/painel/agendamentos', '/painel/clientes', '/painel/orcamentos', '/painel/cobrancas', '/painel/financeiro', '/painel/servicos', '/painel/relatorio', '/painel/perfil/agenda']
+  // Agenda, Loja e Pro podem operar horarios/servicos. Financeiro e gestao administrativa
+  // continuam exclusivos de Pro/Equipe. Nao ampliar podeUsarProfissionais aqui:
+  // cadastros e logins de equipe exigem verificacao separada dos limites e da RLS.
+  const ROTAS_AGENDA = ['/painel/agendamentos', '/painel/servicos', '/painel/perfil/agenda']
+  const ROTAS_GESTAO = ['/painel/clientes', '/painel/orcamentos', '/painel/cobrancas', '/painel/financeiro', '/painel/relatorio']
   const ROTAS_PROFISSIONAIS = ['/painel/profissionais']
+  const precisaAgenda = ROTAS_AGENDA.some(r => pathname === r || pathname.startsWith(r + '/'))
   const precisaGestao = ROTAS_GESTAO.some(r => pathname === r || pathname.startsWith(r + '/'))
   const precisaProfissionais = ROTAS_PROFISSIONAIS.some(r => pathname === r || pathname.startsWith(r + '/'))
-  const bloqueadoPorPlano = (precisaGestao && !ehPlanoComGestao(planoAtual)) || (precisaProfissionais && !podeUsarProfissionais(planoAtual))
+  const bloqueadoPorPlano = (precisaAgenda && !permiteAgenda(planoAtual)) || (precisaGestao && !ehPlanoComGestao(planoAtual)) || (precisaProfissionais && !podeUsarProfissionais(planoAtual))
   // Rotas dos modulos da pagina (albuns, cards, Spotify, destaques, videos, eventos, catalogo): barra a URL direta conforme o plano
   const bloqueioModulo = bloqueioPorRotaDoPainel(pathname, planoAtual)
 
@@ -304,8 +309,8 @@ export default function PainelLayoutClient({ children }: { children: React.React
   if (bloqueadoPorPlano) return (
     <BloqueioPorPlano
       permitido={false}
-      titulo="Recurso disponível no MiniPage Pro"
-      descricao="Este recurso faz parte dos planos com gestão completa. Faça upgrade para usar agenda, clientes, cobranças, financeiro e relatórios."
+      titulo={precisaAgenda ? 'Recurso disponível no MiniPage Agenda' : 'Recurso disponível no MiniPage Pro'}
+      descricao={precisaAgenda ? 'Agendamentos e serviços estão incluídos nos planos Agenda, Loja e Pro.' : 'Gestão administrativa, cobranças e financeiro são recursos do MiniPage Pro.'}
     >
       {null}
     </BloqueioPorPlano>

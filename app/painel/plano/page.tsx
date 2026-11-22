@@ -38,6 +38,7 @@ const PLANOS: Record<PlanoTipo, { desc: string; beneficios: string[]; icone: any
     desc: 'Página profissional com links, destaques, vídeos e agenda/eventos.',
     icone: CreditCard,
     beneficios: [
+      'Tudo do Free',
       'Banner com vídeo',
       'Links rápidos ilimitados',
       'Destaques da página',
@@ -52,7 +53,8 @@ const PLANOS: Record<PlanoTipo, { desc: string; beneficios: string[]; icone: any
     desc: 'Pagina profissional com agenda para atendimentos e agendamentos.',
     icone: CreditCard,
     beneficios: [
-      'Pagina profissional',
+      'Tudo do MiniPage',
+      'Página profissional',
       'Links e destaques',
       'Videos e eventos',
       'Agenda de atendimentos',
@@ -60,9 +62,11 @@ const PLANOS: Record<PlanoTipo, { desc: string; beneficios: string[]; icone: any
     ],
   },
   loja: {
-    desc: 'Vitrine para produtos, achadinhos, músicas, cursos, divulgações e vendas.',
+    desc: 'Tudo do Agenda, incluindo agendamentos online, mais catálogo, produtos, cursos e vendas.',
     icone: Store,
     beneficios: [
+      'Tudo do Agenda, com agendamento online',
+      'Cadastro de 1 responsável',
       'Banner com vídeo',
       'Links rápidos ilimitados',
       'Destaques ilimitados',
@@ -78,9 +82,10 @@ const PLANOS: Record<PlanoTipo, { desc: string; beneficios: string[]; icone: any
     ],
   },
   essencial: {
-    desc: 'MiniPage completa com loja, agenda, clientes e gestão.',
+    desc: 'Tudo do Loja, com agendamentos, clientes, financeiro, cobranças e gestão.',
     icone: CheckCircle2,
     beneficios: [
+      'Tudo do Loja, com agenda, catálogo e vendas',
       'Banner com vídeo',
       'Links rápidos ilimitados',
       'Destaques ilimitados',
@@ -158,6 +163,12 @@ export default function MeuPlano() {
   const [perfil, setPerfil] = useState<any>(null)
   const [totalProfissionais, setTotalProfissionais] = useState(0)
   const [avisoDowngrade, setAvisoDowngrade] = useState('')
+  const [planoConsultado, setPlanoConsultado] = useState<PlanoTipo | null>(null)
+
+  useEffect(() => {
+    const valor = new URLSearchParams(window.location.search).get('interesse')
+    if (valor && ['free','minipage','agenda','loja','essencial'].includes(valor)) setPlanoConsultado(valor as PlanoTipo)
+  }, [])
 
   useEffect(() => {
     async function carregar() {
@@ -305,16 +316,17 @@ export default function MeuPlano() {
               {/* LISTA COMPACTA DOS OUTROS PLANOS */}
               <p style={{ fontSize: '15px', fontWeight: 700, color: '#F8F4F7', marginBottom: '14px' }}>Todos os planos</p>
               <div className="mp-grid" style={{ marginBottom: '28px' }}>
-                {ORDEM_PLANOS.map(tipo => {
+                {ORDEM_PLANOS.filter(tipo => tipo !== 'equipe' || tipo === planoAtual).map(tipo => {
                   const p = PLANOS[tipo]
                   const Icone = p.icone
                   const ehAtual = tipo === planoAtual
                   return (
-                    <div key={tipo} className={`mp-card${ehAtual ? ' atual' : ''}`} style={{ padding: '22px 20px', display: 'flex', flexDirection: 'column' }}>
+                    <div key={tipo} className={`mp-card${ehAtual ? ' atual' : ''}`} style={{ padding: '22px 20px', display: 'flex', flexDirection: 'column', border: tipo===planoConsultado && !ehAtual ? '2px solid #C9FA45' : undefined }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
                         <Icone size={16} color="#B8AAB8" />
                         <p style={{ fontSize: '15px', fontWeight: 800, color: '#F8F4F7', flex: 1 }}>{obterNomePlano(tipo)}</p>
                       </div>
+                      {tipo===planoConsultado && !ehAtual && <span style={{fontSize:11,fontWeight:800,color:'#C9FA45',marginBottom:8}}>Plano que você selecionou no onboarding — consulte as condições antes de contratar</span>}
                       {ehAtual && <span style={{ fontSize: '11px', fontWeight: 700, color: '#EC4899', background: 'rgba(236,72,153,.12)', border: '1px solid rgba(236,72,153,.30)', borderRadius: '999px', padding: '4px 10px', alignSelf: 'flex-start', marginBottom: '10px' }}>Plano atual</span>}
                       <p style={{ fontSize: '20px', fontWeight: 900, color: '#F8F4F7', marginBottom: '4px' }}>{formatarPreco(tipo)}{!ehPlanoFree(tipo) && <span style={{ fontSize: '12px', fontWeight: 500, color: '#B8AAB8' }}>/mês</span>}</p>
                       <p style={{ fontSize: '12px', color: '#B8AAB8', lineHeight: 1.5, marginBottom: '14px' }}>{p.desc}</p>
@@ -349,7 +361,7 @@ export default function MeuPlano() {
               {ehPlanoFree(planoAtual) && (
                 <div className="mp-card" style={{ padding: '26px 24px' }}>
                   <p style={{ fontSize: '16px', fontWeight: 800, color: '#F8F4F7', marginBottom: '8px' }}>Pronto para ir além do básico?</p>
-                  <p style={{ fontSize: '13px', color: '#B8AAB8', lineHeight: 1.65, marginBottom: '18px' }}>Com o Plano MiniPage, você libera links ilimitados, destaques, vídeos, agenda/eventos e catálogo.</p>
+                  <p style={{ fontSize: '13px', color: '#B8AAB8', lineHeight: 1.65, marginBottom: '18px' }}>Com o MiniPage, você libera banner, links ilimitados, destaques, vídeos e personalização. Catálogos e vendas começam no Loja, que também inclui agendamentos.</p>
                   <a href={linkWpp('Olá! Quero fazer upgrade do meu plano do MiniPage Pro para o Plano MiniPage.')} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: G, color: '#fff', border: '1px solid rgba(255,255,255,.12)', borderRadius: '12px', padding: '12px 22px', fontSize: '13px', fontWeight: 700, textDecoration: 'none' }}>
                     <Sparkles size={15} /> Fazer upgrade para MiniPage
                   </a>

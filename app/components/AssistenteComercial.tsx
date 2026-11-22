@@ -81,18 +81,20 @@ export default function AssistenteComercial({ checkoutUrl = '/cadastro' }: Props
 
   return (
     <>
+      <style>{`/* mp-support-mobile */ @media(max-width:480px){.mp-support-fab{bottom:12px!important;right:12px!important;padding:9px 12px!important;font-size:12px!important;gap:6px!important}}`}</style>
       {/* Botão flutuante */}
       {!aberto && (
         <button
+          className="mp-support-fab"
           onClick={() => setAberto(true)}
           style={{
             position: 'fixed', bottom: 24, right: 24, zIndex: 9000,
             display: 'flex', alignItems: 'center', gap: 8,
-            background: 'linear-gradient(135deg,#EC4899,#8B5CF6)',
-            color: '#fff', border: '1px solid rgba(255,255,255,.12)',
+            background: '#C9FA45',
+            color: '#15180D', border: '1px solid rgba(255,255,255,.12)',
             borderRadius: 999, padding: '12px 20px', fontSize: 14, fontWeight: 700,
             cursor: 'pointer', fontFamily: 'inherit',
-            boxShadow: '0 8px 32px rgba(236,72,153,.35)',
+            boxShadow: '0 8px 32px rgba(0,0,0,.28)',
             transition: 'transform .18s',
           }}
           onMouseEnter={e => (e.currentTarget.style.transform = 'translateY(-2px)')}
@@ -118,12 +120,12 @@ export default function AssistenteComercial({ checkoutUrl = '/cadastro' }: Props
           {/* Header */}
           <div style={{
             padding: '18px 20px 14px',
-            background: 'linear-gradient(135deg,rgba(236,72,153,.15),rgba(139,92,246,.12))',
+            background: '#21182D',
             borderBottom: '1px solid #2A1A2F',
             display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0,
           }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <div style={{ width: 36, height: 36, borderRadius: 10, background: 'linear-gradient(135deg,#EC4899,#8B5CF6)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 16px rgba(139,92,246,.4)' }}>
+              <div style={{ width: 36, height: 36, borderRadius: 10, background: '#C9FA45', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 16px rgba(139,92,246,.4)' }}>
                 <MessageCircle size={16} color="#fff" />
               </div>
               <div>
@@ -138,7 +140,7 @@ export default function AssistenteComercial({ checkoutUrl = '/cadastro' }: Props
 
           {/* Corpo */}
           <div style={{ flex: 1, overflowY: 'auto', padding: '16px 16px 12px' }}>
-            <div style={{ background: 'rgba(236,72,153,.10)', border: '1px solid rgba(236,72,153,.20)', borderRadius: 14, padding: '12px 14px', marginBottom: 14 }}>
+            <div style={{ background: 'rgba(201,250,69,.055)', border: '1px solid rgba(201,250,69,.20)', borderRadius: 14, padding: '12px 14px', marginBottom: 14 }}>
               <p style={{ fontSize: 13, color: '#B8AAB8', lineHeight: 1.6, margin: 0 }}>
                 Olá! Posso te ajudar a entender qual plano MiniPage Pro atende ao seu negócio, quais recursos estão incluídos e como começar.
               </p>
@@ -159,10 +161,10 @@ export default function AssistenteComercial({ checkoutUrl = '/cadastro' }: Props
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
               {BOTOES_RAPIDOS.map(b => (
                 <button key={b.id} onClick={() => responder(b.id)} style={{
-                  background: perguntaAtiva === b.id ? 'rgba(236,72,153,.16)' : 'rgba(24,16,27,.72)',
-                  border: `1px solid ${perguntaAtiva === b.id ? 'rgba(236,72,153,.40)' : '#2A1A2F'}`,
+                  background: perguntaAtiva === b.id ? 'rgba(201,250,69,.12)' : 'rgba(24,16,27,.72)',
+                  border: `1px solid ${perguntaAtiva === b.id ? 'rgba(201,250,69,.45)' : '#2A1A2F'}`,
                   borderRadius: 10, padding: '9px 12px', fontSize: 13,
-                  color: perguntaAtiva === b.id ? '#F9A8D4' : '#B8AAB8',
+                  color: perguntaAtiva === b.id ? '#C9FA45' : '#B8AAB8',
                   cursor: 'pointer', textAlign: 'left', fontFamily: 'inherit',
                   display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                   fontWeight: perguntaAtiva === b.id ? 700 : 400, transition: 'all .15s',
@@ -185,12 +187,12 @@ export default function AssistenteComercial({ checkoutUrl = '/cadastro' }: Props
                 placeholder="Digite sua dúvida..."
                 style={{ flex: 1, background: 'rgba(24,16,27,.88)', border: '1px solid #2A1A2F', borderRadius: 10, padding: '9px 12px', fontSize: 13, color: '#F8F4F7', outline: 'none', fontFamily: 'inherit' }}
               />
-              <button onClick={enviarInput} style={{ background: 'linear-gradient(135deg,#EC4899,#8B5CF6)', border: 'none', borderRadius: 10, padding: '0 14px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <Send size={15} color="#fff" />
+              <button onClick={enviarInput} style={{ background: '#C9FA45', border: 'none', borderRadius: 10, padding: '0 14px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <Send size={15} color="#15180D" />
               </button>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-              <a href={checkoutUrl} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(135deg,#EC4899,#8B5CF6)', color: '#fff', borderRadius: 10, padding: '9px 8px', fontSize: 12, fontWeight: 800, textDecoration: 'none', boxShadow: '0 4px 16px rgba(236,72,153,.28)' }}>
+              <a href={checkoutUrl} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#C9FA45', color: '#15180D', borderRadius: 10, padding: '9px 8px', fontSize: 12, fontWeight: 800, textDecoration: 'none', boxShadow: '0 4px 16px rgba(0,0,0,.20)' }}>
                 Começar grátis →
               </a>
               <a href={linkWpp} target="_blank" rel="noreferrer" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5, background: 'rgba(34,197,94,.12)', border: '1px solid rgba(34,197,94,.25)', color: '#4ADE80', borderRadius: 10, padding: '9px 8px', fontSize: 12, fontWeight: 700, textDecoration: 'none' }}>

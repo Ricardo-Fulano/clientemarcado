@@ -3,9 +3,10 @@ import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import Link from 'next/link'
 import PainelSidebar from '@/app/components/PainelSidebar'
+import CompletarMiniPageCard from './CompletarMiniPageCard'
 import { ehPlanoComGestao, obterNomePlano, obterLimiteCatalogos, permiteEquipe } from '../lib/planos'
 
-const G='linear-gradient(135deg,#2563EB,#3B4FD4)'
+const G='#8B5CF6'
 const AV='linear-gradient(135deg,rgba(37,99,235,.97),rgba(67,56,202,.85))'
 
 // Ícones SVG inline profissionais
@@ -25,18 +26,18 @@ const CSS=`
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html,body{overflow-x:hidden;width:100%;max-width:100%;background:#08060A}
 input,select,textarea{color-scheme:dark}
-.pg{background:radial-gradient(circle at top left,rgba(139,92,246,.18),transparent 32%),linear-gradient(135deg,#08060A 0%,#120A14 45%,#08060A 100%);min-height:100vh}
+.pg{background:radial-gradient(circle at top left,rgba(139,92,246,.18),transparent 32%),linear-gradient(135deg,#08070D 0%,#120D1B 45%,#08070D 100%);min-height:100vh}
 .bdy{max-width:1200px;margin:0 auto;padding:28px 32px 80px;width:100%}
 .crd{background:radial-gradient(circle at top left,rgba(139,92,246,.10),transparent 38%),linear-gradient(145deg,rgba(24,16,27,.97),rgba(18,10,20,.99));border:1.5px solid #2A1A2F;border-radius:18px}
-.btn-p{background:linear-gradient(135deg,#EC4899,#D946EF,#8B5CF6);color:#fff;border:1px solid rgba(255,255,255,.12);border-radius:14px;height:46px;padding:0 20px;font-size:13px;font-weight:700;display:inline-flex;align-items:center;gap:6px;white-space:nowrap;transition:all .18s;font-family:inherit;cursor:pointer;text-decoration:none;box-shadow:0 8px 24px rgba(236,72,153,.35)}
+.btn-p{background:#C9FA45;color:#15180D;border:1px solid rgba(255,255,255,.12);border-radius:14px;height:46px;padding:0 20px;font-size:13px;font-weight:700;display:inline-flex;align-items:center;gap:6px;white-space:nowrap;transition:all .18s;font-family:inherit;cursor:pointer;text-decoration:none;box-shadow:0 8px 24px rgba(139,92,246,.35)}
 .btn-s{background:rgba(24,16,27,.88);color:#B8AAB8;border:1px solid #2A1A2F;border-radius:12px;height:44px;padding:0 16px;font-size:13px;font-weight:600;display:inline-flex;align-items:center;gap:6px;white-space:nowrap;font-family:inherit;cursor:pointer;text-decoration:none}
 .kpi-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-bottom:20px}
 .atalho-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:24px}
 .atalho{background:radial-gradient(circle at top left,rgba(139,92,246,.08),transparent 40%),linear-gradient(145deg,rgba(24,16,27,.97),rgba(18,10,20,.99));border:1.5px solid #2A1A2F;border-radius:16px;padding:18px 14px;text-decoration:none;display:flex;flex-direction:column;gap:8px;transition:all .18s}
-.atalho:hover{background:linear-gradient(145deg,rgba(32,18,36,.97),rgba(22,12,24,.99));border-color:rgba(236,72,153,.35);transform:translateY(-2px)}
+.atalho:hover{background:linear-gradient(145deg,rgba(32,18,36,.97),rgba(22,12,24,.99));border-color:rgba(139,92,246,.35);transform:translateY(-2px)}
 .ag-item{background:rgba(24,16,27,.72);border:1px solid #2A1A2F;border-radius:12px;padding:12px 14px;margin-bottom:6px}
 .kpi-card{transition:all .18s}
-.kpi-card:hover{box-shadow:0 8px 24px rgba(236,72,153,.12)}
+.kpi-card:hover{box-shadow:0 8px 24px rgba(139,92,246,.12)}
 @media(max-width:1023px){
   .psb-main .bdy{padding:14px 14px 80px!important;max-width:100%!important;width:100%!important;box-sizing:border-box!important;overflow-x:hidden!important}
   .kpi-grid{grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;gap:8px!important}
@@ -135,8 +136,8 @@ const saldo=Math.max(0,saldoRaw)
 
   if(!ehPlanoComGestao(perfil?.plano_tipo)){
     const acoesMiniPage=[
-      {h:'/painel/perfil',l:'Editar minha MiniPage',I:<IcoLink c="#EC4899" s={17}/>,bg:'rgba(236,72,153,.10)'},
-      {h:'/painel/perfil',l:'Adicionar links',I:<IcoTag c="#D946EF" s={17}/>,bg:'rgba(217,70,239,.10)'},
+      {h:'/painel/perfil',l:'Editar minha MiniPage',I:<IcoLink c="#8B5CF6" s={17}/>,bg:'rgba(139,92,246,.10)'},
+      {h:'/painel/perfil',l:'Adicionar links',I:<IcoTag c="#8B5CF6" s={17}/>,bg:'rgba(139,92,246,.10)'},
       {h:'/painel/plano',l:'Meu plano',I:<IcoCheck c="#22C55E" s={17}/>,bg:'rgba(34,197,94,.10)'},
       {h:'/painel/suporte',l:'Suporte',I:<IcoBar c="#8B5CF6" s={17}/>,bg:'rgba(139,92,246,.10)'},
     ]
@@ -155,7 +156,7 @@ const saldo=Math.max(0,saldoRaw)
             {slug&&(
               <div className="crd" style={{padding:'16px 20px',marginBottom:'16px',display:'flex',alignItems:'center',justifyContent:'space-between',gap:'12px',flexWrap:'wrap'}}>
                 <div style={{display:'flex',alignItems:'center',gap:'10px'}}>
-                  <div style={{width:'36px',height:'36px',borderRadius:'10px',background:'rgba(217,70,239,.14)',border:'1px solid rgba(217,70,239,.28)',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}><IcoLink c="#D946EF" s={18}/></div>
+                  <div style={{width:'36px',height:'36px',borderRadius:'10px',background:'rgba(139,92,246,.14)',border:'1px solid rgba(139,92,246,.28)',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}><IcoLink c="#8B5CF6" s={18}/></div>
                   <div><p style={{fontSize:'13px',fontWeight:600,color:'#F8F4F7',marginBottom:'2px'}}>Sua MiniPage está no ar</p><p style={{fontSize:'11px',color:'#B8AAB8'}}>{pubUrl.replace('https://','')}</p></div>
                 </div>
                 <div style={{display:'flex',gap:'8px',flexShrink:0}}>
@@ -164,6 +165,7 @@ const saldo=Math.max(0,saldoRaw)
                 </div>
               </div>
             )}
+            <CompletarMiniPageCard perfil={perfil}/>
             <div className="crd" style={{padding:'16px 20px',marginBottom:'24px',display:'flex',alignItems:'center',justifyContent:'space-between',gap:'12px',flexWrap:'wrap'}}>
               <div>
                 <p style={{fontSize:'11px',fontWeight:700,color:'#B8AAB8',textTransform:'uppercase',letterSpacing:'.05em',marginBottom:'2px'}}>Plano atual</p>
@@ -226,10 +228,10 @@ const saldo=Math.max(0,saldoRaw)
             </div>
             {agsHoje.length===0?(
               <div className="crd" style={{padding:'28px 20px',textAlign:'center',marginBottom:'16px'}}>
-                <div style={{width:'44px',height:'44px',borderRadius:'12px',background:'rgba(236,72,153,.14)',border:'1px solid rgba(236,72,153,.24)',display:'flex',alignItems:'center',justifyContent:'center',margin:'0 auto 12px'}}><IcoCalendar c="#EC4899" s={22}/></div>
+                <div style={{width:'44px',height:'44px',borderRadius:'12px',background:'rgba(139,92,246,.14)',border:'1px solid rgba(139,92,246,.24)',display:'flex',alignItems:'center',justifyContent:'center',margin:'0 auto 12px'}}><IcoCalendar c="#8B5CF6" s={22}/></div>
                 <p style={{fontSize:'14px',fontWeight:600,color:'#F8F4F7',marginBottom:'4px'}}>Nenhum atendimento hoje</p>
                 <p style={{fontSize:'12px',color:'#B8AAB8',marginBottom:'14px'}}>Quando houver horários marcados, aparecerão aqui.</p>
-                <a href="/painel/agendamentos/novo" style={{background:'linear-gradient(135deg,#EC4899,#D946EF,#8B5CF6)',color:'#fff',borderRadius:'10px',padding:'8px 16px',fontSize:'13px',fontWeight:700,textDecoration:'none',display:'inline-block'}}>+ Novo agendamento</a>
+                <a href="/painel/agendamentos/novo" style={{background:'#C9FA45',color:'#15180D',borderRadius:'10px',padding:'8px 16px',fontSize:'13px',fontWeight:700,textDecoration:'none',display:'inline-block'}}>+ Novo agendamento</a>
               </div>
             ):(
               <div style={{marginBottom:'16px'}}>
@@ -237,7 +239,7 @@ const saldo=Math.max(0,saldoRaw)
                   <div key={a.id} className="ag-item">
                     <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:'8px',flexWrap:'wrap'}}>
                       <div><p style={{fontSize:'14px',fontWeight:600,color:'#F8F4F7'}}>{a.cliente_nome||'—'}</p><p style={{fontSize:'12px',color:'#B8AAB8'}}>{fmtHora(a.data_hora)}</p></div>
-                      <span style={{fontSize:'11px',fontWeight:600,padding:'3px 10px',borderRadius:'999px',background:'rgba(236,72,153,.14)',color:'#F9A8D4',border:'1px solid rgba(236,72,153,.28)'}}>{a.status||'pendente'}</span>
+                      <span style={{fontSize:'11px',fontWeight:600,padding:'3px 10px',borderRadius:'999px',background:'rgba(139,92,246,.14)',color:'#C4B5FD',border:'1px solid rgba(139,92,246,.28)'}}>{a.status||'pendente'}</span>
                     </div>
                   </div>
                 ))}
@@ -247,7 +249,7 @@ const saldo=Math.max(0,saldoRaw)
           {slug&&(
             <div className="crd" style={{padding:'16px 20px',marginBottom:'20px',display:'flex',alignItems:'center',justifyContent:'space-between',gap:'12px',flexWrap:'wrap'}}>
               <div style={{display:'flex',alignItems:'center',gap:'10px'}}>
-                <div style={{width:'36px',height:'36px',borderRadius:'10px',background:'rgba(217,70,239,.14)',border:'1px solid rgba(217,70,239,.28)',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}><IcoLink c="#D946EF" s={18}/></div>
+                <div style={{width:'36px',height:'36px',borderRadius:'10px',background:'rgba(139,92,246,.14)',border:'1px solid rgba(139,92,246,.28)',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}><IcoLink c="#8B5CF6" s={18}/></div>
                 <div><p style={{fontSize:'13px',fontWeight:600,color:'#F8F4F7',marginBottom:'2px'}}>Sua página pública está ativa</p><p style={{fontSize:'11px',color:'#B8AAB8'}}>Compartilhe o link com seus clientes para receber agendamentos.</p></div>
               </div>
               <div style={{display:'flex',gap:'8px',flexShrink:0}}>
@@ -256,14 +258,15 @@ const saldo=Math.max(0,saldoRaw)
               </div>
             </div>
           )}
+          <CompletarMiniPageCard perfil={perfil}/>
           <div className="kpi-grid">
             {([
-              {l:'Atendimentos hoje',v:agsHoje.length,c:'#EC4899',bg:'rgba(236,72,153,.12)',bd:'rgba(236,72,153,.24)',I:<IcoCalendar c="#EC4899"/>},
+              {l:'Atendimentos hoje',v:agsHoje.length,c:'#8B5CF6',bg:'rgba(139,92,246,.12)',bd:'rgba(139,92,246,.24)',I:<IcoCalendar c="#8B5CF6"/>},
               {l:'Próximos agendamentos',v:proximos.length,c:'#C4B5FD',bg:'rgba(139,92,246,.12)',bd:'rgba(139,92,246,.24)',I:<IcoClock c="#C4B5FD"/>},
               {l:'Orçamentos em aberto',v:orcsAbertos,c:'#FACC15',bg:'rgba(250,204,21,.10)',bd:'rgba(250,204,21,.22)',I:<IcoClipboard c="#FACC15"/>},
               {l:'Total a receber',v:fBRL(saldo||0),c:'#EF4444',bg:'rgba(239,68,68,.10)',bd:'rgba(239,68,68,.22)',I:<IcoCreditCard c="#EF4444"/>},
               {l:'Recebido no mês',v:fBRL(recMes),c:'#22C55E',bg:'rgba(34,197,94,.10)',bd:'rgba(34,197,94,.22)',I:<IcoCheck c="#22C55E"/>},
-              {l:'Clientes cadastrados',v:0,c:'#D946EF',bg:'rgba(217,70,239,.10)',bd:'rgba(217,70,239,.22)',I:<IcoUsers c="#D946EF"/>},
+              {l:'Clientes cadastrados',v:0,c:'#8B5CF6',bg:'rgba(139,92,246,.10)',bd:'rgba(139,92,246,.22)',I:<IcoUsers c="#8B5CF6"/>},
             ] as any[]).map((k:any)=>(
               <div key={k.l} className="kpi-card" style={{background:'#18101B',border:`1.5px solid ${k.bd}`,borderRadius:'18px',padding:'18px 16px'}}>
                 <div style={{width:'36px',height:'36px',borderRadius:'10px',background:k.bg,border:`1px solid ${k.bd}`,display:'flex',alignItems:'center',justifyContent:'center',marginBottom:'8px'}}>{k.I}</div>
@@ -275,12 +278,12 @@ const saldo=Math.max(0,saldoRaw)
           <p style={{fontSize:'14px',fontWeight:700,color:'#F8F4F7',marginBottom:'12px'}}>Acesso rápido</p>
           <div className="atalho-grid">
             {([
-              {h:'/painel/agendamentos',l:'Agenda',I:<IcoCalendar c="#EC4899" s={17}/>,bg:'rgba(236,72,153,.10)'},
-              {h:'/painel/clientes',l:'Clientes',I:<IcoUsers c="#D946EF" s={17}/>,bg:'rgba(217,70,239,.10)'},
+              {h:'/painel/agendamentos',l:'Agenda',I:<IcoCalendar c="#8B5CF6" s={17}/>,bg:'rgba(139,92,246,.10)'},
+              {h:'/painel/clientes',l:'Clientes',I:<IcoUsers c="#8B5CF6" s={17}/>,bg:'rgba(139,92,246,.10)'},
               {h:'/painel/orcamentos',l:'Orçamentos',I:<IcoClipboard c="#FACC15" s={17}/>,bg:'rgba(250,204,21,.10)'},
               {h:'/painel/cobrancas',l:'Cobranças',I:<IcoWallet c="#8B5CF6" s={17}/>,bg:'rgba(139,92,246,.10)'},
               {h:'/painel/pagamentos',l:'Pagamentos',I:<IcoCheck c="#22C55E" s={17}/>,bg:'rgba(34,197,94,.10)'},
-              {h:'/painel/servicos',l:'Serviços',I:<IcoTag c="#D946EF" s={17}/>,bg:'rgba(217,70,239,.10)'},
+              {h:'/painel/servicos',l:'Serviços',I:<IcoTag c="#8B5CF6" s={17}/>,bg:'rgba(139,92,246,.10)'},
               ...(permiteEquipe(perfil?.plano_tipo)?[{h:'/painel/profissionais',l:'Profissionais',I:<IcoUser c="#C4B5FD" s={17}/>,bg:'rgba(139,92,246,.10)'}]:[]),
               {h:'/painel/relatorio',l:'Relatórios',I:<IcoBar c="#8B5CF6" s={17}/>,bg:'rgba(139,92,246,.10)'},
             ] as any[]).map((a:any)=>(
@@ -297,7 +300,7 @@ const saldo=Math.max(0,saldoRaw)
             </div>
             {agsHoje.length===0?(
               <div className="crd" style={{padding:'36px 24px',textAlign:'center',marginBottom:'24px'}}>
-                <div style={{width:'52px',height:'52px',borderRadius:'14px',background:'rgba(236,72,153,.14)',border:'1px solid rgba(236,72,153,.24)',display:'flex',alignItems:'center',justifyContent:'center',margin:'0 auto 14px'}}><IcoCalendar c="#EC4899" s={26}/></div>
+                <div style={{width:'52px',height:'52px',borderRadius:'14px',background:'rgba(139,92,246,.14)',border:'1px solid rgba(139,92,246,.24)',display:'flex',alignItems:'center',justifyContent:'center',margin:'0 auto 14px'}}><IcoCalendar c="#8B5CF6" s={26}/></div>
                 <p style={{fontSize:'15px',fontWeight:600,color:'#F8F4F7',marginBottom:'5px'}}>Nenhum atendimento hoje</p>
                 <p style={{fontSize:'13px',color:'#B8AAB8',marginBottom:'16px'}}>Quando houver horários marcados, eles aparecerão aqui.</p>
                 <Link href="/painel/agendamentos/novo" className="btn-p" style={{display:'inline-flex'}}>+ Novo agendamento</Link>
@@ -308,7 +311,7 @@ const saldo=Math.max(0,saldoRaw)
                   <div key={a.id} className="ag-item">
                     <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:'8px',flexWrap:'wrap'}}>
                       <div><p style={{fontSize:'14px',fontWeight:600,color:'#F8F4F7'}}>{a.cliente_nome||'—'}</p><p style={{fontSize:'12px',color:'#B8AAB8'}}>{fmtHora(a.data_hora)}</p></div>
-                      <span style={{fontSize:'11px',fontWeight:600,padding:'3px 10px',borderRadius:'999px',background:'rgba(236,72,153,.14)',color:'#F9A8D4',border:'1px solid rgba(236,72,153,.28)'}}>{a.status||'confirmado'}</span>
+                      <span style={{fontSize:'11px',fontWeight:600,padding:'3px 10px',borderRadius:'999px',background:'rgba(139,92,246,.14)',color:'#C4B5FD',border:'1px solid rgba(139,92,246,.28)'}}>{a.status||'confirmado'}</span>
                     </div>
                   </div>
                 ))}

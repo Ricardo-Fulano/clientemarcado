@@ -51,7 +51,7 @@ export default function Agendar() {
         return
       }
       setPerfil(p)
-      // REGRAS DE PLANO: agendamento automatico so para Pro (essencial) e Equipe. Plano sem direito nao carrega servicos nem profissionais.
+      // REGRAS DE PLANO: Agenda, Loja, Pro e Equipe podem receber agendamentos, conforme acesso real e RLS.
       if (!permiteAgendamentoAutomatico(p.plano_tipo)) { setCarregandoInicial(false); return }
       const { data: s } = await supabase.from('servicos').select('*').eq('user_id', p.user_id)
       setServicos(s || [])
@@ -72,6 +72,23 @@ export default function Agendar() {
 
   async function carregarHorarios() {
     setCarregandoHorarios(true); setHorarioSelecionado('')
+    // Etapa 1: opcao somente para TESTES LOCAIS. Nao altera reservas nem RLS.
+    // NUNCA publicar com o antigo INSERT aberto. Etapa 2: RPC transacional + RLS.
+    if (process.env.NEXT_PUBLIC_AGENDA_DISPONIBILIDADE_SEGURA === '1') {
+      try {
+        const query = new URLSearchParams({ slug, data: dataSelecionada, servico_id: servicoId, profissional_id: profissionalId })
+        const resp = await fetch('/api/publico/agenda-disponibilidade?' + query.toString(), { cache: 'no-store' })
+        if (!resp.ok) throw new Error('Agenda indisponivel')
+        const dados = await resp.json()
+        if (!Array.isArray(dados.horarios)) throw new Error('Retorno invalido')
+        setHorariosDisponiveis(dados.horarios.filter((h: unknown) => typeof h === 'string'))
+      } catch (e) {
+        console.error('[agenda] Nao foi possivel consultar horarios seguros:', e)
+        setHorariosDisponiveis([])
+        setErro(t.erroAoAgendar)
+      } finally { setCarregandoHorarios(false) }
+      return
+    }
     const servico = servicos.find(s => s.id === servicoId)
     const duracaoServico = servico?.duracao_minutos || 30
     const intervalo = perfil?.intervalo_agenda || 30
@@ -134,14 +151,43 @@ export default function Agendar() {
       setErro(t.erroAoAgendar); return
     }
     setLoading(true)
-    const { error } = await supabase.from('agendamentos').insert({
-      user_id: perfil.user_id, servico_id: servicoId, profissional_id: profissionalId,
-      data_hora: dataSelecionada + 'T' + horarioSelecionado + ':00',
-      cliente_nome: clienteNome, cliente_telefone: clienteTelefone,
-      valor: valorHistorico,
-    })
+    if (process.env.NEXT_PUBLIC_AGENDA_CONFIRMACAO_SEGURA === '1') {
+      try {
+        const resposta = await fetch('/api/publico/agenda-confirmar', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            slug, servico_id: servicoId, profissional_id: profissionalId,
+            data: dataSelecionada, horario: horarioSelecionado,
+            cliente_nome: clienteNome, cliente_telefone: clienteTelefone,
+          }),
+        })
+        if (!resposta.ok) {
+          setLoading(false)
+          if (resposta.status === 409) {
+            setErro('Este horario nao esta mais disponivel. Escolha outro horario.')
+            await carregarHorarios()
+          } else {
+            setErro(t.erroAoAgendar)
+          }
+          return
+        }
+      } catch {
+        setLoading(false)
+        setErro(t.erroAoAgendar)
+        return
+      }
+    } else {
+      // Caminho anterior preservado somente enquanto a transicao de RPC/RLS nao termina.
+      // NAO publicar com ele aberto: desligar INSERT anon apos migrar o fluxo.
+      const { error } = await supabase.from('agendamentos').insert({
+        user_id: perfil.user_id, servico_id: servicoId, profissional_id: profissionalId,
+        data_hora: dataSelecionada + 'T' + horarioSelecionado + ':00',
+        cliente_nome: clienteNome, cliente_telefone: clienteTelefone,
+        valor: valorHistorico,
+      })
+      if (error) { setLoading(false); setErro(t.erroAoAgendar); return }
+    }
     setLoading(false)
-    if (error) { setErro(t.erroAoAgendar); return }
     setSucesso(true)
     // Notificacao (best-effort): se falhar, nao afeta o agendamento, que ja foi criado acima
     fetch('/api/publico/notificar-agendamento', {

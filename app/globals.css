@@ -1,24 +1,24 @@
 @import "tailwindcss";
 
 :root {
-  --background: #08080A;
-  --surface: #0F1014;
-  --card: #121216;
-  --card-hover: #18181D;
-  --border: #27272A;
-  --border-soft: #1F1F23;
+  --background: #0B0A10;
+  --surface: #15111B;
+  --card: #21182D;
+  --card-hover: #2A2034;
+  --border: #33283E;
+  --border-soft: #271E30;
 
   --text-primary: #F5F5F7;
   --text-secondary: #A1A1AA;
   --text-muted: #71717A;
 
-  --accent: #3B82F6;
-  --accent-hover: #2563EB;
-  --accent-soft: rgba(59, 130, 246, 0.12);
-  --accent-border: rgba(59, 130, 246, 0.35);
+  --accent: #9552F5;
+  --accent-hover: #8240DA;
+  --accent-soft: rgba(149, 82, 245, 0.12);
+  --accent-border: rgba(149, 82, 245, 0.35);
 
   --success: #22C55E;
-  --success-neon: #9DFF00;
+  --success-neon: #C9FA45;
   --success-soft: rgba(34, 197, 94, 0.12);
   --success-border: rgba(34, 197, 94, 0.35);
 
@@ -38,3 +38,10 @@ body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   -webkit-font-smoothing: antialiased;
 }
+/* MiniPage Pro 2.0: tokens para interfaces administrativas; nao impõem tema aos perfis públicos. */
+:root { --mp-rose: #E73DA8; --mp-violet: #9552F5; --mp-lime: #C9FA45; --mp-ink: #0B0A10; --mp-panel: #21182D; }
+
+/* MiniPage Pro 2.0 - componentes comuns. Respeitar temas das slugs publicas. */
+:root { color-scheme: dark; --mp-bg:#0B0A10; --mp-card:#21182D; --mp-outline:#493854; --mp-lime:#C9FA45; --mp-rose:#E73DA8; --mp-violet:#9552F5; }
+:where(button,a,input,textarea,select):focus-visible { outline:2px solid var(--mp-lime); outline-offset:3px; }
+@media (prefers-reduced-motion: reduce) { *,*::before,*::after { scroll-behavior:auto!important; animation-duration:.01ms!important; transition-duration:.01ms!important; } }

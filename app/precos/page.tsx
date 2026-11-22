@@ -3,16 +3,15 @@ import Link from 'next/link'
 
 export const metadata: Metadata = {
   title: 'Planos e Preços | MiniPage Pro',
-  description: 'Compare os seis planos MiniPage Pro e escolha assinatura mensal ou anual.',
+  description: 'Compare os cinco planos MiniPage Pro e escolha assinatura mensal ou anual.',
 }
 
 const plans = [
   { name: 'Free', month: 'R$ 0', year: 'Gratuito', description: 'Página básica com links, foto, bio e redes sociais.' },
   { name: 'MiniPage', month: 'R$ 29,90', year: 'R$ 297,80', description: 'Links, destaques, vídeos, eventos e desempenho.' },
   { name: 'Agenda', month: 'R$ 39,90', year: 'R$ 397,40', description: 'Página profissional com agendamento automático e agenda de atendimento.' },
-  { name: 'Loja', month: 'R$ 49,90', year: 'R$ 497,00', description: 'Catálogo, divulgação de produtos, links de venda e captação de leads.' },
-  { name: 'Pro', month: 'R$ 59,90', year: 'R$ 596,60', description: 'Recursos de loja, agendamentos, clientes e gestão de serviços.' },
-  { name: 'Equipe', month: 'R$ 149,90', year: 'R$ 1.493,00', description: 'Acesso de equipe, profissionais, agendas e desempenho individual.' },
+  { name: 'Loja', month: 'R$ 49,90', year: 'R$ 497,00', description: 'Tudo do Agenda, incluindo agendamentos online, mais catálogos, produtos, cursos e ferramentas de vendas.' },
+  { name: 'Pro', month: 'R$ 59,90', year: 'R$ 596,60', description: 'Tudo do Loja, inclusive Agenda, mais clientes, cobranças, financeiro, relatórios e gestão completa.' },
 ] as const
 
 export default function PrecosPage() {

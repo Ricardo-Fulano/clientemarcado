@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { supabase } from '../lib/supabase'
 import NotificacoesSino from './NotificacoesSino'
-import { normalizarPlano, ehPlanoComGestao, podeUsarProfissionais, obterLimiteCatalogos } from '../lib/planos'
+import { ehPlanoComGestao, permiteAgenda, podeUsarProfissionais, podeUsarCatalogo } from '../lib/planos'
 
 // Lista de IDs com acesso admin ao menu "Parceiros" - antes era 1 unico ID fixo
 // (canal19horas@gmail.com), agora inclui tambem misteriosoviaje@gmail.com, que passou a
@@ -16,9 +16,9 @@ const ADMIN_IDS = [
   '618aedd1-f174-4419-b4b2-b81b8dd1c47e', // canal19horas@gmail.com
   'f2203e3c-9d23-4635-9d14-b990b5198b8a', // misteriosoviaje@gmail.com
 ]
-const AV = 'linear-gradient(135deg,rgba(236,72,153,.95),rgba(139,92,246,.85))'
+const AV = 'linear-gradient(135deg,#6D43B8,#8B5CF6)'
 
-type ItemMenu = { h: string; l: string; grupo?: string; requerGestao?: boolean; requerProfissionais?: boolean; requerCatalogo?: boolean; apenasAdmin?: boolean }
+type ItemMenu = { h: string; l: string; grupo?: string; requerGestao?: boolean; requerAgenda?: boolean; requerProfissionais?: boolean; requerCatalogo?: boolean; apenasAdmin?: boolean }
 
 // grupo: usado so pra organizar visualmente a sidebar em secoes (MINHA MINIPAGE / GESTAO /
 // CONTA) - nao afeta nenhuma regra de permissao, que continua 100% via requerGestao/
@@ -34,12 +34,12 @@ const LINKS: ItemMenu[] = [
   { h: '/painel/ia',            l: 'Integrações com IA', grupo: 'MINHA MINIPAGE' },
   { h: '/painel/perfil/catalogo', l: 'Catálogo',      grupo: 'MINHA MINIPAGE', requerCatalogo: true },
 
-  { h: '/painel/agendamentos',  l: 'Agenda',        grupo: 'GESTÃO', requerGestao: true },
+  { h: '/painel/agendamentos',  l: 'Agenda',        grupo: 'GESTÃO', requerAgenda: true },
   { h: '/painel/clientes',      l: 'Clientes',      grupo: 'GESTÃO', requerGestao: true },
   { h: '/painel/orcamentos',    l: 'Orçamentos',    grupo: 'GESTÃO', requerGestao: true },
   { h: '/painel/cobrancas',     l: 'Cobranças',     grupo: 'GESTÃO', requerGestao: true },
   { h: '/painel/financeiro',    l: 'Financeiro',    grupo: 'GESTÃO', requerGestao: true },
-  { h: '/painel/servicos',      l: 'Serviços',      grupo: 'GESTÃO', requerGestao: true },
+  { h: '/painel/servicos',      l: 'Serviços',      grupo: 'GESTÃO', requerAgenda: true },
   { h: '/painel/profissionais', l: 'Profissionais', grupo: 'GESTÃO', requerProfissionais: true },
   { h: '/painel/relatorio',     l: 'Relatórios',    grupo: 'GESTÃO', requerGestao: true },
 
@@ -50,18 +50,18 @@ const LINKS: ItemMenu[] = [
 ]
 
 const CSS = `
-.psb{width:240px;height:100vh;max-height:100vh;background:radial-gradient(circle at top left,rgba(139,92,246,.14),transparent 32%),linear-gradient(180deg,#120A14,#08060A);border-right:1px solid #2A1A2F;display:flex;flex-direction:column;position:fixed;top:0;left:0;z-index:30;overflow:hidden}
+.psb{width:240px;height:100vh;max-height:100vh;background:radial-gradient(circle at top left,rgba(139,92,246,.14),transparent 32%),linear-gradient(180deg,#120D1B,#08070D);border-right:1px solid #2A1A2F;display:flex;flex-direction:column;position:fixed;top:0;left:0;z-index:30;overflow:hidden}
 .psb-logo{padding:22px 18px 16px;border-bottom:1px solid #2A1A2F;display:flex;align-items:center;gap:10px;flex-shrink:0}
-.psb-ic{width:30px;height:30px;border-radius:8px;background:linear-gradient(135deg,#EC4899,#D946EF,#8B5CF6);display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 0 20px rgba(236,72,153,.28)}
+.psb-ic{width:30px;height:30px;border-radius:8px;background:#C9FA45;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 0 20px rgba(139,92,246,.28)}
 .psb nav{flex:1;min-height:0;padding:10px 8px;overflow-y:auto}
 .nl{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:10px;margin-bottom:2px;text-decoration:none;font-size:13px;font-weight:500;color:#B8AAB8;transition:all .15s;border:1px solid transparent;white-space:nowrap}
-.nl:hover{background:rgba(236,72,153,.10);border-color:rgba(236,72,153,.24);color:#F8F4F7}
-.nl.on{background:linear-gradient(135deg,#EC4899,#D946EF,#8B5CF6);color:#fff;font-weight:700;border-color:rgba(255,255,255,.10);box-shadow:0 0 26px rgba(236,72,153,.28),inset 0 1px 0 rgba(255,255,255,.12)}
+.nl:hover{background:rgba(139,92,246,.10);border-color:rgba(139,92,246,.24);color:#F8F4F7}
+.nl.on{background:#C9FA45;color:#15180D;font-weight:700;border-color:rgba(255,255,255,.10);box-shadow:0 0 26px rgba(139,92,246,.28),inset 0 1px 0 rgba(255,255,255,.12)}
 .nl-grupo{font-size:10px;font-weight:700;color:#6B5C6E;text-transform:uppercase;letter-spacing:.08em;padding:14px 14px 6px;margin-top:2px}
 .nl-grupo:first-child{margin-top:0}
 .psb-foot{padding:12px 10px;border-top:1px solid #2A1A2F;flex-shrink:0}
 .psb-mhdr{display:none;align-items:center;justify-content:space-between;padding:0 16px;height:56px;background:rgba(8,6,10,.96);backdrop-filter:blur(20px);border-bottom:1px solid #2A1A2F;position:fixed;top:0;left:0;right:0;z-index:20;width:100%}
-.psb-drw{position:fixed;top:0;left:0;bottom:0;width:280px;max-width:85vw;background:radial-gradient(circle at top left,rgba(139,92,246,.14),transparent 32%),linear-gradient(180deg,#120A14,#08060A);z-index:50;transform:translateX(-100%);transition:transform .28s ease;display:flex;flex-direction:column;border-right:1px solid #2A1A2F}
+.psb-drw{position:fixed;top:0;left:0;bottom:0;width:280px;max-width:85vw;background:radial-gradient(circle at top left,rgba(139,92,246,.14),transparent 32%),linear-gradient(180deg,#120D1B,#08070D);z-index:50;transform:translateX(-100%);transition:transform .28s ease;display:flex;flex-direction:column;border-right:1px solid #2A1A2F}
 .psb-drw.open{transform:translateX(0)}
 .psb-ovl{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:49;opacity:0;pointer-events:none;transition:opacity .28s}
 .psb-ovl.open{opacity:1;pointer-events:auto}
@@ -84,7 +84,7 @@ export default function PainelSidebar({ nome = '', tituloMobile = 'Painel' }: Pr
   const [isAdmin, setIsAdmin] = useState(false)
   const [role, setRole] = useState<'loading' | 'admin' | 'profissional'>('loading')
   const [nomeProfissionalVinculo, setNomeProfissionalVinculo] = useState('')
-  const [planoAtual, setPlanoAtual] = useState('essencial')
+  const [planoAtual, setPlanoAtual] = useState('free')
   // Fase 4B: flag independente, nunca substitui admin/dono/equipe - um usuario pode ser
   // varias coisas ao mesmo tempo. Comeca sempre false (estado seguro) e so vira true
   // depois da confirmacao real do backend via /api/afiliado/me.
@@ -95,7 +95,7 @@ export default function PainelSidebar({ nome = '', tituloMobile = 'Painel' }: Pr
       if (ADMIN_IDS.includes(user.id)) setIsAdmin(true)
       // Busca o plano do perfil pra filtrar o menu (Fase 2 - suporte tecnico ao plano MiniPage)
       const { data: perfil } = await supabase.from('perfis').select('plano_tipo').eq('user_id', user.id).maybeSingle()
-      if (perfil) setPlanoAtual(normalizarPlano(perfil.plano_tipo))
+      if (perfil) setPlanoAtual(perfil.plano_tipo || 'free')
       const { data: { session } } = await supabase.auth.getSession()
       const token = session?.access_token
       if (!token) { setRole('admin'); return }
@@ -152,9 +152,10 @@ export default function PainelSidebar({ nome = '', tituloMobile = 'Painel' }: Pr
   // centralizadas de app/lib/planos.ts, nunca comparacao solta tipo plano==='minipage'.
   const linksDoDono = LINKS.filter(it => {
     if (it.apenasAdmin) return isAdmin
+    if (it.requerAgenda) return permiteAgenda(planoAtual)
     if (it.requerGestao) return ehPlanoComGestao(planoAtual)
     if (it.requerProfissionais) return podeUsarProfissionais(planoAtual)
-    if (it.requerCatalogo) return obterLimiteCatalogos(planoAtual) > 0
+    if (it.requerCatalogo) return podeUsarCatalogo(planoAtual)
     return true
   })
 
@@ -223,7 +224,7 @@ export default function PainelSidebar({ nome = '', tituloMobile = 'Painel' }: Pr
       {/* Drawer mobile */}
       <div className={`psb-drw${mob ? ' open' : ''}`}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 18px', borderBottom: '1px solid #2A1A2F' }}>
-          <span style={{ fontSize: '14px', fontWeight: 800, color: '#F8F4F7' }}>MiniPage Pro</span>
+          <div style={{display:'flex',alignItems:'center',gap:9}}><img src="/brand/minipage-icone.svg" alt="" aria-hidden="true" width={28} height={28}/><span style={{ fontSize: '14px', fontWeight: 800, color: '#F8F4F7' }}>MiniPage <span style={{color:'#C9FA45'}}>Pro</span></span></div>
           <button onClick={() => setMob(false)} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,.5)', cursor: 'pointer', fontSize: '22px', lineHeight: 1 }}>×</button>
         </div>
         <nav style={{ flex: 1, minHeight: 0, padding: '10px 8px', overflowY: 'auto' }}>
@@ -238,14 +239,7 @@ export default function PainelSidebar({ nome = '', tituloMobile = 'Painel' }: Pr
       <aside className="psb">
         <div className="psb-logo" style={{ justifyContent: 'space-between' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <div className="psb-ic">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <rect x="3" y="4" width="18" height="18" rx="2"/>
-                <line x1="16" y1="2" x2="16" y2="6"/>
-                <line x1="8" y1="2" x2="8" y2="6"/>
-                <line x1="3" y1="10" x2="21" y2="10"/>
-              </svg>
-            </div>
+            <img src="/brand/minipage-icone.svg" alt="" aria-hidden="true" width={30} height={30} style={{borderRadius:'8px',flexShrink:0}}/>
             <span style={{ fontSize: '14px', fontWeight: 800, color: '#F8F4F7', letterSpacing: '-0.02em' }}>MiniPage Pro</span>
           </div>
           {!carregandoPapel && <NotificacoesSino alinhamento="left" />}

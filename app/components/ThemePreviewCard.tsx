@@ -1,5 +1,6 @@
 'use client'
 import type { ReactNode } from 'react'
+import { getTema } from '../lib/tema-publico'
 
 // Card visual compartilhado: miniatura da MiniPage com as cores REAIS de um tema
 // (fundo, avatar, barras simulando nome/bio, botoes). Usado tanto no onboarding
@@ -26,6 +27,7 @@ export default function ThemePreviewCard({
   bloqueado?: boolean
   badge?: ReactNode
 }) {
+  const tokens = getTema(tema.id)
   return (
     <button
       onClick={() => { if (!bloqueado) onClick() }}
@@ -43,15 +45,15 @@ export default function ThemePreviewCard({
       }}
     >
       {badge && <div style={{ position: 'absolute', top: '6px', right: '6px', zIndex: 1 }}>{badge}</div>}
-      <div style={{ background: `linear-gradient(160deg,${tema.p}22,#0B080D 55%)`, padding: '14px 10px 10px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-        <div style={{ width: '30px', height: '30px', borderRadius: '999px', background: `linear-gradient(135deg,${tema.p},${tema.s})`, marginBottom: '6px', border: '1.5px solid rgba(255,255,255,.25)' }} />
-        <div style={{ width: '54%', height: '6px', borderRadius: '3px', background: 'rgba(255,255,255,.55)', marginBottom: '4px' }} />
-        <div style={{ width: '70%', height: '4px', borderRadius: '2px', background: 'rgba(255,255,255,.22)', marginBottom: '8px' }} />
-        <div style={{ width: '85%', height: '10px', borderRadius: '5px', background: tema.p, marginBottom: '4px' }} />
-        <div style={{ width: '85%', height: '10px', borderRadius: '5px', background: 'rgba(255,255,255,.10)' }} />
+      <div style={{ background: tokens.bg, padding: '14px 10px 10px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+        <div style={{ width: '30px', height: '30px', borderRadius: '999px', background: `linear-gradient(135deg,${tokens.accent},${tokens.accent2})`, marginBottom: '6px', border: '1.5px solid rgba(255,255,255,.25)' }} />
+        <div style={{ width: '54%', height: '6px', borderRadius: '3px', background: tokens.text, marginBottom: '4px' }} />
+        <div style={{ width: '70%', height: '4px', borderRadius: '2px', background: tokens.textMuted, marginBottom: '8px' }} />
+        <div style={{ width: '85%', height: '10px', borderRadius: '5px', background: tokens.accent, marginBottom: '4px' }} />
+        <div style={{ width: '85%', height: '10px', borderRadius: '5px', background: tokens.card, border: `1px solid ${tokens.cardBorder}` }} />
       </div>
-      <div style={{ padding: '7px 8px', background: '#120A14' }}>
-        <p style={{ fontSize: '10.5px', fontWeight: 700, color: '#F8F4F7', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{tema.nome}</p>
+      <div style={{ padding: '7px 8px', background: tokens.bg }}>
+        <p style={{ fontSize: '10.5px', fontWeight: 700, color: tokens.text, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{tema.nome}</p>
       </div>
     </button>
   )

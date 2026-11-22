@@ -1,13 +1,12 @@
 'use client'
 import { useEffect, useState, useRef } from 'react'
 import { supabase } from '../../lib/supabase'
-import { ehPlanoMiniPage } from '../../lib/planos'
+import { podeUsarProfissionais, obterLimiteProfissionais, obterNomePlano } from '../../lib/planos'
 import Link from 'next/link'
 import PainelSidebar from '@/app/components/PainelSidebar'
 
 const G='linear-gradient(135deg,#EC4899,#D946EF,#8B5CF6)'
 const AV='linear-gradient(135deg,rgba(236,72,153,.95),rgba(139,92,246,.95))'
-const LIMITES_PROFISSIONAIS: Record<string, number> = { essencial: 3, equipe: 15 }
 
 const CSS=`
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -63,7 +62,7 @@ export default function Profissionais(){
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) { setVerificandoPlanoMiniPage(false); return }
       const { data: perfil } = await supabase.from('perfis').select('plano_tipo').eq('user_id', user.id).maybeSingle()
-      if (perfil && ehPlanoMiniPage(perfil.plano_tipo)) setBloqueadoMiniPage(true)
+      if (!perfil || !podeUsarProfissionais(perfil.plano_tipo)) setBloqueadoMiniPage(true)
       setVerificandoPlanoMiniPage(false)
     }
     verificarPlanoMiniPage()
@@ -90,7 +89,6 @@ export default function Profissionais(){
   const [emailAcesso,setEmailAcesso]=useState('')
   const [criandoAcessoLoading,setCriandoAcessoLoading]=useState(false)
   const [senhaGerada,setSenhaGerada]=useState<{nome:string;email:string;senha:string}|null>(null)
-  const [upsellId,setUpsellId]=useState<string|null>(null)
 
   useEffect(()=>{load()},[])
 
@@ -110,6 +108,10 @@ export default function Profissionais(){
     }
 
     setPerfil(p)
+    // Nao consultar nem mostrar os registros a um plano sem acesso ao recurso.
+    if (!podeUsarProfissionais(p.plano_tipo)) {
+      setProfs([]);setLoading(false);return
+    }
 
     // ✅ CORRIGIDO: busca por perfil_id (não user_id)
     const {data:ps,error:profsError}=await supabase
@@ -119,13 +121,12 @@ export default function Profissionais(){
       .order('nome')
 
     if(profsError){console.error('Erro ao carregar profissionais:',profsError)}
-    console.log('DEBUG - perfil_id usado:',p.id,'profissionais encontrados:',ps?.length)
 
     setProfs(ps||[]);setLoading(false)
 
     const {data:{session}}=await supabase.auth.getSession()
     const token=session?.access_token
-    if(token){
+    if(token && p.plano_tipo === 'equipe'){
       try{
         const res=await fetch('/api/equipe/criar-acesso',{headers:{'Authorization':'Bearer '+token}})
         const data=await res.json()
@@ -144,6 +145,10 @@ export default function Profissionais(){
   }
 
   function abrirForm(p?:Prof){
+    if (!p && profs.length >= obterLimiteProfissionais(perfil?.plano_tipo)) {
+      setMsg('O limite do seu plano foi atingido. Voce pode editar o responsavel cadastrado.');
+      return
+    }
     if(p){
       setFNome(p.nome);setFCargo(p.cargo||'');setFWpp(p.whatsapp||'')
       setFEmail(p.email||'');setFAtivo(p.ativo!==false)
@@ -164,16 +169,22 @@ export default function Profissionais(){
     if(!fNome.trim()){setMsg('⚠ Informe o nome.');return}
     if(!perfil?.id){setMsg('⚠ Perfil do negócio não encontrado. Salve o perfil primeiro.');return}
 
-    // Limite de profissionais por plano (conta ativos + inativos, so nao vale pra edicao)
+    // Conferir o limite inclusive no clique de salvar; client-side nao substitui RLS.
+    if (!podeUsarProfissionais(perfil?.plano_tipo)) {
+      setMsg('Seu plano nao permite cadastrar profissionais.');return
+    }
     if(!editId){
-      const planoTipoAtual = perfil?.plano_tipo === 'equipe' ? 'equipe' : 'essencial'
-      const limiteAtual = LIMITES_PROFISSIONAIS[planoTipoAtual]
-      if(profs.length >= limiteAtual){
-        setMsg(planoTipoAtual==='equipe'
-          ? `Seu Plano Equipe permite até ${limiteAtual} profissionais cadastrados. Para aumentar esse limite, entre em contato com o suporte.`
-          : `Seu Plano Essencial permite até ${limiteAtual} profissionais cadastrados. Para adicionar mais profissionais, migre para o Plano Equipe.`)
-        setTimeout(()=>setMsg(''),5000)
-        return
+      const limiteAtual = obterLimiteProfissionais(perfil?.plano_tipo)
+      // Busca autoritativa das contagens antes de salvar para reduzir divergencia de abas.
+      const { data: { user: usuarioAtual } } = await supabase.auth.getUser()
+      if(!usuarioAtual){setMsg('Sessao expirada. Entre novamente.');return}
+      const {count,error:erroContagem}=await supabase.from('profissionais')
+        .select('id',{count:'exact',head:true})
+        .eq('perfil_id',perfil.id)
+      if(erroContagem || count === null){setMsg('Nao foi possivel conferir o limite de profissionais. Tente novamente.');return}
+      if(count>=limiteAtual){
+        setMsg(`Seu ${obterNomePlano(perfil.plano_tipo)} permite até ${limiteAtual} ${limiteAtual===1?'profissional cadastrado':'profissionais cadastrados'}.`)
+        setTimeout(()=>setMsg(''),5000);return
       }
     }
 
@@ -205,10 +216,9 @@ export default function Profissionais(){
     }
     if(foto_url) payload.foto_url=foto_url
 
-    console.log('DEBUG - payload salvar profissional:',payload)
 
     if(editId){
-      const {error:updateError}=await supabase.from('profissionais').update(payload).eq('id',editId)
+      const {error:updateError}=await supabase.from('profissionais').update(payload).eq('id',editId).eq('perfil_id',perfil.id).eq('user_id',user.id)
       if(updateError){
         console.error('Erro ao atualizar profissional:',updateError)
         setMsg('Erro ao atualizar: '+updateError.message)
@@ -233,13 +243,20 @@ export default function Profissionais(){
 
   async function excluir(id:string,nome:string){
     if(!confirm(`Remover "${nome}"?\n\nEle pode estar vinculado a agendamentos existentes.`)) return
-    await supabase.from('profissionais').delete().eq('id',id)
-    setProfs(prev=>prev.filter(p=>p.id!==id))
+    const {data:{user}}=await supabase.auth.getUser()
+    if(!user || !perfil?.id){setMsg('Sessao expirada.');return}
+    const {error}=await supabase.from('profissionais').delete().eq('id',id).eq('perfil_id',perfil.id).eq('user_id',user.id)
+    if(error){setMsg('Nao foi possivel remover o profissional.');return}
+    await load()
     setMsg('Removido.');setTimeout(()=>setMsg(''),2000)
   }
 
   async function toggleAtivo(p:Prof){
-    await supabase.from('profissionais').update({ativo:!p.ativo,aparece_na_agenda:!p.ativo}).eq('id',p.id)
+    const {data:{user}}=await supabase.auth.getUser()
+    if(!user || !perfil?.id){setMsg('Sessao expirada.');return}
+    const {error}=await supabase.from('profissionais').update({ativo:!p.ativo,aparece_na_agenda:!p.ativo})
+      .eq('id',p.id).eq('perfil_id',perfil.id).eq('user_id',user.id)
+    if(error){setMsg('Nao foi possivel alterar o status.');return}
     setProfs(prev=>prev.map(x=>x.id===p.id?{...x,ativo:!p.ativo}:x))
     setMsg(p.ativo?'Profissional desativado.':'Profissional ativado.');setTimeout(()=>setMsg(''),2000)
   }
@@ -292,8 +309,9 @@ export default function Profissionais(){
   const nome=perfil?.nome_negocio||''
   const ini=(nome||'P').charAt(0).toUpperCase()
   const ativos=profs.filter(p=>p.ativo!==false).length
-  const planoAtual = perfil?.plano_tipo === 'equipe' ? 'equipe' : 'essencial'
-  const limitePlano = LIMITES_PROFISSIONAIS[planoAtual]
+  const planoAtual = String(perfil?.plano_tipo || 'free').toLowerCase().trim()
+  const limitePlano = obterLimiteProfissionais(planoAtual)
+  const planoIndividual = planoAtual === 'agenda' || planoAtual === 'loja'
   const noLimite = profs.length >= limitePlano
 
   if(loading)return(<div style={{minHeight:'100vh',background:'#08060A',display:'flex',alignItems:'center',justifyContent:'center',fontFamily:'system-ui'}}><p style={{color:'#B8AAB8',fontSize:'14px'}}>Carregando...</p></div>)
@@ -305,8 +323,8 @@ export default function Profissionais(){
         <div className="psb-main">
           <div style={{minHeight:'60vh',display:'flex',alignItems:'center',justifyContent:'center',padding:'24px'}}>
             <div style={{maxWidth:'460px',textAlign:'center',background:'radial-gradient(circle at top left,rgba(139,92,246,.09),transparent 60%),linear-gradient(145deg,rgba(24,16,27,.97),rgba(18,10,20,.99))',border:'1.5px solid #2A1A2F',borderRadius:'22px',padding:'44px 32px'}}>
-              <p style={{fontSize:'19px',fontWeight:800,color:'#F8F4F7',marginBottom:'10px'}}>Este recurso está disponível no Plano Profissional.</p>
-              <p style={{fontSize:'14px',color:'#B8AAB8',lineHeight:1.6,marginBottom:'26px'}}>Sua MiniPage está ativa, mas agenda, clientes, financeiro e relatórios fazem parte de um plano com mais recursos.</p>
+              <p style={{fontSize:'19px',fontWeight:800,color:'#F8F4F7',marginBottom:'10px'}}>Profissionais disponíveis a partir do Plano Agenda.</p>
+              <p style={{fontSize:'14px',color:'#B8AAB8',lineHeight:1.6,marginBottom:'26px'}}>Cadastre o responsável pelos agendamentos no plano Agenda, Loja ou Pro. Financeiro e gestão administrativa exigem outros recursos.</p>
               <div style={{display:'flex',gap:'10px',justifyContent:'center',flexWrap:'wrap'}}>
                 <a href="/painel/plano" style={{background:'linear-gradient(135deg,#EC4899,#D946EF,#8B5CF6)',color:'#fff',border:'1px solid rgba(255,255,255,.12)',borderRadius:'12px',padding:'12px 24px',fontSize:'14px',fontWeight:700,textDecoration:'none',display:'inline-block'}}>Ver planos</a>
                 <a href="/painel" style={{background:'rgba(24,16,27,.92)',color:'#F8F4F7',border:'1px solid rgba(229,72,184,.28)',borderRadius:'12px',padding:'12px 24px',fontSize:'14px',fontWeight:600,textDecoration:'none',display:'inline-block'}}>Voltar ao início</a>
@@ -349,28 +367,26 @@ export default function Profissionais(){
           <div className="hdr-row" style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',gap:'16px',flexWrap:'wrap',marginBottom:'24px'}}>
             <div>
               <h1 style={{fontSize:'24px',fontWeight:800,color:'#F8F4F7',letterSpacing:'-0.04em',marginBottom:'5px'}}>Profissionais</h1>
-              <p style={{fontSize:'13px',color:'#B8AAB8',lineHeight:1.5}}>Cadastre profissionais, funções e organize a agenda da equipe.</p>
+              <p style={{fontSize:'13px',color:'#B8AAB8',lineHeight:1.5}}>{planoIndividual?'Cadastre o responsável que atenderá seus clientes. Inclui até um perfil, sem login de equipe.':'Cadastre profissionais, funções e organize seus atendimentos.'}</p>
             </div>
             <div className="hdr-btns">
-              <button onClick={()=>abrirForm()} className="btn-p">
+              <button onClick={()=>abrirForm()} disabled={noLimite} className="btn-p" style={{opacity:noLimite?.5:1,cursor:noLimite?'not-allowed':'pointer'}}>
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-                {showForm&&!editId?'Cancelar':'Novo profissional'}
+                {showForm&&!editId?'Cancelar':planoIndividual?'Cadastrar responsável':'Novo profissional'}
               </button>
             </div>
           </div>
 
-          <div className="crd" style={{padding:'14px 20px',marginBottom:'20px',display:'flex',alignItems:'center',justifyContent:'space-between',flexWrap:'wrap',gap:'10px',border:noLimite&&planoAtual==='essencial'?'1.5px solid rgba(236,72,153,.35)':'1.5px solid #2A1A2F'}}>
+          <div className="crd" style={{padding:'14px 20px',marginBottom:'20px',display:'flex',alignItems:'center',justifyContent:'space-between',flexWrap:'wrap',gap:'10px',border:noLimite?'1.5px solid rgba(236,72,153,.35)':'1.5px solid #2A1A2F'}}>
             <div style={{display:'flex',alignItems:'center',gap:'10px',flexWrap:'wrap'}}>
               <span style={{fontSize:'11px',fontWeight:700,padding:'4px 12px',borderRadius:'999px',background:planoAtual==='equipe'?'rgba(139,92,246,.16)':'rgba(236,72,153,.14)',color:planoAtual==='equipe'?'#C4B5FD':'#F9A8D4',border:`1px solid ${planoAtual==='equipe'?'rgba(139,92,246,.30)':'rgba(236,72,153,.28)'}`}}>
-                Plano {planoAtual==='equipe'?'Equipe':'Essencial'}
+                {obterNomePlano(planoAtual)}
               </span>
               <span style={{fontSize:'13px',color:'#B8AAB8'}}>
                 Profissionais cadastrados: <strong style={{color:noLimite?'#F87171':'#F8F4F7'}}>{profs.length}</strong> de {limitePlano}
               </span>
             </div>
-            {noLimite&&planoAtual==='essencial'&&(
-              <Link href="/#plano" className="btn-s" style={{fontSize:'12px',height:'34px',padding:'0 14px'}}>Conhecer Plano Equipe</Link>
-            )}
+            {noLimite&&planoIndividual&&<span style={{fontSize:'12px',color:'#C4B5FD'}}>Para alterar o profissional, use Editar abaixo.</span>}
           </div>
 
           <div className="kpi-grid">
@@ -456,8 +472,8 @@ export default function Profissionais(){
               <div style={{background:'radial-gradient(circle at center,rgba(139,92,246,.08),transparent 35%),linear-gradient(145deg,rgba(24,16,27,.97),rgba(18,10,20,.99))',border:'1.5px solid #2A1A2F',borderRadius:'20px',padding:'60px 24px',textAlign:'center'}}>
                 <div style={{width:'58px',height:'58px',borderRadius:'16px',background:'rgba(139,92,246,.12)',border:'1px solid rgba(139,92,246,.28)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'26px',margin:'0 auto 16px'}}>👤</div>
                 <p style={{fontSize:'16px',fontWeight:700,color:'#F8F4F7',marginBottom:'6px'}}>{busca?'Nenhum profissional encontrado':'Nenhum profissional cadastrado'}</p>
-                <p style={{fontSize:'13px',color:'#B8AAB8',lineHeight:1.5,maxWidth:'300px',margin:'0 auto 20px'}}>{busca?'Tente outro termo.':'Cadastre sua equipe para organizar agenda, serviços, horários e atendimentos.'}</p>
-                {!busca&&<button onClick={()=>abrirForm()} className="btn-p" style={{display:'inline-flex'}}>+ Adicionar primeiro profissional</button>}
+                <p style={{fontSize:'13px',color:'#B8AAB8',lineHeight:1.5,maxWidth:'300px',margin:'0 auto 20px'}}>{busca?'Tente outro termo.':planoIndividual?'Cadastre o responsável pelos serviços e agendamentos online.':'Cadastre profissionais para organizar agenda, serviços, horários e atendimentos.'}</p>
+                {!busca&&<button onClick={()=>abrirForm()} disabled={noLimite} className="btn-p" style={{display:'inline-flex',opacity:noLimite?.5:1}}>+ {planoIndividual?'Cadastrar responsável':'Adicionar primeiro profissional'}</button>}
               </div>
             ):(
               filtrados.map(p=>{
@@ -488,9 +504,7 @@ export default function Profissionais(){
                           <span style={{fontSize:'10px',fontWeight:600,padding:'6px 10px',borderRadius:'8px',background:'rgba(139,92,246,.12)',color:'#C4B5FD',border:'1px solid rgba(139,92,246,.28)'}}>🔑 {acessosEquipe[p.id].email}</span>
                         ):planoAtual==='equipe'?(
                           <button onClick={()=>{setCriandoAcessoId(criandoAcessoId===p.id?null:p.id);setEmailAcesso(p.email||'')}} className="pact" style={{background:'rgba(139,92,246,.10)',border:'1px solid rgba(139,92,246,.28)',color:'#C4B5FD'}}>🔑 Criar acesso</button>
-                        ):(
-                          <button onClick={()=>setUpsellId(upsellId===p.id?null:p.id)} className="pact" style={{background:'rgba(24,16,27,.85)',border:'1px solid #2A1A2F',color:'#B8AAB8'}}>🔒 Plano Equipe</button>
-                        )}
+                        ):null}
                         <button onClick={()=>excluir(p.id,p.nome)} className="pact pact-del" style={{background:'rgba(24,16,27,.85)',border:'1px solid #2A1A2F',color:'#B8AAB8'}}>✕</button>
                       </div>
                     </div>
@@ -499,13 +513,6 @@ export default function Profissionais(){
                         <input type="email" value={emailAcesso} onChange={e=>setEmailAcesso(e.target.value)} placeholder="email@profissional.com" style={{flex:'1 1 220px',background:'rgba(24,16,27,.88)',border:'1px solid rgba(42,26,47,.30)',borderRadius:'10px',padding:'10px 14px',color:'#F8F4F7',fontSize:'13px',fontFamily:'inherit',outline:'none'}}/>
                         <button onClick={()=>confirmarCriarAcesso(p)} disabled={criandoAcessoLoading} className="btn-p" style={{height:'38px',fontSize:'12px',padding:'0 16px',opacity:criandoAcessoLoading?.7:1}}>{criandoAcessoLoading?'Criando...':'Confirmar'}</button>
                         <button onClick={()=>setCriandoAcessoId(null)} className="btn-s" style={{height:'38px',fontSize:'12px',padding:'0 14px'}}>Cancelar</button>
-                      </div>
-                    )}
-                    {upsellId===p.id&&(
-                      <div style={{marginTop:'12px',paddingTop:'12px',borderTop:'1px solid #2A1A2F'}}>
-                        <p style={{fontSize:'13px',color:'#F8F4F7',fontWeight:600,marginBottom:'5px'}}>🔒 Login individual para profissionais está disponível no Plano Equipe.</p>
-                        <p style={{fontSize:'12px',color:'#B8AAB8',marginBottom:'12px',lineHeight:1.5}}>Com o Plano Equipe, cada profissional acessa a própria agenda e Meu Desempenho, sem visualizar o financeiro, relatórios ou configurações do negócio.</p>
-                        <Link href="/#plano" className="btn-p" style={{fontSize:'12px',height:'34px',padding:'0 16px',display:'inline-flex'}}>Conhecer Plano Equipe</Link>
                       </div>
                     )}
                   </div>

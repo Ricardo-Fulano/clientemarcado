@@ -51,7 +51,7 @@ export default function PosConfirmacao() {
 
       // Free nunca passa por checkout - vai direto pro painel, como sempre.
       if (ehPlanoFree(perfil.plano_tipo)) {
-        window.location.href = '/painel'
+        window.location.href = new URLSearchParams(window.location.search).get('novo') === '1' ? '/contato-inicial' : '/painel'
         return
       }
 

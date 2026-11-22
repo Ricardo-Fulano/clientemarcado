@@ -2,7 +2,8 @@
 import { useState, useEffect, Suspense } from 'react'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
-import { normalizarPlano, obterNomePlano, obterPrecoPlano, ehPlanoFree, type PlanoTipo, normalizarBillingCycle, obterPrecoPlanoPorCiclo, obterNomeCiclo } from '../lib/planos'
+import { obterNomePlano, obterPrecoPlano, ehPlanoFree, type PlanoTipo, normalizarBillingCycle, obterPrecoPlanoPorCiclo, obterNomeCiclo } from '../lib/planos'
+import { planoEstaNaOferta } from '../lib/comercial/planos-ofertados'
 
 const CSS = `
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -37,9 +38,10 @@ html,body{overflow-x:hidden;width:100%;max-width:100%;background:#08060A}
 `
 
 const BENEFICIOS_POR_PLANO: Partial<Record<PlanoTipo, string[]>> = {
-  minipage: ['Página profissional (minipage.pro)', 'Links rápidos e cards de destaque', 'Vídeos em destaque', 'Redes sociais e WhatsApp', 'Espaço para divulgações', 'Suporte por WhatsApp'],
-  essencial: ['Agenda e agendamento online', 'Clientes e profissionais', 'Orçamentos e cobranças', 'Pagamentos e relatórios', 'Página pública de agendamento', 'Suporte por WhatsApp'],
-  equipe: ['Tudo do Plano Profissional', 'Até 15 profissionais cadastrados', 'Login individual por profissional', 'Área "Meu Desempenho"', 'Financeiro protegido por acesso', 'Suporte por WhatsApp'],
+  minipage: ['Tudo do Free +', 'Página profissional com banner', 'Links ilimitados, vídeos e destaques', 'Temas e personalização', 'Spotify e redes sociais'],
+  agenda: ['Tudo do MiniPage +', 'Agendamento online automático', 'Agenda de atendimentos', 'Serviços e horários', '1 responsável'],
+  loja: ['Tudo do Agenda +', 'Catálogo de produtos e serviços', 'Divulgação de cursos e ofertas', 'Links comerciais e vendas', 'Agendamento online incluído'],
+  essencial: ['Tudo do Loja +', 'Clientes e gestão avançada', 'Financeiro e cobranças', 'Relatórios e administração', 'Até 3 profissionais'],
 }
 
 export default function AceitePlano() {
@@ -53,7 +55,8 @@ export default function AceitePlano() {
 function AceitePlanoConteudo() {
   const searchParams = useSearchParams()
   const planoParam = searchParams.get('plano')
-  const planoValido = normalizarPlano(planoParam)
+  // Na oferta para NOVOS assinantes, plano invalido ou legado nao pode virar Pro por fallback.
+  const planoValido = planoEstaNaOferta(planoParam) ? planoParam : null
   // Le ?billing=anual (ou 'mensal') da URL - se nao vier nada, usa 'mensal' como padrao
   // seguro, exatamente como pedido.
   const billingParam = searchParams.get('billing')
@@ -62,7 +65,9 @@ function AceitePlanoConteudo() {
   // Free nunca tem cobranca, trial nem contrato de plano pago - nao faz sentido passar por
   // essa tela. Redireciona direto pro cadastro, sem exibir nada do fluxo de aceite pago.
   useEffect(() => {
-    if (ehPlanoFree(planoValido)) {
+    if (!planoValido) {
+      window.location.replace('/precos')
+    } else if (ehPlanoFree(planoValido)) {
       window.location.href = `/cadastro?plano=free${cupomParam ? `&cupom=${encodeURIComponent(cupomParam)}` : ''}`
     }
   }, [planoValido, cupomParam])
@@ -71,7 +76,7 @@ function AceitePlanoConteudo() {
   const plano = {
     nome: `Plano ${obterNomePlano(planoValido)}`,
     preco: `R$ ${obterPrecoPlanoPorCiclo(planoValido, billingCycle).toLocaleString('pt-BR', { minimumFractionDigits: 2 }).replace('.', ',')}`,
-    beneficios: BENEFICIOS_POR_PLANO[planoValido] || [],
+    beneficios: planoValido ? (BENEFICIOS_POR_PLANO[planoValido] || []) : [],
   }
 
   // Contrato dinamico: nome/preco/ciclo corretos conforme o plano e a periodicidade escolhida,
@@ -104,6 +109,7 @@ function AceitePlanoConteudo() {
   const tudo = c1 && c2 && c3
 
   function handleConfirmar() {
+    if (!planoValido) { setErro('Plano indisponivel para novas contratacoes.'); return }
     if (!tudo) { setErro('Para continuar, aceite todos os termos do plano.'); return }
     setErro('')
     try {
@@ -120,7 +126,7 @@ function AceitePlanoConteudo() {
 
   // Enquanto redireciona o Free (useEffect acima), nao renderiza nada do fluxo de aceite
   // pago - evita qualquer flash do contrato/aviso de cobranca antes do redirect completar.
-  if (ehPlanoFree(planoValido)) return null
+  if (!planoValido || ehPlanoFree(planoValido)) return null
 
   return (
     <div className="pg">

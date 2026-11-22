@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { headers } from "next/headers";
+import { detectarIdiomaHeader } from "./lib/i18n-publico";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { IdiomaProviderGlobal } from "./components/IdiomaProviderGlobal";
@@ -59,17 +61,23 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // O idioma do documento acompanha o idioma preferido do visitante.
+  // Isso nao traduz conteudo autoral e nao altera moeda ou pais de cobranca.
+  const idioma = detectarIdiomaHeader((await headers()).get('accept-language'))
+  const htmlLang = ({
+    pt: 'pt-BR', en: 'en-US', es: 'es-ES', fr: 'fr-FR', de: 'de-DE', it: 'it-IT',
+  } as const)[idioma]
   return (
     <html
-      lang="pt-BR"
+      lang={htmlLang}
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col"><IdiomaProviderGlobal>{children}</IdiomaProviderGlobal></body>
+      <body className="min-h-full flex flex-col"><IdiomaProviderGlobal idiomaInicial={htmlLang}>{children}</IdiomaProviderGlobal></body>
     </html>
   );
 }

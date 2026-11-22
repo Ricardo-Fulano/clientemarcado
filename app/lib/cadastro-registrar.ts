@@ -2,8 +2,9 @@ import crypto from 'crypto'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { ehEmailJaCadastrado } from './auth-erros'
 import { criarPerfilInicial } from './perfil-inicial'
-import { normalizarPlano } from './planos'
-import { normalizarWhatsappBR } from './whatsapp'
+import { ehPlanoFree } from './planos'
+import { planoEstaNaOferta } from './comercial/planos-ofertados'
+import { normalizarTelefoneCadastro } from './telefone-cadastro-global'
 
 // Cadastro feito PELO SERVIDOR: cria o usuario ja confirmado (auth.admin.createUser com
 // email_confirm:true), cria o perfil, entrega uma sessao e nunca depende do interruptor
@@ -52,7 +53,17 @@ export async function registrarConta(
 
   const email = typeof input.email === 'string' ? input.email.trim().toLowerCase() : ''
   const senha = typeof input.senha === 'string' ? input.senha : ''
-  const nome = typeof input.nome === 'string' ? input.nome.trim() : ''
+  const nomeInformado = typeof input.nome === 'string' ? input.nome.trim() : ''
+  // Cadastro NOVO exige identificador comercial explicito e vigente.
+  // Nao usar normalizarPlano() aqui: seu fallback para 'essencial' criaria Pro por engano.
+  const planoRecebido = input.plano_tipo == null ? 'free' : input.plano_tipo
+  if (!planoEstaNaOferta(planoRecebido)) {
+    return { status: 422, body: { codigo: 'PLANO_FORA_DA_OFERTA', error: 'Plano indisponivel. Escolha uma das cinco opcoes atuais.' } }
+  }
+  const plano = planoRecebido
+  const cadastroGratuito = ehPlanoFree(plano)
+  // Nome visivel e escolhido na personalizacao. Nunca use o e-mail como nome publico.
+  const nome = cadastroGratuito && !nomeInformado ? 'Minha MiniPage' : nomeInformado
   log('REGISTER_START', { email: email ? mascarar(email) : null })
 
   if (!email || email.length > 254 || !EMAIL_REGEX.test(email))
@@ -63,11 +74,11 @@ export async function registrarConta(
     return { status: 400, body: { codigo: 'NOME_OBRIGATORIO', error: 'Informe seu nome.' } }
   if (input.termos !== true)
     return { status: 400, body: { codigo: 'TERMOS_OBRIGATORIOS', error: 'Aceite os termos para criar sua conta.' } }
-  // WhatsApp: obrigatorio em TODO cadastro novo (suporte e recuperacao de cadastro). Validado e normalizado aqui, no
-  // servidor, ANTES de qualquer conta ser criada. Valor salvo: so digitos com DDI (55 + DDD + 9 digitos). Nunca logamos o numero.
-  const whatsapp = normalizarWhatsappBR(input.whatsapp)
-  if (!whatsapp)
-    return { status: 400, body: { codigo: 'WHATSAPP_INVALIDO', error: 'Informe um celular com DDD, por exemplo (11) 99999-9999. Se você não vir o campo WhatsApp, atualize a página.' } }
+  // No Free o telefone privado e coletado depois, opcionalmente.
+  // No fluxo pago legado continuamos exigindo para preservar o checkout Asaas.
+  const whatsapp = input.whatsapp ? normalizarTelefoneCadastro(input.whatsapp) : null
+  if (!cadastroGratuito && !whatsapp)
+    return { status: 400, body: { codigo: 'WHATSAPP_INVALIDO', error: 'Informe um telefone com código internacional, por exemplo +55 11 99999 9999 ou +1 415 555 0123.' } }
 
   // Limite de abuso: por IP e por e-mail (chaves guardadas so como hash).
   const chaveIp = 'ip:' + (input.ip ? sha(input.ip) : 'desconhecido')
@@ -84,7 +95,6 @@ export async function registrarConta(
   if (existenteId)
     return { status: 409, body: { codigo: 'JA_TEM_CONTA', error: 'Este e-mail já possui uma conta. Entre para continuar.' } }
 
-  const plano = normalizarPlano(typeof input.plano_tipo === 'string' ? input.plano_tipo : null)
   const cupom = typeof input.cupom === 'string' && input.cupom.trim() && input.cupom.length <= 50 ? input.cupom.trim().toUpperCase() : null
 
   // Cria o usuario JA CONFIRMADO. Nenhum e-mail do Supabase e enviado por este caminho.

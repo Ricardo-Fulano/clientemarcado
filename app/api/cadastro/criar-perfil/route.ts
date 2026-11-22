@@ -57,6 +57,8 @@ export async function POST(request: NextRequest) {
     const r = await criarPerfilInicial(supabase, {
       userId, email: sess.user.email || '', nome_negocio: nomeDoNegocio(sess.user.user_metadata),
       plano_tipo: 'free', billing_cycle: null,
+      // Código recebido após OAuth; criarPerfilInicial verifica se o parceiro está ativo.
+      cupom: typeof sess.user.user_metadata?.cupom_indicacao === 'string' ? sess.user.user_metadata.cupom_indicacao : null,
     })
     if (!r.ok) { console.error('[criar-perfil] PERFIL_CRIACAO_FALHOU', JSON.stringify({ erro: r.erro })); return NextResponse.json({ error: 'Erro ao criar perfil' }, { status: 500 }) }
     return NextResponse.json(r.criado ? { ok: true, criado: true, slug: r.slug } : { ok: true, criado: false, motivo: 'JA_EXISTE' })

@@ -143,23 +143,24 @@ export function ehPlanoComGestao(planoTipo?: string | null): boolean {
 }
 
 /**
- * Controla o acesso ao menu/rota de Profissionais - essencial (Pro, ate 3 profissionais)
- * e equipe (ate 15, com login individual). Free/MiniPage/Loja nao tem.
+ * Cadastro de responsaveis por agendamento: Agenda e Loja (1 profissional),
+ * Pro (ate 3) e Equipe legado (ate 15). Login de equipe e permissao separada.
  *
  * Mesmo cuidado ja aplicado em podeUsarCatalogo: nao usa normalizarPlano() aqui, pois
  * aquela funcao tem fallback pra 'essencial' em valores desconhecidos/vazios, o que
- * liberaria Profissionais por engano pra plano_tipo nulo ou invalido. Checa o valor bruto
- * diretamente - so libera se for EXPLICITAMENTE essencial ou equipe.
+ * liberar Profissionais por engano pra plano_tipo nulo ou invalido. Checa o valor bruto
+ * diretamente, sem conceder permissoes a plano desconhecido.
  */
 export function podeUsarProfissionais(planoTipo?: string | null): boolean {
   const p = (planoTipo || '').toLowerCase().trim()
-  return p === 'essencial' || p === 'equipe'
+  return p === 'agenda' || p === 'loja' || p === 'essencial' || p === 'equipe'
 }
 
-/** Mesmo comportamento de ehPlanoComGestao() - nome semantico especifico pra agenda. */
+/** Acesso as telas de agenda e horarios (Agenda, Loja, Pro, Equipe).
+ *  NAO inclui financeiro, cobrancas ou clientes administrativos. */
 export function permiteAgenda(planoTipo?: string | null): boolean {
   const p = (planoTipo || '').toLowerCase().trim()
-  return p === 'agenda' || p === 'essencial' || p === 'equipe'
+  return p === 'agenda' || p === 'loja' || p === 'essencial' || p === 'equipe'
 }
 
 /** Mesmo comportamento de ehPlanoComGestao() - nome semantico especifico pro financeiro. */
@@ -219,14 +220,16 @@ export function obterLimiteSecoesDestaques(planoTipo?: string | null): number {
 }
 
 /**
- * Quantos profissionais (login individual/equipe) o plano permite cadastrar.
- * Free, MiniPage e Loja nao tem area de profissionais/equipe.
+ * Limite de registros de profissionais ligados ao agendamento (nao logins individuais).
+ * Agenda/Loja: um responsavel. Pro: ate 3. Equipe legado: ate 15.
+ * Nunca normalizar aqui: nulo/invalido nao deve receber limite de Pro.
  */
 export function obterLimiteProfissionais(planoTipo?: string | null): number {
-  const p = normalizarPlano(planoTipo)
-  if (p === 'equipe') return 15
+  const p = (planoTipo || '').toLowerCase().trim()
+  if (p === 'agenda' || p === 'loja') return 1
   if (p === 'essencial') return 3
-  return 0 // free, minipage, loja
+  if (p === 'equipe') return 15
+  return 0
 }
 
 // ===================================================================
@@ -296,12 +299,13 @@ export function permiteTodosModelosDeCor(planoTipo?: string | null): boolean {
 //             albuns/fotos, destaques, videos, Spotify, agenda de eventos, catalogo, agendamento automatico nem gestao.
 // MINIPAGE  : Free + links ilimitados, links visuais (cards), albuns/fotos, destaques, videos, Spotify, agenda de EVENTOS,
 //             todos os modelos de cor, painel de desempenho. SEM catalogo, agendamento automatico nem gestao.
-// LOJA      : MiniPage + catalogo, WhatsApp no catalogo, mensagem por item, links de venda, captacao de leads.
-//             SEM agendamento automatico nem gestao.
-// ESSENCIAL (MiniPage Pro): Loja + agendamento automatico, agenda de atendimento, clientes, orcamentos, cobrancas,
+// AGENDA    : MiniPage + agendamento automatico de clientes e gerenciamento de horarios e servicos.
+// LOJA      : Agenda + catalogo, WhatsApp no catalogo, mensagem por item, links de venda, captacao de leads.
+//             COM agendamento automatico e configuracao de horarios, sem gestao financeira completa.
+// ESSENCIAL (MiniPage Pro): Loja + clientes, orcamentos, cobrancas,
 //             financeiro, relatorios, ate 3 profissionais.
 // EQUIPE    : Pro + ate 15 profissionais, login individual, Minha Agenda, Meu Desempenho, controle de equipe.
-// "Agenda de eventos" (MiniPage+) NAO e agendamento automatico de clientes (so Pro/Equipe).
+// "Agenda de eventos" (MiniPage+) NAO e agendamento automatico de clientes (Agenda/Loja/Pro/Equipe).
 //
 // As 3 funcoes abaixo sao ESTRITAS (mesmo cuidado de podeUsarCatalogo): valor nulo, vazio ou desconhecido NAO libera.
 function planoBruto(planoTipo?: string | null): string {
@@ -320,10 +324,10 @@ export function permiteCardsVisuais(planoTipo?: string | null): boolean {
   return p === 'minipage' || p === 'agenda' || p === 'loja' || p === 'essencial' || p === 'equipe'
 }
 
-/** AGENDAMENTO AUTOMATICO de clientes (/[slug]/agendar): SOMENTE Pro (essencial) e Equipe. Free, MiniPage e Loja NAO. */
+/** Agendamento publico: Agenda, Loja (que herda Agenda), Pro e Equipe. */
 export function permiteAgendamentoAutomatico(planoTipo?: string | null): boolean {
   const p = planoBruto(planoTipo)
-  return p === 'agenda' || p === 'essencial' || p === 'equipe'
+  return p === 'agenda' || p === 'loja' || p === 'essencial' || p === 'equipe'
 }
 
 export type BloqueioRotaPainel = { titulo: string; descricao: string }

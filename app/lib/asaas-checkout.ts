@@ -54,7 +54,8 @@ export async function criarOuReutilizarCheckout(
     // Free nunca gera assinatura.
     if (ehPlanoFree(planoTipoOriginal)) return { status: 400, body: { error: 'Plano Free não gera assinatura.' } }
     // So os 4 planos pagos conhecidos - nunca assume um valor para uma cobranca real.
-    const PLANOS_PAGOS_VALIDOS = ['minipage', 'agenda', 'loja', 'essencial', 'equipe']
+    // Equipe sai das novas contratacoes. Dados e precos historicos nao sao apagados.
+    const PLANOS_PAGOS_VALIDOS = ['minipage', 'agenda', 'loja', 'essencial']
     if (!planoTipoOriginal || !PLANOS_PAGOS_VALIDOS.includes(planoTipoOriginal)) {
       console.error('[Asaas][checkout] plano_tipo invalido/desconhecido - bloqueando por seguranca:', planoTipoOriginal)
       return { status: 400, body: { error: 'Não foi possível identificar seu plano. Entre em contato com o suporte.' } }

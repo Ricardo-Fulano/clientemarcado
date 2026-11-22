@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import type { ReactNode } from 'react'
 import { Fragment } from 'react'
-import { detectarIdiomaHeader, getDicionario } from '../lib/i18n-publico'
+import { detectarIdiomaHeader, getDicionario, type Idioma } from '../lib/i18n-publico'
 import { supabase } from '../lib/supabase'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
@@ -28,7 +28,7 @@ import PixCardPublico from '../components/PixCardPublico'
 import { buscarResumoPix } from '../lib/pix-servidor'
 import { resolverOrdemPagina } from '../lib/ordemPagina'
 import { resolverTema, getTema } from '../lib/tema-publico'
-import { ehPlanoComGestao, permiteVideos, permiteDestaques, permiteAgendaEventos, obterLimiteCatalogos, podeUsarCatalogo, obterLimiteSecoesDestaques, obterLimiteLinksRapidos, ehPlanoFree, permiteAlbuns, permiteCardsVisuais, permiteSpotify } from '../lib/planos'
+import { permiteAgendamentoAutomatico, permiteVideos, permiteDestaques, permiteAgendaEventos, obterLimiteCatalogos, podeUsarCatalogo, obterLimiteSecoesDestaques, obterLimiteLinksRapidos, ehPlanoFree, permiteAlbuns, permiteCardsVisuais, permiteSpotify } from '../lib/planos'
 
 
 
@@ -389,7 +389,7 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
   // Idioma do visitante, detectado pelo header enviado pelo navegador (server-side - o HTML
   // ja nasce traduzido, sem nenhuma logica no cliente, entao nao ha risco de hidratacao).
   // So traduz textos FIXOS do sistema; nada do conteudo cadastrado pelo cliente e afetado.
-  let idiomaVisitante: 'pt' | 'en' | 'es' = 'pt'
+  let idiomaVisitante: Idioma = 'pt'
   try {
     const h = await headers()
     idiomaVisitante = detectarIdiomaHeader(h.get('accept-language'))
@@ -468,7 +468,7 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
 
   // Seções personalizadas só para planos pagos. O Free preserva o bloco fixo original.
   // Se a consulta falhar, não expor vídeos de seções ocultas por engano.
-  const videosPersonalizadosLiberados = ['minipage', 'loja', 'essencial', 'equipe'].includes(String(perfil.plano_tipo || '').trim().toLowerCase())
+  const videosPersonalizadosLiberados = ['minipage', 'agenda', 'loja', 'essencial', 'equipe'].includes(String(perfil.plano_tipo || '').trim().toLowerCase())
   const secoesVideosComItens = (videosPersonalizadosLiberados ? (videosSecoesAtivas || []) : [])
     .map((sec: any) => ({
       ...sec,
@@ -490,6 +490,24 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
         .filter((it: any) => it.parse.valido),
     }))
     .filter((sec: any) => sec.itens.length > 0)
+
+  // Smart Import: links Spotify adicionados no assistente tambem aparecem no
+  // player oficial, quando o plano libera Spotify. Nao altera nem migra registros.
+  // Nao duplica a mesma midia ja cadastrada em uma secao Spotify existente.
+  const spotifyJaIncorporados = new Set(
+    spotifySecoesComItens.flatMap((sec: any) => sec.itens.map((it: any) => `${it.parse.tipo}:${it.parse.id}`))
+  )
+  const spotifyLinksIncorporaveis = permiteSpotify(perfil.plano_tipo)
+    ? (linksRapidos || [])
+        .map((l: any) => ({ ...l, parse: parseSpotifyUrl(String(l.url || '').replace(/\/intl-[a-z]{2}(?:-[a-z]{2})?(?=\/)/i, '')) }))
+        .filter((l: any) => l.parse.valido)
+        .filter((l: any) => {
+          const chave = `${l.parse.tipo}:${l.parse.id}`
+          if (spotifyJaIncorporados.has(chave)) return false
+          spotifyJaIncorporados.add(chave)
+          return true
+        })
+    : []
 
   // Agrupa os itens (ja filtrados por ativo=true) por catalogo, e mantem so os catalogos
   // que realmente tem pelo menos 1 item pra mostrar - catalogo vazio nao ocupa espaco.
@@ -565,7 +583,7 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
   const tituloBotaoAgenda = perfil.pagina_titulo_botao_agenda || t.agendarAgora
   const descricaoBotaoAgenda = perfil.pagina_subtitulo_botao_agenda?.trim() || t.rapidoPraticoSeguro
   // Toggles: null/undefined = comportamento antigo (tudo visivel)
-  const mostrarAgenda = perfil.pagina_mostrar_agenda !== false && ehPlanoComGestao(perfil.plano_tipo)
+  const mostrarAgenda = perfil.pagina_mostrar_agenda !== false && permiteAgendamentoAutomatico(perfil.plano_tipo)
   const mostrarServicos = perfil.pagina_mostrar_servicos !== false
   const mostrarEquipe = perfil.pagina_mostrar_equipe !== false
   const mostrarPorQueAgendar = perfil.pagina_mostrar_por_que_agendar !== false
@@ -1252,6 +1270,19 @@ return blocosParaRenderizar.map(bloco => {
             return <Fragment key={bloco.chave}>{typeof entrada === 'function' ? null : entrada}</Fragment>
           })
         })()}
+
+        {/* Smart Import Spotify: player real para URLs adicionadas no onboarding.
+            Respeita permiteSpotify e nao altera as secoes existentes. */}
+        {spotifyLinksIncorporaveis.length > 0 && (
+          <section style={{ marginBottom: '30px' }} aria-label="Spotify">
+            <h2 style={{ fontSize: '19px', fontWeight: 800, color: tema.text, marginBottom: '12px' }}>Spotify</h2>
+            <div className="spotify-lista">
+              {spotifyLinksIncorporaveis.map((it: any) => (
+                <SpotifyEmbedItem key={`smart-${it.id}`} tipo={it.parse.tipo} id={it.parse.id} embedUrl={it.parse.embedUrl} />
+              ))}
+            </div>
+          </section>
+        )}
 
         {/* SERVICOS — desativado no novo layout premium (serviços continuam no fluxo /agendar). Codigo preservado, apenas nao renderiza. */}
         {SECOES_ANTIGAS_DESATIVADAS && mostrarServicos && servicos && servicos.length > 0 && (

@@ -14,6 +14,7 @@ import { normalizarPlano, ehPlanoFree, normalizarBillingCycle } from './planos'
 // Gera um slug inicial a partir do nome do negocio (a pessoa pode trocar depois em
 // Configuracoes). Sem hifen (so letras/numeros) para reduzir colisao e manter o link curto.
 function gerarSlugBase(nome: string, userId: string) {
+  if (nome === 'Minha MiniPage') return 'mp' + userId.replace(/-/g, '').slice(0, 14)
   const limpo = (nome || '')
     .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
     .toLowerCase()

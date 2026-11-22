@@ -1,12 +1,14 @@
 'use client'
 import SeletorIdiomaGlobal from '../components/SeletorIdiomaGlobal'
 import { useIdiomaGlobal } from '../components/IdiomaProviderGlobal'
+import { textoInterface } from '../lib/i18n-global/telas-core'
 import { useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { destinoAposLogin } from '../lib/oauthConsent'
 
 export default function Login() {
-  const { t } = useIdiomaGlobal()
+  const { t, idioma } = useIdiomaGlobal()
+  const tr = (chave: string) => textoInterface(idioma, chave)
   const [email, setEmail] = useState('')
   const [senha, setSenha] = useState('')
   const [mostrarSenha, setMostrarSenha] = useState(false)
@@ -21,14 +23,14 @@ export default function Login() {
     setMsgRecuperar('')
     const { error } = await supabase.auth.signInWithPassword({ email, password: senha })
     setMsgRecuperar('')
-    if (error) setMensagem('E-mail ou senha incorretos.')
+    if (error) setMensagem(tr('login.wrongCredentials'))
     else window.location.href = destinoAposLogin(window.location.search)
     setLoading(false)
   }
 
   async function handleEsqueciSenha() {
     setMensagem('')
-    if (!email) { setMsgRecuperar('Digite seu e-mail acima primeiro.'); return }
+    if (!email) { setMsgRecuperar(tr('login.enterEmail')); return }
     setRecuperando(true)
     setMsgRecuperar('')
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
@@ -36,7 +38,7 @@ export default function Login() {
     })
     setRecuperando(false)
     setMensagem('')
-    if (error) setMsgRecuperar('Erro ao enviar. Tente novamente.')
+    if (error) setMsgRecuperar(tr('login.sendError'))
     else setMsgRecuperar('Se esse e-mail estiver cadastrado, enviaremos um link para redefinir sua senha.')
   }
 
@@ -51,10 +53,10 @@ export default function Login() {
     .pg {
       min-height: 100vh;
       background:
-        radial-gradient(circle at 20% 20%, rgba(236,72,153,0.16), transparent 38%),
-        radial-gradient(circle at 80% 10%, rgba(217,70,239,0.14), transparent 32%),
+        radial-gradient(circle at 20% 20%, rgba(139,92,246,0.16), transparent 38%),
+        radial-gradient(circle at 80% 10%, rgba(139,92,246,0.14), transparent 32%),
         radial-gradient(circle at 60% 80%, rgba(139,92,246,0.10), transparent 30%),
-        linear-gradient(135deg, #08060A 0%, #120A14 50%, #08060A 100%);
+        linear-gradient(135deg, #08070D 0%, #120D1B 50%, #08070D 100%);
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       display: flex;
       align-items: center;
@@ -81,11 +83,11 @@ export default function Login() {
       width: 36px;
       height: 36px;
       border-radius: 10px;
-      background: linear-gradient(135deg, #EC4899, #D946EF, #8B5CF6);
+      background: #C9FA45;
       display: flex;
       align-items: center;
       justify-content: center;
-      box-shadow: 0 0 24px rgba(236,72,153,0.35);
+      box-shadow: 0 0 24px rgba(139,92,246,0.35);
       flex-shrink: 0;
     }
     .logo-txt {
@@ -155,7 +157,7 @@ export default function Login() {
     }
     .inp:focus {
       border-color: rgba(139,92,246,0.55);
-      box-shadow: 0 0 0 3px rgba(236,72,153,0.14);
+      box-shadow: 0 0 0 3px rgba(139,92,246,0.14);
     }
     .inp::placeholder { color: #B8AAB8; }
 
@@ -225,8 +227,8 @@ export default function Login() {
 
     .btn-entrar {
       width: 100%;
-      background: linear-gradient(135deg, #EC4899, #D946EF, #8B5CF6);
-      color: #fff;
+      background: #C9FA45;
+      color: #15180D;
       font-size: 15px;
       font-weight: 700;
       padding: 15px;
@@ -237,7 +239,7 @@ export default function Login() {
       align-items: center;
       justify-content: center;
       gap: 8px;
-      box-shadow: 0 12px 32px rgba(236,72,153,0.28);
+      box-shadow: 0 12px 32px rgba(139,92,246,0.28);
       transition: all .18s;
       font-family: inherit;
       margin-bottom: 18px;
@@ -245,7 +247,7 @@ export default function Login() {
     }
     .btn-entrar:hover {
       transform: translateY(-1px);
-      box-shadow: 0 16px 40px rgba(236,72,153,0.38);
+      box-shadow: 0 16px 40px rgba(139,92,246,0.38);
     }
     .btn-entrar:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
 
@@ -312,24 +314,24 @@ export default function Login() {
 
         {/* Logo */}
         <a href="/" className="logo-row">
-          <img src="/minipage-pro-icon.png" alt="MiniPage Pro" width={36} height={36} style={{ borderRadius: '10px', objectFit: 'contain', flexShrink: 0 }} />
+          <img src="/brand/minipage-icone.svg" alt="MiniPage Pro" width={36} height={36} style={{ borderRadius: '10px', objectFit: 'contain', flexShrink: 0 }} />
           <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.15 }}>
-            <span className="logo-txt">MiniPage Pro</span>
-            <span style={{ fontSize: '11px', fontWeight: 600, color: '#B8AAB8', letterSpacing: '.02em' }}>MiniPage Pro</span>
+            <span className="logo-txt">MiniPage <span style={{color:"#C9FA45"}}>Pro</span></span>
+            <span style={{ fontSize: '11px', fontWeight: 600, color: '#B8AAB8', letterSpacing: '.02em' }}>Tudo conectado. Em um só lugar.</span>
           </div>
         </a>
 
         {/* Headline */}
         <div className="headline">
           <h1>{t('nav.login')}</h1>
-          <p>Gerencie sua MiniPage, links, produtos, agendamentos e resultados em um só lugar.</p>
+          <p>{tr('login.subtitle')}</p>
         </div>
 
         {/* Card */}
         <div className="card">
           <div className="campos">
             <div>
-              <label className="lbl">E-mail</label>
+              <label className="lbl">{t('account.email')}</label>
               <input
                 type="email"
                 placeholder="seuemail@exemplo.com"
@@ -341,18 +343,18 @@ export default function Login() {
               />
             </div>
             <div>
-              <label className="lbl">Senha</label>
+              <label className="lbl">{t('account.password')}</label>
               <div className="senha-wrap">
                 <input
                   type={mostrarSenha ? 'text' : 'password'}
-                  placeholder="Digite sua senha"
+                  placeholder={tr('login.passwordPlaceholder')}
                   value={senha}
                   onChange={e => setSenha(e.target.value)}
                   onKeyDown={handleKeyDown}
                   className="inp"
                   autoComplete="current-password"
                 />
-                <button className="olho" type="button" onClick={() => setMostrarSenha(!mostrarSenha)} aria-label="Mostrar senha">
+                <button className="olho" type="button" onClick={() => setMostrarSenha(!mostrarSenha)} aria-label={t('account.password')}>
                   {mostrarSenha
                     ? <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
                     : <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
@@ -364,22 +366,22 @@ export default function Login() {
 
           <div className="esqueci-row">
             <button className="btn-esqueci" onClick={handleEsqueciSenha} disabled={recuperando} type="button">
-              {recuperando ? 'Enviando...' : 'Esqueci minha senha'}
+              {recuperando ? tr('login.sending') : tr('login.forgot')}
             </button>
           </div>
 
           {mensagem && <div className="msg-err">{mensagem}</div>}
 
           {msgRecuperar && (
-            <div className={msgRecuperar.startsWith('Erro') ? 'msg-err' : msgRecuperar.startsWith('Digite') ? 'msg-info' : 'msg-ok'}>
+            <div className={msgRecuperar === tr('login.sendError') ? 'msg-err' : msgRecuperar === tr('login.enterEmail') ? 'msg-info' : 'msg-ok'}>
               {msgRecuperar}
             </div>
           )}
 
           <button onClick={handleLogin} disabled={loading} className="btn-entrar">
-            {loading ? 'Entrando...' : (
+            {loading ? tr('login.signingIn') : (
               <>
-                Entrar no painel
+                {tr('login.enterPanel')}
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                   <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
                 </svg>
@@ -388,13 +390,13 @@ export default function Login() {
           </button>
 
           <p className="link-cadastro">
-            Ainda não tem conta?{' '}
-            <a href="/cadastro">Criar conta grátis</a>
+            {tr('login.noAccount')}{' '}
+            <a href="/cadastro">{tr('login.free')}</a>
           </p>
 
           {/* Benefícios */}
           <div className="beneficios">
-            {['Links e conteúdos organizados','Produtos e agendamentos conforme seu plano','Acompanhe os resultados da sua MiniPage'].map(b => (
+            {[tr('login.benefit1'),tr('login.benefit2'),tr('login.benefit3')].map(b => (
               <div key={b} className="beneficio">
                 <div className="beneficio-dot">✓</div>
                 <span>{b}</span>
@@ -405,7 +407,7 @@ export default function Login() {
 
         <p className="seguranca">
           <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#B8AAB8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-          Ambiente seguro para gestão do seu negócio.
+          {tr('login.secure')}
         </p>
 
       </div>
