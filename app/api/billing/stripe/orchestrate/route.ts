@@ -11,6 +11,14 @@ const reply = (body: Record<string, unknown>, status = 200) => NextResponse.json
 const eventIdPattern = /^evt_[A-Za-z0-9]+$/
 const lifecycleTypes = new Set(['customer.subscription.updated','customer.subscription.deleted','invoice.payment_failed'])
 const reviewTypes = new Set(['checkout.session.completed','checkout.session.async_payment_succeeded','checkout.session.async_payment_failed','customer.subscription.created','charge.refunded','charge.dispute.created'])
+// Somente falhas anteriores a qualquer RPC de efeito financeiro.
+// Depois de uma operacao incerta, a reserva permanece retida para revisao humana.
+const safeBeforeWriteFailures=new Set([
+  'ATTEMPT_NOT_READY','ATTEMPT_UNAVAILABLE','INVOICE_NOT_PAID',
+  'SUBSCRIPTION_NOT_CURRENT','NO_ATTEMPT_METADATA','SUBSCRIPTION_MISSING',
+  'SUBSCRIPTION_NOT_FOUND','SUBSCRIPTION_PERIOD_MISSING','INVOICE_ID_INVALID',
+  'EVENT_NOT_VERIFIED','EVENT_NOT_AUTHENTICATED',
+])
 /** Desativada por padrao. Nao faz checkout nem recebe eventos sem assinatura.
  * Apenas despacha eventos previamente autenticados na inbox Stripe Live.
  * IMPORTANTE: habilitacao exige validacao operacional e autorizacao especifica.
@@ -75,7 +83,16 @@ export async function POST(request: NextRequest) {
       })
       const res=await fn(synthetic)
       const payload=await res.json() as {ok?:boolean;result?:string;decision?:string;error?:string}
-      if (!res.ok || payload.ok!==true) {results.push({eventId,handler,outcome:'retry_or_review'});continue}
+      if (!res.ok || payload.ok!==true) {
+        // A Stripe reenviara eventos recebidos com HTTP 503. Somente quando o
+        // handler informa explicitamente falha anterior a qualquer escrita
+        // financeira e seguro soltar a reserva e permitir nova tentativa.
+        if(typeof payload.error==='string'&&safeBeforeWriteFailures.has(payload.error)){
+          releaseWithoutDispatch=true
+          results.push({eventId,handler,outcome:'safe_retry_before_write'})
+        }else results.push({eventId,handler,outcome:'held_for_manual_review'})
+        continue
+      }
       // NUNCA marcar como verificado somente porque a rota retornou HTTP 200.
       // Cada processador deve confirmar explicitamente o desfecho conhecido.
       const settled = handler==='invoice-paid' && (payload.result==='applied' || payload.result==='already_applied')

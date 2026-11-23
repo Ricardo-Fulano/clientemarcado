@@ -28,6 +28,12 @@ export async function POST(request:NextRequest){
   const auth=createClient(url,anon,{auth:{persistSession:false,autoRefreshToken:false}})
   const {data:{user},error:authError}=await auth.auth.getUser(bearer)
   if(authError||!user)return out({error:'INVALID_SESSION'},401)
+  // Fechamento gradual: uma conta de homologacao pode comprar antes da abertura publica.
+  // Sem permissao publica e sem e-mail de teste correspondente, nenhuma sessao e criada.
+  const publicEnabled=process.env.MP_STRIPE_PUBLIC_CHECKOUT_ENABLED==='true'
+  const testEmail=(process.env.MP_STRIPE_TEST_ACCOUNT_EMAIL||'').trim().toLowerCase()
+  if(!publicEnabled&&(!testEmail||user.email?.trim().toLowerCase()!==testEmail))
+    return out({error:'LIVE_CHECKOUT_TEST_ONLY'},403)
   const admin=createClient(url,service,{auth:{persistSession:false,autoRefreshToken:false}})
   const {data:profile,error:profileError}=await admin.from('perfis').select('plano_tipo,status_acesso,primeiro_pagamento_confirmado,gateway,gateway_customer_id,gateway_subscription_id,mp_subscription_id').eq('user_id',user.id).maybeSingle()
   if(profileError||!profile)return out({error:'PROFILE_UNAVAILABLE'},422)

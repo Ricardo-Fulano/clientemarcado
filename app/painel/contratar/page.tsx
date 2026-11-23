@@ -42,7 +42,10 @@ export default function ContratarStripe(){
        !profile.gateway && !profile.gateway_customer_id && !profile.gateway_subscription_id && !profile.mp_subscription_id
      if(active)setAllowed(Boolean(isFree))
      if(!isFree)throw new Error('Sua conta já possui vínculo financeiro ou plano pago. Solicite mudanças pelo suporte.')
-     const response=await fetch(`/api/billing/stripe/quote?plan=${encodeURIComponent(plan)}&cycle=${encodeURIComponent(cycle)}&country=${encodeURIComponent(country)}`,{cache:'no-store'})
+     const {data:{session}}=await supabase.auth.getSession()
+     const response=await fetch(`/api/billing/stripe/quote?plan=${encodeURIComponent(plan)}&cycle=${encodeURIComponent(cycle)}&country=${encodeURIComponent(country)}`,{
+      cache:'no-store',headers:session?.access_token?{Authorization:`Bearer ${session.access_token}`}:{},
+     })
      const data=await response.json() as Quote
      if(!response.ok||data.available!==true||!data.currency||typeof data.amountMinor!=='number')throw new Error('Este país ou plano ainda não possui preço aprovado.')
      if(active)setQuote(data)
