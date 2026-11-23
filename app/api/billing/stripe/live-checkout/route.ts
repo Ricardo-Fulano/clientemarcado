@@ -1,6 +1,7 @@
 import {NextRequest,NextResponse} from 'next/server'
 import {createClient} from '@supabase/supabase-js'
 import {approvedPrice} from '../../../../lib/billing/stripe/live-catalog'
+import {stripeLiveReadiness} from '../../../../lib/billing/stripe/live-readiness'
 export const runtime='nodejs'
 export const dynamic='force-dynamic'
 const out=(v:Record<string,unknown>,status=200)=>NextResponse.json(v,{status,headers:{'Cache-Control':'no-store'}})
@@ -8,7 +9,7 @@ const uuid=/^[a-f0-9]{8}-[a-f0-9]{4}-[1-8][a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]
 const stripeId=/^price_[a-zA-Z0-9]+$/
 const ids=(v:unknown)=>typeof v==='string'&&v.trim().length>0
 export async function POST(request:NextRequest){
- if(process.env.STRIPE_LIVE_CHECKOUT_WRITE_ENABLED!=='true'||process.env.STRIPE_LIVE_COMPLIANCE_APPROVED!=='true'||process.env.VERCEL_ENV!=='production')return out({error:'LIVE_CHECKOUT_DISABLED'},503)
+ if(!stripeLiveReadiness().ready)return out({error:'LIVE_CHECKOUT_DISABLED_OR_PROCESSING_NOT_READY'},503)
  const key=process.env.STRIPE_LIVE_SECRET_KEY,url=process.env.NEXT_PUBLIC_SUPABASE_URL,anon=process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,service=process.env.SUPABASE_SERVICE_ROLE_KEY
  const publicUrl=process.env.STRIPE_LIVE_RETURN_ORIGIN
  if(!key?.startsWith('sk_live_')||!url||!anon||!service||!publicUrl||!/^https:\/\/[^/]+$/.test(publicUrl))return out({error:'LIVE_CONFIG_INCOMPLETE'},503)
@@ -36,6 +37,12 @@ export async function POST(request:NextRequest){
   const {data:subscriptions,error:subError}=await admin.from('billing_subscriptions').select('id').eq('user_id',user.id).in('status',['active','trialing','past_due','pending','incomplete','unpaid']).limit(1)
   if(subError)return out({error:'SUBSCRIPTION_CHECK_UNAVAILABLE'},503)
   if(subscriptions?.length)return out({error:'SUBSCRIPTION_ALREADY_EXISTS'},409)
+  // Bloqueia novas sessões enquanto houver outra tentativa não resolvida para a mesma conta.
+  const {data:pending,error:pendingError}=await admin.from('billing_stripe_checkout_attempts')
+    .select('attempt_id,status').eq('user_id',user.id)
+    .in('status',['reserved','sending','created']).limit(1).maybeSingle()
+  if(pendingError)return out({error:'PENDING_CHECK_UNAVAILABLE'},503)
+  if(pending)return out({error:'PREVIOUS_CHECKOUT_REQUIRES_REVIEW'},409)
   // Confere preço Live na Stripe ANTES de reservar tentativa e de qualquer criação.
   const priceResponse=await fetch(`https://api.stripe.com/v1/prices/${encodeURIComponent(price.priceId)}`,{headers:{Authorization:`Bearer ${key}`},cache:'no-store'})
   if(!priceResponse.ok)return out({error:'STRIPE_PRICE_LOOKUP_FAILED'},503)
@@ -47,9 +54,10 @@ export async function POST(request:NextRequest){
   if(claimError||!claimed)return out({state:'pending_review',reason:'ATTEMPT_CLAIM_FAILED'},202)
   const payload=new URLSearchParams()
   payload.set('mode','subscription');payload.set('line_items[0][price]',price.priceId);payload.set('line_items[0][quantity]','1')
+  payload.set('billing_address_collection','required')
   payload.set('client_reference_id',user.id)
-  payload.set('success_url',`${publicUrl}/painel/criar-minipage?stripe_return=success&session_id={CHECKOUT_SESSION_ID}`)
-  payload.set('cancel_url',`${publicUrl}/painel/criar-minipage?stripe_return=cancel`)
+  payload.set('success_url',`${publicUrl}/painel/plano?stripe_return=success&session_id={CHECKOUT_SESSION_ID}`)
+  payload.set('cancel_url',`${publicUrl}/painel/contratar?plan=${encodeURIComponent(plan)}&cycle=${encodeURIComponent(cycle)}&country=${encodeURIComponent(country)}&stripe_return=cancel`)
   payload.set('metadata[attempt_id]',attemptId);payload.set('metadata[user_id]',user.id);payload.set('metadata[plan]',plan);payload.set('metadata[cycle]',cycle)
   payload.set('subscription_data[metadata][attempt_id]',attemptId);payload.set('subscription_data[metadata][user_id]',user.id)
   let session:{id?:string;url?:string;livemode?:boolean}

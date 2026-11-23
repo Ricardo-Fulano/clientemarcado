@@ -1,14 +1,13 @@
 import {NextResponse} from 'next/server'
+import {stripeLiveReadiness} from '../../../../lib/billing/stripe/live-readiness'
 export const runtime='nodejs'
 export const dynamic='force-dynamic'
-/** Segurança: relata estado técnico de preparação, não segredos, IDs ou dados de clientes. */
+/** Only aggregate readiness flags; never exposes secrets, IDs, or customer data. */
 export function GET(){
- return NextResponse.json({
-  catalogo:'v1_aprovado',
-  conciliacao:'politica_preparada_sem_processamento',
-  checkout:'desativado_por_este_bloco',
-  acessoPremium:'nao_ativado_por_este_bloco',
-  webhook:'ingestao_existente_nao_modificada',
-  prontoParaCobrar:false,
- },{headers:{'Cache-Control':'no-store'}})
+ const state=stripeLiveReadiness()
+ return NextResponse.json({catalogo:'v1_aprovado',configuracaoCompleta:state.ready,
+   processamentoConfigurado:state.flagsConfigured&&state.secretsConfigured,
+   prontoParaCobrar:state.ready,
+   observacao:'Requer homologação operacional e verificação de país/cobrança, além das flags.'},
+   {headers:{'Cache-Control':'no-store'}})
 }

@@ -1,4 +1,5 @@
 'use client'
+import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { CreditCard, Crown, Store, Sparkles, CheckCircle2, MessageCircle, Users } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
@@ -164,9 +165,12 @@ export default function MeuPlano() {
   const [totalProfissionais, setTotalProfissionais] = useState(0)
   const [avisoDowngrade, setAvisoDowngrade] = useState('')
   const [planoConsultado, setPlanoConsultado] = useState<PlanoTipo | null>(null)
+  const [avisoStripe,setAvisoStripe]=useState(false)
 
   useEffect(() => {
-    const valor = new URLSearchParams(window.location.search).get('interesse')
+    const params=new URLSearchParams(window.location.search)
+    if(params.get('stripe_return')==='success')setAvisoStripe(true)
+    const valor = params.get('interesse')
     if (valor && ['free','minipage','agenda','loja','essencial'].includes(valor)) setPlanoConsultado(valor as PlanoTipo)
   }, [])
 
@@ -206,6 +210,10 @@ export default function MeuPlano() {
       )
     }
 
+    // Conta Free pode contratar plano novo. Contas pagas/Asaas continuam no suporte.
+    if(planoAtual==='free')return (
+      <Link href={`/painel/contratar?plan=${tipoAlvo}`} style={{display:'block',textAlign:'center',background:'#C9FA45',color:'#0B0A10',borderRadius:12,padding:12,fontSize:13,fontWeight:800,textDecoration:'none'}}>Contratar {obterNomePlano(tipoAlvo)}</Link>
+    )
     const ehUpgrade = indexPlano(tipoAlvo) > indexPlano(planoAtual)
     const nomeAlvo = obterNomePlano(tipoAlvo)
 

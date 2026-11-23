@@ -1,5 +1,6 @@
 import type { BillingCycle } from '../planos'
 import type { Idioma } from '../i18n-global/idiomas'
+import { consultarPrecoAprovadoV1 } from './stripe/catalogo-v1-aprovado'
 
 /** Tabela de REFERENCIA copiada do catalogo aprovado para Paddle Live.
  * Nao cria checkout, nao autoriza pagamentos nem altera cobranca.
@@ -1012,14 +1013,19 @@ export function normalizarPaisRegional(valor: unknown): PaisRegional {
   const pais = valor.trim().toUpperCase()
   return VALIDOS.has(pais) ? pais as PaisRegional : 'OUTROS'
 }
+/** A landing reflete apenas precos V1 disponiveis no catalogo Stripe Live.
+ * Essa consulta NAO autoriza cobranca; o checkout valida pais/plano no servidor.
+ * A tabela historica Paddle acima fica inativa na apresentacao publica.
+ */
 export function precoRegional(plano: PlanoRegional, ciclo: BillingCycle, pais: PaisRegional,
   precoBrasil: number): {moeda: 'BRL' | 'USD' | 'EUR'; centavos: number} | null {
-  if (plano==='free' && pais === 'OUTROS') return {moeda:'BRL',centavos:0}
-  if (pais === 'OUTROS') return null
-  if (pais === 'BR') return {moeda:'BRL',centavos:plano==='free'?0:Math.round(precoBrasil*100)}
-  if (plano==='free') return {moeda: ['PT','ES','FR','DE'].includes(pais)?'EUR':'USD',centavos:0}
-  if (PAISES_AMERICA_SUL_USD.has(pais)) return PRECOS_AMERICA_SUL_USD[plano][ciclo]
-  return CATALOGO[plano]?.[pais]?.[ciclo] ?? null
+  void precoBrasil // parametro conservado para compatibilidade das chamadas existentes
+  if (plano === 'free') {
+    return { moeda: pais === 'BR' || pais === 'OUTROS' ? 'BRL' : ['PT','ES','FR','DE'].includes(pais) ? 'EUR' : 'USD', centavos: 0 }
+  }
+  if (pais === 'OUTROS' || plano === 'equipe') return null
+  const aprovado = consultarPrecoAprovadoV1(plano, ciclo, pais)
+  return aprovado ? { moeda: aprovado.currency, centavos: aprovado.amountMinor } : null
 }
 export function mostrarPrecoRegional(preco: {moeda: string;centavos: number}|null, idioma: Idioma): string {
   if (!preco) return '—'

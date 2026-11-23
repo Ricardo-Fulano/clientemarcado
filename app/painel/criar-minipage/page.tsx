@@ -423,6 +423,7 @@ export default function CriarMiniPage() {
   const [etapaIndex, setEtapaIndex] = useState(0)
   // Escolha informativa: nao modifica plano_tipo nem inicia checkout.
   const [guiaPlanosAberto, setGuiaPlanosAberto] = useState(false)
+  const [stripeDesejado,setStripeDesejado]=useState<{plano:'minipage'|'agenda'|'loja'|'essencial';ciclo:'mensal'|'anual';pais:string}|null>(null)
   const [planoDeInteresse, setPlanoDeInteresse] = useState<PlanoEscolhivel | null>(null)
   const [estadoInteresseHomolog, setEstadoInteresseHomolog] = useState('')
   const [salvando, setSalvando] = useState(false)
@@ -1568,7 +1569,13 @@ export default function CriarMiniPage() {
         )}
 
         {etapaAtual === 'planos' && (guiaPlanosAberto ? (
-          <GuiaPlanosOnboarding idioma={idioma} planoAtual={planoTipo} onFechar={()=>setGuiaPlanosAberto(false)} onEscolher={(tipo)=>{
+          <GuiaPlanosOnboarding idioma={idioma} planoAtual={planoTipo} onFechar={()=>setGuiaPlanosAberto(false)} onSelecionarPago={(plano,ciclo,pais)=>{
+              if(planoTipo!=='free'){setMsg('Assinaturas existentes são preservadas; mudanças devem ser tratadas pelo suporte.');return}
+              setStripeDesejado({plano,ciclo,pais})
+              setPlanoDeInteresse(plano)
+              setGuiaPlanosAberto(false)
+              setEtapaIndex(i=>i+1)
+            }} onEscolher={(tipo)=>{
               // Nunca avance para a tela de sucesso por uma escolha paga ainda sem pagamento confirmado.
               // Contas pagas existentes podem concluir com seu plano ja contratado.
               if(tipo!=='free' && tipo!==planoTipo) {
@@ -1659,6 +1666,7 @@ export default function CriarMiniPage() {
 
                 {planoTipo==='free' && <div style={{border:'1px solid #4A3D54',borderRadius:14,background:'#15101F',padding:16,marginBottom:18}}>
                   <p style={{color:'#DFD5EA',fontSize:13,margin:'0 0 12px'}}>{tc.complete}</p>
+                  {stripeDesejado && <button type="button" onClick={()=>marcarVistoEIr(`/painel/contratar?plan=${stripeDesejado.plano}&cycle=${stripeDesejado.ciclo}&country=${stripeDesejado.pais}`)} style={{display:'block',width:'100%',border:'1px solid #C9FA45',borderRadius:10,background:'#C9FA45',padding:'13px 14px',color:'#0B0A10',fontWeight:850,cursor:'pointer',fontSize:13,marginBottom:10}}>{idioma==='pt-BR'?'Continuar para pagamento seguro':'Continue to secure checkout'}</button>}
                   <button type="button" onClick={()=>marcarVistoEIr(`/painel/plano?interesse=${planoDeInteresse || 'minipage'}`)} style={{display:'inline-block',border:'1px solid #C9FA45',borderRadius:10,background:'transparent',padding:'10px 14px',color:'#C9FA45',fontWeight:750,cursor:'pointer',fontSize:13}}>{tc.upgrade}</button>
                   <div style={{color:'#AAA0B7',fontSize:12,marginTop:10}}>{tc.free}</div>
                 </div>}

@@ -24,11 +24,24 @@ export async function POST(request: NextRequest) {
   if (process.env.MP_STRIPE_ATOMIC_CLAIM_ENABLED !== 'true') return reply({error:'ATOMIC_CLAIM_DISABLED'},503)
   const url=process.env.NEXT_PUBLIC_SUPABASE_URL, role=process.env.SUPABASE_SERVICE_ROLE_KEY
   if (!url || !role) return reply({error:'DB_CONFIG_MISSING'},503)
+  // O webhook chama com apenas um eventId; o cron, sem corpo, processa uma fila curta.
+  let requestedEventId=''
+  try {
+    const raw=await request.text()
+    if(raw){
+      const data:unknown=JSON.parse(raw)
+      if(!data||typeof data!=='object'||Array.isArray(data))return reply({error:'INVALID_REQUEST'},422)
+      const obj=data as Record<string,unknown>
+      if(Object.keys(obj).length!==1||typeof obj.eventId!=='string'||!eventIdPattern.test(obj.eventId))return reply({error:'INVALID_EVENT_ID'},422)
+      requestedEventId=obj.eventId
+    }
+  }catch{return reply({error:'INVALID_REQUEST'},422)}
   const db=createClient(url,role,{auth:{persistSession:false,autoRefreshToken:false}})
-  const {data, error} = await db.from('billing_stripe_inbox')
+  let query=db.from('billing_stripe_inbox')
     .select('event_id,event_type,signature_verified,livemode,processing_status')
     .eq('processing_status','received').eq('signature_verified',true).eq('livemode',true)
-    .order('created_at',{ascending:true}).limit(5)
+  if(requestedEventId)query=query.eq('event_id',requestedEventId)
+  const {data, error} = await query.order('created_at',{ascending:true}).limit(requestedEventId?1:5)
   if (error) return reply({error:'INBOX_UNAVAILABLE'},503)
   const results: Array<{eventId:string;handler:string;outcome:string}> = []
   for (const event of data ?? []) {

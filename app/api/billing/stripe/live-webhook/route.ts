@@ -1,6 +1,7 @@
 import { createHmac, timingSafeEqual } from 'node:crypto'
 import { createClient } from '@supabase/supabase-js'
 import { NextRequest, NextResponse } from 'next/server'
+import { POST as orchestrate } from '../orchestrate/route'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -51,7 +52,32 @@ export async function POST(request: NextRequest) {
     livemode:true,signature_verified:true,processing_status:'received',
   })
   if (error && error.code!=='23505') return json({error:'PERSISTENCIA_INDISPONIVEL'},503)
-  // 2xx significa apenas evento guardado. Ativacao e conciliacao sao fase posterior.
+  // Fast path opt-in. O registro é durável ANTES de qualquer processamento.
+  // Em falha, 503 solicita retry da Stripe; a reserva atômica impede duplicação.
+  if(process.env.MP_STRIPE_WEBHOOK_SYNC_DISPATCH_ENABLED==='true'){
+    const dispatchSecret=process.env.MP_STRIPE_ORCHESTRATION_SECRET
+    if(!dispatchSecret||dispatchSecret.length<32)return json({error:'DISPATCH_CONFIG_MISSING'},503)
+    // Retentativas de eventos ja concluídos não devem voltar a processar o pagamento.
+    if(error?.code==='23505'){
+      const {data:stored,error:readError}=await admin.from('billing_stripe_inbox')
+        .select('processing_status').eq('event_id',id).maybeSingle()
+      if(readError)return json({error:'INBOX_READ_FAILED'},503)
+      if(stored&&['verified','review','ignored'].includes(stored.processing_status))return json({ok:true,duplicate:true,handled:true},200)
+    }
+    const internal=new NextRequest('https://minipage.pro/api/billing/stripe/orchestrate',{
+      method:'POST',headers:{authorization:`Bearer ${dispatchSecret}`,'content-type':'application/json'},
+      body:JSON.stringify({eventId:id})
+    })
+    try{
+      const result=await orchestrate(internal)
+      if(!result.ok)return json({error:'DISPATCH_UNAVAILABLE'},503)
+      const {data:stored,error:readError}=await admin.from('billing_stripe_inbox')
+        .select('processing_status').eq('event_id',id).maybeSingle()
+      if(readError||!stored||stored.processing_status==='received')return json({error:'EVENT_PENDING_RETRY_OR_MANUAL_REVIEW'},503)
+      return json({ok:true,recorded:true,processed:stored.processing_status==='verified',status:stored.processing_status},200)
+    }catch{return json({error:'DISPATCH_FAILED'},503)}
+  }
+  // Somente ingere quando fast path está desativado; cron de recuperação será necessário.
   return json({ok:true,recorded:true,duplicate:Boolean(error)},200)
 }
 export async function GET(){return json({error:'METODO_NAO_PERMITIDO'},405)}

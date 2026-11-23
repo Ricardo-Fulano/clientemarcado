@@ -2,7 +2,8 @@
 import { useMemo, useState } from 'react'
 import SeletorPaisCheckout from './SeletorPaisCheckout'
 import {CORES_CHECKOUT as C} from '../../lib/billing/multigateway/checkout-visual'
-import {precoReferenciaCheckout, type CicloCheckout} from '../../lib/billing/multigateway/precos-exibicao'
+import {consultarPrecoAprovadoV1} from '../../lib/billing/stripe/catalogo-v1-aprovado'
+type CicloCheckout='mensal'|'anual'
 import {simularMercadoGlobal} from '../../lib/billing/multigateway/roteador'
 
 type Plano = 'free' | 'minipage' | 'agenda' | 'loja' | 'essencial'
@@ -186,11 +187,18 @@ const AJUDA:Record<string,{
 }
 
 const ordem:Plano[]=['free','minipage','agenda','loja','essencial']
+function precoReferenciaCheckout(plano:Plano,ciclo:CicloCheckout,pais:string,idioma:string){
+ if(plano==='free')return {origem:'aprovado' as const,texto:new Intl.NumberFormat(idioma,{style:'currency',currency:'BRL'}).format(0)}
+ const item=consultarPrecoAprovadoV1(plano,ciclo,pais)
+ if(!item)return {origem:'pendente' as const,texto:(TELA[idioma as keyof typeof TELA]||TELA['pt-BR']).precoPendente}
+ return {origem:'aprovado' as const,texto:new Intl.NumberFormat(idioma,{style:'currency',currency:item.currency}).format(item.amountMinor/100)}
+}
+
 
 /** A escolha do plano preserva o formulario montado no estado do onboarding.
  * Pagamento real DESABILITADO: ainda nao existe integracao EBANX/Stripe homologada.
  */
-export default function GuiaPlanosOnboarding({idioma,planoAtual,onEscolher,onFechar}:{idioma:string;planoAtual:string;onEscolher:(plano:Plano)=>void;onFechar:()=>void}){
+export default function GuiaPlanosOnboarding({idioma,planoAtual,onEscolher,onSelecionarPago,onFechar}:{idioma:string;planoAtual:string;onEscolher:(plano:Plano)=>void;onSelecionarPago:(plano:Exclude<Plano,'free'>,ciclo:CicloCheckout,pais:string)=>void;onFechar:()=>void}){
  const t=conteudos[idioma]||conteudos['pt-BR']
  const u=TELA[idioma as keyof typeof TELA]||TELA['pt-BR']
  const ajuda=AJUDA[idioma]||AJUDA['pt-BR']
@@ -206,7 +214,7 @@ export default function GuiaPlanosOnboarding({idioma,planoAtual,onEscolher,onFec
  const [metodo,setMetodo]=useState('')
  const [objetivo,setObjetivo]=useState<number|null>(null)
  const simulacao=useMemo(()=>simularMercadoGlobal(selecionado,pais),[selecionado,pais])
- const metodos=simulacao.situacao==='nao_habilitado'?simulacao.metodosCandidatos:[]
+ const metodos: Array<{metodo:string;nome:string;ressalva?:string}>=[] // Stripe Checkout escolhe os meios habilitados no próprio checkout
  const semPreco=precoReferenciaCheckout(selecionado,ciclo,pais,idioma).origem==='pendente'
  const irParaPagamento=()=>{
    if(selecionado==='free'||selecionado===atual){onEscolher(selecionado);return}
@@ -294,17 +302,17 @@ export default function GuiaPlanosOnboarding({idioma,planoAtual,onEscolher,onFec
      </div>
      <section style={{background:C.card,border:'1px solid '+C.borda,borderRadius:14,padding:18}}>
       <h2 style={{fontSize:16,margin:'0 0 12px'}}>{u.comoPagar}</h2>
-      {!metodos.length?<p style={{color:C.alerta,fontSize:13,lineHeight:1.6}}>{u.semMetodo}</p>:<div style={{display:'grid',gap:9}}>{metodos.map(m=><label key={m.metodo} style={{display:'flex',gap:12,alignItems:'start',border:'1px solid '+(metodo===m.metodo?C.verde:C.borda),borderRadius:10,background:metodo===m.metodo?C.verdeEscuro:C.cardElevado,padding:13,cursor:'pointer'}}>
+      {!metodos.length?<p style={{color:C.texto,fontSize:13,lineHeight:1.6}}>{idioma==='pt-BR'?'Pagamento seguro pelo Stripe Checkout. Métodos disponíveis serão apresentados após salvar sua MiniPage.':'Secure payment through Stripe Checkout after saving your MiniPage.'}</p>:<div style={{display:'grid',gap:9}}>{metodos.map(m=><label key={m.metodo} style={{display:'flex',gap:12,alignItems:'start',border:'1px solid '+(metodo===m.metodo?C.verde:C.borda),borderRadius:10,background:metodo===m.metodo?C.verdeEscuro:C.cardElevado,padding:13,cursor:'pointer'}}>
        <input type="radio" name="mp-forma-recorrente" checked={metodo===m.metodo} onChange={()=>setMetodo(m.metodo)} style={{marginTop:4,accentColor:C.verde}}/>
        <span style={{minWidth:0}}><strong style={{display:'block',fontSize:13}}>{m.nome}</strong><span style={{display:'block',fontSize:11,color:C.mutado,marginTop:3}}>{m.ressalva||'Recorrência sujeita a autorização e habilitação.'}</span></span>
       </label>)}</div>}
-      <p role="note" style={{color:C.alerta,fontSize:12,lineHeight:1.6,margin:'16px 0 12px'}}>{u.pendencia}</p>
-      <button type="button" disabled style={{...botao,width:'100%',opacity:.48,cursor:'not-allowed'}}>{u.confirmacao}</button>
+      <p role="note" style={{color:C.alerta,fontSize:12,lineHeight:1.6,margin:'16px 0 12px'}}>{idioma==='pt-BR'?'Salve sua MiniPage antes de iniciar a contratação. O plano só será liberado após pagamento confirmado.':idioma==='es-ES'?'Primero guarda tu MiniPage. El plan se activará solo después del pago confirmado.':idioma==='en-US'?'Save your MiniPage first. Paid features activate only after verified payment.':idioma==='fr-FR'?'Enregistrez d’abord votre MiniPage. La formule sera activée après paiement confirmé.':idioma==='de-DE'?'Speichere zuerst deine MiniPage. Der Tarif wird erst nach bestätigter Zahlung aktiviert.':'Salva prima la MiniPage. Il piano si attiva solo dopo il pagamento verificato.'}</p>
+      <button type="button" disabled={semPreco||contaPaga} onClick={()=>{if(!semPreco&&!contaPaga&&selecionado!=='free')onSelecionarPago(selecionado,ciclo,pais)}} style={{...botao,width:'100%',opacity:semPreco||contaPaga?.48:1,cursor:semPreco||contaPaga?'not-allowed':'pointer'}}>{idioma==='pt-BR'?'Salvar minha MiniPage e continuar para pagamento':idioma==='en-US'?'Save my MiniPage and continue to payment':idioma==='es-ES'?'Guardar MiniPage y continuar al pago':idioma==='fr-FR'?'Enregistrer MiniPage et continuer au paiement':idioma==='de-DE'?'MiniPage speichern und zur Zahlung':'Salva MiniPage e continua al pagamento'}</button>
      </section>
      <div style={{display:'flex',gap:9,marginTop:14,flexWrap:'wrap'}}>
       <button type="button" onClick={()=>setTela('planos')} style={{...secundario,flex:1}}>{u.voltar}</button>
      </div>
-     <p role="status" style={{color:C.mutado,fontSize:11,lineHeight:1.55}}>{u.pendencia}</p>
+     <p role="status" style={{color:C.mutado,fontSize:11,lineHeight:1.55}}>{idioma==='pt-BR'?'Nenhuma cobrança ocorre nesta etapa.':'No payment is initiated at this step.'}</p>
     </div>
    </>}
  </section>
