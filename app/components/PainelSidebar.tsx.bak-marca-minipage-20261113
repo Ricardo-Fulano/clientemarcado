@@ -1,0 +1,281 @@
+'use client'
+import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
+import Link from 'next/link'
+import { usePathname } from 'next/navigation'
+import { supabase } from '../lib/supabase'
+import NotificacoesSino from './NotificacoesSino'
+import { normalizarPlano, ehPlanoComGestao, podeUsarProfissionais, obterLimiteCatalogos } from '../lib/planos'
+
+// Lista de IDs com acesso admin ao menu "Parceiros" - antes era 1 unico ID fixo
+// (canal19horas@gmail.com), agora inclui tambem misteriosoviaje@gmail.com, que passou a
+// controlar parceiros/indicacoes tambem. Continua hardcoded no codigo (nao existe campo
+// is_admin nem tabela de permissoes no banco hoje) - se no futuro isso precisar crescer
+// mais, vale migrar pra um campo/tabela de verdade.
+const ADMIN_IDS = [
+  '618aedd1-f174-4419-b4b2-b81b8dd1c47e', // canal19horas@gmail.com
+  'f2203e3c-9d23-4635-9d14-b990b5198b8a', // misteriosoviaje@gmail.com
+]
+const AV = 'linear-gradient(135deg,rgba(236,72,153,.95),rgba(139,92,246,.85))'
+
+type ItemMenu = { h: string; l: string; grupo?: string; requerGestao?: boolean; requerProfissionais?: boolean; requerCatalogo?: boolean; apenasAdmin?: boolean }
+
+// grupo: usado so pra organizar visualmente a sidebar em secoes (MINHA MINIPAGE / GESTAO /
+// CONTA) - nao afeta nenhuma regra de permissao, que continua 100% via requerGestao/
+// requerProfissionais/requerCatalogo/apenasAdmin, exatamente como ja era.
+const LINKS: ItemMenu[] = [
+  { h: '/painel',               l: 'Início'        },
+
+  { h: '/painel/perfil',        l: 'Minha MiniPage', grupo: 'MINHA MINIPAGE' },
+  { h: '/painel/cartao',        l: 'Meu cartão',      grupo: 'MINHA MINIPAGE' },
+  { h: '/painel/desempenho',    l: 'Desempenho',      grupo: 'MINHA MINIPAGE' },
+  { h: '/painel/integracoes',    l: 'Integrações',     grupo: 'MINHA MINIPAGE' },
+  { h: '/painel/vendas-externas', l: 'Vendas externas', grupo: 'MINHA MINIPAGE' },
+  { h: '/painel/ia',            l: 'Integrações com IA', grupo: 'MINHA MINIPAGE' },
+  { h: '/painel/perfil/catalogo', l: 'Catálogo',      grupo: 'MINHA MINIPAGE', requerCatalogo: true },
+
+  { h: '/painel/agendamentos',  l: 'Agenda',        grupo: 'GESTÃO', requerGestao: true },
+  { h: '/painel/clientes',      l: 'Clientes',      grupo: 'GESTÃO', requerGestao: true },
+  { h: '/painel/orcamentos',    l: 'Orçamentos',    grupo: 'GESTÃO', requerGestao: true },
+  { h: '/painel/cobrancas',     l: 'Cobranças',     grupo: 'GESTÃO', requerGestao: true },
+  { h: '/painel/financeiro',    l: 'Financeiro',    grupo: 'GESTÃO', requerGestao: true },
+  { h: '/painel/servicos',      l: 'Serviços',      grupo: 'GESTÃO', requerGestao: true },
+  { h: '/painel/profissionais', l: 'Profissionais', grupo: 'GESTÃO', requerProfissionais: true },
+  { h: '/painel/relatorio',     l: 'Relatórios',    grupo: 'GESTÃO', requerGestao: true },
+
+  { h: '/painel/parceiros',     l: 'Parceiros',     grupo: 'CONTA', apenasAdmin: true },
+  { h: '/painel/suporte',       l: 'Suporte',       grupo: 'CONTA' },
+  { h: '/painel/plano',         l: 'Meu plano',     grupo: 'CONTA' },
+  { h: '/painel/alterar-senha', l: 'Conta e acesso', grupo: 'CONTA' },
+]
+
+const CSS = `
+.psb{width:240px;height:100vh;max-height:100vh;background:radial-gradient(circle at top left,rgba(139,92,246,.14),transparent 32%),linear-gradient(180deg,#120A14,#08060A);border-right:1px solid #2A1A2F;display:flex;flex-direction:column;position:fixed;top:0;left:0;z-index:30;overflow:hidden}
+.psb-logo{padding:22px 18px 16px;border-bottom:1px solid #2A1A2F;display:flex;align-items:center;gap:10px;flex-shrink:0}
+.psb-ic{width:30px;height:30px;border-radius:8px;background:linear-gradient(135deg,#EC4899,#D946EF,#8B5CF6);display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 0 20px rgba(236,72,153,.28)}
+.psb nav{flex:1;min-height:0;padding:10px 8px;overflow-y:auto}
+.nl{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:10px;margin-bottom:2px;text-decoration:none;font-size:13px;font-weight:500;color:#B8AAB8;transition:all .15s;border:1px solid transparent;white-space:nowrap}
+.nl:hover{background:rgba(236,72,153,.10);border-color:rgba(236,72,153,.24);color:#F8F4F7}
+.nl.on{background:linear-gradient(135deg,#EC4899,#D946EF,#8B5CF6);color:#fff;font-weight:700;border-color:rgba(255,255,255,.10);box-shadow:0 0 26px rgba(236,72,153,.28),inset 0 1px 0 rgba(255,255,255,.12)}
+.nl-grupo{font-size:10px;font-weight:700;color:#6B5C6E;text-transform:uppercase;letter-spacing:.08em;padding:14px 14px 6px;margin-top:2px}
+.nl-grupo:first-child{margin-top:0}
+.psb-foot{padding:12px 10px;border-top:1px solid #2A1A2F;flex-shrink:0}
+.psb-mhdr{display:none;align-items:center;justify-content:space-between;padding:0 16px;height:56px;background:rgba(8,6,10,.96);backdrop-filter:blur(20px);border-bottom:1px solid #2A1A2F;position:fixed;top:0;left:0;right:0;z-index:20;width:100%}
+.psb-drw{position:fixed;top:0;left:0;bottom:0;width:280px;max-width:85vw;background:radial-gradient(circle at top left,rgba(139,92,246,.14),transparent 32%),linear-gradient(180deg,#120A14,#08060A);z-index:50;transform:translateX(-100%);transition:transform .28s ease;display:flex;flex-direction:column;border-right:1px solid #2A1A2F}
+.psb-drw.open{transform:translateX(0)}
+.psb-ovl{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:49;opacity:0;pointer-events:none;transition:opacity .28s}
+.psb-ovl.open{opacity:1;pointer-events:auto}
+.psb-main{margin-left:240px;flex:1;min-width:0;min-height:100vh;width:calc(100% - 240px);max-width:calc(100% - 240px);overflow-x:hidden;box-sizing:border-box}
+@media(max-width:1023px){
+  html,body{overflow-x:hidden!important;width:100%!important;max-width:100vw!important}
+  .psb{display:none!important}
+  .psb-main{margin-left:0!important;width:100%!important;max-width:100%!important;min-width:0!important;overflow-x:hidden!important;box-sizing:border-box!important;padding-top:56px!important}
+  .psb-mhdr{display:flex!important}
+}
+`
+
+interface Props {
+  nome?: string
+  tituloMobile?: string
+}
+
+export default function PainelSidebar({ nome = '', tituloMobile = 'Painel' }: Props) {
+  const [mob, setMob] = useState(false)
+  const [isAdmin, setIsAdmin] = useState(false)
+  const [role, setRole] = useState<'loading' | 'admin' | 'profissional'>('loading')
+  const [nomeProfissionalVinculo, setNomeProfissionalVinculo] = useState('')
+  const [planoAtual, setPlanoAtual] = useState('essencial')
+  // Fase 4B: flag independente, nunca substitui admin/dono/equipe - um usuario pode ser
+  // varias coisas ao mesmo tempo. Comeca sempre false (estado seguro) e so vira true
+  // depois da confirmacao real do backend via /api/afiliado/me.
+  const [isAfiliado, setIsAfiliado] = useState(false)
+  useEffect(() => {
+    supabase.auth.getUser().then(async ({ data: { user } }) => {
+      if (!user) return
+      if (ADMIN_IDS.includes(user.id)) setIsAdmin(true)
+      // Busca o plano do perfil pra filtrar o menu (Fase 2 - suporte tecnico ao plano MiniPage)
+      const { data: perfil } = await supabase.from('perfis').select('plano_tipo').eq('user_id', user.id).maybeSingle()
+      if (perfil) setPlanoAtual(normalizarPlano(perfil.plano_tipo))
+      const { data: { session } } = await supabase.auth.getSession()
+      const token = session?.access_token
+      if (!token) { setRole('admin'); return }
+      try {
+        const res = await fetch('/api/equipe/meu-vinculo', { headers: { 'Authorization': 'Bearer ' + token } })
+        const vinculo = await res.json()
+        if (res.ok && vinculo?.role === 'profissional' && vinculo?.ativo) {
+          setRole('profissional')
+          if (vinculo.nome_profissional) setNomeProfissionalVinculo(vinculo.nome_profissional)
+        } else {
+          setRole('admin')
+        }
+      } catch (e) {
+        console.warn('Erro ao verificar vinculo de equipe:', e)
+        setRole('admin')
+      }
+      // Mesmo padrao do meu-vinculo acima, mas pra afiliado - falha aqui nunca quebra o
+      // sidebar nem mostra a secao (fail-safe: so mostra com confirmacao explicita).
+      try {
+        const resAfiliado = await fetch('/api/afiliado/me', { headers: { 'Authorization': 'Bearer ' + token } })
+        const dadosAfiliado = await resAfiliado.json()
+        if (resAfiliado.ok && dadosAfiliado?.afiliado === true) {
+          setIsAfiliado(true)
+        }
+      } catch (e) {
+        console.warn('Erro ao verificar vinculo de afiliado:', e)
+      }
+    })
+  }, [])
+  const isProfissional = role === 'profissional'
+  const carregandoPapel = role === 'loading'
+  const nomeExibido = isProfissional ? (nomeProfissionalVinculo || nome) : nome
+  const path = usePathname()
+  const router = useRouter()
+  const ini = (nomeExibido || 'C').charAt(0).toUpperCase()
+
+  async function sair() {
+    await supabase.auth.signOut()
+    router.push('/login')
+  }
+
+  function ativo(href: string) {
+    if (href === '/painel') return path === '/painel'
+    return path.startsWith(href)
+  }
+
+  const LINKS_PROFISSIONAL: ItemMenu[] = [
+    { h: '/painel/minha-agenda', l: 'Minha agenda' },
+    { h: '/painel/meu-desempenho', l: 'Meu desempenho' },
+    { h: '/painel/alterar-senha', l: 'Alterar senha' },
+  ]
+
+  // Menu do dono da conta, filtrado dinamicamente conforme o plano - sempre via funcoes
+  // centralizadas de app/lib/planos.ts, nunca comparacao solta tipo plano==='minipage'.
+  const linksDoDono = LINKS.filter(it => {
+    if (it.apenasAdmin) return isAdmin
+    if (it.requerGestao) return ehPlanoComGestao(planoAtual)
+    if (it.requerProfissionais) return podeUsarProfissionais(planoAtual)
+    if (it.requerCatalogo) return obterLimiteCatalogos(planoAtual) > 0
+    return true
+  })
+
+  const NavLinks = ({ onClick }: { onClick?: () => void }) => {
+    const lista = isProfissional ? LINKS_PROFISSIONAL : linksDoDono
+    let grupoAnterior: string | undefined
+    return (
+      <>
+        {lista.map(it => {
+          const mostrarCabecalho = it.grupo !== undefined && it.grupo !== grupoAnterior
+          grupoAnterior = it.grupo ?? grupoAnterior
+          return (
+            <div key={it.h}>
+              {mostrarCabecalho && <p className="nl-grupo">{it.grupo}</p>}
+              <Link href={it.h} onClick={onClick}
+                className={'nl' + (ativo(it.h) ? ' on' : '')}>
+                {it.l}
+              </Link>
+            </div>
+          )
+        })}
+      </>
+    )
+  }
+
+  const NavLinksSkeleton = () => (
+    <div style={{ padding: '4px 14px' }}>
+      {[70, 55, 62, 45].map((w, i) => (
+        <div key={i} style={{ height: '13px', background: 'rgba(255,255,255,.05)', borderRadius: '6px', marginBottom: '14px', width: `${w}%` }} />
+      ))}
+    </div>
+  )
+
+  // Fase 4C: pagina /painel/afiliado ja existe - ativa o link real, mesmo padrao visual
+  // (classe nl, estado ativo) dos demais itens do menu.
+  const SecaoAfiliados = ({ onClick }: { onClick?: () => void }) => {
+    if (!isAfiliado) return null
+    return (
+      <div>
+        <p className="nl-grupo">AFILIADOS</p>
+        <Link href="/painel/afiliado" onClick={onClick} className={'nl' + (ativo('/painel/afiliado') ? ' on' : '')}>
+          Meu painel de afiliado
+        </Link>
+      </div>
+    )
+  }
+
+  const BtnSair = ({ onClick }: { onClick?: () => void }) => (
+    <button onClick={onClick || sair}
+      style={{ width: '100%', background: 'rgba(239,68,68,.10)', border: '1px solid rgba(239,68,68,.25)', borderRadius: '10px', padding: '10px 14px', color: '#FCA5A5', fontSize: '13px', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: '8px', transition: 'background .15s' }}
+      onMouseEnter={e => (e.currentTarget.style.background = 'rgba(239,68,68,.18)')}
+      onMouseLeave={e => (e.currentTarget.style.background = 'rgba(239,68,68,.10)')}>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>
+      </svg>
+      Sair
+    </button>
+  )
+
+  return (
+    <>
+      <style dangerouslySetInnerHTML={{ __html: CSS }} />
+
+      <div className={`psb-ovl${mob ? ' open' : ''}`} onClick={() => setMob(false)} />
+
+      {/* Drawer mobile */}
+      <div className={`psb-drw${mob ? ' open' : ''}`}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 18px', borderBottom: '1px solid #2A1A2F' }}>
+          <span style={{ fontSize: '14px', fontWeight: 800, color: '#F8F4F7' }}>ClienteMarcado</span>
+          <button onClick={() => setMob(false)} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,.5)', cursor: 'pointer', fontSize: '22px', lineHeight: 1 }}>×</button>
+        </div>
+        <nav style={{ flex: 1, minHeight: 0, padding: '10px 8px', overflowY: 'auto' }}>
+          {carregandoPapel ? <NavLinksSkeleton /> : <><NavLinks onClick={() => setMob(false)} /><SecaoAfiliados onClick={() => setMob(false)} /></>}
+        </nav>
+        <div style={{ padding: '12px 10px', borderTop: '1px solid #2A1A2F' }}>
+          <BtnSair onClick={() => { setMob(false); sair() }} />
+        </div>
+      </div>
+
+      {/* Sidebar desktop */}
+      <aside className="psb">
+        <div className="psb-logo" style={{ justifyContent: 'space-between' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <div className="psb-ic">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="3" y="4" width="18" height="18" rx="2"/>
+                <line x1="16" y1="2" x2="16" y2="6"/>
+                <line x1="8" y1="2" x2="8" y2="6"/>
+                <line x1="3" y1="10" x2="21" y2="10"/>
+              </svg>
+            </div>
+            <span style={{ fontSize: '14px', fontWeight: 800, color: '#F8F4F7', letterSpacing: '-0.02em' }}>ClienteMarcado</span>
+          </div>
+          {!carregandoPapel && <NotificacoesSino alinhamento="left" />}
+        </div>
+        <nav>{carregandoPapel ? <NavLinksSkeleton /> : <><NavLinks /><SecaoAfiliados /></>}</nav>
+        <div className="psb-foot">
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', background: 'rgba(24,16,27,.6)', border: '1px solid #2A1A2F', borderRadius: '10px', padding: '10px 12px', marginBottom: '8px' }}>
+            <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: AV, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '13px', fontWeight: 700, color: '#fff', flexShrink: 0 }}>{ini}</div>
+            <div style={{ minWidth: 0 }}>
+              <p style={{ fontSize: '12px', fontWeight: 600, color: '#F8F4F7', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{carregandoPapel ? '' : (nomeExibido || 'Meu negócio')}</p>
+              <p style={{ fontSize: '10px', color: '#B8AAB8' }}>{carregandoPapel ? '' : (isProfissional ? 'Profissional' : 'Administrador')}</p>
+            </div>
+          </div>
+          <BtnSair />
+        </div>
+      </aside>
+
+      {/* Header mobile */}
+      <div className="psb-mhdr">
+        <button onClick={() => setMob(true)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '8px', display: 'flex', flexDirection: 'column', gap: '5px' }}>
+          {[22, 22, 16].map((w, i) => (
+            <span key={i} style={{ display: 'block', width: `${w}px`, height: '2px', background: 'rgba(255,255,255,.8)', borderRadius: '2px' }} />
+          ))}
+        </button>
+        <span style={{ fontSize: '14px', fontWeight: 800, color: '#F8F4F7' }}>{tituloMobile}</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          {!carregandoPapel && <NotificacoesSino />}
+          <div style={{ width: '34px', height: '34px', borderRadius: '50%', background: AV, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '13px', fontWeight: 700, color: '#fff' }}>{ini}</div>
+        </div>
+      </div>
+    </>
+  )
+}

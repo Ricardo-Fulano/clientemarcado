@@ -422,7 +422,7 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
     supabase.from('pagina_catalogos').select('id,titulo,subtitulo').eq('user_id', perfil.user_id).eq('ativo', true).order('ordem'),
     supabase.from('pagina_catalogo_itens').select('id,catalogo_id,titulo,descricao_curta,descricao_completa,preco,preco_anterior,preco_exibicao,preco_texto_personalizado,selo_tipo,selo_texto,imagem_url,botao_texto,tipo_destino,destino_url,whatsapp,mensagem_whatsapp').eq('user_id', perfil.user_id).eq('ativo', true).order('ordem').order('created_at'),
     supabase.from('catalogo_item_imagens').select('id,item_id,imagem_url,ordem,is_capa').eq('user_id', perfil.user_id).order('ordem'),
-    supabase.from('pagina_albuns').select('id,titulo,subtitulo,proporcao').eq('user_id', perfil.user_id).eq('ativo', true).order('ordem'),
+    supabase.from('pagina_albuns').select('*').eq('user_id', perfil.user_id).eq('ativo', true).order('ordem'),
     supabase.from('pagina_album_fotos').select('id,album_id,imagem_url,titulo,descricao').eq('user_id', perfil.user_id).eq('ativo', true).order('ordem'),
     supabase.from('pagina_cards_secoes').select('id,titulo,subtitulo').eq('user_id', perfil.user_id).eq('ativo', true).order('ordem'),
     supabase.from('pagina_cards').select('id,secao_id,imagem_url,titulo,exibir_titulo,url,exibir_no_topo,image_fit').eq('user_id', perfil.user_id).eq('ativo', true).order('ordem').order('created_at'),
@@ -1037,6 +1037,7 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
                       titulo={alb.titulo}
                       subtitulo={alb.subtitulo}
                       proporcao={alb.proporcao}
+                      formato={alb.formato_exibicao === 'grade' ? 'grade' : 'carrossel'}
                       fotos={alb.fotos}
                     />
                   ))}

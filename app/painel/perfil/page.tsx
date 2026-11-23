@@ -40,41 +40,41 @@ const TEMA_CORES: Record<string, {primary:string;secondary:string;accent:string;
 
 const CSS=`
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-html,body{overflow-x:hidden;width:100%;max-width:100%;background:#08060A}
+html,body{overflow-x:hidden;width:100%;max-width:100%;background:#0B0A10}
 input,select,textarea{color-scheme:dark}
 .banner-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px}
-.banner-thumb{position:relative;border-radius:10px;overflow:hidden;border:1.5px solid #2A1A2F;cursor:pointer;aspect-ratio:16/9;background:#18101B;transition:all .18s;padding:0}
-.banner-thumb:hover{border-color:rgba(236,72,153,.45);transform:translateY(-2px);box-shadow:0 8px 20px rgba(0,0,0,.35)}
+.banner-thumb{position:relative;border-radius:10px;overflow:hidden;border:1.5px solid #40344B;cursor:pointer;aspect-ratio:16/9;background:#21182D;transition:all .18s;padding:0}
+.banner-thumb:hover{border-color:rgba(201,250,69,.45);transform:translateY(-2px);box-shadow:0 8px 20px rgba(0,0,0,.35)}
 .banner-thumb img{width:100%;height:100%;object-fit:cover;display:block}
-.banner-thumb.sel{border-color:#EC4899;box-shadow:0 0 0 2px rgba(236,72,153,.28),0 8px 20px rgba(236,72,153,.18)}
-.banner-sel-badge{position:absolute;top:5px;right:5px;background:linear-gradient(135deg,#EC4899,#D946EF,#8B5CF6);color:#fff;font-size:9px;font-weight:700;padding:2px 7px;border-radius:999px;letter-spacing:.02em;box-shadow:0 2px 8px rgba(236,72,153,.4)}
-select option{background:#120A14;color:#F8F4F7}
-.sb{width:220px;min-height:100vh;background:radial-gradient(circle at top left,rgba(139,92,246,.14),transparent 32%),linear-gradient(180deg,#070F1D,#08060A);border-right:1px solid #2A1A2F;display:flex;flex-direction:column;position:fixed;top:0;left:0;z-index:30}
-.sb-logo{padding:20px 16px 16px;border-bottom:1px solid #2A1A2F;display:flex;align-items:center;gap:8px}
-.sb-ic{width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,#EC4899,#D946EF,#8B5CF6);display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 0 22px rgba(236,72,153,.28)}
+.banner-thumb.sel{border-color:#C9FA45;box-shadow:0 0 0 2px rgba(201,250,69,.28),0 8px 20px rgba(201,250,69,.18)}
+.banner-sel-badge{position:absolute;top:5px;right:5px;background:#C9FA45;color:#0B0A10;font-size:9px;font-weight:700;padding:2px 7px;border-radius:999px;letter-spacing:.02em;box-shadow:0 2px 8px rgba(201,250,69,.4)}
+select option{background:#0B0A10;color:#FFFFFF}
+.sb{width:220px;min-height:100vh;background:radial-gradient(circle at top left,rgba(139,92,246,.14),transparent 32%),linear-gradient(180deg,#070F1D,#0B0A10);border-right:1px solid #40344B;display:flex;flex-direction:column;position:fixed;top:0;left:0;z-index:30}
+.sb-logo{padding:20px 16px 16px;border-bottom:1px solid #40344B;display:flex;align-items:center;gap:8px}
+.sb-ic{width:28px;height:28px;border-radius:8px;background:#C9FA45;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 0 22px rgba(201,250,69,.28)}
 .sb nav{flex:1;padding:10px 8px;overflow-y:auto}
-.nl{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:8px;margin-bottom:2px;text-decoration:none;font-size:13px;font-weight:500;color:#B8AAB8;transition:all .18s;border:1px solid transparent;white-space:nowrap}
-.nl:hover{background:rgba(236,72,153,.10);color:#F8F4F7;border-color:rgba(236,72,153,.24)}
-.nl.on{background:linear-gradient(135deg,#EC4899,#D946EF,#8B5CF6);color:#fff;font-weight:700;box-shadow:0 0 26px rgba(236,72,153,.28),inset 0 1px 0 rgba(255,255,255,.10);border-color:rgba(255,255,255,.10)}
-.sb-foot{padding:10px;border-top:1px solid #2A1A2F}
-.mob-hdr{display:none;align-items:center;justify-content:space-between;padding:0 16px;height:56px;background:rgba(5,11,22,.94);backdrop-filter:blur(20px);border-bottom:1px solid #2A1A2F;position:sticky;top:0;z-index:20;width:100%}
-.drw{position:fixed;top:0;left:0;bottom:0;width:280px;max-width:85vw;background:linear-gradient(180deg,#070F1D,#08060A);z-index:50;transform:translateX(-100%);transition:transform .28s ease;display:flex;flex-direction:column;border-right:1px solid #2A1A2F}
+.nl{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:8px;margin-bottom:2px;text-decoration:none;font-size:13px;font-weight:500;color:#C5BCD1;transition:all .18s;border:1px solid transparent;white-space:nowrap}
+.nl:hover{background:rgba(201,250,69,.10);color:#FFFFFF;border-color:rgba(201,250,69,.24)}
+.nl.on{background:#C9FA45;color:#0B0A10;font-weight:700;box-shadow:0 0 26px rgba(201,250,69,.28),inset 0 1px 0 rgba(255,255,255,.10);border-color:rgba(255,255,255,.10)}
+.sb-foot{padding:10px;border-top:1px solid #40344B}
+.mob-hdr{display:none;align-items:center;justify-content:space-between;padding:0 16px;height:56px;background:rgba(5,11,22,.94);backdrop-filter:blur(20px);border-bottom:1px solid #40344B;position:sticky;top:0;z-index:20;width:100%}
+.drw{position:fixed;top:0;left:0;bottom:0;width:280px;max-width:85vw;background:linear-gradient(180deg,#070F1D,#0B0A10);z-index:50;transform:translateX(-100%);transition:transform .28s ease;display:flex;flex-direction:column;border-right:1px solid #40344B}
 .drw.open{transform:translateX(0)}
 .ovl{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:49;opacity:0;pointer-events:none;transition:opacity .28s}
 .ovl.open{opacity:1;pointer-events:auto}
 .main{margin-left:220px;flex:1;min-height:100vh;width:calc(100% - 220px);max-width:calc(100% - 220px)}
-.pg{background:radial-gradient(circle at top left,rgba(139,92,246,.20),transparent 32%),radial-gradient(circle at top right,rgba(236,72,153,.14),transparent 28%),linear-gradient(135deg,#08060A 0%,#120A14 45%,#08060A 100%);min-height:100vh;overflow-x:hidden}
+.pg{background:radial-gradient(circle at top left,rgba(149,82,245,.12),transparent 32%),#0B0A10;min-height:100vh;overflow-x:hidden}
 .bdy{max-width:1060px;margin:0 auto;padding:28px 32px 80px;width:100%;box-sizing:border-box}
-.crd{background:radial-gradient(circle at top left,rgba(139,92,246,.08),transparent 38%),linear-gradient(145deg,rgba(24,16,27,.97),rgba(18,10,20,.99));border:1.5px solid #2A1A2F;border-radius:18px;padding:24px;margin-bottom:16px;box-shadow:0 20px 48px rgba(0,0,0,.34),inset 0 1px 0 rgba(255,255,255,.04)}
-.inp{width:100%;background:rgba(24,16,27,.88);border:1.5px solid #2A1A2F;border-radius:12px;padding:0 14px;height:48px;font-size:14px;color:#F8F4F7;outline:none;font-family:inherit;transition:border-color .2s,box-shadow .2s;display:block;box-sizing:border-box}
-.inp:focus{border-color:rgba(236,72,153,.55);box-shadow:0 0 0 3px rgba(236,72,153,.12)}
-.lbl{font-size:11px;font-weight:700;color:#B8AAB8;text-transform:uppercase;letter-spacing:.08em;display:block;margin-bottom:7px}
+.crd{background:radial-gradient(circle at top left,rgba(139,92,246,.08),transparent 38%),linear-gradient(145deg,#21182D,#21182D);border:1.5px solid #40344B;border-radius:18px;padding:24px;margin-bottom:16px;box-shadow:0 20px 48px rgba(0,0,0,.34),inset 0 1px 0 rgba(255,255,255,.04)}
+.inp{width:100%;background:rgba(33,24,45,.88);border:1.5px solid #40344B;border-radius:12px;padding:0 14px;height:48px;font-size:14px;color:#FFFFFF;outline:none;font-family:inherit;transition:border-color .2s,box-shadow .2s;display:block;box-sizing:border-box}
+.inp:focus{border-color:rgba(201,250,69,.55);box-shadow:0 0 0 3px rgba(201,250,69,.12)}
+.lbl{font-size:11px;font-weight:700;color:#C5BCD1;text-transform:uppercase;letter-spacing:.08em;display:block;margin-bottom:7px}
 .fg2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
-.dia-btn{border-radius:8px;padding:8px 12px;font-size:12px;font-weight:700;cursor:pointer;transition:all .18s;font-family:inherit;border:1.5px solid #2A1A2F;background:rgba(24,16,27,.72);color:#B8AAB8}
-.dia-btn.on{background:linear-gradient(135deg,#EC4899,#D946EF,#8B5CF6);color:#fff;border-color:transparent;box-shadow:0 0 14px rgba(236,72,153,.28)}
-.tema-card{background:rgba(24,16,27,.72);border:1.5px solid #2A1A2F;border-radius:14px;padding:14px;cursor:pointer;transition:all .18s;text-align:left;font-family:inherit;width:100%}
+.dia-btn{border-radius:8px;padding:8px 12px;font-size:12px;font-weight:700;cursor:pointer;transition:all .18s;font-family:inherit;border:1.5px solid #40344B;background:rgba(33,24,45,.72);color:#C5BCD1}
+.dia-btn.on{background:#C9FA45;color:#0B0A10;border-color:transparent;box-shadow:0 0 14px rgba(201,250,69,.28)}
+.tema-card{background:rgba(33,24,45,.72);border:1.5px solid #40344B;border-radius:14px;padding:14px;cursor:pointer;transition:all .18s;text-align:left;font-family:inherit;width:100%}
 .tema-card.on{border-color:rgba(139,92,246,.55);background:rgba(139,92,246,.10);box-shadow:0 0 18px rgba(139,92,246,.18)}
-.btn-verpag:hover{border-color:rgba(236,72,153,.32)!important;color:#F8F4F7!important}
+.btn-verpag:hover{border-color:rgba(201,250,69,.32)!important;color:#FFFFFF!important}
 @media(max-width:1023px){
   .sb{display:none!important}.main{margin-left:0!important;width:100%!important;max-width:100%!important}
   .mob-hdr{display:flex!important}.bdy{padding:14px 16px 80px!important}
@@ -519,7 +519,7 @@ export default function Perfil(){
   const pubUrl=`https://minipage.pro/${slug}`
 
   return(
-    <div style={{display:'flex',minHeight:'100vh',background:'#08060A',fontFamily:'-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif',overflowX:'hidden',width:'100%'}}>
+    <div style={{display:'flex',minHeight:'100vh',background:'#0B0A10',fontFamily:'-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif',overflowX:'hidden',width:'100%'}}>
       <style dangerouslySetInnerHTML={{__html:CSS}}/>
       <PainelSidebar nome={nome} tituloMobile="Configurações"/>
       <div className="psb-main">
@@ -533,9 +533,9 @@ export default function Perfil(){
 
           {semPerfil ? (
             <div className="crd" style={{textAlign:'center',padding:'48px 24px',maxWidth:'480px',margin:'40px auto'}}>
-              <p style={{fontSize:'19px',fontWeight:800,color:'#F8F4F7',marginBottom:'10px'}}>Nenhum perfil encontrado para esta conta</p>
-              <p style={{fontSize:'14px',color:'#B8AAB8',lineHeight:1.6,marginBottom:'24px'}}>Esta conta ainda não possui uma página profissional. Crie um novo perfil para começar.</p>
-              <button type="button" onClick={criarPerfilNovo} style={{background:G,color:'#15180D',border:'1px solid rgba(255,255,255,.12)',borderRadius:'12px',padding:'13px 28px',fontSize:'14px',fontWeight:700,cursor:'pointer',fontFamily:'inherit'}}>
+              <p style={{fontSize:'19px',fontWeight:800,color:'#FFFFFF',marginBottom:'10px'}}>Nenhum perfil encontrado para esta conta</p>
+              <p style={{fontSize:'14px',color:'#C5BCD1',lineHeight:1.6,marginBottom:'24px'}}>Esta conta ainda não possui uma página profissional. Crie um novo perfil para começar.</p>
+              <button type="button" onClick={criarPerfilNovo} style={{background:G,color:'#0B0A10',border:'1px solid rgba(255,255,255,.12)',borderRadius:'12px',padding:'13px 28px',fontSize:'14px',fontWeight:700,cursor:'pointer',fontFamily:'inherit'}}>
                 Criar meu perfil
               </button>
             </div>
@@ -544,21 +544,21 @@ export default function Perfil(){
 
           <div className="topo-r" style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',gap:'12px',flexWrap:'wrap',marginBottom:'24px'}}>
             <div>
-              <h1 style={{fontSize:'22px',fontWeight:800,color:'#F8F4F7',letterSpacing:'-0.04em',marginBottom:'5px'}}>Minha MiniPage</h1>
-              <p style={{fontSize:'13px',color:'#B8AAB8'}}>Personalize sua página e organize o que seus visitantes vão encontrar.</p>
+              <h1 style={{fontSize:'22px',fontWeight:800,color:'#FFFFFF',letterSpacing:'-0.04em',marginBottom:'5px'}}>Minha MiniPage</h1>
+              <p style={{fontSize:'13px',color:'#C5BCD1'}}>Personalize sua página e organize o que seus visitantes vão encontrar.</p>
             </div>
-            <Link href="/painel" prefetch={false} className="btn-verpag" style={{fontSize:'13px',color:'#B8AAB8',textDecoration:'none',display:'flex',alignItems:'center',gap:'4px',flexShrink:0,padding:'8px 12px',background:'rgba(24,16,27,.72)',border:'1px solid #2A1A2F',borderRadius:'8px'}}>← Voltar ao painel</Link>
+            <Link href="/painel" prefetch={false} className="btn-verpag" style={{fontSize:'13px',color:'#C5BCD1',textDecoration:'none',display:'flex',alignItems:'center',gap:'4px',flexShrink:0,padding:'8px 12px',background:'rgba(33,24,45,.72)',border:'1px solid #40344B',borderRadius:'8px'}}>← Voltar ao painel</Link>
           </div>
 
           {slug&&(
-            <div className="crd" style={{border:'1.5px solid rgba(139,92,246,.24)',background:'radial-gradient(circle at top left,rgba(139,92,246,.10),transparent 40%),linear-gradient(145deg,rgba(24,16,27,.97),rgba(18,10,20,.99))'}}>
-              <p style={{fontSize:'15px',fontWeight:700,color:'#F8F4F7',marginBottom:'4px'}}>Seu link profissional</p>
-              <p style={{fontSize:'12px',color:'#B8AAB8',marginBottom:'14px'}}>Este é o link público da sua MiniPage.</p>
-              <div style={{background:'rgba(24,16,27,.72)',border:'1px solid #2A1A2F',borderRadius:'10px',padding:'10px 14px',marginBottom:'14px',display:'flex',alignItems:'center',gap:'8px',overflowX:'auto'}}>
+            <div className="crd" style={{border:'1.5px solid rgba(139,92,246,.24)',background:'radial-gradient(circle at top left,rgba(139,92,246,.10),transparent 40%),linear-gradient(145deg,#21182D,#21182D)'}}>
+              <p style={{fontSize:'15px',fontWeight:700,color:'#FFFFFF',marginBottom:'4px'}}>Seu link profissional</p>
+              <p style={{fontSize:'12px',color:'#C5BCD1',marginBottom:'14px'}}>Este é o link público da sua MiniPage.</p>
+              <div style={{background:'rgba(33,24,45,.72)',border:'1px solid #40344B',borderRadius:'10px',padding:'10px 14px',marginBottom:'14px',display:'flex',alignItems:'center',gap:'8px',overflowX:'auto'}}>
                 <span style={{fontSize:'13px',color:'#8B5CF6',fontFamily:'monospace',fontWeight:600,whiteSpace:'nowrap'}}>{pubUrl}</span>
               </div>
               <div className="link-btns" style={{display:'flex',gap:'8px',flexWrap:'wrap'}}>
-                <button onClick={copiarLink} style={{background:G,color:'#15180D',border:'1px solid rgba(255,255,255,.12)',borderRadius:'12px',height:'42px',padding:'0 18px',fontSize:'13px',fontWeight:700,display:'inline-flex',alignItems:'center',gap:'6px',cursor:'pointer',fontFamily:'inherit',boxShadow:'0 8px 24px rgba(236,72,153,.28)',whiteSpace:'nowrap'}}>
+                <button onClick={copiarLink} style={{background:G,color:'#0B0A10',border:'1px solid rgba(255,255,255,.12)',borderRadius:'12px',height:'42px',padding:'0 18px',fontSize:'13px',fontWeight:700,display:'inline-flex',alignItems:'center',gap:'6px',cursor:'pointer',fontFamily:'inherit',boxShadow:'0 8px 24px rgba(201,250,69,.28)',whiteSpace:'nowrap'}}>
                   {copied?<Check size={14}/>:<Copy size={14}/>}{copied?'Copiado!':'Copiar link'}
                 </button>
                 <a href={pubUrl} target="_blank" rel="noreferrer" className="btn-verpag" style={{background:'rgba(139,92,246,.12)',border:'1.5px solid rgba(139,92,246,.45)',color:'#E9D5FF',borderRadius:'12px',height:'42px',padding:'0 18px',fontSize:'13px',fontWeight:700,display:'inline-flex',alignItems:'center',gap:'6px',textDecoration:'none',whiteSpace:'nowrap'}}><ExternalLink size={14}/>Ver MiniPage</a>
@@ -567,17 +567,17 @@ export default function Perfil(){
           )}
 
           <div className="crd">
-            <p style={{fontSize:'15px',fontWeight:700,color:'#F8F4F7',marginBottom:'4px'}}>Informações da página</p>
-            <p style={{fontSize:'12px',color:'#B8AAB8',marginBottom:'18px'}}>Defina o nome, link e informações principais da sua MiniPage.</p>
+            <p style={{fontSize:'15px',fontWeight:700,color:'#FFFFFF',marginBottom:'4px'}}>Informações da página</p>
+            <p style={{fontSize:'12px',color:'#C5BCD1',marginBottom:'18px'}}>Defina o nome, link e informações principais da sua MiniPage.</p>
             <div style={{marginBottom:'14px'}}>
               <label className="lbl">Nome exibido na página *</label>
               <input className="inp" type="text" placeholder="Ex: Nome da sua página" value={nome} onChange={e=>setNome(e.target.value)}/>
             </div>
             <div style={{marginBottom:'14px'}}>
               <label className="lbl">Link personalizado *</label>
-              <div style={{display:'flex',alignItems:'center',background:'rgba(24,16,27,.88)',border:'1.5px solid #2A1A2F',borderRadius:'12px',overflow:'hidden',transition:'border-color .2s'}} onFocusCapture={e=>(e.currentTarget.style.borderColor='rgba(236,72,153,.55)')} onBlurCapture={e=>(e.currentTarget.style.borderColor='#2A1A2F')}>
-                <span style={{padding:'0 12px',fontSize:'12px',color:'#B8AAB8',whiteSpace:'nowrap',borderRight:'1px solid #2A1A2F',height:'48px',display:'flex',alignItems:'center',background:'rgba(255,255,255,.03)',flexShrink:0}}>minipage.pro/</span>
-                <input type="text" value={slug} onChange={e=>setSlug(e.target.value.toLowerCase().replace(/\s+/g,'-').replace(/[^a-z0-9-]/g,''))} placeholder="seunome" style={{flex:1,background:'transparent',border:'none',outline:'none',padding:'0 14px',height:'48px',fontSize:'14px',color:'#F8F4F7',fontFamily:'inherit'}}/>
+              <div style={{display:'flex',alignItems:'center',background:'rgba(33,24,45,.88)',border:'1.5px solid #40344B',borderRadius:'12px',overflow:'hidden',transition:'border-color .2s'}} onFocusCapture={e=>(e.currentTarget.style.borderColor='rgba(201,250,69,.55)')} onBlurCapture={e=>(e.currentTarget.style.borderColor='#40344B')}>
+                <span style={{padding:'0 12px',fontSize:'12px',color:'#C5BCD1',whiteSpace:'nowrap',borderRight:'1px solid #40344B',height:'48px',display:'flex',alignItems:'center',background:'rgba(255,255,255,.03)',flexShrink:0}}>minipage.pro/</span>
+                <input type="text" value={slug} onChange={e=>setSlug(e.target.value.toLowerCase().replace(/\s+/g,'-').replace(/[^a-z0-9-]/g,''))} placeholder="seunome" style={{flex:1,background:'transparent',border:'none',outline:'none',padding:'0 14px',height:'48px',fontSize:'14px',color:'#FFFFFF',fontFamily:'inherit'}}/>
               </div>
             </div>
             <div>
@@ -587,8 +587,8 @@ export default function Perfil(){
           </div>
 
           <div className="crd">
-            <p style={{fontSize:'15px',fontWeight:700,color:'#F8F4F7',marginBottom:'4px'}}>Informações públicas da MiniPage</p>
-            <p style={{fontSize:'12px',color:'#B8AAB8',marginBottom:'18px'}}>Esses dados aparecem para quem acessa sua página.</p>
+            <p style={{fontSize:'15px',fontWeight:700,color:'#FFFFFF',marginBottom:'4px'}}>Informações públicas da MiniPage</p>
+            <p style={{fontSize:'12px',color:'#C5BCD1',marginBottom:'18px'}}>Esses dados aparecem para quem acessa sua página.</p>
             <div className="fg2" style={{marginBottom:'14px'}}>
               <div><label className="lbl">WhatsApp de contato</label><input className="inp" type="tel" placeholder="(11) 99999-9999" value={wpp} onChange={e=>setWpp(e.target.value)}/></div>
               <div><label className="lbl">Instagram</label><input className="inp" type="text" placeholder="@seunegocio" value={insta} onChange={e=>setInsta(e.target.value)}/></div>
@@ -602,18 +602,18 @@ export default function Perfil(){
           <div className="crd" style={{padding:'20px'}}>
             <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',flexWrap:'wrap',gap:'12px'}}>
               <div>
-                <p style={{fontSize:'15px',fontWeight:700,color:'#F8F4F7',marginBottom:'2px'}}>Aparência da MiniPage</p>
-                <p style={{fontSize:'12px',color:'#B8AAB8'}}>Banner, foto, cores e visual da página pública.</p>
+                <p style={{fontSize:'15px',fontWeight:700,color:'#FFFFFF',marginBottom:'2px'}}>Aparência da MiniPage</p>
+                <p style={{fontSize:'12px',color:'#C5BCD1'}}>Banner, foto, cores e visual da página pública.</p>
               </div>
-              <Link href="/painel/perfil/aparencia" style={{background:G,color:'#15180D',border:'1px solid rgba(255,255,255,.12)',borderRadius:'10px',padding:'10px 18px',fontSize:'13px',fontWeight:700,textDecoration:'none',flexShrink:0}}>Gerenciar aparência</Link>
+              <Link href="/painel/perfil/aparencia" style={{background:G,color:'#0B0A10',border:'1px solid rgba(255,255,255,.12)',borderRadius:'10px',padding:'10px 18px',fontSize:'13px',fontWeight:700,textDecoration:'none',flexShrink:0}}>Gerenciar aparência</Link>
             </div>
           </div>
 
           <div className="crd" style={{padding:'20px'}}>
-            <p style={{fontSize:'15px',fontWeight:700,color:'#F8F4F7',marginBottom:'4px'}}>Ordem da página pública</p>
-            <p style={{fontSize:'12px',color:'#B8AAB8',marginBottom:'16px'}}>Altere a ordem em que as seções aparecem na sua MiniPage Pro.</p>
+            <p style={{fontSize:'15px',fontWeight:700,color:'#FFFFFF',marginBottom:'4px'}}>Ordem da página pública</p>
+            <p style={{fontSize:'12px',color:'#C5BCD1',marginBottom:'16px'}}>Altere a ordem em que as seções aparecem na sua MiniPage Pro.</p>
             {!ordemPronta&&(
-              <p style={{fontSize:'12px',color:'#B8AAB8'}}>Carregando seções…</p>
+              <p style={{fontSize:'12px',color:'#C5BCD1'}}>Carregando seções…</p>
             )}
             {ordemPronta&&ordemIndisponivel&&(
               <div role="alert" style={{fontSize:'13px',color:'#EF4444',background:'rgba(239,68,68,.12)',border:'1px solid rgba(239,68,68,.28)',borderRadius:'10px',padding:'11px 14px'}}>Não foi possível carregar as seções para reordenar. Recarregue a página.</div>
@@ -623,20 +623,20 @@ export default function Perfil(){
               {ordemSecoes.map((chave,i)=>{
                 const linha=descreverLinha(chave)
                 return (
-                  <div key={chave} style={{display:'flex',alignItems:'center',gap:'12px',padding:'10px 14px',background:'rgba(24,16,27,.72)',border:'1px solid #2A1A2F',borderRadius:'10px'}}>
-                    <span style={{fontSize:'12px',fontWeight:700,color:'#B8AAB8',width:'18px',flexShrink:0}}>{i+1}</span>
+                  <div key={chave} style={{display:'flex',alignItems:'center',gap:'12px',padding:'10px 14px',background:'rgba(33,24,45,.72)',border:'1px solid #40344B',borderRadius:'10px'}}>
+                    <span style={{fontSize:'12px',fontWeight:700,color:'#C5BCD1',width:'18px',flexShrink:0}}>{i+1}</span>
                     <div style={{flex:1,minWidth:0,opacity:linha.esmaecida?.55:1}}>
-                      <div style={{fontSize:'13px',fontWeight:600,color:'#F8F4F7'}}>{linha.titulo}</div>
+                      <div style={{fontSize:'13px',fontWeight:600,color:'#FFFFFF'}}>{linha.titulo}</div>
                       {(linha.sub||linha.etiqueta)&&(
-                        <div style={{fontSize:'11px',color:'#B8AAB8',marginTop:'2px'}}>
+                        <div style={{fontSize:'11px',color:'#C5BCD1',marginTop:'2px'}}>
                           {linha.sub}{linha.sub&&linha.etiqueta?' · ':''}{linha.etiqueta&&<span style={{color:'#F59E0B',fontWeight:600}}>{linha.etiqueta}</span>}
                         </div>
                       )}
                     </div>
                     {linha.href&&<Link href={linha.href} style={{fontSize:'11px',color:'#C4B5FD',textDecoration:'none',flexShrink:0}}>Gerenciar →</Link>}
                     <div style={{display:'flex',gap:'6px',flexShrink:0}}>
-                      <button type="button" onClick={()=>moverSecao(i,'up')} disabled={i===0} style={{width:'28px',height:'28px',borderRadius:'8px',background:'rgba(24,16,27,.9)',border:'1px solid #2A1A2F',color:i===0?'#4A3F4E':'#B8AAB8',cursor:i===0?'not-allowed':'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}><ArrowUp size={14}/></button>
-                      <button type="button" onClick={()=>moverSecao(i,'down')} disabled={i===ordemSecoes.length-1} style={{width:'28px',height:'28px',borderRadius:'8px',background:'rgba(24,16,27,.9)',border:'1px solid #2A1A2F',color:i===ordemSecoes.length-1?'#4A3F4E':'#B8AAB8',cursor:i===ordemSecoes.length-1?'not-allowed':'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}><ArrowDown size={14}/></button>
+                      <button type="button" onClick={()=>moverSecao(i,'up')} disabled={i===0} style={{width:'28px',height:'28px',borderRadius:'8px',background:'rgba(33,24,45,.9)',border:'1px solid #40344B',color:i===0?'#4A3F4E':'#C5BCD1',cursor:i===0?'not-allowed':'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}><ArrowUp size={14}/></button>
+                      <button type="button" onClick={()=>moverSecao(i,'down')} disabled={i===ordemSecoes.length-1} style={{width:'28px',height:'28px',borderRadius:'8px',background:'rgba(33,24,45,.9)',border:'1px solid #40344B',color:i===ordemSecoes.length-1?'#4A3F4E':'#C5BCD1',cursor:i===ordemSecoes.length-1?'not-allowed':'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}><ArrowDown size={14}/></button>
                     </div>
                   </div>
                 )
@@ -651,13 +651,13 @@ export default function Perfil(){
           <div className="crd" style={{padding:'20px'}}>
             <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',flexWrap:'wrap',gap:'12px'}}>
               <div>
-                <p style={{fontSize:'15px',fontWeight:700,color:'#F8F4F7',marginBottom:'2px'}}>Destaques da página</p>
-                <p style={{fontSize:'12px',color:'#B8AAB8'}}>{destaques.length} destaque{destaques.length!==1?'s':''} cadastrado{destaques.length!==1?'s':''}</p>
+                <p style={{fontSize:'15px',fontWeight:700,color:'#FFFFFF',marginBottom:'2px'}}>Destaques da página</p>
+                <p style={{fontSize:'12px',color:'#C5BCD1'}}>{destaques.length} destaque{destaques.length!==1?'s':''} cadastrado{destaques.length!==1?'s':''}</p>
               </div>
               {permiteDestaques(planoTipo) ? (
-                <Link href="/painel/perfil/destaques" style={{background:G,color:'#15180D',border:'1px solid rgba(255,255,255,.12)',borderRadius:'10px',padding:'10px 18px',fontSize:'13px',fontWeight:700,textDecoration:'none',flexShrink:0}}>Gerenciar destaques</Link>
+                <Link href="/painel/perfil/destaques" style={{background:G,color:'#0B0A10',border:'1px solid rgba(255,255,255,.12)',borderRadius:'10px',padding:'10px 18px',fontSize:'13px',fontWeight:700,textDecoration:'none',flexShrink:0}}>Gerenciar destaques</Link>
               ) : (
-                <Link href="/painel/plano" style={{background:'rgba(24,16,27,.92)',color:'#B8AAB8',border:'1px solid #2A1A2F',borderRadius:'10px',padding:'10px 18px',fontSize:'13px',fontWeight:700,textDecoration:'none',flexShrink:0}}>🔒 Disponível no MiniPage</Link>
+                <Link href="/painel/plano" style={{background:'rgba(33,24,45,.92)',color:'#C5BCD1',border:'1px solid #40344B',borderRadius:'10px',padding:'10px 18px',fontSize:'13px',fontWeight:700,textDecoration:'none',flexShrink:0}}>🔒 Disponível no MiniPage</Link>
               )}
             </div>
           </div>
@@ -665,13 +665,13 @@ export default function Perfil(){
           <div className="crd" style={{padding:'20px'}}>
             <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',flexWrap:'wrap',gap:'12px'}}>
               <div>
-                <p style={{fontSize:'15px',fontWeight:700,color:'#F8F4F7',marginBottom:'2px'}}>Álbuns / Fotos</p>
-                <p style={{fontSize:'12px',color:'#B8AAB8'}}>Galerias de fotos em faixa horizontal deslizável</p>
+                <p style={{fontSize:'15px',fontWeight:700,color:'#FFFFFF',marginBottom:'2px'}}>Álbuns / Fotos</p>
+                <p style={{fontSize:'12px',color:'#C5BCD1'}}>Organize fotos e importe do Instagram. Escolha como apresentar suas galerias.</p>
               </div>
               {permiteAlbuns(planoTipo) ? (
-                <Link href="/painel/perfil/albuns" style={{background:G,color:'#15180D',border:'1px solid rgba(255,255,255,.12)',borderRadius:'10px',padding:'10px 18px',fontSize:'13px',fontWeight:700,textDecoration:'none',flexShrink:0}}>Gerenciar álbuns</Link>
+                <div style={{display:'flex',gap:8,flexWrap:'wrap'}}><Link href="/painel/perfil/albuns?importar=instagram" style={{background:G,color:'#0B0A10',border:'1px solid rgba(255,255,255,.12)',borderRadius:'10px',padding:'10px 18px',fontSize:'13px',fontWeight:700,textDecoration:'none'}}>Importar Instagram</Link><Link href="/painel/perfil/albuns" style={{background:'rgba(33,24,45,.92)',color:'#FFFFFF',border:'1px solid #40344B',borderRadius:'10px',padding:'10px 18px',fontSize:'13px',fontWeight:700,textDecoration:'none'}}>Gerenciar álbuns</Link></div>
               ) : (
-                <Link href="/painel/plano" style={{background:'rgba(24,16,27,.92)',color:'#B8AAB8',border:'1px solid #2A1A2F',borderRadius:'10px',padding:'10px 18px',fontSize:'13px',fontWeight:700,textDecoration:'none',flexShrink:0}}>🔒 Disponível no MiniPage</Link>
+                <Link href="/painel/plano" style={{background:'rgba(33,24,45,.92)',color:'#C5BCD1',border:'1px solid #40344B',borderRadius:'10px',padding:'10px 18px',fontSize:'13px',fontWeight:700,textDecoration:'none',flexShrink:0}}>🔒 Disponível no MiniPage</Link>
               )}
             </div>
           </div>
@@ -679,13 +679,13 @@ export default function Perfil(){
           <div className="crd" style={{padding:'20px'}}>
             <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',flexWrap:'wrap',gap:'12px'}}>
               <div>
-                <p style={{fontSize:'15px',fontWeight:700,color:'#F8F4F7',marginBottom:'2px'}}>Links visuais</p>
-                <p style={{fontSize:'12px',color:'#B8AAB8'}}>Crie cards com imagem que direcionam para páginas, contatos, plataformas ou outros destinos.</p>
+                <p style={{fontSize:'15px',fontWeight:700,color:'#FFFFFF',marginBottom:'2px'}}>Links visuais</p>
+                <p style={{fontSize:'12px',color:'#C5BCD1'}}>Crie cards com imagem que direcionam para páginas, contatos, plataformas ou outros destinos.</p>
               </div>
               {permiteCardsVisuais(planoTipo) ? (
-                <Link href="/painel/perfil/cards" style={{background:G,color:'#15180D',border:'1px solid rgba(255,255,255,.12)',borderRadius:'10px',padding:'10px 18px',fontSize:'13px',fontWeight:700,textDecoration:'none',flexShrink:0}}>Gerenciar links visuais</Link>
+                <Link href="/painel/perfil/cards" style={{background:G,color:'#0B0A10',border:'1px solid rgba(255,255,255,.12)',borderRadius:'10px',padding:'10px 18px',fontSize:'13px',fontWeight:700,textDecoration:'none',flexShrink:0}}>Gerenciar links visuais</Link>
               ) : (
-                <Link href="/painel/plano" style={{background:'rgba(24,16,27,.92)',color:'#B8AAB8',border:'1px solid #2A1A2F',borderRadius:'10px',padding:'10px 18px',fontSize:'13px',fontWeight:700,textDecoration:'none',flexShrink:0}}>🔒 Disponível no MiniPage</Link>
+                <Link href="/painel/plano" style={{background:'rgba(33,24,45,.92)',color:'#C5BCD1',border:'1px solid #40344B',borderRadius:'10px',padding:'10px 18px',fontSize:'13px',fontWeight:700,textDecoration:'none',flexShrink:0}}>🔒 Disponível no MiniPage</Link>
               )}
             </div>
           </div>
@@ -693,13 +693,13 @@ export default function Perfil(){
           <div className="crd" style={{padding:'20px'}}>
             <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',flexWrap:'wrap',gap:'12px'}}>
               <div>
-                <p style={{fontSize:'15px',fontWeight:700,color:'#F8F4F7',marginBottom:'2px'}}>Spotify</p>
-                <p style={{fontSize:'12px',color:'#B8AAB8'}}>Incorpore músicas, álbuns, playlists, artistas e podcasts do Spotify na sua MiniPage.</p>
+                <p style={{fontSize:'15px',fontWeight:700,color:'#FFFFFF',marginBottom:'2px'}}>Spotify</p>
+                <p style={{fontSize:'12px',color:'#C5BCD1'}}>Incorpore músicas, álbuns, playlists, artistas e podcasts do Spotify na sua MiniPage.</p>
               </div>
               {permiteSpotify(planoTipo) ? (
-                <Link href="/painel/perfil/spotify" style={{background:G,color:'#15180D',border:'1px solid rgba(255,255,255,.12)',borderRadius:'10px',padding:'10px 18px',fontSize:'13px',fontWeight:700,textDecoration:'none',flexShrink:0}}>Gerenciar Spotify</Link>
+                <div style={{display:"flex",gap:8,flexWrap:"wrap"}}><Link href="/painel/perfil/spotify" style={{background:G,color:"#0B0A10",border:"1px solid rgba(255,255,255,.12)",borderRadius:"10px",padding:"10px 18px",fontSize:"13px",fontWeight:700,textDecoration:"none",flexShrink:0}}>Importar Spotify</Link></div>
               ) : (
-                <Link href="/painel/plano" style={{background:'rgba(24,16,27,.92)',color:'#B8AAB8',border:'1px solid #2A1A2F',borderRadius:'10px',padding:'10px 18px',fontSize:'13px',fontWeight:700,textDecoration:'none',flexShrink:0}}>🔒 Disponível no MiniPage</Link>
+                <div style={{display:'flex',gap:8,flexWrap:'wrap'}}><Link href="/painel/perfil/links" style={{background:G,color:'#0B0A10',borderRadius:10,padding:'10px 14px',fontSize:13,fontWeight:700,textDecoration:'none'}}>Adicionar link Spotify (Free)</Link><Link href="/painel/plano" style={{color:'#C5BCD1',border:'1px solid #40344B',borderRadius:10,padding:'10px 14px',fontSize:13,fontWeight:700,textDecoration:'none'}}>🔒 Player Premium</Link></div>
               )}
             </div>
           </div>
@@ -707,23 +707,23 @@ export default function Perfil(){
           <div className="crd" style={{padding:'20px'}}>
             <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',flexWrap:'wrap',gap:'12px'}}>
               <div>
-                <p style={{fontSize:'15px',fontWeight:700,color:'#F8F4F7',marginBottom:'2px'}}>Links</p>
-                <p style={{fontSize:'12px',color:'#B8AAB8'}}>{links.length}{obterLimiteLinksRapidos(planoTipo)!==Infinity?` de ${obterLimiteLinksRapidos(planoTipo)}`:''} link{links.length!==1?'s':''} cadastrado{links.length!==1?'s':''}</p>
+                <p style={{fontSize:'15px',fontWeight:700,color:'#FFFFFF',marginBottom:'2px'}}>Links</p>
+                <p style={{fontSize:'12px',color:'#C5BCD1'}}>{links.length}{obterLimiteLinksRapidos(planoTipo)!==Infinity?` de ${obterLimiteLinksRapidos(planoTipo)}`:''} link{links.length!==1?'s':''} cadastrado{links.length!==1?'s':''}</p>
               </div>
-              <Link href="/painel/perfil/links" style={{background:G,color:'#15180D',border:'1px solid rgba(255,255,255,.12)',borderRadius:'10px',padding:'10px 18px',fontSize:'13px',fontWeight:700,textDecoration:'none',flexShrink:0}}>Gerenciar links</Link>
+              <Link href="/painel/perfil/links" style={{background:G,color:'#0B0A10',border:'1px solid rgba(255,255,255,.12)',borderRadius:'10px',padding:'10px 18px',fontSize:'13px',fontWeight:700,textDecoration:'none',flexShrink:0}}>Gerenciar links</Link>
             </div>
           </div>
 
           <div className="crd" style={{padding:'20px'}}>
             <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',flexWrap:'wrap',gap:'12px'}}>
               <div>
-                <p style={{fontSize:'15px',fontWeight:700,color:'#F8F4F7',marginBottom:'2px'}}>Agenda / Eventos</p>
-                <p style={{fontSize:'12px',color:'#B8AAB8'}}>{eventos.length} evento{eventos.length!==1?'s':''} cadastrado{eventos.length!==1?'s':''}</p>
+                <p style={{fontSize:'15px',fontWeight:700,color:'#FFFFFF',marginBottom:'2px'}}>Agenda / Eventos</p>
+                <p style={{fontSize:'12px',color:'#C5BCD1'}}>{eventos.length} evento{eventos.length!==1?'s':''} cadastrado{eventos.length!==1?'s':''}</p>
               </div>
               {permiteAgendaEventos(planoTipo) ? (
-                <Link href="/painel/perfil/eventos" style={{background:G,color:'#15180D',border:'1px solid rgba(255,255,255,.12)',borderRadius:'10px',padding:'10px 18px',fontSize:'13px',fontWeight:700,textDecoration:'none',flexShrink:0}}>Gerenciar eventos</Link>
+                <Link href="/painel/perfil/eventos" style={{background:G,color:'#0B0A10',border:'1px solid rgba(255,255,255,.12)',borderRadius:'10px',padding:'10px 18px',fontSize:'13px',fontWeight:700,textDecoration:'none',flexShrink:0}}>Gerenciar eventos</Link>
               ) : (
-                <Link href="/painel/plano" style={{background:'rgba(24,16,27,.92)',color:'#B8AAB8',border:'1px solid #2A1A2F',borderRadius:'10px',padding:'10px 18px',fontSize:'13px',fontWeight:700,textDecoration:'none',flexShrink:0}}>🔒 Disponível no MiniPage</Link>
+                <Link href="/painel/plano" style={{background:'rgba(33,24,45,.92)',color:'#C5BCD1',border:'1px solid #40344B',borderRadius:'10px',padding:'10px 18px',fontSize:'13px',fontWeight:700,textDecoration:'none',flexShrink:0}}>🔒 Disponível no MiniPage</Link>
               )}
             </div>
           </div>
@@ -731,13 +731,13 @@ export default function Perfil(){
           <div className="crd" style={{padding:'20px'}}>
             <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',flexWrap:'wrap',gap:'12px'}}>
               <div>
-                <p style={{fontSize:'15px',fontWeight:700,color:'#F8F4F7',marginBottom:'2px'}}>Vídeos da página</p>
-                <p style={{fontSize:'12px',color:'#B8AAB8'}}>{videos.length} vídeo{videos.length!==1?'s':''} cadastrado{videos.length!==1?'s':''}</p>
+                <p style={{fontSize:'15px',fontWeight:700,color:'#FFFFFF',marginBottom:'2px'}}>Vídeos da página</p>
+                <p style={{fontSize:'12px',color:'#C5BCD1'}}>{videos.length} vídeo{videos.length!==1?'s':''} cadastrado{videos.length!==1?'s':''}</p>
               </div>
               {permiteVideos(planoTipo) ? (
-                <Link href="/painel/perfil/videos" style={{background:G,color:'#15180D',border:'1px solid rgba(255,255,255,.12)',borderRadius:'10px',padding:'10px 18px',fontSize:'13px',fontWeight:700,textDecoration:'none',flexShrink:0}}>Gerenciar vídeos</Link>
+                <div style={{display:"flex",gap:8,flexWrap:"wrap"}}><Link href="/painel/perfil/videos/importar" style={{background:G,color:"#0B0A10",border:"1px solid rgba(255,255,255,.12)",borderRadius:"10px",padding:"10px 18px",fontSize:13,fontWeight:700,textDecoration:"none"}}>Importar YouTube</Link><Link href="/painel/perfil/videos" style={{background:"rgba(33,24,45,.92)",color:"#FFFFFF",border:"1px solid #40344B",borderRadius:10,padding:"10px 18px",fontSize:13,fontWeight:700,textDecoration:"none"}}>Gerenciar vídeos</Link></div>
               ) : (
-                <Link href="/painel/plano" style={{background:'rgba(24,16,27,.92)',color:'#B8AAB8',border:'1px solid #2A1A2F',borderRadius:'10px',padding:'10px 18px',fontSize:'13px',fontWeight:700,textDecoration:'none',flexShrink:0}}>🔒 Disponível no MiniPage</Link>
+                <Link href="/painel/plano" style={{background:'rgba(33,24,45,.92)',color:'#C5BCD1',border:'1px solid #40344B',borderRadius:'10px',padding:'10px 18px',fontSize:'13px',fontWeight:700,textDecoration:'none',flexShrink:0}}>🔒 Disponível no MiniPage</Link>
               )}
             </div>
           </div>
@@ -746,13 +746,13 @@ export default function Perfil(){
           <div className="crd" style={{padding:'20px'}}>
             <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',flexWrap:'wrap',gap:'12px'}}>
               <div>
-                <p style={{fontSize:'15px',fontWeight:700,color:'#F8F4F7',marginBottom:'2px'}}>Catálogos</p>
-                <p style={{fontSize:'12px',color:'#B8AAB8'}}>{catalogos.length} catálogo{catalogos.length!==1?'s':''} cadastrado{catalogos.length!==1?'s':''}</p>
+                <p style={{fontSize:'15px',fontWeight:700,color:'#FFFFFF',marginBottom:'2px'}}>Catálogos</p>
+                <p style={{fontSize:'12px',color:'#C5BCD1'}}>{catalogos.length} catálogo{catalogos.length!==1?'s':''} cadastrado{catalogos.length!==1?'s':''}</p>
               </div>
               {obterLimiteCatalogos(planoTipo)>0 ? (
-                <Link href="/painel/perfil/catalogo" style={{background:G,color:'#15180D',border:'1px solid rgba(255,255,255,.12)',borderRadius:'10px',padding:'10px 18px',fontSize:'13px',fontWeight:700,textDecoration:'none',flexShrink:0}}>Gerenciar catálogos</Link>
+                <Link href="/painel/perfil/catalogo" style={{background:G,color:'#0B0A10',border:'1px solid rgba(255,255,255,.12)',borderRadius:'10px',padding:'10px 18px',fontSize:'13px',fontWeight:700,textDecoration:'none',flexShrink:0}}>Gerenciar catálogos</Link>
               ) : (
-                <Link href="/painel/plano" style={{background:'rgba(24,16,27,.92)',color:'#B8AAB8',border:'1px solid #2A1A2F',borderRadius:'10px',padding:'10px 18px',fontSize:'13px',fontWeight:700,textDecoration:'none',flexShrink:0}}>🔒 Disponível na Loja</Link>
+                <Link href="/painel/plano" style={{background:'rgba(33,24,45,.92)',color:'#C5BCD1',border:'1px solid #40344B',borderRadius:'10px',padding:'10px 18px',fontSize:'13px',fontWeight:700,textDecoration:'none',flexShrink:0}}>🔒 Disponível na Loja</Link>
               )}
             </div>
           </div>
@@ -761,7 +761,7 @@ export default function Perfil(){
           {MOSTRAR_PROMOCAO_ANTIGA && (
           <div style={{
             marginTop:32,
-            background:`radial-gradient(circle at top right,${tc.bg},transparent 40%),linear-gradient(145deg,rgba(15,23,42,.98),rgba(18,10,20,.99))`,
+            background:`radial-gradient(circle at top right,${tc.bg},transparent 40%),linear-gradient(145deg,rgba(15,23,42,.98),rgba(33,24,45,.99))`,
             border:`1px solid ${tc.border}`,
             borderRadius:20,
             padding:'24px 28px',
@@ -769,14 +769,14 @@ export default function Perfil(){
           }}>
             <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:20,flexWrap:'wrap' as const,gap:10}}>
               <div>
-                <h3 style={{fontSize:16,fontWeight:800,color:'#F8F4F7',marginBottom:4}}>Promoção em destaque</h3>
-                <p style={{fontSize:13,color:'#B8AAB8'}}>Cadastre uma oferta para aparecer na sua página pública.</p>
+                <h3 style={{fontSize:16,fontWeight:800,color:'#FFFFFF',marginBottom:4}}>Promoção em destaque</h3>
+                <p style={{fontSize:13,color:'#C5BCD1'}}>Cadastre uma oferta para aparecer na sua página pública.</p>
               </div>
               <div style={{display:'flex',alignItems:'center',gap:10}}>
-                <span style={{fontSize:12,fontWeight:700,padding:'3px 10px',borderRadius:999,background:promoAtiva?'rgba(34,197,94,.14)':'#2A1A2F',color:promoAtiva?'#22C55E':'#B8AAB8',border:'1px solid '+(promoAtiva?'rgba(34,197,94,.25)':'#2A1A2F')}}>
+                <span style={{fontSize:12,fontWeight:700,padding:'3px 10px',borderRadius:999,background:promoAtiva?'rgba(34,197,94,.14)':'#40344B',color:promoAtiva?'#22C55E':'#C5BCD1',border:'1px solid '+(promoAtiva?'rgba(34,197,94,.25)':'#40344B')}}>
                   {promoAtiva?'Ativa na página pública':'Oculta'}
                 </span>
-                <button type="button" onClick={()=>setPromoAtiva(a=>!a)} style={{background:promoAtiva?'rgba(34,197,94,.14)':'#2A1A2F',border:'1px solid '+(promoAtiva?'rgba(34,197,94,.25)':'#2A1A2F'),borderRadius:10,padding:'6px 14px',fontSize:12,fontWeight:700,color:promoAtiva?'#22C55E':'#B8AAB8',cursor:'pointer',fontFamily:'inherit'}}>
+                <button type="button" onClick={()=>setPromoAtiva(a=>!a)} style={{background:promoAtiva?'rgba(34,197,94,.14)':'#40344B',border:'1px solid '+(promoAtiva?'rgba(34,197,94,.25)':'#40344B'),borderRadius:10,padding:'6px 14px',fontSize:12,fontWeight:700,color:promoAtiva?'#22C55E':'#C5BCD1',cursor:'pointer',fontFamily:'inherit'}}>
                   {promoAtiva?'Desativar':'Ativar promoção'}
                 </button>
               </div>
@@ -792,26 +792,26 @@ export default function Perfil(){
                 {lbl:'Observação',val:promoObs,set:setPromoObs,ph:'Ex: Válido até domingo'},
               ] as any[]).map(({lbl,val,set,ph}:any)=>(
                 <div key={lbl}>
-                  <label style={{display:'block',fontSize:11,fontWeight:700,color:'#B8AAB8',textTransform:'uppercase' as const,letterSpacing:'.08em',marginBottom:6}}>{lbl}</label>
-                  <input type="text" value={val} onChange={(e:any)=>set(e.target.value)} placeholder={ph} style={{width:'100%',background:'rgba(24,16,27,.88)',border:`1px solid ${tc.border}`,borderRadius:10,padding:'10px 14px',fontSize:13,color:'#F8F4F7',fontFamily:'inherit',outline:'none',boxSizing:'border-box' as const,transition:'border-color .2s'}}
+                  <label style={{display:'block',fontSize:11,fontWeight:700,color:'#C5BCD1',textTransform:'uppercase' as const,letterSpacing:'.08em',marginBottom:6}}>{lbl}</label>
+                  <input type="text" value={val} onChange={(e:any)=>set(e.target.value)} placeholder={ph} style={{width:'100%',background:'rgba(33,24,45,.88)',border:`1px solid ${tc.border}`,borderRadius:10,padding:'10px 14px',fontSize:13,color:'#FFFFFF',fontFamily:'inherit',outline:'none',boxSizing:'border-box' as const,transition:'border-color .2s'}}
                     onFocus={e=>(e.target.style.borderColor=tc.accent)}
                     onBlur={e=>(e.target.style.borderColor=tc.border)}
                   />
                 </div>
               ))}
               <div>
-                <label style={{display:'block',fontSize:11,fontWeight:700,color:'#B8AAB8',textTransform:'uppercase' as const,letterSpacing:'.08em',marginBottom:6}}>Data início</label>
-                <input type="date" value={promoInicio} onChange={(e:any)=>setPromoInicio(e.target.value)} style={{width:'100%',background:'rgba(24,16,27,.88)',border:`1px solid ${tc.border}`,borderRadius:10,padding:'10px 14px',fontSize:13,color:'#F8F4F7',fontFamily:'inherit',outline:'none',boxSizing:'border-box' as const,colorScheme:'dark' as const}}/>
+                <label style={{display:'block',fontSize:11,fontWeight:700,color:'#C5BCD1',textTransform:'uppercase' as const,letterSpacing:'.08em',marginBottom:6}}>Data início</label>
+                <input type="date" value={promoInicio} onChange={(e:any)=>setPromoInicio(e.target.value)} style={{width:'100%',background:'rgba(33,24,45,.88)',border:`1px solid ${tc.border}`,borderRadius:10,padding:'10px 14px',fontSize:13,color:'#FFFFFF',fontFamily:'inherit',outline:'none',boxSizing:'border-box' as const,colorScheme:'dark' as const}}/>
               </div>
               <div>
-                <label style={{display:'block',fontSize:11,fontWeight:700,color:'#B8AAB8',textTransform:'uppercase' as const,letterSpacing:'.08em',marginBottom:6}}>Data fim</label>
-                <input type="date" value={promoFim} onChange={(e:any)=>setPromoFim(e.target.value)} style={{width:'100%',background:'rgba(24,16,27,.88)',border:`1px solid ${tc.border}`,borderRadius:10,padding:'10px 14px',fontSize:13,color:'#F8F4F7',fontFamily:'inherit',outline:'none',boxSizing:'border-box' as const,colorScheme:'dark' as const}}/>
+                <label style={{display:'block',fontSize:11,fontWeight:700,color:'#C5BCD1',textTransform:'uppercase' as const,letterSpacing:'.08em',marginBottom:6}}>Data fim</label>
+                <input type="date" value={promoFim} onChange={(e:any)=>setPromoFim(e.target.value)} style={{width:'100%',background:'rgba(33,24,45,.88)',border:`1px solid ${tc.border}`,borderRadius:10,padding:'10px 14px',fontSize:13,color:'#FFFFFF',fontFamily:'inherit',outline:'none',boxSizing:'border-box' as const,colorScheme:'dark' as const}}/>
               </div>
             </div>
 
             {promoAtiva&&promoTitulo&&(
               <div>
-                <p style={{fontSize:11,fontWeight:700,color:'#B8AAB8',textTransform:'uppercase' as const,letterSpacing:'.08em',marginBottom:12}}>Prévia na página pública</p>
+                <p style={{fontSize:11,fontWeight:700,color:'#C5BCD1',textTransform:'uppercase' as const,letterSpacing:'.08em',marginBottom:12}}>Prévia na página pública</p>
                 <div style={{
                   background:`radial-gradient(circle at top right,${tc.bg.replace(',.10)',', .22)')},transparent 35%),linear-gradient(135deg,rgba(15,23,42,.98),rgba(17,24,39,.96))`,
                   border:`1px solid ${tc.border}`,
@@ -826,12 +826,12 @@ export default function Perfil(){
                 }}>
                   <div style={{flex:1,minWidth:200}}>
                     <p style={{fontSize:10,fontWeight:800,color:tc.accent,letterSpacing:'.12em',textTransform:'uppercase' as const,marginBottom:6}}>Oferta da semana</p>
-                    <p style={{fontSize:20,fontWeight:900,color:'#F8F4F7',marginBottom:4}}>{promoTitulo}</p>
-                    {promoDesc&&<p style={{fontSize:13,color:'#B8AAB8'}}>{promoDesc}</p>}
-                    {promoObs&&<p style={{fontSize:12,color:'#B8AAB8',marginTop:6}}>{promoObs}</p>}
+                    <p style={{fontSize:20,fontWeight:900,color:'#FFFFFF',marginBottom:4}}>{promoTitulo}</p>
+                    {promoDesc&&<p style={{fontSize:13,color:'#C5BCD1'}}>{promoDesc}</p>}
+                    {promoObs&&<p style={{fontSize:12,color:'#C5BCD1',marginTop:6}}>{promoObs}</p>}
                   </div>
                   <div style={{display:'flex',flexDirection:'column' as const,alignItems:'center',gap:8}}>
-                    {promoPrecoAnt&&<p style={{fontSize:12,color:'#B8AAB8',textDecoration:'line-through',margin:0}}>De R$ {promoPrecoAnt}</p>}
+                    {promoPrecoAnt&&<p style={{fontSize:12,color:'#C5BCD1',textDecoration:'line-through',margin:0}}>De R$ {promoPrecoAnt}</p>}
                     {promoPrecoNovo&&<p style={{fontSize:24,fontWeight:900,color:tc.accent,margin:0}}>R$ {promoPrecoNovo}</p>}
                     <div style={{
                       background:`linear-gradient(135deg,${tc.primary},${tc.accent},${tc.secondary})`,
@@ -851,7 +851,7 @@ export default function Perfil(){
           </div>
           )}
 
-          <button onClick={salvar} disabled={salvando} style={{width:'100%',marginTop:24,background:G,color:'#15180D',border:'1px solid rgba(255,255,255,.12)',borderRadius:'14px',height:'52px',fontSize:'15px',fontWeight:800,cursor:salvando?'not-allowed':'pointer',fontFamily:'inherit',boxShadow:'0 12px 32px rgba(236,72,153,.30),0 0 28px rgba(139,92,246,.22)',opacity:salvando?.7:1,transition:'all .18s'}}>
+          <button onClick={salvar} disabled={salvando} style={{width:'100%',marginTop:24,background:G,color:'#0B0A10',border:'1px solid rgba(255,255,255,.12)',borderRadius:'14px',height:'52px',fontSize:'15px',fontWeight:800,cursor:salvando?'not-allowed':'pointer',fontFamily:'inherit',boxShadow:'0 12px 32px rgba(201,250,69,.30),0 0 28px rgba(139,92,246,.22)',opacity:salvando?.7:1,transition:'all .18s'}}>
             {salvando?'Salvando...':'Salvar perfil'}
           </button>
 

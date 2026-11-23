@@ -20,6 +20,8 @@ export async function GET(req: NextRequest) {
   const agora=Date.now()
   if (error || !user || !sessao || sessao.uid!==user.id || sessao.created>agora || agora-sessao.created>30*60*1000 || !/^\d+$/.test(sessao.instagramId || ''))
     return responder({error:'A conexão Instagram expirou. Conecte novamente para consultar seus Stories.'},401)
+  // Stories não são exigidos na importação básica do login direto.
+  if (sessao.provedor==='direto') return responder({stories:[]},200)
   try {
     const url=new URL(`https://graph.facebook.com/v25.0/${sessao.instagramId}/stories`)
     url.searchParams.set('fields','id,media_type,media_url,thumbnail_url,timestamp')

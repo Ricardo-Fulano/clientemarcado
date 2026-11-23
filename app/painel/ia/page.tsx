@@ -17,12 +17,12 @@ const deps: ConsentDeps = {
   },
 }
 
-const G = 'linear-gradient(135deg,#EC4899,#D946EF,#8B5CF6)'
+const G = '#C9FA45'
 const STATUS: Record<Conexao['status'], { texto: string; cor: string }> = {
   active: { texto: 'Ativa', cor: '#34D399' },
   suspended_beta: { texto: 'Suspensa: recurso em fase de testes para esta conta', cor: '#FCD34D' },
   suspended_plan: { texto: 'Suspensa: o plano atual não inclui este recurso', cor: '#FCD34D' },
-  desconhecido: { texto: 'Status indisponível', cor: '#B8AAB8' },
+  desconhecido: { texto: 'Status indisponível', cor: '#C5BCD0' },
 }
 
 function fmtData(iso: string | null): string {
@@ -83,13 +83,13 @@ export default function IntegracoesIAPage() {
   const btn: React.CSSProperties = { borderRadius: '10px', padding: '8px 14px', fontSize: '12px', fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', background: '#08060A', fontFamily: '-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif', overflowX: 'hidden', width: '100%' }}>
-      <style dangerouslySetInnerHTML={{ __html: `.crd{background:radial-gradient(circle at top left,rgba(139,92,246,.09),transparent 55%),linear-gradient(145deg,rgba(24,16,27,.97),rgba(18,10,20,.99));border:1.5px solid #2A1A2F;border-radius:18px}` }} />
+    <div style={{ display: 'flex', minHeight: '100vh', background: '#0B0A10', fontFamily: '-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif', overflowX: 'hidden', width: '100%' }}>
+      <style dangerouslySetInnerHTML={{ __html: `.crd{background:radial-gradient(circle at top left,rgba(139,92,246,.09),transparent 55%),linear-gradient(145deg,#21182D,#1B1326);border:1.5px solid #3A2B4C;border-radius:18px}` }} />
       <PainelSidebar tituloMobile="Integrações com IA" />
       <div className="psb-main">
         <div style={{ maxWidth: '820px', margin: '0 auto', padding: '32px 24px 80px' }}>
-          <p style={{ fontSize: '22px', fontWeight: 800, color: '#F8F4F7', letterSpacing: '-0.02em', marginBottom: '6px' }}>Integrações com IA</p>
-          <p style={{ fontSize: '13px', color: '#B8AAB8', lineHeight: 1.6, marginBottom: '22px', maxWidth: '620px' }}>
+          <p style={{ fontSize: '22px', fontWeight: 800, color: '#FFFFFF', letterSpacing: '-0.02em', marginBottom: '6px' }}>Integrações com IA</p>
+          <p style={{ fontSize: '13px', color: '#C5BCD0', lineHeight: 1.6, marginBottom: '22px', maxWidth: '620px' }}>
             Aqui ficam os aplicativos de IA que você autorizou a consultar suas métricas. O acesso é somente leitura e você pode revogá-lo a qualquer momento.
           </p>
 
@@ -97,11 +97,11 @@ export default function IntegracoesIAPage() {
           {erro && <div className="crd" role="alert" style={{ padding: '12px 16px', marginBottom: '16px', fontSize: '13px', color: '#F87171' }}>{erro}</div>}
 
           {carregando ? (
-            <p style={{ fontSize: '13px', color: '#B8AAB8' }}>Carregando...</p>
+            <p style={{ fontSize: '13px', color: '#C5BCD0' }}>Carregando...</p>
           ) : conexoes.length === 0 && !erro ? (
             <div className="crd" style={{ padding: '36px 28px', textAlign: 'center' }}>
-              <p style={{ fontSize: '17px', fontWeight: 800, color: '#F8F4F7', marginBottom: '8px' }}>Nenhum aplicativo conectado</p>
-              <p style={{ fontSize: '13px', color: '#B8AAB8', lineHeight: 1.6, maxWidth: '460px', margin: '0 auto' }}>
+              <p style={{ fontSize: '17px', fontWeight: 800, color: '#FFFFFF', marginBottom: '8px' }}>Nenhum aplicativo conectado</p>
+              <p style={{ fontSize: '13px', color: '#C5BCD0', lineHeight: 1.6, maxWidth: '460px', margin: '0 auto' }}>
                 Quando você autorizar um assistente de IA compatível a consultar suas métricas, ele aparecerá aqui.
               </p>
             </div>
@@ -111,30 +111,30 @@ export default function IntegracoesIAPage() {
                 <div key={c.id} className="crd" style={{ padding: '18px 20px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap', alignItems: 'flex-start' }}>
                     <div style={{ minWidth: 0 }}>
-                      <p style={{ fontSize: '16px', fontWeight: 800, color: '#F8F4F7', overflowWrap: 'anywhere' }}>{c.cliente}</p>
+                      <p style={{ fontSize: '16px', fontWeight: 800, color: '#FFFFFF', overflowWrap: 'anywhere' }}>{c.cliente}</p>
                       <p style={{ fontSize: '12px', fontWeight: 600, color: STATUS[c.status].cor, marginTop: '4px' }}>{STATUS[c.status].texto}</p>
                     </div>
                     {confirmando === c.id ? (
                       <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                        <button type="button" disabled={revogando !== null} onClick={() => revogar(c.id)} style={{ ...btn, background: G, color: '#fff', border: 'none', opacity: revogando ? 0.6 : 1 }}>
+                        <button type="button" disabled={revogando !== null} onClick={() => revogar(c.id)} style={{ ...btn, background: 'rgba(239,68,68,.12)', color: '#FCA5A5', border: '1px solid rgba(239,68,68,.35)', opacity: revogando ? 0.6 : 1 }}>
                           {revogando === c.id ? 'Revogando...' : 'Confirmar revogação'}
                         </button>
-                        <button type="button" disabled={revogando !== null} onClick={() => setConfirmando(null)} style={{ ...btn, background: 'rgba(24,16,27,.9)', color: '#F8F4F7', border: '1px solid #2A1A2F' }}>Voltar</button>
+                        <button type="button" disabled={revogando !== null} onClick={() => setConfirmando(null)} style={{ ...btn, background: 'rgba(33,24,45,.9)', color: '#FFFFFF', border: '1px solid #3A2B4C' }}>Voltar</button>
                       </div>
                     ) : (
-                      <button type="button" onClick={() => { setConfirmando(c.id); setAviso('') }} style={{ ...btn, background: 'rgba(24,16,27,.9)', color: '#F8F4F7', border: '1px solid #2A1A2F' }}>Revogar acesso</button>
+                      <button type="button" onClick={() => { setConfirmando(c.id); setAviso('') }} style={{ ...btn, background: 'rgba(33,24,45,.9)', color: '#FFFFFF', border: '1px solid #3A2B4C' }}>Revogar acesso</button>
                     )}
                   </div>
                   {c.escopos.length > 0 && (
                     <ul style={{ listStyle: 'none', marginTop: '12px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
                       {c.escopos.map((e) => (
-                        <li key={e} style={{ fontSize: '13px', color: '#B8AAB8', lineHeight: 1.5 }}>
-                          <span style={{ color: '#F8F4F7', fontWeight: 700 }}>{ESCOPOS[e].titulo}.</span> {ESCOPOS[e].texto}
+                        <li key={e} style={{ fontSize: '13px', color: '#C5BCD0', lineHeight: 1.5 }}>
+                          <span style={{ color: '#FFFFFF', fontWeight: 700 }}>{ESCOPOS[e].titulo}.</span> {ESCOPOS[e].texto}
                         </li>
                       ))}
                     </ul>
                   )}
-                  <p style={{ fontSize: '12px', color: '#B8AAB8', marginTop: '12px' }}>
+                  <p style={{ fontSize: '12px', color: '#C5BCD0', marginTop: '12px' }}>
                     {c.criadaEm ? `Conectado em ${fmtData(c.criadaEm)}` : ''}
                     {c.criadaEm ? ' · ' : ''}
                     {c.ultimoUso ? `Último uso em ${fmtData(c.ultimoUso)}` : 'Ainda não utilizado'}

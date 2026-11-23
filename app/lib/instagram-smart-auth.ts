@@ -1,8 +1,8 @@
 import 'server-only'
 import { createCipheriv, createDecipheriv, createHash, randomBytes } from 'node:crypto'
 
-export type EstadoInstagram = {uid: string; state: string; created: number}
-export type SessaoInstagram = {uid: string; token: string; created: number; instagramId?: string; username?: string}
+export type EstadoInstagram = {uid: string; state: string; created: number; destino?: '/painel/perfil/albuns'; modo?: 'direto' | 'empresarial'}
+export type SessaoInstagram = {uid: string; token: string; created: number; instagramId?: string; username?: string; provedor?: 'direto' | 'empresarial'}
 
 function key() {
   const secret = process.env.SMART_IMPORT_COOKIE_SECRET || ''

@@ -9,7 +9,7 @@ import PainelSidebar from '@/app/components/PainelSidebar'
 import VerMiniPageButton from '@/app/components/VerMiniPageButton'
 import { normalizarPlano, permiteCatalogoWhatsapp } from '../../../../lib/planos'
 
-const G='linear-gradient(135deg,#EC4899,#D946EF,#8B5CF6)'
+const G = '#C9FA45'
 
 const TIPOS_DESTINO = ['link','whatsapp','youtube','youtube_shorts','spotify','hotmart','kiwify','shopee','shein','mercadolivre','instagram','tiktok','site','outros']
 const NOME_TIPO: Record<string,string> = {
@@ -20,14 +20,14 @@ const NOME_TIPO: Record<string,string> = {
 
 const CSS=`
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-html,body{overflow-x:hidden;width:100%;max-width:100%;background:#08060A}
+html,body{overflow-x:hidden;width:100%;max-width:100%;background:#0B0A10}
 input,select,textarea{color-scheme:dark}
-.pg{background:radial-gradient(circle at top left,rgba(139,92,246,.18),transparent 32%),linear-gradient(135deg,#08060A 0%,#120A14 45%,#08060A 100%);min-height:100vh}
+.pg{background:radial-gradient(circle at top left,rgba(91,60,130,.15),transparent 36%),#0B0A10;min-height:100vh}
 .bdy{max-width:820px;margin:0 auto;padding:28px 32px 80px;width:100%}
-.crd{background:radial-gradient(circle at top left,rgba(139,92,246,.10),transparent 38%),linear-gradient(145deg,rgba(24,16,27,.97),rgba(18,10,20,.99));border:1.5px solid #2A1A2F;border-radius:18px}
-.lbl{display:block;font-size:11px;font-weight:700;color:#B8AAB8;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px}
-.inp{width:100%;background:rgba(24,16,27,.92);border:1.5px solid #2A1A2F;border-radius:10px;padding:10px 12px;color:#F8F4F7;font-size:13px;font-family:inherit}
-.inp:focus{outline:none;border-color:rgba(236,72,153,.5)}
+.crd{background:#21182D;border:1px solid #40344B;border-radius:18px}
+.lbl{display:block;font-size:11px;font-weight:700;color:#C5BCD1;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px}
+.inp{width:100%;background:rgba(33,24,45,.92);border:1.5px solid #40344B;border-radius:10px;padding:10px 12px;color:#FFFFFF;font-size:13px;font-family:inherit}
+.inp:focus{outline:none;border-color:rgba(201,250,69,.62)}
 textarea.inp{resize:vertical;min-height:64px}
 .fg2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 @media(max-width:767px){.psb-main .bdy{padding:14px 14px 80px!important}.fg2{grid-template-columns:1fr!important}}
@@ -543,19 +543,19 @@ export default function GerenciarItensDoCatalogo(){
     }
   }
 
-  if(carregando)return(<div style={{minHeight:'100vh',background:'#08060A',display:'flex',alignItems:'center',justifyContent:'center',fontFamily:'system-ui'}}><p style={{color:'#B8AAB8',fontSize:'14px'}}>Carregando...</p></div>)
+  if(carregando)return(<div style={{minHeight:'100vh',background:'#0B0A10',display:'flex',alignItems:'center',justifyContent:'center',fontFamily:'system-ui'}}><p style={{color:'#C5BCD1',fontSize:'14px'}}>Carregando...</p></div>)
 
   if(naoEncontrado)return(
-    <div style={{minHeight:'100vh',background:'#08060A',display:'flex',alignItems:'center',justifyContent:'center',fontFamily:'system-ui',padding:'20px'}}>
+    <div style={{minHeight:'100vh',background:'#0B0A10',display:'flex',alignItems:'center',justifyContent:'center',fontFamily:'system-ui',padding:'20px'}}>
       <div style={{textAlign:'center'}}>
-        <p style={{color:'#F8F4F7',fontSize:'16px',fontWeight:700,marginBottom:'10px'}}>Catálogo não encontrado</p>
-        <Link href="/painel/perfil/catalogo" style={{color:'#EC4899',fontSize:'13px'}}>Voltar para Catálogos</Link>
+        <p style={{color:'#FFFFFF',fontSize:'16px',fontWeight:700,marginBottom:'10px'}}>Catálogo não encontrado</p>
+        <Link href="/painel/perfil/catalogo" style={{color:'#C9FA45',fontSize:'13px'}}>Voltar para Catálogos</Link>
       </div>
     </div>
   )
 
   return(
-    <div style={{display:'flex',minHeight:'100vh',background:'#08060A',fontFamily:'-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif',overflowX:'hidden',width:'100%'}}>
+    <div style={{display:'flex',minHeight:'100vh',background:'#0B0A10',fontFamily:'-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif',overflowX:'hidden',width:'100%'}}>
       <style dangerouslySetInnerHTML={{__html:CSS}}/>
       <PainelSidebar tituloMobile="Catálogo"/>
       <div className="psb-main">
@@ -567,22 +567,22 @@ export default function GerenciarItensDoCatalogo(){
             </div>
           )}
 
-          <Link href="/painel/perfil/catalogo" style={{display:'inline-flex',alignItems:'center',gap:'6px',fontSize:'13px',color:'#B8AAB8',textDecoration:'none',marginBottom:'18px'}}><ArrowLeft size={15}/> Voltar para Catálogos</Link>
+          <Link href="/painel/perfil/catalogo" style={{display:'inline-flex',alignItems:'center',gap:'6px',fontSize:'13px',color:'#C5BCD1',textDecoration:'none',marginBottom:'18px'}}><ArrowLeft size={15}/> Voltar para Catálogos</Link>
 
-          <p style={{fontSize:'22px',fontWeight:800,color:'#F8F4F7',letterSpacing:'-0.02em',marginBottom:'4px'}}>{catalogo?.titulo || 'Catálogo'}</p>
-          {catalogo?.subtitulo && <p style={{fontSize:'13px',color:'#B8AAB8',marginBottom:'24px'}}>{catalogo.subtitulo}</p>}
+          <p style={{fontSize:'22px',fontWeight:800,color:'#FFFFFF',letterSpacing:'-0.02em',marginBottom:'4px'}}>{catalogo?.titulo || 'Catálogo'}</p>
+          {catalogo?.subtitulo && <p style={{fontSize:'13px',color:'#C5BCD1',marginBottom:'24px'}}>{catalogo.subtitulo}</p>}
           {!catalogo?.subtitulo && <div style={{marginBottom:'20px'}}/>}
 
           <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',flexWrap:'wrap',gap:'12px',marginBottom:'8px'}}>
-            <p style={{fontSize:'15px',fontWeight:700,color:'#F8F4F7'}}>Itens deste catálogo</p>
+            <p style={{fontSize:'15px',fontWeight:700,color:'#FFFFFF'}}>Itens deste catálogo</p>
             <div style={{display:'flex',gap:'10px',flexWrap:'wrap'}}>
               <VerMiniPageButton/>
-              <button type="button" onClick={novoItem} style={{background:G,color:'#fff',border:'1px solid rgba(255,255,255,.12)',borderRadius:'10px',padding:'10px 18px',fontSize:'13px',fontWeight:700,cursor:'pointer',fontFamily:'inherit'}}>+ Adicionar item</button>
+              <button type="button" onClick={novoItem} style={{background:G,color:'#0B0A10',border:'1px solid rgba(255,255,255,.12)',borderRadius:'10px',padding:'10px 18px',fontSize:'13px',fontWeight:700,cursor:'pointer',fontFamily:'inherit'}}>+ Adicionar item</button>
             </div>
           </div>
-          <p style={{fontSize:'13px',color:'#B8AAB8',marginBottom:'24px'}}>Use as setas para mudar a ordem de exibição.</p>
+          <p style={{fontSize:'13px',color:'#C5BCD1',marginBottom:'24px'}}>Use as setas para mudar a ordem de exibição.</p>
 
-          {itens.length===0&&<p style={{fontSize:'13px',color:'#B8AAB8',padding:'12px 0'}}>Nenhum item cadastrado ainda neste catálogo.</p>}
+          {itens.length===0&&<p style={{fontSize:'13px',color:'#C5BCD1',padding:'12px 0'}}>Nenhum item cadastrado ainda neste catálogo.</p>}
 
           <div style={{display:'flex',flexDirection:'column',gap:'12px'}}>
             {itens.map((it,i)=>{
@@ -593,8 +593,8 @@ export default function GerenciarItensDoCatalogo(){
                 return (
                   <div key={it.id} className="crd" style={{padding:'14px 16px',display:'flex',alignItems:'center',gap:'12px'}}>
                     <div style={{display:'flex',flexDirection:'column',gap:'3px',flexShrink:0}}>
-                      <button type="button" onClick={()=>mover(it.id,'up')} disabled={i===0} style={{width:'22px',height:'22px',borderRadius:'6px',background:'rgba(24,16,27,.9)',border:'1px solid #2A1A2F',color:i===0?'#4A3F4E':'#B8AAB8',cursor:i===0?'not-allowed':'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}><ArrowUp size={12}/></button>
-                      <button type="button" onClick={()=>mover(it.id,'down')} disabled={i===itens.length-1} style={{width:'22px',height:'22px',borderRadius:'6px',background:'rgba(24,16,27,.9)',border:'1px solid #2A1A2F',color:i===itens.length-1?'#4A3F4E':'#B8AAB8',cursor:i===itens.length-1?'not-allowed':'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}><ArrowDown size={12}/></button>
+                      <button type="button" onClick={()=>mover(it.id,'up')} disabled={i===0} style={{width:'22px',height:'22px',borderRadius:'6px',background:'rgba(33,24,45,.9)',border:'1px solid #40344B',color:i===0?'#6A6075':'#C5BCD1',cursor:i===0?'not-allowed':'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}><ArrowUp size={12}/></button>
+                      <button type="button" onClick={()=>mover(it.id,'down')} disabled={i===itens.length-1} style={{width:'22px',height:'22px',borderRadius:'6px',background:'rgba(33,24,45,.9)',border:'1px solid #40344B',color:i===itens.length-1?'#6A6075':'#C5BCD1',cursor:i===itens.length-1?'not-allowed':'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}><ArrowDown size={12}/></button>
                     </div>
                     {it.imagem_url ? (
                       <img src={it.imagem_url} alt="" style={{width:'44px',height:'44px',borderRadius:'10px',objectFit:'cover',flexShrink:0}}/>
@@ -602,15 +602,15 @@ export default function GerenciarItensDoCatalogo(){
                       <div style={{width:'44px',height:'44px',borderRadius:'10px',background:'rgba(255,255,255,.04)',flexShrink:0}}/>
                     )}
                     <div style={{flex:1,minWidth:0}}>
-                      <p style={{fontSize:'14px',fontWeight:700,color:'#F8F4F7',whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{it.titulo||'(sem título)'}</p>
-                      <p style={{fontSize:'12px',color:'#B8AAB8',whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>
+                      <p style={{fontSize:'14px',fontWeight:700,color:'#FFFFFF',whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{it.titulo||'(sem título)'}</p>
+                      <p style={{fontSize:'12px',color:'#C5BCD1',whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>
                         {it.preco_exibicao==='mostrar'&&it.preco?`R$ ${Number(it.preco).toFixed(2).replace('.',',')}`:it.descricao_curta||''}
                         {it.selo_tipo?` · ${it.selo_tipo==='outros'?it.selo_texto:it.selo_tipo}`:''}
                       </p>
                     </div>
-                    <button type="button" onClick={()=>alternarAtivoItem(it)} style={{background:it.ativo?'rgba(34,197,94,.14)':'#2A1A2F',border:'1px solid '+(it.ativo?'rgba(34,197,94,.25)':'#2A1A2F'),borderRadius:10,padding:'6px 12px',fontSize:11,fontWeight:700,color:it.ativo?'#22C55E':'#B8AAB8',cursor:'pointer',fontFamily:'inherit',flexShrink:0}}>{it.ativo?'Ativo':'Oculto'}</button>
+                    <button type="button" onClick={()=>alternarAtivoItem(it)} style={{background:it.ativo?'rgba(34,197,94,.14)':'#40344B',border:'1px solid '+(it.ativo?'rgba(34,197,94,.25)':'#40344B'),borderRadius:10,padding:'6px 12px',fontSize:11,fontWeight:700,color:it.ativo?'#22C55E':'#C5BCD1',cursor:'pointer',fontFamily:'inherit',flexShrink:0}}>{it.ativo?'Ativo':'Oculto'}</button>
                     <div style={{display:'flex',gap:'6px',flexShrink:0}}>
-                      <button type="button" onClick={()=>setEditandoId(it.id)} title="Editar" aria-label="Editar" style={{width:'32px',height:'32px',borderRadius:'8px',background:'rgba(24,16,27,.9)',border:'1px solid #2A1A2F',color:'#B8AAB8',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}><Pencil size={14}/></button>
+                      <button type="button" onClick={()=>setEditandoId(it.id)} title="Editar" aria-label="Editar" style={{width:'32px',height:'32px',borderRadius:'8px',background:'rgba(33,24,45,.9)',border:'1px solid #40344B',color:'#C5BCD1',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}><Pencil size={14}/></button>
                       <button type="button" onClick={()=>excluirItem(it.id)} title="Excluir" aria-label="Excluir" style={{width:'32px',height:'32px',borderRadius:'8px',background:'rgba(239,68,68,.10)',border:'1px solid rgba(239,68,68,.25)',color:'#EF4444',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}><Trash2 size={14}/></button>
                     </div>
                   </div>
@@ -621,28 +621,28 @@ export default function GerenciarItensDoCatalogo(){
               return (
               <div key={it.id} className="crd" style={{padding:'16px',display:'flex',gap:'12px'}}>
                 <div style={{display:'flex',flexDirection:'column',gap:'4px',flexShrink:0,paddingTop:'2px'}}>
-                  <button type="button" onClick={()=>mover(it.id,'up')} disabled={i===0} style={{width:'28px',height:'28px',borderRadius:'8px',background:'rgba(24,16,27,.9)',border:'1px solid #2A1A2F',color:i===0?'#4A3F4E':'#B8AAB8',cursor:i===0?'not-allowed':'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}><ArrowUp size={14}/></button>
-                  <button type="button" onClick={()=>mover(it.id,'down')} disabled={i===itens.length-1} style={{width:'28px',height:'28px',borderRadius:'8px',background:'rgba(24,16,27,.9)',border:'1px solid #2A1A2F',color:i===itens.length-1?'#4A3F4E':'#B8AAB8',cursor:i===itens.length-1?'not-allowed':'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}><ArrowDown size={14}/></button>
+                  <button type="button" onClick={()=>mover(it.id,'up')} disabled={i===0} style={{width:'28px',height:'28px',borderRadius:'8px',background:'rgba(33,24,45,.9)',border:'1px solid #40344B',color:i===0?'#6A6075':'#C5BCD1',cursor:i===0?'not-allowed':'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}><ArrowUp size={14}/></button>
+                  <button type="button" onClick={()=>mover(it.id,'down')} disabled={i===itens.length-1} style={{width:'28px',height:'28px',borderRadius:'8px',background:'rgba(33,24,45,.9)',border:'1px solid #40344B',color:i===itens.length-1?'#6A6075':'#C5BCD1',cursor:i===itens.length-1?'not-allowed':'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}><ArrowDown size={14}/></button>
                 </div>
                 <div style={{flex:1,minWidth:0}}>
 
                   <div style={{marginBottom:'12px'}}>
                     <label className="lbl">Imagem</label>
-                    <p style={{fontSize:'11px',color:'#B8AAB8',marginBottom:'8px'}}>Use imagem quadrada (1:1) ou vertical (4:5), ideal para produtos, capas, álbuns e achadinhos.</p>
+                    <p style={{fontSize:'11px',color:'#C5BCD1',marginBottom:'8px'}}>Use imagem quadrada (1:1) ou vertical (4:5), ideal para produtos, capas, álbuns e achadinhos.</p>
                     {it.imagem_url?(
                       <div style={{display:'flex',alignItems:'center',gap:'10px'}}>
-                        <img src={it.imagem_url} alt="" style={{width:'64px',height:'64px',objectFit:'cover',borderRadius:'10px',border:'1px solid #2A1A2F'}}/>
-                        <button type="button" onClick={()=>fileRefs.current[it.id]?.click()} disabled={enviandoImgId===it.id} style={{background:'rgba(24,16,27,.9)',border:'1px solid #2A1A2F',color:'#B8AAB8',borderRadius:'8px',padding:'7px 12px',fontSize:'12px',fontWeight:600,cursor:'pointer',fontFamily:'inherit',display:'inline-flex',alignItems:'center',gap:'5px'}}><UploadCloud size={13}/> {enviandoImgId===it.id?'Enviando...':'Trocar imagem'}</button>
+                        <img src={it.imagem_url} alt="" style={{width:'64px',height:'64px',objectFit:'cover',borderRadius:'10px',border:'1px solid #40344B'}}/>
+                        <button type="button" onClick={()=>fileRefs.current[it.id]?.click()} disabled={enviandoImgId===it.id} style={{background:'rgba(33,24,45,.9)',border:'1px solid #40344B',color:'#C5BCD1',borderRadius:'8px',padding:'7px 12px',fontSize:'12px',fontWeight:600,cursor:'pointer',fontFamily:'inherit',display:'inline-flex',alignItems:'center',gap:'5px'}}><UploadCloud size={13}/> {enviandoImgId===it.id?'Enviando...':'Trocar imagem'}</button>
                       </div>
                     ):(
-                      <button type="button" onClick={()=>fileRefs.current[it.id]?.click()} disabled={enviandoImgId===it.id} style={{background:'rgba(24,16,27,.9)',border:'1px dashed #2A1A2F',color:'#B8AAB8',borderRadius:'10px',padding:'10px 14px',fontSize:'12px',fontWeight:600,cursor:'pointer',fontFamily:'inherit',display:'inline-flex',alignItems:'center',gap:'6px'}}><UploadCloud size={14}/> {enviandoImgId===it.id?'Enviando...':'Enviar imagem'}</button>
+                      <button type="button" onClick={()=>fileRefs.current[it.id]?.click()} disabled={enviandoImgId===it.id} style={{background:'rgba(33,24,45,.9)',border:'1px dashed #40344B',color:'#C5BCD1',borderRadius:'10px',padding:'10px 14px',fontSize:'12px',fontWeight:600,cursor:'pointer',fontFamily:'inherit',display:'inline-flex',alignItems:'center',gap:'6px'}}><UploadCloud size={14}/> {enviandoImgId===it.id?'Enviando...':'Enviar imagem'}</button>
                     )}
                     <input ref={el=>{fileRefs.current[it.id]=el}} type="file" accept="image/*" onChange={e=>uploadImagem(it.id,e)} style={{display:'none'}}/>
                   </div>
 
                   <div style={{marginBottom:'12px'}}>
                     <label className="lbl">Galeria de imagens do item</label>
-                    <p style={{fontSize:'11px',color:'#B8AAB8',marginBottom:'8px'}}>A imagem marcada como capa aparece no card fechado. As outras imagens aparecem na galeria quando o visitante abre o item. Você pode adicionar até 8 imagens.</p>
+                    <p style={{fontSize:'11px',color:'#C5BCD1',marginBottom:'8px'}}>A imagem marcada como capa aparece no card fechado. As outras imagens aparecem na galeria quando o visitante abre o item. Você pode adicionar até 8 imagens.</p>
                     {it.id.startsWith('novo-')?(
                       <p style={{fontSize:'11px',color:'#FACC15'}}>Salve o item pelo menos uma vez antes de adicionar mais imagens.</p>
                     ):(
@@ -650,13 +650,13 @@ export default function GerenciarItensDoCatalogo(){
                         <div style={{display:'flex',flexWrap:'wrap',gap:'8px',marginBottom:'8px'}}>
                           {galeriaEfetiva(it).sort((a:any,b:any)=>a.ordem-b.ordem).map((img:any,idx:number,arr:any[])=>(
                             <div key={img.id} style={{width:'76px',flexShrink:0}}>
-                              <div style={{position:'relative',width:'76px',height:'76px',borderRadius:'10px',overflow:'hidden',border:img.is_capa?'2px solid #EC4899':'1px solid #2A1A2F'}}>
+                              <div style={{position:'relative',width:'76px',height:'76px',borderRadius:'10px',overflow:'hidden',border:img.is_capa?'2px solid #C9FA45':'1px solid #40344B'}}>
                                 <img src={img.imagem_url} alt="" style={{width:'100%',height:'100%',objectFit:'cover'}}/>
-                                {img.is_capa&&<span style={{position:'absolute',top:'2px',left:'2px',background:'#EC4899',color:'#fff',fontSize:'8px',fontWeight:700,borderRadius:'4px',padding:'1px 4px'}}>Capa</span>}
+                                {img.is_capa&&<span style={{position:'absolute',top:'2px',left:'2px',background:'#C9FA45',color:'#0B0A10',fontSize:'8px',fontWeight:700,borderRadius:'4px',padding:'1px 4px'}}>Capa</span>}
                               </div>
                               <div style={{display:'flex',gap:'2px',marginTop:'4px',justifyContent:'center'}}>
-                                <button type="button" onClick={()=>moverImagemGaleria(it,img,'up')} disabled={idx===0||img._legado} title="Mover pra esquerda" style={{width:'20px',height:'20px',borderRadius:'5px',background:'rgba(24,16,27,.9)',border:'1px solid #2A1A2F',color:idx===0||img._legado?'#4A3F4E':'#B8AAB8',cursor:idx===0||img._legado?'not-allowed':'pointer',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'10px'}}>←</button>
-                                <button type="button" onClick={()=>moverImagemGaleria(it,img,'down')} disabled={idx===arr.length-1||img._legado} title="Mover pra direita" style={{width:'20px',height:'20px',borderRadius:'5px',background:'rgba(24,16,27,.9)',border:'1px solid #2A1A2F',color:idx===arr.length-1||img._legado?'#4A3F4E':'#B8AAB8',cursor:idx===arr.length-1||img._legado?'not-allowed':'pointer',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'10px'}}>→</button>
+                                <button type="button" onClick={()=>moverImagemGaleria(it,img,'up')} disabled={idx===0||img._legado} title="Mover pra esquerda" style={{width:'20px',height:'20px',borderRadius:'5px',background:'rgba(33,24,45,.9)',border:'1px solid #40344B',color:idx===0||img._legado?'#6A6075':'#C5BCD1',cursor:idx===0||img._legado?'not-allowed':'pointer',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'10px'}}>←</button>
+                                <button type="button" onClick={()=>moverImagemGaleria(it,img,'down')} disabled={idx===arr.length-1||img._legado} title="Mover pra direita" style={{width:'20px',height:'20px',borderRadius:'5px',background:'rgba(33,24,45,.9)',border:'1px solid #40344B',color:idx===arr.length-1||img._legado?'#6A6075':'#C5BCD1',cursor:idx===arr.length-1||img._legado?'not-allowed':'pointer',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'10px'}}>→</button>
                               </div>
                               {!img.is_capa&&(
                                 <button type="button" onClick={()=>definirComoCapa(it,img)} style={{width:'100%',marginTop:'3px',background:'rgba(139,92,246,.12)',border:'1px solid rgba(139,92,246,.28)',color:'#C4B5FD',borderRadius:'6px',padding:'3px',fontSize:'9px',fontWeight:700,cursor:'pointer',fontFamily:'inherit'}}>Definir capa</button>
@@ -665,7 +665,7 @@ export default function GerenciarItensDoCatalogo(){
                             </div>
                           ))}
                         </div>
-                        <button type="button" onClick={()=>galeriaFileRefs.current[it.id]?.click()} disabled={enviandoGaleriaId===it.id||galeriaEfetiva(it).length>=8} style={{background:'rgba(24,16,27,.9)',border:'1px dashed #2A1A2F',color:galeriaEfetiva(it).length>=8?'#4A3F4E':'#B8AAB8',borderRadius:'8px',padding:'8px 14px',fontSize:'12px',fontWeight:600,cursor:galeriaEfetiva(it).length>=8?'not-allowed':'pointer',fontFamily:'inherit',display:'inline-flex',alignItems:'center',gap:'5px'}}><UploadCloud size={13}/> {enviandoGaleriaId===it.id?'Enviando...':galeriaEfetiva(it).length>=8?'Limite de 8 imagens atingido':'Adicionar imagens'}</button>
+                        <button type="button" onClick={()=>galeriaFileRefs.current[it.id]?.click()} disabled={enviandoGaleriaId===it.id||galeriaEfetiva(it).length>=8} style={{background:'rgba(33,24,45,.9)',border:'1px dashed #40344B',color:galeriaEfetiva(it).length>=8?'#6A6075':'#C5BCD1',borderRadius:'8px',padding:'8px 14px',fontSize:'12px',fontWeight:600,cursor:galeriaEfetiva(it).length>=8?'not-allowed':'pointer',fontFamily:'inherit',display:'inline-flex',alignItems:'center',gap:'5px'}}><UploadCloud size={13}/> {enviandoGaleriaId===it.id?'Enviando...':galeriaEfetiva(it).length>=8?'Limite de 8 imagens atingido':'Adicionar imagens'}</button>
                         <input ref={el=>{galeriaFileRefs.current[it.id]=el}} type="file" accept="image/*" onChange={e=>adicionarImagemGaleria(it,e)} style={{display:'none'}}/>
                       </>
                     )}
@@ -687,17 +687,17 @@ export default function GerenciarItensDoCatalogo(){
                       <>
                         <label className="lbl">Texto personalizado no lugar do preço</label>
                         <input className="inp" value={it.preco_texto_personalizado||''} onChange={e=>editarItem(it.id,'preco_texto_personalizado',e.target.value)} placeholder="Ex: Sob consulta, Ouça agora, A partir de R$ 99"/>
-                        <p style={{fontSize:'10px',color:'#B8AAB8',marginTop:'6px'}}>Aparece no lugar do preço, no card e no modal. Use pra produtos, músicas, cursos, eventos, serviços ou qualquer chamada que não seja um valor fixo.</p>
+                        <p style={{fontSize:'10px',color:'#C5BCD1',marginTop:'6px'}}>Aparece no lugar do preço, no card e no modal. Use pra produtos, músicas, cursos, eventos, serviços ou qualquer chamada que não seja um valor fixo.</p>
                       </>
                     ):it.preco_exibicao==='nao_mostrar'?(
-                      <p style={{fontSize:'11px',color:'#B8AAB8'}}>Nenhum preço ou texto será exibido para este item.</p>
+                      <p style={{fontSize:'11px',color:'#C5BCD1'}}>Nenhum preço ou texto será exibido para este item.</p>
                     ):(
                       <div className="fg2">
                         <div><label className="lbl">Preço (opcional)</label><input className="inp" value={it.preco||''} onChange={e=>editarItem(it.id,'preco',e.target.value)} placeholder="Ex: 97,00"/></div>
                         <div><label className="lbl">Preço anterior (opcional)</label><input className="inp" value={it.preco_anterior||''} onChange={e=>editarItem(it.id,'preco_anterior',e.target.value)} placeholder="Ex: 197,00"/></div>
                       </div>
                     )}
-                    {it.preco_exibicao!=='nao_mostrar'&&it.preco_anterior&&<p style={{fontSize:'10px',color:'#B8AAB8',marginTop:'6px'}}>Aparece riscado ao lado do preço atual (ex: de R$ 197,00 por R$ 97,00). Só funciona junto com o preço normal.</p>}
+                    {it.preco_exibicao!=='nao_mostrar'&&it.preco_anterior&&<p style={{fontSize:'10px',color:'#C5BCD1',marginTop:'6px'}}>Aparece riscado ao lado do preço atual (ex: de R$ 197,00 por R$ 97,00). Só funciona junto com o preço normal.</p>}
                   </div>
                   <div style={{marginBottom:'12px'}}>
                     <label className="lbl">Selo / etiqueta (opcional)</label>
@@ -714,12 +714,12 @@ export default function GerenciarItensDoCatalogo(){
                     {it.selo_tipo==='outros'&&(
                       <input className="inp" style={{marginTop:'8px'}} value={it.selo_texto||''} onChange={e=>editarItem(it.id,'selo_texto',e.target.value)} placeholder="Ex: Edição limitada" maxLength={20}/>
                     )}
-                    <p style={{fontSize:'10px',color:'#B8AAB8',marginTop:'6px'}}>Aparece como uma etiqueta pequena sobre a imagem do card, na cor do tema escolhido da sua página.</p>
+                    <p style={{fontSize:'10px',color:'#C5BCD1',marginTop:'6px'}}>Aparece como uma etiqueta pequena sobre a imagem do card, na cor do tema escolhido da sua página.</p>
                   </div>
                   <div style={{marginBottom:'12px'}}>
                     <label className="lbl">Descrição longa</label>
                     <textarea className="inp" value={it.descricao_completa||''} onChange={e=>editarItem(it.id,'descricao_completa',e.target.value)} placeholder="Detalhes completos do item"/>
-                    <p style={{fontSize:'10px',color:'#B8AAB8',marginTop:'6px'}}>Aparece quando o visitante abre o item do catálogo.</p>
+                    <p style={{fontSize:'10px',color:'#C5BCD1',marginTop:'6px'}}>Aparece quando o visitante abre o item do catálogo.</p>
                   </div>
 
                   <div style={{marginBottom:'10px'}}>
@@ -730,14 +730,14 @@ export default function GerenciarItensDoCatalogo(){
                   <div style={{marginBottom:'12px'}}>
                     <label className="lbl">Link do produto, música, vídeo ou página</label>
                     <input className="inp" value={it.destino_url||''} onChange={e=>editarItem(it.id,'destino_url',e.target.value)} placeholder="Cole o link do produto, Instagram, YouTube, página externa ou número do WhatsApp"/>
-                    <p style={{fontSize:'11px',color:'#B8AAB8',marginTop:'6px'}}>Cole o link do produto, música, vídeo, página, Instagram ou digite apenas o número do WhatsApp. A MiniPage tenta reconhecer automaticamente o destino. Se algumas plataformas não liberarem a prévia, preencha manualmente a imagem, o título e a descrição.</p>
-                    <p style={{fontSize:'10px',color:'#B8AAB8',marginTop:'4px'}}>Para enviar mensagem automática com o nome do produto, use apenas o número do WhatsApp ou um link com número, como wa.me/5511999999999. Links do tipo wa.me/message/... abrem o WhatsApp, mas não permitem personalizar a mensagem por produto.</p>
-                    <p style={{fontSize:'10px',color:'#B8AAB8',marginTop:'4px'}}>WhatsApp abre com mensagem automática sobre o item. Instagram abre o perfil/direct, mas não permite mensagem automática preenchida de forma confiável.</p>
+                    <p style={{fontSize:'11px',color:'#C5BCD1',marginTop:'6px'}}>Cole o link do produto, música, vídeo, página, Instagram ou digite apenas o número do WhatsApp. A MiniPage tenta reconhecer automaticamente o destino. Se algumas plataformas não liberarem a prévia, preencha manualmente a imagem, o título e a descrição.</p>
+                    <p style={{fontSize:'10px',color:'#C5BCD1',marginTop:'4px'}}>Para enviar mensagem automática com o nome do produto, use apenas o número do WhatsApp ou um link com número, como wa.me/5511999999999. Links do tipo wa.me/message/... abrem o WhatsApp, mas não permitem personalizar a mensagem por produto.</p>
+                    <p style={{fontSize:'10px',color:'#C5BCD1',marginTop:'4px'}}>WhatsApp abre com mensagem automática sobre o item. Instagram abre o perfil/direct, mas não permite mensagem automática preenchida de forma confiável.</p>
                     {it.tipo_destino==='whatsapp'&&!permiteCatalogoWhatsapp(planoTipo)&&(
-                      <p style={{fontSize:'10px',color:'#B8AAB8',marginTop:'6px'}}>WhatsApp no catálogo está disponível nos planos Loja, Pro e Equipe.</p>
+                      <p style={{fontSize:'10px',color:'#C5BCD1',marginTop:'6px'}}>WhatsApp no catálogo está disponível nos planos Loja, Pro e Equipe.</p>
                     )}
                     <button type="button" onClick={()=>gerarPrevia(it)} disabled={gerandoPreviaId===it.id} style={{marginTop:'8px',background:'rgba(139,92,246,.12)',border:'1px solid rgba(139,92,246,.28)',color:'#C4B5FD',borderRadius:'8px',padding:'7px 14px',fontSize:'12px',fontWeight:700,cursor:gerandoPreviaId===it.id?'wait':'pointer',fontFamily:'inherit',opacity:gerandoPreviaId===it.id?.7:1}}>{gerandoPreviaId===it.id?'Buscando prévia...':'Gerar prévia pelo link'}</button>
-                    <p style={{fontSize:'11px',color:'#B8AAB8',marginTop:'6px'}}>A MiniPage tenta preencher título, imagem e informações automaticamente. Algumas plataformas, como Instagram, Shopee ou páginas protegidas, podem não liberar prévia do link. Se isso acontecer, preencha manualmente a imagem, o título e a descrição.</p>
+                    <p style={{fontSize:'11px',color:'#C5BCD1',marginTop:'6px'}}>A MiniPage tenta preencher título, imagem e informações automaticamente. Algumas plataformas, como Instagram, Shopee ou páginas protegidas, podem não liberar prévia do link. Se isso acontecer, preencha manualmente a imagem, o título e a descrição.</p>
 
                     <button type="button" onClick={()=>setAvancadoAbertoIds(prev=>{const novo=new Set(prev);novo.has(it.id)?novo.delete(it.id):novo.add(it.id);return novo})} style={{marginTop:'10px',background:'transparent',border:'none',color:'#8B5CF6',fontSize:'11px',fontWeight:600,cursor:'pointer',fontFamily:'inherit',padding:0,textDecoration:'underline'}}>
                       {avancadoAbertoIds.has(it.id)?'Ocultar configuração avançada':'Configuração avançada'}
@@ -751,14 +751,14 @@ export default function GerenciarItensDoCatalogo(){
                             .filter(t=>t!=='whatsapp'||permiteCatalogoWhatsapp(planoTipo)||it.tipo_destino==='whatsapp')
                             .map(t=><option key={t} value={t}>{NOME_TIPO[t]}</option>)}
                         </select>
-                        <p style={{fontSize:'10px',color:'#B8AAB8',marginTop:'6px'}}>Normalmente a MiniPage detecta isso sozinha pelo link. Só altere aqui se a detecção automática errou.</p>
+                        <p style={{fontSize:'10px',color:'#C5BCD1',marginTop:'6px'}}>Normalmente a MiniPage detecta isso sozinha pelo link. Só altere aqui se a detecção automática errou.</p>
                         {it.tipo_destino==='whatsapp'&&(
                           <>
                             <label className="lbl" style={{marginTop:'12px'}}>Número de WhatsApp</label>
                             <input className="inp" value={it.whatsapp||''} onChange={e=>editarItem(it.id,'whatsapp',e.target.value)} placeholder="(11) 99999-9999"/>
                             <label className="lbl" style={{marginTop:'12px'}}>Mensagem automática</label>
                             <textarea className="inp" value={it.mensagem_whatsapp||''} onChange={e=>editarItem(it.id,'mensagem_whatsapp',e.target.value)} placeholder={mensagemPadrao(it.titulo||'(título do item)')} rows={2}/>
-                            <p style={{fontSize:'11px',color:'#B8AAB8',marginTop:'6px'}}>Preenchida automaticamente com o título do item — você pode editar como quiser.</p>
+                            <p style={{fontSize:'11px',color:'#C5BCD1',marginTop:'6px'}}>Preenchida automaticamente com o título do item — você pode editar como quiser.</p>
                           </>
                         )}
                       </div>
@@ -766,11 +766,11 @@ export default function GerenciarItensDoCatalogo(){
                   </div>
 
                   <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:'8px',flexWrap:'wrap'}}>
-                    <button type="button" onClick={()=>editarItem(it.id,'ativo',!it.ativo)} style={{background:it.ativo?'rgba(34,197,94,.14)':'#2A1A2F',border:'1px solid '+(it.ativo?'rgba(34,197,94,.25)':'#2A1A2F'),borderRadius:10,padding:'6px 14px',fontSize:12,fontWeight:700,color:it.ativo?'#22C55E':'#B8AAB8',cursor:'pointer',fontFamily:'inherit'}}>{it.ativo?'Ativo':'Oculto'}</button>
+                    <button type="button" onClick={()=>editarItem(it.id,'ativo',!it.ativo)} style={{background:it.ativo?'rgba(34,197,94,.14)':'#40344B',border:'1px solid '+(it.ativo?'rgba(34,197,94,.25)':'#40344B'),borderRadius:10,padding:'6px 14px',fontSize:12,fontWeight:700,color:it.ativo?'#22C55E':'#C5BCD1',cursor:'pointer',fontFamily:'inherit'}}>{it.ativo?'Ativo':'Oculto'}</button>
                     <div style={{display:'flex',gap:'8px'}}>
-                      <button type="button" onClick={()=>cancelarEdicao(it)} style={{background:'rgba(24,16,27,.9)',border:'1px solid #2A1A2F',color:'#B8AAB8',borderRadius:'8px',padding:'8px 14px',fontSize:'12px',fontWeight:600,cursor:'pointer',fontFamily:'inherit'}}>Voltar</button>
+                      <button type="button" onClick={()=>cancelarEdicao(it)} style={{background:'rgba(33,24,45,.9)',border:'1px solid #40344B',color:'#C5BCD1',borderRadius:'8px',padding:'8px 14px',fontSize:'12px',fontWeight:600,cursor:'pointer',fontFamily:'inherit'}}>Voltar</button>
                       <button type="button" onClick={()=>excluirItem(it.id)} style={{background:'rgba(239,68,68,.10)',border:'1px solid rgba(239,68,68,.25)',color:'#EF4444',borderRadius:'8px',padding:'8px 14px',fontSize:'12px',fontWeight:600,cursor:'pointer',fontFamily:'inherit'}}>Excluir</button>
-                      <button type="button" onClick={()=>salvarItem(it)} disabled={salvandoId===it.id} style={{background:G,color:'#fff',border:'1px solid rgba(255,255,255,.12)',borderRadius:'8px',padding:'8px 16px',fontSize:'12px',fontWeight:700,cursor:'pointer',fontFamily:'inherit',opacity:salvandoId===it.id?.7:1}}>{salvandoId===it.id?'Salvando...':'Salvar'}</button>
+                      <button type="button" onClick={()=>salvarItem(it)} disabled={salvandoId===it.id} style={{background:G,color:'#0B0A10',border:'1px solid rgba(255,255,255,.12)',borderRadius:'8px',padding:'8px 16px',fontSize:'12px',fontWeight:700,cursor:'pointer',fontFamily:'inherit',opacity:salvandoId===it.id?.7:1}}>{salvandoId===it.id?'Salvando...':'Salvar'}</button>
                     </div>
                   </div>
                 </div>

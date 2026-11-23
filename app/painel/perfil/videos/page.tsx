@@ -22,7 +22,7 @@ export default function PaginaVideos(){
     void carregar()
     return()=>{ativo=false}
   },[])
-  if(acesso==='carregando')return <div style={{background:'#08060A',color:'#B8AAB8',minHeight:'100vh',padding:32}}>Carregando...</div>
-  if(acesso==='erro')return <div style={{background:'#08060A',color:'#F8F4F7',minHeight:'100vh',padding:32}}>Não foi possível confirmar seu plano. Recarregue a página.</div>
+  if(acesso==='carregando')return <div style={{background:'#0B0A10',color:'#C5BCD1',minHeight:'100vh',padding:32}}>Carregando...</div>
+  if(acesso==='erro')return <div style={{background:'#0B0A10',color:'#FFFFFF',minHeight:'100vh',padding:32}}>Não foi possível confirmar seu plano. Recarregue a página.</div>
   return acesso==='pago'?<SecoesVideos/>:<EditorVideos/>
 }

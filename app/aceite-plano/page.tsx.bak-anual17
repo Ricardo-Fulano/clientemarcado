@@ -1,0 +1,261 @@
+'use client'
+import { useState, useEffect, Suspense } from 'react'
+import Link from 'next/link'
+import { useSearchParams } from 'next/navigation'
+import { normalizarPlano, obterNomePlano, obterPrecoPlano, ehPlanoFree, type PlanoTipo, normalizarBillingCycle, obterPrecoPlanoPorCiclo, obterNomeCiclo } from '../lib/planos'
+
+const CSS = `
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{overflow-x:hidden;width:100%;max-width:100%;background:#08060A}
+.pg{min-height:100vh;background:radial-gradient(circle at 15% 20%,rgba(139,92,246,.16),transparent 32%),radial-gradient(circle at 85% 15%,rgba(236,72,153,.13),transparent 30%),#08060A;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;padding:0 16px 64px}
+.wrap{max-width:700px;margin:0 auto;width:100%}
+.hdr{display:flex;align-items:center;justify-content:space-between;padding:24px 0 32px}
+.logo-row{display:flex;align-items:center;gap:10px;text-decoration:none}
+.logo-ic{width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,#EC4899,#D946EF,#8B5CF6);display:flex;align-items:center;justify-content:center;box-shadow:0 0 20px rgba(139,92,246,.5);flex-shrink:0}
+.logo-txt{font-size:15px;font-weight:800;color:#F8F4F7;letter-spacing:-0.02em}
+.btn-v{background:rgba(24,16,27,.88);color:#B8AAB8;border:1px solid rgba(42,26,47,.18);border-radius:10px;height:36px;padding:0 16px;font-size:13px;font-weight:600;display:inline-flex;align-items:center;gap:6px;text-decoration:none;white-space:nowrap;cursor:pointer;font-family:inherit}
+.card{background:radial-gradient(circle at top left,rgba(236,72,153,.06),transparent 40%),linear-gradient(145deg,rgba(24,16,27,.97),rgba(18,10,20,.99));border:1.5px solid rgba(42,26,47,.16);border-radius:22px;padding:28px;margin-bottom:16px;box-shadow:0 16px 48px rgba(0,0,0,.35)}
+.badge{display:inline-flex;align-items:center;padding:3px 10px;border-radius:999px;font-size:11px;font-weight:700}
+.contrato-scroll{max-height:360px;overflow-y:auto;background:rgba(8,6,10,.45);border:1px solid rgba(42,26,47,.12);border-radius:16px;padding:20px;scrollbar-width:thin;scrollbar-color:rgba(42,26,47,.2) transparent}
+.contrato-scroll::-webkit-scrollbar{width:4px}
+.contrato-scroll::-webkit-scrollbar-thumb{background:rgba(42,26,47,.2);border-radius:4px}
+.clausula{padding:12px 0;border-bottom:1px solid rgba(42,26,47,.08)}
+.clausula:last-child{border-bottom:none}
+.chk-row{display:flex;align-items:flex-start;gap:12px;padding:14px;background:rgba(236,72,153,.05);border:1px solid rgba(236,72,153,.14);border-radius:12px;cursor:pointer;margin-bottom:10px;transition:border-color .15s}
+.chk-row:hover{border-color:rgba(236,72,153,.28)}
+.chk-box{width:20px;height:20px;border-radius:6px;border:2px solid rgba(248,244,247,.75);background:rgba(255,255,255,.03);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;transition:all .15s}
+.chk-row:hover .chk-box{border-color:#EC4899;box-shadow:0 0 0 3px rgba(236,72,153,.14)}
+.chk-box.on{background:#EC4899;border-color:#EC4899}
+.btn-p{width:100%;background:linear-gradient(135deg,#EC4899,#D946EF,#8B5CF6);color:#fff;border:none;border-radius:14px;padding:16px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 12px 28px rgba(236,72,153,.25);transition:all .18s;margin-bottom:12px}
+.btn-p:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 16px 34px rgba(139,92,246,.28)}
+.btn-p:disabled{opacity:.45;cursor:not-allowed;transform:none}
+.msg-err{background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.28);border-radius:10px;padding:10px 14px;font-size:13px;color:#EF4444;margin-bottom:14px;text-align:center}
+.links-row{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+.links-row a{font-size:12px;color:#B8AAB8;text-decoration:none;transition:color .15s}
+.links-row a:hover{color:#8B5CF6}
+@media(max-width:480px){.card{padding:20px 16px;border-radius:18px}.hdr{padding:18px 0 24px}}
+`
+
+const BENEFICIOS_POR_PLANO: Partial<Record<PlanoTipo, string[]>> = {
+  minipage: ['Página profissional (minipage.pro)', 'Links rápidos e cards de destaque', 'Vídeos em destaque', 'Redes sociais e WhatsApp', 'Espaço para divulgações', 'Suporte por WhatsApp'],
+  essencial: ['Agenda e agendamento online', 'Clientes e profissionais', 'Orçamentos e cobranças', 'Pagamentos e relatórios', 'Página pública de agendamento', 'Suporte por WhatsApp'],
+  equipe: ['Tudo do Plano Profissional', 'Até 15 profissionais cadastrados', 'Login individual por profissional', 'Área "Meu Desempenho"', 'Financeiro protegido por acesso', 'Suporte por WhatsApp'],
+}
+
+export default function AceitePlano() {
+  return (
+    <Suspense fallback={null}>
+      <AceitePlanoConteudo />
+    </Suspense>
+  )
+}
+
+function AceitePlanoConteudo() {
+  const searchParams = useSearchParams()
+  const planoParam = searchParams.get('plano')
+  const planoValido = normalizarPlano(planoParam)
+  // Le ?billing=anual (ou 'mensal') da URL - se nao vier nada, usa 'mensal' como padrao
+  // seguro, exatamente como pedido.
+  const billingParam = searchParams.get('billing')
+  const billingCycle = normalizarBillingCycle(billingParam)
+  const cupomParam = searchParams.get('cupom')?.trim() || ''
+  // A contratacao anual esta indisponivel: redireciona links antigos para o mensal
+  // ANTES de mostrar valores/condicoes anuais desatualizados.
+  useEffect(() => {
+    if (billingParam === 'anual') {
+      const query = new URLSearchParams({ plano: planoValido, billing: 'mensal' })
+      if (cupomParam) query.set('cupom', cupomParam)
+      window.location.replace(`/aceite-plano?${query.toString()}`)
+    }
+  }, [billingParam, planoValido, cupomParam])
+
+  // Free nunca tem cobranca, trial nem contrato de plano pago - nao faz sentido passar por
+  // essa tela. Redireciona direto pro cadastro, sem exibir nada do fluxo de aceite pago.
+  useEffect(() => {
+    if (ehPlanoFree(planoValido)) {
+      window.location.href = `/cadastro?plano=free${cupomParam ? `&cupom=${encodeURIComponent(cupomParam)}` : ''}`
+    }
+  }, [planoValido, cupomParam])
+
+  const nomeCiclo = obterNomeCiclo(billingCycle) // "Mensal" ou "Anual"
+  const plano = {
+    nome: `Plano ${obterNomePlano(planoValido)}`,
+    preco: `R$ ${obterPrecoPlanoPorCiclo(planoValido, billingCycle).toLocaleString('pt-BR', { minimumFractionDigits: 2 }).replace('.', ',')}`,
+    beneficios: BENEFICIOS_POR_PLANO[planoValido] || [],
+  }
+
+  // Contrato dinamico: nome/preco/ciclo corretos conforme o plano e a periodicidade escolhida,
+  // sempre um plano PAGO nesse ponto (Free ja foi redirecionado acima antes de chegar aqui).
+  const CLAUSULAS = [
+    { t: '1. Contratante', c: 'Pessoa física ou jurídica que realiza o cadastro e utiliza a plataforma MiniPage Pro.' },
+    { t: '2. Contratada', c: 'MiniPage Pro, uma solução ClienteMarcado, plataforma digital para criação de página profissional e gestão de pequenos negócios.' },
+    { t: '3. Objeto', c: 'Disponibilização de acesso à plataforma MiniPage Pro, uma solução ClienteMarcado, para criação de página profissional, divulgação de links, redes sociais, conteúdos, vídeos, catálogos, contatos, análise de desempenho e, conforme o plano contratado, recursos de agenda, clientes, cobranças, financeiro, relatórios e equipe.' },
+    { t: '4. Plano', c: billingCycle === 'anual'
+        ? `${plano.nome} (Anual) - pagamento único de ${plano.preco}, com acesso à plataforma por 12 meses.`
+        : `${plano.nome} no valor de ${plano.preco}/mês, sem fidelidade.` },
+    { t: '5. Ativação', c: billingCycle === 'anual'
+        ? 'O plano anual concede acesso à plataforma por 12 meses a partir da confirmação do pagamento.'
+        : 'O acesso à plataforma MiniPage Pro será disponibilizado após a confirmação do pagamento do plano contratado. Os valores, recursos e periodicidade de cobrança são apresentados ao contratante antes da confirmação da assinatura.' },
+    { t: '6. Pagamento', c: 'O pagamento da assinatura sera feito conforme a forma de pagamento escolhida no momento da contratação.' },
+    { t: '7. Cancelamento', c: 'O contratante poderá solicitar o cancelamento conforme as condições informadas na plataforma, sem fidelidade, permanecendo responsável por valores já confirmados até a data do cancelamento, quando aplicável.' },
+    { t: '8. Uso da plataforma', c: 'O contratante deve utilizar a plataforma de forma lícita, correta e responsável, mantendo seus dados atualizados.' },
+    { t: '9. Dados cadastrados', c: 'O contratante é responsável pelos dados, links, imagens, descrições, produtos, conteúdos, contatos, clientes, serviços, valores, horários, orçamentos e pagamentos inseridos na plataforma, conforme os recursos disponíveis em seu plano.' },
+    { t: '10. Limitacao de responsabilidade', c: 'O ClienteMarcado e uma ferramenta de organização e gestão. A plataforma não substitui consultoria contábil, jurídica, fiscal, odontológica, medica ou financeira.' },
+    { t: '11. Suporte', c: 'O suporte sera fornecido conforme os canais disponíveis pela plataforma.' },
+    { t: '12. Aceite eletronico', c: 'O aceite eletronico por checkbox, botao de confirmacao ou continuidade no cadastro tera validade como manifestação de concordância com este contrato.' },
+    { t: '13. Atualizacoes', c: 'O ClienteMarcado poderá atualizar este contrato, funcionalidades e condições da plataforma.' },
+    { t: '14. Foro', c: 'As partes elegem o foro competente conforme a legislacao aplicável, salvo disposição legal em contrário.' },
+  ]
+  const [c1, setC1] = useState(false)
+  const [c2, setC2] = useState(false)
+  const [c3, setC3] = useState(false)
+  const [erro, setErro] = useState('')
+
+  const tudo = c1 && c2 && c3
+
+  function handleConfirmar() {
+    if (billingParam === 'anual') return
+    if (!tudo) { setErro('Para continuar, aceite todos os termos do plano.'); return }
+    setErro('')
+    try {
+      localStorage.setItem('clienteMarcadoAceitePlano', 'true')
+      localStorage.setItem('clienteMarcadoAceiteData', new Date().toISOString())
+      localStorage.setItem('clienteMarcadoAceiteVersão', '1.0')
+      localStorage.setItem('cm_plano', planoValido)
+      // Preserva a escolha de periodicidade junto com o plano - o cadastro le esse mesmo
+      // valor depois (mesmo padrao ja usado pro cm_plano).
+      localStorage.setItem('cm_billing', billingCycle)
+    } catch (_) {}
+    window.location.href = `/cadastro${cupomParam ? `?cupom=${encodeURIComponent(cupomParam)}` : ''}`
+  }
+
+  // Enquanto redireciona o Free (useEffect acima), nao renderiza nada do fluxo de aceite
+  // pago - evita qualquer flash do contrato/aviso de cobranca antes do redirect completar.
+  if (ehPlanoFree(planoValido) || billingParam === 'anual') return null
+
+  return (
+    <div className="pg">
+      <style dangerouslySetInnerHTML={{ __html: CSS }} />
+      <div className="wrap">
+
+        {/* Header */}
+        <div className="hdr">
+          <a href="/" className="logo-row">
+            <img src="/minipage-pro-icon.png" alt="MiniPage Pro" width={32} height={32} style={{borderRadius:'8px',objectFit:'contain',flexShrink:0}}/>
+            <div style={{display:'flex',flexDirection:'column',lineHeight:1.1}}>
+              <span className="logo-txt">MiniPage Pro</span>
+              <span style={{fontSize:'10px',fontWeight:600,color:'#B8AAB8',letterSpacing:'.02em'}}>por ClienteMarcado</span>
+            </div>
+          </a>
+          <a href="/" className="btn-v">← Voltar</a>
+        </div>
+
+        {/* Intro */}
+        <div style={{ marginBottom: '28px' }}>
+          <h1 style={{ fontSize: '28px', fontWeight: 800, color: '#F8F4F7', letterSpacing: '-0.03em', marginBottom: '8px' }}>Antes de começar</h1>
+          <p style={{ fontSize: '14px', color: '#B8AAB8', lineHeight: 1.6 }}>Revise o plano, leia o contrato e confirme seu aceite para ativar sua MiniPage.</p>
+        </div>
+
+        {/* Card do plano */}
+        <div className="card">
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '12px', marginBottom: '16px' }}>
+            <div>
+              <p style={{ fontSize: '18px', fontWeight: 800, color: '#F8F4F7', marginBottom: '8px' }}>{plano.nome} <span style={{ fontSize: '13px', fontWeight: 600, color: '#B8AAB8' }}>({nomeCiclo})</span></p>
+              <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                {billingCycle === 'anual' ? (
+                  <>
+                    <span className="badge" style={{ background: 'rgba(139,92,246,.14)', border: '1px solid rgba(139,92,246,.28)', color: '#A78BFA' }}>Pagamento anual</span>
+                    <span className="badge" style={{ background: 'rgba(34,197,94,.14)', border: '1px solid rgba(34,197,94,.28)', color: '#22C55E' }}>Economize 17%</span>
+                    <span className="badge" style={{ background: 'rgba(42,26,47,.10)', border: '1px solid rgba(42,26,47,.18)', color: '#B8AAB8' }}>Acesso por 12 meses</span>
+                  </>
+                ) : (
+                  <>
+                    <span className="badge" style={{ background: 'rgba(34,197,94,.14)', border: '1px solid rgba(34,197,94,.28)', color: '#22C55E' }}>Sem fidelidade</span>
+                    <span className="badge" style={{ background: 'rgba(42,26,47,.10)', border: '1px solid rgba(42,26,47,.18)', color: '#B8AAB8' }}>Cancele quando quiser</span>
+                  </>
+                )}
+              </div>
+            </div>
+            <div style={{ textAlign: 'right' }}>
+              <p style={{ fontSize: '28px', fontWeight: 800, color: '#EC4899', letterSpacing: '-0.02em', lineHeight: 1 }}>{plano.preco}</p>
+              <p style={{ fontSize: '12px', color: '#B8AAB8' }}>{billingCycle === 'anual' ? '/ano' : '/mês'}</p>
+            </div>
+          </div>
+          <div style={{ borderTop: '1px solid rgba(42,26,47,.10)', paddingTop: '14px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
+            {plano.beneficios.map((i: string) => (
+              <div key={i} style={{ display: 'flex', gap: '6px', alignItems: 'center', fontSize: '12px', color: '#B8AAB8' }}>
+                <span style={{ color: '#22C55E', flexShrink: 0 }}>✓</span>{i}
+              </div>
+            ))}
+          </div>
+          <div style={{ marginTop: '14px', padding: '10px 14px', background: 'rgba(245,158,11,.08)', border: '1px solid rgba(245,158,11,.22)', borderRadius: '10px', fontSize: '12px', color: '#FCD34D', lineHeight: 1.6 }}>
+            {billingCycle === 'anual'
+              ? <>⚠ Você contratará o plano anual com acesso por 12 meses. O valor de {plano.preco}/ano será cobrado conforme a forma de pagamento escolhida.</>
+              : <>⚠ Após aceitar o contrato, você criará sua conta e poderá escolher Pix ou Cartão para ativar sua MiniPage. O valor de {plano.preco}/mês será cobrado conforme a forma de pagamento escolhida.</>}
+          </div>
+        </div>
+
+        {/* Card do contrato */}
+        <div className="card">
+          <div style={{ marginBottom: '16px' }}>
+            <p style={{ fontSize: '16px', fontWeight: 700, color: '#F8F4F7', marginBottom: '4px' }}>Contrato de Adesão</p>
+            <p style={{ fontSize: '12px', color: '#B8AAB8' }}>Leia os principais termos antes de continuar. · Versão 1.0</p>
+          </div>
+          <div className="contrato-scroll">
+            {CLAUSULAS.map(c => (
+              <div key={c.t} className="clausula">
+                <p style={{ fontSize: '12px', fontWeight: 700, color: '#B8AAB8', marginBottom: '4px' }}>{c.t}</p>
+                <p style={{ fontSize: '12px', color: '#B8AAB8', lineHeight: 1.7 }}>{c.c}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Card de aceite */}
+        <div className="card">
+          <p style={{ fontSize: '15px', fontWeight: 700, color: '#F8F4F7', marginBottom: '16px' }}>Confirmação de aceite</p>
+
+          <div className="chk-row" onClick={() => { setC1(!c1); setErro('') }}>
+            <div className={'chk-box' + (c1 ? ' on' : '')}>
+              {c1 && <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>}
+            </div>
+            <p style={{ fontSize: '13px', color: '#B8AAB8', lineHeight: 1.5 }}>Li e aceito o <Link href="/contrato-de-adesao" target="_blank" onClick={e => e.stopPropagation()} style={{ color: '#8B5CF6', fontWeight: 600 }}>Contrato de Adesão</Link> do ClienteMarcado.</p>
+          </div>
+
+          <div className="chk-row" onClick={() => { setC2(!c2); setErro('') }}>
+            <div className={'chk-box' + (c2 ? ' on' : '')}>
+              {c2 && <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>}
+            </div>
+            <p style={{ fontSize: '13px', color: '#B8AAB8', lineHeight: 1.5 }}>Li e aceito os <Link href="/termos-de-uso" target="_blank" onClick={e => e.stopPropagation()} style={{ color: '#8B5CF6', fontWeight: 600 }}>Termos de Uso</Link> e a <Link href="/politica-de-privacidade" target="_blank" onClick={e => e.stopPropagation()} style={{ color: '#8B5CF6', fontWeight: 600 }}>Politica de Privacidade</Link>.</p>
+          </div>
+
+          <div className="chk-row" onClick={() => { setC3(!c3); setErro('') }}>
+            <div className={'chk-box' + (c3 ? ' on' : '')}>
+              {c3 && <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>}
+            </div>
+            <p style={{ fontSize: '13px', color: '#B8AAB8', lineHeight: 1.5 }}>
+              {billingCycle === 'anual'
+                ? <>Estou ciente de que estou contratando o plano anual, com acesso por 12 meses, no valor de {plano.preco}/ano, conforme a forma de pagamento escolhida.</>
+                : <>Estou ciente de que minha MiniPage será ativada após a confirmação do pagamento do plano de {plano.preco}/mês escolhido.</>}
+            </p>
+          </div>
+
+          {erro && <div className="msg-err">{erro}</div>}
+
+          <button onClick={handleConfirmar} disabled={!tudo} className="btn-p">
+            Aceitar contrato e continuar →
+          </button>
+
+          <div className="links-row">
+            <a href="/">← Voltar</a>
+            <span style={{ color: '#2A1A2F' }}>·</span>
+            <Link href="/termos-de-uso" style={{ fontSize: '12px', color: '#B8AAB8', textDecoration: 'none' }}>Termos de Uso</Link>
+            <span style={{ color: '#2A1A2F' }}>·</span>
+            <Link href="/politica-de-privacidade" style={{ fontSize: '12px', color: '#B8AAB8', textDecoration: 'none' }}>Politica de Privacidade</Link>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  )
+}

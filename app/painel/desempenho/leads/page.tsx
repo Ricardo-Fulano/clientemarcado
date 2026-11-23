@@ -6,7 +6,7 @@ import PainelSidebar from '@/app/components/PainelSidebar'
 import AlterarPlanoModal, { BotaoAlterarPlano } from '@/app/components/AlterarPlanoModal'
 import { formatarWhatsappExibicao, linkWhatsappCliente } from '../../../lib/whatsapp'
 
-const G = 'linear-gradient(135deg,#EC4899,#D946EF,#8B5CF6)'
+const G = '#C9FA45'
 
 // Botao "WhatsApp" da lista de clientes: abre a conversa em wa.me. A mensagem so vem PREENCHIDA (e so para quem esta
 // aguardando_pagamento) - o envio e sempre manual. So aparece se o cliente tem um celular valido salvo no cadastro;
@@ -217,20 +217,20 @@ export default function LeadsCapturados() {
   }
 
   return (
-    <div className="leads-pagina" style={{ display: 'flex', minHeight: '100vh', background: '#0A0611' }}>
+    <div className="leads-pagina" style={{ display: 'flex', minHeight: '100vh', background: '#0B0A10' }}>
       <PainelSidebar />
       <div className="leads-conteudo" style={{ flex: 1, display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden', maxWidth: '1480px', minWidth: 0, margin: '0 auto', width: '100%' }}>
         {/* Cabecalho fixo (nunca rola) - titulo, subtitulo, busca e periodo sempre visiveis */}
         <div style={{ padding: '32px 32px 0', flexShrink: 0 }}>
-          <Link href="/painel/desempenho" style={{ fontSize: '13px', color: '#B8AAB8', textDecoration: 'none', display: 'inline-block', marginBottom: '16px' }}>← Voltar para Desempenho</Link>
+          <Link href="/painel/desempenho" style={{ fontSize: '13px', color: '#C5BCD0', textDecoration: 'none', display: 'inline-block', marginBottom: '16px' }}>← Voltar para Desempenho</Link>
           <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap', marginBottom: '4px' }}>
             <div>
-              <h1 style={{ fontSize: '22px', fontWeight: 800, color: '#F8F4F7', margin: 0 }}>Leads capturados</h1>
-              <p style={{ fontSize: '13px', color: '#B8AAB8', marginTop: '4px' }}>Veja os contatos capturados pela sua MiniPage.</p>
+              <h1 style={{ fontSize: '22px', fontWeight: 800, color: '#FFFFFF', margin: 0 }}>Leads capturados</h1>
+              <p style={{ fontSize: '13px', color: '#C5BCD0', marginTop: '4px' }}>Veja os contatos capturados pela sua MiniPage.</p>
             </div>
             {/* Mesmo estilo visual do seletor ja usado em /painel/desempenho - valores
                 proprios desta pagina (Hoje/Esta semana/Ultimos 30 dias/Todo periodo). */}
-            <select value={periodo} onChange={e => setPeriodo(e.target.value as PeriodoLeads)} style={{ background: 'rgba(24,16,27,.92)', border: '1px solid #2A1A2F', borderRadius: '10px', padding: '9px 14px', fontSize: '13px', color: '#F8F4F7', cursor: 'pointer', flexShrink: 0 }}>
+            <select value={periodo} onChange={e => setPeriodo(e.target.value as PeriodoLeads)} style={{ background: 'rgba(33,24,45,.92)', border: '1px solid #3A2B4C', borderRadius: '10px', padding: '9px 14px', fontSize: '13px', color: '#FFFFFF', cursor: 'pointer', flexShrink: 0 }}>
               {OPCOES_PERIODO_LEADS.map(o => <option key={o.valor} value={o.valor}>{o.label}</option>)}
             </select>
           </div>
@@ -240,8 +240,8 @@ export default function LeadsCapturados() {
             na API (/api/admin/clientes), isso aqui e so conveniencia de UX. */}
         {podeVerClientes && (
           <div style={{ display: 'flex', gap: '8px', padding: '0 32px 14px', flexShrink: 0 }}>
-            <button onClick={() => setAba('leads')} style={{ background: aba === 'leads' ? G : 'rgba(24,16,27,.9)', border: aba === 'leads' ? 'none' : '1px solid #2A1A2F', color: '#F8F4F7', borderRadius: '8px', padding: '7px 14px', fontSize: '12px', fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>Leads capturados</button>
-            <button onClick={() => setAba('clientes')} style={{ background: aba === 'clientes' ? G : 'rgba(24,16,27,.9)', border: aba === 'clientes' ? 'none' : '1px solid #2A1A2F', color: '#F8F4F7', borderRadius: '8px', padding: '7px 14px', fontSize: '12px', fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>Clientes cadastrados</button>
+            <button onClick={() => setAba('leads')} style={{ background: aba === 'leads' ? G : 'rgba(33,24,45,.90)', border: aba === 'leads' ? 'none' : '1px solid #3A2B4C', color: aba === 'leads' ? '#151A0D' : '#FFFFFF', borderRadius: '8px', padding: '7px 14px', fontSize: '12px', fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>Leads capturados</button>
+            <button onClick={() => setAba('clientes')} style={{ background: aba === 'clientes' ? G : 'rgba(33,24,45,.90)', border: aba === 'clientes' ? 'none' : '1px solid #3A2B4C', color: aba === 'clientes' ? '#151A0D' : '#FFFFFF', borderRadius: '8px', padding: '7px 14px', fontSize: '12px', fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>Clientes cadastrados</button>
           </div>
         )}
 
@@ -252,9 +252,9 @@ export default function LeadsCapturados() {
             sem precisar duplicar a logica/dados - so a apresentacao muda por breakpoint). */}
         <style>{`
               .leads-tabela{width:100%;border-collapse:collapse}
-              .leads-tabela th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:#B8AAB8;padding:10px 12px;border-bottom:1px solid #2A1A2F;position:sticky;top:0;background:#18101B;z-index:1}
-              .leads-tabela td{padding:12px;font-size:13px;color:#F8F4F7;border-bottom:1px solid #2A1A2F}
-              .leads-copiar-btn{background:rgba(255,255,255,.08);border:1px solid #2A1A2F;color:#F8F4F7;border-radius:8px;padding:5px 10px;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit}
+              .leads-tabela th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:#C5BCD0;padding:10px 12px;border-bottom:1px solid #3A2B4C;position:sticky;top:0;background:#21182D;z-index:1}
+              .leads-tabela td{padding:12px;font-size:13px;color:#FFFFFF;border-bottom:1px solid #3A2B4C}
+              .leads-copiar-btn{background:rgba(255,255,255,.08);border:1px solid #3A2B4C;color:#FFFFFF;border-radius:8px;padding:5px 10px;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit}
               .leads-card-mobile{display:none}
               /* O sidebar do painel usa posicao fixa no desktop: reservar seu espaco
                  evita que titulos e cards fiquem escondidos sob ele. */
@@ -275,32 +275,32 @@ export default function LeadsCapturados() {
             `}</style>
         {aba === 'leads' && (<>
         {carregando ? (
-          <p style={{ fontSize: '13px', color: '#B8AAB8' }}>Carregando...</p>
+          <p style={{ fontSize: '13px', color: '#C5BCD0' }}>Carregando...</p>
         ) : leads.length === 0 ? (
           <div className="crd" style={{ padding: '40px 24px', textAlign: 'center' }}>
-            <p style={{ fontSize: '15px', fontWeight: 700, color: '#F8F4F7', marginBottom: '6px' }}>Nenhum lead capturado ainda.</p>
-            <p style={{ fontSize: '13px', color: '#B8AAB8' }}>Assim que alguém informar o e-mail na sua MiniPage, ele aparece aqui.</p>
+            <p style={{ fontSize: '15px', fontWeight: 700, color: '#FFFFFF', marginBottom: '6px' }}>Nenhum lead capturado ainda.</p>
+            <p style={{ fontSize: '13px', color: '#C5BCD0' }}>Assim que alguém informar o e-mail na sua MiniPage, ele aparece aqui.</p>
           </div>
         ) : (
           <>
             <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'center', marginBottom: '16px' }}>
-              <p style={{ fontSize: '13px', color: '#B8AAB8', margin: 0 }}>{leadsFiltrados.length} de {leads.length} leads</p>
+              <p style={{ fontSize: '13px', color: '#C5BCD0', margin: 0 }}>{leadsFiltrados.length} de {leads.length} leads</p>
               <input
                 value={busca}
                 onChange={e => setBusca(e.target.value)}
                 placeholder="Buscar por e-mail, item ou origem..."
-                style={{ flex: '1 1 220px', minWidth: '200px', padding: '9px 14px', borderRadius: '10px', border: '1px solid #2A1A2F', background: 'rgba(24,16,27,.9)', color: '#F8F4F7', fontSize: '13px', fontFamily: 'inherit' }}
+                style={{ flex: '1 1 220px', minWidth: '200px', padding: '9px 14px', borderRadius: '10px', border: '1px solid #3A2B4C', background: 'rgba(33,24,45,.90)', color: '#FFFFFF', fontSize: '13px', fontFamily: 'inherit' }}
               />
             </div>
 
             <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '18px' }}>
-              <button onClick={copiarSomenteEmails} style={{ background: 'rgba(24,16,27,.9)', border: '1px solid #2A1A2F', color: '#F8F4F7', borderRadius: '10px', padding: '9px 16px', fontSize: '12px', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
+              <button onClick={copiarSomenteEmails} style={{ background: 'rgba(33,24,45,.90)', border: '1px solid #3A2B4C', color: '#FFFFFF', borderRadius: '10px', padding: '9px 16px', fontSize: '12px', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
                 {copiado === 'emails' ? 'Copiado!' : 'Copiar somente e-mails'}
               </button>
-              <button onClick={copiarTodos} style={{ background: G, border: 'none', color: '#fff', borderRadius: '10px', padding: '9px 16px', fontSize: '12px', fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>
+              <button onClick={copiarTodos} style={{ background: G, border: 'none', color: '#151A0D', borderRadius: '10px', padding: '9px 16px', fontSize: '12px', fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>
                 {copiado === 'todos' ? 'Copiado!' : 'Copiar todos'}
               </button>
-              <button onClick={exportarCSV} style={{ background: 'rgba(24,16,27,.9)', border: '1px solid #2A1A2F', color: '#F8F4F7', borderRadius: '10px', padding: '9px 16px', fontSize: '12px', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>Exportar CSV</button>
+              <button onClick={exportarCSV} style={{ background: 'rgba(33,24,45,.90)', border: '1px solid #3A2B4C', color: '#FFFFFF', borderRadius: '10px', padding: '9px 16px', fontSize: '12px', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>Exportar CSV</button>
             </div>
 
             <div className="leads-tabela-wrap crd" style={{ overflowX: 'auto', padding: 0 }}>
@@ -317,8 +317,8 @@ export default function LeadsCapturados() {
                   {leadsFiltrados.map((l, i) => (
                     <tr key={i}>
                       <td style={{ fontWeight: 700 }}>{l.email}</td>
-                      <td style={{ color: '#B8AAB8' }}>{origemLabel(l)}</td>
-                      <td style={{ color: '#B8AAB8', whiteSpace: 'nowrap' }}>{formatarData(l.created_at)}</td>
+                      <td style={{ color: '#C5BCD0' }}>{origemLabel(l)}</td>
+                      <td style={{ color: '#C5BCD0', whiteSpace: 'nowrap' }}>{formatarData(l.created_at)}</td>
                       <td><button className="leads-copiar-btn" onClick={() => copiarIndividual(l, i)}>{copiadoIndividual === i ? 'Copiado!' : 'Copiar'}</button></td>
                     </tr>
                   ))}
@@ -329,8 +329,8 @@ export default function LeadsCapturados() {
             <div className="leads-card-mobile">
               {leadsFiltrados.map((l, i) => (
                 <div key={i} className="crd" style={{ padding: '14px', marginBottom: '10px' }}>
-                  <p style={{ fontSize: '14px', fontWeight: 700, color: '#F8F4F7', margin: '0 0 4px' }}>{l.email}</p>
-                  <p style={{ fontSize: '12px', color: '#B8AAB8', margin: '0 0 8px' }}>{origemLabel(l)} · {formatarData(l.created_at)}</p>
+                  <p style={{ fontSize: '14px', fontWeight: 700, color: '#FFFFFF', margin: '0 0 4px' }}>{l.email}</p>
+                  <p style={{ fontSize: '12px', color: '#C5BCD0', margin: '0 0 8px' }}>{origemLabel(l)} · {formatarData(l.created_at)}</p>
                   <button className="leads-copiar-btn" onClick={() => copiarIndividual(l, i)}>{copiadoIndividual === i ? 'Copiado!' : 'Copiar e-mail'}</button>
                 </div>
               ))}
@@ -342,34 +342,34 @@ export default function LeadsCapturados() {
         {aba === 'clientes' && podeVerClientes && (
           <>
             {carregandoClientes ? (
-              <p style={{ fontSize: '13px', color: '#B8AAB8' }}>Carregando clientes...</p>
+              <p style={{ fontSize: '13px', color: '#C5BCD0' }}>Carregando clientes...</p>
             ) : erroClientes ? (
               <div className="crd" style={{ padding: '24px', textAlign: 'center' }}>
                 <p style={{ fontSize: '13px', color: '#EF4444' }}>{erroClientes}</p>
               </div>
             ) : clientes.length === 0 ? (
               <div className="crd" style={{ padding: '40px 24px', textAlign: 'center' }}>
-                <p style={{ fontSize: '15px', fontWeight: 700, color: '#F8F4F7' }}>Nenhum cliente cadastrado ainda.</p>
+                <p style={{ fontSize: '15px', fontWeight: 700, color: '#FFFFFF' }}>Nenhum cliente cadastrado ainda.</p>
               </div>
             ) : (
               <>
                 <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'center', marginBottom: '12px' }}>
-                  <p style={{ fontSize: '13px', color: '#B8AAB8', margin: 0 }}>{clientesFiltrados.length} de {clientes.length} clientes</p>
+                  <p style={{ fontSize: '13px', color: '#C5BCD0', margin: 0 }}>{clientesFiltrados.length} de {clientes.length} clientes</p>
                   <input
                     value={buscaClientes}
                     onChange={e => setBuscaClientes(e.target.value)}
                     placeholder="Buscar por nome, e-mail, slug ou plano..."
-                    style={{ flex: '1 1 220px', minWidth: '200px', padding: '9px 14px', borderRadius: '10px', border: '1px solid #2A1A2F', background: 'rgba(24,16,27,.9)', color: '#F8F4F7', fontSize: '13px', fontFamily: 'inherit' }}
+                    style={{ flex: '1 1 220px', minWidth: '200px', padding: '9px 14px', borderRadius: '10px', border: '1px solid #3A2B4C', background: 'rgba(33,24,45,.90)', color: '#FFFFFF', fontSize: '13px', fontFamily: 'inherit' }}
                   />
                 </div>
 
                 <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '12px' }}>
-                  <select value={filtroStatus} onChange={e => setFiltroStatus(e.target.value as any)} style={{ background: 'rgba(24,16,27,.92)', border: '1px solid #2A1A2F', borderRadius: '10px', padding: '8px 12px', fontSize: '12px', color: '#F8F4F7', cursor: 'pointer' }}>
+                  <select value={filtroStatus} onChange={e => setFiltroStatus(e.target.value as any)} style={{ background: 'rgba(33,24,45,.92)', border: '1px solid #3A2B4C', borderRadius: '10px', padding: '8px 12px', fontSize: '12px', color: '#FFFFFF', cursor: 'pointer' }}>
                     <option value="todos">Todos os status</option>
                     <option value="ativos">Ativos</option>
                     <option value="inativos">Inativos</option>
                   </select>
-                  <select value={filtroPlanoCliente} onChange={e => setFiltroPlanoCliente(e.target.value)} style={{ background: 'rgba(24,16,27,.92)', border: '1px solid #2A1A2F', borderRadius: '10px', padding: '8px 12px', fontSize: '12px', color: '#F8F4F7', cursor: 'pointer' }}>
+                  <select value={filtroPlanoCliente} onChange={e => setFiltroPlanoCliente(e.target.value)} style={{ background: 'rgba(33,24,45,.92)', border: '1px solid #3A2B4C', borderRadius: '10px', padding: '8px 12px', fontSize: '12px', color: '#FFFFFF', cursor: 'pointer' }}>
                     <option value="todos">Todos os planos</option>
                     <option value="free">MiniPage Free</option>
                     <option value="minipage">MiniPage</option>
@@ -378,7 +378,7 @@ export default function LeadsCapturados() {
                     <option value="essencial">MiniPage Pro</option>
                     <option value="equipe">MiniPage Equipe</option>
                   </select>
-                  <select value={filtroPeriodoCliente} onChange={e => setFiltroPeriodoCliente(e.target.value as any)} style={{ background: 'rgba(24,16,27,.92)', border: '1px solid #2A1A2F', borderRadius: '10px', padding: '8px 12px', fontSize: '12px', color: '#F8F4F7', cursor: 'pointer' }}>
+                  <select value={filtroPeriodoCliente} onChange={e => setFiltroPeriodoCliente(e.target.value as any)} style={{ background: 'rgba(33,24,45,.92)', border: '1px solid #3A2B4C', borderRadius: '10px', padding: '8px 12px', fontSize: '12px', color: '#FFFFFF', cursor: 'pointer' }}>
                     <option value="hoje">Últimos 7 dias</option>
                     <option value="30d">Últimos 30 dias</option>
                     <option value="mes">Este mês</option>
@@ -387,7 +387,7 @@ export default function LeadsCapturados() {
                 </div>
 
                 <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '18px' }}>
-                  <button onClick={copiarTodosEmailsClientes} style={{ background: G, border: 'none', color: '#fff', borderRadius: '10px', padding: '9px 16px', fontSize: '12px', fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>
+                  <button onClick={copiarTodosEmailsClientes} style={{ background: G, border: 'none', color: '#151A0D', borderRadius: '10px', padding: '9px 16px', fontSize: '12px', fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>
                     {copiadoClientes || 'Copiar todos os e-mails filtrados'}
                   </button>
                 </div>
@@ -398,18 +398,18 @@ export default function LeadsCapturados() {
                     <div key={c.user_id || i} className="crd cliente-cartao">
                       <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', alignItems: 'flex-start', marginBottom: '12px' }}>
                         <div style={{ minWidth: 0 }}>
-                          <p style={{ fontSize: '15px', fontWeight: 750, color: '#F8F4F7', margin: '0 0 5px' }}>{c.nome_pagina || c.email || '—'}</p>
-                          <p style={{ fontSize: '12px', color: '#B8AAB8', margin: 0, overflowWrap: 'anywhere' }}>{c.email || '—'}</p>
+                          <p style={{ fontSize: '15px', fontWeight: 750, color: '#FFFFFF', margin: '0 0 5px' }}>{c.nome_pagina || c.email || '—'}</p>
+                          <p style={{ fontSize: '12px', color: '#C5BCD0', margin: 0, overflowWrap: 'anywhere' }}>{c.email || '—'}</p>
                         </div>
                         <span style={{ flexShrink: 0, fontSize: '11px', fontWeight: 700, padding: '5px 9px', borderRadius: '999px', background: 'rgba(139,92,246,.14)', color: '#C4B5FD', textAlign: 'center' }}>{statusLabel(c.status_acesso)}</span>
                       </div>
                       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2,minmax(0,1fr))', gap: '10px 14px', fontSize: '12px' }}>
-                        <div style={{ minWidth: 0 }}><span style={{ color: '#9F91A5' }}>Plano</span><div style={{ color: '#F8F4F7', fontWeight: 600, marginTop: '3px' }}>{c.plano_nome || 'Não identificado'}</div></div>
-                        <div style={{ minWidth: 0 }}><span style={{ color: '#9F91A5' }}>MiniPage</span><div style={{ color: '#F8F4F7', fontWeight: 600, marginTop: '3px', overflowWrap: 'anywhere' }}>{c.slug || '—'}</div></div>
-                        <div style={{ minWidth: 0 }}><span style={{ color: '#9F91A5' }}>Cadastro</span><div style={{ color: '#B8AAB8', marginTop: '3px' }}>{c.created_at ? formatarData(c.created_at) : '—'}</div></div>
-                        <div style={{ minWidth: 0 }}><span style={{ color: '#9F91A5' }}>Origem</span><div style={{ color: '#B8AAB8', marginTop: '3px', overflowWrap: 'anywhere' }}>{c.origem || '—'}</div></div>
+                        <div style={{ minWidth: 0 }}><span style={{ color: '#AFA2BC' }}>Plano</span><div style={{ color: '#FFFFFF', fontWeight: 600, marginTop: '3px' }}>{c.plano_nome || 'Não identificado'}</div></div>
+                        <div style={{ minWidth: 0 }}><span style={{ color: '#AFA2BC' }}>MiniPage</span><div style={{ color: '#FFFFFF', fontWeight: 600, marginTop: '3px', overflowWrap: 'anywhere' }}>{c.slug || '—'}</div></div>
+                        <div style={{ minWidth: 0 }}><span style={{ color: '#AFA2BC' }}>Cadastro</span><div style={{ color: '#C5BCD0', marginTop: '3px' }}>{c.created_at ? formatarData(c.created_at) : '—'}</div></div>
+                        <div style={{ minWidth: 0 }}><span style={{ color: '#AFA2BC' }}>Origem</span><div style={{ color: '#C5BCD0', marginTop: '3px', overflowWrap: 'anywhere' }}>{c.origem || '—'}</div></div>
                       </div>
-                      {formatarWhatsappExibicao(c.whatsapp) && <p style={{ fontSize: '12px', color: '#B8AAB8', margin: '12px 0 0' }}>WhatsApp: {formatarWhatsappExibicao(c.whatsapp)}</p>}
+                      {formatarWhatsappExibicao(c.whatsapp) && <p style={{ fontSize: '12px', color: '#C5BCD0', margin: '12px 0 0' }}>WhatsApp: {formatarWhatsappExibicao(c.whatsapp)}</p>}
                       <div className="cliente-acoes">
                         <BotaoWhatsappCliente c={c} />
                         <button className="leads-copiar-btn" onClick={() => copiarEmailCliente(c, i)}>{copiadoClienteIndividual === i ? 'Copiado!' : 'Copiar e-mail'}</button>
@@ -423,10 +423,10 @@ export default function LeadsCapturados() {
                 <div className="leads-card-mobile">
                   {clientesFiltrados.map((c, i) => (
                     <div key={c.user_id || i} className="crd" style={{ padding: '14px', marginBottom: '10px' }}>
-                      <p style={{ fontSize: '14px', fontWeight: 700, color: '#F8F4F7', margin: '0 0 4px' }}>{c.nome_pagina || c.email || '—'}</p>
-                      <p style={{ fontSize: '12px', color: '#B8AAB8', margin: '0 0 4px' }}>{c.email}</p>
-                      <p style={{ fontSize: '12px', color: '#B8AAB8', margin: '0 0 4px' }}>{formatarWhatsappExibicao(c.whatsapp) || '—'}</p>
-                      <p style={{ fontSize: '12px', color: '#B8AAB8', margin: '0 0 8px' }}>{c.plano_nome} · {statusLabel(c.status_acesso)}</p>
+                      <p style={{ fontSize: '14px', fontWeight: 700, color: '#FFFFFF', margin: '0 0 4px' }}>{c.nome_pagina || c.email || '—'}</p>
+                      <p style={{ fontSize: '12px', color: '#C5BCD0', margin: '0 0 4px' }}>{c.email}</p>
+                      <p style={{ fontSize: '12px', color: '#C5BCD0', margin: '0 0 4px' }}>{formatarWhatsappExibicao(c.whatsapp) || '—'}</p>
+                      <p style={{ fontSize: '12px', color: '#C5BCD0', margin: '0 0 8px' }}>{c.plano_nome} · {statusLabel(c.status_acesso)}</p>
                       <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
                         <BotaoWhatsappCliente c={c} />
                         <button className="leads-copiar-btn" onClick={() => copiarEmailCliente(c, i)}>{copiadoClienteIndividual === i ? 'Copiado!' : 'Copiar e-mail'}</button>

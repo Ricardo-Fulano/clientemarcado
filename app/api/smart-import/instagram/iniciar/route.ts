@@ -11,35 +11,44 @@ export async function POST(req: NextRequest) {
   if (!bearer || !supabaseUrl || !supabaseKey) return NextResponse.json({error:'Faça login para conectar o Instagram.'},{status:401})
   const { data: { user }, error } = await createClient(supabaseUrl, supabaseKey).auth.getUser(bearer)
   if (error || !user) return NextResponse.json({error:'Sessão inválida.'},{status:401})
-  const appId = process.env.INSTAGRAM_APP_ID?.trim()
+  const cookieSecret = process.env.SMART_IMPORT_COOKIE_SECRET || ''
+  if (cookieSecret.length < 32) return NextResponse.json({error:'Conexão temporariamente indisponível.'},{status:503})
+  // Fluxo direto somente após habilitação explícita; preserve o fluxo empresarial já aprovado.
+  const direto = process.env.MP_INSTAGRAM_DIRECT_LOGIN_ENABLED === 'true'
+  const appId = (direto ? process.env.MP_INSTAGRAM_DIRECT_APP_ID : process.env.INSTAGRAM_APP_ID)?.trim()
+  const redirect = (direto ? process.env.MP_INSTAGRAM_DIRECT_REDIRECT_URI : process.env.INSTAGRAM_REDIRECT_URI)?.trim()
+  const secret = direto ? process.env.MP_INSTAGRAM_DIRECT_APP_SECRET : process.env.INSTAGRAM_APP_SECRET
   const configId = process.env.INSTAGRAM_UNIFIED_CONFIG_ID?.trim()
-  const redirect = process.env.INSTAGRAM_REDIRECT_URI?.trim()
-  const secret = process.env.SMART_IMPORT_COOKIE_SECRET || ''
-  if (!appId || !configId || !redirect || !process.env.INSTAGRAM_APP_SECRET || secret.length < 32)
-    return NextResponse.json({error:'Configure INSTAGRAM_APP_ID, INSTAGRAM_APP_SECRET, INSTAGRAM_UNIFIED_CONFIG_ID, INSTAGRAM_REDIRECT_URI e SMART_IMPORT_COOKIE_SECRET no servidor.'},{status:503})
-  if (!/^\d+$/.test(appId) || !/^\d+$/.test(configId)) return NextResponse.json({error:'App ID ou Configuration ID inválido.'},{status:503})
+  if (!appId || !redirect || !secret || (!direto && !configId))
+    return NextResponse.json({error:'A conexão com o Instagram está temporariamente indisponível.'},{status:503})
+  if (!/^\d+$/.test(appId) || (!direto && !/^\d+$/.test(configId || '')))
+    return NextResponse.json({error:'Configuração de autenticação inválida.'},{status:503})
   let callback: URL
   try { callback = new URL(redirect) } catch { return NextResponse.json({error:'URL de retorno inválida.'},{status:503}) }
   if (callback.pathname !== '/api/smart-import/instagram/retorno' || callback.search || callback.hash ||
       (callback.protocol !== 'https:' && !(process.env.NODE_ENV !== 'production' && callback.hostname === 'localhost' && callback.protocol === 'http:')))
-    return NextResponse.json({error:'O retorno precisa de HTTPS e da rota /api/smart-import/instagram/retorno.'},{status:503})
-  // Em tunel HTTPS, Next.js pode enxergar o origin interno http://localhost:3000.
-  // Aceitar apenas o host publico EXATO ja definido em INSTAGRAM_REDIRECT_URI.
-  const hostsDaRequisicao = [req.headers.get('host'), req.headers.get('x-forwarded-host')]
-  const mesmoDominio = callback.origin === req.nextUrl.origin || hostsDaRequisicao.some(
-    host => host?.toLowerCase() === callback.host.toLowerCase()
-  )
-  if (!mesmoDominio) return NextResponse.json({error:'Abra o assistente no mesmo domínio HTTPS configurado como URL de retorno. O login não funciona em localhost com retorno de produção.'},{status:503})
+    return NextResponse.json({error:'Retorno do Instagram não autorizado.'},{status:503})
+  // A requisição e o retorno devem compartilhar o mesmo host HTTPS, sem redirecionamento aberto.
+  const requestHosts = [req.headers.get('host'),req.headers.get('x-forwarded-host')]
+  const mesmoDominio = callback.origin === req.nextUrl.origin || requestHosts.some(h=>h?.toLowerCase() === callback.host.toLowerCase())
+  if (!mesmoDominio) return NextResponse.json({error:'Abra a MiniPage no domínio HTTPS configurado para o Instagram.'},{status:503})
+  const dados = await req.json().catch(() => null) as { destino?: unknown } | null
+  const destino = dados?.destino === '/painel/perfil/albuns' ? '/painel/perfil/albuns' : undefined
   const state = randomBytes(24).toString('hex')
-  const url = new URL('https://www.facebook.com/dialog/oauth')
+  const url = new URL(direto ? 'https://www.instagram.com/oauth/authorize' : 'https://www.facebook.com/dialog/oauth')
   url.searchParams.set('client_id', appId)
-  url.searchParams.set('config_id', configId)
   url.searchParams.set('redirect_uri', redirect)
   url.searchParams.set('response_type', 'code')
-  url.searchParams.set('override_default_response_type', 'true')
   url.searchParams.set('state', state)
-  // Permissões são definidas na configuração da Meta, não por um scope arbitrário.
+  if (direto) {
+    // Escopo mínimo para leitura de dados e mídias de conta profissional.
+    url.searchParams.set('scope','instagram_business_basic')
+    url.searchParams.set('enable_fb_login','false')
+  } else {
+    url.searchParams.set('config_id',configId!)
+    url.searchParams.set('override_default_response_type','true')
+  }
   const res = NextResponse.json({url:url.toString()},{headers:{'Cache-Control':'no-store'}})
-  res.cookies.set(COOKIE_STATE, selar({uid:user.id,state,created:Date.now()}), cookieAttrs)
+  res.cookies.set(COOKIE_STATE, selar({uid:user.id,state,created:Date.now(), modo: direto ? 'direto' : 'empresarial', ...(destino ? {destino} : {})}), cookieAttrs)
   return res
 }

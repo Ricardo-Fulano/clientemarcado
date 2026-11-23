@@ -4,18 +4,18 @@ import { supabase } from '../../lib/supabase'
 import PainelSidebar from '@/app/components/PainelSidebar'
 import { ehMetaPixelIdValido, ehGa4IdValido, normalizarMetaPixelId, normalizarGa4Id } from '../../lib/pixelsPublicos'
 
-const G = 'linear-gradient(135deg,#EC4899,#D946EF,#8B5CF6)'
+const G = '#C9FA45'
 
 const CSS = `
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-html,body{overflow-x:hidden;width:100%;max-width:100%;background:#08060A}
+html,body{overflow-x:hidden;width:100%;max-width:100%;background:#0B0A10}
 input{color-scheme:dark}
-.pg{background:radial-gradient(circle at top left,rgba(139,92,246,.18),transparent 32%),linear-gradient(135deg,#08060A 0%,#120A14 45%,#08060A 100%);min-height:100vh}
+.pg{background:radial-gradient(circle at top left,rgba(139,92,246,.18),transparent 32%),linear-gradient(135deg,#0B0A10 0%,#15101E 45%,#0B0A10 100%);min-height:100vh}
 .bdy{max-width:820px;margin:0 auto;padding:28px 32px 80px;width:100%}
-.crd{background:radial-gradient(circle at top left,rgba(139,92,246,.10),transparent 38%),linear-gradient(145deg,rgba(24,16,27,.97),rgba(18,10,20,.99));border:1.5px solid #2A1A2F;border-radius:18px}
-.lbl{display:block;font-size:11px;font-weight:700;color:#B8AAB8;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px}
-.inp{width:100%;background:rgba(24,16,27,.92);border:1.5px solid #2A1A2F;border-radius:10px;padding:10px 12px;color:#F8F4F7;font-size:13px;font-family:inherit}
-.inp:focus{outline:none;border-color:rgba(236,72,153,.5)}
+.crd{background:radial-gradient(circle at top left,rgba(139,92,246,.10),transparent 38%),linear-gradient(145deg,#21182D,#1B1326);border:1.5px solid #3A2B4C;border-radius:18px}
+.lbl{display:block;font-size:11px;font-weight:700;color:#C5BCD0;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px}
+.inp{width:100%;background:rgba(33,24,45,.92);border:1.5px solid #3A2B4C;border-radius:10px;padding:10px 12px;color:#FFFFFF;font-size:13px;font-family:inherit}
+.inp:focus{outline:none;border-color:rgba(201,250,69,.72);box-shadow:0 0 0 3px rgba(201,250,69,.12)}
 @media(max-width:767px){.psb-main .bdy{padding:14px 14px 80px!important}}
 `
 
@@ -86,7 +86,7 @@ export default function Integracoes() {
 
   const integracoesPermitidas = ['minipage','loja','essencial','equipe'].includes(String(planoTipo ?? '').trim().toLowerCase()) && !['aguardando_pagamento','bloqueado','cancelado'].includes(String(statusAcesso ?? '').trim().toLowerCase())
 
-  if (carregando) return (<div style={{ minHeight: '100vh', background: '#08060A', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'system-ui' }}><p style={{ color: '#B8AAB8', fontSize: '14px' }}>Carregando...</p></div>)
+  if (carregando) return (<div style={{ minHeight: '100vh', background: '#0B0A10', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'system-ui' }}><p style={{ color: '#C5BCD0', fontSize: '14px' }}>Carregando...</p></div>)
 
   const blocos: { chave: Chave; titulo: string; rotulo: string; exemplo: string; ajuda: string }[] = [
     { chave: 'meta_pixel_id', titulo: 'Meta Pixel', rotulo: 'Pixel ID', exemplo: '123456789012345', ajuda: 'No Gerenciador de Eventos da Meta, abra a sua fonte de dados (Pixel) e copie o número do ID.' },
@@ -94,24 +94,24 @@ export default function Integracoes() {
   ]
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', background: '#08060A', fontFamily: '-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif', overflowX: 'hidden', width: '100%' }}>
+    <div style={{ display: 'flex', minHeight: '100vh', background: '#0B0A10', fontFamily: '-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif', overflowX: 'hidden', width: '100%' }}>
       <style dangerouslySetInnerHTML={{ __html: CSS }} />
       <PainelSidebar tituloMobile="Integrações" />
       <div className="psb-main">
         <div className="pg"><div className="bdy">
-          <p style={{ fontSize: '22px', fontWeight: 800, color: '#F8F4F7', letterSpacing: '-0.02em', marginBottom: '8px' }}>Integrações e rastreamento</p>
-          <p style={{ fontSize: '13px', color: '#B8AAB8', marginBottom: '18px' }}>Conecte o Meta Pixel e o Google Analytics à sua MiniPage para medir os acessos e as ações dos visitantes.</p>
+          <p style={{ fontSize: '22px', fontWeight: 800, color: '#FFFFFF', letterSpacing: '-0.02em', marginBottom: '8px' }}>Integrações e rastreamento</p>
+          <p style={{ fontSize: '13px', color: '#C5BCD0', marginBottom: '18px' }}>Conecte o Meta Pixel e o Google Analytics à sua MiniPage para medir os acessos e as ações dos visitantes.</p>
 
           <div className="crd" style={{ padding: '14px 16px', marginBottom: '20px' }}>
-            <p style={{ fontSize: '12px', color: '#B8AAB8', lineHeight: 1.6 }}>
-              Quando você conecta uma ferramenta, a sua MiniPage mostra um aviso aos visitantes e <strong style={{ color: '#F8F4F7' }}>só envia dados a ela depois que o visitante aceitar</strong>. Quem recusa não é rastreado. Você é responsável por informar seus visitantes e manter sua política de privacidade atualizada.
+            <p style={{ fontSize: '12px', color: '#C5BCD0', lineHeight: 1.6 }}>
+              Quando você conecta uma ferramenta, a sua MiniPage mostra um aviso aos visitantes e <strong style={{ color: '#FFFFFF' }}>só envia dados a ela depois que o visitante aceitar</strong>. Quem recusa não é rastreado. Você é responsável por informar seus visitantes e manter sua política de privacidade atualizada.
             </p>
           </div>
 
           {!integracoesPermitidas ? (
             <div className="crd" style={{ padding: '24px', textAlign: 'center' }}>
-              <p style={{ color: '#F8F4F7', fontWeight: 700, marginBottom: '10px' }}>Meta Pixel e Google Analytics 4 sao recursos dos planos pagos.</p>
-              <a href="/painel/plano" style={{ color: '#EC4899', fontWeight: 700, textDecoration: 'none' }}>Conhecer planos</a>
+              <p style={{ color: '#FFFFFF', fontWeight: 700, marginBottom: '10px' }}>Meta Pixel e Google Analytics 4 sao recursos dos planos pagos.</p>
+              <a href="/painel/plano" style={{ color: '#C9FA45', fontWeight: 700, textDecoration: 'none' }}>Conhecer planos</a>
             </div>
           ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
@@ -121,16 +121,16 @@ export default function Integracoes() {
               return (
                 <div key={b.chave} className="crd" style={{ padding: '18px' }} data-bloco={b.chave}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px', marginBottom: '14px', flexWrap: 'wrap' }}>
-                    <p style={{ fontSize: '15px', fontWeight: 700, color: '#F8F4F7' }}>{b.titulo}</p>
-                    <span data-status style={{ fontSize: '11px', fontWeight: 700, borderRadius: '999px', padding: '3px 10px', color: conectado ? '#22C55E' : '#B8AAB8', background: conectado ? 'rgba(34,197,94,.14)' : 'rgba(184,170,184,.12)', border: '1px solid ' + (conectado ? 'rgba(34,197,94,.3)' : '#2A1A2F') }}>{conectado ? 'Conectado' : 'Não configurado'}</span>
+                    <p style={{ fontSize: '15px', fontWeight: 700, color: '#FFFFFF' }}>{b.titulo}</p>
+                    <span data-status style={{ fontSize: '11px', fontWeight: 700, borderRadius: '999px', padding: '3px 10px', color: conectado ? '#22C55E' : '#C5BCD0', background: conectado ? 'rgba(34,197,94,.14)' : 'rgba(184,170,184,.12)', border: '1px solid ' + (conectado ? 'rgba(34,197,94,.3)' : '#3A2B4C') }}>{conectado ? 'Conectado' : 'Não configurado'}</span>
                   </div>
                   <label className="lbl" htmlFor={'in-' + b.chave}>{b.rotulo}</label>
                   <input id={'in-' + b.chave} className="inp" value={campo[b.chave]} onChange={e => setCampo(prev => ({ ...prev, [b.chave]: e.target.value }))} placeholder={'Ex: ' + b.exemplo} autoComplete="off" spellCheck={false} maxLength={40} />
-                  <p style={{ fontSize: '11px', color: '#8B7D8B', marginTop: '6px', lineHeight: 1.5 }}>{b.ajuda}</p>
-                  {conectado && <p style={{ fontSize: '11px', color: '#8B7D8B', marginTop: '4px', lineHeight: 1.5 }}>ID salvo. Os eventos aparecem {b.chave === 'meta_pixel_id' ? 'no Gerenciador de Eventos' : 'em Relatórios → Tempo real'} em alguns minutos, depois que um visitante aceitar o aviso.</p>}
+                  <p style={{ fontSize: '11px', color: '#A99CB8', marginTop: '6px', lineHeight: 1.5 }}>{b.ajuda}</p>
+                  {conectado && <p style={{ fontSize: '11px', color: '#A99CB8', marginTop: '4px', lineHeight: 1.5 }}>ID salvo. Os eventos aparecem {b.chave === 'meta_pixel_id' ? 'no Gerenciador de Eventos' : 'em Relatórios → Tempo real'} em alguns minutos, depois que um visitante aceitar o aviso.</p>}
                   {m && <p role={m.ok ? 'status' : 'alert'} style={{ fontSize: '12px', fontWeight: 600, marginTop: '10px', color: m.ok ? '#22C55E' : '#EF4444' }}>{m.texto}</p>}
                   <div style={{ display: 'flex', gap: '8px', marginTop: '14px', flexWrap: 'wrap' }}>
-                    <button type="button" onClick={() => salvar(b.chave)} disabled={ocupado !== null} style={{ background: G, color: '#fff', border: '1px solid rgba(255,255,255,.12)', borderRadius: '8px', padding: '9px 18px', fontSize: '12px', fontWeight: 700, cursor: ocupado ? 'default' : 'pointer', fontFamily: 'inherit', opacity: ocupado ? .7 : 1 }}>{ocupado === b.chave ? 'Salvando...' : 'Salvar'}</button>
+                    <button type="button" onClick={() => salvar(b.chave)} disabled={ocupado !== null} style={{ background: G, color: '#151A0D', border: '1px solid rgba(255,255,255,.12)', borderRadius: '8px', padding: '9px 18px', fontSize: '12px', fontWeight: 700, cursor: ocupado ? 'default' : 'pointer', fontFamily: 'inherit', opacity: ocupado ? .7 : 1 }}>{ocupado === b.chave ? 'Salvando...' : 'Salvar'}</button>
                     {conectado && <button type="button" onClick={() => gravar(b.chave, null)} disabled={ocupado !== null} style={{ background: 'rgba(239,68,68,.10)', border: '1px solid rgba(239,68,68,.25)', color: '#EF4444', borderRadius: '8px', padding: '9px 16px', fontSize: '12px', fontWeight: 600, cursor: ocupado ? 'default' : 'pointer', fontFamily: 'inherit' }}>Remover</button>}
                   </div>
                 </div>
@@ -141,8 +141,8 @@ export default function Integracoes() {
           )}
 
           <div className="crd" style={{ padding: '16px 18px', marginTop: '20px' }}>
-            <p style={{ fontSize: '13px', fontWeight: 700, color: '#F8F4F7', marginBottom: '8px' }}>O que é enviado</p>
-            <p style={{ fontSize: '12px', color: '#B8AAB8', lineHeight: 1.7 }}>
+            <p style={{ fontSize: '13px', fontWeight: 700, color: '#FFFFFF', marginBottom: '8px' }}>O que é enviado</p>
+            <p style={{ fontSize: '12px', color: '#C5BCD0', lineHeight: 1.7 }}>
               Visualização da página e cliques em links, WhatsApp, produtos, destaques, vídeos e redes sociais, além de leads capturados (sem enviar o e-mail do visitante). Compras feitas em outras plataformas ainda não são medidas por esta integração.
             </p>
           </div>

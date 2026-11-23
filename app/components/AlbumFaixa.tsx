@@ -10,7 +10,7 @@ const ASPECT: Record<string, string> = { '1:1': '1/1', '4:5': '4/5', '3:4': '3/4
 // Miniatura: sempre a mesma proporcao escolhida no painel, object-fit:cover, sem titulo/
 // legenda visivel (so aparecem no modal ampliado). Faixa usa overflow-x:auto (scroll nativo
 // do navegador ja suporta touch/swipe e mouse/trackpad sem nenhum JS extra).
-export default function AlbumFaixa({ titulo, subtitulo, fotos, proporcao }: { titulo: string; subtitulo?: string | null; fotos: Foto[]; proporcao: string }) {
+export default function AlbumFaixa({ titulo, subtitulo, fotos, proporcao, formato='carrossel' }: { titulo: string; subtitulo?: string | null; fotos: Foto[]; proporcao: string; formato?: 'grade'|'carrossel' }) {
   const [indiceAberto, setIndiceAberto] = useState<number | null>(null)
   const aspect = ASPECT[proporcao] || '1/1'
   const containerRef = useRef<HTMLDivElement>(null)
@@ -48,14 +48,14 @@ export default function AlbumFaixa({ titulo, subtitulo, fotos, proporcao }: { ti
     <div style={{ marginBottom: '28px' }}>
       <p style={{ fontSize: '17px', fontWeight: 800, color: '#FFFFFF', marginBottom: subtitulo ? '2px' : '10px' }}>{titulo}</p>
       {subtitulo && <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '10px' }}>{subtitulo}</p>}
-      <div ref={containerRef} className="album-faixa-scroll">
+      <div ref={containerRef} className={formato==='grade' ? 'album-faixa-grade' : 'album-faixa-scroll'} style={formato==='grade' ? {display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(110px,1fr))',gap:10,overflow:'visible',width:'100%'} : undefined}>
         {fotos.map((f, i) => (
           <button
             key={f.id}
             type="button"
             onClick={() => setIndiceAberto(i)}
             className="album-faixa-item"
-            style={{ aspectRatio: aspect }}
+            style={formato==='grade' ? {aspectRatio:aspect,width:'100%',height:'auto',minWidth:0} : {aspectRatio:aspect}}
             aria-label={f.titulo || 'Ver foto ampliada'}
           >
             <img src={f.imagem_url} alt={f.titulo || ''} loading="lazy" decoding="async" />

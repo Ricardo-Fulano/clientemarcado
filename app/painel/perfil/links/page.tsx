@@ -10,18 +10,18 @@ import { PLATAFORMAS_LINK, placeholderPlataforma, normalizarInstagram, normaliza
 import { MARCAS, detectarOrigemDoLink, rotuloDaMarca, iconeDaMarca, corDaMarcaParaTema, escolhaManualValida } from '../../../lib/marcas'
 import IconeMarca from '../../../components/IconeMarca'
 
-const G='linear-gradient(135deg,#EC4899,#D946EF,#8B5CF6)'
+const G = '#C9FA45'
 
 const CSS=`
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-html,body{overflow-x:hidden;width:100%;max-width:100%;background:#08060A}
+html,body{overflow-x:hidden;width:100%;max-width:100%;background:#0B0A10}
 input,select,textarea{color-scheme:dark}
-.pg{background:radial-gradient(circle at top left,rgba(139,92,246,.18),transparent 32%),linear-gradient(135deg,#08060A 0%,#120A14 45%,#08060A 100%);min-height:100vh}
+.pg{background:radial-gradient(circle at top left,rgba(91,60,130,.15),transparent 36%),#0B0A10;min-height:100vh}
 .bdy{max-width:820px;margin:0 auto;padding:28px 32px 80px;width:100%}
-.crd{background:radial-gradient(circle at top left,rgba(139,92,246,.10),transparent 38%),linear-gradient(145deg,rgba(24,16,27,.97),rgba(18,10,20,.99));border:1.5px solid #2A1A2F;border-radius:18px}
-.lbl{display:block;font-size:11px;font-weight:700;color:#B8AAB8;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px}
-.inp{width:100%;background:rgba(24,16,27,.92);border:1.5px solid #2A1A2F;border-radius:10px;padding:10px 12px;color:#F8F4F7;font-size:13px;font-family:inherit}
-.inp:focus{outline:none;border-color:rgba(236,72,153,.5)}
+.crd{background:#21182D;border:1px solid #40344B;border-radius:18px}
+.lbl{display:block;font-size:11px;font-weight:700;color:#C5BCD1;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px}
+.inp{width:100%;background:rgba(33,24,45,.92);border:1.5px solid #40344B;border-radius:10px;padding:10px 12px;color:#FFFFFF;font-size:13px;font-family:inherit}
+.inp:focus{outline:none;border-color:rgba(201,250,69,.62)}
 .fg2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 @media(max-width:767px){.psb-main .bdy{padding:14px 14px 80px!important}.fg2{grid-template-columns:1fr!important}.top-actions{flex-direction:column;align-items:stretch!important}}
 `
@@ -49,7 +49,7 @@ function IconePlataforma({ tipo }: { tipo: string }) {
       </svg>
     )
     case 'threads': return (
-      <svg width={tamanho} height={tamanho} viewBox="0 0 16 16" fill="#F8F4F7">
+      <svg width={tamanho} height={tamanho} viewBox="0 0 16 16" fill="#FFFFFF">
         <path d="M6.321 6.016c-.27-.18-1.166-.802-1.166-.802.756-1.081 1.753-1.502 3.132-1.502.975 0 1.803.327 2.394.948s.928 1.509 1.005 2.644q.492.207.905.484c1.109.745 1.719 1.86 1.719 3.137 0 2.716-2.226 5.075-6.256 5.075C4.594 16 1 13.987 1 7.994 1 2.034 4.482 0 8.044 0 9.69 0 13.55.243 15 5.036l-1.36.353C12.516 1.974 10.163 1.43 8.006 1.43c-3.565 0-5.582 2.171-5.582 6.79 0 4.143 2.254 6.343 5.63 6.343 2.777 0 4.847-1.443 4.847-3.556 0-1.438-1.208-2.127-1.27-2.127-.236 1.234-.868 3.31-3.644 3.31-1.618 0-3.013-1.118-3.013-2.582 0-2.09 1.984-2.847 3.55-2.847.586 0 1.294.04 1.663.114 0-.637-.54-1.728-1.9-1.728-1.25 0-1.566.405-1.967.868ZM8.716 8.19c-2.04 0-2.304.87-2.304 1.416 0 .878 1.043 1.168 1.6 1.168 1.02 0 2.067-.282 2.232-2.423a6.2 6.2 0 0 0-1.528-.161"/>
       </svg>
     )
@@ -74,14 +74,14 @@ function IconePlataforma({ tipo }: { tipo: string }) {
       </svg>
     )
     case 'tiktok': return (
-      <svg width={tamanho} height={tamanho} viewBox="0 0 24 24" fill="#F8F4F7">
+      <svg width={tamanho} height={tamanho} viewBox="0 0 24 24" fill="#FFFFFF">
         <path d="M16.6 5.82s.51.5 0 0A4.278 4.278 0 0 1 15.54 3h-3.09v12.4a2.592 2.592 0 0 1-2.59 2.5c-1.42 0-2.6-1.16-2.6-2.6 0-1.72 1.66-3.01 3.37-2.48V9.66c-3.45-.46-6.47 2.22-6.47 5.64 0 3.33 2.76 5.7 5.69 5.7 3.14 0 5.69-2.55 5.69-5.7V9.01a7.35 7.35 0 0 0 4.3 1.38V7.3s-1.88.09-3.24-1.48z"/>
       </svg>
     )
     case 'spotify': return <Music size={tamanho} color="#1DB954" />
-    case 'email': return <Mail size={tamanho} color="#F8F4F7" />
-    case 'endereco': return <MapPin size={tamanho} color="#F8F4F7" />
-    default: return <Link2 size={tamanho} color="#B8AAB8" />
+    case 'email': return <Mail size={tamanho} color="#FFFFFF" />
+    case 'endereco': return <MapPin size={tamanho} color="#FFFFFF" />
+    default: return <Link2 size={tamanho} color="#C5BCD1" />
   }
 }
 
@@ -231,10 +231,10 @@ export default function GerenciarLinks(){
     setEditandoId(null)
   }
 
-  if(carregando)return(<div style={{minHeight:'100vh',background:'#08060A',display:'flex',alignItems:'center',justifyContent:'center',fontFamily:'system-ui'}}><p style={{color:'#B8AAB8',fontSize:'14px'}}>Carregando...</p></div>)
+  if(carregando)return(<div style={{minHeight:'100vh',background:'#0B0A10',display:'flex',alignItems:'center',justifyContent:'center',fontFamily:'system-ui'}}><p style={{color:'#C5BCD1',fontSize:'14px'}}>Carregando...</p></div>)
 
   return(
-    <div style={{display:'flex',minHeight:'100vh',background:'#08060A',fontFamily:'-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif',overflowX:'hidden',width:'100%'}}>
+    <div style={{display:'flex',minHeight:'100vh',background:'#0B0A10',fontFamily:'-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif',overflowX:'hidden',width:'100%'}}>
       <style dangerouslySetInnerHTML={{__html:CSS}}/>
       <PainelSidebar tituloMobile="Links"/>
       <div className="psb-main">
@@ -246,19 +246,19 @@ export default function GerenciarLinks(){
             </div>
           )}
 
-          <Link href="/painel/perfil" style={{display:'inline-flex',alignItems:'center',gap:'6px',fontSize:'13px',color:'#B8AAB8',textDecoration:'none',marginBottom:'18px'}}><ArrowLeft size={15}/> Voltar para Configurações</Link>
+          <Link href="/painel/perfil" style={{display:'inline-flex',alignItems:'center',gap:'6px',fontSize:'13px',color:'#C5BCD1',textDecoration:'none',marginBottom:'18px'}}><ArrowLeft size={15}/> Voltar para Configurações</Link>
 
           <div className="top-actions" style={{display:'flex',alignItems:'center',justifyContent:'space-between',flexWrap:'wrap',gap:'12px',marginBottom:'8px'}}>
-            <p style={{fontSize:'22px',fontWeight:800,color:'#F8F4F7',letterSpacing:'-0.02em'}}>Links</p>
+            <p style={{fontSize:'22px',fontWeight:800,color:'#FFFFFF',letterSpacing:'-0.02em'}}>Links</p>
             <div style={{display:'flex',gap:'10px',flexWrap:'wrap'}}>
               <VerMiniPageButton/>
-              <Link href="/painel/perfil/pix" style={{background:'rgba(24,16,27,.9)',color:'#F8F4F7',border:'1px solid #2A1A2F',borderRadius:'10px',padding:'10px 18px',fontSize:'13px',fontWeight:700,textDecoration:'none',fontFamily:'inherit'}}>Receber por Pix</Link>
-              <button type="button" onClick={novoLink} style={{background:G,color:'#fff',border:'1px solid rgba(255,255,255,.12)',borderRadius:'10px',padding:'10px 18px',fontSize:'13px',fontWeight:700,cursor:'pointer',fontFamily:'inherit'}}>+ Novo link</button>
+              <Link href="/painel/perfil/pix" style={{background:'rgba(33,24,45,.9)',color:'#FFFFFF',border:'1px solid #40344B',borderRadius:'10px',padding:'10px 18px',fontSize:'13px',fontWeight:700,textDecoration:'none',fontFamily:'inherit'}}>Receber por Pix</Link>
+              <button type="button" onClick={novoLink} style={{background:G,color:'#0B0A10',border:'1px solid rgba(255,255,255,.12)',borderRadius:'10px',padding:'10px 18px',fontSize:'13px',fontWeight:700,cursor:'pointer',fontFamily:'inherit'}}>+ Novo link</button>
             </div>
           </div>
-          <p style={{fontSize:'13px',color:'#B8AAB8',marginBottom:'24px'}}>TikTok, YouTube, Shopee, site, grupo VIP e outros links da sua bio. Use as setas para mudar a ordem de exibição.</p>
+          <p style={{fontSize:'13px',color:'#C5BCD1',marginBottom:'24px'}}>TikTok, YouTube, Shopee, site, grupo VIP e outros links da sua bio. Use as setas para mudar a ordem de exibição.</p>
 
-          {links.length===0&&<p style={{fontSize:'13px',color:'#B8AAB8',padding:'12px 0'}}>Nenhum link cadastrado ainda.</p>}
+          {links.length===0&&<p style={{fontSize:'13px',color:'#C5BCD1',padding:'12px 0'}}>Nenhum link cadastrado ainda.</p>}
 
           <div style={{display:'flex',flexDirection:'column',gap:'12px'}}>
             {links.map((l,i)=>{
@@ -270,19 +270,19 @@ export default function GerenciarLinks(){
                 return (
                   <div key={l.id} className="crd" style={{padding:'14px 16px',display:'flex',alignItems:'center',gap:'12px'}}>
                     <div style={{display:'flex',flexDirection:'column',gap:'3px',flexShrink:0}}>
-                      <button type="button" onClick={()=>mover(l.id,'up')} disabled={i===0} style={{width:'22px',height:'22px',borderRadius:'6px',background:'rgba(24,16,27,.9)',border:'1px solid #2A1A2F',color:i===0?'#4A3F4E':'#B8AAB8',cursor:i===0?'not-allowed':'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}><ArrowUp size={12}/></button>
-                      <button type="button" onClick={()=>mover(l.id,'down')} disabled={i===links.length-1} style={{width:'22px',height:'22px',borderRadius:'6px',background:'rgba(24,16,27,.9)',border:'1px solid #2A1A2F',color:i===links.length-1?'#4A3F4E':'#B8AAB8',cursor:i===links.length-1?'not-allowed':'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}><ArrowDown size={12}/></button>
+                      <button type="button" onClick={()=>mover(l.id,'up')} disabled={i===0} style={{width:'22px',height:'22px',borderRadius:'6px',background:'rgba(33,24,45,.9)',border:'1px solid #40344B',color:i===0?'#6A6075':'#C5BCD1',cursor:i===0?'not-allowed':'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}><ArrowUp size={12}/></button>
+                      <button type="button" onClick={()=>mover(l.id,'down')} disabled={i===links.length-1} style={{width:'22px',height:'22px',borderRadius:'6px',background:'rgba(33,24,45,.9)',border:'1px solid #40344B',color:i===links.length-1?'#6A6075':'#C5BCD1',cursor:i===links.length-1?'not-allowed':'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}><ArrowDown size={12}/></button>
                     </div>
                     <div style={{width:'36px',height:'36px',borderRadius:'10px',background:'rgba(255,255,255,.04)',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
                       <IconePlataforma tipo={iconeDoLink(l)}/>
                     </div>
                     <div style={{flex:1,minWidth:0}}>
-                      <p style={{fontSize:'14px',fontWeight:700,color:'#F8F4F7',whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{l.titulo||'(sem título)'}</p>
-                      {l.descricao&&<p style={{fontSize:'12px',color:'#B8AAB8',whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{l.descricao}</p>}
+                      <p style={{fontSize:'14px',fontWeight:700,color:'#FFFFFF',whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{l.titulo||'(sem título)'}</p>
+                      {l.descricao&&<p style={{fontSize:'12px',color:'#C5BCD1',whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{l.descricao}</p>}
                     </div>
-                    <button type="button" onClick={()=>editarLink(l.id,'ativo',!l.ativo)} style={{background:l.ativo?'rgba(34,197,94,.14)':'#2A1A2F',border:'1px solid '+(l.ativo?'rgba(34,197,94,.25)':'#2A1A2F'),borderRadius:10,padding:'6px 12px',fontSize:11,fontWeight:700,color:l.ativo?'#22C55E':'#B8AAB8',cursor:'pointer',fontFamily:'inherit',flexShrink:0}}>{l.ativo?'Ativo':'Oculto'}</button>
+                    <button type="button" onClick={()=>editarLink(l.id,'ativo',!l.ativo)} style={{background:l.ativo?'rgba(34,197,94,.14)':'#40344B',border:'1px solid '+(l.ativo?'rgba(34,197,94,.25)':'#40344B'),borderRadius:10,padding:'6px 12px',fontSize:11,fontWeight:700,color:l.ativo?'#22C55E':'#C5BCD1',cursor:'pointer',fontFamily:'inherit',flexShrink:0}}>{l.ativo?'Ativo':'Oculto'}</button>
                     <div style={{display:'flex',gap:'6px',flexShrink:0}}>
-                      <button type="button" onClick={()=>setEditandoId(l.id)} aria-label="Editar" style={{width:'32px',height:'32px',borderRadius:'8px',background:'rgba(24,16,27,.9)',border:'1px solid #2A1A2F',color:'#B8AAB8',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}><Pencil size={14}/></button>
+                      <button type="button" onClick={()=>setEditandoId(l.id)} aria-label="Editar" style={{width:'32px',height:'32px',borderRadius:'8px',background:'rgba(33,24,45,.9)',border:'1px solid #40344B',color:'#C5BCD1',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}><Pencil size={14}/></button>
                       <button type="button" onClick={()=>excluirLink(l.id)} aria-label="Excluir" style={{width:'32px',height:'32px',borderRadius:'8px',background:'rgba(239,68,68,.10)',border:'1px solid rgba(239,68,68,.25)',color:'#EF4444',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}><Trash2 size={14}/></button>
                     </div>
                   </div>
@@ -293,8 +293,8 @@ export default function GerenciarLinks(){
               return (
               <div key={l.id} className="crd" style={{padding:'16px',display:'flex',gap:'12px'}}>
                 <div style={{display:'flex',flexDirection:'column',gap:'4px',flexShrink:0,paddingTop:'2px'}}>
-                  <button type="button" onClick={()=>mover(l.id,'up')} disabled={i===0} style={{width:'28px',height:'28px',borderRadius:'8px',background:'rgba(24,16,27,.9)',border:'1px solid #2A1A2F',color:i===0?'#4A3F4E':'#B8AAB8',cursor:i===0?'not-allowed':'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}><ArrowUp size={14}/></button>
-                  <button type="button" onClick={()=>mover(l.id,'down')} disabled={i===links.length-1} style={{width:'28px',height:'28px',borderRadius:'8px',background:'rgba(24,16,27,.9)',border:'1px solid #2A1A2F',color:i===links.length-1?'#4A3F4E':'#B8AAB8',cursor:i===links.length-1?'not-allowed':'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}><ArrowDown size={14}/></button>
+                  <button type="button" onClick={()=>mover(l.id,'up')} disabled={i===0} style={{width:'28px',height:'28px',borderRadius:'8px',background:'rgba(33,24,45,.9)',border:'1px solid #40344B',color:i===0?'#6A6075':'#C5BCD1',cursor:i===0?'not-allowed':'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}><ArrowUp size={14}/></button>
+                  <button type="button" onClick={()=>mover(l.id,'down')} disabled={i===links.length-1} style={{width:'28px',height:'28px',borderRadius:'8px',background:'rgba(33,24,45,.9)',border:'1px solid #40344B',color:i===links.length-1?'#6A6075':'#C5BCD1',cursor:i===links.length-1?'not-allowed':'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}><ArrowDown size={14}/></button>
                 </div>
                 <div style={{flex:1,minWidth:0}}>
                   <div className="fg2" style={{marginBottom:'10px'}}>
@@ -310,11 +310,11 @@ export default function GerenciarLinks(){
                   <div style={{marginBottom:'12px'}}>
                     <label className="lbl">{l.tipo==='whatsapp'?'Número (com DDD) ou @usuário do WhatsApp':l.tipo==='endereco'?'Endereço para abrir no Google Maps':l.tipo==='email'?'E-mail para contato':l.tipo==='secreto'?'Link de direcionamento':'Link (URL)'}</label>
                     <input className="inp" type={l.tipo==='email'?'email':'text'} value={l.url||''} onChange={e=>editarLink(l.id,'url',e.target.value)} placeholder={placeholderPlataforma(l.tipo)}/>
-                    {l.tipo==='whatsapp'&&<p style={{fontSize:'11px',color:'#B8AAB8',marginTop:'6px'}}>Pode digitar só o número com DDD (sem link pronto) ou seu @usuário do WhatsApp, se você já tiver criado um. O link completo é montado sozinho ao salvar.</p>}
-                    {l.tipo==='endereco'&&<p style={{fontSize:'11px',color:'#B8AAB8',marginTop:'6px'}}>Digite o endereço completo. O MiniPage Pro abrirá esse local no Google Maps. Também aceita um link do Google Maps já pronto, se preferir colar um.</p>}
-                    {l.tipo==='email'&&<p style={{fontSize:'11px',color:'#B8AAB8',marginTop:'6px'}}>Só o e-mail, sem precisar escrever &quot;mailto:&quot; — isso é feito automaticamente. Ao clicar no card, abre o app de e-mail do visitante.</p>}
+                    {l.tipo==='whatsapp'&&<p style={{fontSize:'11px',color:'#C5BCD1',marginTop:'6px'}}>Pode digitar só o número com DDD (sem link pronto) ou seu @usuário do WhatsApp, se você já tiver criado um. O link completo é montado sozinho ao salvar.</p>}
+                    {l.tipo==='endereco'&&<p style={{fontSize:'11px',color:'#C5BCD1',marginTop:'6px'}}>Digite o endereço completo. O MiniPage Pro abrirá esse local no Google Maps. Também aceita um link do Google Maps já pronto, se preferir colar um.</p>}
+                    {l.tipo==='email'&&<p style={{fontSize:'11px',color:'#C5BCD1',marginTop:'6px'}}>Só o e-mail, sem precisar escrever &quot;mailto:&quot; — isso é feito automaticamente. Ao clicar no card, abre o app de e-mail do visitante.</p>}
                     {tipoSugerido&&(
-                      <button type="button" onClick={()=>editarLink(l.id,'tipo',tipoSugerido)} style={{marginTop:'8px',background:'rgba(236,72,153,.10)',border:'1px solid rgba(236,72,153,.28)',color:'#EC4899',borderRadius:'8px',padding:'6px 12px',fontSize:'11px',fontWeight:700,cursor:'pointer',fontFamily:'inherit'}}>
+                      <button type="button" onClick={()=>editarLink(l.id,'tipo',tipoSugerido)} style={{marginTop:'8px',background:'rgba(201,250,69,.08)',border:'1px solid rgba(201,250,69,.25)',color:'#C9FA45',borderRadius:'8px',padding:'6px 12px',fontSize:'11px',fontWeight:700,cursor:'pointer',fontFamily:'inherit'}}>
                         Esse link parece ser {rotuloDaMarca(tipoSugerido)||tipoSugerido} — usar esse tipo?
                       </button>
                     )}
@@ -326,12 +326,12 @@ export default function GerenciarLinks(){
                       <div style={{marginBottom:'12px'}}>
                         <div style={{display:'flex',alignItems:'center',gap:'10px',flexWrap:'wrap',marginBottom:'8px'}}>
                           <div style={{width:'36px',height:'36px',borderRadius:'10px',background:'rgba(255,255,255,.04)',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}><IconePlataforma tipo={iconeDoLink(l)}/></div>
-                          <p style={{fontSize:'12px',color:'#B8AAB8',flex:'1 1 200px',lineHeight:1.5}}>
-                            {o.marca&&rotuloDaMarca(o.marca)?<>Reconhecido: <strong style={{color:'#F8F4F7'}}>{rotuloDaMarca(o.marca)}</strong>. O ícone aparece automaticamente na sua MiniPage.</>:o.motivo==='encurtador'?'Link encurtado: não dá para saber o destino com segurança. Escolha o ícone abaixo, se quiser.':l.url?'Plataforma não reconhecida: será usado o ícone do tipo escolhido.':'Cole o link para reconhecer a plataforma automaticamente.'}
+                          <p style={{fontSize:'12px',color:'#C5BCD1',flex:'1 1 200px',lineHeight:1.5}}>
+                            {o.marca&&rotuloDaMarca(o.marca)?<>Reconhecido: <strong style={{color:'#FFFFFF'}}>{rotuloDaMarca(o.marca)}</strong>. O ícone aparece automaticamente na sua MiniPage.</>:o.motivo==='encurtador'?'Link encurtado: não dá para saber o destino com segurança. Escolha o ícone abaixo, se quiser.':l.url?'Plataforma não reconhecida: será usado o ícone do tipo escolhido.':'Cole o link para reconhecer a plataforma automaticamente.'}
                           </p>
                         </div>
                         {!l.titulo?.trim()&&sugestao&&(
-                          <button type="button" onClick={()=>editarLink(l.id,'titulo',sugestao)} style={{marginBottom:'8px',background:'rgba(236,72,153,.10)',border:'1px solid rgba(236,72,153,.28)',color:'#EC4899',borderRadius:'8px',padding:'6px 12px',fontSize:'11px',fontWeight:700,cursor:'pointer',fontFamily:'inherit'}}>Usar o título &quot;{sugestao}&quot;</button>
+                          <button type="button" onClick={()=>editarLink(l.id,'titulo',sugestao)} style={{marginBottom:'8px',background:'rgba(201,250,69,.08)',border:'1px solid rgba(201,250,69,.25)',color:'#C9FA45',borderRadius:'8px',padding:'6px 12px',fontSize:'11px',fontWeight:700,cursor:'pointer',fontFamily:'inherit'}}>Usar o título &quot;{sugestao}&quot;</button>
                         )}
                         <label className="lbl">Ícone exibido</label>
                         <select className="inp" style={{cursor:iconeManualOk?'pointer':'not-allowed'}} disabled={!iconeManualOk} value={l.icone_marca||''} onChange={e=>editarLink(l.id,'icone_marca',e.target.value||null)}>
@@ -339,16 +339,16 @@ export default function GerenciarLinks(){
                           <option value="generico">Ícone genérico</option>
                           {MARCAS_COM_ICONE.map(m=><option key={m.id} value={m.id}>{m.rotulo}</option>)}
                         </select>
-                        {!iconeManualOk&&<p style={{fontSize:'11px',color:'#B8AAB8',marginTop:'6px'}}>A escolha manual do ícone fica disponível depois que o administrador aplicar a atualização do banco de dados (script 01). Até lá, o ícone é automático.</p>}
+                        {!iconeManualOk&&<p style={{fontSize:'11px',color:'#C5BCD1',marginTop:'6px'}}>A escolha manual do ícone fica disponível depois que o administrador aplicar a atualização do banco de dados (script 01). Até lá, o ícone é automático.</p>}
                       </div>
                     )
                   })()}
                   <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:'8px',flexWrap:'wrap'}}>
-                    <button type="button" onClick={()=>editarLink(l.id,'ativo',!l.ativo)} style={{background:l.ativo?'rgba(34,197,94,.14)':'#2A1A2F',border:'1px solid '+(l.ativo?'rgba(34,197,94,.25)':'#2A1A2F'),borderRadius:10,padding:'6px 14px',fontSize:12,fontWeight:700,color:l.ativo?'#22C55E':'#B8AAB8',cursor:'pointer',fontFamily:'inherit'}}>{l.ativo?'Ativo':'Oculto'}</button>
+                    <button type="button" onClick={()=>editarLink(l.id,'ativo',!l.ativo)} style={{background:l.ativo?'rgba(34,197,94,.14)':'#40344B',border:'1px solid '+(l.ativo?'rgba(34,197,94,.25)':'#40344B'),borderRadius:10,padding:'6px 14px',fontSize:12,fontWeight:700,color:l.ativo?'#22C55E':'#C5BCD1',cursor:'pointer',fontFamily:'inherit'}}>{l.ativo?'Ativo':'Oculto'}</button>
                     <div style={{display:'flex',gap:'8px'}}>
-                      <button type="button" onClick={()=>cancelarEdicao(l)} style={{background:'rgba(24,16,27,.9)',border:'1px solid #2A1A2F',color:'#B8AAB8',borderRadius:'8px',padding:'8px 14px',fontSize:'12px',fontWeight:600,cursor:'pointer',fontFamily:'inherit'}}>Voltar</button>
+                      <button type="button" onClick={()=>cancelarEdicao(l)} style={{background:'rgba(33,24,45,.9)',border:'1px solid #40344B',color:'#C5BCD1',borderRadius:'8px',padding:'8px 14px',fontSize:'12px',fontWeight:600,cursor:'pointer',fontFamily:'inherit'}}>Voltar</button>
                       <button type="button" onClick={()=>excluirLink(l.id)} style={{background:'rgba(239,68,68,.10)',border:'1px solid rgba(239,68,68,.25)',color:'#EF4444',borderRadius:'8px',padding:'8px 14px',fontSize:'12px',fontWeight:600,cursor:'pointer',fontFamily:'inherit'}}>Excluir</button>
-                      <button type="button" onClick={()=>salvarLink(l)} disabled={salvandoId===l.id} style={{background:G,color:'#fff',border:'1px solid rgba(255,255,255,.12)',borderRadius:'8px',padding:'8px 16px',fontSize:'12px',fontWeight:700,cursor:'pointer',fontFamily:'inherit',opacity:salvandoId===l.id?.7:1}}>{salvandoId===l.id?'Salvando...':'Salvar'}</button>
+                      <button type="button" onClick={()=>salvarLink(l)} disabled={salvandoId===l.id} style={{background:G,color:'#0B0A10',border:'1px solid rgba(255,255,255,.12)',borderRadius:'8px',padding:'8px 16px',fontSize:'12px',fontWeight:700,cursor:'pointer',fontFamily:'inherit',opacity:salvandoId===l.id?.7:1}}>{salvandoId===l.id?'Salvando...':'Salvar'}</button>
                     </div>
                   </div>
                 </div>

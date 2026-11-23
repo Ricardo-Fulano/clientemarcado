@@ -4,8 +4,8 @@ import { abrir, COOKIE_TOKEN, type SessaoInstagram } from '../../../../lib/insta
 export const runtime = 'nodejs'
 const reply = (data:unknown,status:number) => NextResponse.json(data,{status,headers:{'Cache-Control':'no-store'}})
 const VERSION='v25.0'
-async function graph(path:string, fields:string, token:string, limit?:number) {
-  const url = new URL(`https://graph.facebook.com/${VERSION}/${path}`)
+async function graph(path:string, fields:string, token:string, limit?:number, direto=false) {
+  const url = new URL(`https://graph.${direto?'instagram':'facebook'}.com/${VERSION}/${path}`)
   url.searchParams.set('fields',fields)
   if (limit) url.searchParams.set('limit',String(limit))
   const controller=new AbortController()
@@ -27,8 +27,8 @@ export async function GET(req:NextRequest) {
       !session.instagramId || !/^\d+$/.test(session.instagramId)) return reply({error:'Conecte novamente sua conta profissional do Instagram.'},401)
   try {
     const [profile,media]=await Promise.all([
-      graph(session.instagramId,'id,username,name,biography,profile_picture_url,followers_count',session.token),
-      graph(session.instagramId+'/media','id,media_type,media_url,thumbnail_url,permalink,caption,timestamp',session.token,12)
+      graph(session.provedor==='direto'?'me':session.instagramId,'id,username,name,biography,profile_picture_url,followers_count',session.token,undefined,session.provedor==='direto'),
+      graph((session.provedor==='direto'?'me':session.instagramId)+'/media','id,media_type,media_url,thumbnail_url,permalink,caption,timestamp',session.token,12,session.provedor==='direto')
     ])
     const entries=Array.isArray(media?.data)?media.data:[]
     return reply({perfil:{username:String(profile.username||session.username||''),nome:String(profile.name||''),bio:String(profile.biography||''),foto:String(profile.profile_picture_url||''),seguidores:Number.isFinite(profile.followers_count)?profile.followers_count:null},midias:entries.slice(0,12).filter((m:Record<string,unknown>)=>typeof m.permalink==='string').map((m:Record<string,unknown>)=>({id:String(m.id||''),tipo:String(m.media_type||''),imagem:String(m.thumbnail_url||m.media_url||''),link:String(m.permalink||''),legenda:String(m.caption||'').slice(0,160)}))},200)

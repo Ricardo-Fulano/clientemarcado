@@ -1,0 +1,351 @@
+'use client'
+import { useEffect, useState } from 'react'
+import { useRouter, usePathname } from 'next/navigation'
+import { supabase } from '../lib/supabase'
+import { garantirPerfilNoServidor } from '../lib/garantir-perfil-cliente'
+import { Suspense } from 'react'
+import BannerPagamentoSucesso from '../components/BannerPagamentoSucesso'
+import BloqueioPorPlano from '../components/BloqueioPorPlano'
+import { normalizarPlano, ehPlanoComGestao, podeUsarProfissionais, ehPlanoFree, ehAguardandoPagamento, statusPermiteAcessoCompleto, statusPrecisaFinalizarCheckout, obterNomePlano, obterPrecoPlanoPorCiclo, normalizarBillingCycle, bloqueioPorRotaDoPainel } from '../lib/planos'
+
+const G = 'linear-gradient(135deg,#3B82F6,#7C3AED)'
+// Nomes amigaveis pra mensagem de erro refletir o plano real da pessoa (antes ficava fixo
+// dizendo "Plano Equipe", mesmo quando o problema era com o MiniPage).
+const NOME_PLANO_AMIGAVEL: Record<string, string> = { minipage: 'MiniPage', essencial: 'Profissional', equipe: 'Equipe' }
+function nomePlanoAtual(planoTipo: string) { return NOME_PLANO_AMIGAVEL[planoTipo] || 'atual' }
+
+// Cria um perfil inicial seguro pra uma conta que existe no Auth mas nao tem linha em
+// `perfis` ainda (bug de cadastro: a chamada original pra /api/cadastro/criar-perfil e
+// "dispara e esquece", sem checar sucesso - se falhar por qualquer motivo, a conta fica
+// sem perfil pra sempre, sem ninguem perceber). Usa SEMPRE o auth.uid() da sessao atual
+// (nunca busca por e-mail, nunca reaproveita perfil de outra pessoa). Reconfere com
+// select antes de inserir, pra nao duplicar se outra aba/effect ja criou nesse meio-tempo.
+async function criarPerfilAutomatico(userId: string, _metadata: any) {
+  const { data: jaExiste } = await supabase.from('perfis').select('id').eq('user_id', userId).maybeSingle()
+  if (jaExiste) return { criado: false }
+
+  // SEGURANCA (P1): a criacao do perfil acontece SO no servidor (/api/cadastro/criar-perfil): sempre Free, nunca para
+  // profissional de equipe, e sem aceitar plano nem nome vindos do navegador. O navegador nao faz mais INSERT em "perfis".
+  const r = await garantirPerfilNoServidor()
+  if (!r.ok) {
+    console.warn('[criarPerfilAutomatico] Erro ao criar perfil:', r.erro)
+    return { criado: false, erro: r.erro }
+  }
+  return { criado: r.criado, slug: r.slug }
+}
+
+export default function PainelLayoutClient({ children }: { children: React.ReactNode }) {
+  const [status, setStatus] = useState<string>('ativo')
+  const [planoTipo, setPlanoTipo] = useState<string>('essencial')
+  const [diasAtraso, setDiasAtraso] = useState<number|null>(null)
+  // Para a tela de "primeiro pagamento" (conta que ainda nao tem assinatura no gateway nem pagou).
+  // Otimistas ate a consulta terminar, para nunca mostrar a tela errada por engano.
+  const [gatewaySubId, setGatewaySubId] = useState<string | null>('carregando')
+  const [primeiroPago, setPrimeiroPago] = useState(true)
+  const [cicloPerfil, setCicloPerfil] = useState<string | null>(null)
+  const [temAssinaturaAutorizada, setTemAssinaturaAutorizada] = useState(true) // otimista ate confirmar - nunca bloqueia por engano antes da consulta terminar
+  const [loadingPag, setLoadingPag] = useState(false)
+  const [loading, setLoading] = useState(true)
+  const [isProfissional, setIsProfissional] = useState(false)
+  const router = useRouter()
+  const pathname = usePathname()
+
+  function abrirCheckout() {
+    if (loadingPag) return
+    setLoadingPag(true)
+    // /pos-confirmacao mostra a escolha entre Cartao de Credito e Pix, e so ali a API
+    // /api/asaas/criar-assinatura e chamada de verdade, com o metodo escolhido - chamar a
+    // API direto por aqui (como antes) sempre falha hoje, ja que ela exige metodoPagamento
+    // explicito e nunca mais aceita UNDEFINED.
+    window.location.href = '/pos-confirmacao'
+  }
+
+  useEffect(() => {
+    async function verificar() {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) { router.push('/login'); return }
+
+      const { data: p, error: perfilError } = await supabase
+        .from('perfis')
+        .select('status_acesso, trial_ends_at, plano_ativo_ate, plano_tipo, mp_subscription_id, gateway_subscription_id, primeiro_pagamento_confirmado, billing_cycle')
+        .eq('user_id', user.id)
+        .single()
+
+      // Sem perfil proprio (nao e dona): pode ser uma profissional com acesso individual
+      if (!p || perfilError) {
+        const { data: { session } } = await supabase.auth.getSession()
+        const token = session?.access_token
+        if (token) {
+          try {
+            const res = await fetch('/api/equipe/meu-vinculo', { headers: { 'Authorization': 'Bearer ' + token } })
+            const vinculo = await res.json()
+            if (res.ok && vinculo?.role === 'profissional' && vinculo?.ativo) {
+              setIsProfissional(true)
+              setLoading(false)
+              return
+            }
+          } catch (e) { console.warn('Erro ao verificar vinculo de equipe:', e) }
+        }
+        // Sem perfil e sem vinculo: tenta criar automaticamente um perfil inicial seguro
+        // (usa sempre o auth.uid() da sessao atual - nunca busca por e-mail, nunca reaproveita
+        // perfil de outra pessoa). Cobre o caso da chamada original de cadastro ter falhado
+        // silenciosamente. Se a criacao falhar por qualquer motivo, mantem o comportamento
+        // anterior (deixa passar como ativo) - a tela de /painel/perfil ainda tem o botao
+        // manual "Criar meu perfil" como rede de seguranca final.
+        await criarPerfilAutomatico(user.id, user.user_metadata)
+        setStatus('ativo')
+        setLoading(false)
+        return
+      }
+
+      setPlanoTipo(normalizarPlano(p?.plano_tipo))
+      setTemAssinaturaAutorizada(!!p?.mp_subscription_id)
+      setGatewaySubId(p?.gateway_subscription_id || null)
+      setPrimeiroPago(p?.primeiro_pagamento_confirmado === true)
+      setCicloPerfil(p?.billing_cycle || null)
+
+      let st = p?.status_acesso || 'ativo'
+
+      // NOTA: existia aqui uma logica baseada em trial_ends_at (trial de 7 dias) que
+      // calculava se o trial tinha vencido e, nesse caso, mudava status_acesso pra
+      // 'em_atraso' sozinha. Essa logica foi DESATIVADA - a nova regra de negocio nao usa
+      // mais trial: Free e gratis sem vencimento, planos pagos so liberam/bloqueiam via
+      // status_acesso definido pelo webhook do Asaas (pagamento confirmado libera,
+      // atraso/cancelamento bloqueia). O campo trial_ends_at continua existindo no banco
+      // (ainda preenchido pelo trigger_set_trial, que nao foi alterado), mas nao e mais
+      // lido/usado aqui pra nenhuma decisao de acesso.
+
+      // Dias de atraso (mantido): calcula usando plano_ativo_ate como referencia quando o
+      // status ja veio 'em_atraso' do banco (definido pelo webhook do Asaas por pagamento
+      // vencido/estornado/cancelado - nunca mais por trial vencido).
+      if (st === 'em_atraso' && p?.plano_ativo_ate) {
+        const agora = new Date()
+        const dataReferencia = new Date(p.plano_ativo_ate)
+        const diasDesde = Math.floor((agora.getTime() - dataReferencia.getTime()) / (1000 * 60 * 60 * 24))
+        setDiasAtraso(Math.max(0, diasDesde))
+      }
+
+      setStatus(st)
+      setLoading(false)
+    }
+    verificar()
+  }, [])
+
+  // Reavalia o bloqueio de rota a cada navegacao (sem repetir as consultas pesadas)
+  useEffect(() => {
+    if (!loading && isProfissional && pathname !== '/painel/minha-agenda' && pathname !== '/painel/alterar-senha' && pathname !== '/painel/meu-desempenho') {
+      router.replace('/painel/minha-agenda')
+    }
+  }, [pathname, isProfissional, loading])
+
+  if (loading) return (
+    <div style={{minHeight:'100vh',background:'#050B16',display:'flex',alignItems:'center',justifyContent:'center',fontFamily:'system-ui'}}>
+      <p style={{color:'#475569',fontSize:'14px'}}>Carregando...</p>
+    </div>
+  )
+
+  // Bloqueio progressivo por mensalidade em atraso (so aplica quando status==='em_atraso'):
+  // ate 3 dias = aviso leve | 4-7 dias = aviso forte | 8-14 dias = bloqueio parcial (algumas
+  // rotas de criacao/gerenciamento ficam indisponiveis) | 15+ dias = bloqueio quase total
+  // (so Inicio/Meu plano/Suporte continuam acessiveis). diasAtraso null (sem data confiavel)
+  // cai no nivel mais brando (leve), nunca bloqueia sem certeza.
+  const nivelAtraso: 'leve'|'forte'|'parcial'|'total'|null =
+    ehPlanoFree(planoTipo) ? null
+    : status !== 'em_atraso' ? null
+    : diasAtraso === null ? 'leve'
+    : diasAtraso <= 3 ? 'leve'
+    : diasAtraso <= 7 ? 'forte'
+    : diasAtraso <= 14 ? 'parcial'
+    : 'total'
+
+  // So mostra a tela "Finalize sua assinatura" quando o trial JA venceu (status em_atraso,
+  // ou seja, ja caiu em algum nivelAtraso) E a pessoa NUNCA autorizou nenhuma assinatura de
+  // verdade no Mercado Pago (mp_subscription_id nunca foi preenchido pelo webhook). Nao
+  // bloqueia ninguem ainda dentro do trial, nem quem ja pagou normalmente antes - so o caso
+  // especifico "trial acabou e nunca chegou a autorizar nada".
+  const precisaFinalizarAssinatura = nivelAtraso !== null && !temAssinaturaAutorizada
+
+  // ETAPA 4 - 'aguardandoPagamento' agora e usado DE VERDADE mais abaixo, pra bloquear o
+  // painel de contas pagas que nunca autorizaram nenhuma assinatura. precisaFinalizarCheckout
+  // e statusPermiteAcessoCompleto continuam so preparados (Etapa 2), ainda sem uso real.
+  const aguardandoPagamento = ehAguardandoPagamento(status)
+  const precisaFinalizarCheckout = statusPrecisaFinalizarCheckout(status)
+  void precisaFinalizarCheckout
+  void statusPermiteAcessoCompleto
+
+  // Bloqueio TOTAL (15+ dias): so essas rotas continuam acessiveis
+  const ROTAS_PERMITIDAS_BLOQUEIO_TOTAL = ['/painel', '/painel/plano', '/painel/suporte']
+  // Bloqueio PARCIAL (8-14 dias): essas rotas de criacao/gerenciamento ficam bloqueadas
+  // (o restante do painel - agenda, clientes, financeiro em modo leitura, etc - continua acessivel)
+  const PREFIXOS_BLOQUEADOS_PARCIAL = ['/painel/agendamentos/novo', '/painel/orcamentos/novo', '/painel/servicos', '/painel/profissionais', '/painel/perfil']
+
+  const bloqueadoTotal = nivelAtraso === 'total' && !ROTAS_PERMITIDAS_BLOQUEIO_TOTAL.includes(pathname)
+  const bloqueadoParcial = nivelAtraso === 'parcial' && PREFIXOS_BLOQUEADOS_PARCIAL.some(p => pathname === p || pathname.startsWith(p + '/'))
+
+  // Bloqueio por PLANO (nao por atraso de pagamento): algumas rotas so fazem sentido pros
+  // planos com gestao completa (Pro/Equipe) ou exclusivamente pro plano Equipe. Sempre via
+  // funcoes centralizadas de app/lib/planos.ts - nunca comparacao solta tipo plano==='x'.
+  const planoAtual = normalizarPlano(planoTipo)
+  const ROTAS_GESTAO = ['/painel/agendamentos', '/painel/clientes', '/painel/orcamentos', '/painel/cobrancas', '/painel/financeiro', '/painel/servicos', '/painel/relatorio', '/painel/perfil/agenda']
+  const ROTAS_PROFISSIONAIS = ['/painel/profissionais']
+  const precisaGestao = ROTAS_GESTAO.some(r => pathname === r || pathname.startsWith(r + '/'))
+  const precisaProfissionais = ROTAS_PROFISSIONAIS.some(r => pathname === r || pathname.startsWith(r + '/'))
+  const bloqueadoPorPlano = (precisaGestao && !ehPlanoComGestao(planoAtual)) || (precisaProfissionais && !podeUsarProfissionais(planoAtual))
+  // Rotas dos modulos da pagina (albuns, cards, Spotify, destaques, videos, eventos, catalogo): barra a URL direta conforme o plano
+  const bloqueioModulo = bloqueioPorRotaDoPainel(pathname, planoAtual)
+
+  // Profissional tentando acessar rota administrativa: nao renderiza nada ate o redirecionamento
+  if (isProfissional && pathname !== '/painel/minha-agenda' && pathname !== '/painel/alterar-senha' && pathname !== '/painel/meu-desempenho') return (
+    <div style={{minHeight:'100vh',background:'#08060A',display:'flex',alignItems:'center',justifyContent:'center',fontFamily:'system-ui'}}>
+      <p style={{color:'#B8AAB8',fontSize:'14px'}}>Redirecionando...</p>
+    </div>
+  )
+
+  // Profissional na propria area: sem banners de cobranca (irrelevantes pra ela)
+  if (isProfissional) return <>{children}</>
+
+  if (status === 'bloqueado' || status === 'cancelado') return (
+    <div style={{minHeight:'100vh',background:'linear-gradient(180deg,#060C18,#050B16)',display:'flex',alignItems:'center',justifyContent:'center',padding:'24px',fontFamily:'system-ui'}}>
+      <div style={{maxWidth:'440px',width:'100%',background:'rgba(15,23,42,.95)',border:'1px solid rgba(124,58,237,.30)',borderRadius:'20px',padding:'40px 32px',textAlign:'center'}}>
+        <div style={{fontSize:'36px',marginBottom:'16px'}}>🔒</div>
+        <h2 style={{fontSize:'20px',fontWeight:800,color:'#F8FAFC',marginBottom:'12px'}}>Acesso bloqueado</h2>
+        <p style={{fontSize:'14px',color:'#94A3B8',marginBottom:'28px',lineHeight:1.6}}>Regularize o pagamento para voltar a acessar o ClienteMarcado.</p>
+        <button onClick={abrirCheckout} disabled={loadingPag} style={{display:'flex',width:'100%',alignItems:'center',justifyContent:'center',height:'48px',background:G,color:'#fff',border:'none',borderRadius:'12px',textDecoration:'none',fontSize:'14px',fontWeight:700,cursor:loadingPag?'wait':'pointer',opacity:loadingPag?.7:1,fontFamily:'inherit'}}>{loadingPag?'Gerando...':'Regularizar pagamento'}</button>
+      </div>
+    </div>
+  )
+
+  // ETAPA 4 - bloqueio de verdade pra quem esta 'aguardando_pagamento' (cadastro criado mas
+  // nunca autorizou nenhuma assinatura no Mercado Pago ainda). So bloqueia planos PAGOS -
+  // Free nunca cai aqui, ja que Free nunca tem status 'aguardando_pagamento' (a migration da
+  // Etapa 3, ainda nao aplicada, so vai gravar esse valor pra planos pagos). Usa o MESMO
+  // botao/endpoint (abrirCheckout -> /api/mercadopago/criar-assinatura) que o resto do
+  // sistema ja usa - nao cria nenhum fluxo novo de pagamento.
+  // Conta que ainda NAO tem assinatura no gateway e nunca pagou (ex: recebeu a MiniPage por
+  // transferencia): tela de "primeiro pagamento". Quem ja iniciou o checkout (tem assinatura
+  // mas ainda nao pagou) continua vendo a tela de baixo, e o mesmo botao reaproveita a cobranca.
+  const primeiroPagamentoPendente = aguardandoPagamento && !ehPlanoFree(planoTipo) && gatewaySubId === null && !primeiroPago
+  const cicloExibido = normalizarBillingCycle(cicloPerfil)   // vazio (conta antiga/transferida) = mensal
+  const precoExibido = obterPrecoPlanoPorCiclo(planoTipo, cicloExibido).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
+  if (primeiroPagamentoPendente) return (
+    <div style={{minHeight:'100vh',background:'linear-gradient(180deg,#060C18,#050B16)',display:'flex',alignItems:'center',justifyContent:'center',padding:'24px',fontFamily:'system-ui'}}>
+      <div style={{maxWidth:'440px',width:'100%',background:'rgba(15,23,42,.95)',border:'1px solid rgba(139,92,246,.30)',borderRadius:'20px',padding:'40px 32px',textAlign:'center'}}>
+        <div style={{fontSize:'36px',marginBottom:'16px'}}>🎉</div>
+        <h2 style={{fontSize:'20px',fontWeight:800,color:'#F8FAFC',marginBottom:'12px'}}>Sua MiniPage está pronta 🎉</h2>
+        <p style={{fontSize:'14px',color:'#94A3B8',marginBottom:'20px',lineHeight:1.6}}>Finalize sua assinatura para continuar usando todos os recursos da sua página profissional.</p>
+        <p style={{fontSize:'15px',fontWeight:700,color:'#F8FAFC',marginBottom:'24px'}}>Plano {obterNomePlano(planoTipo)} — {precoExibido}/{cicloExibido === 'anual' ? 'ano' : 'mês'}</p>
+        <button onClick={abrirCheckout} disabled={loadingPag} style={{display:'flex',width:'100%',alignItems:'center',justifyContent:'center',height:'48px',background:G,color:'#fff',border:'none',borderRadius:'12px',textDecoration:'none',fontSize:'14px',fontWeight:700,cursor:loadingPag?'wait':'pointer',opacity:loadingPag?.7:1,fontFamily:'inherit',marginBottom:'12px'}}>{loadingPag?'Gerando...':'Finalizar assinatura'}</button>
+        <a href={`https://wa.me/5511941059063?text=${encodeURIComponent('Olá! Preciso de ajuda para finalizar minha assinatura da MiniPage Pro.')}`} target="_blank" rel="noopener noreferrer" style={{display:'block',fontSize:'12px',color:'#64748B',textDecoration:'underline'}}>Precisa de ajuda? Fale com o suporte</a>
+      </div>
+    </div>
+  )
+
+  if (aguardandoPagamento && !ehPlanoFree(planoTipo)) return (
+    <div style={{minHeight:'100vh',background:'linear-gradient(180deg,#060C18,#050B16)',display:'flex',alignItems:'center',justifyContent:'center',padding:'24px',fontFamily:'system-ui'}}>
+      <div style={{maxWidth:'440px',width:'100%',background:'rgba(15,23,42,.95)',border:'1px solid rgba(139,92,246,.30)',borderRadius:'20px',padding:'40px 32px',textAlign:'center'}}>
+        <div style={{fontSize:'36px',marginBottom:'16px'}}>💳</div>
+        <h2 style={{fontSize:'20px',fontWeight:800,color:'#F8FAFC',marginBottom:'12px'}}>Finalize sua assinatura para ativar sua MiniPage Pro</h2>
+        <p style={{fontSize:'14px',color:'#94A3B8',marginBottom:'20px',lineHeight:1.6}}>Seu cadastro foi criado, mas sua assinatura ainda não foi concluída. Finalize o pagamento com segurança para liberar o painel e iniciar seu período grátis.</p>
+        <button onClick={abrirCheckout} disabled={loadingPag} style={{display:'flex',width:'100%',alignItems:'center',justifyContent:'center',height:'48px',background:G,color:'#fff',border:'none',borderRadius:'12px',textDecoration:'none',fontSize:'14px',fontWeight:700,cursor:loadingPag?'wait':'pointer',opacity:loadingPag?.7:1,fontFamily:'inherit',marginBottom:'12px'}}>{loadingPag?'Gerando...':'Finalizar assinatura'}</button>
+        <a href={`https://wa.me/5511941059063?text=${encodeURIComponent('Olá! Preciso de ajuda para finalizar minha assinatura da MiniPage Pro.')}`} target="_blank" rel="noopener noreferrer" style={{display:'block',fontSize:'13px',color:'#94A3B8',textDecoration:'underline',marginBottom:'16px'}}>Falar com o suporte</a>
+        <p style={{fontSize:'11px',color:'#64748B',lineHeight:1.5}}>Você só começa seu período grátis após concluir a assinatura.</p>
+      </div>
+    </div>
+  )
+
+
+  // Bloqueio TOTAL por atraso (15+ dias): mesmo estilo visual do bloqueio manual acima, so que
+  // disparado automaticamente pelos dias calculados, com links pras 3 rotas ainda permitidas.
+  if (bloqueadoTotal) return (
+    <div style={{minHeight:'100vh',background:'linear-gradient(180deg,#060C18,#050B16)',display:'flex',alignItems:'center',justifyContent:'center',padding:'24px',fontFamily:'system-ui'}}>
+      <div style={{maxWidth:'440px',width:'100%',background:'rgba(15,23,42,.95)',border:'1px solid rgba(239,68,68,.30)',borderRadius:'20px',padding:'40px 32px',textAlign:'center'}}>
+        <div style={{fontSize:'36px',marginBottom:'16px'}}>🔒</div>
+        <h2 style={{fontSize:'20px',fontWeight:800,color:'#F8FAFC',marginBottom:'12px'}}>Acesso temporariamente bloqueado</h2>
+        <p style={{fontSize:'14px',color:'#94A3B8',marginBottom:'28px',lineHeight:1.6}}>Seu acesso está temporariamente bloqueado por mensalidade pendente. Regularize o pagamento para reativar sua conta.</p>
+        <button onClick={abrirCheckout} disabled={loadingPag} style={{display:'flex',width:'100%',alignItems:'center',justifyContent:'center',height:'48px',background:G,color:'#fff',border:'none',borderRadius:'12px',textDecoration:'none',fontSize:'14px',fontWeight:700,cursor:loadingPag?'wait':'pointer',opacity:loadingPag?.7:1,fontFamily:'inherit',marginBottom:'14px'}}>{loadingPag?'Gerando...':'Regularizar pagamento'}</button>
+        <div style={{display:'flex',gap:'16px',justifyContent:'center',flexWrap:'wrap'}}>
+          <a href="/painel" style={{fontSize:'12px',color:'#64748B',textDecoration:'underline'}}>Início</a>
+          <a href="/painel/plano" style={{fontSize:'12px',color:'#64748B',textDecoration:'underline'}}>Meu plano</a>
+          <a href="/painel/suporte" style={{fontSize:'12px',color:'#64748B',textDecoration:'underline'}}>Suporte</a>
+        </div>
+      </div>
+    </div>
+  )
+
+  // Bloqueio PARCIAL por atraso (8-14 dias): mostra a tela so no lugar do conteudo da rota
+  // bloqueada, mas mantem o restante da navegacao do painel intacto (o cliente pode voltar
+  // pro Inicio ou outras areas nao-bloqueadas normalmente).
+  if (bloqueadoParcial) return (
+    <div style={{minHeight:'70vh',display:'flex',alignItems:'center',justifyContent:'center',padding:'24px',fontFamily:'system-ui'}}>
+      <div style={{maxWidth:'440px',width:'100%',background:'rgba(15,23,42,.95)',border:'1px solid rgba(245,158,11,.30)',borderRadius:'20px',padding:'40px 32px',textAlign:'center'}}>
+        <div style={{fontSize:'36px',marginBottom:'16px'}}>⚠️</div>
+        <h2 style={{fontSize:'20px',fontWeight:800,color:'#F8FAFC',marginBottom:'12px'}}>Recurso indisponível</h2>
+        <p style={{fontSize:'14px',color:'#94A3B8',marginBottom:'28px',lineHeight:1.6}}>Seu acesso está limitado por mensalidade pendente. Regularize o pagamento para voltar a usar todos os recursos.</p>
+        <button onClick={abrirCheckout} disabled={loadingPag} style={{display:'flex',width:'100%',alignItems:'center',justifyContent:'center',height:'48px',background:G,color:'#fff',border:'none',borderRadius:'12px',textDecoration:'none',fontSize:'14px',fontWeight:700,cursor:loadingPag?'wait':'pointer',opacity:loadingPag?.7:1,fontFamily:'inherit',marginBottom:'14px'}}>{loadingPag?'Gerando...':'Regularizar pagamento'}</button>
+        <a href="/painel" style={{fontSize:'12px',color:'#64748B',textDecoration:'underline'}}>Voltar para o Início</a>
+      </div>
+    </div>
+  )
+
+  // Bloqueio por PLANO: a rota exige gestao completa ou o plano Equipe, e a conta nao tem
+  // essa permissao. So chega aqui se nao houver nenhum bloqueio de pagamento pendente antes.
+  // REGRAS DE PLANO: a URL do modulo e de um recurso que o plano nao tem (nao basta esconder o botao no hub)
+  if (bloqueioModulo) return (
+    <BloqueioPorPlano
+      permitido={false}
+      titulo={bloqueioModulo.titulo}
+      descricao={bloqueioModulo.descricao}
+    >
+      {null}
+    </BloqueioPorPlano>
+  )
+
+  if (bloqueadoPorPlano) return (
+    <BloqueioPorPlano
+      permitido={false}
+      titulo="Recurso disponível no MiniPage Pro"
+      descricao="Este recurso faz parte dos planos com gestão completa. Faça upgrade para usar agenda, clientes, cobranças, financeiro e relatórios."
+    >
+      {null}
+    </BloqueioPorPlano>
+  )
+
+  return (
+    <>
+      {nivelAtraso === 'leve' && (
+        <div style={{background:'rgba(245,158,11,.08)',border:'1px solid rgba(245,158,11,.28)',borderRadius:'0',padding:'12px 24px',display:'flex',alignItems:'center',justifyContent:'space-between',flexWrap:'wrap',gap:'12px',position:'sticky',top:0,zIndex:40}}>
+          <p style={{fontSize:'13px',fontWeight:600,color:'#FCD34D',margin:0}}>
+            {precisaFinalizarAssinatura ? '⚠️ Seu período grátis acabou e você ainda não finalizou sua assinatura. Finalize agora para continuar usando sua MiniPage.' : '⚠️ Sua mensalidade está pendente. Regularize para evitar bloqueio do acesso.'}
+          </p>
+          <button onClick={abrirCheckout} disabled={loadingPag} style={{display:'inline-flex',alignItems:'center',height:'32px',padding:'0 16px',background:G,color:'#fff',borderRadius:'8px',border:'none',fontSize:'12px',fontWeight:700,whiteSpace:'nowrap',flexShrink:0,cursor:loadingPag?'wait':'pointer',opacity:loadingPag?.7:1,fontFamily:'inherit'}}>
+            {loadingPag ? 'Gerando...' : precisaFinalizarAssinatura ? 'Finalizar assinatura' : 'Regularizar'}
+          </button>
+        </div>
+      )}
+      {nivelAtraso === 'forte' && (
+        <div style={{background:'rgba(239,68,68,.10)',border:'1px solid rgba(239,68,68,.32)',borderRadius:'0',padding:'12px 24px',display:'flex',alignItems:'center',justifyContent:'space-between',flexWrap:'wrap',gap:'12px',position:'sticky',top:0,zIndex:40}}>
+          <p style={{fontSize:'13px',fontWeight:700,color:'#FCA5A5',margin:0}}>
+            {precisaFinalizarAssinatura ? '⚠️ Você ainda não finalizou sua assinatura há alguns dias. Finalize para evitar limitações no painel.' : '⚠️ Sua mensalidade está pendente há alguns dias. Regularize para evitar limitações no painel.'}
+          </p>
+          <button onClick={abrirCheckout} disabled={loadingPag} style={{display:'inline-flex',alignItems:'center',height:'32px',padding:'0 16px',background:G,color:'#fff',borderRadius:'8px',border:'none',fontSize:'12px',fontWeight:700,whiteSpace:'nowrap',flexShrink:0,cursor:loadingPag?'wait':'pointer',opacity:loadingPag?.7:1,fontFamily:'inherit'}}>
+            {loadingPag ? 'Gerando...' : precisaFinalizarAssinatura ? 'Finalizar assinatura' : 'Regularizar'}
+          </button>
+        </div>
+      )}
+      {(nivelAtraso === 'parcial' || nivelAtraso === 'total') && (
+        <div style={{background:'rgba(239,68,68,.12)',border:'1px solid rgba(239,68,68,.36)',borderRadius:'0',padding:'12px 24px',display:'flex',alignItems:'center',justifyContent:'space-between',flexWrap:'wrap',gap:'12px',position:'sticky',top:0,zIndex:40}}>
+          <p style={{fontSize:'13px',fontWeight:700,color:'#FCA5A5',margin:0}}>
+            🔒 {precisaFinalizarAssinatura
+              ? (nivelAtraso === 'total' ? 'Seu acesso está temporariamente bloqueado. Finalize sua assinatura no Mercado Pago para reativar sua conta.' : 'Seu acesso está limitado porque a assinatura ainda não foi finalizada. Finalize para voltar a usar todos os recursos.')
+              : (nivelAtraso === 'total' ? 'Seu acesso está temporariamente bloqueado por mensalidade pendente. Regularize o pagamento para reativar sua conta.' : 'Seu acesso está limitado por mensalidade pendente. Regularize o pagamento para voltar a usar todos os recursos.')}
+          </p>
+          <button onClick={abrirCheckout} disabled={loadingPag} style={{display:'inline-flex',alignItems:'center',height:'32px',padding:'0 16px',background:G,color:'#fff',borderRadius:'8px',border:'none',fontSize:'12px',fontWeight:700,whiteSpace:'nowrap',flexShrink:0,cursor:loadingPag?'wait':'pointer',opacity:loadingPag?.7:1,fontFamily:'inherit'}}>
+            {loadingPag ? 'Gerando...' : precisaFinalizarAssinatura ? 'Finalizar assinatura' : 'Regularizar'}
+          </button>
+        </div>
+      )}
+      <Suspense fallback={null}><BannerPagamentoSucesso /></Suspense>
+      {children}
+    </>
+  )
+}

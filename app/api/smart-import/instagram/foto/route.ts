@@ -31,7 +31,7 @@ export async function GET(req: NextRequest) {
       !/^\d+$/.test(sessao.instagramId || ''))
     return jsonError('Conecte novamente sua conta profissional do Instagram.', 401)
   try {
-    const endpoint = new URL(`https://graph.facebook.com/${VERSION}/${sessao.instagramId}`)
+    const endpoint = new URL(`https://graph.${sessao.provedor==='direto'?'instagram':'facebook'}.com/${VERSION}/${sessao.provedor==='direto'?'me':sessao.instagramId}`)
     endpoint.searchParams.set('fields', 'profile_picture_url')
     const profile = await fetch(endpoint, {
       headers: { Authorization: `Bearer ${sessao.token}` },

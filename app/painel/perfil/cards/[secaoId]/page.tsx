@@ -9,18 +9,18 @@ import PainelSidebar from '@/app/components/PainelSidebar'
 import VerMiniPageButton from '@/app/components/VerMiniPageButton'
 import { detectarTipoPorUrl, TIPOS_SOCIAIS_TOPO, labelPlataforma } from '../../../../lib/plataformasLinks'
 
-const G = 'linear-gradient(135deg,#EC4899,#D946EF,#8B5CF6)'
+const G = '#C9FA45'
 
 const CSS = `
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-html,body{overflow-x:hidden;width:100%;max-width:100%;background:#08060A}
+html,body{overflow-x:hidden;width:100%;max-width:100%;background:#0B0A10}
 input,select,textarea{color-scheme:dark}
-.pg{background:radial-gradient(circle at top left,rgba(139,92,246,.18),transparent 32%),linear-gradient(135deg,#08060A 0%,#120A14 45%,#08060A 100%);min-height:100vh}
+.pg{background:radial-gradient(circle at top left,rgba(91,60,130,.15),transparent 36%),#0B0A10;min-height:100vh}
 .bdy{max-width:820px;margin:0 auto;padding:28px 32px 80px;width:100%}
-.crd{background:radial-gradient(circle at top left,rgba(139,92,246,.10),transparent 38%),linear-gradient(145deg,rgba(24,16,27,.97),rgba(18,10,20,.99));border:1.5px solid #2A1A2F;border-radius:18px}
-.lbl{display:block;font-size:11px;font-weight:700;color:#B8AAB8;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px}
-.inp{width:100%;background:rgba(24,16,27,.92);border:1.5px solid #2A1A2F;border-radius:10px;padding:10px 12px;color:#F8F4F7;font-size:13px;font-family:inherit}
-.inp:focus{outline:none;border-color:rgba(236,72,153,.5)}
+.crd{background:#21182D;border:1px solid #40344B;border-radius:18px}
+.lbl{display:block;font-size:11px;font-weight:700;color:#C5BCD1;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px}
+.inp{width:100%;background:rgba(33,24,45,.92);border:1.5px solid #40344B;border-radius:10px;padding:10px 12px;color:#FFFFFF;font-size:13px;font-family:inherit}
+.inp:focus{outline:none;border-color:rgba(201,250,69,.62)}
 .chk{display:flex;align-items:center;gap:8px;cursor:pointer;user-select:none}
 .card-visual-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center center;display:block}
 .card-visual-bg{position:absolute;inset:-8%;width:116%;height:116%;object-fit:cover;filter:blur(14px);transform:scale(1.05);opacity:.7;display:block}
@@ -204,10 +204,10 @@ export default function GerenciarSecaoCards() {
     if (imgRef.current) imgRef.current.value = ''
   }
 
-  if (carregando) return (<div style={{ minHeight: '100vh', background: '#08060A', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'system-ui' }}><p style={{ color: '#B8AAB8', fontSize: '14px' }}>Carregando...</p></div>)
+  if (carregando) return (<div style={{ minHeight: '100vh', background: '#0B0A10', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'system-ui' }}><p style={{ color: '#C5BCD1', fontSize: '14px' }}>Carregando...</p></div>)
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', background: '#08060A', fontFamily: '-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif', overflowX: 'hidden', width: '100%' }}>
+    <div style={{ display: 'flex', minHeight: '100vh', background: '#0B0A10', fontFamily: '-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif', overflowX: 'hidden', width: '100%' }}>
       <style dangerouslySetInnerHTML={{ __html: CSS }} />
       <PainelSidebar tituloMobile="Links visuais" />
       <div className="psb-main">
@@ -219,18 +219,18 @@ export default function GerenciarSecaoCards() {
             </div>
           )}
 
-          <Link href="/painel/perfil/cards" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '13px', color: '#B8AAB8', textDecoration: 'none', marginBottom: '18px' }}><ArrowLeft size={15} /> Voltar para Links visuais</Link>
+          <Link href="/painel/perfil/cards" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '13px', color: '#C5BCD1', textDecoration: 'none', marginBottom: '18px' }}><ArrowLeft size={15} /> Voltar para Links visuais</Link>
 
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px', marginBottom: '8px' }}>
-            <p style={{ fontSize: '22px', fontWeight: 800, color: '#F8F4F7', letterSpacing: '-0.02em' }}>{secao?.titulo || 'Seção'}</p>
+            <p style={{ fontSize: '22px', fontWeight: 800, color: '#FFFFFF', letterSpacing: '-0.02em' }}>{secao?.titulo || 'Seção'}</p>
             <div style={{ display: 'flex', gap: '10px' }}>
               <VerMiniPageButton />
-              <button type="button" onClick={novoCard} style={{ background: G, color: '#fff', border: '1px solid rgba(255,255,255,.12)', borderRadius: '10px', padding: '10px 18px', fontSize: '13px', fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>+ Novo card</button>
+              <button type="button" onClick={novoCard} style={{ background: G, color: '#0B0A10', border: '1px solid rgba(255,255,255,.12)', borderRadius: '10px', padding: '10px 18px', fontSize: '13px', fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>+ Novo card</button>
             </div>
           </div>
-          <p style={{ fontSize: '12px', color: '#B8AAB8', marginBottom: '24px' }}>Recomendado: 1200 × 365 px. Mantenha as informações importantes na área central da imagem.</p>
+          <p style={{ fontSize: '12px', color: '#C5BCD1', marginBottom: '24px' }}>Recomendado: 1200 × 365 px. Mantenha as informações importantes na área central da imagem.</p>
 
-          {cards.length === 0 && <p style={{ fontSize: '13px', color: '#B8AAB8', padding: '12px 0' }}>Nenhum card adicionado ainda.</p>}
+          {cards.length === 0 && <p style={{ fontSize: '13px', color: '#C5BCD1', padding: '12px 0' }}>Nenhum card adicionado ainda.</p>}
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
             {cards.map((c, i) => {
@@ -240,8 +240,8 @@ export default function GerenciarSecaoCards() {
               return (
                 <div key={c.id} className="crd" style={{ padding: emEdicao ? '16px' : '10px 14px', display: 'flex', gap: '12px', alignItems: emEdicao ? 'flex-start' : 'center' }}>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', flexShrink: 0 }}>
-                    <button type="button" onClick={() => mover(c.id, 'up')} disabled={i === 0} style={{ width: '24px', height: '24px', borderRadius: '7px', background: 'rgba(24,16,27,.9)', border: '1px solid #2A1A2F', color: i === 0 ? '#4A3F4E' : '#B8AAB8', cursor: i === 0 ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><ArrowUp size={12} /></button>
-                    <button type="button" onClick={() => mover(c.id, 'down')} disabled={i === cards.length - 1} style={{ width: '24px', height: '24px', borderRadius: '7px', background: 'rgba(24,16,27,.9)', border: '1px solid #2A1A2F', color: i === cards.length - 1 ? '#4A3F4E' : '#B8AAB8', cursor: i === cards.length - 1 ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><ArrowDown size={12} /></button>
+                    <button type="button" onClick={() => mover(c.id, 'up')} disabled={i === 0} style={{ width: '24px', height: '24px', borderRadius: '7px', background: 'rgba(33,24,45,.9)', border: '1px solid #40344B', color: i === 0 ? '#6A6075' : '#C5BCD1', cursor: i === 0 ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><ArrowUp size={12} /></button>
+                    <button type="button" onClick={() => mover(c.id, 'down')} disabled={i === cards.length - 1} style={{ width: '24px', height: '24px', borderRadius: '7px', background: 'rgba(33,24,45,.9)', border: '1px solid #40344B', color: i === cards.length - 1 ? '#6A6075' : '#C5BCD1', cursor: i === cards.length - 1 ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><ArrowDown size={12} /></button>
                   </div>
 
                   {!emEdicao ? (
@@ -249,14 +249,14 @@ export default function GerenciarSecaoCards() {
                       {c.imagem_url ? (
                         <img src={c.imagem_url} alt={c.titulo || ''} style={{ width: '58px', height: '32px', borderRadius: '8px', objectFit: 'cover', flexShrink: 0 }} />
                       ) : (
-                        <div style={{ width: '58px', height: '32px', borderRadius: '8px', background: 'rgba(24,16,27,.72)', border: '1px dashed #2A1A2F', flexShrink: 0 }} />
+                        <div style={{ width: '58px', height: '32px', borderRadius: '8px', background: 'rgba(33,24,45,.75)', border: '1px dashed #40344B', flexShrink: 0 }} />
                       )}
                       <div style={{ flex: 1, minWidth: 0 }}>
-                        <p style={{ fontSize: '13px', fontWeight: 600, color: '#F8F4F7', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{c.titulo || 'Sem título'}</p>
-                        {c.exibir_no_topo && <p style={{ fontSize: '10px', color: '#8B7D8B' }}>No topo · {labelPlataforma(tipoReconhecido || '')}</p>}
+                        <p style={{ fontSize: '13px', fontWeight: 600, color: '#FFFFFF', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{c.titulo || 'Sem título'}</p>
+                        {c.exibir_no_topo && <p style={{ fontSize: '10px', color: '#A49AAD' }}>No topo · {labelPlataforma(tipoReconhecido || '')}</p>}
                       </div>
-                      <button type="button" onClick={() => toggleAtivo(c)} style={{ background: c.ativo ? 'rgba(34,197,94,.14)' : '#2A1A2F', border: '1px solid ' + (c.ativo ? 'rgba(34,197,94,.25)' : '#2A1A2F'), borderRadius: 10, padding: '6px 12px', fontSize: 11, fontWeight: 700, color: c.ativo ? '#22C55E' : '#B8AAB8', cursor: 'pointer', fontFamily: 'inherit', flexShrink: 0 }}>{c.ativo ? 'Ativo' : 'Oculto'}</button>
-                      <button type="button" onClick={() => setEditandoId(c.id)} title="Editar" aria-label="Editar" style={{ width: '32px', height: '32px', borderRadius: '8px', background: 'rgba(24,16,27,.9)', border: '1px solid #2A1A2F', color: '#B8AAB8', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><Pencil size={14} /></button>
+                      <button type="button" onClick={() => toggleAtivo(c)} style={{ background: c.ativo ? 'rgba(34,197,94,.14)' : '#40344B', border: '1px solid ' + (c.ativo ? 'rgba(34,197,94,.25)' : '#40344B'), borderRadius: 10, padding: '6px 12px', fontSize: 11, fontWeight: 700, color: c.ativo ? '#22C55E' : '#C5BCD1', cursor: 'pointer', fontFamily: 'inherit', flexShrink: 0 }}>{c.ativo ? 'Ativo' : 'Oculto'}</button>
+                      <button type="button" onClick={() => setEditandoId(c.id)} title="Editar" aria-label="Editar" style={{ width: '32px', height: '32px', borderRadius: '8px', background: 'rgba(33,24,45,.9)', border: '1px solid #40344B', color: '#C5BCD1', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><Pencil size={14} /></button>
                       <button type="button" onClick={() => excluirCard(c.id)} title="Excluir" aria-label="Excluir" style={{ width: '32px', height: '32px', borderRadius: '8px', background: 'rgba(239,68,68,.10)', border: '1px solid rgba(239,68,68,.25)', color: '#EF4444', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><Trash2 size={14} /></button>
                     </>
                   ) : (
@@ -265,21 +265,21 @@ export default function GerenciarSecaoCards() {
                         <label className="lbl">Imagem</label>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
                           {c.imagem_url ? (
-                            <img src={c.imagem_url} alt="" style={{ width: '110px', height: '60px', borderRadius: '10px', objectFit: 'cover', border: '1px solid #2A1A2F', flexShrink: 0 }} />
+                            <img src={c.imagem_url} alt="" style={{ width: '110px', height: '60px', borderRadius: '10px', objectFit: 'cover', border: '1px solid #40344B', flexShrink: 0 }} />
                           ) : (
-                            <div style={{ width: '110px', height: '60px', borderRadius: '10px', background: 'rgba(24,16,27,.72)', border: '1px dashed #2A1A2F', flexShrink: 0 }} />
+                            <div style={{ width: '110px', height: '60px', borderRadius: '10px', background: 'rgba(33,24,45,.75)', border: '1px dashed #40344B', flexShrink: 0 }} />
                           )}
                           <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                            <button type="button" onClick={() => abrirUpload(c.id)} disabled={uploadingId === c.id} style={{ background: 'rgba(24,16,27,.9)', border: '1px solid #2A1A2F', color: '#B8AAB8', borderRadius: '8px', padding: '8px 14px', fontSize: '12px', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', display: 'inline-flex', alignItems: 'center', gap: '5px' }}><UploadCloud size={13} /> {uploadingId === c.id ? 'Enviando...' : (c.imagem_url ? 'Alterar imagem' : 'Enviar imagem')}</button>
+                            <button type="button" onClick={() => abrirUpload(c.id)} disabled={uploadingId === c.id} style={{ background: 'rgba(33,24,45,.9)', border: '1px solid #40344B', color: '#C5BCD1', borderRadius: '8px', padding: '8px 14px', fontSize: '12px', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', display: 'inline-flex', alignItems: 'center', gap: '5px' }}><UploadCloud size={13} /> {uploadingId === c.id ? 'Enviando...' : (c.imagem_url ? 'Alterar imagem' : 'Enviar imagem')}</button>
                             {c.imagem_url && (
                               <button type="button" onClick={() => removerImagem(c.id)} style={{ background: 'rgba(239,68,68,.10)', border: '1px solid rgba(239,68,68,.25)', color: '#EF4444', borderRadius: '8px', padding: '8px 14px', fontSize: '12px', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', display: 'inline-flex', alignItems: 'center', gap: '5px' }}><Trash2 size={13} /> Remover imagem</button>
                             )}
                           </div>
                         </div>
-                        <p style={{ fontSize: '10px', color: '#8B7D8B', marginTop: '6px' }}>Recomendado: 1200 × 365 px. Mantenha as informações importantes na área central da imagem.</p>
+                        <p style={{ fontSize: '10px', color: '#A49AAD', marginTop: '6px' }}>Recomendado: 1200 × 365 px. Mantenha as informações importantes na área central da imagem.</p>
                       </div>
                       <div style={{ marginBottom: '10px' }}><label className="lbl">Título (opcional)</label><input className="inp" autoFocus value={c.titulo || ''} onChange={e => editarCard(c.id, 'titulo', e.target.value)} placeholder="Ex: Fale conosco" /></div>
-                      <label className="chk" style={{ marginBottom: '12px', fontSize: '12px', color: '#B8AAB8' }}>
+                      <label className="chk" style={{ marginBottom: '12px', fontSize: '12px', color: '#C5BCD1' }}>
                         <input type="checkbox" checked={!!c.exibir_titulo} onChange={e => editarCard(c.id, 'exibir_titulo', e.target.checked)} />
                         Exibir título sobre a imagem
                       </label>
@@ -290,33 +290,33 @@ export default function GerenciarSecaoCards() {
                           <option value="cover">Preencher card</option>
                           <option value="contain">Mostrar imagem inteira</option>
                         </select>
-                        <p style={{ fontSize: '10px', color: '#8B7D8B', marginTop: '6px', marginBottom: '10px' }}>Automático adapta a arte ao card e evita cortes importantes. Preencher card ocupa todo o espaço e pode cortar a imagem. Mostrar imagem inteira preserva toda a arte.</p>
+                        <p style={{ fontSize: '10px', color: '#A49AAD', marginTop: '6px', marginBottom: '10px' }}>Automático adapta a arte ao card e evita cortes importantes. Preencher card ocupa todo o espaço e pode cortar a imagem. Mostrar imagem inteira preserva toda a arte.</p>
                         {c.imagem_url && <CardVisualPreviewBox imagemUrl={c.imagem_url} titulo={c.exibir_titulo ? c.titulo : null} imageFit={c.image_fit || 'auto'} />}
                       </div>
                       <div style={{ marginBottom: '8px' }}>
                         <label className="lbl">Link / destino</label>
                         <input className="inp" value={c.url || ''} onChange={e => editarCard(c.id, 'url', e.target.value)} placeholder="https://..." />
-                        <p style={{ fontSize: '10px', color: '#8B7D8B', marginTop: '6px' }}>Cole o link do produto, vídeo, música, página, Instagram, WhatsApp ou outra plataforma. A MiniPage tenta reconhecer automaticamente o destino.</p>
+                        <p style={{ fontSize: '10px', color: '#A49AAD', marginTop: '6px' }}>Cole o link do produto, vídeo, música, página, Instagram, WhatsApp ou outra plataforma. A MiniPage tenta reconhecer automaticamente o destino.</p>
                       </div>
                       {c.url?.trim() && (
                         elegivelParaTopo ? (
                           <div style={{ marginBottom: '12px', background: 'rgba(34,197,94,.08)', border: '1px solid rgba(34,197,94,.22)', borderRadius: '10px', padding: '10px 12px' }}>
                             <p style={{ fontSize: '11px', color: '#22C55E', fontWeight: 700, marginBottom: '6px' }}>Destino reconhecido: {labelPlataforma(tipoReconhecido || '')}</p>
-                            <label className="chk" style={{ fontSize: '12px', color: '#B8AAB8' }}>
+                            <label className="chk" style={{ fontSize: '12px', color: '#C5BCD1' }}>
                               <input type="checkbox" checked={!!c.exibir_no_topo} onChange={e => editarCard(c.id, 'exibir_no_topo', e.target.checked)} />
                               Exibir também no topo da MiniPage
                             </label>
                           </div>
                         ) : (
-                          <p style={{ fontSize: '11px', color: '#8B7D8B', marginBottom: '12px' }}>Destino: Link externo</p>
+                          <p style={{ fontSize: '11px', color: '#A49AAD', marginBottom: '12px' }}>Destino: Link externo</p>
                         )
                       )}
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', flexWrap: 'wrap' }}>
-                        <button type="button" onClick={() => editarCard(c.id, 'ativo', !c.ativo)} style={{ background: c.ativo ? 'rgba(34,197,94,.14)' : '#2A1A2F', border: '1px solid ' + (c.ativo ? 'rgba(34,197,94,.25)' : '#2A1A2F'), borderRadius: 10, padding: '6px 14px', fontSize: 12, fontWeight: 700, color: c.ativo ? '#22C55E' : '#B8AAB8', cursor: 'pointer', fontFamily: 'inherit' }}>{c.ativo ? 'Ativo' : 'Oculto'}</button>
+                        <button type="button" onClick={() => editarCard(c.id, 'ativo', !c.ativo)} style={{ background: c.ativo ? 'rgba(34,197,94,.14)' : '#40344B', border: '1px solid ' + (c.ativo ? 'rgba(34,197,94,.25)' : '#40344B'), borderRadius: 10, padding: '6px 14px', fontSize: 12, fontWeight: 700, color: c.ativo ? '#22C55E' : '#C5BCD1', cursor: 'pointer', fontFamily: 'inherit' }}>{c.ativo ? 'Ativo' : 'Oculto'}</button>
                         <div style={{ display: 'flex', gap: '8px' }}>
-                          <button type="button" onClick={() => voltarCard(c.id)} style={{ background: 'rgba(24,16,27,.9)', border: '1px solid #2A1A2F', color: '#B8AAB8', borderRadius: '8px', padding: '8px 14px', fontSize: '12px', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>Voltar</button>
+                          <button type="button" onClick={() => voltarCard(c.id)} style={{ background: 'rgba(33,24,45,.9)', border: '1px solid #40344B', color: '#C5BCD1', borderRadius: '8px', padding: '8px 14px', fontSize: '12px', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>Voltar</button>
                           <button type="button" onClick={() => excluirCard(c.id)} style={{ background: 'rgba(239,68,68,.10)', border: '1px solid rgba(239,68,68,.25)', color: '#EF4444', borderRadius: '8px', padding: '8px 14px', fontSize: '12px', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>Excluir</button>
-                          <button type="button" onClick={() => salvarCard(c)} style={{ background: G, color: '#fff', border: '1px solid rgba(255,255,255,.12)', borderRadius: '8px', padding: '8px 16px', fontSize: '12px', fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>Salvar</button>
+                          <button type="button" onClick={() => salvarCard(c)} style={{ background: G, color: '#0B0A10', border: '1px solid rgba(255,255,255,.12)', borderRadius: '8px', padding: '8px 16px', fontSize: '12px', fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>Salvar</button>
                         </div>
                       </div>
                     </div>

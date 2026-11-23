@@ -7,7 +7,7 @@ import PainelSidebar from '@/app/components/PainelSidebar'
 import VerMiniPageButton from '@/app/components/VerMiniPageButton'
 import { normalizarPlano, obterNomePlano, obterLimiteCatalogos, podeUsarCatalogo } from '../../../lib/planos'
 
-const G='linear-gradient(135deg,#EC4899,#D946EF,#8B5CF6)'
+const G = '#C9FA45'
 
 function proximoPlanoSugestao(planoTipo: string | null | undefined) {
   const p = normalizarPlano(planoTipo)
@@ -24,14 +24,14 @@ function mensagemLimiteCatalogo(limite: number, proximo: string | null) {
 
 const CSS=`
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-html,body{overflow-x:hidden;width:100%;max-width:100%;background:#08060A}
+html,body{overflow-x:hidden;width:100%;max-width:100%;background:#0B0A10}
 input,select,textarea{color-scheme:dark}
-.pg{background:radial-gradient(circle at top left,rgba(139,92,246,.18),transparent 32%),linear-gradient(135deg,#08060A 0%,#120A14 45%,#08060A 100%);min-height:100vh}
+.pg{background:radial-gradient(circle at top left,rgba(91,60,130,.15),transparent 36%),#0B0A10;min-height:100vh}
 .bdy{max-width:820px;margin:0 auto;padding:28px 32px 80px;width:100%}
-.crd{background:radial-gradient(circle at top left,rgba(139,92,246,.10),transparent 38%),linear-gradient(145deg,rgba(24,16,27,.97),rgba(18,10,20,.99));border:1.5px solid #2A1A2F;border-radius:18px}
-.lbl{display:block;font-size:11px;font-weight:700;color:#B8AAB8;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px}
-.inp{width:100%;background:rgba(24,16,27,.92);border:1.5px solid #2A1A2F;border-radius:10px;padding:10px 12px;color:#F8F4F7;font-size:13px;font-family:inherit}
-.inp:focus{outline:none;border-color:rgba(236,72,153,.5)}
+.crd{background:#21182D;border:1px solid #40344B;border-radius:18px}
+.lbl{display:block;font-size:11px;font-weight:700;color:#C5BCD1;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px}
+.inp{width:100%;background:rgba(33,24,45,.92);border:1.5px solid #40344B;border-radius:10px;padding:10px 12px;color:#FFFFFF;font-size:13px;font-family:inherit}
+.inp:focus{outline:none;border-color:rgba(201,250,69,.62)}
 .fg2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 @media(max-width:767px){.psb-main .bdy{padding:14px 14px 80px!important}.fg2{grid-template-columns:1fr!important}}
 `
@@ -160,23 +160,23 @@ export default function ListaCatalogos(){
     }
   }
 
-  if(carregando)return(<div style={{minHeight:'100vh',background:'#08060A',display:'flex',alignItems:'center',justifyContent:'center',fontFamily:'system-ui'}}><p style={{color:'#B8AAB8',fontSize:'14px'}}>Carregando...</p></div>)
+  if(carregando)return(<div style={{minHeight:'100vh',background:'#0B0A10',display:'flex',alignItems:'center',justifyContent:'center',fontFamily:'system-ui'}}><p style={{color:'#C5BCD1',fontSize:'14px'}}>Carregando...</p></div>)
 
   // Catalogo agora e exclusivo dos planos Loja/Pro/Equipe - Free e MiniPage basico veem
   // um card de upgrade em vez da lista, mesmo que ja tenham catalogos antigos cadastrados
   // (os dados continuam intactos no banco, so nao ficam acessiveis enquanto o plano nao mudar).
   if(!podeUsarCatalogo(planoTipo)){
     return(
-      <div style={{display:'flex',minHeight:'100vh',background:'#08060A',fontFamily:'-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif',overflowX:'hidden',width:'100%'}}>
+      <div style={{display:'flex',minHeight:'100vh',background:'#0B0A10',fontFamily:'-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif',overflowX:'hidden',width:'100%'}}>
         <style dangerouslySetInnerHTML={{__html:CSS}}/>
         <PainelSidebar tituloMobile="Catálogos"/>
         <div className="psb-main">
           <div className="pg"><div className="bdy">
-            <Link href="/painel/perfil" style={{display:'inline-flex',alignItems:'center',gap:'6px',fontSize:'13px',color:'#B8AAB8',textDecoration:'none',marginBottom:'18px'}}><ArrowLeft size={15}/> Voltar para Configurações</Link>
+            <Link href="/painel/perfil" style={{display:'inline-flex',alignItems:'center',gap:'6px',fontSize:'13px',color:'#C5BCD1',textDecoration:'none',marginBottom:'18px'}}><ArrowLeft size={15}/> Voltar para Configurações</Link>
             <div className="crd" style={{padding:'32px 24px',textAlign:'center',maxWidth:'440px',margin:'40px auto 0'}}>
-              <p style={{fontSize:'17px',fontWeight:800,color:'#F8F4F7',marginBottom:'10px'}}>Catálogo disponível no plano MiniPage Loja</p>
-              <p style={{fontSize:'13px',color:'#B8AAB8',marginBottom:'22px',lineHeight:1.5}}>Crie vitrines, achadinhos, produtos e divulgações com botão direto para WhatsApp ou links de venda.</p>
-              <Link href="/painel/plano" style={{display:'inline-block',background:'linear-gradient(135deg,#EC4899,#D946EF,#8B5CF6)',color:'#fff',border:'1px solid rgba(255,255,255,.12)',borderRadius:'10px',padding:'11px 24px',fontSize:'13px',fontWeight:700,textDecoration:'none'}}>Fazer upgrade</Link>
+              <p style={{fontSize:'17px',fontWeight:800,color:'#FFFFFF',marginBottom:'10px'}}>Catálogo disponível no plano MiniPage Loja</p>
+              <p style={{fontSize:'13px',color:'#C5BCD1',marginBottom:'22px',lineHeight:1.5}}>Crie vitrines, achadinhos, produtos e divulgações com botão direto para WhatsApp ou links de venda.</p>
+              <Link href="/painel/plano" style={{display:'inline-block',background:G,color:'#0B0A10',border:'1px solid rgba(255,255,255,.12)',borderRadius:'10px',padding:'11px 24px',fontSize:'13px',fontWeight:700,textDecoration:'none'}}>Fazer upgrade</Link>
             </div>
           </div></div>
         </div>
@@ -187,7 +187,7 @@ export default function ListaCatalogos(){
   const limite=obterLimiteCatalogos(planoTipo)
 
   return(
-    <div style={{display:'flex',minHeight:'100vh',background:'#08060A',fontFamily:'-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif',overflowX:'hidden',width:'100%'}}>
+    <div style={{display:'flex',minHeight:'100vh',background:'#0B0A10',fontFamily:'-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif',overflowX:'hidden',width:'100%'}}>
       <style dangerouslySetInnerHTML={{__html:CSS}}/>
       <PainelSidebar tituloMobile="Catálogos"/>
       <div className="psb-main">
@@ -199,35 +199,35 @@ export default function ListaCatalogos(){
             </div>
           )}
 
-          <Link href="/painel/perfil" style={{display:'inline-flex',alignItems:'center',gap:'6px',fontSize:'13px',color:'#B8AAB8',textDecoration:'none',marginBottom:'18px'}}><ArrowLeft size={15}/> Voltar para Configurações</Link>
+          <Link href="/painel/perfil" style={{display:'inline-flex',alignItems:'center',gap:'6px',fontSize:'13px',color:'#C5BCD1',textDecoration:'none',marginBottom:'18px'}}><ArrowLeft size={15}/> Voltar para Configurações</Link>
 
-          <p style={{fontSize:'22px',fontWeight:800,color:'#F8F4F7',letterSpacing:'-0.02em',marginBottom:'8px'}}>Catálogos</p>
-          <p style={{fontSize:'13px',color:'#B8AAB8',marginBottom:'6px'}}>Organize produtos, cursos, achadinhos, serviços, músicas ou divulgações em catálogos separados.</p>
-          <p style={{fontSize:'12px',color:'#8B7D8B',marginBottom:'24px'}}>{catalogos.length} de {limite} catálogos usados no seu plano.</p>
+          <p style={{fontSize:'22px',fontWeight:800,color:'#FFFFFF',letterSpacing:'-0.02em',marginBottom:'8px'}}>Catálogos</p>
+          <p style={{fontSize:'13px',color:'#C5BCD1',marginBottom:'6px'}}>Organize produtos, cursos, achadinhos, serviços, músicas ou divulgações em catálogos separados.</p>
+          <p style={{fontSize:'12px',color:'#A49AAD',marginBottom:'24px'}}>{catalogos.length} de {limite} catálogos usados no seu plano.</p>
 
           {editando && (
             <div className="crd" style={{padding:'18px',marginBottom:'20px'}}>
-              <p style={{fontSize:'14px',fontWeight:700,color:'#F8F4F7',marginBottom:'14px'}}>{editando.novo?'Novo catálogo':'Editar catálogo'}</p>
+              <p style={{fontSize:'14px',fontWeight:700,color:'#FFFFFF',marginBottom:'14px'}}>{editando.novo?'Novo catálogo':'Editar catálogo'}</p>
               <div className="fg2" style={{marginBottom:'14px'}}>
                 <div><label className="lbl">Título *</label><input className="inp" autoFocus value={tituloForm} onChange={e=>setTituloForm(e.target.value)} placeholder="Ex: Achadinhos"/></div>
                 <div><label className="lbl">Subtítulo (opcional)</label><input className="inp" value={subtituloForm} onChange={e=>setSubtituloForm(e.target.value)} placeholder="Ex: Meus favoritos da semana"/></div>
               </div>
               <div style={{display:'flex',gap:'8px'}}>
-                <button type="button" onClick={fecharForm} style={{background:'rgba(24,16,27,.9)',border:'1px solid #2A1A2F',color:'#B8AAB8',borderRadius:'8px',padding:'9px 16px',fontSize:'12px',fontWeight:600,cursor:'pointer',fontFamily:'inherit'}}>Cancelar</button>
-                <button type="button" onClick={salvarCatalogo} disabled={salvando} style={{background:G,color:'#fff',border:'1px solid rgba(255,255,255,.12)',borderRadius:'8px',padding:'9px 18px',fontSize:'12px',fontWeight:700,cursor:'pointer',fontFamily:'inherit',opacity:salvando?.7:1}}>{salvando?'Salvando...':'Salvar catálogo'}</button>
+                <button type="button" onClick={fecharForm} style={{background:'rgba(33,24,45,.9)',border:'1px solid #40344B',color:'#C5BCD1',borderRadius:'8px',padding:'9px 16px',fontSize:'12px',fontWeight:600,cursor:'pointer',fontFamily:'inherit'}}>Cancelar</button>
+                <button type="button" onClick={salvarCatalogo} disabled={salvando} style={{background:G,color:'#0B0A10',border:'1px solid rgba(255,255,255,.12)',borderRadius:'8px',padding:'9px 18px',fontSize:'12px',fontWeight:700,cursor:'pointer',fontFamily:'inherit',opacity:salvando?.7:1}}>{salvando?'Salvando...':'Salvar catálogo'}</button>
               </div>
             </div>
           )}
 
           <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',flexWrap:'wrap',gap:'12px',marginBottom:'20px'}}>
-            <p style={{fontSize:'15px',fontWeight:700,color:'#F8F4F7'}}>Seus catálogos</p>
+            <p style={{fontSize:'15px',fontWeight:700,color:'#FFFFFF'}}>Seus catálogos</p>
             <div style={{display:'flex',gap:'10px',flexWrap:'wrap'}}>
               <VerMiniPageButton/>
-              <button type="button" onClick={abrirNovo} style={{background:G,color:'#fff',border:'1px solid rgba(255,255,255,.12)',borderRadius:'10px',padding:'10px 18px',fontSize:'13px',fontWeight:700,cursor:'pointer',fontFamily:'inherit'}}>+ Novo catálogo</button>
+              <button type="button" onClick={abrirNovo} style={{background:G,color:'#0B0A10',border:'1px solid rgba(255,255,255,.12)',borderRadius:'10px',padding:'10px 18px',fontSize:'13px',fontWeight:700,cursor:'pointer',fontFamily:'inherit'}}>+ Novo catálogo</button>
             </div>
           </div>
 
-          {catalogos.length===0&&<p style={{fontSize:'13px',color:'#B8AAB8',padding:'12px 0'}}>Nenhum catálogo cadastrado ainda.</p>}
+          {catalogos.length===0&&<p style={{fontSize:'13px',color:'#C5BCD1',padding:'12px 0'}}>Nenhum catálogo cadastrado ainda.</p>}
 
           <div style={{display:'flex',flexDirection:'column',gap:'12px'}}>
             {catalogos.map((cat,i)=>{
@@ -235,17 +235,17 @@ export default function ListaCatalogos(){
               return (
                 <div key={cat.id} className="crd" style={{padding:'16px',display:'flex',gap:'12px'}}>
                   <div style={{display:'flex',flexDirection:'column',gap:'4px',flexShrink:0,paddingTop:'2px'}}>
-                    <button type="button" onClick={()=>mover(cat.id,'up')} disabled={i===0} style={{width:'28px',height:'28px',borderRadius:'8px',background:'rgba(24,16,27,.9)',border:'1px solid #2A1A2F',color:i===0?'#4A3F4E':'#B8AAB8',cursor:i===0?'not-allowed':'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}><ArrowUp size={14}/></button>
-                    <button type="button" onClick={()=>mover(cat.id,'down')} disabled={i===catalogos.length-1} style={{width:'28px',height:'28px',borderRadius:'8px',background:'rgba(24,16,27,.9)',border:'1px solid #2A1A2F',color:i===catalogos.length-1?'#4A3F4E':'#B8AAB8',cursor:i===catalogos.length-1?'not-allowed':'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}><ArrowDown size={14}/></button>
+                    <button type="button" onClick={()=>mover(cat.id,'up')} disabled={i===0} style={{width:'28px',height:'28px',borderRadius:'8px',background:'rgba(33,24,45,.9)',border:'1px solid #40344B',color:i===0?'#6A6075':'#C5BCD1',cursor:i===0?'not-allowed':'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}><ArrowUp size={14}/></button>
+                    <button type="button" onClick={()=>mover(cat.id,'down')} disabled={i===catalogos.length-1} style={{width:'28px',height:'28px',borderRadius:'8px',background:'rgba(33,24,45,.9)',border:'1px solid #40344B',color:i===catalogos.length-1?'#6A6075':'#C5BCD1',cursor:i===catalogos.length-1?'not-allowed':'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}><ArrowDown size={14}/></button>
                   </div>
                   <div style={{flex:1,minWidth:0}}>
-                    <p style={{fontSize:'15px',fontWeight:700,color:'#F8F4F7',marginBottom:'2px'}}>{cat.titulo}</p>
-                    {cat.subtitulo && <p style={{fontSize:'12px',color:'#B8AAB8',marginBottom:'6px'}}>{cat.subtitulo}</p>}
-                    <p style={{fontSize:'12px',color:'#8B7D8B',marginBottom:'14px'}}>{qtdItens} ite{qtdItens!==1?'ns':'m'} · <span style={{color:cat.ativo?'#22C55E':'#B8AAB8'}}>{cat.ativo?'Visível':'Oculto'}</span></p>
+                    <p style={{fontSize:'15px',fontWeight:700,color:'#FFFFFF',marginBottom:'2px'}}>{cat.titulo}</p>
+                    {cat.subtitulo && <p style={{fontSize:'12px',color:'#C5BCD1',marginBottom:'6px'}}>{cat.subtitulo}</p>}
+                    <p style={{fontSize:'12px',color:'#A49AAD',marginBottom:'14px'}}>{qtdItens} ite{qtdItens!==1?'ns':'m'} · <span style={{color:cat.ativo?'#22C55E':'#C5BCD1'}}>{cat.ativo?'Visível':'Oculto'}</span></p>
                     <div style={{display:'flex',gap:'6px',flexWrap:'wrap'}}>
-                      <Link href={`/painel/perfil/catalogo/${cat.id}`} style={{background:G,color:'#fff',borderRadius:'8px',padding:'8px 14px',fontSize:'12px',fontWeight:700,textDecoration:'none',fontFamily:'inherit'}}>Gerenciar itens</Link>
-                      <button type="button" onClick={()=>abrirEditar(cat)} style={{background:'rgba(24,16,27,.9)',border:'1px solid #2A1A2F',color:'#B8AAB8',borderRadius:'8px',padding:'8px 14px',fontSize:'12px',fontWeight:600,cursor:'pointer',fontFamily:'inherit'}}>Editar</button>
-                      <button type="button" onClick={()=>toggleAtivo(cat)} style={{background:cat.ativo?'rgba(34,197,94,.14)':'#2A1A2F',border:'1px solid '+(cat.ativo?'rgba(34,197,94,.25)':'#2A1A2F'),borderRadius:8,padding:'8px 14px',fontSize:12,fontWeight:700,color:cat.ativo?'#22C55E':'#B8AAB8',cursor:'pointer',fontFamily:'inherit'}}>{cat.ativo?'Ocultar':'Mostrar'}</button>
+                      <Link href={`/painel/perfil/catalogo/${cat.id}`} style={{background:G,color:'#0B0A10',borderRadius:'8px',padding:'8px 14px',fontSize:'12px',fontWeight:700,textDecoration:'none',fontFamily:'inherit'}}>Gerenciar itens</Link>
+                      <button type="button" onClick={()=>abrirEditar(cat)} style={{background:'rgba(33,24,45,.9)',border:'1px solid #40344B',color:'#C5BCD1',borderRadius:'8px',padding:'8px 14px',fontSize:'12px',fontWeight:600,cursor:'pointer',fontFamily:'inherit'}}>Editar</button>
+                      <button type="button" onClick={()=>toggleAtivo(cat)} style={{background:cat.ativo?'rgba(34,197,94,.14)':'#40344B',border:'1px solid '+(cat.ativo?'rgba(34,197,94,.25)':'#40344B'),borderRadius:8,padding:'8px 14px',fontSize:12,fontWeight:700,color:cat.ativo?'#22C55E':'#C5BCD1',cursor:'pointer',fontFamily:'inherit'}}>{cat.ativo?'Ocultar':'Mostrar'}</button>
                       <button type="button" onClick={()=>excluirCatalogo(cat)} style={{background:'rgba(239,68,68,.10)',border:'1px solid rgba(239,68,68,.25)',color:'#EF4444',borderRadius:'8px',padding:'8px 14px',fontSize:'12px',fontWeight:600,cursor:'pointer',fontFamily:'inherit'}}>Excluir</button>
                     </div>
                   </div>

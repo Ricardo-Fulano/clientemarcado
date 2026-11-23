@@ -28,45 +28,50 @@ interface BeforeInstallPromptEvent extends Event {
 
 const CSS = `
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-html,body{background:#08060A;color:#F8F4F7;overflow-x:hidden;-webkit-text-size-adjust:100%}
-.cd-root{min-height:100dvh;background:radial-gradient(circle at 15% 0%,rgba(139,92,246,.28),transparent 42%),radial-gradient(circle at 90% 8%,rgba(236,72,153,.20),transparent 38%),linear-gradient(160deg,#08060A 0%,#120A14 55%,#08060A 100%);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+html,body{background:#0B0A10;color:#FFFFFF;overflow-x:hidden;-webkit-text-size-adjust:100%}
+.cd-root{min-height:100dvh;background:radial-gradient(circle at 15% 0%,rgba(139,92,246,.28),transparent 42%),radial-gradient(circle at 90% 8%,rgba(149,82,245,.16),transparent 38%),linear-gradient(160deg,#0B0A10 0%,#16101F 55%,#0B0A10 100%);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+.cd-brand{display:flex;align-items:center;justify-content:center;gap:7px;color:#FFFFFF;font-weight:800;font-size:13px;letter-spacing:.01em}
+.cd-brand strong{color:#C9FA45}
+.cd-brand img{display:block;width:28px;height:28px}
 .cd-pager{display:flex;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;overscroll-behavior-x:contain;scrollbar-width:none;-webkit-overflow-scrolling:touch;scroll-behavior:smooth;min-height:100dvh}
 .cd-pager::-webkit-scrollbar{display:none}
 .cd-panel{flex:0 0 100%;scroll-snap-align:center;scroll-snap-stop:always;min-height:100dvh;overflow-y:auto;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:max(28px,env(safe-area-inset-top)) 22px max(28px,env(safe-area-inset-bottom));text-align:center;gap:14px}
-.cd-avatar{width:112px;height:112px;border-radius:50%;padding:3px;background:linear-gradient(135deg,#EC4899,#D946EF,#8B5CF6);box-shadow:0 14px 44px rgba(139,92,246,.40);flex-shrink:0}
-.cd-avatar-in{width:100%;height:100%;border-radius:50%;object-fit:cover;background:#18101B;display:flex;align-items:center;justify-content:center;font-size:40px;font-weight:800;color:#F8F4F7;overflow:hidden}
+.cd-avatar{width:112px;height:112px;border-radius:50%;padding:3px;background:#C9FA45;box-shadow:0 14px 44px rgba(149,82,245,.24);flex-shrink:0}
+.cd-brand-avatar{border-radius:23%;padding:0;background:transparent;box-shadow:none}
+.cd-brand-avatar .cd-avatar-in{border-radius:23%;object-fit:contain;background:transparent}
+.cd-avatar-in{width:100%;height:100%;border-radius:50%;object-fit:cover;background:#21182D;display:flex;align-items:center;justify-content:center;font-size:40px;font-weight:800;color:#FFFFFF;overflow:hidden}
 .cd-nome{font-size:26px;font-weight:800;letter-spacing:-.02em;line-height:1.15;overflow-wrap:anywhere;max-width:420px}
-.cd-desc{font-size:15px;line-height:1.5;color:#B8AAB8;max-width:380px;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.cd-desc{font-size:15px;line-height:1.5;color:#C5BCD0;max-width:380px;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
 .cd-url{font-size:13px;color:#C4B5FD;background:rgba(139,92,246,.12);border:1px solid rgba(139,92,246,.30);border-radius:999px;padding:6px 14px;overflow-wrap:anywhere}
 .cd-btns{display:flex;flex-direction:column;gap:10px;width:100%;max-width:340px;margin-top:6px}
 .cd-row{display:flex;gap:10px}
-.cd-btn{flex:1;min-height:54px;border-radius:14px;border:1px solid #2A1A2F;background:rgba(24,16,27,.92);color:#F8F4F7;font-size:15px;font-weight:700;font-family:inherit;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;text-decoration:none;padding:0 14px;-webkit-tap-highlight-color:transparent;transition:transform .12s ease,border-color .12s ease}
+.cd-btn{flex:1;min-height:54px;border-radius:14px;border:1px solid #3A2B4C;background:#21182D;color:#FFFFFF;font-size:15px;font-weight:700;font-family:inherit;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;text-decoration:none;padding:0 14px;-webkit-tap-highlight-color:transparent;transition:transform .12s ease,border-color .12s ease}
 .cd-btn:active{transform:scale(.98)}
 .cd-row .cd-btn{font-size:14px;padding:0 10px;text-align:center;line-height:1.2}
 .cd-instalar{border-style:dashed;border-color:rgba(196,181,253,.55);color:#E9D5FF;background:rgba(139,92,246,.10)}
 .cd-sublinks{display:flex;gap:6px;justify-content:center;flex-wrap:wrap}
 .cd-btn:focus-visible,.cd-link:focus-visible,.cd-x:focus-visible{outline:3px solid #C4B5FD;outline-offset:2px}
-.cd-primario{background:linear-gradient(135deg,#EC4899,#D946EF,#8B5CF6);border-color:transparent;box-shadow:0 10px 30px rgba(236,72,153,.32)}
-.cd-dica{font-size:12px;color:#B8AAB8;display:flex;align-items:center;gap:6px}
+.cd-primario{background:#C9FA45;color:#151A0D;border-color:transparent;box-shadow:0 10px 28px rgba(201,250,69,.18)}
+.cd-dica{font-size:12px;color:#C5BCD0;display:flex;align-items:center;gap:6px}
 .cd-seta{display:inline-block;animation:cd-nudge 1.6s ease-in-out infinite}
 @keyframes cd-nudge{0%,100%{transform:translateX(0)}50%{transform:translateX(5px)}}
 .cd-qrbox{background:#fff;border-radius:22px;padding:14px;box-shadow:0 18px 50px rgba(0,0,0,.5);width:min(78vw,360px);aspect-ratio:1}
 .cd-qrbox svg{display:block;width:100%;height:100%}
 .cd-qrtxt{font-size:17px;font-weight:700}
-.cd-sub{font-size:14px;color:#B8AAB8}
+.cd-sub{font-size:14px;color:#C5BCD0}
 .cd-link{color:#C4B5FD;font-size:13px;font-weight:600;text-decoration:none;background:none;border:none;font-family:inherit;cursor:pointer;padding:8px}
 .cd-dots{position:fixed;left:0;right:0;bottom:max(10px,env(safe-area-inset-bottom));display:flex;justify-content:center;gap:8px;pointer-events:none;z-index:5}
 .cd-dot{width:8px;height:8px;border-radius:50%;background:rgba(248,244,247,.28);transition:background .2s,width .2s}
-.cd-dot[aria-current="true"]{background:#EC4899;width:22px;border-radius:999px}
-.cd-toast{position:fixed;left:50%;bottom:64px;transform:translateX(-50%);background:#18101B;border:1px solid #2A1A2F;color:#F8F4F7;border-radius:12px;padding:10px 16px;font-size:14px;z-index:20;max-width:90vw}
+.cd-dot[aria-current="true"]{background:#C9FA45;width:22px;border-radius:999px}
+.cd-toast{position:fixed;left:50%;bottom:64px;transform:translateX(-50%);background:#21182D;border:1px solid #3A2B4C;color:#FFFFFF;border-radius:12px;padding:10px 16px;font-size:14px;z-index:20;max-width:90vw}
 .cd-overlay{position:fixed;inset:0;background:rgba(0,0,0,.66);z-index:30;display:flex;align-items:flex-end;justify-content:center}
-.cd-sheet{width:100%;max-width:480px;background:#14091A;border:1px solid #2A1A2F;border-radius:22px 22px 0 0;padding:22px 20px max(24px,env(safe-area-inset-bottom));max-height:86dvh;overflow-y:auto;text-align:left}
+.cd-sheet{width:100%;max-width:480px;background:#21182D;border:1px solid #3A2B4C;border-radius:22px 22px 0 0;padding:22px 20px max(24px,env(safe-area-inset-bottom));max-height:86dvh;overflow-y:auto;text-align:left}
 .cd-sheet h2{font-size:18px;margin-bottom:8px}
 .cd-sheet ol{margin:12px 0 14px 20px;line-height:1.7;font-size:15px;color:#E6DCE6}
-.cd-nota{font-size:12px;color:#B8AAB8;line-height:1.5;margin-top:6px}
+.cd-nota{font-size:12px;color:#C5BCD0;line-height:1.5;margin-top:6px}
 .cd-x{margin-top:14px;width:100%}
-.cd-cta{font-size:12px;color:#B8AAB8;text-decoration:none;margin-top:6px}
-.cd-cta strong{color:#EC4899}
+.cd-cta{font-size:12px;color:#C5BCD0;text-decoration:none;margin-top:6px}
+.cd-cta strong{color:#C9FA45}
 @media (prefers-reduced-motion:reduce){.cd-pager{scroll-behavior:auto}.cd-seta{animation:none}.cd-btn,.cd-dot{transition:none}}
 @media (max-height:640px){.cd-panel{justify-content:flex-start}.cd-avatar{width:84px;height:84px}}
 `
@@ -160,6 +165,7 @@ export default function CartaoApp(p: CartaoProps) {
 
   const whatsapp = `https://wa.me/?text=${encodeURIComponent(`${p.nome}: ${p.urlCompartilhar}`)}`
   const inicial = (p.nome.trim()[0] || 'M').toUpperCase()
+  const contaDaMarca = p.nome.trim().toLocaleLowerCase('pt-BR') === 'minipage pro'
 
   return (
     <div className="cd-root">
@@ -167,8 +173,12 @@ export default function CartaoApp(p: CartaoProps) {
       <div ref={pagerRef} className="cd-pager" onScroll={aoRolar}>
         {/* ----------------------------------------------------------- TELA 1: MEU CARTAO */}
         <section className="cd-panel" aria-label="Meu cartão" inert={ativo !== 0}>
-          <div className="cd-avatar">
-            {p.fotoUrl ? <img className="cd-avatar-in" src={p.fotoUrl} alt="" referrerPolicy="no-referrer" /> : <div className="cd-avatar-in" aria-hidden="true">{inicial}</div>}
+          <div className="cd-brand" aria-label="MiniPage Pro">
+            <img src="/brand/minipage-cartao-v2-192.png" alt="" width={28} height={28} style={{ borderRadius: '6px' }} />
+            <span>MiniPage <strong>Pro</strong></span>
+          </div>
+          <div className={contaDaMarca ? 'cd-avatar cd-brand-avatar' : 'cd-avatar'}>
+            {contaDaMarca ? <img className="cd-avatar-in" src="/brand/minipage-cartao-v2-512.png" alt="Ícone MiniPage Pro" /> : p.fotoUrl ? <img className="cd-avatar-in" src={p.fotoUrl} alt="" referrerPolicy="no-referrer" /> : <div className="cd-avatar-in" aria-hidden="true">{inicial}</div>}
           </div>
           <h1 className="cd-nome">{p.nome}</h1>
           <p className="cd-desc">Seu cartão de visitas digital</p>

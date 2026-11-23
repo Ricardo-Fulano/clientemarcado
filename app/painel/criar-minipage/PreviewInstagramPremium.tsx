@@ -61,7 +61,7 @@ const FRASES: Record<Idioma, {
     premium:'Premium',free:'Free',example:'Demonstração',paidFrom:'Visual pago a partir de R$ 29,90/mês',
     previewOnly:'Prévia visual: não altera seu plano.',demoCover:'Selecione uma foto ou vídeo acima para pré-visualizar a capa.',
     coverPhoto:'Foto de capa selecionada',coverVideo:'Miniatura de vídeo (sem reprodução automática)',
-    selectedMedia:'Galeria do Instagram',mediaNotSaved:'Seleção apenas visual. Publicação da galeria ainda não ativada.',
+    selectedMedia:'Álbuns / Fotos',mediaNotSaved:'Prévia da importação. As mídias ainda não foram salvas nos seus álbuns.',
     noMedia:'Selecione fotos ou vídeos do Instagram para compor sua galeria.',follower:'seguidores no Instagram',
     followerDetail:'Audiência por rede',onlyInstagram:'Instagram — contagem obtida pela API oficial',
     futureNetworks:'Outras redes aparecerão somente após autorização e leitura oficial. Não somamos números informados manualmente.',
@@ -75,7 +75,7 @@ const FRASES: Record<Idioma, {
   'en-US': {
     premium:'Premium',free:'Free',example:'Demo',paidFrom:'Paid design · price varies by country',previewOnly:'Visual preview only: your plan is unchanged.',
     demoCover:'Select a photo or video above to preview your cover.',coverPhoto:'Selected photo cover',coverVideo:'Video thumbnail (no autoplay)',
-    selectedMedia:'Instagram gallery',mediaNotSaved:'Visual selection only. Gallery publishing is not enabled yet.',
+    selectedMedia:'Albums / Photos',mediaNotSaved:'Import preview only. Media has not been saved to your albums.',
     noMedia:'Select Instagram photos or videos to build your gallery.',follower:'Instagram followers',followerDetail:'Audience by network',
     onlyInstagram:'Instagram — official API count',futureNetworks:'Other networks appear only after authorization and official retrieval. No manual figures are summed.',
     stories:'Stories',storiesRecent:'Recent Stories',demoStories:'Stories · demo',noActiveStories:'No active Stories returned.',
@@ -88,7 +88,7 @@ const FRASES: Record<Idioma, {
   'es-ES': {
     premium:'Premium',free:'Free',example:'Demostración',paidFrom:'Visual de pago · precio según país',previewOnly:'Solo vista previa: no cambia tu plan.',
     demoCover:'Elige una foto o vídeo para ver la portada.',coverPhoto:'Foto de portada',coverVideo:'Miniatura de vídeo (sin reproducción automática)',
-    selectedMedia:'Galería de Instagram',mediaNotSaved:'Solo selección visual. La galería aún no se publica.',
+    selectedMedia:'Álbumes / Fotos',mediaNotSaved:'Vista previa: las publicaciones aún no se guardaron en tus álbumes.',
     noMedia:'Elige fotos o vídeos para la galería.',follower:'seguidores en Instagram',followerDetail:'Audiencia por red',
     onlyInstagram:'Instagram — cifra de la API oficial',futureNetworks:'Otras redes solo después de autorización y consulta oficial.',
     stories:'Stories',storiesRecent:'Historias recientes',demoStories:'Stories · demostración',noActiveStories:'No hay Stories activos.',
@@ -101,7 +101,7 @@ const FRASES: Record<Idioma, {
   'fr-FR': {
     premium:'Premium',free:'Free',example:'Démonstration',paidFrom:'Présentation payante · prix selon pays',previewOnly:'Aperçu uniquement : votre forfait ne change pas.',
     demoCover:'Choisissez une photo ou une vidéo pour la couverture.',coverPhoto:'Photo de couverture',coverVideo:'Miniature vidéo (sans lecture automatique)',
-    selectedMedia:'Galerie Instagram',mediaNotSaved:'Sélection visuelle uniquement : publication non activée.',
+    selectedMedia:'Albums / Photos',mediaNotSaved:'Aperçu uniquement : les médias ne sont pas enregistrés dans vos albums.',
     noMedia:'Choisissez des photos ou vidéos Instagram.',follower:'abonnés Instagram',followerDetail:'Audience par réseau',
     onlyInstagram:'Instagram — données officielles',futureNetworks:'Les autres réseaux seront ajoutés uniquement après autorisation.',
     stories:'Stories',storiesRecent:'Stories récents',demoStories:'Stories · démo',noActiveStories:'Aucune Story active.',
@@ -114,7 +114,7 @@ const FRASES: Record<Idioma, {
   'de-DE': {
     premium:'Premium',free:'Free',example:'Demovorschau',paidFrom:'Bezahltes Design · Preis je Land',previewOnly:'Nur Vorschau: Dein Tarif bleibt unverändert.',
     demoCover:'Wähle ein Foto oder Video für das Titelbild.',coverPhoto:'Ausgewähltes Titelbild',coverVideo:'Video-Vorschaubild (kein Autoplay)',
-    selectedMedia:'Instagram-Galerie',mediaNotSaved:'Nur Vorschau; Veröffentlichung noch nicht aktiv.',
+    selectedMedia:'Alben / Fotos',mediaNotSaved:'Nur Vorschau: Medien wurden noch nicht in Alben gespeichert.',
     noMedia:'Wähle Instagram-Fotos oder Videos.',follower:'Instagram-Follower',followerDetail:'Publikum nach Netzwerk',
     onlyInstagram:'Instagram — offiziell abgerufen',futureNetworks:'Weitere Netzwerke erst nach Autorisierung und Abruf.',
     stories:'Stories',storiesRecent:'Aktuelle Stories',demoStories:'Stories · Demo',noActiveStories:'Keine aktiven Stories.',
@@ -127,7 +127,7 @@ const FRASES: Record<Idioma, {
   'it-IT': {
     premium:'Premium',free:'Free',example:'Dimostrazione',paidFrom:'Look a pagamento · prezzo per Paese',previewOnly:'Solo anteprima: il tuo piano non cambia.',
     demoCover:'Scegli una foto o un video per la copertina.',coverPhoto:'Foto di copertina',coverVideo:'Anteprima video (senza riproduzione automatica)',
-    selectedMedia:'Galleria Instagram',mediaNotSaved:'Solo selezione visiva; pubblicazione non ancora attiva.',
+    selectedMedia:'Album / Foto',mediaNotSaved:'Solo anteprima: i media non sono ancora salvati negli album.',
     noMedia:'Scegli foto o video Instagram.',follower:'follower Instagram',followerDetail:'Pubblico per rete',
     onlyInstagram:'Instagram — dati ufficiali',futureNetworks:'Altre reti solo dopo autorizzazione e lettura ufficiale.',
     stories:'Stories',storiesRecent:'Storie recenti',demoStories:'Stories · demo',noActiveStories:'Nessuna Story attiva.',
@@ -169,6 +169,7 @@ export default function PreviewInstagramPremium({ idioma, nome, slug, bio, fotoP
   const [storyInfo, setStoryInfo] = useState(false)
   const [videoReproduzindo, setVideoReproduzindo] = useState<string | null>(null)
   const [youtubeLayout, setYoutubeLayout] = useState<'lista' | 'grade'>('lista')
+  const [galeriaLayout, setGaleriaLayout] = useState<'grade' | 'carrossel'>('grade')
   const [fotoTeste, setFotoTeste] = useState<File | null>(null)
   const [fotoTesteUrl, setFotoTesteUrl] = useState<string | null>(null)
   const [fotoTesteErro, setFotoTesteErro] = useState('')
@@ -297,7 +298,7 @@ export default function PreviewInstagramPremium({ idioma, nome, slug, bio, fotoP
               <div style={{padding:'4px 11px 17px'}}>
                 <SectionLinks links={linksMostrar.filter(l => !linksSpotify.some(sp => sp.id===l.id))} tema={tokensTema} title={t.otherLinks}/>
                 {linksSpotify.length>0 && <section aria-label="Spotify" style={{marginTop:14,textAlign:'left'}}><div style={{fontSize:12,fontWeight:850,marginBottom:8,color:fore}}>Spotify</div>{linksSpotify.map(l => <div key={l.id} style={{marginBottom:10,borderRadius:12,overflow:'hidden',background:tokensTema.card}}><iframe title={`Spotify: ${l.titulo}`} loading="lazy" src={l.embed} width="100%" height="152" style={{border:0,display:'block'}} allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"/></div>)}</section>}
-                <Galeria media={media} tema={tokensTema} title={t.selectedMedia} empty={t.noMedia} footer={t.mediaNotSaved}/>
+                <Galeria media={media} tema={tokensTema} title={t.selectedMedia} empty={t.noMedia} footer={t.mediaNotSaved} layout={galeriaLayout} onLayoutChange={setGaleriaLayout} idioma={lang}/>
                 {videosMostrar.length>0 && <section aria-label="YouTube" style={{marginTop:16,textAlign:'left'}}>
                   <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:7,marginBottom:9}}>
                     <strong style={{fontSize:12,color:fore}}>YouTube</strong>
@@ -406,12 +407,21 @@ function SectionLinks({links,tema,title}:{links:Props['links'];tema:TemaTokens;t
   </section>
 }
 
-function Galeria({media,tema,title,empty,footer}:{media:Midia[];tema:TemaTokens;title:string;empty:string;footer:string}) {
+function Galeria({media,tema,title,empty,footer,layout,onLayoutChange,idioma}:{media:Midia[];tema:TemaTokens;title:string;empty:string;footer:string;layout:'grade'|'carrossel';onLayoutChange:(v:'grade'|'carrossel')=>void;idioma:Idioma}) {
+  const opcoes:Record<Idioma,[string,string]> = {
+    'pt-BR':['Grade','Carrossel'],'en-US':['Grid','Carousel'],'es-ES':['Cuadrícula','Carrusel'],
+    'fr-FR':['Grille','Carrousel'],'de-DE':['Raster','Karussell'],'it-IT':['Griglia','Carosello']
+  }
   return <section style={{marginTop:17,textAlign:'left'}} aria-label={title}>
-    <div style={{fontSize:12,fontWeight:850,color:tema.text,marginBottom:9}}>{title} {media.length>0&&<span style={{fontWeight:600,opacity:.7}}>({media.length})</span>}</div>
+    <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:5,marginBottom:9,flexWrap:'wrap'}}>
+      <div style={{fontSize:12,fontWeight:850,color:tema.text}}>{title} {media.length>0&&<span style={{fontWeight:600,opacity:.7}}>({media.length})</span>}</div>
+      <div role="group" aria-label="Formato da galeria" style={{display:'flex',gap:3}}>
+        {(['grade','carrossel'] as const).map((tipo,i)=><button key={tipo} type="button" aria-pressed={layout===tipo} onClick={()=>onLayoutChange(tipo)} style={{fontSize:9,fontWeight:750,color:tema.text,cursor:'pointer',padding:'5px 7px',borderRadius:7,border:`1px solid ${tema.cardBorder}`,background:layout===tipo?tema.card:tema.surface2}}>{opcoes[idioma][i]}</button>)}
+      </div>
+    </div>
     {media.length>0 ?
-      <div style={{display:'grid',gridTemplateColumns:'repeat(3,minmax(0,1fr))',gap:5}}>
-        {media.map(m=><div key={m.id} style={{position:'relative',aspectRatio:'1',overflow:'hidden',borderRadius:9,background:tema.card,border:`1px solid ${tema.cardBorder}`}}>
+      <div style={layout==='grade'?{display:'grid',gridTemplateColumns:'repeat(3,minmax(0,1fr))',gap:5}:{display:'flex',gap:7,overflowX:'auto',scrollSnapType:'x mandatory',paddingBottom:5}}>
+        {media.map(m=><div key={m.id} style={{position:'relative',aspectRatio:'1',overflow:'hidden',borderRadius:9,background:tema.card,border:`1px solid ${tema.cardBorder}`,...(layout==='carrossel'?{flex:'0 0 72%',scrollSnapAlign:'start'}:{})}}>
           {safeImage(m.imagem)?<img src={m.imagem} alt={m.legenda||'Instagram'} loading="lazy" style={{width:'100%',height:'100%',objectFit:'cover'}}/>:<div style={{fontSize:10,padding:7,color:tema.text}}>Instagram</div>}
           {m.tipo.toUpperCase()==='VIDEO'&&<span style={{position:'absolute',bottom:3,right:3,background:'rgba(0,0,0,.7)',padding:4,borderRadius:4,color:'#FFF'}}><Play size={12}/></span>}
         </div>)}
@@ -421,7 +431,6 @@ function Galeria({media,tema,title,empty,footer}:{media:Midia[];tema:TemaTokens;
     <p style={{fontSize:9,color:tema.textMuted,lineHeight:1.4,margin:'8px 0 0'}}>{footer}</p>
   </section>
 }
-
 
 // Os players são carregados somente depois do clique. IDs e destinos são validados.
 function spotifyEmbedUrl(raw: string): string | undefined {

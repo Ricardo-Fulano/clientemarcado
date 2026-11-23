@@ -1,0 +1,566 @@
+
+import { NextRequest, NextResponse } from 'next/server'
+import { createClient } from '@supabase/supabase-js'
+import { avaliarAmbienteAsaas } from '../../../lib/asaas-ambiente'
+import { registrarComissaoParceiro } from '../../../lib/asaas-webhook'
+
+export const runtime = 'nodejs'
+export const dynamic = 'force-dynamic'
+
+/**
+ * MiniPage Pro - Reprocessamento de comissoes
+ * associadas a recuperacoes de planos.
+ *
+ * SEGURANCA:
+ * - Desativado por padrao.
+ * - Requer CRON_SECRET.
+ * - Usa service_role no servidor.
+ * - Reivindica uma pendencia por vez.
+ * - Exige identificador de reivindicacao
+ *   para concluir ou registrar erro.
+ * - Confirma o pagamento diretamente no Asaas.
+ * - Reutiliza a regra de comissao existente.
+ * - Confirma a comissao no banco antes de
+ *   marcar a pendencia como concluida.
+ *
+ * Esta rota NAO realiza pagamentos PIX.
+ * Esta rota NAO altera planos.
+ * Esta rota NAO modifica assinaturas.
+ *
+ * IMPORTANTE:
+ * Pendencias interrompidas no estado
+ * "processando" exigem reconciliacao antes
+ * de serem novamente disponibilizadas.
+ */
+
+const PLANOS_COMISSIONAVEIS = new Set([
+  'minipage',
+  'loja',
+  'essencial',
+  'equipe',
+])
+
+const STATUS_PAGOS = new Set([
+  'CONFIRMED',
+  'RECEIVED',
+  'RECEIVED_IN_CASH',
+])
+
+type PendenciaReservada = {
+  pagamento_id: string
+  user_id: string
+  plano_restaurado: string
+  valor_contratado: number
+  reivindicacao_id: string
+}
+
+type Registro = Record<string, unknown>
+
+function centavos(valor: unknown): number | null {
+  if (
+    valor === null ||
+    valor === undefined ||
+    valor === ''
+  ) {
+    return null
+  }
+
+  const numero = Number(valor)
+
+  if (
+    !Number.isFinite(numero) ||
+    numero <= 0
+  ) {
+    return null
+  }
+
+  return Math.round(numero * 100)
+}
+
+function textoValido(valor: unknown): valor is string {
+  return (
+    typeof valor === 'string' &&
+    valor.trim().length > 0
+  )
+}
+
+function objeto(valor: unknown): Registro | null {
+  if (
+    !valor ||
+    typeof valor !== 'object' ||
+    Array.isArray(valor)
+  ) {
+    return null
+  }
+
+  return valor as Registro
+}
+
+export async function POST(request: NextRequest) {
+  // Trava independente do segredo de acesso.
+  if (
+    process.env.ASAAS_REPROCESSAMENTO_COMISSOES_ENABLED
+      !== 'true'
+  ) {
+    return NextResponse.json(
+      { error: 'Reprocessamento desativado.' },
+      { status: 503 }
+    )
+  }
+
+  const segredo = process.env.CRON_SECRET
+
+  if (!segredo) {
+    return NextResponse.json(
+      { error: 'Rotina nao configurada.' },
+      { status: 503 }
+    )
+  }
+
+  if (
+    request.headers.get('authorization') !==
+    `Bearer ${segredo}`
+  ) {
+    return NextResponse.json(
+      { error: 'Nao autorizado.' },
+      { status: 401 }
+    )
+  }
+
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const chave = process.env.SUPABASE_SERVICE_ROLE_KEY
+
+  if (!url || !chave) {
+    return NextResponse.json(
+      { error: 'Supabase nao configurado.' },
+      { status: 503 }
+    )
+  }
+
+  const ambiente = avaliarAmbienteAsaas(
+    process.env as Record<string, string | undefined>
+  )
+
+  if (!ambiente.ok) {
+    return NextResponse.json(
+      { error: 'Ambiente Asaas invalido.' },
+      { status: 503 }
+    )
+  }
+
+  const supabase = createClient(url, chave, {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false,
+    },
+  })
+
+  /**
+   * Conclui uma pendencia SOMENTE quando
+   * ela ainda pertence a reivindicacao atual.
+   */
+  async function finalizar(
+    pendencia: PendenciaReservada,
+    status: 'concluida' | 'sem_comissao' | 'erro',
+    motivo: string | null
+  ): Promise<void> {
+    const resolvida =
+      status === 'concluida' ||
+      status === 'sem_comissao'
+
+    const agora = new Date().toISOString()
+
+    const { data, error } = await supabase
+      .from('conciliacoes_comissao_recuperacao')
+      .update({
+        status,
+        ultimo_erro: motivo,
+        atualizado_em: agora,
+        resolvido_em: resolvida ? agora : null,
+        reivindicacao_id: null,
+        reivindicado_em: null,
+      })
+      .eq('pagamento_id', pendencia.pagamento_id)
+      .eq(
+        'reivindicacao_id',
+        pendencia.reivindicacao_id
+      )
+      .eq('status', 'processando')
+      .select('pagamento_id')
+
+    if (error) {
+      throw new Error(
+        'Falha ao atualizar conciliacao: ' +
+        error.message
+      )
+    }
+
+    if (!data || data.length !== 1) {
+      throw new Error(
+        'Reivindicacao nao corresponde ao estado atual'
+      )
+    }
+  }
+
+  /**
+   * Verifica a comissao REALMENTE registrada.
+   * Nunca confia apenas no retorno do helper.
+   */
+  async function comissaoRegistrada(
+    pendencia: PendenciaReservada
+  ): Promise<boolean> {
+    const { data, error } = await supabase
+      .from('comissoes_parceiros')
+      .select(
+        'id, user_id, plano_tipo, valor_pago, status'
+      )
+      .eq('asaas_payment_id', pendencia.pagamento_id)
+      .limit(2)
+
+    if (error) {
+      throw new Error(
+        'Falha ao consultar comissao: ' +
+        error.message
+      )
+    }
+
+    if ((data ?? []).length > 1) {
+      throw new Error(
+        'Mais de uma comissao para o mesmo pagamento'
+      )
+    }
+
+    const comissao = data?.[0]
+
+    if (!comissao) {
+      return false
+    }
+
+    if (
+      comissao.user_id !== pendencia.user_id ||
+      comissao.plano_tipo !==
+        pendencia.plano_restaurado ||
+      centavos(comissao.valor_pago) !==
+        centavos(pendencia.valor_contratado) ||
+      comissao.status === 'estornada'
+    ) {
+      throw new Error(
+        'Comissao existente apresenta divergencia'
+      )
+    }
+
+    return true
+  }
+
+  try {
+    /**
+     * A reserva acontece no banco, de maneira
+     * atomica, com FOR UPDATE SKIP LOCKED.
+     *
+     * Processamos somente uma pendencia por
+     * chamada para reduzir o risco de timeout.
+     */
+    const { data: reservadas, error: erroReserva } =
+      await supabase.rpc(
+        'reivindicar_comissoes_recuperacao',
+        { p_limite: 1 }
+      )
+
+    if (erroReserva) {
+      throw new Error(
+        'Falha ao reservar pendencia: ' +
+        erroReserva.message
+      )
+    }
+
+    if (
+      !Array.isArray(reservadas) ||
+      reservadas.length > 1
+    ) {
+      throw new Error(
+        'Resposta de reserva financeira invalida'
+      )
+    }
+
+    const resultado = {
+      ok: true,
+      pendenciasReservadas: reservadas.length,
+      comissoesConfirmadas: 0,
+      semComissao: 0,
+      pendenciasComErro: 0,
+      pagamentosExecutados: 0,
+      planosAlterados: 0,
+    }
+
+    for (const linha of reservadas) {
+      const pendencia =
+        linha as PendenciaReservada
+
+      if (
+        !textoValido(pendencia.pagamento_id) ||
+        !textoValido(pendencia.user_id) ||
+        !textoValido(pendencia.reivindicacao_id) ||
+        !textoValido(pendencia.plano_restaurado) ||
+        centavos(pendencia.valor_contratado) === null
+      ) {
+        throw new Error(
+          'Reserva retornou dados financeiros invalidos'
+        )
+      }
+
+      try {
+        // 1. Confirmar o historico da recuperacao.
+        const { data: historico, error: erroHistorico } =
+          await supabase
+            .from('historico_recuperacoes_inadimplencia')
+            .select(
+              'user_id, plano_restaurado, gateway_subscription_id, valor_contratado'
+            )
+            .eq(
+              'pagamento_regularizacao',
+              pendencia.pagamento_id
+            )
+            .maybeSingle()
+
+        if (erroHistorico || !historico) {
+          throw new Error(
+            'Historico de recuperacao indisponivel'
+          )
+        }
+
+        if (
+          historico.user_id !== pendencia.user_id ||
+          historico.plano_restaurado !==
+            pendencia.plano_restaurado ||
+          centavos(historico.valor_contratado) !==
+            centavos(pendencia.valor_contratado)
+        ) {
+          throw new Error(
+            'Divergencia entre historico e fila'
+          )
+        }
+
+        // 2. Confirmar a identidade financeira.
+        const { data: perfil, error: erroPerfil } =
+          await supabase
+            .from('perfis')
+            .select(
+              'user_id, gateway, gateway_customer_id, gateway_subscription_id, billing_cycle'
+            )
+            .eq('user_id', pendencia.user_id)
+            .maybeSingle()
+
+        if (
+          erroPerfil ||
+          !perfil ||
+          perfil.gateway !== 'asaas' ||
+          !textoValido(perfil.gateway_customer_id) ||
+          perfil.gateway_subscription_id !==
+            historico.gateway_subscription_id
+        ) {
+          throw new Error(
+            'Perfil financeiro inconclusivo'
+          )
+        }
+
+        // 3. Confirmar novamente o pagamento.
+        const resposta = await fetch(
+          `${ambiente.baseUrl}/payments/${encodeURIComponent(
+            pendencia.pagamento_id
+          )}`,
+          {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json',
+              access_token:
+                process.env.ASAAS_API_KEY || '',
+            },
+            cache: 'no-store',
+            signal: AbortSignal.timeout(12000),
+          }
+        )
+
+        if (!resposta.ok) {
+          throw new Error(
+            `Consulta Asaas HTTP ${resposta.status}`
+          )
+        }
+
+        const pagamento = objeto(
+          await resposta.json()
+        )
+
+        if (
+          !pagamento ||
+          pagamento.id !== pendencia.pagamento_id ||
+          pagamento.customer !==
+            perfil.gateway_customer_id ||
+          pagamento.subscription !==
+            historico.gateway_subscription_id ||
+          pagamento.deleted === true ||
+          !STATUS_PAGOS.has(
+            String(pagamento.status || '')
+          ) ||
+          centavos(pagamento.value) !==
+            centavos(pendencia.valor_contratado)
+        ) {
+          throw new Error(
+            'Pagamento da recuperacao nao confirmado'
+          )
+        }
+
+        // 4. Se a comissao ja existe, finalizar.
+        if (await comissaoRegistrada(pendencia)) {
+          await finalizar(
+            pendencia,
+            'concluida',
+            null
+          )
+
+          resultado.comissoesConfirmadas++
+          continue
+        }
+
+        if (
+          !PLANOS_COMISSIONAVEIS.has(
+            pendencia.plano_restaurado
+          )
+        ) {
+          throw new Error(
+            'Plano exige revisao de elegibilidade'
+          )
+        }
+
+        // 5. Verificar se existe indicacao.
+        const { data: usuario, error: erroUsuario } =
+          await supabase.auth.admin.getUserById(
+            pendencia.user_id
+          )
+
+        if (
+          erroUsuario ||
+          !textoValido(usuario?.user?.email)
+        ) {
+          throw new Error(
+            'Email do cliente indisponivel'
+          )
+        }
+
+        const email =
+          usuario.user.email.trim().toLowerCase()
+
+        const { data: indicacoes, error: erroIndicacoes } =
+          await supabase
+            .from('indicacoes_parceiros')
+            .select('id, parceiro_id')
+            .eq('email', email)
+            .limit(2)
+
+        if (erroIndicacoes) {
+          throw new Error(
+            'Falha ao consultar indicacoes'
+          )
+        }
+
+        if (!indicacoes?.length) {
+          // Ausencia comprovada de indicacao:
+          // nao existe comissao para registrar.
+          await finalizar(
+            pendencia,
+            'sem_comissao',
+            null
+          )
+
+          resultado.semComissao++
+          continue
+        }
+
+        if (indicacoes.length !== 1) {
+          throw new Error(
+            'Indicacoes ambiguas para o cliente'
+          )
+        }
+
+        // 6. Reutilizar a regra atual do webhook.
+        await registrarComissaoParceiro(
+          supabase,
+          {
+            userId: pendencia.user_id,
+            planoTipo: pendencia.plano_restaurado,
+            payment: pagamento,
+            cicloCobranca: perfil.billing_cycle,
+          }
+        )
+
+        // 7. Confirmar a existencia da comissao
+        // depois da tentativa de registro.
+        if (
+          !(await comissaoRegistrada(pendencia))
+        ) {
+          throw new Error(
+            'Comissao nao confirmada no banco'
+          )
+        }
+
+        await finalizar(
+          pendencia,
+          'concluida',
+          null
+        )
+
+        resultado.comissoesConfirmadas++
+      } catch (erro) {
+        const motivo =
+          erro instanceof Error
+            ? erro.message.slice(0, 300)
+            : 'Falha de conciliacao'
+
+        resultado.pendenciasComErro++
+
+        console.error(
+          '[Reprocessamento comissoes] Falha:',
+          motivo
+        )
+
+        try {
+          await finalizar(
+            pendencia,
+            'erro',
+            motivo
+          )
+        } catch (erroRegistro) {
+          // Nao declarar a pendencia resolvida.
+          // Uma reserva interrompida precisara
+          // de reconciliacao antes de ser retomada.
+          console.error(
+            '[Reprocessamento comissoes] Falha ao registrar estado:',
+            erroRegistro instanceof Error
+              ? erroRegistro.message
+              : 'Erro desconhecido'
+          )
+        }
+      }
+    }
+
+    return NextResponse.json(
+      resultado,
+      {
+        headers: {
+          'Cache-Control': 'no-store',
+        },
+      }
+    )
+  } catch (erro) {
+    console.error(
+      '[Reprocessamento comissoes] Erro geral:',
+      erro instanceof Error
+        ? erro.message
+        : 'Erro desconhecido'
+    )
+
+    return NextResponse.json(
+      { error: 'Falha no reprocessamento.' },
+      { status: 500 }
+    )
+  }
+}

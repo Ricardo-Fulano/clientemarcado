@@ -1,0 +1,311 @@
+'use client'
+import { useMemo, useState } from 'react'
+import SeletorPaisCheckout from './SeletorPaisCheckout'
+import {CORES_CHECKOUT as C} from '../../lib/billing/multigateway/checkout-visual'
+import {precoReferenciaCheckout, type CicloCheckout} from '../../lib/billing/multigateway/precos-exibicao'
+import {simularMercadoGlobal} from '../../lib/billing/multigateway/roteador'
+
+type Plano = 'free' | 'minipage' | 'agenda' | 'loja' | 'essencial'
+export type PlanoEscolhivel = Plano
+
+type Copy = {
+  title:string; intro:string; question:string; select:string; selected:string; current:string;
+  close:string; notice:string; price:string; objectiveNames:string[]; continueFree:string; continueCurrent:string;
+  plans:Record<Plano,{name:string; inheritance:string; details:string}>;
+}
+const conteudos:Record<string,Copy> = {
+'pt-BR':{
+ continueFree:"Continuar com o plano Free — sem cobrança",continueCurrent:"Continuar com meu plano atual",
+ title:'Escolha o plano certo para você',intro:'Cada plano inclui os recursos dos anteriores. Você não perde sua página, vídeos ou links ao contratar um plano superior.',
+ question:'O que você quer fazer com sua MiniPage?',select:'Selecionar este plano',selected:'Plano selecionado para consulta',current:'Seu plano atual',close:'Voltar à prévia',
+ notice:'Esta é uma escolha informativa. Não altera sua assinatura, não ativa recursos pagos e não gera cobrança. A contratação será concluída pelo fluxo de pagamento após sua validação.',price:'Valores públicos para o Brasil. Outros países têm preços regionais.',
+ objectiveNames:['Começar de graça','Divulgar meu trabalho e conteúdos','Divulgar e receber agendamentos','Divulgar, vender e agendar','Gerenciar tudo em um único painel'],
+ plans:{free:{name:'Free',inheritance:'Comece gratuitamente',details:'Comece com foto, biografia, redes sociais, até 5 links e temas básicos — gratuitamente.'},
+ minipage:{name:'MiniPage',inheritance:'Tudo do Free +',details:'Tudo do Free + capa, vídeos, destaques, Spotify, links ilimitados e personalização profissional.'},
+ agenda:{name:'MiniPage Agenda',inheritance:'Tudo do MiniPage +',details:'Tudo do MiniPage + agendamento online, serviços, gestão de horários e um responsável pelos atendimentos.'},
+ loja:{name:'MiniPage Loja',inheritance:'Tudo do Agenda +',details:'Tudo do Agenda + catálogos de produtos e cursos, preços e links de compra externos.'},
+ essencial:{name:'MiniPage Pro',inheritance:'Tudo do Loja +',details:'Tudo do Loja + gestão de clientes, financeiro, cobranças e relatórios em um único painel.'}}
+},
+'en-US':{
+ continueFree:"Continue with Free — no charge",continueCurrent:"Continue with my current plan",
+ title:'Choose the right plan',intro:'Each higher plan includes the features of the previous ones. You keep your professional page, videos and links.',
+ question:'What do you need most?',select:'Select this plan',selected:'Plan selected for review',current:'Current plan',close:'Back to preview',
+ notice:'This is an informational choice. It does not change your subscription, enable paid features or charge you. Checkout must be validated separately.',price:'Prices shown apply to Brazil only. Regional pricing may differ.',
+ objectiveNames:['Start for free','Showcase my work and content','Promote my work and accept bookings','Showcase products, sell and take bookings','Manage everything in one dashboard'],
+ plans:{free:{name:'Free',inheritance:'Start for free',details:'Get started at no cost with a photo, bio, social profiles, up to five links and basic themes.'},
+ minipage:{name:'MiniPage',inheritance:'Everything in Free +',details:'Everything in Free + cover, videos, highlights, Spotify, unlimited links and professional customization.'},
+ agenda:{name:'MiniPage Agenda',inheritance:'Everything in MiniPage +',details:'Everything in MiniPage + online bookings, services, schedule management and one service professional.'},
+ loja:{name:'MiniPage Store',inheritance:'Everything in Agenda +',details:'Everything in Agenda + product and course catalogs, prices and links to external checkout pages.'},
+ essencial:{name:'MiniPage Pro',inheritance:'Everything in Store +',details:'Everything in Store + customer management, finances, billing and reports in one dashboard.'}}
+},
+'es-ES':{
+ continueFree:"Continuar con Free — sin cobro",continueCurrent:"Continuar con mi plan actual",
+ title:'Elige el plan adecuado',intro:'Cada plan superior incluye las funciones de los anteriores: conservas tu página, vídeos y enlaces.',
+ question:'¿Qué necesitas más?',select:'Seleccionar este plan',selected:'Plan elegido para consultar',current:'Tu plan actual',close:'Volver a la vista previa',
+ notice:'Esta elección es informativa: no modifica tu suscripción, no activa funciones de pago ni genera cargos. El pago se validará por separado.',price:'Precios indicados para Brasil. Los precios regionales pueden variar.',
+ objectiveNames:['Empezar gratis','Mostrar mi trabajo y contenido','Promocionarme y recibir reservas','Mostrar productos, vender y recibir reservas','Gestionar todo en un solo panel'],
+ plans:{free:{name:'Free',inheritance:'Empieza gratis',details:'Empieza gratis con foto, biografía, redes sociales, hasta cinco enlaces y temas básicos.'},
+ minipage:{name:'MiniPage',inheritance:'Todo Free +',details:'Todo Free + portada, vídeos, destacados, Spotify, enlaces ilimitados y personalización profesional.'},
+ agenda:{name:'MiniPage Agenda',inheritance:'Todo MiniPage +',details:'Todo MiniPage + reservas online, servicios, gestión de horarios y un profesional responsable.'},
+ loja:{name:'MiniPage Tienda',inheritance:'Todo Agenda +',details:'Todo Agenda + catálogos de productos y cursos, precios y enlaces a pagos externos.'},
+ essencial:{name:'MiniPage Pro',inheritance:'Todo Tienda +',details:'Todo Tienda + gestión de clientes, finanzas, cobros e informes en un único panel.'}}
+},
+'fr-FR':{
+ continueFree:"Continuer avec Free — sans frais",continueCurrent:"Continuer avec ma formule actuelle",
+ title:'Choisissez la bonne formule',intro:'Chaque formule supérieure inclut les fonctions des précédentes : vous gardez votre page, vos vidéos et liens.',
+ question:'Quel est votre besoin principal ?',select:'Sélectionner cette formule',selected:'Formule choisie pour examen',current:'Formule actuelle',close:'Retour à l’aperçu',
+ notice:'Ce choix est indicatif : aucun abonnement modifié, aucune option payante activée, aucun prélèvement. Le paiement sera validé séparément.',price:'Prix publics brésiliens. Les tarifs régionaux peuvent différer.',
+ objectiveNames:['Commencer gratuitement','Présenter mon travail et mes contenus','Présenter mon activité et prendre des rendez-vous','Vendre, présenter des produits et gérer les rendez-vous','Tout gérer depuis un seul tableau de bord'],
+ plans:{free:{name:'Free',inheritance:'Démarrez gratuitement',details:'Commencez sans frais avec photo, bio, réseaux sociaux, jusqu’à cinq liens et thèmes de base.'},
+ minipage:{name:'MiniPage',inheritance:'Tout Free +',details:'Tout Free + couverture, vidéos, contenus à la une, Spotify, liens illimités et personnalisation professionnelle.'},
+ agenda:{name:'MiniPage Agenda',inheritance:'Tout MiniPage +',details:'Tout MiniPage + réservations en ligne, services, gestion des horaires et un professionnel.'},
+ loja:{name:'MiniPage Boutique',inheritance:'Tout Agenda +',details:'Tout Agenda + catalogues de produits et de cours, prix et liens vers des paiements externes.'},
+ essencial:{name:'MiniPage Pro',inheritance:'Tout Boutique +',details:'Tout Boutique + gestion des clients, finances, facturation et rapports dans un même espace.'}}
+},
+'de-DE':{
+ continueFree:"Mit Free fortfahren — kostenlos",continueCurrent:"Mit meinem aktuellen Tarif fortfahren",
+ title:'Wähle den passenden Tarif',intro:'Jeder höhere Tarif enthält die Funktionen der vorherigen. Deine Seite, Videos und Links bleiben erhalten.',
+ question:'Was brauchst du am meisten?',select:'Tarif auswählen',selected:'Tarif zur Prüfung ausgewählt',current:'Aktueller Tarif',close:'Zurück zur Vorschau',
+ notice:'Dies ist eine unverbindliche Auswahl. Kein Abo wird geändert, keine Zahlung ausgelöst und keine kostenpflichtige Funktion aktiviert.',price:'Angezeigte Preise gelten für Brasilien. Regionale Preise können abweichen.',
+ objectiveNames:['Kostenlos starten','Meine Arbeit und Inhalte präsentieren','Meine Arbeit zeigen und Termine annehmen','Produkte präsentieren, verkaufen und Termine annehmen','Alles in einem Dashboard verwalten'],
+ plans:{free:{name:'Free',inheritance:'Kostenlos beginnen',details:'Kostenlos starten mit Foto, Bio, sozialen Netzwerken, bis zu fünf Links und Basisthemes.'},
+ minipage:{name:'MiniPage',inheritance:'Alles aus Free +',details:'Alles aus Free + Titelbild, Videos, Highlights, Spotify, unbegrenzte Links und professionelle Gestaltung.'},
+ agenda:{name:'MiniPage Agenda',inheritance:'Alles aus MiniPage +',details:'Alles aus MiniPage + Online-Buchungen, Leistungen, Terminverwaltung und eine zuständige Fachkraft.'},
+ loja:{name:'MiniPage Shop',inheritance:'Alles aus Agenda +',details:'Alles aus Agenda + Produkt- und Kurskataloge, Preise und Links zu externen Kaufseiten.'},
+ essencial:{name:'MiniPage Pro',inheritance:'Alles aus Shop +',details:'Alles aus Shop + Kundenverwaltung, Finanzen, Abrechnung und Berichte in einem Dashboard.'}}
+},
+'it-IT':{
+ continueFree:"Continua con Free — senza costi",continueCurrent:"Continua con il mio piano attuale",
+ title:'Scegli il piano giusto',intro:'Ogni piano superiore include le funzioni dei precedenti. Mantieni pagina, video e link.',
+ question:'Di cosa hai più bisogno?',select:'Seleziona questo piano',selected:'Piano scelto per valutazione',current:'Piano attuale',close:'Torna all’anteprima',
+ notice:'Scelta informativa: non cambia l’abbonamento, non attiva funzioni a pagamento e non genera addebiti. Il pagamento verrà verificato separatamente.',price:'Prezzi indicati per il Brasile. Le tariffe regionali possono variare.',
+ objectiveNames:['Iniziare gratis','Mostrare il mio lavoro e i contenuti','Promuovermi e ricevere prenotazioni','Mostrare prodotti, vendere e prenotare','Gestire tutto in un unico pannello'],
+ plans:{free:{name:'Free',inheritance:'Inizia gratis',details:'Inizia gratis con foto, bio, social, fino a cinque link e temi base.'},
+ minipage:{name:'MiniPage',inheritance:'Tutto Free +',details:'Tutto Free + copertina, video, contenuti in evidenza, Spotify, link illimitati e personalizzazione professionale.'},
+ agenda:{name:'MiniPage Agenda',inheritance:'Tutto MiniPage +',details:'Tutto MiniPage + prenotazioni online, servizi, gestione degli orari e un professionista responsabile.'},
+ loja:{name:'MiniPage Negozio',inheritance:'Tutto Agenda +',details:'Tutto Agenda + cataloghi di prodotti e corsi, prezzi e link ad acquisti esterni.'},
+ essencial:{name:'MiniPage Pro',inheritance:'Tutto Negozio +',details:'Tutto Negozio + gestione clienti, finanza, addebiti e report in un unico pannello.'}}
+}}
+const TELA = {
+'pt-BR':{planos:'Planos',pagamento:'Pagamento',pais:'País de cobrança',anual:'Anual',mensal:'Mensal',semCobranca:'Sem cobrança',porAno:'por ano',porMes:'por mês',referencia:' · referência',selecionado:'✓ Selecionado',selecionar:'Selecionar plano',precoPendente:'Preço regional em definição',btnPagamento:'Continuar para pagamento',btnPreparacao:'Continuar — preço em preparação',titlePagamento:'Forma de pagamento',introPagamento:'Seu plano já foi escolhido. Agora selecione apenas como deseja pagar.',planoEscolhido:'PLANO ESCOLHIDO',comoPagar:'Escolha a forma de pagamento',semMetodo:'Nenhum método recorrente habilitado para esta combinação. Sua MiniPage pode ser concluída no plano atual.',pendencia:'Checkout em homologação: EBANX e Stripe ainda não estão ativos. Selecionar a forma de pagamento não cria assinatura nem cobrança.',confirmacao:'Assinar agora — aguardando habilitação',voltar:'← Voltar aos planos',salvar:'Concluir minha MiniPage no plano atual, sem cobrança',avisoSalvar:'A conta mantém o plano atual. A escolha paga é somente um interesse e não concede recursos Premium.',avisosBR:'Valores brasileiros informativos. Pagamentos ainda não habilitados.',avisosExt:'Os preços dos 19 países da V1 estão aprovados na Stripe. Para os demais países, os preços ainda estão em definição. Pagamentos permanecem desabilitados.'},
+'en-US':{planos:'Plans',pagamento:'Payment',pais:'Billing country',anual:'Yearly',mensal:'Monthly',semCobranca:'No charge',porAno:'per year',porMes:'per month',referencia:' · reference',selecionado:'✓ Selected',selecionar:'Choose plan',precoPendente:'Regional pricing to be defined',btnPagamento:'Continue to payment',btnPreparacao:'Continue — pricing pending',titlePagamento:'Payment method',introPagamento:'Your plan is already selected. Choose only how you want to pay.',planoEscolhido:'SELECTED PLAN',comoPagar:'How would you like to pay?',semMetodo:'No recurring method is enabled for this combination. You may finish with your existing plan.',pendencia:'Checkout is still being tested: EBANX and Stripe are not enabled. Choosing a method will not create a charge.',confirmacao:'Subscribe — pending enablement',voltar:'← Back to plans',salvar:'Finish my MiniPage with my current plan — no charge',avisoSalvar:'Your current plan remains unchanged. Selecting a paid plan only records interest.',avisosBR:'Brazilian prices are informational. Payments are not yet enabled.',avisosExt:'Prices for the 19 V1 countries are approved in Stripe. Other markets are pending. Payments remain disabled.'},
+'es-ES':{planos:'Planes',pagamento:'Pago',pais:'País de facturación',anual:'Anual',mensal:'Mensual',semCobranca:'Sin cobro',porAno:'por año',porMes:'por mes',referencia:' · referencia',selecionado:'✓ Seleccionado',selecionar:'Elegir plan',precoPendente:'Precio regional por definir',btnPagamento:'Continuar al pago',btnPreparacao:'Continuar — precio pendiente',titlePagamento:'Método de pago',introPagamento:'El plan ya está elegido. Ahora selecciona cómo pagar.',planoEscolhido:'PLAN ELEGIDO',comoPagar:'¿Cómo deseas pagar?',semMetodo:'No hay un método recurrente habilitado. Puedes terminar con tu plan actual.',pendencia:'Pago en pruebas: EBANX y Stripe aún no están habilitados. No se generarán cobros.',confirmacao:'Suscribirme — pendiente',voltar:'← Volver a planes',salvar:'Finalizar con mi plan actual — sin cobro',avisoSalvar:'Tu plan actual se mantiene. Elegir uno de pago no concede acceso sin pago.',avisosBR:'Precios informativos para Brasil. Pagos aún no habilitados.',avisosExt:'Precios aprobados para los 19 países V1. Otros países están pendientes. Los pagos siguen desactivados.'},
+'fr-FR':{planos:'Formules',pagamento:'Paiement',pais:'Pays de facturation',anual:'Annuel',mensal:'Mensuel',semCobranca:'Sans frais',porAno:'par an',porMes:'par mois',referencia:' · référence',selecionado:'✓ Sélectionné',selecionar:'Choisir',precoPendente:'Tarif régional à définir',btnPagamento:'Continuer au paiement',btnPreparacao:'Continuer — tarif en attente',titlePagamento:'Mode de paiement',introPagamento:'Votre formule est choisie. Sélectionnez uniquement le mode de paiement.',planoEscolhido:'FORMULE CHOISIE',comoPagar:'Comment souhaitez-vous payer ?',semMetodo:'Aucun paiement récurrent disponible. Vous pouvez terminer avec votre formule actuelle.',pendencia:'Paiement en test : EBANX et Stripe ne sont pas activés. Aucun débit ne sera créé.',confirmacao:'Souscrire — en attente',voltar:'← Retour aux formules',salvar:'Terminer avec ma formule actuelle — sans frais',avisoSalvar:'Votre formule actuelle reste inchangée. Ce choix ne donne pas accès aux fonctions payantes.',avisosBR:'Tarifs brésiliens indicatifs ; paiements non activés.',avisosExt:'Tarifs approuvés pour les 19 pays V1. Autres pays en attente. Paiements désactivés.'},
+'de-DE':{planos:'Tarife',pagamento:'Zahlung',pais:'Abrechnungsland',anual:'Jährlich',mensal:'Monatlich',semCobranca:'Kostenlos',porAno:'pro Jahr',porMes:'pro Monat',referencia:' · Richtwert',selecionado:'✓ Ausgewählt',selecionar:'Tarif wählen',precoPendente:'Regionaler Preis noch offen',btnPagamento:'Weiter zur Zahlung',btnPreparacao:'Weiter — Preis ausstehend',titlePagamento:'Zahlungsart',introPagamento:'Dein Tarif ist gewählt. Wähle jetzt nur die Zahlungsart.',planoEscolhido:'GEWÄHLTER TARIF',comoPagar:'Wie möchtest du bezahlen?',semMetodo:'Keine wiederkehrende Methode freigeschaltet. Du kannst mit deinem aktuellen Tarif abschließen.',pendencia:'Checkout im Test: EBANX und Stripe sind noch nicht aktiviert. Es erfolgt keine Abbuchung.',confirmacao:'Abonnieren — noch nicht verfügbar',voltar:'← Zurück zu Tarifen',salvar:'Mit aktuellem Tarif abschließen — kostenlos',avisoSalvar:'Der aktuelle Tarif bleibt erhalten. Ein bezahlter Tarif wird nicht automatisch freigeschaltet.',avisosBR:'Brasilianische Preise sind Richtwerte. Zahlungen nicht freigeschaltet.',avisosExt:'Preise für die 19 V1-Länder sind freigegeben. Weitere Länder folgen. Zahlungen sind deaktiviert.'},
+'it-IT':{planos:'Piani',pagamento:'Pagamento',pais:'Paese di fatturazione',anual:'Annuale',mensal:'Mensile',semCobranca:'Senza costi',porAno:'all’anno',porMes:'al mese',referencia:' · riferimento',selecionado:'✓ Selezionato',selecionar:'Scegli il piano',precoPendente:'Prezzo regionale da definire',btnPagamento:'Continua al pagamento',btnPreparacao:'Continua — prezzo in attesa',titlePagamento:'Metodo di pagamento',introPagamento:'Hai già scelto il piano. Ora seleziona soltanto come pagare.',planoEscolhido:'PIANO SCELTO',comoPagar:'Come desideri pagare?',semMetodo:'Nessun metodo ricorrente abilitato. Puoi concludere con il piano attuale.',pendencia:'Checkout in prova: EBANX e Stripe non sono attivi. Nessun addebito verrà creato.',confirmacao:'Abbonati — in attesa',voltar:'← Torna ai piani',salvar:'Concludi con il piano attuale — senza addebito',avisoSalvar:'Il piano attuale resta invariato. La scelta di un piano a pagamento non concede accesso.',avisosBR:'Prezzi brasiliani indicativi. Pagamenti non ancora attivi.',avisosExt:'Prezzi approvati per i 19 paesi V1. Altri paesi in attesa. Pagamenti disattivati.'},
+} as const
+
+/** Orientacao de compra por necessidade, sem alterar plano contratado nem cobrar. */
+/** Beneficios progressivos orientam a escolha, sem alterar o plano contratado. */
+const BENEFICIOS_OBJETIVO:Record<string,string[]>={
+"pt-BR":["Reúna seus contatos, redes sociais e até 5 links, sem pagar.","Tudo do Free + capa, vídeos, destaques e links ilimitados.","Tudo do MiniPage + agendamento online, serviços e horários.","Tudo do Agenda + catálogos, cursos e links externos de venda.","Tudo do Loja + clientes, cobranças, financeiro e relatórios."],
+"en-US":["Photo, bio, social profiles and up to 5 links.","Free features + cover, videos, highlights and unlimited links.","MiniPage features + online bookings, services and schedules.","Agenda features + catalogs, courses and external checkout links.","Store features + customers, billing, finances and reports."],
+"es-ES":["Foto, biografía, redes sociales y hasta 5 enlaces.","Todo Free + portada, vídeos, destacados y enlaces ilimitados.","Todo MiniPage + reservas online, servicios y horarios.","Todo Agenda + catálogos, cursos y enlaces de venta externos.","Todo Tienda + clientes, cobros, finanzas e informes."],
+"fr-FR":["Photo, bio, réseaux sociaux et jusqu’à 5 liens.","Tout Free + couverture, vidéos, sélections et liens illimités.","Tout MiniPage + rendez-vous en ligne, services et horaires.","Tout Agenda + catalogues, cours et liens de vente externes.","Tout Boutique + clients, facturation, finances et rapports."],
+"de-DE":["Foto, Bio, soziale Netzwerke und bis zu 5 Links.","Alles aus Free + Titelbild, Videos, Highlights und unbegrenzte Links.","Alles aus MiniPage + Online-Termine, Leistungen und Zeiten.","Alles aus Agenda + Kataloge, Kurse und externe Kauf-Links.","Alles aus Shop + Kunden, Rechnungen, Finanzen und Berichte."],
+"it-IT":["Foto, bio, social e fino a 5 link.","Tutto Free + copertina, video, contenuti in evidenza e link illimitati.","Tutto MiniPage + prenotazioni online, servizi e orari.","Tutto Agenda + cataloghi, corsi e link di vendita esterni.","Tutto Negozio + clienti, fatturazione, finanza e report."]
+}
+const VER_FREE:Record<string,string>={
+ 'pt-BR':'Ver o que o Free oferece',
+ 'en-US':'See what Free includes',
+ 'es-ES':'Ver lo que incluye Free',
+ 'fr-FR':'Voir les avantages Free',
+ 'de-DE':'Free-Funktionen ansehen',
+ 'it-IT':'Scopri le funzioni Free'
+}
+const AVISO_FREE_CONTA_PAGA:Record<string,string>={
+"pt-BR":"Você já tem um plano pago. Conhecer o Free não altera sua assinatura atual.",
+"en-US":"You already have a paid plan. Viewing Free does not change your subscription.",
+"es-ES":"Ya tienes un plan de pago. Consultar Free no cambia tu suscripción.",
+"fr-FR":"Vous avez déjà une formule payante. Consulter Free ne modifie pas votre abonnement.",
+"de-DE":"Du hast bereits einen bezahlten Tarif. Die Ansicht von Free ändert dein Abo nicht.",
+"it-IT":"Hai già un piano a pagamento. Visualizzare Free non modifica il tuo abbonamento."
+}
+
+const AJUDA:Record<string,{
+ pergunta:string; explicacao:string; recomendado:string; porque:string;
+ exemplos:Record<Plano,string>; comparar:string; heranca:string; legendaComparacao:string;
+ linhas:{nome:string;desde:number}[]; naoPerde:string;
+}> = {
+ 'pt-BR':{
+  pergunta:'Para que você vai usar a MiniPage?',
+  explicacao:'Conte qual é seu objetivo e veja o plano recomendado. Os recursos de um plano continuam nos superiores; a escolha é sempre sua.',
+  recomendado:'Nossa sugestão para você:',porque:'Por que esse plano?',
+  exemplos:{
+   free:'Para quem quer reunir contatos e redes sociais em um único link, sem gastar nada.',
+   minipage:'Para criadores e profissionais que querem transmitir confiança, divulgar vídeos e conteúdos e organizar todos os links, sem precisar de agenda online.',
+   agenda:'Para profissionais que trabalham com horário marcado e querem receber agendamentos pelo link da própria MiniPage.',
+   loja:'Para quem precisa mostrar produtos, cursos e serviços em um catálogo e também receber agendamentos. As compras são concluídas em páginas externas.',
+   essencial:'Para quem quer reunir divulgação, agendamentos e catálogo com gestão de clientes, cobranças, financeiro e relatórios.'
+  },
+  comparar:'Comparar os recursos de cada plano',
+  heranca:'Cada plano inclui os recursos dos anteriores. Loja inclui Agenda; Pro inclui Loja.',
+  legendaComparacao:'Incluído a partir do plano indicado',
+  linhas:[
+   {nome:'Página profissional, banner, vídeos e links ilimitados',desde:1},
+   {nome:'Agendamento automático, serviços e horários',desde:2},
+   {nome:'Catálogos de produtos e cursos, links externos para venda',desde:3},
+   {nome:'Clientes, financeiro, cobranças e relatórios',desde:4}
+  ],naoPerde:'Você não perde os recursos de um plano inferior ao escolher um superior.'
+ },
+ 'en-US':{
+  pergunta:'What will you use MiniPage for?',explicacao:'Choose your goal and we will highlight a suitable plan. The final choice is yours.',
+  recomendado:'Suggested plan:',porque:'Why this plan?',
+  exemplos:{free:'For anyone who wants one link for contacts and social profiles, with no subscription fee.',minipage:'For creators and professionals who want a trustworthy page for videos, content and all their links, without needing appointments.',agenda:'For service professionals who want customers to book appointments directly through their MiniPage link.',loja:'For professionals presenting products, courses and services alongside bookings. Customers purchase through external checkout links.',essencial:'For businesses combining content, bookings and catalogs with customer, billing, finance and reporting tools.'},
+  comparar:'Compare features by plan',heranca:'Each plan includes the preceding ones. Store includes Booking; Pro includes Store.',legendaComparacao:'Included starting with this tier',
+  linhas:[{nome:'Professional page, cover, videos and unlimited links',desde:1},{nome:'Online booking, services and schedules',desde:2},{nome:'Product and course catalogs, external purchase links',desde:3},{nome:'Customers, finances, billing and reports',desde:4}],naoPerde:'Upgrading keeps the features of the lower plans.'
+ },
+ 'es-ES':{
+  pergunta:'¿Para qué usarás MiniPage?',explicacao:'Elige tu objetivo: destacaremos el plan adecuado, pero tú decides.',
+  recomendado:'Plan sugerido:',porque:'¿Por qué este plan?',
+  exemplos:{free:'Para reunir contactos y redes sociales en un solo enlace, sin pagar una suscripción.',minipage:'Para creadores y profesionales que necesitan una página confiable para vídeos, contenidos y enlaces, sin gestionar reservas.',agenda:'Para profesionales que quieren que sus clientes reserven desde el enlace de su MiniPage.',loja:'Para mostrar productos, cursos y servicios con catálogo y reservas. Las compras se hacen mediante enlaces de pago externos.',essencial:'Para quienes quieren unir contenidos, reservas y catálogos con clientes, cobros, finanzas e informes.'},
+  comparar:'Comparar funciones de los planes',heranca:'Cada plan incluye los anteriores. Tienda incluye Agenda; Pro incluye Tienda.',legendaComparacao:'Incluido a partir del nivel indicado',
+  linhas:[{nome:'Página profesional, portada, vídeos y enlaces ilimitados',desde:1},{nome:'Reservas online, servicios y horarios',desde:2},{nome:'Catálogos y enlaces de compra externos',desde:3},{nome:'Clientes, finanzas, cobros e informes',desde:4}],naoPerde:'Al elegir un plan superior conservas las funciones anteriores.'
+ },
+ 'fr-FR':{
+  pergunta:'Quel est votre objectif avec MiniPage ?',explicacao:'Choisissez votre besoin et nous mettrons en avant une formule adaptée. Vous restez libre de choisir.',
+  recomendado:'Formule conseillée :',porque:'Pourquoi cette formule ?',
+  exemplos:{free:'Pour réunir contacts et réseaux sociaux en un seul lien, sans abonnement payant.',minipage:'Pour les créateurs et professionnels souhaitant une page crédible pour vidéos, contenus et liens, sans gestion de rendez-vous.',agenda:'Pour les prestataires souhaitant permettre à leurs clients de réserver depuis leur lien MiniPage.',loja:'Pour présenter produits, formations et services avec catalogue et réservation. Les achats passent par des liens externes.',essencial:'Pour réunir contenus, rendez-vous et catalogues avec gestion clients, facturation, finances et rapports.'},
+  comparar:'Comparer les fonctionnalités',heranca:'Chaque formule inclut les précédentes. Boutique inclut Agenda ; Pro inclut Boutique.',legendaComparacao:'Inclus à partir de cette formule',
+  linhas:[{nome:'Page professionnelle, couverture, vidéos et liens illimités',desde:1},{nome:'Réservations en ligne, services et horaires',desde:2},{nome:'Catalogues et liens de paiement externes',desde:3},{nome:'Clients, finances, facturation et rapports',desde:4}],naoPerde:'Une formule supérieure conserve les fonctionnalités précédentes.'
+ },
+ 'de-DE':{
+  pergunta:'Wofür möchtest du MiniPage nutzen?',explicacao:'Wähle dein Ziel. Wir zeigen einen passenden Tarif – du entscheidest.',
+  recomendado:'Unser Vorschlag:',porque:'Warum dieser Tarif?',
+  exemplos:{free:'Für alle, die Kontakte und Social-Media-Profile kostenlos unter einem Link vereinen möchten.',minipage:'Für Creator und Profis, die Videos, Inhalte und Links professionell präsentieren möchten, ohne Online-Buchungen zu benötigen.',agenda:'Für Fachkräfte, deren Kunden direkt über den MiniPage-Link Termine buchen sollen.',loja:'Für Produkt-, Kurs- und Dienstleistungskataloge mit Terminen. Käufe erfolgen über externe Checkout-Links.',essencial:'Für Unternehmen, die Inhalte, Termine und Kataloge mit Kunden-, Finanz- und Rechnungsverwaltung kombinieren möchten.'},
+  comparar:'Funktionen vergleichen',heranca:'Jeder Tarif enthält die vorherigen. Shop enthält Termine; Pro enthält Shop.',legendaComparacao:'Ab diesem Tarif enthalten',
+  linhas:[{nome:'Professionelle Seite, Titelbild, Videos und unbegrenzte Links',desde:1},{nome:'Online-Buchungen, Leistungen und Zeiten',desde:2},{nome:'Kataloge und externe Kauf-Links',desde:3},{nome:'Kunden, Finanzen, Abrechnung und Berichte',desde:4}],naoPerde:'Höhere Tarife behalten alle Funktionen der niedrigeren.'
+ },
+ 'it-IT':{
+  pergunta:'A cosa ti serve MiniPage?',explicacao:'Scegli il tuo obiettivo e ti suggeriremo un piano. La scelta finale è tua.',
+  recomendado:'Piano consigliato:',porque:'Perché questo piano?',
+  exemplos:{free:'Per riunire contatti e social in un unico link, senza pagare un abbonamento.',minipage:'Per creator e professionisti che vogliono presentare video, contenuti e link in modo professionale, senza prenotazioni.',agenda:'Per professionisti che vogliono far prenotare i clienti direttamente dal link MiniPage.',loja:'Per offrire cataloghi di prodotti, corsi e servizi con prenotazioni. Acquisti tramite link esterni.',essencial:'Per unire contenuti, prenotazioni e cataloghi alla gestione di clienti, pagamenti, finanze e report.'},
+  comparar:'Confronta le funzionalità',heranca:'Ogni piano include i precedenti. Negozio include Agenda; Pro include Negozio.',legendaComparacao:'Incluso da questo piano',
+  linhas:[{nome:'Pagina professionale, copertina, video e link illimitati',desde:1},{nome:'Prenotazioni online, servizi e orari',desde:2},{nome:'Cataloghi e link di acquisto esterni',desde:3},{nome:'Clienti, finanza, addebiti e report',desde:4}],naoPerde:'Con un piano superiore mantieni le funzioni dei precedenti.'
+ }
+}
+
+const ordem:Plano[]=['free','minipage','agenda','loja','essencial']
+
+/** A escolha do plano preserva o formulario montado no estado do onboarding.
+ * Pagamento real DESABILITADO: ainda nao existe integracao EBANX/Stripe homologada.
+ */
+export default function GuiaPlanosOnboarding({idioma,planoAtual,onEscolher,onFechar}:{idioma:string;planoAtual:string;onEscolher:(plano:Plano)=>void;onFechar:()=>void}){
+ const t=conteudos[idioma]||conteudos['pt-BR']
+ const u=TELA[idioma as keyof typeof TELA]||TELA['pt-BR']
+ const ajuda=AJUDA[idioma]||AJUDA['pt-BR']
+ const subtitulos=BENEFICIOS_OBJETIVO[idioma]||BENEFICIOS_OBJETIVO['pt-BR']
+ const avisoFree=AVISO_FREE_CONTA_PAGA[idioma]||AVISO_FREE_CONTA_PAGA['pt-BR']
+ const verFree=VER_FREE[idioma]||VER_FREE['pt-BR']
+ const atual=ordem.includes(planoAtual as Plano)?planoAtual as Plano:null
+ const contaPaga=atual!==null&&atual!=='free'
+ const [pais,setPais]=useState('BR')
+ const [ciclo,setCiclo]=useState<CicloCheckout>('mensal')
+ const [selecionado,setSelecionado]=useState<Plano>(atual||'free')
+ const [tela,setTela]=useState<'planos'|'pagamento'>('planos')
+ const [metodo,setMetodo]=useState('')
+ const [objetivo,setObjetivo]=useState<number|null>(null)
+ const simulacao=useMemo(()=>simularMercadoGlobal(selecionado,pais),[selecionado,pais])
+ const metodos=simulacao.situacao==='nao_habilitado'?simulacao.metodosCandidatos:[]
+ const semPreco=precoReferenciaCheckout(selecionado,ciclo,pais,idioma).origem==='pendente'
+ const irParaPagamento=()=>{
+   if(selecionado==='free'||selecionado===atual){onEscolher(selecionado);return}
+   setMetodo('');setTela('pagamento')
+ }
+ const botao={background:C.verde,color:'#111509',border:0,borderRadius:10,padding:'14px 18px',fontWeight:850,cursor:'pointer'} as const
+ const secundario={background:'transparent',color:C.texto,border:'1px solid '+C.borda,borderRadius:10,padding:'12px 18px',cursor:'pointer'} as const
+ return <section aria-label={t.title} style={{width:'100%',maxWidth:1080,margin:'0 auto',background:C.fundo,color:C.texto,padding:'12px 4px 24px'}}>
+   <style>{`
+    .mp-objetivos {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;}
+    @media(max-width:620px){.mp-objetivos{grid-template-columns:minmax(0,1fr);}}
+    .mp-checkout-cards {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;}
+    @media(max-width:780px){.mp-checkout-cards{grid-template-columns:repeat(2,minmax(0,1fr));}}
+    @media(max-width:520px){.mp-checkout-cards{grid-template-columns:minmax(0,1fr);}}
+   `}</style>
+   <nav aria-label="Etapas da contratação" style={{display:'flex',gap:10,alignItems:'center',marginBottom:21,color:C.mutado,fontSize:12}}><span style={{color:C.verde,fontWeight:800}}>1. {u.planos}</span><span>→</span><span style={{color:tela==='pagamento'?C.verde:C.mutado,fontWeight:tela==='pagamento'?800:400}}>2. {u.pagamento}</span></nav>
+   {tela==='planos'?<>
+    <h1 style={{fontSize:'clamp(23px,3.5vw,32px)',fontWeight:900,margin:'0 0 8px'}}>{t.title}</h1>
+    <p style={{fontSize:13,color:C.mutado,lineHeight:1.6,margin:'0 0 18px'}}>{t.intro}</p>
+    <div style={{background:C.card,border:'1px solid '+C.borda,borderRadius:13,padding:15,marginBottom:17}}>
+     <SeletorPaisCheckout pais={pais} onPais={setPais} idioma={idioma}/>
+     <div style={{display:'flex',gap:7,marginTop:14}}>
+      {(['mensal','anual'] as const).map(c=><button type="button" key={c} aria-pressed={ciclo===c} onClick={()=>setCiclo(c)} style={{padding:'8px 16px',borderRadius:9,cursor:'pointer',border:'1px solid '+(ciclo===c?C.verde:C.borda),background:ciclo===c?C.verdeEscuro:C.cardElevado,color:ciclo===c?C.verde:C.texto,fontWeight:750}}>{c==='mensal'?u.mensal:u.anual}</button>)}
+     </div>
+    </div>
+    <section aria-label={ajuda.pergunta} style={{background:C.card,border:'1px solid '+C.borda,borderRadius:13,padding:16,marginBottom:18}}>
+     <h2 style={{fontSize:18,fontWeight:850,margin:'0 0 5px'}}>{ajuda.pergunta}</h2>
+     <p style={{color:C.mutado,fontSize:12,lineHeight:1.5,margin:'0 0 13px'}}>{ajuda.explicacao}</p>
+     <div className="mp-objetivos">
+      {t.objectiveNames.map((nome,i)=>{
+       const codigo=ordem[i],consultaFree=codigo==='free'&&contaPaga
+       return <button type="button" key={codigo} aria-pressed={objetivo===i} title={consultaFree?avisoFree:undefined} onClick={()=>{setObjetivo(i);if(!consultaFree)setSelecionado(codigo)}} style={{textAlign:'left',border:'1px solid '+(objetivo===i?C.verde:C.borda),borderRadius:9,background:objetivo===i?C.verdeEscuro:C.cardElevado,color:objetivo===i?C.verde:C.texto,padding:'12px 14px',fontSize:12,cursor:'pointer',display:'flex',flexDirection:'column',gap:5,minHeight:69}}>
+        <strong style={{color:objetivo===i?C.verde:C.texto,fontSize:13,lineHeight:1.35}}>{i+1}. {nome}</strong>
+        <span style={{color:C.mutado,fontSize:11,lineHeight:1.45}}>{subtitulos[i]}</span>
+       </button>
+      })}
+     </div>
+     {contaPaga&&<p role="note" style={{fontSize:11,lineHeight:1.55,color:C.mutado,margin:'13px 0 0'}}><strong style={{color:C.verde}}>{t.current}: {t.plans[atual||'free'].name}.</strong> {avisoFree}</p>}
+     {objetivo!==null&&<div role="status" aria-live="polite" style={{borderLeft:'3px solid '+C.verde,background:C.verdeEscuro,borderRadius:8,padding:'12px 14px',marginTop:13}}>
+      <span style={{display:'block',color:C.verde,fontSize:11,fontWeight:850}}>{ajuda.recomendado}</span>
+      <strong style={{display:'block',fontSize:17,marginTop:3}}>{t.plans[ordem[objetivo]].name}</strong>
+      <span style={{display:'block',fontSize:12,color:C.texto,lineHeight:1.6,marginTop:4}}>{ajuda.exemplos[ordem[objetivo]]}</span>
+      {objetivo===0&&contaPaga&&<span style={{display:'block',fontSize:12,color:C.mutado,lineHeight:1.55,marginTop:6}}>{avisoFree}</span>}
+     </div>}
+    </section>
+    <p style={{fontSize:12,fontWeight:700,color:C.verde,margin:'0 0 11px'}}>{ajuda.heranca}</p>
+    <div className="mp-checkout-cards">
+    {ordem.map((codigo,indice)=>{
+     const p=t.plans[codigo],ativo=selecionado===codigo
+     const bloqueado=codigo==='free'&&atual!==null&&atual!=='free'
+     const preco=precoReferenciaCheckout(codigo,ciclo,pais,idioma)
+     return <button type="button" key={codigo} aria-pressed={ativo} title={bloqueado?avisoFree:undefined} onClick={()=>{if(bloqueado){setObjetivo(0)}else{setSelecionado(codigo);setObjetivo(indice)}}} style={{textAlign:'left',display:'flex',flexDirection:'column',gap:8,border:ativo?'2px solid '+C.verde:'1px solid '+C.borda,background:C.card,borderRadius:14,padding:'17px 13px',color:C.texto,cursor:'pointer',minHeight:224}}>
+       <span style={{fontSize:10,color:C.verde,fontWeight:750,minHeight:15}}>{codigo===atual?t.current:indice===0?'':p.inheritance}</span>
+       <strong style={{fontSize:16}}>{p.name}</strong>
+       <strong style={{fontSize:preco.origem==='pendente'?13:23,color:C.texto}}>{preco.texto}</strong>
+       <span style={{color:C.mutado,fontSize:11}}>{codigo==='free'?u.semCobranca:ciclo==='anual'?u.porAno:u.porMes}{preco.origem==='referencia_internacional'?u.referencia:''}</span>
+       <span style={{display:'block',color:C.mutado,fontSize:12,lineHeight:1.55,marginTop:7}}>{p.details}</span>
+       <span style={{display:'block',fontSize:11,color:C.texto,lineHeight:1.55,borderTop:'1px solid '+C.borda,paddingTop:9}}><strong style={{color:C.verde}}>{ajuda.porque}</strong> {ajuda.exemplos[codigo]}</span>
+       <span style={{fontSize:11,color:ativo?C.verde:C.mutado,marginTop:'auto',fontWeight:750}}>{bloqueado?verFree:ativo?u.selecionado:u.selecionar}</span>
+     </button>
+    })}
+    </div>
+    <details style={{border:'1px solid '+C.borda,borderRadius:12,background:C.card,marginTop:14,padding:14}}>
+      <summary style={{cursor:'pointer',fontSize:13,color:C.verde,fontWeight:800}}>{ajuda.comparar}</summary>
+      <p style={{fontSize:12,color:C.mutado,lineHeight:1.55}}>{ajuda.naoPerde}</p>
+      <div style={{overflowX:'auto'}}><table style={{width:'100%',minWidth:580,borderCollapse:'collapse',fontSize:11,textAlign:'center'}}>
+       <thead><tr><th style={{textAlign:'left',padding:'9px 7px',color:C.mutado}}>✓</th>{ordem.map(c=><th key={c} style={{padding:'9px 6px',color:C.verde}}>{t.plans[c].name}</th>)}</tr></thead>
+       <tbody>{ajuda.linhas.map((linha,i)=><tr key={i} style={{borderTop:'1px solid '+C.borda}}><th style={{textAlign:'left',padding:'11px 7px',fontWeight:500}}>{linha.nome}</th>{ordem.map((c,j)=><td key={c} style={{padding:'9px 6px',color:j>=linha.desde?C.verde:C.mutado,fontWeight:j>=linha.desde?900:400}}>{j>=linha.desde?'✓':'—'}</td>)}</tr>)}</tbody>
+      </table></div>
+    </details>
+    <p style={{fontSize:12,color:C.mutado,lineHeight:1.55,margin:'17px 0'}}>{pais==='BR'?u.avisosBR:u.avisosExt}</p>
+    <div style={{display:'flex',gap:10,flexWrap:'wrap'}}>
+     <button type="button" onClick={irParaPagamento} style={{...botao,flex:2,minWidth:200}}>{selecionado==='free'?t.continueFree:selecionado===atual?t.continueCurrent:semPreco?u.btnPreparacao:u.btnPagamento}</button>
+     <button type="button" onClick={onFechar} style={{...secundario,flex:1}}>{t.close}</button>
+    </div>
+   </>:<>
+    <div style={{maxWidth:730,margin:'0 auto'}}>
+     <h1 style={{fontSize:'clamp(23px,3.5vw,30px)',fontWeight:900,margin:'0 0 8px'}}>{u.titlePagamento}</h1>
+     <p style={{fontSize:13,color:C.mutado,lineHeight:1.6,margin:'0 0 19px'}}>{u.introPagamento}</p>
+     <div style={{background:C.card,border:'1px solid '+C.borda,borderRadius:14,padding:18,marginBottom:17}}>
+      <div style={{display:'flex',justifyContent:'space-between',alignItems:'start',gap:12,flexWrap:'wrap'}}>
+       <div><span style={{display:'block',color:C.mutado,fontSize:11}}>{u.planoEscolhido}</span><strong style={{fontSize:19}}>{t.plans[selecionado].name}</strong><p style={{color:C.mutado,fontSize:12,margin:'7px 0 0'}}>{t.plans[selecionado].inheritance} {t.plans[selecionado].details}</p></div>
+       <div style={{textAlign:'right'}}><strong style={{fontSize:22}}>{precoReferenciaCheckout(selecionado,ciclo,pais,idioma).texto}</strong><span style={{display:'block',color:C.mutado,fontSize:11}}>{ciclo==='mensal'?u.mensal:u.anual} · {pais}</span></div>
+      </div>
+     </div>
+     <section style={{background:C.card,border:'1px solid '+C.borda,borderRadius:14,padding:18}}>
+      <h2 style={{fontSize:16,margin:'0 0 12px'}}>{u.comoPagar}</h2>
+      {!metodos.length?<p style={{color:C.alerta,fontSize:13,lineHeight:1.6}}>{u.semMetodo}</p>:<div style={{display:'grid',gap:9}}>{metodos.map(m=><label key={m.metodo} style={{display:'flex',gap:12,alignItems:'start',border:'1px solid '+(metodo===m.metodo?C.verde:C.borda),borderRadius:10,background:metodo===m.metodo?C.verdeEscuro:C.cardElevado,padding:13,cursor:'pointer'}}>
+       <input type="radio" name="mp-forma-recorrente" checked={metodo===m.metodo} onChange={()=>setMetodo(m.metodo)} style={{marginTop:4,accentColor:C.verde}}/>
+       <span style={{minWidth:0}}><strong style={{display:'block',fontSize:13}}>{m.nome}</strong><span style={{display:'block',fontSize:11,color:C.mutado,marginTop:3}}>{m.ressalva||'Recorrência sujeita a autorização e habilitação.'}</span></span>
+      </label>)}</div>}
+      <p role="note" style={{color:C.alerta,fontSize:12,lineHeight:1.6,margin:'16px 0 12px'}}>{u.pendencia}</p>
+      <button type="button" disabled style={{...botao,width:'100%',opacity:.48,cursor:'not-allowed'}}>{u.confirmacao}</button>
+     </section>
+     <div style={{display:'flex',gap:9,marginTop:14,flexWrap:'wrap'}}>
+      <button type="button" onClick={()=>setTela('planos')} style={{...secundario,flex:1}}>{u.voltar}</button>
+     </div>
+     <p role="status" style={{color:C.mutado,fontSize:11,lineHeight:1.55}}>{u.pendencia}</p>
+    </div>
+   </>}
+ </section>
+}

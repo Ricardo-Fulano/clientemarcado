@@ -11,7 +11,7 @@ import { cliquesVsVendas, montarVendasExport, resumirVendas } from '../../lib/in
 import { nomeDoProvedor } from '../../lib/integracoes/catalogo'
 import { tipoDeItemRotulo } from '../../lib/integracoes/textosVendas'
 
-const G = 'linear-gradient(135deg,#EC4899,#D946EF,#8B5CF6)'
+const G = '#C9FA45'
 
 type Periodo = '7d' | '30d' | 'mes' | 'tudo'
 
@@ -49,15 +49,15 @@ function agruparPorTitulo(eventos: any[], tipo: string, top = 5) {
 function RankingCard({ titulo, itens, corVazio }: { titulo: string; itens: { titulo: string; qtd: number }[]; corVazio?: string }) {
   return (
     <div className="crd" style={{ padding: '20px' }}>
-      <p style={{ fontSize: '14px', fontWeight: 700, color: '#F8F4F7', marginBottom: '14px' }}>{titulo}</p>
+      <p style={{ fontSize: '14px', fontWeight: 700, color: '#FFFFFF', marginBottom: '14px' }}>{titulo}</p>
       {itens.length === 0 ? (
-        <p style={{ fontSize: '12px', color: '#6B5F6B' }}>Sem cliques registrados no período.</p>
+        <p style={{ fontSize: '12px', color: '#AFA2BC' }}>Sem cliques registrados no período.</p>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
           {itens.map((it, i) => (
             <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px' }}>
-              <p style={{ fontSize: '13px', color: '#B8AAB8', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{it.titulo}</p>
-              <span style={{ fontSize: '12px', fontWeight: 700, color: '#F8F4F7', background: 'rgba(139,92,246,.14)', borderRadius: '999px', padding: '2px 10px', flexShrink: 0 }}>{it.qtd}</span>
+              <p style={{ fontSize: '13px', color: '#C5BCD0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{it.titulo}</p>
+              <span style={{ fontSize: '12px', fontWeight: 700, color: '#C9FA45', background: 'rgba(201,250,69,.11)', borderRadius: '999px', padding: '2px 10px', flexShrink: 0 }}>{it.qtd}</span>
             </div>
           ))}
         </div>
@@ -69,9 +69,9 @@ function RankingCard({ titulo, itens, corVazio }: { titulo: string; itens: { tit
 function CardBloqueado({ titulo }: { titulo: string }) {
   return (
     <div className="crd" style={{ padding: '20px', display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '10px' }}>
-      <p style={{ fontSize: '14px', fontWeight: 700, color: '#F8F4F7' }}>{titulo}</p>
-      <p style={{ fontSize: '12px', color: '#B8AAB8', lineHeight: 1.5 }}>Disponível em planos superiores.</p>
-      <Link href="/painel/plano" style={{ fontSize: '12px', fontWeight: 700, color: '#EC4899', textDecoration: 'none' }}>Ver planos →</Link>
+      <p style={{ fontSize: '14px', fontWeight: 700, color: '#FFFFFF' }}>{titulo}</p>
+      <p style={{ fontSize: '12px', color: '#C5BCD0', lineHeight: 1.5 }}>Disponível em planos superiores.</p>
+      <Link href="/painel/plano" style={{ fontSize: '12px', fontWeight: 700, color: '#C9FA45', textDecoration: 'none' }}>Ver planos →</Link>
     </div>
   )
 }
@@ -208,9 +208,9 @@ export default function Desempenho() {
   }
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', background: '#08060A', fontFamily: '-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif', overflowX: 'hidden', width: '100%' }}>
+    <div style={{ display: 'flex', minHeight: '100vh', background: '#0B0A10', fontFamily: '-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif', overflowX: 'hidden', width: '100%' }}>
       <style dangerouslySetInnerHTML={{ __html: `
-        .crd{background:radial-gradient(circle at top left,rgba(139,92,246,.09),transparent 55%),linear-gradient(145deg,rgba(24,16,27,.97),rgba(18,10,20,.99));border:1.5px solid #2A1A2F;border-radius:18px}
+        .crd{background:linear-gradient(145deg,#21182D,#1B1326);border:1.5px solid #3A2B4C;border-radius:18px}
         .desemp-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px}
         .desemp-rankings{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px}
       ` }} />
@@ -219,20 +219,20 @@ export default function Desempenho() {
         <div style={{ maxWidth: '1100px', margin: '0 auto', padding: '32px 24px 80px' }}>
 
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px', flexWrap: 'wrap', marginBottom: '6px' }}>
-            <p style={{ fontSize: '22px', fontWeight: 800, color: '#F8F4F7', letterSpacing: '-0.02em' }}>Desempenho</p>
+            <p style={{ fontSize: '22px', fontWeight: 800, color: '#FFFFFF', letterSpacing: '-0.02em' }}>Desempenho</p>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
-              <select value={periodo} onChange={e => setPeriodo(e.target.value as Periodo)} style={{ background: 'rgba(24,16,27,.92)', border: '1px solid #2A1A2F', borderRadius: '10px', padding: '9px 14px', fontSize: '13px', color: '#F8F4F7', cursor: 'pointer' }}>
+              <select value={periodo} onChange={e => setPeriodo(e.target.value as Periodo)} style={{ background: 'rgba(33,24,45,.92)', border: '1px solid #3A2B4C', borderRadius: '10px', padding: '9px 14px', fontSize: '13px', color: '#FFFFFF', cursor: 'pointer' }}>
                 {OPCOES_PERIODO.map(o => <option key={o.valor} value={o.valor}>{o.label}</option>)}
               </select>
               {exportacaoPermitida && (
               <div style={{ position: 'relative' }} onKeyDown={e => { if (e.key === 'Escape') setMenuExportar(false) }}>
-                <button type="button" aria-haspopup="menu" aria-expanded={menuExportar} disabled={carregando || exportando} onClick={() => setMenuExportar(v => !v)} style={{ background: 'rgba(24,16,27,.92)', border: '1px solid #2A1A2F', borderRadius: '10px', padding: '9px 14px', fontSize: '13px', fontWeight: 600, color: '#F8F4F7', cursor: carregando || exportando ? 'default' : 'pointer', opacity: carregando || exportando ? .6 : 1, fontFamily: 'inherit' }}>{exportando ? 'Gerando arquivo...' : 'Exportar ▾'}</button>
+                <button type="button" aria-haspopup="menu" aria-expanded={menuExportar} disabled={carregando || exportando} onClick={() => setMenuExportar(v => !v)} style={{ background: 'rgba(33,24,45,.92)', border: '1px solid #3A2B4C', borderRadius: '10px', padding: '9px 14px', fontSize: '13px', fontWeight: 600, color: '#FFFFFF', cursor: carregando || exportando ? 'default' : 'pointer', opacity: carregando || exportando ? .6 : 1, fontFamily: 'inherit' }}>{exportando ? 'Gerando arquivo...' : 'Exportar ▾'}</button>
                 {menuExportar && (
                   <>
                     <div onClick={() => setMenuExportar(false)} style={{ position: 'fixed', top: 0, right: 0, bottom: 0, left: 0, zIndex: 40 }} />
-                    <div role="menu" style={{ position: 'absolute', right: 0, top: 'calc(100% + 6px)', zIndex: 41, minWidth: '190px', background: 'rgba(24,16,27,.98)', border: '1px solid #2A1A2F', borderRadius: '10px', padding: '6px', display: 'flex', flexDirection: 'column', gap: '2px', boxShadow: '0 10px 30px rgba(0,0,0,.45)' }}>
-                      <button type="button" role="menuitem" onClick={() => exportar('csv')} style={{ background: 'transparent', border: 'none', color: '#F8F4F7', textAlign: 'left', padding: '9px 12px', borderRadius: '8px', fontSize: '13px', cursor: 'pointer', fontFamily: 'inherit' }}>Exportar CSV</button>
-                      <button type="button" role="menuitem" onClick={() => exportar('xlsx')} style={{ background: 'transparent', border: 'none', color: '#F8F4F7', textAlign: 'left', padding: '9px 12px', borderRadius: '8px', fontSize: '13px', cursor: 'pointer', fontFamily: 'inherit' }}>Exportar Excel (.xlsx)</button>
+                    <div role="menu" style={{ position: 'absolute', right: 0, top: 'calc(100% + 6px)', zIndex: 41, minWidth: '190px', background: 'rgba(33,24,45,.98)', border: '1px solid #3A2B4C', borderRadius: '10px', padding: '6px', display: 'flex', flexDirection: 'column', gap: '2px', boxShadow: '0 10px 30px rgba(0,0,0,.45)' }}>
+                      <button type="button" role="menuitem" onClick={() => exportar('csv')} style={{ background: 'transparent', border: 'none', color: '#FFFFFF', textAlign: 'left', padding: '9px 12px', borderRadius: '8px', fontSize: '13px', cursor: 'pointer', fontFamily: 'inherit' }}>Exportar CSV</button>
+                      <button type="button" role="menuitem" onClick={() => exportar('xlsx')} style={{ background: 'transparent', border: 'none', color: '#FFFFFF', textAlign: 'left', padding: '9px 12px', borderRadius: '8px', fontSize: '13px', cursor: 'pointer', fontFamily: 'inherit' }}>Exportar Excel (.xlsx)</button>
                     </div>
                   </>
                 )}
@@ -240,55 +240,55 @@ export default function Desempenho() {
               )}
             </div>
           </div>
-          <p style={{ fontSize: '13px', color: '#B8AAB8', marginBottom: erroExportar ? '8px' : '20px' }}>Acompanhe acessos e cliques da sua MiniPage.</p>
+          <p style={{ fontSize: '13px', color: '#C5BCD0', marginBottom: erroExportar ? '8px' : '20px' }}>Acompanhe acessos e cliques da sua MiniPage.</p>
           {erroExportar && <p role="alert" style={{ fontSize: '12px', fontWeight: 600, color: '#EF4444', marginBottom: '14px' }}>{erroExportar}</p>}
 
           {pubUrl && (
             <div className="crd" style={{ padding: '14px 18px', marginBottom: '24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap' }}>
-              <p style={{ fontSize: '12px', color: '#B8AAB8' }}>{pubUrl.replace('https://', '')}</p>
+              <p style={{ fontSize: '12px', color: '#C5BCD0' }}>{pubUrl.replace('https://', '')}</p>
               <div style={{ display: 'flex', gap: '8px' }}>
-                <a href={pubUrl} target="_blank" rel="noreferrer" style={{ background: 'rgba(24,16,27,.9)', border: '1px solid #2A1A2F', color: '#F8F4F7', borderRadius: '10px', padding: '8px 14px', fontSize: '12px', fontWeight: 600, textDecoration: 'none' }}>Ver MiniPage</a>
-                <button onClick={copiarLink} style={{ background: 'rgba(24,16,27,.9)', border: '1px solid #2A1A2F', color: '#F8F4F7', borderRadius: '10px', padding: '8px 14px', fontSize: '12px', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>{copiado ? 'Copiado!' : 'Copiar link'}</button>
-                <Link href="/painel/perfil" style={{ background: G, color: '#fff', borderRadius: '10px', padding: '8px 14px', fontSize: '12px', fontWeight: 700, textDecoration: 'none' }}>Editar MiniPage</Link>
+                <a href={pubUrl} target="_blank" rel="noreferrer" style={{ background: 'rgba(33,24,45,.90)', border: '1px solid #3A2B4C', color: '#FFFFFF', borderRadius: '10px', padding: '8px 14px', fontSize: '12px', fontWeight: 600, textDecoration: 'none' }}>Ver MiniPage</a>
+                <button onClick={copiarLink} style={{ background: 'rgba(33,24,45,.90)', border: '1px solid #3A2B4C', color: '#FFFFFF', borderRadius: '10px', padding: '8px 14px', fontSize: '12px', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>{copiado ? 'Copiado!' : 'Copiar link'}</button>
+                <Link href="/painel/perfil" style={{ background: G, color: '#151A0D', borderRadius: '10px', padding: '8px 14px', fontSize: '12px', fontWeight: 700, textDecoration: 'none' }}>Editar MiniPage</Link>
               </div>
             </div>
           )}
 
           {carregando ? (
-            <p style={{ fontSize: '13px', color: '#B8AAB8' }}>Carregando...</p>
+            <p style={{ fontSize: '13px', color: '#C5BCD0' }}>Carregando...</p>
           ) : !temAlgumDado ? (
             <div className="crd" style={{ padding: '40px 30px', textAlign: 'center' }}>
-              <p style={{ fontSize: '17px', fontWeight: 800, color: '#F8F4F7', marginBottom: '8px' }}>Ainda não há dados suficientes</p>
-              <p style={{ fontSize: '13px', color: '#B8AAB8', lineHeight: 1.6, marginBottom: '22px', maxWidth: '440px', marginLeft: 'auto', marginRight: 'auto' }}>Compartilhe sua MiniPage para começar a acompanhar acessos, cliques e interesses dos visitantes.</p>
+              <p style={{ fontSize: '17px', fontWeight: 800, color: '#FFFFFF', marginBottom: '8px' }}>Ainda não há dados suficientes</p>
+              <p style={{ fontSize: '13px', color: '#C5BCD0', lineHeight: 1.6, marginBottom: '22px', maxWidth: '440px', marginLeft: 'auto', marginRight: 'auto' }}>Compartilhe sua MiniPage para começar a acompanhar acessos, cliques e interesses dos visitantes.</p>
               <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', flexWrap: 'wrap' }}>
-                {pubUrl && <a href={pubUrl} target="_blank" rel="noreferrer" style={{ background: 'rgba(24,16,27,.9)', border: '1px solid #2A1A2F', color: '#F8F4F7', borderRadius: '10px', padding: '10px 18px', fontSize: '13px', fontWeight: 600, textDecoration: 'none' }}>Ver minha MiniPage</a>}
-                <button onClick={copiarLink} style={{ background: G, color: '#fff', border: 'none', borderRadius: '10px', padding: '10px 18px', fontSize: '13px', fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>{copiado ? 'Copiado!' : 'Copiar link'}</button>
+                {pubUrl && <a href={pubUrl} target="_blank" rel="noreferrer" style={{ background: 'rgba(33,24,45,.90)', border: '1px solid #3A2B4C', color: '#FFFFFF', borderRadius: '10px', padding: '10px 18px', fontSize: '13px', fontWeight: 600, textDecoration: 'none' }}>Ver minha MiniPage</a>}
+                <button onClick={copiarLink} style={{ background: G, color: '#151A0D', border: 'none', borderRadius: '10px', padding: '10px 18px', fontSize: '13px', fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>{copiado ? 'Copiado!' : 'Copiar link'}</button>
               </div>
             </div>
           ) : (
             <>
               <div className="desemp-cards" style={{ marginBottom: '26px' }}>
                 <div className="crd" style={{ padding: '18px' }}>
-                  <p style={{ fontSize: '11px', color: '#B8AAB8', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: '6px' }}>Visualizações</p>
-                  <p style={{ fontSize: '26px', fontWeight: 800, color: '#F8F4F7' }}>{totalPageViews}</p>
+                  <p style={{ fontSize: '11px', color: '#C5BCD0', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: '6px' }}>Visualizações</p>
+                  <p style={{ fontSize: '26px', fontWeight: 800, color: '#FFFFFF' }}>{totalPageViews}</p>
                 </div>
                 <div className="crd" style={{ padding: '18px' }}>
-                  <p style={{ fontSize: '11px', color: '#B8AAB8', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: '6px' }}>Cliques totais</p>
-                  <p style={{ fontSize: '26px', fontWeight: 800, color: '#F8F4F7' }}>{cliquesTotais}</p>
+                  <p style={{ fontSize: '11px', color: '#C5BCD0', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: '6px' }}>Cliques totais</p>
+                  <p style={{ fontSize: '26px', fontWeight: 800, color: '#FFFFFF' }}>{cliquesTotais}</p>
                 </div>
                 <div className="crd" style={{ padding: '18px' }}>
-                  <p style={{ fontSize: '11px', color: '#B8AAB8', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: '6px' }}>Cliques no WhatsApp</p>
-                  <p style={{ fontSize: '26px', fontWeight: 800, color: '#F8F4F7' }}>{cliquesWhatsapp}</p>
+                  <p style={{ fontSize: '11px', color: '#C5BCD0', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: '6px' }}>Cliques no WhatsApp</p>
+                  <p style={{ fontSize: '26px', fontWeight: 800, color: '#FFFFFF' }}>{cliquesWhatsapp}</p>
                 </div>
                 <div className="crd" style={{ padding: '18px' }}>
-                  <p style={{ fontSize: '11px', color: '#B8AAB8', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: '6px' }}>Taxa de clique</p>
-                  <p style={{ fontSize: '26px', fontWeight: 800, color: '#F8F4F7' }}>{taxaClique.toFixed(1)}%</p>
+                  <p style={{ fontSize: '11px', color: '#C5BCD0', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: '6px' }}>Taxa de clique</p>
+                  <p style={{ fontSize: '26px', fontWeight: 800, color: '#FFFFFF' }}>{taxaClique.toFixed(1)}%</p>
                 </div>
                 {permiteCatalogoWhatsapp(planoAtual) ? (
                   <div className="crd" style={{ padding: '18px' }}>
-                    <p style={{ fontSize: '11px', color: '#B8AAB8', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: '6px' }}>Leads capturados</p>
-                    <p style={{ fontSize: '26px', fontWeight: 800, color: '#F8F4F7', marginBottom: '8px' }}>{leads.length}</p>
-                    <Link href="/painel/desempenho/leads" style={{ display: 'inline-block', background: 'rgba(24,16,27,.9)', border: '1px solid #2A1A2F', color: '#F8F4F7', borderRadius: '8px', padding: '6px 12px', fontSize: '12px', fontWeight: 600, textDecoration: 'none', fontFamily: 'inherit' }}>Ver lista</Link>
+                    <p style={{ fontSize: '11px', color: '#C5BCD0', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: '6px' }}>Leads capturados</p>
+                    <p style={{ fontSize: '26px', fontWeight: 800, color: '#FFFFFF', marginBottom: '8px' }}>{leads.length}</p>
+                    <Link href="/painel/desempenho/leads" style={{ display: 'inline-block', background: 'rgba(33,24,45,.90)', border: '1px solid #3A2B4C', color: '#FFFFFF', borderRadius: '8px', padding: '6px 12px', fontSize: '12px', fontWeight: 600, textDecoration: 'none', fontFamily: 'inherit' }}>Ver lista</Link>
                   </div>
                 ) : <CardBloqueado titulo="Leads capturados" />}
               </div>

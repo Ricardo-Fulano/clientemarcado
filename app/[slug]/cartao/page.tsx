@@ -9,7 +9,7 @@ import CartaoApp from './CartaoApp'
 
 // Cartao digital publico da MiniPage: /{slug}/cartao. Mesma fonte de dados da pagina publica (view perfis_publicos, chave anon):
 // NUNCA le a tabela perfis nem expoe user_id, plano detalhado ou dados privados. Liberado para TODOS os planos (nenhum bloqueio).
-export const viewport: Viewport = { themeColor: '#08060A', colorScheme: 'dark', width: 'device-width', initialScale: 1, viewportFit: 'cover' }
+export const viewport: Viewport = { themeColor: '#0B0A10', colorScheme: 'dark', width: 'device-width', initialScale: 1, viewportFit: 'cover' }
 
 async function carregar(slugBruto: string) {
   const slug = normalizarSlug(slugBruto)
@@ -41,8 +41,8 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     description: `Cartão digital de ${nome}: QR Code, contato e MiniPage.`,
     manifest: `${origem}/${s}/cartao/manifest.webmanifest`,
     icons: {
-      icon: [{ url: `${origem}/cartao/icon-192.png`, sizes: '192x192', type: 'image/png' }, { url: `${origem}/cartao/icon-512.png`, sizes: '512x512', type: 'image/png' }],
-      apple: [{ url: `${origem}/cartao/apple-touch-icon.png`, sizes: '180x180', type: 'image/png' }],
+      icon: [{ url: `${origem}/brand/minipage-cartao-v2-192.png`, sizes: '192x192', type: 'image/png' }, { url: `${origem}/brand/minipage-cartao-v2-512.png`, sizes: '512x512', type: 'image/png' }],
+      apple: [{ url: `${origem}/brand/minipage-cartao-v2-180.png`, sizes: '180x180', type: 'image/png' }],
     },
     appleWebApp: { capable: true, title: curto, statusBarStyle: 'black-translucent' },
     robots: { index: false, follow: false }, // a pagina que deve ranquear e a MiniPage publica, nao o cartao

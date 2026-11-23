@@ -2,7 +2,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useIdiomaGlobal } from '../../components/IdiomaProviderGlobal'
-import { obterLimiteModelosCor, obterLimiteLinksRapidos, obterLimiteVideos, permiteDestaques, podeUsarCatalogo, permiteVideos } from '../../lib/planos'
+import { obterLimiteModelosCor, obterLimiteLinksRapidos, obterLimiteVideos, permiteDestaques, podeUsarCatalogo, permiteVideos, permiteAlbuns } from '../../lib/planos'
 import { TEMAS_MINIPAGE } from '../../lib/temasMiniPage'
 import { getTema } from '../../lib/tema-publico'
 import ThemePreviewCard from '../../components/ThemePreviewCard'
@@ -333,13 +333,13 @@ type LinkForm = { id: string; tipo: string; titulo: string; url: string; descric
 type YoutubeImportItem = { videoId: string; titulo: string; miniatura: string; url: string }
 const TEXTOS_IMPORT_IG = {
   "pt-BR": {
-    "title": "Importar meu Instagram",
-    "explainer": "Conecte uma conta profissional (Criador ou Empresa). A Meta poderá fornecer seu nome, foto, bio, seguidores e publicações. Nada será alterado antes de sua confirmação.",
+    "title": "Importe seu Instagram em poucos passos",
+    "explainer": "Traga sua foto, nome, bio e publicações sem preencher tudo manualmente. Para importar, conecte uma conta profissional (Criador ou Empresa). Você escolhe o que usar; nada é publicado automaticamente.",
     "connecting": "Conectando...",
-    "connect": "Conectar Instagram oficial",
+    "connect": "Conectar meu Instagram",
     "apply": "Usar nome, foto e bio do Instagram",
     "applied": "✓ Dados aplicados — você pode editar abaixo",
-    "media": "Prévia das publicações reais recuperadas. A importação para a galeria pública será habilitada depois da validação das permissões de gravação do plano.",
+    "media": "Selecione as fotos que deseja adicionar a Álbuns / Fotos. Ao concluir, as fotos serão importadas se seu plano permitir. Vídeos e Reels ainda não são adicionados a álbuns.",
     "post": "Ver publicação"
   },
   "en-US": {
@@ -725,6 +725,20 @@ export default function CriarMiniPage() {
     try {
       const {data:{session}} = await supabase.auth.getSession()
       if (!session?.access_token) throw new Error('Entre novamente na MiniPage Pro.')
+      // Conexão existente dentro da sessão temporária: evita abrir OAuth outra vez.
+      const current = await fetch('/api/smart-import/instagram/perfil', { headers:{Authorization:`Bearer ${session.access_token}`},cache:'no-store' })
+      if (current.ok) {
+        const data = await current.json().catch(()=>null)
+        if (data?.perfil) {
+          setIgPerfil(data.perfil as InstagramImportPerfil)
+          setIgMidias(Array.isArray(data.midias) ? data.midias : [])
+          setIgMidiasSelecionadas((Array.isArray(data.midias) ? data.midias : []).filter((m:InstagramImportItem)=>['IMAGE','CAROUSEL_ALBUM'].includes(m.tipo)).slice(0,6).map((m:InstagramImportItem)=>m.id))
+          setIgMidiaCapaId(null)
+          setIgAplicado(false)
+          setIgConsultando(false)
+          return
+        }
+      }
       const res = await fetch('/api/smart-import/instagram/iniciar',{method:'POST',headers:{Authorization:`Bearer ${session.access_token}`},cache:'no-store'})
       const result = await res.json().catch(()=>null)
       if (!res.ok || typeof result?.url !== 'string') throw new Error(result?.error || 'Não foi possível conectar o Instagram.')
@@ -744,7 +758,7 @@ export default function CriarMiniPage() {
       setIgPerfil(result.perfil as InstagramImportPerfil)
       setIgAplicado(false)
       setIgMidias(Array.isArray(result.midias)?result.midias:[])
-      setIgMidiasSelecionadas([])
+      setIgMidiasSelecionadas((Array.isArray(result.midias)?result.midias:[]).filter((m:InstagramImportItem)=>['IMAGE','CAROUSEL_ALBUM'].includes(m.tipo)).slice(0,6).map((m:InstagramImportItem)=>m.id))
       setIgMidiaCapaId(null)
       setIgStories([])
       setIgStoriesConsultados(false)
@@ -1099,13 +1113,80 @@ export default function CriarMiniPage() {
       }
     }
 
+    // As fotos selecionadas do Instagram entram no MESMO sistema Álbuns / Fotos.
+    // Nunca há uma segunda galeria pública, e nenhuma foto antiga é excluída.
+    let resumoInstagram = ''
+    const fotosSelecionadas = igMidias.filter(m => igMidiasSelecionadas.includes(m.id) &&
+      ['IMAGE', 'CAROUSEL_ALBUM'].includes(m.tipo) && /^\d+$/.test(m.id))
+    if (fotosSelecionadas.length && permiteAlbuns(planoParaPublicar)) {
+      let novasFotos = 0
+      try {
+        const { data: { session } } = await supabase.auth.getSession()
+        if (!session?.access_token) throw new Error('Instagram não conectado')
+        const { data: albunsAtuais, error: erroAlbuns } = await supabase.from('pagina_albuns')
+          .select('id,titulo').eq('user_id', userId).order('ordem')
+        if (erroAlbuns) throw new Error('Falha ao consultar álbuns')
+        let albumId: string | null = albunsAtuais?.find((a: {titulo?:string}) =>
+          String(a.titulo || '').trim().toLowerCase() === 'importadas do instagram')?.id || null
+        if (!albumId) {
+          const {data:novoAlbum,error:erroNovoAlbum} = await supabase.from('pagina_albuns').insert({
+            user_id:userId,titulo:'Importadas do Instagram',subtitulo:null,proporcao:'1:1',
+            ativo:true,ordem:albunsAtuais?.length || 0
+          }).select('id').single()
+          if (erroNovoAlbum || !novoAlbum) throw new Error('Falha ao criar álbum')
+          albumId = novoAlbum.id
+        }
+        const { data: fotosAtuais, error: erroFotos } = await supabase.from('pagina_album_fotos')
+          .select('imagem_url,album_id').eq('user_id',userId)
+        if (erroFotos) throw new Error('Falha ao verificar fotos atuais')
+        const fotosSalvas = new Set((fotosAtuais || []).map((f: {imagem_url?:string|null})=>f.imagem_url || ''))
+        let ordem = (fotosAtuais || []).filter((f: {album_id:string})=>f.album_id===albumId).length
+        for (const m of fotosSelecionadas) {
+          const resposta = await fetch(`/api/smart-import/instagram/midia?midiaId=${encodeURIComponent(m.id)}`, {
+            headers:{Authorization:`Bearer ${session.access_token}`},cache:'no-store'
+          })
+          if (!resposta.ok) throw new Error('Falha ao baixar uma foto do Instagram')
+          const imagem = await resposta.blob()
+          const extensao = ({'image/jpeg':'jpg','image/png':'png','image/webp':'webp'} as Record<string,string>)[imagem.type]
+          if (!extensao || imagem.size<1 || imagem.size>8*1024*1024) throw new Error('Foto inválida')
+          const caminho = `album-fotos/${userId}-instagram-${m.id}.${extensao}`
+          const storage = supabase.storage.from('fotos')
+          const urlPublica = storage.getPublicUrl(caminho).data.publicUrl
+          if (fotosSalvas.has(urlPublica)) continue
+          const {error:erroUpload} = await storage.upload(caminho,imagem,{
+            upsert:false,contentType:imagem.type,cacheControl:'3600'
+          })
+          if (erroUpload) throw new Error('Falha ao salvar foto no armazenamento')
+          const {error:erroFoto} = await supabase.from('pagina_album_fotos').insert({
+            user_id:userId,album_id:albumId,imagem_url:urlPublica,titulo:'Instagram',
+            descricao:m.legenda.slice(0,500)||null,ativo:true,ordem
+          })
+          if (erroFoto) {
+            await storage.remove([caminho])
+            throw new Error('Falha ao adicionar foto ao álbum')
+          }
+          fotosSalvas.add(urlPublica)
+          ordem++
+          novasFotos++
+        }
+        resumoInstagram = `${novasFotos} fotos do Instagram` + (novasFotos < fotosSelecionadas.length ? ' (sem duplicatas)' : '')
+      } catch {
+        // O cadastro já está salvo: não desfazer outros recursos nem fingir que as fotos entraram.
+        // O usuário poderá recuperar a seleção via Painel → Álbuns / Fotos.
+        resumoInstagram = novasFotos ? `${novasFotos} fotos importadas; outras pendentes no painel` :
+          'Importação de fotos pendente em Álbuns / Fotos'
+      }
+    } else if (fotosSelecionadas.length) {
+      resumoInstagram = 'Fotos do Instagram disponíveis no plano MiniPage'
+    }
+
     // Publicação construída exclusivamente com os dados informados pelo assinante.
     // Não aplica templates, imagens, vídeos ou produtos fictícios.
-    concluirOnboarding(slugFmt, linksSalvos, destaqueSalvo, false, videosImportados)
+    concluirOnboarding(slugFmt, linksSalvos, destaqueSalvo, false, videosImportados, resumoInstagram)
   }
 
   // So marca o onboarding como visto quando ele REALMENTE conclui (nunca na falha tecnica do modelo: se o cliente sair, reabre e tenta de novo).
-  function concluirOnboarding(slugFmt: string, linksSalvos: number, destaqueSalvo: boolean, aplicouModelo: boolean, videosImportados = 0) {
+  function concluirOnboarding(slugFmt: string, linksSalvos: number, destaqueSalvo: boolean, aplicouModelo: boolean, videosImportados = 0, resumoInstagram = '') {
     setSlug(slugFmt)
     setSlugOriginal(slugFmt)
     try { localStorage.setItem(chaveOnboarding(userId), '1') } catch { /* localStorage indisponivel */ }
@@ -1114,6 +1195,7 @@ export default function CriarMiniPage() {
     if (linksSalvos > 0) resumo.push(`${linksSalvos} link${linksSalvos > 1 ? 's' : ''}`)
     if (destaqueSalvo) resumo.push('1 destaque')
     if (videosImportados > 0) resumo.push(`${videosImportados} vídeos do YouTube`)
+    if (resumoInstagram) resumo.push(resumoInstagram)
     setResumoFinal(resumo)
     setModeloAplicado(aplicouModelo)
     setErroModelo(false)

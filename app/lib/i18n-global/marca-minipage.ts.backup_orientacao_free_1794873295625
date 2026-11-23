@@ -1,0 +1,70 @@
+import type { Idioma } from './idiomas'
+
+// Textos da apresentacao da marca na primeira secao da landing.
+// Separados do dicionario legado para preservar as traducoes ja existentes.
+type TextoMarca = {
+  selo: string
+  titulo1: string
+  titulo2: string
+  subtitulo: string
+  descricao: string
+  qr: string
+  assinatura: string
+}
+
+export const TEXTOS_MARCA_MINIPAGE: Record<Idioma, TextoMarca> = {
+  'pt-BR': {
+    selo: 'Seu cartão de visita digital',
+    titulo1: 'Tudo sobre você ou seu negócio.',
+    titulo2: 'Em uma única MiniPage.',
+    subtitulo: 'Seus contatos, suas redes sociais e tudo o que você oferece em um só lugar.',
+    descricao: 'Reúna WhatsApp, links, vídeos, produtos, conteúdos e agendamentos em uma página profissional, pronta para compartilhar.',
+    qr: 'Compartilhe com um link ou QR Code.',
+    assinatura: 'Qual é a sua MiniPage?',
+  },
+  'en-US': {
+    selo: 'Your digital business card',
+    titulo1: 'Everything about you or your business.',
+    titulo2: 'In one MiniPage.',
+    subtitulo: 'Your contacts, social profiles, and everything you offer—all in one place.',
+    descricao: 'Bring together WhatsApp, links, videos, products, content, and bookings on a professional page made to share.',
+    qr: 'Share it with a link or QR code.',
+    assinatura: 'What’s your MiniPage?',
+  },
+  'es-ES': {
+    selo: 'Tu tarjeta de presentación digital',
+    titulo1: 'Todo sobre ti o tu negocio.',
+    titulo2: 'En una sola MiniPage.',
+    subtitulo: 'Tus contactos, redes sociales y todo lo que ofreces en un solo lugar.',
+    descricao: 'Reúne WhatsApp, enlaces, vídeos, productos, contenido y reservas en una página profesional lista para compartir.',
+    qr: 'Compártela con un enlace o código QR.',
+    assinatura: '¿Cuál es tu MiniPage?',
+  },
+  'fr-FR': {
+    selo: 'Votre carte de visite numérique',
+    titulo1: 'Tout sur vous ou votre activité.',
+    titulo2: 'Sur une seule MiniPage.',
+    subtitulo: 'Vos contacts, réseaux sociaux et toutes vos offres au même endroit.',
+    descricao: 'Rassemblez WhatsApp, liens, vidéos, produits, contenus et réservations sur une page professionnelle facile à partager.',
+    qr: 'Partagez-la par lien ou code QR.',
+    assinatura: 'Quelle est votre MiniPage ?',
+  },
+  'de-DE': {
+    selo: 'Deine digitale Visitenkarte',
+    titulo1: 'Alles über dich oder dein Business.',
+    titulo2: 'Auf einer einzigen MiniPage.',
+    subtitulo: 'Deine Kontakte, Social-Media-Profile und Angebote an einem Ort.',
+    descricao: 'Vereine WhatsApp, Links, Videos, Produkte, Inhalte und Buchungen auf einer professionellen Seite zum Teilen.',
+    qr: 'Teile sie per Link oder QR-Code.',
+    assinatura: 'Wie lautet deine MiniPage?',
+  },
+  'it-IT': {
+    selo: 'Il tuo biglietto da visita digitale',
+    titulo1: 'Tutto su di te o sulla tua attività.',
+    titulo2: 'In un’unica MiniPage.',
+    subtitulo: 'Contatti, social e tutto ciò che offri in un unico posto.',
+    descricao: 'Riunisci WhatsApp, link, video, prodotti, contenuti e prenotazioni in una pagina professionale pronta da condividere.',
+    qr: 'Condividila con un link o un codice QR.',
+    assinatura: 'Qual è la tua MiniPage?',
+  },
+}

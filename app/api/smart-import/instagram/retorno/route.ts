@@ -4,17 +4,17 @@ import { abrir, selar, cookieAttrs, COOKIE_STATE, COOKIE_TOKEN, type EstadoInsta
 
 export const runtime = 'nodejs'
 const GRAPH_VERSION = 'v25.0'
-function redirect(req:NextRequest, status:string) {
+function redirect(req:NextRequest, status:string, modo?: 'direto' | 'empresarial', destino?: '/painel/perfil/albuns') {
   // Evita redirecionar para localhost quando o Next.js esta atras de tunel HTTPS.
   // O dominio de retorno e fixado pela configuracao do servidor, nao por cabecalhos arbitrarios.
   let origin = req.nextUrl.origin
   try {
-    const configured = new URL(process.env.INSTAGRAM_REDIRECT_URI || '')
+    const configured = new URL((modo === 'direto' ? process.env.MP_INSTAGRAM_DIRECT_REDIRECT_URI : process.env.INSTAGRAM_REDIRECT_URI) || '')
     if (configured.protocol === 'https:' && configured.pathname === '/api/smart-import/instagram/retorno' && !configured.search && !configured.hash) {
       origin = configured.origin
     }
   } catch { /* Usa o origin do Next caso a configuracao esteja ausente. */ }
-  const url = new URL('/painel/criar-minipage', origin)
+  const url = new URL(destino === '/painel/perfil/albuns' ? destino : '/painel/criar-minipage', origin)
   url.searchParams.set('instagram',status)
   return NextResponse.redirect(url,{headers:{'Cache-Control':'no-store'}})
 }
@@ -38,11 +38,45 @@ export async function GET(req: NextRequest) {
     typeof auth.created === 'number' && auth.created <= Date.now() && Date.now()-auth.created < 10*60*1000 &&
     state.length === auth.state.length && timingSafeEqual(Buffer.from(state),Buffer.from(auth.state))
   // Consumir o estado em qualquer resposta, inclusive recusa/erro.
-  if (!valid || !code || code.length>3000) {const res=redirect(req,'falha');res.cookies.delete(COOKIE_STATE);return res}
+  if (!valid || !code || code.length>3000) {const res=redirect(req,'falha',auth?.modo,auth?.destino);res.cookies.delete(COOKIE_STATE);return res}
+  // Instagram Login direto: troca o código via endpoint oficial e mantém apenas sessão temporária.
+  if (auth?.modo === 'direto') {
+    const appId=process.env.MP_INSTAGRAM_DIRECT_APP_ID
+    const secret=process.env.MP_INSTAGRAM_DIRECT_APP_SECRET
+    const redirectUri=process.env.MP_INSTAGRAM_DIRECT_REDIRECT_URI
+    if (process.env.MP_INSTAGRAM_DIRECT_LOGIN_ENABLED !== 'true' || !appId || !secret || !redirectUri) {
+      const res=redirect(req,'configuracao','direto',auth.destino);res.cookies.delete(COOKIE_STATE);return res
+    }
+    try {
+      const form=new URLSearchParams({client_id:appId,client_secret:secret,grant_type:'authorization_code',redirect_uri:redirectUri,code:code.replace(/#_$/,'')})
+      const tokenResponse=await fetch('https://api.instagram.com/oauth/access_token', {
+        method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},
+        body:form,cache:'no-store',signal:AbortSignal.timeout(10000)
+      })
+      if (!tokenResponse.ok) throw new Error('DIRECT_TOKEN_EXCHANGE_FAILED')
+      const tokenData=await tokenResponse.json() as {access_token?:string;user_id?:number|string}
+      if (!tokenData.access_token || tokenData.access_token.length>2500) throw new Error('INVALID_DIRECT_TOKEN')
+      const me=new URL('https://graph.instagram.com/v25.0/me')
+      me.searchParams.set('fields','id,username')
+      const meResponse=await fetch(me,{headers:{Authorization:`Bearer ${tokenData.access_token}`},cache:'no-store',signal:AbortSignal.timeout(10000)})
+      if (!meResponse.ok) throw new Error('DIRECT_PROFILE_DENIED')
+      const perfil=await meResponse.json() as {id?:string;username?:string}
+      // /me retorna o ID como string; não converter IDs grandes do JSON em Number.
+      const igId=typeof perfil.id==='string' ? perfil.id : ''
+      if (!/^\d+$/.test(igId) || typeof perfil.username!=='string') throw new Error('DIRECT_ACCOUNT_MISMATCH')
+      if (typeof tokenData.user_id === 'string' && tokenData.user_id !== igId) throw new Error('DIRECT_ACCOUNT_MISMATCH')
+      const res=redirect(req,'conectado','direto',auth.destino)
+      res.cookies.set(COOKIE_TOKEN,selar({uid:auth.uid,token:tokenData.access_token,instagramId:igId,username:perfil.username,created:Date.now(),provedor:'direto'}),cookieAttrs)
+      res.cookies.delete(COOKIE_STATE)
+      return res
+    } catch {
+      const res=redirect(req,'falha','direto',auth.destino);res.cookies.delete(COOKIE_STATE);return res
+    }
+  }
   const appId = process.env.INSTAGRAM_APP_ID
   const secret = process.env.INSTAGRAM_APP_SECRET
   const redirectUri = process.env.INSTAGRAM_REDIRECT_URI
-  if (!appId || !secret || !redirectUri) {const res=redirect(req,'configuracao');res.cookies.delete(COOKIE_STATE);return res}
+  if (!appId || !secret || !redirectUri) {const res=redirect(req,'configuracao','empresarial',auth?.destino);res.cookies.delete(COOKIE_STATE);return res}
   try {
     const url = new URL(`https://graph.facebook.com/${GRAPH_VERSION}/oauth/access_token`)
     url.searchParams.set('client_id',appId)
@@ -74,14 +108,14 @@ export async function GET(req: NextRequest) {
     }
     if (!complete) throw new Error('Paginação incompleta')
     if (accounts.size!==1) {
-      const res=redirect(req,accounts.size===0?'sem_conta':'varias_contas')
+      const res=redirect(req,accounts.size===0?'sem_conta':'varias_contas','empresarial',auth?.destino)
       res.cookies.delete(COOKIE_STATE)
       return res
     }
     const account=Array.from(accounts.values())[0]
-    const res=redirect(req,'conectado')
-    res.cookies.set(COOKIE_TOKEN,selar({uid:auth.uid,token:data.access_token,instagramId:account.id,username:account.username,created:Date.now()}),cookieAttrs)
+    const res=redirect(req,'conectado','empresarial',auth?.destino)
+    res.cookies.set(COOKIE_TOKEN,selar({uid:auth.uid,token:data.access_token,instagramId:account.id,username:account.username,created:Date.now(),provedor:'empresarial'}),cookieAttrs)
     res.cookies.delete(COOKIE_STATE)
     return res
-  } catch {const res=redirect(req,'falha');res.cookies.delete(COOKIE_STATE);return res}
+  } catch {const res=redirect(req,'falha','empresarial',auth?.destino);res.cookies.delete(COOKIE_STATE);return res}
 }

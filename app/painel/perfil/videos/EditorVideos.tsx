@@ -8,18 +8,18 @@ import PainelSidebar from '@/app/components/PainelSidebar'
 import VerMiniPageButton from '@/app/components/VerMiniPageButton'
 import { ehPlanoFree } from '../../../lib/planos'
 
-const G='linear-gradient(135deg,#EC4899,#D946EF,#8B5CF6)'
+const G = '#C9FA45'
 
 const CSS=`
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-html,body{overflow-x:hidden;width:100%;max-width:100%;background:#08060A}
+html,body{overflow-x:hidden;width:100%;max-width:100%;background:#0B0A10}
 input,select,textarea{color-scheme:dark}
-.pg{background:radial-gradient(circle at top left,rgba(139,92,246,.18),transparent 32%),linear-gradient(135deg,#08060A 0%,#120A14 45%,#08060A 100%);min-height:100vh}
+.pg{background:radial-gradient(circle at top left,rgba(91,60,130,.15),transparent 36%),#0B0A10;min-height:100vh}
 .bdy{max-width:820px;margin:0 auto;padding:28px 32px 80px;width:100%}
-.crd{background:radial-gradient(circle at top left,rgba(139,92,246,.10),transparent 38%),linear-gradient(145deg,rgba(24,16,27,.97),rgba(18,10,20,.99));border:1.5px solid #2A1A2F;border-radius:18px}
-.lbl{display:block;font-size:11px;font-weight:700;color:#B8AAB8;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px}
-.inp{width:100%;background:rgba(24,16,27,.92);border:1.5px solid #2A1A2F;border-radius:10px;padding:10px 12px;color:#F8F4F7;font-size:13px;font-family:inherit}
-.inp:focus{outline:none;border-color:rgba(236,72,153,.5)}
+.crd{background:#21182D;border:1px solid #40344B;border-radius:18px}
+.lbl{display:block;font-size:11px;font-weight:700;color:#C5BCD1;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px}
+.inp{width:100%;background:rgba(33,24,45,.92);border:1.5px solid #40344B;border-radius:10px;padding:10px 12px;color:#FFFFFF;font-size:13px;font-family:inherit}
+.inp:focus{outline:none;border-color:rgba(201,250,69,.62)}
 .fg2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 @media(max-width:767px){.psb-main .bdy{padding:14px 14px 80px!important}.fg2{grid-template-columns:1fr!important}}
 `
@@ -343,12 +343,12 @@ export default function GerenciarVideos({ secaoId }: { secaoId?: string }){
     if(imgRef.current)imgRef.current.value=''
   }
 
-  if(secaoId && !secaoTitulo && !carregando) return <div style={{background:'#08060A',color:'#F8F4F7',minHeight:'100vh',padding:32}}>{msg || 'Seção não encontrada.'} <Link href='/painel/perfil/videos' style={{color:'#C4B5FD'}}>Voltar</Link></div>
+  if(secaoId && !secaoTitulo && !carregando) return <div style={{background:'#0B0A10',color:'#FFFFFF',minHeight:'100vh',padding:32}}>{msg || 'Seção não encontrada.'} <Link href='/painel/perfil/videos' style={{color:'#C4B5FD'}}>Voltar</Link></div>
 
-  if(carregando)return(<div style={{minHeight:'100vh',background:'#08060A',display:'flex',alignItems:'center',justifyContent:'center',fontFamily:'system-ui'}}><p style={{color:'#B8AAB8',fontSize:'14px'}}>Carregando...</p></div>)
+  if(carregando)return(<div style={{minHeight:'100vh',background:'#0B0A10',display:'flex',alignItems:'center',justifyContent:'center',fontFamily:'system-ui'}}><p style={{color:'#C5BCD1',fontSize:'14px'}}>Carregando...</p></div>)
 
   return(
-    <div style={{display:'flex',minHeight:'100vh',background:'#08060A',fontFamily:'-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif',overflowX:'hidden',width:'100%'}}>
+    <div style={{display:'flex',minHeight:'100vh',background:'#0B0A10',fontFamily:'-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif',overflowX:'hidden',width:'100%'}}>
       <style dangerouslySetInnerHTML={{__html:CSS}}/>
       <PainelSidebar tituloMobile="Vídeos"/>
       <div className="psb-main">
@@ -360,30 +360,30 @@ export default function GerenciarVideos({ secaoId }: { secaoId?: string }){
             </div>
           )}
 
-          <Link href={secaoId ? '/painel/perfil/videos' : '/painel/perfil'} style={{display:'inline-flex',alignItems:'center',gap:'6px',fontSize:'13px',color:'#B8AAB8',textDecoration:'none',marginBottom:'18px'}}><ArrowLeft size={15}/> {secaoId ? 'Voltar para Seções de Vídeos' : 'Voltar para Configurações'}</Link>
+          <Link href={secaoId ? '/painel/perfil/videos' : '/painel/perfil'} style={{display:'inline-flex',alignItems:'center',gap:'6px',fontSize:'13px',color:'#C5BCD1',textDecoration:'none',marginBottom:'18px'}}><ArrowLeft size={15}/> {secaoId ? 'Voltar para Seções de Vídeos' : 'Voltar para Configurações'}</Link>
 
           <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',flexWrap:'wrap',gap:'12px',marginBottom:'8px'}}>
-            <p style={{fontSize:'22px',fontWeight:800,color:'#F8F4F7',letterSpacing:'-0.02em'}}>{secaoId ? `Vídeos — ${secaoTitulo}` : 'Vídeos da página'}</p>
+            <p style={{fontSize:'22px',fontWeight:800,color:'#FFFFFF',letterSpacing:'-0.02em'}}>{secaoId ? `Vídeos — ${secaoTitulo}` : 'Vídeos da página'}</p>
             <div style={{display:'flex',gap:'10px',flexWrap:'wrap'}}>
               <VerMiniPageButton/>
               {freeAtingiuLimite ? (
-                <Link href="/painel/plano" style={{background:G,color:'#fff',border:'1px solid rgba(255,255,255,.12)',borderRadius:'10px',padding:'10px 18px',fontSize:'13px',fontWeight:700,textDecoration:'none'}}>Desbloquear mais vídeos</Link>
+                <Link href="/painel/plano" style={{background:G,color:'#0B0A10',border:'1px solid rgba(255,255,255,.12)',borderRadius:'10px',padding:'10px 18px',fontSize:'13px',fontWeight:700,textDecoration:'none'}}>Desbloquear mais vídeos</Link>
               ) : (
-                <button type="button" onClick={novoVideo} style={{background:G,color:'#fff',border:'1px solid rgba(255,255,255,.12)',borderRadius:'10px',padding:'10px 18px',fontSize:'13px',fontWeight:700,cursor:'pointer',fontFamily:'inherit'}}>+ Novo vídeo</button>
+                <button type="button" onClick={novoVideo} style={{background:G,color:'#0B0A10',border:'1px solid rgba(255,255,255,.12)',borderRadius:'10px',padding:'10px 18px',fontSize:'13px',fontWeight:700,cursor:'pointer',fontFamily:'inherit'}}>+ Novo vídeo</button>
               )}
             </div>
           </div>
           {planoFree && (
             <div className="crd" style={{padding:'14px 16px',marginBottom:'16px',border:'1px solid rgba(139,92,246,.30)'}}>
-              <p style={{color:'#F8F4F7',fontSize:'13px',fontWeight:700}}>Seu Free inclui 1 vídeo do YouTube</p>
-              <p style={{color:'#B8AAB8',fontSize:'12px',marginTop:'6px'}}>Divulgue sua música, lançamento ou conteúdo. Para publicar vários vídeos e organizar seções, faça upgrade para MiniPage.</p>
+              <p style={{color:'#FFFFFF',fontSize:'13px',fontWeight:700}}>Seu Free inclui 1 vídeo do YouTube</p>
+              <p style={{color:'#C5BCD1',fontSize:'12px',marginTop:'6px'}}>Divulgue sua música, lançamento ou conteúdo. Para publicar vários vídeos e organizar seções, faça upgrade para MiniPage.</p>
               {freeAtingiuLimite && <Link href="/painel/plano" style={{color:'#C4B5FD',fontSize:'12px',fontWeight:700,display:'inline-block',marginTop:'10px'}}>Conhecer planos e adicionar mais vídeos</Link>}
             </div>
           )}
-          <p style={{fontSize:'13px',color:'#B8AAB8',marginBottom:'4px'}}>{planoFree ? 'Cole o link de um vídeo do YouTube (inclusive Shorts).' : 'Cole o link de um vídeo do YouTube, Instagram, TikTok ou outra plataforma. O formato ideal é detectado automaticamente.'}</p>
-          <p style={{fontSize:'13px',color:'#B8AAB8',marginBottom:'24px'}}>Use as setas para mudar a ordem de exibição.</p>
+          <p style={{fontSize:'13px',color:'#C5BCD1',marginBottom:'4px'}}>{planoFree ? 'Cole o link de um vídeo do YouTube (inclusive Shorts).' : 'Cole o link de um vídeo do YouTube, Instagram, TikTok ou outra plataforma. O formato ideal é detectado automaticamente.'}</p>
+          <p style={{fontSize:'13px',color:'#C5BCD1',marginBottom:'24px'}}>Use as setas para mudar a ordem de exibição.</p>
 
-          {videos.length===0&&<p style={{fontSize:'13px',color:'#B8AAB8',padding:'12px 0'}}>Nenhum vídeo cadastrado ainda. Adicione vídeos para destacar conteúdos, cursos, mentorias ou produtos na sua página.</p>}
+          {videos.length===0&&<p style={{fontSize:'13px',color:'#C5BCD1',padding:'12px 0'}}>Nenhum vídeo cadastrado ainda. Adicione vídeos para destacar conteúdos, cursos, mentorias ou produtos na sua página.</p>}
 
           <div style={{display:'flex',flexDirection:'column',gap:'12px'}}>
             {videos.map((v,i)=>{
@@ -392,23 +392,23 @@ export default function GerenciarVideos({ secaoId }: { secaoId?: string }){
               // ===== CARD COMPACTO (padrao de exibicao) =====
               if(!emEdicao){
                 return (
-                  <div key={v.id} className="crd" style={{padding:'14px 16px',display:'flex',alignItems:'center',gap:'12px',border:'1px solid rgba(229,72,184,.18)'}}>
+                  <div key={v.id} className="crd" style={{padding:'14px 16px',display:'flex',alignItems:'center',gap:'12px',border:'1px solid rgba(201,250,69,.20)'}}>
                     <div style={{display:'flex',flexDirection:'column',gap:'3px',flexShrink:0}}>
-                      <button type="button" onClick={()=>mover(v.id,'up')} disabled={i===0} style={{width:'22px',height:'22px',borderRadius:'6px',background:'rgba(24,16,27,.9)',border:'1px solid #2A1A2F',color:i===0?'#4A3F4E':'#B8AAB8',cursor:i===0?'not-allowed':'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}><ArrowUp size={12}/></button>
-                      <button type="button" onClick={()=>mover(v.id,'down')} disabled={i===videos.length-1} style={{width:'22px',height:'22px',borderRadius:'6px',background:'rgba(24,16,27,.9)',border:'1px solid #2A1A2F',color:i===videos.length-1?'#4A3F4E':'#B8AAB8',cursor:i===videos.length-1?'not-allowed':'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}><ArrowDown size={12}/></button>
+                      <button type="button" onClick={()=>mover(v.id,'up')} disabled={i===0} style={{width:'22px',height:'22px',borderRadius:'6px',background:'rgba(33,24,45,.9)',border:'1px solid #40344B',color:i===0?'#6A6075':'#C5BCD1',cursor:i===0?'not-allowed':'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}><ArrowUp size={12}/></button>
+                      <button type="button" onClick={()=>mover(v.id,'down')} disabled={i===videos.length-1} style={{width:'22px',height:'22px',borderRadius:'6px',background:'rgba(33,24,45,.9)',border:'1px solid #40344B',color:i===videos.length-1?'#6A6075':'#C5BCD1',cursor:i===videos.length-1?'not-allowed':'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}><ArrowDown size={12}/></button>
                     </div>
                     {v.thumbnail_url ? (
                       <img src={v.thumbnail_url} alt="" style={{width:'52px',height:'52px',borderRadius:'10px',objectFit:'cover',flexShrink:0}}/>
                     ) : (
-                      <div style={{width:'52px',height:'52px',borderRadius:'10px',background:'rgba(255,255,255,.04)',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}><PlayCircle size={20} color="#B8AAB8"/></div>
+                      <div style={{width:'52px',height:'52px',borderRadius:'10px',background:'rgba(255,255,255,.04)',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}><PlayCircle size={20} color="#C5BCD1"/></div>
                     )}
                     <div style={{flex:1,minWidth:0}}>
-                      <p style={{fontSize:'14px',fontWeight:700,color:'#F8F4F7',whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{v.titulo||'Vídeo sem título'}</p>
-                      <p style={{fontSize:'12px',color:'#B8AAB8',whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{formatoLabel(v.formato)}{v.descricao?` · ${v.descricao}`:''}</p>
+                      <p style={{fontSize:'14px',fontWeight:700,color:'#FFFFFF',whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{v.titulo||'Vídeo sem título'}</p>
+                      <p style={{fontSize:'12px',color:'#C5BCD1',whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{formatoLabel(v.formato)}{v.descricao?` · ${v.descricao}`:''}</p>
                     </div>
-                    <button type="button" onClick={()=>alternarVisibilidade(v)} style={{background:v.ativo?'rgba(34,197,94,.14)':'#2A1A2F',border:'1px solid '+(v.ativo?'rgba(34,197,94,.25)':'#2A1A2F'),borderRadius:10,padding:'6px 12px',fontSize:11,fontWeight:700,color:v.ativo?'#22C55E':'#B8AAB8',cursor:'pointer',fontFamily:'inherit',flexShrink:0}}>{v.ativo?'Ativo':'Oculto'}</button>
+                    <button type="button" onClick={()=>alternarVisibilidade(v)} style={{background:v.ativo?'rgba(34,197,94,.14)':'#40344B',border:'1px solid '+(v.ativo?'rgba(34,197,94,.25)':'#40344B'),borderRadius:10,padding:'6px 12px',fontSize:11,fontWeight:700,color:v.ativo?'#22C55E':'#C5BCD1',cursor:'pointer',fontFamily:'inherit',flexShrink:0}}>{v.ativo?'Ativo':'Oculto'}</button>
                     <div style={{display:'flex',gap:'6px',flexShrink:0}}>
-                      <button type="button" onClick={()=>setEditandoId(v.id)} title="Editar" aria-label="Editar" style={{width:'32px',height:'32px',borderRadius:'8px',background:'rgba(24,16,27,.9)',border:'1px solid #2A1A2F',color:'#B8AAB8',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}><Pencil size={14}/></button>
+                      <button type="button" onClick={()=>setEditandoId(v.id)} title="Editar" aria-label="Editar" style={{width:'32px',height:'32px',borderRadius:'8px',background:'rgba(33,24,45,.9)',border:'1px solid #40344B',color:'#C5BCD1',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}><Pencil size={14}/></button>
                       <button type="button" onClick={()=>excluirVideo(v.id)} title="Excluir" aria-label="Excluir" style={{width:'32px',height:'32px',borderRadius:'8px',background:'rgba(239,68,68,.10)',border:'1px solid rgba(239,68,68,.25)',color:'#EF4444',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}><Trash2 size={14}/></button>
                     </div>
                   </div>
@@ -417,28 +417,28 @@ export default function GerenciarVideos({ secaoId }: { secaoId?: string }){
 
               // ===== FORMULARIO COMPLETO (so o item em edicao) =====
               return (
-              <div key={v.id} className="crd" style={{padding:'16px',display:'flex',gap:'12px',border:'1px solid rgba(229,72,184,.18)'}}>
+              <div key={v.id} className="crd" style={{padding:'16px',display:'flex',gap:'12px',border:'1px solid rgba(201,250,69,.20)'}}>
                 <div style={{display:'flex',flexDirection:'column',gap:'4px',flexShrink:0,paddingTop:'2px'}}>
-                  <button type="button" onClick={()=>mover(v.id,'up')} disabled={i===0} style={{width:'28px',height:'28px',borderRadius:'8px',background:'rgba(24,16,27,.9)',border:'1px solid #2A1A2F',color:i===0?'#4A3F4E':'#B8AAB8',cursor:i===0?'not-allowed':'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}><ArrowUp size={14}/></button>
-                  <button type="button" onClick={()=>mover(v.id,'down')} disabled={i===videos.length-1} style={{width:'28px',height:'28px',borderRadius:'8px',background:'rgba(24,16,27,.9)',border:'1px solid #2A1A2F',color:i===videos.length-1?'#4A3F4E':'#B8AAB8',cursor:i===videos.length-1?'not-allowed':'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}><ArrowDown size={14}/></button>
+                  <button type="button" onClick={()=>mover(v.id,'up')} disabled={i===0} style={{width:'28px',height:'28px',borderRadius:'8px',background:'rgba(33,24,45,.9)',border:'1px solid #40344B',color:i===0?'#6A6075':'#C5BCD1',cursor:i===0?'not-allowed':'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}><ArrowUp size={14}/></button>
+                  <button type="button" onClick={()=>mover(v.id,'down')} disabled={i===videos.length-1} style={{width:'28px',height:'28px',borderRadius:'8px',background:'rgba(33,24,45,.9)',border:'1px solid #40344B',color:i===videos.length-1?'#6A6075':'#C5BCD1',cursor:i===videos.length-1?'not-allowed':'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}><ArrowDown size={14}/></button>
                 </div>
                 <div style={{flex:1,minWidth:0}}>
                   <div style={{marginBottom:'10px'}}><label className="lbl">Título (opcional)</label><input className="inp" autoFocus={!!v._novo} value={v.titulo||''} onChange={e=>editarVideo(v.id,'titulo',e.target.value)} placeholder="Deixe vazio para usar apenas a capa"/>
-                    <p style={{fontSize:'11px',color:'#B8AAB8',marginTop:'6px'}}>Se a capa já tem texto, você pode salvar sem título.</p>
+                    <p style={{fontSize:'11px',color:'#C5BCD1',marginTop:'6px'}}>Se a capa já tem texto, você pode salvar sem título.</p>
 </div>
                   <div style={{marginBottom:'10px'}}><label className="lbl">Descrição (opcional)</label><input className="inp" value={v.descricao||''} onChange={e=>editarVideo(v.id,'descricao',e.target.value)} placeholder="Ex: Veja como funciona a mentoria para profissionais da beleza."/></div>
                   <div style={{marginBottom:'6px'}}>
                     <label className="lbl">Link do vídeo</label>
                     <input className="inp" value={v.url_video||''} onChange={e=>editarVideo(v.id,'url_video',e.target.value)} placeholder={planoFree ? "https://www.youtube.com/watch?v=..." : "https://youtube.com/... ou Reels/TikTok"}/>
                     {v.url_video && <p style={{fontSize:'11px',color:'#22C55E',marginTop:'6px'}}>✓ {formatoLabel(v.formato)}</p>}
-                    {!v.url_video && <p style={{fontSize:'11px',color:'#B8AAB8',marginTop:'6px'}}>{planoFree ? 'No Free, use somente links do YouTube.' : 'Cole o link do YouTube, Reels, TikTok, Vimeo etc. O formato ideal é detectado automaticamente.'}</p>}
+                    {!v.url_video && <p style={{fontSize:'11px',color:'#C5BCD1',marginTop:'6px'}}>{planoFree ? 'No Free, use somente links do YouTube.' : 'Cole o link do YouTube, Reels, TikTok, Vimeo etc. O formato ideal é detectado automaticamente.'}</p>}
                     <button type="button" onClick={()=>buscarTituloVideo(v.id,v.url_video)} disabled={buscandoTituloId===v.id || !v.url_video?.trim()} style={{background:'rgba(139,92,246,.12)',border:'1px solid rgba(139,92,246,.28)',color:'#C4B5FD',borderRadius:'8px',padding:'7px 14px',fontSize:'12px',fontWeight:700,cursor:buscandoTituloId===v.id?'wait':'pointer',fontFamily:'inherit',opacity:buscandoTituloId===v.id || !v.url_video?.trim() ? .6 : 1,marginTop:'9px'}}>{buscandoTituloId===v.id?'Buscando prévia...':'Gerar prévia pelo link'}</button>
-                    {avisoTitulo && avisoTitulo.id===v.id && <p style={{fontSize:'11px',color:'#B8AAB8',marginTop:'7px'}}>{avisoTitulo.texto}</p>}
+                    {avisoTitulo && avisoTitulo.id===v.id && <p style={{fontSize:'11px',color:'#C5BCD1',marginTop:'7px'}}>{avisoTitulo.texto}</p>}
                   </div>
                   {v.url_video && (
                     <div style={{marginBottom:'14px'}}>
                       <p className="lbl" style={{marginBottom:'8px'}}>Prévia</p>
-                      <div style={{width: v.formato==='9:16'?'140px':v.formato==='1:1'?'170px':'240px', aspectRatio: FORMATO_RATIO_PAINEL[v.formato||'16:9'], borderRadius:'12px', overflow:'hidden', position:'relative', background:G, border:'1px solid rgba(229,72,184,.28)'}}>
+                      <div style={{width: v.formato==='9:16'?'140px':v.formato==='1:1'?'170px':'240px', aspectRatio: FORMATO_RATIO_PAINEL[v.formato||'16:9'], borderRadius:'12px', overflow:'hidden', position:'relative', background:'#21182D', border:'1px solid rgba(201,250,69,.24)'}}>
                         {(v.thumbnail_url||thumbYoutube(v.url_video)) ? (
                           <img src={v.thumbnail_url||thumbYoutube(v.url_video)} alt="" style={{width:'100%',height:'100%',objectFit:'cover'}}/>
                         ) : (
@@ -455,14 +455,14 @@ export default function GerenciarVideos({ secaoId }: { secaoId?: string }){
                     <div>
                       <label className="lbl">Capa do vídeo (opcional)</label>
                       <div style={{display:'flex',alignItems:'center',gap:'10px',marginBottom:'8px'}}>
-                        {v.thumbnail_url && <img src={v.thumbnail_url} alt="" style={{width:'36px',height:'36px',borderRadius:'8px',objectFit:'cover',flexShrink:0,border:'1px solid #2A1A2F'}}/>}
-                        <button type="button" onClick={()=>{setUploadingId(v.id);imgRef.current?.click()}} style={{background:'rgba(24,16,27,.92)',border:'1px solid rgba(229,72,184,.28)',borderRadius:'10px',padding:'10px 14px',fontSize:'12px',fontWeight:600,color:'#F8F4F7',cursor:'pointer',fontFamily:'inherit',flex:1}}>
+                        {v.thumbnail_url && <img src={v.thumbnail_url} alt="" style={{width:'36px',height:'36px',borderRadius:'8px',objectFit:'cover',flexShrink:0,border:'1px solid #40344B'}}/>}
+                        <button type="button" onClick={()=>{setUploadingId(v.id);imgRef.current?.click()}} style={{background:'rgba(33,24,45,.92)',border:'1px solid rgba(201,250,69,.24)',borderRadius:'10px',padding:'10px 14px',fontSize:'12px',fontWeight:600,color:'#FFFFFF',cursor:'pointer',fontFamily:'inherit',flex:1}}>
                           {uploadingId===v.id?'Enviando...':v.thumbnail_url?'Trocar capa':'Enviar capa'}
                         </button>
                       </div>
                       <button type="button" onClick={()=>gerarCapaAutomatica(v)} disabled={gerandoCapaId===v.id} style={{background:'rgba(139,92,246,.12)',border:'1px solid rgba(139,92,246,.28)',color:'#C4B5FD',borderRadius:'8px',padding:'7px 14px',fontSize:'12px',fontWeight:700,cursor:gerandoCapaId===v.id?'wait':'pointer',fontFamily:'inherit',opacity:gerandoCapaId===v.id?.7:1,width:'100%'}}>{gerandoCapaId===v.id?'Buscando capa...':'Gerar capa automática pelo link'}</button>
-                      <p style={{fontSize:'10px',color:'#B8AAB8',marginTop:'8px'}}>Envie uma capa no mesmo formato do vídeo. Reels, Shorts e TikTok: vertical 9:16. YouTube horizontal: 16:9. Use boa resolução, pra preencher o card sem cortes estranhos.</p>
-                      <p style={{fontSize:'10px',color:'#B8AAB8',marginTop:'4px'}}>Algumas plataformas podem não carregar a capa automaticamente. Se isso acontecer, envie uma capa manualmente.</p>
+                      <p style={{fontSize:'10px',color:'#C5BCD1',marginTop:'8px'}}>Envie uma capa no mesmo formato do vídeo. Reels, Shorts e TikTok: vertical 9:16. YouTube horizontal: 16:9. Use boa resolução, pra preencher o card sem cortes estranhos.</p>
+                      <p style={{fontSize:'10px',color:'#C5BCD1',marginTop:'4px'}}>Algumas plataformas podem não carregar a capa automaticamente. Se isso acontecer, envie uma capa manualmente.</p>
                     </div>
                   </div>
                   <div className="fg2" style={{marginBottom:'10px'}}>
@@ -472,11 +472,11 @@ export default function GerenciarVideos({ secaoId }: { secaoId?: string }){
                     ) : <div/>}
                   </div>
                   <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:'8px',flexWrap:'wrap'}}>
-                    <button type="button" onClick={()=>editarVideo(v.id,'ativo',!v.ativo)} style={{background:v.ativo?'rgba(34,197,94,.14)':'#2A1A2F',border:'1px solid '+(v.ativo?'rgba(34,197,94,.25)':'#2A1A2F'),borderRadius:10,padding:'6px 14px',fontSize:12,fontWeight:700,color:v.ativo?'#22C55E':'#B8AAB8',cursor:'pointer',fontFamily:'inherit'}}>{v.ativo?'Ativo':'Oculto'}</button>
+                    <button type="button" onClick={()=>editarVideo(v.id,'ativo',!v.ativo)} style={{background:v.ativo?'rgba(34,197,94,.14)':'#40344B',border:'1px solid '+(v.ativo?'rgba(34,197,94,.25)':'#40344B'),borderRadius:10,padding:'6px 14px',fontSize:12,fontWeight:700,color:v.ativo?'#22C55E':'#C5BCD1',cursor:'pointer',fontFamily:'inherit'}}>{v.ativo?'Ativo':'Oculto'}</button>
                     <div style={{display:'flex',gap:'8px'}}>
-                      <button type="button" onClick={()=>cancelarEdicao(v)} style={{background:'rgba(24,16,27,.9)',border:'1px solid #2A1A2F',color:'#B8AAB8',borderRadius:'8px',padding:'8px 14px',fontSize:'12px',fontWeight:600,cursor:'pointer',fontFamily:'inherit'}}>Voltar</button>
+                      <button type="button" onClick={()=>cancelarEdicao(v)} style={{background:'rgba(33,24,45,.9)',border:'1px solid #40344B',color:'#C5BCD1',borderRadius:'8px',padding:'8px 14px',fontSize:'12px',fontWeight:600,cursor:'pointer',fontFamily:'inherit'}}>Voltar</button>
                       <button type="button" onClick={()=>excluirVideo(v.id)} style={{background:'rgba(239,68,68,.10)',border:'1px solid rgba(239,68,68,.25)',color:'#EF4444',borderRadius:'8px',padding:'8px 14px',fontSize:'12px',fontWeight:600,cursor:'pointer',fontFamily:'inherit'}}>Excluir</button>
-                      <button type="button" onClick={()=>salvarVideo(v)} disabled={salvandoId===v.id} style={{background:G,color:'#fff',border:'1px solid rgba(255,255,255,.12)',borderRadius:'8px',padding:'8px 16px',fontSize:'12px',fontWeight:700,cursor:'pointer',fontFamily:'inherit',opacity:salvandoId===v.id?.7:1}}>{salvandoId===v.id?'Salvando...':'Salvar'}</button>
+                      <button type="button" onClick={()=>salvarVideo(v)} disabled={salvandoId===v.id} style={{background:G,color:'#0B0A10',border:'1px solid rgba(255,255,255,.12)',borderRadius:'8px',padding:'8px 16px',fontSize:'12px',fontWeight:700,cursor:'pointer',fontFamily:'inherit',opacity:salvandoId===v.id?.7:1}}>{salvandoId===v.id?'Salvando...':'Salvar'}</button>
                     </div>
                   </div>
                 </div>
