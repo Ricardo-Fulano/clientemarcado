@@ -82,6 +82,19 @@ export async function POST(req:NextRequest){
   const customerId=s(subscription.customer)
   if(!/^cus_[A-Za-z0-9]+$/.test(customerId)||session.id!==attempt.stripe_session_id||session.subscription!==subscriptionId||session.customer!==customerId||invoice.customer!==customerId||session.client_reference_id!==userId||s(o(session.metadata)?.attempt_id)!==attemptId||session.payment_status!=='paid')
    return reply({error:'CHECKOUT_LINKAGE_MISMATCH'},409)
+  // Protecao no processamento de invoice.paid: o browser nao e confiavel.
+  // A cobranca pode JA ter acontecido. Nao concede Premium nem cobra novamente;
+  // eventos divergentes ficam em 'review' via orquestrador, para suporte/estorno manual.
+  const {avaliarPaisFaturamento}=await import('../../../../lib/billing/stripe/pais-faturamento')
+  const priceCountry=s(attempt.country).trim().toUpperCase()
+  const checkoutCountry=s(o(o(session.customer_details)?.address)?.country).trim().toUpperCase()
+  const metaCountry=s(o(session.metadata)?.price_country).trim().toUpperCase()
+  const subscriptionCountry=s(o(subscription.metadata)?.price_country).trim().toUpperCase()
+  const comparison=avaliarPaisFaturamento(priceCountry,checkoutCountry)
+  if(priceCountry==='BR'||(metaCountry&&metaCountry!==priceCountry)||(subscriptionCountry&&subscriptionCountry!==priceCountry)||comparison!=='ok'){
+    const reason=priceCountry==='BR'?'BRAZIL_USES_EBANX':comparison==='missing'?'BILLING_COUNTRY_UNVERIFIED':'REGIONAL_PRICE_COUNTRY_MISMATCH'
+    return reply({ok:true,result:'regional_review',reason,accessChanged:false,eventId})
+  }
   const periodStart=unix(item.current_period_start??subscription.current_period_start)
   const periodEnd=unix(item.current_period_end??subscription.current_period_end)
   if(!periodStart||!periodEnd)return reply({error:'SUBSCRIPTION_PERIOD_MISSING'},409)

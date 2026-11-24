@@ -2,6 +2,7 @@
 import {useEffect,useState,type CSSProperties} from 'react'
 import {supabase} from '../../lib/supabase'
 import Link from 'next/link'
+import {ISO_COUNTRIES} from '../../lib/billing/stripe/paises-iso'
 
 type Quote={available?:boolean;checkoutEnabled?:boolean;currency?:string;amountMinor?:number;reason?:string}
 const supported=["AR", "BO", "BR", "BZ", "CL", "CO", "CR", "DE", "ES", "FR", "GT", "HN", "MX", "NI", "PA", "PE", "PT", "PY", "SV", "US"]
@@ -13,6 +14,10 @@ export default function ContratarStripe(){
  const [plan,setPlan]=useState<Plan>('minipage')
  const [cycle,setCycle]=useState<'mensal'|'anual'>('mensal')
  const [country,setCountry]=useState('BR')
+ // Pais do preco e pais real de faturamento sao confirmados separadamente.
+ const [billingCountry,setBillingCountry]=useState('')
+ const [billingQuote,setBillingQuote]=useState<Quote|null>(null)
+ const regionalMismatch=billingCountry!==''&&billingCountry!==country
  const [quote,setQuote]=useState<Quote|null>(null)
  const [loading,setLoading]=useState(true)
  const [sending,setSending]=useState(false)
@@ -55,8 +60,24 @@ export default function ContratarStripe(){
    void task()
    return ()=>{active=false}
  },[plan,cycle,country])
+ useEffect(()=>{
+   let active=true
+   setBillingQuote(null)
+   if(!regionalMismatch)return()=>{active=false}
+   const task=async()=>{
+     try{
+       const res=await fetch('/api/billing/stripe/quote?plan='+encodeURIComponent(plan)+'&cycle='+encodeURIComponent(cycle)+'&country='+encodeURIComponent(billingCountry),{cache:'no-store'})
+       const data=await res.json() as Quote
+       if(active&&res.ok&&data.available===true&&data.currency&&typeof data.amountMinor==='number')setBillingQuote(data)
+     }catch{ /* Sem cotacao: manter CTA bloqueado */ }
+   }
+   void task()
+   return()=>{active=false}
+ },[billingCountry,regionalMismatch,plan,cycle])
+ const showCountry=(c:string)=>new Intl.DisplayNames(['pt-BR'],{type:'region'}).of(c)||c
+ const formatPrice=(q:Quote|null)=>q?.currency&&typeof q.amountMinor==='number' ? new Intl.NumberFormat('pt-BR',{style:'currency',currency:q.currency}).format(q.amountMinor/100) : 'Indisponível'
  const start=async()=>{
-   if(!allowed||!quote?.checkoutEnabled||loading||sending)return
+   if(!allowed||!quote?.checkoutEnabled||loading||sending||!billingCountry||regionalMismatch)return
    setSending(true);setError('')
    try{
      const {data:{session}}=await supabase.auth.getSession()
@@ -64,7 +85,7 @@ export default function ContratarStripe(){
      const attemptId=crypto.randomUUID()
      const response=await fetch('/api/billing/stripe/live-checkout',{
        method:'POST',headers:{'Content-Type':'application/json',Authorization:`Bearer ${session.access_token}`},
-       body:JSON.stringify({attemptId,country,cycle,plan}),cache:'no-store'
+       body:JSON.stringify({attemptId,billingCountry,country,cycle,plan}),cache:'no-store'
      })
      const data=await response.json() as {state?:string;checkoutUrl?:string;error?:string;reason?:string}
      if(response.ok&&data.state==='ready'&&data.checkoutUrl?.startsWith('https://checkout.stripe.com/')){
@@ -73,7 +94,7 @@ export default function ContratarStripe(){
      if(data.state==='pending_review')throw new Error('A solicitação ficou pendente de verificação. NÃO tente cobrar novamente: procure o suporte para conferir a tentativa.')
      // Mostra o motivo tecnico controlado que a API ja devolve. Nao mostra chaves, dados bancarios ou erros brutos da Stripe.
      const codigo=typeof data.error==='string'&&/^[A-Z][A-Z0-9_]{2,75}$/.test(data.error)?data.error:'UNKNOWN_CHECKOUT_ERROR'
-     const mensagem=codigo==='EXISTING_BILLING_RELATIONSHIP'?'Esta conta já tem vínculo financeiro. Não foi criada uma nova assinatura.':codigo==='PREVIOUS_CHECKOUT_REQUIRES_REVIEW'?'A tentativa anterior exige revisão antes de iniciar outra cobrança.':codigo==='PREVIOUS_CHECKOUT_STATUS_UNAVAILABLE'?'Não foi possível consultar com segurança a sessão anterior na Stripe.':codigo==='PENDING_CHECK_UNAVAILABLE'?'Não foi possível consultar as tentativas anteriores na MiniPage.':codigo==='LIVE_CHECKOUT_TEST_ONLY'?'Esta conta não está autorizada para a fase restrita do checkout.':codigo==='STRIPE_PRICE_LOOKUP_FAILED'?'A Stripe não autorizou a consulta do preço; verifique a permissão da chave de produção.':codigo==='STRIPE_PRICE_MISMATCH'?'O preço retornado pela Stripe não corresponde ao catálogo aprovado.':codigo==='BRAZIL_USES_EBANX'?'No Brasil, o checkout pago será oferecido pela EBANX quando estiver disponível.':'Não foi possível abrir o checkout. Nenhuma nova cobrança foi iniciada por esta solicitação.'
+     const mensagem=codigo==='EXISTING_BILLING_RELATIONSHIP'?'Esta conta já tem vínculo financeiro. Não foi criada uma nova assinatura.':codigo==='PREVIOUS_CHECKOUT_REQUIRES_REVIEW'?'A tentativa anterior exige revisão antes de iniciar outra cobrança.':codigo==='PREVIOUS_CHECKOUT_STATUS_UNAVAILABLE'?'Não foi possível consultar com segurança a sessão anterior na Stripe.':codigo==='PENDING_CHECK_UNAVAILABLE'?'Não foi possível consultar as tentativas anteriores na MiniPage.':codigo==='LIVE_CHECKOUT_TEST_ONLY'?'Esta conta não está autorizada para a fase restrita do checkout.':codigo==='STRIPE_PRICE_LOOKUP_FAILED'?'A Stripe não autorizou a consulta do preço; verifique a permissão da chave de produção.':codigo==='STRIPE_PRICE_MISMATCH'?'O preço retornado pela Stripe não corresponde ao catálogo aprovado.':codigo==='REGIONAL_PRICE_COUNTRY_MISMATCH'?'Preço regional incompatível. Confirme seu país de faturamento e atualize o preço.':codigo==='BILLING_COUNTRY_REQUIRED'?'Informe seu país real de faturamento.':codigo==='BRAZIL_USES_EBANX'?'No Brasil, o checkout pago será oferecido pela EBANX quando estiver disponível.':'Não foi possível abrir o checkout. Nenhuma nova cobrança foi iniciada por esta solicitação.'
      throw new Error(mensagem+' Código: '+codigo+'. Não repita a cobrança até verificar a situação.')
    }catch(e){setError(e instanceof Error?e.message:'Não foi possível iniciar o checkout.');setSending(false)}
  }
@@ -92,6 +113,21 @@ export default function ContratarStripe(){
    <select value={country} onChange={e=>{setCountry(e.target.value);setCancelled(false)}} style={selectStyle}>
     {supported.map(c=><option key={c} value={c}>{new Intl.DisplayNames(['pt-BR'],{type:'region'}).of(c)} ({c})</option>)}
    </select>
+   <label style={{display:'block',marginTop:16,fontWeight:700,fontSize:13}}>Confirme o país real do endereço de faturamento</label>
+   <select value={billingCountry} onChange={e=>{setBillingCountry(e.target.value);setError('')}} style={selectStyle} aria-label="País real de faturamento" required>
+    <option value="">Selecione seu país de faturamento</option>
+    {ISO_COUNTRIES.map(c=><option key={c} value={c}>{showCountry(c)} ({c})</option>)}
+   </select>
+   <p style={{fontSize:12,color:'#D4CADD',lineHeight:1.55}}>Escolha o país do seu endereço de cobrança real, independentemente do idioma, viagem ou localização do dispositivo. A Stripe solicitará o endereço novamente. Se o país mudar após o pagamento, o valor pago poderá precisar de revisão ou estorno antes da ativação.</p>
+   {regionalMismatch&&<div role="alert" style={{background:'#211719',border:'1px solid #E6B36A',padding:17,borderRadius:12,marginTop:14,color:'#FFFFFF'}}>
+      <p style={{fontWeight:800,color:'#F9DB9D',margin:'0 0 12px'}}>⚠ Preço regional incompatível</p>
+      <p style={{fontSize:13,margin:'0 0 8px'}}>Preço solicitado: {showCountry(country)} · {formatPrice(quote)}</p>
+      <p style={{fontSize:13,margin:'0 0 8px'}}>País de faturamento: {showCountry(billingCountry)}</p>
+      <p style={{fontSize:13,margin:'0 0 12px'}}>Preço correspondente: {formatPrice(billingQuote)} {billingCountry==='BR'?'(via EBANX quando habilitada)':''}</p>
+      <p style={{fontSize:13,lineHeight:1.55}}>Para continuar, atualize o preço para seu país real de faturamento. Nenhuma cobrança foi criada nesta etapa.</p>
+      {legalCountries.has(billingCountry)?<button type="button" onClick={()=>{setCountry(billingCountry);setCancelled(false);setError('')}} style={{background:'#C9FA45',color:'#0B0A10',border:0,borderRadius:10,fontSize:13,fontWeight:800,padding:'12px 15px',cursor:'pointer'}}>Corrigir país e atualizar preço</button>:<p role="status" style={{fontSize:12,color:'#F9DB9D'}}>Ainda não há um preço aprovado para esse país. Não é possível abrir pagamento internacional para ele.</p>}
+    </div>}
+   {!billingCountry&&<p role="status" style={{color:'#F9DB9D',fontSize:12}}>Confirme o país de faturamento para habilitar o pagamento.</p>}
    <div style={{margin:'22px 0',padding:18,background:'#150F1D',borderRadius:12,border:'1px solid #493855'}}>
     <p style={{fontSize:12,color:'#CFC1D9',margin:0}}>Total {cycle==='mensal'?'por mês':'por ano'}</p>
     <strong style={{fontSize:28}}>{loading?'Consultando...':quote?new Intl.NumberFormat('pt-BR',{style:'currency',currency:quote.currency}).format((quote.amountMinor||0)/100):'Indisponível'}</strong>
@@ -100,8 +136,8 @@ export default function ContratarStripe(){
    {cancelled&&<p role="status" style={{color:'#F9DB9D',fontSize:13}}>Você voltou sem concluir o pagamento. Pode retomar a sessão ou escolher outro plano e país; verificaremos a tentativa anterior na Stripe antes de continuar.</p>}
    {error&&<p role="alert" style={{color:'#FFC7C7',fontSize:13,lineHeight:1.6}}>{error}</p>}
    {!quote?.checkoutEnabled&&<p role="status" style={{fontSize:13,color:'#F9DB9D',lineHeight:1.6}}>{country==='BR'?'Assinaturas pagas no Brasil serão processadas pela EBANX quando habilitada. Enquanto isso, não é possível contratar um plano pago em BRL.': 'Checkout internacional indisponível para esta conta ou configuração neste momento. Nenhuma cobrança foi criada.'}</p>}
-   <button type="button" disabled={!allowed||!quote?.checkoutEnabled||loading||sending} onClick={()=>void start()}
-    style={{width:'100%',padding:16,border:0,borderRadius:11,background:'#C9FA45',color:'#0B0A10',fontWeight:850,fontSize:14,opacity:!allowed||!quote?.checkoutEnabled||loading||sending?.45:1,cursor:!allowed||!quote?.checkoutEnabled||loading||sending?'not-allowed':'pointer'}}>
+   <button type="button" disabled={!allowed||!quote?.checkoutEnabled||loading||sending||!billingCountry||regionalMismatch} onClick={()=>void start()}
+    style={{width:'100%',padding:16,border:0,borderRadius:11,background:'#C9FA45',color:'#0B0A10',fontWeight:850,fontSize:14,opacity:!allowed||!quote?.checkoutEnabled||loading||sending||!billingCountry||regionalMismatch?.45:1,cursor:!allowed||!quote?.checkoutEnabled||loading||sending||!billingCountry||regionalMismatch?'not-allowed':'pointer'}}>
      {sending?'Preparando checkout...':'Continuar para pagamento seguro'}
    </button>
    <p style={{fontSize:11,color:'#BDB1C9',lineHeight:1.55}}>Contas já vinculadas ao Asaas ou a outra assinatura não podem gerar uma segunda assinatura neste fluxo.</p>
