@@ -11,6 +11,8 @@ export async function GET(req:NextRequest){
  const plan=p.get('plan')||'',cycle=p.get('cycle')||'',country=(p.get('country')||'').toUpperCase()
  const item=approvedPrice(plan,cycle,country)
  if(!item)return out({available:false,reason:'PRICE_NOT_APPROVED'},404)
+ // Fail closed: so a EBANX pode processar novas assinaturas BR.
+ if(country==='BR')return out({available:true,plan:item.plan,cycle:item.cycle,country:item.country,currency:item.currency,amountMinor:item.amountMinor,checkoutEnabled:false,gateway:'ebanx',reason:'EBANX_NOT_ENABLED'})
  let checkoutEnabled=false
  if(stripeLiveReadiness().ready){
   if(process.env.MP_STRIPE_PUBLIC_CHECKOUT_ENABLED==='true')checkoutEnabled=true

@@ -41,7 +41,7 @@ export default function ContratarStripe(){
      const isFree=profile.plano_tipo==='free' && profile.status_acesso==='ativo' && !profile.primeiro_pagamento_confirmado &&
        !profile.gateway && !profile.gateway_customer_id && !profile.gateway_subscription_id && !profile.mp_subscription_id
      if(active)setAllowed(Boolean(isFree))
-     if(!isFree)throw new Error('Sua conta já possui vínculo financeiro ou plano pago. Solicite mudanças pelo suporte.')
+     if(!isFree)throw new Error('Esta conta já tem uma assinatura ou vínculo financeiro. Para evitar cobrança duplicada, consulte Meu Plano ou o suporte.')
      const {data:{session}}=await supabase.auth.getSession()
      const response=await fetch(`/api/billing/stripe/quote?plan=${encodeURIComponent(plan)}&cycle=${encodeURIComponent(cycle)}&country=${encodeURIComponent(country)}`,{
       cache:'no-store',headers:session?.access_token?{Authorization:`Bearer ${session.access_token}`}:{},
@@ -71,22 +71,22 @@ export default function ContratarStripe(){
        window.location.assign(data.checkoutUrl);return
      }
      if(data.state==='pending_review')throw new Error('A solicitação ficou pendente de verificação. NÃO tente cobrar novamente: procure o suporte para conferir a tentativa.')
-     throw new Error(data.error==='EXISTING_BILLING_RELATIONSHIP'?'Esta conta já tem vínculo financeiro. Não foi criada uma nova assinatura.':'Não foi possível abrir o checkout. Nenhuma nova tentativa deve ser feita até verificar a situação.')
+     throw new Error(data.error==='EXISTING_BILLING_RELATIONSHIP'?'Esta conta já tem vínculo financeiro. Não foi criada uma nova assinatura.':data.error==='PREVIOUS_CHECKOUT_REQUIRES_REVIEW'?'Não conseguimos confirmar o estado da tentativa anterior. Confira sua assinatura antes de tentar novamente.':data.error==='PREVIOUS_CHECKOUT_STATUS_UNAVAILABLE'?'A Stripe não respondeu à verificação da tentativa anterior. Tente consultar sua assinatura antes de prosseguir.':'Não foi possível abrir o checkout. Confira sua assinatura antes de tentar novamente.')
    }catch(e){setError(e instanceof Error?e.message:'Não foi possível iniciar o checkout.');setSending(false)}
  }
  return <main style={{minHeight:'100vh',background:'#0B0A10',color:'#FFFFFF',padding:'38px 16px',fontFamily:'system-ui,-apple-system,sans-serif'}}>
   <section style={{maxWidth:650,margin:'0 auto',background:'#21182D',border:'1px solid #483756',padding:24,borderRadius:20}}>
    <Link href="/painel/plano" style={{color:'#C9FA45'}}>← Meu plano</Link>
    <h1 style={{fontSize:27,margin:'20px 0 8px'}}>Contratar MiniPage Pro</h1>
-   <p style={{color:'#D4CADD',fontSize:13,lineHeight:1.6}}>O pagamento é realizado com segurança na Stripe. Seu plano só muda após confirmação pelo servidor.</p>
+   <p style={{color:'#D4CADD',fontSize:13,lineHeight:1.6}}>O pagamento internacional é realizado pela Stripe; no Brasil, a EBANX será utilizada quando estiver habilitada. O plano só muda após pagamento confirmado.</p>
    <label style={{display:'block',marginTop:22,fontWeight:700,fontSize:13}}>Plano</label>
-   <select value={plan} onChange={e=>setPlan(e.target.value as Plan)} style={selectStyle}>
+   <select value={plan} onChange={e=>{setPlan(e.target.value as Plan);setCancelled(false)}} style={selectStyle}>
     {plans.map(p=><option key={p} value={p}>{labels[p]}</option>)}
    </select>
    <label style={{display:'block',marginTop:16,fontWeight:700,fontSize:13}}>Ciclo</label>
-   <select value={cycle} onChange={e=>setCycle(e.target.value as 'mensal'|'anual')} style={selectStyle}><option value="mensal">Mensal</option><option value="anual">Anual</option></select>
+   <select value={cycle} onChange={e=>{setCycle(e.target.value as 'mensal'|'anual');setCancelled(false)}} style={selectStyle}><option value="mensal">Mensal</option><option value="anual">Anual</option></select>
    <label style={{display:'block',marginTop:16,fontWeight:700,fontSize:13}}>País de cobrança</label>
-   <select value={country} onChange={e=>setCountry(e.target.value)} style={selectStyle}>
+   <select value={country} onChange={e=>{setCountry(e.target.value);setCancelled(false)}} style={selectStyle}>
     {supported.map(c=><option key={c} value={c}>{new Intl.DisplayNames(['pt-BR'],{type:'region'}).of(c)} ({c})</option>)}
    </select>
    <div style={{margin:'22px 0',padding:18,background:'#150F1D',borderRadius:12,border:'1px solid #493855'}}>
@@ -94,7 +94,7 @@ export default function ContratarStripe(){
     <strong style={{fontSize:28}}>{loading?'Consultando...':quote?new Intl.NumberFormat('pt-BR',{style:'currency',currency:quote.currency}).format((quote.amountMinor||0)/100):'Indisponível'}</strong>
     <p style={{fontSize:12,color:'#CFC1D9'}}>O país informado deverá corresponder ao seu endereço de cobrança real.</p>
    </div>
-   {cancelled&&<p role="status" style={{color:'#F9DB9D',fontSize:13}}>Você saiu do checkout. Antes de tentar novamente, confira sua assinatura ou solicite suporte.</p>}
+   {cancelled&&<p role="status" style={{color:'#F9DB9D',fontSize:13}}>Você voltou sem concluir o pagamento. Pode retomar a sessão ou escolher outro plano e país; verificaremos a tentativa anterior na Stripe antes de continuar.</p>}
    {error&&<p role="alert" style={{color:'#FFC7C7',fontSize:13,lineHeight:1.6}}>{error}</p>}
    {!quote?.checkoutEnabled&&<p role="status" style={{fontSize:13,color:'#F9DB9D',lineHeight:1.6}}>Checkout temporariamente indisponível enquanto concluímos a homologação financeira. Nenhuma cobrança foi criada.</p>}
    <button type="button" disabled={!allowed||!quote?.checkoutEnabled||loading||sending} onClick={()=>void start()}

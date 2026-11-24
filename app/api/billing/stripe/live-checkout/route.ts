@@ -22,6 +22,7 @@ export async function POST(request:NextRequest){
  if(Object.keys(b).sort().join(',')!=='attemptId,country,cycle,plan')return out({error:'INVALID_FIELDS'},422)
  const attemptId=b.attemptId,plan=b.plan,cycle=b.cycle,country=b.country
  if(typeof attemptId!=='string'||!uuid.test(attemptId)||typeof plan!=='string'||typeof cycle!=='string'||typeof country!=='string')return out({error:'INVALID_FIELDS'},422)
+ if(country==='BR')return out({error:'BRAZIL_USES_EBANX',gateway:'ebanx'},409)
  const price=approvedPrice(plan,cycle,country)
  if(!price||!stripeId.test(price.priceId))return out({error:'PRICE_NOT_APPROVED'},422)
  try{
@@ -43,13 +44,50 @@ export async function POST(request:NextRequest){
   const {data:subscriptions,error:subError}=await admin.from('billing_subscriptions').select('id').eq('user_id',user.id).in('status',['active','trialing','past_due','pending','incomplete','unpaid']).limit(1)
   if(subError)return out({error:'SUBSCRIPTION_CHECK_UNAVAILABLE'},503)
   if(subscriptions?.length)return out({error:'SUBSCRIPTION_ALREADY_EXISTS'},409)
-  // Bloqueia novas sessões enquanto houver outra tentativa não resolvida para a mesma conta.
+  // Retomada segura: uma sessão Stripe aberta e sem pagamento pode ser reutilizada.
+  // Se o comprador alterou plano, ciclo ou país, expiramos a sessão antiga NA STRIPE
+  // e somente criamos outra após a expiração confirmada. Não alteramos estados
+  // financeiros locais e jamais reabrimos pagamentos concluídos/incertos.
   const {data:pending,error:pendingError}=await admin.from('billing_stripe_checkout_attempts')
-    .select('attempt_id,status').eq('user_id',user.id)
-    .in('status',['reserved','sending','created']).limit(1).maybeSingle()
+    .select('attempt_id,status,stripe_session_id,plan_code,billing_cycle,country,stripe_price_id')
+    .eq('user_id',user.id).in('status',['reserved','sending','created'])
+    .order('created_at',{ascending:true}).limit(51)
   if(pendingError)return out({error:'PENDING_CHECK_UNAVAILABLE'},503)
-  if(pending)return out({error:'PREVIOUS_CHECKOUT_REQUIRES_REVIEW'},409)
-  // Confere preço Live na Stripe ANTES de reservar tentativa e de qualquer criação.
+  if((pending?.length||0)>50)return out({error:'PREVIOUS_CHECKOUT_REQUIRES_REVIEW'},409)
+  for(const old of pending||[]){
+   // 'sending' ou 'reserved' podem representar uma criação incompleta/incerta.
+   if(old.status!=='created'||typeof old.stripe_session_id!=='string'||!/^cs_live_[A-Za-z0-9]+$/.test(old.stripe_session_id))
+     return out({error:'PREVIOUS_CHECKOUT_REQUIRES_REVIEW'},409)
+   const sessionId=old.stripe_session_id
+   const lookup=await fetch('https://api.stripe.com/v1/checkout/sessions/'+encodeURIComponent(sessionId),{
+    headers:{Authorization:'Bearer '+key},cache:'no-store'
+   })
+   if(!lookup.ok)return out({error:'PREVIOUS_CHECKOUT_STATUS_UNAVAILABLE'},503)
+   const previous=await lookup.json() as {
+    id?:string;livemode?:boolean;status?:string;payment_status?:string;
+    subscription?:string|null;url?:string|null;client_reference_id?:string;
+    metadata?:{attempt_id?:string;user_id?:string}
+   }
+   if(previous.id!==sessionId||previous.livemode!==true||previous.client_reference_id!==user.id||
+      previous.metadata?.attempt_id!==old.attempt_id||previous.metadata?.user_id!==user.id)
+     return out({error:'PREVIOUS_CHECKOUT_REQUIRES_REVIEW'},409)
+   if(previous.status==='expired'&&previous.payment_status==='unpaid'&&!previous.subscription)continue
+   if(previous.status!=='open'||previous.payment_status!=='unpaid'||previous.subscription)
+     return out({error:'PREVIOUS_CHECKOUT_REQUIRES_REVIEW'},409)
+   const sameSelection=old.plan_code===plan&&old.billing_cycle===cycle&&old.country===country&&old.stripe_price_id===price.priceId
+   if(sameSelection){
+    if(!previous.url?.startsWith('https://checkout.stripe.com/'))return out({error:'PREVIOUS_CHECKOUT_REQUIRES_REVIEW'},409)
+    return out({state:'ready',checkoutUrl:previous.url,reused:true})
+   }
+   const expiredResult=await fetch('https://api.stripe.com/v1/checkout/sessions/'+encodeURIComponent(sessionId)+'/expire',{
+    method:'POST',headers:{Authorization:'Bearer '+key},cache:'no-store'
+   })
+   if(!expiredResult.ok)return out({error:'PREVIOUS_CHECKOUT_REQUIRES_REVIEW'},409)
+   const expired=await expiredResult.json() as {id?:string;livemode?:boolean;status?:string;payment_status?:string;subscription?:string|null}
+   if(expired.id!==sessionId||expired.livemode!==true||expired.status!=='expired'||expired.payment_status!=='unpaid'||expired.subscription)
+    return out({error:'PREVIOUS_CHECKOUT_REQUIRES_REVIEW'},409)
+  }
+    // Confere preço Live na Stripe ANTES de reservar tentativa e de qualquer criação.
   const priceResponse=await fetch(`https://api.stripe.com/v1/prices/${encodeURIComponent(price.priceId)}`,{headers:{Authorization:`Bearer ${key}`},cache:'no-store'})
   if(!priceResponse.ok)return out({error:'STRIPE_PRICE_LOOKUP_FAILED'},503)
   const livePrice=await priceResponse.json() as {id?:string;active?:boolean;livemode?:boolean;currency?:string;unit_amount?:number;recurring?:{interval?:string}}

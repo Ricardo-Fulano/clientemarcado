@@ -931,10 +931,10 @@ export default function CriarMiniPage() {
   }
 
   useEffect(() => {
-    if (etapaAtual !== 'finalizar' || carregando) return
+    if (etapaAtual !== 'finalizar' || carregando || concluido) return
     finalizarOnboarding()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [etapaAtual, carregando])
+  }, [etapaAtual, carregando, concluido])
 
   async function finalizarOnboarding() {
     setSalvando(true)
@@ -1584,6 +1584,7 @@ export default function CriarMiniPage() {
               }
               // Nunca rebaixe uma assinatura paga quando o visitante apenas consultar o Free.
               if(tipo==='free' && planoTipo!=='free') {setGuiaPlanosAberto(false);return}
+              if(tipo==='free' && planoTipo==='free')setStripeDesejado(null)
               setPlanoDeInteresse(tipo===planoTipo ? null : tipo)
               setGuiaPlanosAberto(false)
               // Preserva a intencao de compra opcional, apenas para conta Free em homologacao.
@@ -1665,23 +1666,40 @@ export default function CriarMiniPage() {
                 </div>
 
                 {planoTipo==='free' && <div style={{border:'1px solid #4A3D54',borderRadius:14,background:'#15101F',padding:16,marginBottom:18}}>
-                  <p style={{color:'#DFD5EA',fontSize:13,margin:'0 0 12px'}}>{tc.complete}</p>
-                  {stripeDesejado && <button type="button" onClick={()=>marcarVistoEIr(`/painel/contratar?plan=${stripeDesejado.plano}&cycle=${stripeDesejado.ciclo}&country=${stripeDesejado.pais}`)} style={{display:'block',width:'100%',border:'1px solid #C9FA45',borderRadius:10,background:'#C9FA45',padding:'13px 14px',color:'#0B0A10',fontWeight:850,cursor:'pointer',fontSize:13,marginBottom:10}}>{idioma==='pt-BR'?'Continuar para pagamento seguro':'Continue to secure checkout'}</button>}
-                  <button type="button" onClick={()=>marcarVistoEIr(`/painel/plano?interesse=${planoDeInteresse || 'minipage'}`)} style={{display:'inline-block',border:'1px solid #C9FA45',borderRadius:10,background:'transparent',padding:'10px 14px',color:'#C9FA45',fontWeight:750,cursor:'pointer',fontSize:13}}>{tc.upgrade}</button>
-                  <div style={{color:'#AAA0B7',fontSize:12,marginTop:10}}>{tc.free}</div>
+                  {stripeDesejado ? (stripeDesejado.pais==='BR' ? (
+                    <>
+                      <p role="status" style={{color:'#F9DB9D',fontSize:13,margin:'0 0 14px'}}>{idioma==='pt-BR'?'Pagamento brasileiro pela EBANX ainda não habilitado. Sua MiniPage foi salva no Free, sem cobrança.':'EBANX payments in Brazil are not yet available. Your page is saved on Free, with no charge.'}</p>
+                      <button type="button" onClick={()=>marcarVistoEIr('/painel')} style={{display:'block',width:'100%',border:'1px solid #C9FA45',borderRadius:10,background:'#C9FA45',padding:'14px',color:'#0B0A10',fontWeight:850,cursor:'pointer',fontSize:14,marginBottom:10}}>{idioma==='pt-BR'?'Continuar no Free — sem cobrança':'Continue with Free — no charge'}</button>
+                      <button type="button" onClick={()=>{setGuiaPlanosAberto(true);setEtapaIndex(etapasAtivas.indexOf('planos'))}} style={{display:'block',width:'100%',border:'1px solid #66546F',borderRadius:10,background:'transparent',padding:'12px',color:'#F8F4F7',fontWeight:700,cursor:'pointer',fontSize:13}}>{idioma==='pt-BR'?'← Voltar aos planos':'← Back to plans'}</button>
+                    </>
+                  ) : (
+                    <>
+                      <p style={{color:'#DFD5EA',fontSize:13,margin:'0 0 14px'}}>{idioma==='pt-BR'?'Sua página foi salva. Conclua o pagamento para ativar o plano escolhido. Até a confirmação, o Free permanece ativo.':'Your page is saved. Complete payment to activate your selected plan. Free remains active until confirmation.'}</p>
+                      <button type="button" onClick={()=>marcarVistoEIr('/painel/contratar?plan='+stripeDesejado.plano+'&cycle='+stripeDesejado.ciclo+'&country='+stripeDesejado.pais)} style={{display:'block',width:'100%',border:'1px solid #C9FA45',borderRadius:10,background:'#C9FA45',padding:'14px',color:'#0B0A10',fontWeight:850,cursor:'pointer',fontSize:14,marginBottom:10}}>{idioma==='pt-BR'?'Continuar para pagamento seguro':'Continue to secure checkout'}</button>
+                      <button type="button" onClick={()=>{setGuiaPlanosAberto(true);setEtapaIndex(etapasAtivas.indexOf('planos'))}} style={{display:'block',width:'100%',border:'1px solid #66546F',borderRadius:10,background:'transparent',padding:'12px',color:'#F8F4F7',fontWeight:700,cursor:'pointer',fontSize:13}}>{idioma==='pt-BR'?'← Voltar aos planos':'← Back to plans'}</button>
+                    </>
+                  )) : (
+                    <>
+                      <p style={{color:'#DFD5EA',fontSize:13,margin:'0 0 14px'}}>{idioma==='pt-BR'?'Sua MiniPage foi salva no plano Free, sem cobrança.':'Your MiniPage is saved on Free, with no charge.'}</p>
+                      <button type="button" onClick={()=>marcarVistoEIr('/painel')} style={{display:'block',width:'100%',border:'1px solid #C9FA45',borderRadius:10,background:'#C9FA45',padding:'14px',color:'#0B0A10',fontWeight:850,cursor:'pointer',fontSize:14,marginBottom:10}}>{idioma==='pt-BR'?'Continuar com o Free — sem cobrança':'Continue with Free — no charge'}</button>
+                      <button type="button" onClick={()=>{setGuiaPlanosAberto(true);setEtapaIndex(etapasAtivas.indexOf('planos'))}} style={{display:'block',width:'100%',border:'1px solid #66546F',borderRadius:10,background:'transparent',padding:'12px',color:'#F8F4F7',fontWeight:700,cursor:'pointer',fontSize:13}}>{idioma==='pt-BR'?'← Voltar aos planos':'← Back to plans'}</button>
+                    </>
+                  )}
                 </div>}
-                {planoTipo!=='free' && planoDeInteresse && planoDeInteresse !== planoTipo && <button type="button" onClick={()=>marcarVistoEIr(`/painel/plano?interesse=${planoDeInteresse}`)} style={{background:'#291F33',border:'1px solid #C9FA45',borderRadius:10,padding:12,marginBottom:14,color:'#C9FA45',cursor:'pointer',fontWeight:750}}>{idioma==='pt-BR'?'Consultar o plano escolhido':'Review selected plan'}</button>}
+                                {planoTipo!=='free' && planoDeInteresse && planoDeInteresse !== planoTipo && <button type="button" onClick={()=>marcarVistoEIr(`/painel/plano?interesse=${planoDeInteresse}`)} style={{background:'#291F33',border:'1px solid #C9FA45',borderRadius:10,padding:12,marginBottom:14,color:'#C9FA45',cursor:'pointer',fontWeight:750}}>{idioma==='pt-BR'?'Consultar o plano escolhido':'Review selected plan'}</button>}
                 {conteudoAnterior && (
                   <div role="status" style={{padding:'14px 16px',border:'1px solid #746136',borderRadius:12,background:'#241D14',color:'#F6E2AF',fontSize:13,lineHeight:1.6,marginBottom:15,textAlign:'left'}}>
                     {tx.previousContents} <a href="/painel/limpar-legado" style={{color:'#C9FA45',textDecoration:'underline'}}>{tx.cleanupTool}</a>.
                   </div>
                 )}
+                {planoTipo!=='free' && (<>
                 <a href={`/${encodeURIComponent(slug)}`} target="_blank" rel="noopener noreferrer" style={{ display: 'block', width: '100%', height: '48px', lineHeight: '48px', background: G, color: '#15180D', borderRadius: '12px', textDecoration: 'none', fontSize: '14px', fontWeight: 700, marginBottom: '12px' }}>
                   {tx.viewMine}
                 </a>
                 <button onClick={() => marcarVistoEIr('/painel/perfil')} style={{ width: '100%', height: '46px', background: 'rgba(255,255,255,.06)', color: '#F8F4F7', border: '1px solid #2A1A2F', borderRadius: '12px', fontSize: '13px', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
                   {tx.continueEditing}
                 </button>
+                  </>)}
               </>
             )}
           </div>
