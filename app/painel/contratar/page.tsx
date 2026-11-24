@@ -15,7 +15,8 @@ export default function ContratarStripe(){
  const [cycle,setCycle]=useState<'mensal'|'anual'>('mensal')
  const [country,setCountry]=useState('BR')
  // Pais do preco e pais real de faturamento sao confirmados separadamente.
- const [billingCountry,setBillingCountry]=useState('')
+ const [billingCountry,setBillingCountry]=useState('BR')
+ const [editBillingCountry,setEditBillingCountry]=useState(false)
  const [billingQuote,setBillingQuote]=useState<Quote|null>(null)
  const regionalMismatch=billingCountry!==''&&billingCountry!==country
  const [quote,setQuote]=useState<Quote|null>(null)
@@ -30,7 +31,7 @@ export default function ContratarStripe(){
    if(params.get('stripe_return')==='cancel')setCancelled(true)
    if(p&&plans.includes(p as Plan))setPlan(p as Plan)
    if(c==='anual'||c==='mensal')setCycle(c)
-   if(legalCountries.has(ct))setCountry(ct)
+   if(legalCountries.has(ct)){setCountry(ct);setBillingCountry(ct)}
  },[])
  useEffect(()=>{
    let active=true
@@ -110,22 +111,28 @@ export default function ContratarStripe(){
    <label style={{display:'block',marginTop:16,fontWeight:700,fontSize:13}}>Ciclo</label>
    <select value={cycle} onChange={e=>{setCycle(e.target.value as 'mensal'|'anual');setCancelled(false)}} style={selectStyle}><option value="mensal">Mensal</option><option value="anual">Anual</option></select>
    <label style={{display:'block',marginTop:16,fontWeight:700,fontSize:13}}>País de cobrança</label>
-   <select value={country} onChange={e=>{setCountry(e.target.value);setCancelled(false)}} style={selectStyle}>
+   <select value={country} onChange={e=>{setCountry(e.target.value);setBillingCountry(e.target.value);setEditBillingCountry(false);setCancelled(false);setError('')}} style={selectStyle}>
     {supported.map(c=><option key={c} value={c}>{new Intl.DisplayNames(['pt-BR'],{type:'region'}).of(c)} ({c})</option>)}
    </select>
-   <label style={{display:'block',marginTop:16,fontWeight:700,fontSize:13}}>Confirme o país real do endereço de faturamento</label>
-   <select value={billingCountry} onChange={e=>{setBillingCountry(e.target.value);setError('')}} style={selectStyle} aria-label="País real de faturamento" required>
-    <option value="">Selecione seu país de faturamento</option>
-    {ISO_COUNTRIES.map(c=><option key={c} value={c}>{showCountry(c)} ({c})</option>)}
-   </select>
-   <p style={{fontSize:12,color:'#D4CADD',lineHeight:1.55}}>Escolha o país do seu endereço de cobrança real, independentemente do idioma, viagem ou localização do dispositivo. A Stripe solicitará o endereço novamente. Se o país mudar após o pagamento, o valor pago poderá precisar de revisão ou estorno antes da ativação.</p>
+   <div style={{marginTop:14,padding:'14px 15px',border:'1px solid #51415E',borderRadius:12,background:'#17111F'}}>
+    <p style={{margin:'0 0 5px',fontSize:13,color:'#FFFFFF'}}><strong>País de faturamento: {showCountry(billingCountry)} ({billingCountry})</strong></p>
+    <p style={{margin:'0 0 10px',fontSize:12,lineHeight:1.55,color:'#D4CADD'}}>Usaremos o país escolhido acima para calcular o preço. O endereço informado na Stripe deverá corresponder a ele.</p>
+    <button type="button" onClick={()=>{setEditBillingCountry(v=>!v);setError('')}} aria-expanded={editBillingCountry} style={{padding:0,border:0,background:'transparent',color:'#C9FA45',fontSize:12,fontWeight:750,cursor:'pointer',textAlign:'left'}}>{editBillingCountry?'Fechar correção':'Meu endereço de faturamento é de outro país'}</button>
+    {editBillingCountry&&<div style={{marginTop:12}}>
+     <label htmlFor="mp-pais-faturamento-corrigir" style={{display:'block',fontSize:12,fontWeight:700,marginBottom:5}}>Selecione o país correto</label>
+     <select id="mp-pais-faturamento-corrigir" value={billingCountry} onChange={e=>{setBillingCountry(e.target.value);setError('')}} style={selectStyle} aria-label="Corrigir país de faturamento">
+      {ISO_COUNTRIES.map(c=><option key={c} value={c}>{showCountry(c)} ({c})</option>)}
+     </select>
+     <p style={{fontSize:12,color:'#D4CADD',lineHeight:1.55}}>Se seu endereço real for de outro país, o valor será corrigido antes de continuar. Não há cobrança nesta etapa.</p>
+    </div>}
+   </div>
    {regionalMismatch&&<div role="alert" style={{background:'#211719',border:'1px solid #E6B36A',padding:17,borderRadius:12,marginTop:14,color:'#FFFFFF'}}>
       <p style={{fontWeight:800,color:'#F9DB9D',margin:'0 0 12px'}}>⚠ Preço regional incompatível</p>
       <p style={{fontSize:13,margin:'0 0 8px'}}>Preço solicitado: {showCountry(country)} · {formatPrice(quote)}</p>
       <p style={{fontSize:13,margin:'0 0 8px'}}>País de faturamento: {showCountry(billingCountry)}</p>
       <p style={{fontSize:13,margin:'0 0 12px'}}>Preço correspondente: {formatPrice(billingQuote)} {billingCountry==='BR'?'(via EBANX quando habilitada)':''}</p>
       <p style={{fontSize:13,lineHeight:1.55}}>Para continuar, atualize o preço para seu país real de faturamento. Nenhuma cobrança foi criada nesta etapa.</p>
-      {legalCountries.has(billingCountry)?<button type="button" onClick={()=>{setCountry(billingCountry);setCancelled(false);setError('')}} style={{background:'#C9FA45',color:'#0B0A10',border:0,borderRadius:10,fontSize:13,fontWeight:800,padding:'12px 15px',cursor:'pointer'}}>Corrigir país e atualizar preço</button>:<p role="status" style={{fontSize:12,color:'#F9DB9D'}}>Ainda não há um preço aprovado para esse país. Não é possível abrir pagamento internacional para ele.</p>}
+      {legalCountries.has(billingCountry)?<button type="button" onClick={()=>{setCountry(billingCountry);setEditBillingCountry(false);setCancelled(false);setError('')}} style={{background:'#C9FA45',color:'#0B0A10',border:0,borderRadius:10,fontSize:13,fontWeight:800,padding:'12px 15px',cursor:'pointer'}}>Corrigir país e atualizar preço</button>:<p role="status" style={{fontSize:12,color:'#F9DB9D'}}>Ainda não há um preço aprovado para esse país. Não é possível abrir pagamento internacional para ele.</p>}
     </div>}
    {!billingCountry&&<p role="status" style={{color:'#F9DB9D',fontSize:12}}>Confirme o país de faturamento para habilitar o pagamento.</p>}
    <div style={{margin:'22px 0',padding:18,background:'#150F1D',borderRadius:12,border:'1px solid #493855'}}>
