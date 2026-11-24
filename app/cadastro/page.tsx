@@ -127,6 +127,11 @@ export default function Cadastro() {
   const [slugDesejado, setSlugDesejado] = useState('')
   useEffect(() => {
     try {
+      const oferta = new URLSearchParams(window.location.search)
+      const interesse = oferta.get('interesse'), ciclo = oferta.get('cycle'), mercado = oferta.get('market')
+      if (oferta.get('plano') === 'free' && interesse && ['minipage','agenda','loja','essencial'].includes(interesse) && (ciclo==='mensal'||ciclo==='anual') && (mercado==='BR'||mercado==='INTL')) {
+        sessionStorage.setItem('mp_landing_intent',JSON.stringify({plano:interesse,ciclo,pais:mercado==='BR'?'BR':'US',criado:Date.now()}))
+      } else { sessionStorage.removeItem('mp_landing_intent') }
       const parametro = new URLSearchParams(window.location.search).get('slug') || sessionStorage.getItem('mp_slug_desejado') || ''
       const valido = parametro.trim().toLowerCase()
       if (/^[a-z0-9][a-z0-9-]{2,31}$/.test(valido)) {

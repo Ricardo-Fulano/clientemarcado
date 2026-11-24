@@ -557,6 +557,18 @@ export default function CriarMiniPage() {
         setInstagram(p.instagram || '')
         setTemaEscolhido(p.public_theme || p.tema_publico || 'modelo1')
         setTemaOriginal(p.public_theme || p.tema_publico || 'modelo1')
+        // Preferencia comercial da landing: somente UI, nunca ativa assinatura.
+        try {
+          const raw = sessionStorage.getItem('mp_landing_intent')
+          sessionStorage.removeItem('mp_landing_intent')
+          if(raw && p.plano_tipo==='free' && (!p.nome_negocio || p.nome_negocio==='Minha MiniPage')) {
+            const v=JSON.parse(raw)
+            if(Date.now()-v.criado>=0 && Date.now()-v.criado<86400000 && ['minipage','agenda','loja','essencial'].includes(v.plano) && ['mensal','anual'].includes(v.ciclo) && ['BR','US'].includes(v.pais)) {
+              setStripeDesejado({plano:v.plano,ciclo:v.ciclo,pais:v.pais})
+              setPlanoDeInteresse(v.plano)
+            }
+          }
+        } catch { /* preferencia opcional */ }
         // Retorno do navegador apos criar/salvar a MiniPage e ir ao checkout.
         // O estado de UI e recuperado somente para o mesmo usuario e o mesmo slug salvo.
         if (p.plano_tipo === 'free' && p.slug && p.nome_negocio && p.nome_negocio !== 'Minha MiniPage') {
