@@ -2,7 +2,6 @@ import {NextRequest,NextResponse} from 'next/server'
 import {createClient} from '@supabase/supabase-js'
 import {approvedPrice} from '../../../../lib/billing/stripe/live-catalog'
 import {stripeLiveReadiness} from '../../../../lib/billing/stripe/live-readiness'
-import {verificarPaisIp} from '../../../../lib/billing/stripe/pais-ip-checkout'
 export const runtime='nodejs'
 export const dynamic='force-dynamic'
 const out=(v:Record<string,unknown>,status=200)=>NextResponse.json(v,{status,headers:{'Cache-Control':'no-store'}})
@@ -20,18 +19,10 @@ export async function POST(request:NextRequest){
  try{body=await request.json()}catch{return out({error:'INVALID_JSON'},400)}
  if(!body||typeof body!=='object'||Array.isArray(body))return out({error:'INVALID_REQUEST'},422)
  const b=body as Record<string,unknown>
- if(Object.keys(b).sort().join(',')!=='attemptId,billingCountry,country,cycle,plan')return out({error:'INVALID_FIELDS'},422)
- const attemptId=b.attemptId,plan=b.plan,cycle=b.cycle,country=b.country,billingCountry=b.billingCountry
- if(typeof attemptId!=='string'||!uuid.test(attemptId)||typeof plan!=='string'||typeof cycle!=='string'||typeof country!=='string'||typeof billingCountry!=='string')return out({error:'INVALID_FIELDS'},422)
- if(!/^[A-Z]{2}$/.test(billingCountry))return out({error:'BILLING_COUNTRY_REQUIRED'},422)
- if(billingCountry!==country)return out({error:'REGIONAL_PRICE_COUNTRY_MISMATCH'},409)
+ if(Object.keys(b).sort().join(',')!=='attemptId,country,cycle,plan')return out({error:'INVALID_FIELDS'},422)
+ const attemptId=b.attemptId,plan=b.plan,cycle=b.cycle,country=b.country
+ if(typeof attemptId!=='string'||!uuid.test(attemptId)||typeof plan!=='string'||typeof cycle!=='string'||typeof country!=='string')return out({error:'INVALID_FIELDS'},422)
  if(country==='BR')return out({error:'BRAZIL_USES_EBANX',gateway:'ebanx'},409)
- // Geolocalizacao e sinal de risco, nao comprovante de residencia.
- // Em producao, recusa pais divergente/ausente ANTES de reservar tentativa ou criar cobranca.
- if(process.env.VERCEL_ENV==='production'){
-  const decision=verificarPaisIp(country,request.headers.get('x-vercel-ip-country'))
-  if(decision!=='match')return out({error:decision==='unknown'?'REGIONAL_LOCATION_UNKNOWN':'REGIONAL_LOCATION_REVIEW_REQUIRED'},403)
- }
  const price=approvedPrice(plan,cycle,country)
  if(!price||!stripeId.test(price.priceId))return out({error:'PRICE_NOT_APPROVED'},422)
  try{
@@ -112,7 +103,7 @@ export async function POST(request:NextRequest){
   payload.set('success_url',`${publicUrl}/painel/plano?stripe_return=success&session_id={CHECKOUT_SESSION_ID}`)
   payload.set('cancel_url',`${publicUrl}/painel/contratar?plan=${encodeURIComponent(plan)}&cycle=${encodeURIComponent(cycle)}&country=${encodeURIComponent(country)}&stripe_return=cancel`)
   payload.set('metadata[attempt_id]',attemptId);payload.set('metadata[user_id]',user.id);payload.set('metadata[plan]',plan);payload.set('metadata[cycle]',cycle)
-  payload.set('metadata[price_country]',country);payload.set('metadata[billing_country_confirmed]',billingCountry)
+  payload.set('metadata[price_country]',country)
   payload.set('subscription_data[metadata][attempt_id]',attemptId);payload.set('subscription_data[metadata][user_id]',user.id)
   payload.set('subscription_data[metadata][price_country]',country)
   let session:{id?:string;url?:string;livemode?:boolean}

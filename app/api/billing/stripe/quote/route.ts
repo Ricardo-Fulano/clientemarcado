@@ -1,7 +1,6 @@
 import {NextRequest,NextResponse} from 'next/server'
 import {approvedPrice} from '../../../../lib/billing/stripe/live-catalog'
 import {stripeLiveReadiness} from '../../../../lib/billing/stripe/live-readiness'
-import {verificarPaisIp} from '../../../../lib/billing/stripe/pais-ip-checkout'
 import {createClient} from '@supabase/supabase-js'
 export const runtime='nodejs'
 export const dynamic='force-dynamic'
@@ -14,12 +13,6 @@ export async function GET(req:NextRequest){
  if(!item)return out({available:false,reason:'PRICE_NOT_APPROVED'},404)
  // Fail closed: so a EBANX pode processar novas assinaturas BR.
  if(country==='BR')return out({available:true,plan:item.plan,cycle:item.cycle,country:item.country,currency:item.currency,amountMinor:item.amountMinor,checkoutEnabled:false,gateway:'ebanx',reason:'EBANX_NOT_ENABLED'})
- // Preco sempre visivel, mas nao permita checkout se a localizacao aproximada
- // do IP nao coincidir com o pais informado para obter preco regional.
- if(process.env.VERCEL_ENV==='production'){
-  const decision=verificarPaisIp(country,req.headers.get('x-vercel-ip-country'))
-  if(decision!=='match')return out({available:true,plan:item.plan,cycle:item.cycle,country:item.country,currency:item.currency,amountMinor:item.amountMinor,checkoutEnabled:false,reason:decision==='unknown'?'REGIONAL_LOCATION_UNKNOWN':'REGIONAL_LOCATION_REVIEW_REQUIRED'})
- }
  let checkoutEnabled=false
  if(stripeLiveReadiness().ready){
   if(process.env.MP_STRIPE_PUBLIC_CHECKOUT_ENABLED==='true')checkoutEnabled=true

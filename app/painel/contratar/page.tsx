@@ -2,7 +2,6 @@
 import {useEffect,useState,type CSSProperties} from 'react'
 import {supabase} from '../../lib/supabase'
 import Link from 'next/link'
-import {ISO_COUNTRIES} from '../../lib/billing/stripe/paises-iso'
 
 type Quote={available?:boolean;checkoutEnabled?:boolean;currency?:string;amountMinor?:number;reason?:string}
 const supported=["AR", "BO", "BR", "BZ", "CL", "CO", "CR", "DE", "ES", "FR", "GT", "HN", "MX", "NI", "PA", "PE", "PT", "PY", "SV", "US"]
@@ -14,11 +13,6 @@ export default function ContratarStripe(){
  const [plan,setPlan]=useState<Plan>('minipage')
  const [cycle,setCycle]=useState<'mensal'|'anual'>('mensal')
  const [country,setCountry]=useState('BR')
- // Pais do preco e pais real de faturamento sao confirmados separadamente.
- const [billingCountry,setBillingCountry]=useState('BR')
- const [editBillingCountry,setEditBillingCountry]=useState(false)
- const [billingQuote,setBillingQuote]=useState<Quote|null>(null)
- const regionalMismatch=billingCountry!==''&&billingCountry!==country
  const [quote,setQuote]=useState<Quote|null>(null)
  const [loading,setLoading]=useState(true)
  const [sending,setSending]=useState(false)
@@ -31,7 +25,7 @@ export default function ContratarStripe(){
    if(params.get('stripe_return')==='cancel')setCancelled(true)
    if(p&&plans.includes(p as Plan))setPlan(p as Plan)
    if(c==='anual'||c==='mensal')setCycle(c)
-   if(legalCountries.has(ct)){setCountry(ct);setBillingCountry(ct)}
+   if(legalCountries.has(ct))setCountry(ct)
  },[])
  useEffect(()=>{
    let active=true
@@ -61,24 +55,8 @@ export default function ContratarStripe(){
    void task()
    return ()=>{active=false}
  },[plan,cycle,country])
- useEffect(()=>{
-   let active=true
-   setBillingQuote(null)
-   if(!regionalMismatch)return()=>{active=false}
-   const task=async()=>{
-     try{
-       const res=await fetch('/api/billing/stripe/quote?plan='+encodeURIComponent(plan)+'&cycle='+encodeURIComponent(cycle)+'&country='+encodeURIComponent(billingCountry),{cache:'no-store'})
-       const data=await res.json() as Quote
-       if(active&&res.ok&&data.available===true&&data.currency&&typeof data.amountMinor==='number')setBillingQuote(data)
-     }catch{ /* Sem cotacao: manter CTA bloqueado */ }
-   }
-   void task()
-   return()=>{active=false}
- },[billingCountry,regionalMismatch,plan,cycle])
- const showCountry=(c:string)=>new Intl.DisplayNames(['pt-BR'],{type:'region'}).of(c)||c
- const formatPrice=(q:Quote|null)=>q?.currency&&typeof q.amountMinor==='number' ? new Intl.NumberFormat('pt-BR',{style:'currency',currency:q.currency}).format(q.amountMinor/100) : 'Indisponível'
- const start=async()=>{
-   if(!allowed||!quote?.checkoutEnabled||loading||sending||!billingCountry||regionalMismatch)return
+  const start=async()=>{
+   if(!allowed||!quote?.checkoutEnabled||loading||sending)return
    setSending(true);setError('')
    try{
      const {data:{session}}=await supabase.auth.getSession()
@@ -86,7 +64,7 @@ export default function ContratarStripe(){
      const attemptId=crypto.randomUUID()
      const response=await fetch('/api/billing/stripe/live-checkout',{
        method:'POST',headers:{'Content-Type':'application/json',Authorization:`Bearer ${session.access_token}`},
-       body:JSON.stringify({attemptId,billingCountry,country,cycle,plan}),cache:'no-store'
+       body:JSON.stringify({attemptId,country,cycle,plan}),cache:'no-store'
      })
      const data=await response.json() as {state?:string;checkoutUrl?:string;error?:string;reason?:string}
      if(response.ok&&data.state==='ready'&&data.checkoutUrl?.startsWith('https://checkout.stripe.com/')){
@@ -110,43 +88,24 @@ export default function ContratarStripe(){
    </select>
    <label style={{display:'block',marginTop:16,fontWeight:700,fontSize:13}}>Ciclo</label>
    <select value={cycle} onChange={e=>{setCycle(e.target.value as 'mensal'|'anual');setCancelled(false)}} style={selectStyle}><option value="mensal">Mensal</option><option value="anual">Anual</option></select>
-   <label style={{display:'block',marginTop:16,fontWeight:700,fontSize:13}}>País de cobrança</label>
-   <select value={country} onChange={e=>{setCountry(e.target.value);setBillingCountry(e.target.value);setEditBillingCountry(false);setCancelled(false);setError('')}} style={selectStyle}>
+   <label style={{display:'block',marginTop:16,fontWeight:700,fontSize:13}}>País da oferta e moeda</label>
+   <select value={country} onChange={e=>{setCountry(e.target.value);setCancelled(false);setError('')}} style={selectStyle}>
     {supported.map(c=><option key={c} value={c}>{new Intl.DisplayNames(['pt-BR'],{type:'region'}).of(c)} ({c})</option>)}
    </select>
-   <div style={{marginTop:14,padding:'14px 15px',border:'1px solid #51415E',borderRadius:12,background:'#17111F'}}>
-    <p style={{margin:'0 0 5px',fontSize:13,color:'#FFFFFF'}}><strong>País de faturamento: {showCountry(billingCountry)} ({billingCountry})</strong></p>
-    <p style={{margin:'0 0 10px',fontSize:12,lineHeight:1.55,color:'#D4CADD'}}>Usaremos o país escolhido acima para calcular o preço. O endereço informado na Stripe deverá corresponder a ele.</p>
-    <button type="button" onClick={()=>{setEditBillingCountry(v=>!v);setError('')}} aria-expanded={editBillingCountry} style={{padding:0,border:0,background:'transparent',color:'#C9FA45',fontSize:12,fontWeight:750,cursor:'pointer',textAlign:'left'}}>{editBillingCountry?'Fechar correção':'Meu endereço de faturamento é de outro país'}</button>
-    {editBillingCountry&&<div style={{marginTop:12}}>
-     <label htmlFor="mp-pais-faturamento-corrigir" style={{display:'block',fontSize:12,fontWeight:700,marginBottom:5}}>Selecione o país correto</label>
-     <select id="mp-pais-faturamento-corrigir" value={billingCountry} onChange={e=>{setBillingCountry(e.target.value);setError('')}} style={selectStyle} aria-label="Corrigir país de faturamento">
-      {ISO_COUNTRIES.map(c=><option key={c} value={c}>{showCountry(c)} ({c})</option>)}
-     </select>
-     <p style={{fontSize:12,color:'#D4CADD',lineHeight:1.55}}>Se seu endereço real for de outro país, o valor será corrigido antes de continuar. Não há cobrança nesta etapa.</p>
-    </div>}
-   </div>
-   {regionalMismatch&&<div role="alert" style={{background:'#211719',border:'1px solid #E6B36A',padding:17,borderRadius:12,marginTop:14,color:'#FFFFFF'}}>
-      <p style={{fontWeight:800,color:'#F9DB9D',margin:'0 0 12px'}}>⚠ Preço regional incompatível</p>
-      <p style={{fontSize:13,margin:'0 0 8px'}}>Preço solicitado: {showCountry(country)} · {formatPrice(quote)}</p>
-      <p style={{fontSize:13,margin:'0 0 8px'}}>País de faturamento: {showCountry(billingCountry)}</p>
-      <p style={{fontSize:13,margin:'0 0 12px'}}>Preço correspondente: {formatPrice(billingQuote)} {billingCountry==='BR'?'(via EBANX quando habilitada)':''}</p>
-      <p style={{fontSize:13,lineHeight:1.55}}>Para continuar, atualize o preço para seu país real de faturamento. Nenhuma cobrança foi criada nesta etapa.</p>
-      {legalCountries.has(billingCountry)?<button type="button" onClick={()=>{setCountry(billingCountry);setEditBillingCountry(false);setCancelled(false);setError('')}} style={{background:'#C9FA45',color:'#0B0A10',border:0,borderRadius:10,fontSize:13,fontWeight:800,padding:'12px 15px',cursor:'pointer'}}>Corrigir país e atualizar preço</button>:<p role="status" style={{fontSize:12,color:'#F9DB9D'}}>Ainda não há um preço aprovado para esse país. Não é possível abrir pagamento internacional para ele.</p>}
-    </div>}
-   {!billingCountry&&<p role="status" style={{color:'#F9DB9D',fontSize:12}}>Confirme o país de faturamento para habilitar o pagamento.</p>}
+    <p style={{fontSize:12,color:'#D4CADD',lineHeight:1.6,marginTop:12}}>O valor e a moeda acima são os da oferta escolhida. Na Stripe, informe seu endereço real de faturamento. A aprovação depende também do cartão e das regras da Stripe.</p>
    <div style={{margin:'22px 0',padding:18,background:'#150F1D',borderRadius:12,border:'1px solid #493855'}}>
     <p style={{fontSize:12,color:'#CFC1D9',margin:0}}>Total {cycle==='mensal'?'por mês':'por ano'}</p>
     <strong style={{fontSize:28}}>{loading?'Consultando...':quote?new Intl.NumberFormat('pt-BR',{style:'currency',currency:quote.currency}).format((quote.amountMinor||0)/100):'Indisponível'}</strong>
-    <p style={{fontSize:12,color:'#CFC1D9'}}>O país informado deverá corresponder ao seu endereço de cobrança real.</p>
+    <p style={{fontSize:12,color:'#CFC1D9'}}>O preço e a moeda mostrados serão mantidos; informe o endereço real de faturamento na Stripe.</p>
    </div>
    {cancelled&&<p role="status" style={{color:'#F9DB9D',fontSize:13}}>Você voltou sem concluir o pagamento. Pode retomar a sessão ou escolher outro plano e país; verificaremos a tentativa anterior na Stripe antes de continuar.</p>}
    {error&&<p role="alert" style={{color:'#FFC7C7',fontSize:13,lineHeight:1.6}}>{error}</p>}
    {!quote?.checkoutEnabled&&<p role="status" style={{fontSize:13,color:'#F9DB9D',lineHeight:1.6}}>{country==='BR'?'Assinaturas pagas no Brasil serão processadas pela EBANX quando habilitada. Enquanto isso, não é possível contratar um plano pago em BRL.': quote?.reason==='REGIONAL_LOCATION_REVIEW_REQUIRED'?'País de conexão diferente do país selecionado. Para proteger os preços regionais, o checkout está suspenso até revisão. Se estiver viajando, procure o suporte.':quote?.reason==='REGIONAL_LOCATION_UNKNOWN'?'Não foi possível confirmar a região aproximada da conexão. O checkout requer revisão antes de criar uma cobrança.':'Checkout internacional indisponível para esta conta ou configuração neste momento. Nenhuma cobrança foi criada.'}</p>}
-   <button type="button" disabled={!allowed||!quote?.checkoutEnabled||loading||sending||!billingCountry||regionalMismatch} onClick={()=>void start()}
-    style={{width:'100%',padding:16,border:0,borderRadius:11,background:'#C9FA45',color:'#0B0A10',fontWeight:850,fontSize:14,opacity:!allowed||!quote?.checkoutEnabled||loading||sending||!billingCountry||regionalMismatch?.45:1,cursor:!allowed||!quote?.checkoutEnabled||loading||sending||!billingCountry||regionalMismatch?'not-allowed':'pointer'}}>
+   <button type="button" disabled={!allowed||!quote?.checkoutEnabled||loading||sending} onClick={()=>void start()}
+    style={{width:'100%',padding:16,border:0,borderRadius:11,background:'#C9FA45',color:'#0B0A10',fontWeight:850,fontSize:14,opacity:!allowed||!quote?.checkoutEnabled||loading||sending?.45:1,cursor:!allowed||!quote?.checkoutEnabled||loading||sending?'not-allowed':'pointer'}}>
      {sending?'Preparando checkout...':'Continuar para pagamento seguro'}
    </button>
+    <Link href="/painel/criar-minipage" style={{display:'block',marginTop:14,padding:13,textAlign:'center',borderRadius:10,border:'1px solid #66546F',color:'#F8F4F7',textDecoration:'none',fontSize:13,fontWeight:700}}>← Voltar à MiniPage salva</Link>
    <p style={{fontSize:11,color:'#BDB1C9',lineHeight:1.55}}>Contas já vinculadas ao Asaas ou a outra assinatura não podem gerar uma segunda assinatura neste fluxo.</p>
   </section>
  </main>

@@ -556,6 +556,33 @@ export default function CriarMiniPage() {
         setInstagram(p.instagram || '')
         setTemaEscolhido(p.public_theme || p.tema_publico || 'modelo1')
         setTemaOriginal(p.public_theme || p.tema_publico || 'modelo1')
+        // Retorno do navegador apos criar/salvar a MiniPage e ir ao checkout.
+        // O estado de UI e recuperado somente para o mesmo usuario e o mesmo slug salvo.
+        if (p.plano_tipo === 'free' && p.slug && p.nome_negocio && p.nome_negocio !== 'Minha MiniPage') {
+          try {
+            const raw = sessionStorage.getItem('mp_checkout_saved_' + user.id)
+            if (raw) {
+              const saved = JSON.parse(raw) as {slug?:string;plano?:string;ciclo?:string;pais?:string}
+              if (saved.slug === p.slug && ['minipage','agenda','loja','essencial'].includes(saved.plano || '') &&
+                  ['mensal','anual'].includes(saved.ciclo || '') && /^[A-Z]{2}$/.test(saved.pais || '')) {
+                setStripeDesejado({plano:saved.plano as 'minipage'|'agenda'|'loja'|'essencial',
+                  ciclo:saved.ciclo as 'mensal'|'anual',pais:saved.pais!})
+                setResumoFinal(['Perfil','Visual'])
+                setConcluido(true)
+                setEtapaIndex(etapasAtivas.indexOf('finalizar'))
+                // Se o cliente voltar aos passos anteriores, recarregue os links ja publicados.
+                // Somente leitura: nenhuma secao ou link e apagado ou duplicado neste retorno.
+                const {data:salvos,error:erroSalvos}=await supabase.from('pagina_links')
+                  .select('id,tipo,titulo,url,descricao').eq('user_id',user.id).eq('ativo',true)
+                  .order('ordem',{ascending:true}).limit(60)
+                if(!erroSalvos&&Array.isArray(salvos))setLinks(salvos.map(l=>({
+                  id:String(l.id),tipo:String(l.tipo||'site'),titulo:String(l.titulo||''),
+                  url:String(l.url||''),descricao:String(l.descricao||'')
+                })))
+              }
+            }
+          } catch { /* dados de navegacao opcionais; nunca altera perfil salvo */ }
+        }
       }
       // Se a conta já tem seções publicadas, avisamos que o assistente edita
       // a página existente; jamais apagamos dados sem consentimento.
@@ -585,6 +612,11 @@ export default function CriarMiniPage() {
 
   function marcarVistoEIr(destino: string) {
     try { localStorage.setItem(chaveOnboarding(userId), '1') } catch (e) {}
+    if (destino.startsWith('/painel/contratar?') && userId && concluido && stripeDesejado && slugOriginal) {
+      try { sessionStorage.setItem('mp_checkout_saved_' + userId, JSON.stringify({
+        slug:slugOriginal,plano:stripeDesejado.plano,ciclo:stripeDesejado.ciclo,pais:stripeDesejado.pais
+      })) } catch { /* nao impede checkout; os dados da pagina ja estao no banco */ }
+    }
     window.location.href = destino
   }
 
