@@ -1686,20 +1686,19 @@ export default function CriarMiniPage() {
                     </>
                   )}
                 </div>}
-                                {planoTipo!=='free' && planoDeInteresse && planoDeInteresse !== planoTipo && <button type="button" onClick={()=>marcarVistoEIr(`/painel/plano?interesse=${planoDeInteresse}`)} style={{background:'#291F33',border:'1px solid #C9FA45',borderRadius:10,padding:12,marginBottom:14,color:'#C9FA45',cursor:'pointer',fontWeight:750}}>{idioma==='pt-BR'?'Consultar o plano escolhido':'Review selected plan'}</button>}
+
                 {conteudoAnterior && (
                   <div role="status" style={{padding:'14px 16px',border:'1px solid #746136',borderRadius:12,background:'#241D14',color:'#F6E2AF',fontSize:13,lineHeight:1.6,marginBottom:15,textAlign:'left'}}>
                     {tx.previousContents} <a href="/painel/limpar-legado" style={{color:'#C9FA45',textDecoration:'underline'}}>{tx.cleanupTool}</a>.
                   </div>
                 )}
-                {planoTipo!=='free' && (<>
-                <a href={`/${encodeURIComponent(slug)}`} target="_blank" rel="noopener noreferrer" style={{ display: 'block', width: '100%', height: '48px', lineHeight: '48px', background: G, color: '#15180D', borderRadius: '12px', textDecoration: 'none', fontSize: '14px', fontWeight: 700, marginBottom: '12px' }}>
-                  {tx.viewMine}
-                </a>
-                <button onClick={() => marcarVistoEIr('/painel/perfil')} style={{ width: '100%', height: '46px', background: 'rgba(255,255,255,.06)', color: '#F8F4F7', border: '1px solid #2A1A2F', borderRadius: '12px', fontSize: '13px', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
-                  {tx.continueEditing}
-                </button>
-                  </>)}
+                {planoTipo!=='free' && (
+                  <div style={{border:'1px solid #4A3D54',borderRadius:14,background:'#15101F',padding:16,marginBottom:18}}>
+                    <p role="status" style={{fontSize:13,color:'#DFD5EA',lineHeight:1.5,margin:'0 0 14px'}}>{idioma==='pt-BR'?'Esta conta ja possui um plano. A contratacao de outro plano deve ser tratada em Meu Plano para evitar cobranças duplicadas.':'This account already has a plan. Manage changes under My Plan to prevent duplicate billing.'}</p>
+                    <button type="button" onClick={()=>marcarVistoEIr('/painel/plano')} style={{display:'block',width:'100%',border:'1px solid #C9FA45',borderRadius:10,background:'#C9FA45',padding:'14px',color:'#0B0A10',fontWeight:850,cursor:'pointer',fontSize:14,marginBottom:10}}>{idioma==='pt-BR'?'Ir para Meu Plano':'Go to My Plan'}</button>
+                    <button type="button" onClick={()=>{setGuiaPlanosAberto(true);setEtapaIndex(etapasAtivas.indexOf('planos'))}} style={{display:'block',width:'100%',border:'1px solid #66546F',borderRadius:10,background:'transparent',padding:'12px',color:'#F8F4F7',fontWeight:700,cursor:'pointer',fontSize:13}}>{idioma==='pt-BR'?'← Retornar aos planos':'← Back to plans'}</button>
+                  </div>
+                )}
               </>
             )}
           </div>

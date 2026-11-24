@@ -71,7 +71,10 @@ export default function ContratarStripe(){
        window.location.assign(data.checkoutUrl);return
      }
      if(data.state==='pending_review')throw new Error('A solicitação ficou pendente de verificação. NÃO tente cobrar novamente: procure o suporte para conferir a tentativa.')
-     throw new Error(data.error==='EXISTING_BILLING_RELATIONSHIP'?'Esta conta já tem vínculo financeiro. Não foi criada uma nova assinatura.':data.error==='PREVIOUS_CHECKOUT_REQUIRES_REVIEW'?'Não conseguimos confirmar o estado da tentativa anterior. Confira sua assinatura antes de tentar novamente.':data.error==='PREVIOUS_CHECKOUT_STATUS_UNAVAILABLE'?'A Stripe não respondeu à verificação da tentativa anterior. Tente consultar sua assinatura antes de prosseguir.':'Não foi possível abrir o checkout. Confira sua assinatura antes de tentar novamente.')
+     // Mostra o motivo tecnico controlado que a API ja devolve. Nao mostra chaves, dados bancarios ou erros brutos da Stripe.
+     const codigo=typeof data.error==='string'&&/^[A-Z][A-Z0-9_]{2,75}$/.test(data.error)?data.error:'UNKNOWN_CHECKOUT_ERROR'
+     const mensagem=codigo==='EXISTING_BILLING_RELATIONSHIP'?'Esta conta já tem vínculo financeiro. Não foi criada uma nova assinatura.':codigo==='PREVIOUS_CHECKOUT_REQUIRES_REVIEW'?'A tentativa anterior exige revisão antes de iniciar outra cobrança.':codigo==='PREVIOUS_CHECKOUT_STATUS_UNAVAILABLE'?'Não foi possível consultar com segurança a sessão anterior na Stripe.':codigo==='PENDING_CHECK_UNAVAILABLE'?'Não foi possível consultar as tentativas anteriores na MiniPage.':codigo==='LIVE_CHECKOUT_TEST_ONLY'?'Esta conta não está autorizada para a fase restrita do checkout.':codigo==='STRIPE_PRICE_LOOKUP_FAILED'?'A Stripe não autorizou a consulta do preço; verifique a permissão da chave de produção.':codigo==='STRIPE_PRICE_MISMATCH'?'O preço retornado pela Stripe não corresponde ao catálogo aprovado.':codigo==='BRAZIL_USES_EBANX'?'No Brasil, o checkout pago será oferecido pela EBANX quando estiver disponível.':'Não foi possível abrir o checkout. Nenhuma nova cobrança foi iniciada por esta solicitação.'
+     throw new Error(mensagem+' Código: '+codigo+'. Não repita a cobrança até verificar a situação.')
    }catch(e){setError(e instanceof Error?e.message:'Não foi possível iniciar o checkout.');setSending(false)}
  }
  return <main style={{minHeight:'100vh',background:'#0B0A10',color:'#FFFFFF',padding:'38px 16px',fontFamily:'system-ui,-apple-system,sans-serif'}}>
@@ -96,7 +99,7 @@ export default function ContratarStripe(){
    </div>
    {cancelled&&<p role="status" style={{color:'#F9DB9D',fontSize:13}}>Você voltou sem concluir o pagamento. Pode retomar a sessão ou escolher outro plano e país; verificaremos a tentativa anterior na Stripe antes de continuar.</p>}
    {error&&<p role="alert" style={{color:'#FFC7C7',fontSize:13,lineHeight:1.6}}>{error}</p>}
-   {!quote?.checkoutEnabled&&<p role="status" style={{fontSize:13,color:'#F9DB9D',lineHeight:1.6}}>Checkout temporariamente indisponível enquanto concluímos a homologação financeira. Nenhuma cobrança foi criada.</p>}
+   {!quote?.checkoutEnabled&&<p role="status" style={{fontSize:13,color:'#F9DB9D',lineHeight:1.6}}>{country==='BR'?'Assinaturas pagas no Brasil serão processadas pela EBANX quando habilitada. Enquanto isso, não é possível contratar um plano pago em BRL.': 'Checkout internacional indisponível para esta conta ou configuração neste momento. Nenhuma cobrança foi criada.'}</p>}
    <button type="button" disabled={!allowed||!quote?.checkoutEnabled||loading||sending} onClick={()=>void start()}
     style={{width:'100%',padding:16,border:0,borderRadius:11,background:'#C9FA45',color:'#0B0A10',fontWeight:850,fontSize:14,opacity:!allowed||!quote?.checkoutEnabled||loading||sending?.45:1,cursor:!allowed||!quote?.checkoutEnabled||loading||sending?'not-allowed':'pointer'}}>
      {sending?'Preparando checkout...':'Continuar para pagamento seguro'}
