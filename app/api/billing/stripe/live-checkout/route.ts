@@ -2,6 +2,7 @@ import {NextRequest,NextResponse} from 'next/server'
 import {createClient} from '@supabase/supabase-js'
 import {approvedPrice} from '../../../../lib/billing/stripe/live-catalog'
 import {stripeLiveReadiness} from '../../../../lib/billing/stripe/live-readiness'
+import {verificarPaisIp} from '../../../../lib/billing/stripe/pais-ip-checkout'
 export const runtime='nodejs'
 export const dynamic='force-dynamic'
 const out=(v:Record<string,unknown>,status=200)=>NextResponse.json(v,{status,headers:{'Cache-Control':'no-store'}})
@@ -25,6 +26,12 @@ export async function POST(request:NextRequest){
  if(!/^[A-Z]{2}$/.test(billingCountry))return out({error:'BILLING_COUNTRY_REQUIRED'},422)
  if(billingCountry!==country)return out({error:'REGIONAL_PRICE_COUNTRY_MISMATCH'},409)
  if(country==='BR')return out({error:'BRAZIL_USES_EBANX',gateway:'ebanx'},409)
+ // Geolocalizacao e sinal de risco, nao comprovante de residencia.
+ // Em producao, recusa pais divergente/ausente ANTES de reservar tentativa ou criar cobranca.
+ if(process.env.VERCEL_ENV==='production'){
+  const decision=verificarPaisIp(country,request.headers.get('x-vercel-ip-country'))
+  if(decision!=='match')return out({error:decision==='unknown'?'REGIONAL_LOCATION_UNKNOWN':'REGIONAL_LOCATION_REVIEW_REQUIRED'},403)
+ }
  const price=approvedPrice(plan,cycle,country)
  if(!price||!stripeId.test(price.priceId))return out({error:'PRICE_NOT_APPROVED'},422)
  try{
