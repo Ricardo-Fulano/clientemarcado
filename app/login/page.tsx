@@ -47,7 +47,7 @@ export default function Login() {
                   ['mensal','anual'].includes(pendente.cycle || '') &&
                   /^[A-Z]{2}$/.test(pendente.country || '') && pendente.country !== 'BR') {
                 const q = new URLSearchParams({
-                  plan: pendente.plan!, cycle: pendente.cycle!, country: pendente.country!,
+                  plan: pendente.plan!, cycle: pendente.cycle!, market: 'INTL',
                 })
                 proximo = '/painel/contratar?' + q.toString()
               }
