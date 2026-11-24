@@ -21,10 +21,42 @@ export default function Login() {
     setLoading(true)
     setMensagem('')
     setMsgRecuperar('')
-    const { error } = await supabase.auth.signInWithPassword({ email, password: senha })
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password: senha })
     setMsgRecuperar('')
     if (error) setMensagem(tr('login.wrongCredentials'))
-    else window.location.href = destinoAposLogin(window.location.search)
+    else {
+      // OAuth tem prioridade. Em login comum, retome uma contratacao Stripe pendente
+      // salva no servidor, sem criar outra sessao ou liberar recursos pagos.
+      const destino = destinoAposLogin(window.location.search)
+      if (destino !== '/painel') {
+        window.location.replace(destino)
+      } else {
+        let proximo = '/painel'
+        try {
+          const token = data.session?.access_token
+          if (token) {
+            const resposta = await fetch('/api/billing/stripe/pending-resume', {
+              headers: { Authorization: 'Bearer ' + token }, cache: 'no-store',
+            })
+            if (resposta.ok) {
+              const pendente = await resposta.json() as {
+                pending?: boolean; plan?: string; cycle?: string; country?: string
+              }
+              if (pendente.pending === true &&
+                  ['minipage','agenda','loja','essencial'].includes(pendente.plan || '') &&
+                  ['mensal','anual'].includes(pendente.cycle || '') &&
+                  /^[A-Z]{2}$/.test(pendente.country || '') && pendente.country !== 'BR') {
+                const q = new URLSearchParams({
+                  plan: pendente.plan!, cycle: pendente.cycle!, country: pendente.country!,
+                })
+                proximo = '/painel/contratar?' + q.toString()
+              }
+            }
+          }
+        } catch { /* Consulta de retomada indisponivel: login convencional continua seguro. */ }
+        window.location.replace(proximo)
+      }
+    }
     setLoading(false)
   }
 
