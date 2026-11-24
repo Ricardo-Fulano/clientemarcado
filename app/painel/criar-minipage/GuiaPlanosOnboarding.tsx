@@ -1,10 +1,10 @@
 'use client'
-import { useMemo, useState } from 'react'
-import SeletorPaisCheckout from './SeletorPaisCheckout'
+import { useState } from 'react'
+import { textoCheckout } from '../../lib/i18n-global/checkout-copy'
 import {CORES_CHECKOUT as C} from '../../lib/billing/multigateway/checkout-visual'
 import { consultarPrecoInternacionalUnico } from '../../lib/billing/stripe/catalogo-internacional-unico'
 type CicloCheckout='mensal'|'anual'
-import {simularMercadoGlobal} from '../../lib/billing/multigateway/roteador'
+
 
 type Plano = 'free' | 'minipage' | 'agenda' | 'loja' | 'essencial'
 export type PlanoEscolhivel = Plano
@@ -188,37 +188,31 @@ const AJUDA:Record<string,{
 
 const ordem:Plano[]=['free','minipage','agenda','loja','essencial']
 function precoReferenciaCheckout(plano:Plano,ciclo:CicloCheckout,pais:string,idioma:string){
- if(plano==='free')return {origem:'aprovado' as const,texto:new Intl.NumberFormat(idioma,{style:'currency',currency:'BRL'}).format(0)}
+ if(plano==='free')return {origem:'aprovado' as const,texto:new Intl.NumberFormat(idioma,{style:'currency',currency:pais==='BR'?'BRL':'USD',currencyDisplay:pais==='BR'?'symbol':'code'}).format(0)}
  const item=consultarPrecoInternacionalUnico(plano,ciclo,pais)
  if(!item)return {origem:'pendente' as const,texto:(TELA[idioma as keyof typeof TELA]||TELA['pt-BR']).precoPendente}
- return {origem:'aprovado' as const,texto:new Intl.NumberFormat(idioma,{style:'currency',currency:item.currency}).format(item.amountMinor/100)}
+ return {origem:'aprovado' as const,texto:new Intl.NumberFormat(idioma,{style:'currency',currency:item.currency,currencyDisplay:pais==='BR'?'symbol':'code'}).format(item.amountMinor/100)}
 }
 
 
 /** A escolha do plano preserva o formulario montado no estado do onboarding.
  * Pagamento real DESABILITADO: ainda nao existe integracao EBANX/Stripe homologada.
  */
-export default function GuiaPlanosOnboarding({idioma,planoAtual,onEscolher,onSelecionarPago,onFechar}:{idioma:string;planoAtual:string;onEscolher:(plano:Plano)=>void;onSelecionarPago:(plano:Exclude<Plano,'free'>,ciclo:CicloCheckout,pais:string)=>void;onFechar:()=>void}){
+export default function GuiaPlanosOnboarding({idioma,planoAtual,onEscolher,onSelecionarPago,onFechar,escolhaAnterior}:{idioma:string;planoAtual:string;onEscolher:(plano:Plano)=>void;onSelecionarPago:(plano:Exclude<Plano,'free'>,ciclo:CicloCheckout,pais:string)=>void;onFechar:()=>void;escolhaAnterior?:{plano:Plano;ciclo:CicloCheckout;pais:string}|null}){
  const t=conteudos[idioma]||conteudos['pt-BR']
  const u=TELA[idioma as keyof typeof TELA]||TELA['pt-BR']
  const ajuda=AJUDA[idioma]||AJUDA['pt-BR']
- const subtitulos=BENEFICIOS_OBJETIVO[idioma]||BENEFICIOS_OBJETIVO['pt-BR']
  const avisoFree=AVISO_FREE_CONTA_PAGA[idioma]||AVISO_FREE_CONTA_PAGA['pt-BR']
  const verFree=VER_FREE[idioma]||VER_FREE['pt-BR']
  const atual=ordem.includes(planoAtual as Plano)?planoAtual as Plano:null
  const contaPaga=atual!==null&&atual!=='free'
- const [pais,setPais]=useState('BR')
- const [ciclo,setCiclo]=useState<CicloCheckout>('mensal')
- const [selecionado,setSelecionado]=useState<Plano>(atual||'free')
- const [tela,setTela]=useState<'planos'|'pagamento'>('planos')
- const [metodo,setMetodo]=useState('')
- const [objetivo,setObjetivo]=useState<number|null>(null)
- const simulacao=useMemo(()=>simularMercadoGlobal(selecionado,pais),[selecionado,pais])
- const metodos: Array<{metodo:string;nome:string;ressalva?:string}>=[] // Stripe Checkout escolhe os meios habilitados no próprio checkout
+ const [pais,setPais]=useState(escolhaAnterior?.pais && escolhaAnterior.pais!=='BR'?'US':'BR')
+ const [ciclo,setCiclo]=useState<CicloCheckout>(escolhaAnterior?.ciclo||'mensal')
+ const [selecionado,setSelecionado]=useState<Plano>(contaPaga?atual||'free':escolhaAnterior?.plano||atual||'free')
  const semPreco=precoReferenciaCheckout(selecionado,ciclo,pais,idioma).origem==='pendente'
  const irParaPagamento=()=>{
    if(selecionado==='free'||selecionado===atual){onEscolher(selecionado);return}
-   setMetodo('');setTela('pagamento')
+   if(!semPreco&&!contaPaga)onSelecionarPago(selecionado,ciclo,pais)
  }
  const botao={background:C.verde,color:'#111509',border:0,borderRadius:10,padding:'14px 18px',fontWeight:850,cursor:'pointer'} as const
  const secundario={background:'transparent',color:C.texto,border:'1px solid '+C.borda,borderRadius:10,padding:'12px 18px',cursor:'pointer'} as const
@@ -230,43 +224,24 @@ export default function GuiaPlanosOnboarding({idioma,planoAtual,onEscolher,onSel
     @media(max-width:780px){.mp-checkout-cards{grid-template-columns:repeat(2,minmax(0,1fr));}}
     @media(max-width:520px){.mp-checkout-cards{grid-template-columns:minmax(0,1fr);}}
    `}</style>
-   <nav aria-label="Etapas da contratação" style={{display:'flex',gap:10,alignItems:'center',marginBottom:21,color:C.mutado,fontSize:12}}><span style={{color:C.verde,fontWeight:800}}>1. {u.planos}</span><span>→</span><span style={{color:tela==='pagamento'?C.verde:C.mutado,fontWeight:tela==='pagamento'?800:400}}>2. {u.pagamento}</span></nav>
-   {tela==='planos'?<>
+   <nav aria-label={t.title} style={{display:'flex',gap:10,alignItems:'center',marginBottom:21,color:C.mutado,fontSize:12}}><span style={{color:C.verde,fontWeight:800}}>1. {u.planos}</span><span>→</span><span style={{color:C.mutado,fontWeight:400}}>2. {u.pagamento}</span></nav>
+   <>
     <h1 style={{fontSize:'clamp(23px,3.5vw,32px)',fontWeight:900,margin:'0 0 8px'}}>{t.title}</h1>
     <p style={{fontSize:13,color:C.mutado,lineHeight:1.6,margin:'0 0 18px'}}>{t.intro}</p>
     <div style={{background:C.card,border:'1px solid '+C.borda,borderRadius:13,padding:15,marginBottom:17}}>
-     <SeletorPaisCheckout pais={pais} onPais={setPais} idioma={idioma}/>
+     <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>{(['BR','US'] as const).map(m=><button type="button" key={m} aria-pressed={pais===m} onClick={()=>setPais(m)} style={{...secundario,borderColor:pais===m?C.verde:C.borda,color:pais===m?C.verde:C.texto}}>{m==='BR'?textoCheckout(idioma, 0):textoCheckout(idioma, 1)}</button>)}</div>
      <div style={{display:'flex',gap:7,marginTop:14}}>
       {(['mensal','anual'] as const).map(c=><button type="button" key={c} aria-pressed={ciclo===c} onClick={()=>setCiclo(c)} style={{padding:'8px 16px',borderRadius:9,cursor:'pointer',border:'1px solid '+(ciclo===c?C.verde:C.borda),background:ciclo===c?C.verdeEscuro:C.cardElevado,color:ciclo===c?C.verde:C.texto,fontWeight:750}}>{c==='mensal'?u.mensal:u.anual}</button>)}
      </div>
     </div>
-    <section aria-label={ajuda.pergunta} style={{background:C.card,border:'1px solid '+C.borda,borderRadius:13,padding:16,marginBottom:18}}>
-     <h2 style={{fontSize:18,fontWeight:850,margin:'0 0 5px'}}>{ajuda.pergunta}</h2>
-     <p style={{color:C.mutado,fontSize:12,lineHeight:1.5,margin:'0 0 13px'}}>{ajuda.explicacao}</p>
-     <div className="mp-objetivos">
-      {t.objectiveNames.map((nome,i)=>{
-       const codigo=ordem[i],consultaFree=codigo==='free'&&contaPaga
-       return <button type="button" key={codigo} aria-pressed={objetivo===i} title={consultaFree?avisoFree:undefined} onClick={()=>{setObjetivo(i);if(!consultaFree)setSelecionado(codigo)}} style={{textAlign:'left',border:'1px solid '+(objetivo===i?C.verde:C.borda),borderRadius:9,background:objetivo===i?C.verdeEscuro:C.cardElevado,color:objetivo===i?C.verde:C.texto,padding:'12px 14px',fontSize:12,cursor:'pointer',display:'flex',flexDirection:'column',gap:5,minHeight:69}}>
-        <strong style={{color:objetivo===i?C.verde:C.texto,fontSize:13,lineHeight:1.35}}>{i+1}. {nome}</strong>
-        <span style={{color:C.mutado,fontSize:11,lineHeight:1.45}}>{subtitulos[i]}</span>
-       </button>
-      })}
-     </div>
-     {contaPaga&&<p role="note" style={{fontSize:11,lineHeight:1.55,color:C.mutado,margin:'13px 0 0'}}><strong style={{color:C.verde}}>{t.current}: {t.plans[atual||'free'].name}.</strong> {avisoFree}</p>}
-     {objetivo!==null&&<div role="status" aria-live="polite" style={{borderLeft:'3px solid '+C.verde,background:C.verdeEscuro,borderRadius:8,padding:'12px 14px',marginTop:13}}>
-      <span style={{display:'block',color:C.verde,fontSize:11,fontWeight:850}}>{ajuda.recomendado}</span>
-      <strong style={{display:'block',fontSize:17,marginTop:3}}>{t.plans[ordem[objetivo]].name}</strong>
-      <span style={{display:'block',fontSize:12,color:C.texto,lineHeight:1.6,marginTop:4}}>{ajuda.exemplos[ordem[objetivo]]}</span>
-      {objetivo===0&&contaPaga&&<span style={{display:'block',fontSize:12,color:C.mutado,lineHeight:1.55,marginTop:6}}>{avisoFree}</span>}
-     </div>}
-    </section>
+    {contaPaga&&<p role="note" style={{fontSize:12,color:C.mutado,margin:'0 0 16px'}}>{avisoFree}</p>}
     <p style={{fontSize:12,fontWeight:700,color:C.verde,margin:'0 0 11px'}}>{ajuda.heranca}</p>
     <div className="mp-checkout-cards">
     {ordem.map((codigo,indice)=>{
      const p=t.plans[codigo],ativo=selecionado===codigo
      const bloqueado=codigo==='free'&&atual!==null&&atual!=='free'
      const preco=precoReferenciaCheckout(codigo,ciclo,pais,idioma)
-     return <button type="button" key={codigo} aria-pressed={ativo} title={bloqueado?avisoFree:undefined} onClick={()=>{if(bloqueado){setObjetivo(0)}else{setSelecionado(codigo);setObjetivo(indice)}}} style={{textAlign:'left',display:'flex',flexDirection:'column',gap:8,border:ativo?'2px solid '+C.verde:'1px solid '+C.borda,background:C.card,borderRadius:14,padding:'17px 13px',color:C.texto,cursor:'pointer',minHeight:224}}>
+     return <button type="button" key={codigo} aria-pressed={ativo} title={bloqueado?avisoFree:undefined} disabled={bloqueado} onClick={()=>setSelecionado(codigo)} style={{textAlign:'left',display:'flex',flexDirection:'column',gap:8,border:ativo?'2px solid '+C.verde:'1px solid '+C.borda,background:C.card,borderRadius:14,padding:'17px 13px',color:C.texto,cursor:'pointer',minHeight:224}}>
        <span style={{fontSize:10,color:C.verde,fontWeight:750,minHeight:15}}>{codigo===atual?t.current:indice===0?'':p.inheritance}</span>
        <strong style={{fontSize:16}}>{p.name}</strong>
        <strong style={{fontSize:preco.origem==='pendente'?13:23,color:C.texto}}>{preco.texto}</strong>
@@ -285,35 +260,11 @@ export default function GuiaPlanosOnboarding({idioma,planoAtual,onEscolher,onSel
        <tbody>{ajuda.linhas.map((linha,i)=><tr key={i} style={{borderTop:'1px solid '+C.borda}}><th style={{textAlign:'left',padding:'11px 7px',fontWeight:500}}>{linha.nome}</th>{ordem.map((c,j)=><td key={c} style={{padding:'9px 6px',color:j>=linha.desde?C.verde:C.mutado,fontWeight:j>=linha.desde?900:400}}>{j>=linha.desde?'✓':'—'}</td>)}</tr>)}</tbody>
       </table></div>
     </details>
-    <p role="status" style={{fontSize:12,color:pais==='BR'?'#F9DB9D':C.mutado,lineHeight:1.55,margin:'17px 0'}}>{pais==='BR'?(idioma==='pt-BR'?'Brasil: cobrança recorrente pela EBANX ainda em preparação. Você pode salvar sua MiniPage no Free, sem cobrança.':'Brazil: EBANX recurring payments are not yet available. Your MiniPage can be saved on Free, with no charge.'):(idioma==='pt-BR'?'Exterior: assinatura processada pela Stripe com preço internacional único em USD, onde disponível.':'Outside Brazil: subscriptions use Stripe where supported by the payment provider.')}</p>
+    <p role="status" style={{fontSize:12,color:pais==='BR'?'#F9DB9D':C.mutado,lineHeight:1.55,margin:'17px 0'}}>{pais==='BR'?textoCheckout(idioma, 2):textoCheckout(idioma, 3)}</p>
     <div style={{display:'flex',gap:10,flexWrap:'wrap'}}>
-     <button type="button" onClick={irParaPagamento} style={{...botao,flex:2,minWidth:200}}>{selecionado==='free'?t.continueFree:selecionado===atual?t.continueCurrent:semPreco?u.btnPreparacao:u.btnPagamento}</button>
+     <button type="button" disabled={contaPaga&&selecionado!==atual||semPreco} onClick={irParaPagamento} style={{...botao,flex:2,minWidth:200}}>{selecionado==='free'?t.continueFree:selecionado===atual?t.continueCurrent:semPreco?u.btnPreparacao:u.btnPagamento}</button>
      <button type="button" onClick={onFechar} style={{...secundario,flex:1}}>{t.close}</button>
     </div>
-   </>:<>
-    <div style={{maxWidth:730,margin:'0 auto'}}>
-     <h1 style={{fontSize:'clamp(23px,3.5vw,30px)',fontWeight:900,margin:'0 0 8px'}}>{u.titlePagamento}</h1>
-     <p style={{fontSize:13,color:C.mutado,lineHeight:1.6,margin:'0 0 19px'}}>{u.introPagamento}</p>
-     <div style={{background:C.card,border:'1px solid '+C.borda,borderRadius:14,padding:18,marginBottom:17}}>
-      <div style={{display:'flex',justifyContent:'space-between',alignItems:'start',gap:12,flexWrap:'wrap'}}>
-       <div><span style={{display:'block',color:C.mutado,fontSize:11}}>{u.planoEscolhido}</span><strong style={{fontSize:19}}>{t.plans[selecionado].name}</strong><p style={{color:C.mutado,fontSize:12,margin:'7px 0 0'}}>{t.plans[selecionado].inheritance} {t.plans[selecionado].details}</p></div>
-       <div style={{textAlign:'right'}}><strong style={{fontSize:22}}>{precoReferenciaCheckout(selecionado,ciclo,pais,idioma).texto}</strong><span style={{display:'block',color:C.mutado,fontSize:11}}>{ciclo==='mensal'?u.mensal:u.anual} · {pais}</span></div>
-      </div>
-     </div>
-     <section style={{background:C.card,border:'1px solid '+C.borda,borderRadius:14,padding:18}}>
-      <h2 style={{fontSize:16,margin:'0 0 12px'}}>{u.comoPagar}</h2>
-      {!metodos.length?<p style={{color:C.texto,fontSize:13,lineHeight:1.6}}>{idioma==='pt-BR'?'O pagamento no Brasil será feito pela EBANX (quando habilitada). Para países aprovados fora do Brasil, os métodos aparecem no Stripe Checkout após salvar sua MiniPage.':'For Brazil, payments will use EBANX when enabled. For approved countries outside Brazil, payment methods appear on Stripe Checkout after saving your MiniPage.'}</p>:<div style={{display:'grid',gap:9}}>{metodos.map(m=><label key={m.metodo} style={{display:'flex',gap:12,alignItems:'start',border:'1px solid '+(metodo===m.metodo?C.verde:C.borda),borderRadius:10,background:metodo===m.metodo?C.verdeEscuro:C.cardElevado,padding:13,cursor:'pointer'}}>
-       <input type="radio" name="mp-forma-recorrente" checked={metodo===m.metodo} onChange={()=>setMetodo(m.metodo)} style={{marginTop:4,accentColor:C.verde}}/>
-       <span style={{minWidth:0}}><strong style={{display:'block',fontSize:13}}>{m.nome}</strong><span style={{display:'block',fontSize:11,color:C.mutado,marginTop:3}}>{m.ressalva||'Recorrência sujeita a autorização e habilitação.'}</span></span>
-      </label>)}</div>}
-      <p role="note" style={{color:C.alerta,fontSize:12,lineHeight:1.6,margin:'16px 0 12px'}}>{idioma==='pt-BR'?'Salve sua MiniPage antes de iniciar a contratação. O plano só será liberado após pagamento confirmado.':idioma==='es-ES'?'Primero guarda tu MiniPage. El plan se activará solo después del pago confirmado.':idioma==='en-US'?'Save your MiniPage first. Paid features activate only after verified payment.':idioma==='fr-FR'?'Enregistrez d’abord votre MiniPage. La formule sera activée après paiement confirmé.':idioma==='de-DE'?'Speichere zuerst deine MiniPage. Der Tarif wird erst nach bestätigter Zahlung aktiviert.':'Salva prima la MiniPage. Il piano si attiva solo dopo il pagamento verificato.'}</p>
-      <button type="button" disabled={semPreco||contaPaga} onClick={()=>{if(!semPreco&&!contaPaga&&selecionado!=='free')onSelecionarPago(selecionado,ciclo,pais)}} style={{...botao,width:'100%',opacity:semPreco||contaPaga?.48:1,cursor:semPreco||contaPaga?'not-allowed':'pointer'}}>{pais==='BR'?(idioma==='pt-BR'?'Salvar MiniPage no Free — EBANX em preparação':idioma==='en-US'?'Save on Free — EBANX pending':idioma==='es-ES'?'Guardar en Free — EBANX pendiente':idioma==='fr-FR'?'Enregistrer en Free — EBANX à venir':idioma==='de-DE'?'Kostenlos speichern — EBANX folgt':'Salva nel Free — EBANX in preparazione'):(idioma==='pt-BR'?'Salvar minha MiniPage e continuar para pagamento':idioma==='en-US'?'Save my MiniPage and continue to payment':idioma==='es-ES'?'Guardar MiniPage y continuar al pago':idioma==='fr-FR'?'Enregistrer MiniPage et continuer au paiement':idioma==='de-DE'?'MiniPage speichern und zur Zahlung':'Salva MiniPage e continua al pagamento')}</button>
-     </section>
-     <div style={{display:'flex',gap:9,marginTop:14,flexWrap:'wrap'}}>
-      <button type="button" onClick={()=>setTela('planos')} style={{...secundario,flex:1}}>{u.voltar}</button>
-     </div>
-     <p role="status" style={{color:C.mutado,fontSize:11,lineHeight:1.55}}>{idioma==='pt-BR'?'Nenhuma cobrança ocorre nesta etapa.':'No payment is initiated at this step.'}</p>
-    </div>
-   </>}
+   </>
  </section>
 }

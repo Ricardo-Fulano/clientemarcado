@@ -19,7 +19,10 @@ export async function POST(request:NextRequest){
  try{body=await request.json()}catch{return out({error:'INVALID_JSON'},400)}
  if(!body||typeof body!=='object'||Array.isArray(body))return out({error:'INVALID_REQUEST'},422)
  const b=body as Record<string,unknown>
- if(Object.keys(b).sort().join(',')!=='attemptId,country,cycle,plan')return out({error:'INVALID_FIELDS'},422)
+ if(!['attemptId,country,cycle,plan','attemptId,country,cycle,locale,plan'].includes(Object.keys(b).sort().join(',')))return out({error:'INVALID_FIELDS'},422)
+ const locales=['pt-BR','en','es','fr','de','it']
+ if(b.locale!==undefined&&(typeof b.locale!=='string'||!locales.includes(b.locale)))return out({error:'INVALID_LOCALE'},422)
+ const locale=typeof b.locale==='string'?b.locale:'auto'
  const attemptId=b.attemptId,plan=b.plan,cycle=b.cycle,country=b.country
  if(typeof attemptId!=='string'||!uuid.test(attemptId)||typeof plan!=='string'||typeof cycle!=='string'||typeof country!=='string')return out({error:'INVALID_FIELDS'},422)
  if(country==='BR')return out({error:'BRAZIL_USES_EBANX',gateway:'ebanx'},409)
@@ -65,7 +68,7 @@ export async function POST(request:NextRequest){
    if(!lookup.ok)return out({error:'PREVIOUS_CHECKOUT_STATUS_UNAVAILABLE'},503)
    const previous=await lookup.json() as {
     id?:string;livemode?:boolean;status?:string;payment_status?:string;
-    subscription?:string|null;url?:string|null;client_reference_id?:string;
+    subscription?:string|null;url?:string|null;client_reference_id?:string;locale?:string|null;adaptive_pricing?:{enabled?:boolean};
     metadata?:{attempt_id?:string;user_id?:string}
    }
    if(previous.id!==sessionId||previous.livemode!==true||previous.client_reference_id!==user.id||
@@ -75,7 +78,7 @@ export async function POST(request:NextRequest){
    if(previous.status!=='open'||previous.payment_status!=='unpaid'||previous.subscription)
      return out({error:'PREVIOUS_CHECKOUT_REQUIRES_REVIEW'},409)
    const sameSelection=old.plan_code===plan&&old.billing_cycle===cycle&&old.country===country&&old.stripe_price_id===price.priceId
-   if(sameSelection){
+   if(sameSelection&&(locale==='auto'||previous.locale===locale)&&previous.adaptive_pricing?.enabled===false){
     if(!previous.url?.startsWith('https://checkout.stripe.com/'))return out({error:'PREVIOUS_CHECKOUT_REQUIRES_REVIEW'},409)
     return out({state:'ready',checkoutUrl:previous.url,reused:true})
    }
@@ -99,9 +102,11 @@ export async function POST(request:NextRequest){
   const payload=new URLSearchParams()
   payload.set('mode','subscription');payload.set('line_items[0][price]',price.priceId);payload.set('line_items[0][quantity]','1')
   payload.set('billing_address_collection','required')
+  payload.set('locale',locale)
+  payload.set('adaptive_pricing[enabled]','false')
   payload.set('client_reference_id',user.id)
   payload.set('success_url',`${publicUrl}/painel/plano?stripe_return=success&session_id={CHECKOUT_SESSION_ID}`)
-  payload.set('cancel_url',`${publicUrl}/painel/contratar?plan=${encodeURIComponent(plan)}&cycle=${encodeURIComponent(cycle)}&country=${encodeURIComponent(country)}&stripe_return=cancel`)
+  payload.set('cancel_url',`${publicUrl}/painel/contratar?plan=${encodeURIComponent(plan)}&cycle=${encodeURIComponent(cycle)}&country=${encodeURIComponent(country)}&confirm=1&stripe_return=cancel`)
   payload.set('metadata[attempt_id]',attemptId);payload.set('metadata[user_id]',user.id);payload.set('metadata[plan]',plan);payload.set('metadata[cycle]',cycle)
   payload.set('metadata[price_country]',country)
   payload.set('subscription_data[metadata][attempt_id]',attemptId);payload.set('subscription_data[metadata][user_id]',user.id)

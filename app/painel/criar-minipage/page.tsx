@@ -1,6 +1,7 @@
 'use client'
 import { useState, useEffect, useRef } from 'react'
 import { supabase } from '../../lib/supabase'
+import { textoCheckout } from '../../lib/i18n-global/checkout-copy'
 import { useIdiomaGlobal } from '../../components/IdiomaProviderGlobal'
 import { obterLimiteModelosCor, obterLimiteLinksRapidos, obterLimiteVideos, permiteDestaques, podeUsarCatalogo, permiteVideos, permiteAlbuns } from '../../lib/planos'
 import { TEMAS_MINIPAGE } from '../../lib/temasMiniPage'
@@ -624,8 +625,8 @@ export default function CriarMiniPage() {
     const file = e.target.files && e.target.files[0]
     if (!file) return
     const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp']
-    if (!allowedTypes.includes(file.type)) { setMsg('Envie uma imagem JPG, PNG ou WEBP.'); return }
-    if (file.size > 5 * 1024 * 1024) { setMsg('A imagem deve ter no máximo 5MB.'); return }
+    if (!allowedTypes.includes(file.type)) { setMsg(textoCheckout(idioma, 68)); return }
+    if (file.size > 5 * 1024 * 1024) { setMsg(textoCheckout(idioma, 69)); return }
     const ext = file.name.split('.').pop()?.toLowerCase() || 'png'
     const path = `perfis/${userId}-${Date.now()}.${ext}`
     const { error: uploadError } = await supabase.storage.from('fotos').upload(path, file, { upsert: true, contentType: file.type, cacheControl: '3600' })
@@ -639,8 +640,8 @@ export default function CriarMiniPage() {
     const file = e.target.files && e.target.files[0]
     if (!file) return
     const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp']
-    if (!allowedTypes.includes(file.type)) { setMsg('Envie uma imagem JPG, PNG ou WEBP.'); return }
-    if (file.size > 5 * 1024 * 1024) { setMsg('A imagem deve ter no máximo 5MB.'); return }
+    if (!allowedTypes.includes(file.type)) { setMsg(textoCheckout(idioma, 68)); return }
+    if (file.size > 5 * 1024 * 1024) { setMsg(textoCheckout(idioma, 69)); return }
     const ext = file.name.split('.').pop()?.toLowerCase() || 'png'
     const path = `destaques/${userId}-${Date.now()}.${ext}`
     const { error: uploadError } = await supabase.storage.from('fotos').upload(path, file, { upsert: true, contentType: file.type, cacheControl: '3600' })
@@ -651,8 +652,8 @@ export default function CriarMiniPage() {
   }
 
   function avancarEtapa1() {
-    if (!nome.trim() || !slug.trim()) { setMsg('Nome e link são obrigatórios.'); return }
-    if (slugStatus === 'ocupado' || slugStatus === 'consultando') { setMsg('Aguarde a verificação do endereço ou escolha outra opção.'); return }
+    if (!nome.trim() || !slug.trim()) { setMsg(textoCheckout(idioma, 70)); return }
+    if (slugStatus === 'ocupado' || slugStatus === 'consultando') { setMsg(textoCheckout(idioma, 71)); return }
     setMsg('')
     setEtapaIndex(i => i + 1)
   }
@@ -1601,8 +1602,8 @@ export default function CriarMiniPage() {
         )}
 
         {etapaAtual === 'planos' && (guiaPlanosAberto ? (
-          <GuiaPlanosOnboarding idioma={idioma} planoAtual={planoTipo} onFechar={()=>setGuiaPlanosAberto(false)} onSelecionarPago={(plano,ciclo,pais)=>{
-              if(planoTipo!=='free'){setMsg('Assinaturas existentes são preservadas; mudanças devem ser tratadas pelo suporte.');return}
+          <GuiaPlanosOnboarding escolhaAnterior={stripeDesejado} idioma={idioma} planoAtual={planoTipo} onFechar={()=>setGuiaPlanosAberto(false)} onSelecionarPago={(plano,ciclo,pais)=>{
+              if(planoTipo!=='free'){setMsg(textoCheckout(idioma, 72));return}
               setStripeDesejado({plano,ciclo,pais})
               setPlanoDeInteresse(plano)
               setGuiaPlanosAberto(false)
@@ -1611,7 +1612,7 @@ export default function CriarMiniPage() {
               // Nunca avance para a tela de sucesso por uma escolha paga ainda sem pagamento confirmado.
               // Contas pagas existentes podem concluir com seu plano ja contratado.
               if(tipo!=='free' && tipo!==planoTipo) {
-                setMsg('A contratação do plano escolhido depende da confirmação do pagamento.');
+                setMsg(textoCheckout(idioma, 73));
                 return
               }
               // Nunca rebaixe uma assinatura paga quando o visitante apenas consultar o Free.
@@ -1700,21 +1701,21 @@ export default function CriarMiniPage() {
                 {planoTipo==='free' && <div style={{border:'1px solid #4A3D54',borderRadius:14,background:'#15101F',padding:16,marginBottom:18}}>
                   {stripeDesejado ? (stripeDesejado.pais==='BR' ? (
                     <>
-                      <p role="status" style={{color:'#F9DB9D',fontSize:13,margin:'0 0 14px'}}>{idioma==='pt-BR'?'Pagamento brasileiro pela EBANX ainda não habilitado. Sua MiniPage foi salva no Free, sem cobrança.':'EBANX payments in Brazil are not yet available. Your page is saved on Free, with no charge.'}</p>
-                      <button type="button" onClick={()=>marcarVistoEIr('/painel')} style={{display:'block',width:'100%',border:'1px solid #C9FA45',borderRadius:10,background:'#C9FA45',padding:'14px',color:'#0B0A10',fontWeight:850,cursor:'pointer',fontSize:14,marginBottom:10}}>{idioma==='pt-BR'?'Continuar no Free — sem cobrança':'Continue with Free — no charge'}</button>
-                      <button type="button" onClick={()=>{setGuiaPlanosAberto(true);setEtapaIndex(etapasAtivas.indexOf('planos'))}} style={{display:'block',width:'100%',border:'1px solid #66546F',borderRadius:10,background:'transparent',padding:'12px',color:'#F8F4F7',fontWeight:700,cursor:'pointer',fontSize:13}}>{idioma==='pt-BR'?'← Voltar aos planos':'← Back to plans'}</button>
+                      <p role="status" style={{color:'#F9DB9D',fontSize:13,margin:'0 0 14px'}}>{textoCheckout(idioma, 53)}</p>
+                      <button type="button" onClick={()=>marcarVistoEIr('/painel')} style={{display:'block',width:'100%',border:'1px solid #C9FA45',borderRadius:10,background:'#C9FA45',padding:'14px',color:'#0B0A10',fontWeight:850,cursor:'pointer',fontSize:14,marginBottom:10}}>{textoCheckout(idioma, 54)}</button>
+                      <button type="button" onClick={()=>{setGuiaPlanosAberto(true);setEtapaIndex(etapasAtivas.indexOf('planos'))}} style={{display:'block',width:'100%',border:'1px solid #66546F',borderRadius:10,background:'transparent',padding:'12px',color:'#F8F4F7',fontWeight:700,cursor:'pointer',fontSize:13}}>{textoCheckout(idioma, 55)}</button>
                     </>
                   ) : (
                     <>
-                      <p style={{color:'#DFD5EA',fontSize:13,margin:'0 0 14px'}}>{idioma==='pt-BR'?'Sua página foi salva. Conclua o pagamento para ativar o plano escolhido. Até a confirmação, o Free permanece ativo.':'Your page is saved. Complete payment to activate your selected plan. Free remains active until confirmation.'}</p>
-                      <button type="button" onClick={()=>marcarVistoEIr('/painel/contratar?plan='+stripeDesejado.plano+'&cycle='+stripeDesejado.ciclo+'&country='+stripeDesejado.pais)} style={{display:'block',width:'100%',border:'1px solid #C9FA45',borderRadius:10,background:'#C9FA45',padding:'14px',color:'#0B0A10',fontWeight:850,cursor:'pointer',fontSize:14,marginBottom:10}}>{idioma==='pt-BR'?'Continuar para pagamento seguro':'Continue to secure checkout'}</button>
-                      <button type="button" onClick={()=>{setGuiaPlanosAberto(true);setEtapaIndex(etapasAtivas.indexOf('planos'))}} style={{display:'block',width:'100%',border:'1px solid #66546F',borderRadius:10,background:'transparent',padding:'12px',color:'#F8F4F7',fontWeight:700,cursor:'pointer',fontSize:13}}>{idioma==='pt-BR'?'← Voltar aos planos':'← Back to plans'}</button>
+                      <p style={{color:'#DFD5EA',fontSize:13,margin:'0 0 14px'}}>{textoCheckout(idioma, 56)}</p>
+                      <button type="button" onClick={()=>marcarVistoEIr('/painel/contratar?plan='+stripeDesejado.plano+'&cycle='+stripeDesejado.ciclo+'&market=INTL&confirm=1')} style={{display:'block',width:'100%',border:'1px solid #C9FA45',borderRadius:10,background:'#C9FA45',padding:'14px',color:'#0B0A10',fontWeight:850,cursor:'pointer',fontSize:14,marginBottom:10}}>{textoCheckout(idioma, 57)}</button>
+                      <button type="button" onClick={()=>{setGuiaPlanosAberto(true);setEtapaIndex(etapasAtivas.indexOf('planos'))}} style={{display:'block',width:'100%',border:'1px solid #66546F',borderRadius:10,background:'transparent',padding:'12px',color:'#F8F4F7',fontWeight:700,cursor:'pointer',fontSize:13}}>{textoCheckout(idioma, 55)}</button>
                     </>
                   )) : (
                     <>
-                      <p style={{color:'#DFD5EA',fontSize:13,margin:'0 0 14px'}}>{idioma==='pt-BR'?'Sua MiniPage foi salva no plano Free, sem cobrança.':'Your MiniPage is saved on Free, with no charge.'}</p>
-                      <button type="button" onClick={()=>marcarVistoEIr('/painel')} style={{display:'block',width:'100%',border:'1px solid #C9FA45',borderRadius:10,background:'#C9FA45',padding:'14px',color:'#0B0A10',fontWeight:850,cursor:'pointer',fontSize:14,marginBottom:10}}>{idioma==='pt-BR'?'Continuar com o Free — sem cobrança':'Continue with Free — no charge'}</button>
-                      <button type="button" onClick={()=>{setGuiaPlanosAberto(true);setEtapaIndex(etapasAtivas.indexOf('planos'))}} style={{display:'block',width:'100%',border:'1px solid #66546F',borderRadius:10,background:'transparent',padding:'12px',color:'#F8F4F7',fontWeight:700,cursor:'pointer',fontSize:13}}>{idioma==='pt-BR'?'← Voltar aos planos':'← Back to plans'}</button>
+                      <p style={{color:'#DFD5EA',fontSize:13,margin:'0 0 14px'}}>{textoCheckout(idioma, 58)}</p>
+                      <button type="button" onClick={()=>marcarVistoEIr('/painel')} style={{display:'block',width:'100%',border:'1px solid #C9FA45',borderRadius:10,background:'#C9FA45',padding:'14px',color:'#0B0A10',fontWeight:850,cursor:'pointer',fontSize:14,marginBottom:10}}>{textoCheckout(idioma, 59)}</button>
+                      <button type="button" onClick={()=>{setGuiaPlanosAberto(true);setEtapaIndex(etapasAtivas.indexOf('planos'))}} style={{display:'block',width:'100%',border:'1px solid #66546F',borderRadius:10,background:'transparent',padding:'12px',color:'#F8F4F7',fontWeight:700,cursor:'pointer',fontSize:13}}>{textoCheckout(idioma, 55)}</button>
                     </>
                   )}
                 </div>}
@@ -1726,9 +1727,9 @@ export default function CriarMiniPage() {
                 )}
                 {planoTipo!=='free' && (
                   <div style={{border:'1px solid #4A3D54',borderRadius:14,background:'#15101F',padding:16,marginBottom:18}}>
-                    <p role="status" style={{fontSize:13,color:'#DFD5EA',lineHeight:1.5,margin:'0 0 14px'}}>{idioma==='pt-BR'?'Esta conta ja possui um plano. A contratacao de outro plano deve ser tratada em Meu Plano para evitar cobranças duplicadas.':'This account already has a plan. Manage changes under My Plan to prevent duplicate billing.'}</p>
-                    <button type="button" onClick={()=>marcarVistoEIr('/painel/plano')} style={{display:'block',width:'100%',border:'1px solid #C9FA45',borderRadius:10,background:'#C9FA45',padding:'14px',color:'#0B0A10',fontWeight:850,cursor:'pointer',fontSize:14,marginBottom:10}}>{idioma==='pt-BR'?'Ir para Meu Plano':'Go to My Plan'}</button>
-                    <button type="button" onClick={()=>{setGuiaPlanosAberto(true);setEtapaIndex(etapasAtivas.indexOf('planos'))}} style={{display:'block',width:'100%',border:'1px solid #66546F',borderRadius:10,background:'transparent',padding:'12px',color:'#F8F4F7',fontWeight:700,cursor:'pointer',fontSize:13}}>{idioma==='pt-BR'?'← Retornar aos planos':'← Back to plans'}</button>
+                    <p role="status" style={{fontSize:13,color:'#DFD5EA',lineHeight:1.5,margin:'0 0 14px'}}>{textoCheckout(idioma, 60)}</p>
+                    <button type="button" onClick={()=>marcarVistoEIr('/painel/plano')} style={{display:'block',width:'100%',border:'1px solid #C9FA45',borderRadius:10,background:'#C9FA45',padding:'14px',color:'#0B0A10',fontWeight:850,cursor:'pointer',fontSize:14,marginBottom:10}}>{textoCheckout(idioma, 61)}</button>
+                    <button type="button" onClick={()=>{setGuiaPlanosAberto(true);setEtapaIndex(etapasAtivas.indexOf('planos'))}} style={{display:'block',width:'100%',border:'1px solid #66546F',borderRadius:10,background:'transparent',padding:'12px',color:'#F8F4F7',fontWeight:700,cursor:'pointer',fontSize:13}}>{textoCheckout(idioma, 62)}</button>
                   </div>
                 )}
               </>
