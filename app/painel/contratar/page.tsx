@@ -2,9 +2,10 @@
 import {useEffect,useState,type CSSProperties} from 'react'
 import {supabase} from '../../lib/supabase'
 import Link from 'next/link'
+import {PAISES_OFERTA} from '../../lib/billing/stripe/catalogo-internacional-unico'
 
 type Quote={available?:boolean;checkoutEnabled?:boolean;currency?:string;amountMinor?:number;reason?:string}
-const supported=["AR", "BO", "BR", "BZ", "CL", "CO", "CR", "DE", "ES", "FR", "GT", "HN", "MX", "NI", "PA", "PE", "PT", "PY", "SV", "US"]
+const supported=[...PAISES_OFERTA]
 const plans=['minipage','agenda','loja','essencial'] as const
 type Plan=(typeof plans)[number]
 const labels:Record<Plan,string>={minipage:'MiniPage',agenda:'Agenda',loja:'Loja',essencial:'Pro'}

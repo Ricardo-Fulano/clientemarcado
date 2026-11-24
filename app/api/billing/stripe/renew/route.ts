@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
-import { approvedPrice } from '../../../../lib/billing/stripe/live-catalog'
+import { approvedPriceForExisting } from '../../../../lib/billing/stripe/live-catalog'
 export const runtime='nodejs'
 export const dynamic='force-dynamic'
 type O=Record<string,unknown>
@@ -58,7 +58,7 @@ export async function POST(req:NextRequest){
    .eq('user_id',stored.user_id).eq('plan_code',stored.plan_code)
    .eq('billing_cycle',stored.billing_cycle).eq('status','created').order('created_at',{ascending:true}).limit(1).maybeSingle()
   if(attemptError)return respond({error:'ATTEMPT_DB_ERROR'},503)
-  const approved=approvedPrice(str(stored.plan_code),str(stored.billing_cycle),str(attempt?.country))
+  const approved=approvedPriceForExisting(str(stored.plan_code),str(stored.billing_cycle),str(attempt?.country),str(attempt?.stripe_price_id))
   if(!approved||!attempt||approved.priceId!==attempt.stripe_price_id||approved.currency!==stored.currency
    ||approved.amountMinor!==stored.contracted_amount_minor||approved.amountMinor!==attempt.amount_minor)
    return respond({error:'ORIGINAL_CATALOG_MISMATCH'},409)

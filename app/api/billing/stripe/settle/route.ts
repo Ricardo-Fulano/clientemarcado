@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
-import { approvedPrice } from '../../../../lib/billing/stripe/live-catalog'
+import { approvedPriceForExisting } from '../../../../lib/billing/stripe/live-catalog'
 export const runtime='nodejs'
 export const dynamic='force-dynamic'
 type O=Record<string,unknown>
@@ -63,7 +63,7 @@ export async function POST(req:NextRequest){
   if(attemptError)return reply({error:'ATTEMPT_UNAVAILABLE'},503)
   if(!attempt||attempt.status!=='created'||!s(attempt.stripe_session_id).startsWith('cs_live_'))
    return reply({error:'ATTEMPT_NOT_READY'},409)
-  const approved=approvedPrice(s(attempt.plan_code),s(attempt.billing_cycle),s(attempt.country))
+  const approved=approvedPriceForExisting(s(attempt.plan_code),s(attempt.billing_cycle),s(attempt.country),s(attempt.stripe_price_id))
   if(!approved||approved.priceId!==attempt.stripe_price_id||approved.currency!==attempt.currency||approved.amountMinor!==attempt.amount_minor)
    return reply({error:'APPROVED_CATALOG_MISMATCH'},409)
   const items=o(subscription.items)?.data

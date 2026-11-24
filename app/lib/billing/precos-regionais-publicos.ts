@@ -1,6 +1,6 @@
 import type { BillingCycle } from '../planos'
 import type { Idioma } from '../i18n-global/idiomas'
-import { consultarPrecoAprovadoV1 } from './stripe/catalogo-v1-aprovado'
+import { consultarPrecoInternacionalUnico } from './stripe/catalogo-internacional-unico'
 
 /** Tabela de REFERENCIA copiada do catalogo aprovado para Paddle Live.
  * Nao cria checkout, nao autoriza pagamentos nem altera cobranca.
@@ -1021,10 +1021,10 @@ export function precoRegional(plano: PlanoRegional, ciclo: BillingCycle, pais: P
   precoBrasil: number): {moeda: 'BRL' | 'USD' | 'EUR'; centavos: number} | null {
   void precoBrasil // parametro conservado para compatibilidade das chamadas existentes
   if (plano === 'free') {
-    return { moeda: pais === 'BR' || pais === 'OUTROS' ? 'BRL' : ['PT','ES','FR','DE'].includes(pais) ? 'EUR' : 'USD', centavos: 0 }
+    return { moeda: pais === 'BR' ? 'BRL' : 'USD', centavos: 0 }
   }
   if (pais === 'OUTROS' || plano === 'equipe') return null
-  const aprovado = consultarPrecoAprovadoV1(plano, ciclo, pais)
+  const aprovado = consultarPrecoInternacionalUnico(plano, ciclo, pais)
   return aprovado ? { moeda: aprovado.currency, centavos: aprovado.amountMinor } : null
 }
 export function mostrarPrecoRegional(preco: {moeda: string;centavos: number}|null, idioma: Idioma): string {

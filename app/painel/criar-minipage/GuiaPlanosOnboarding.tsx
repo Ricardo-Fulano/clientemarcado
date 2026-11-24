@@ -2,7 +2,7 @@
 import { useMemo, useState } from 'react'
 import SeletorPaisCheckout from './SeletorPaisCheckout'
 import {CORES_CHECKOUT as C} from '../../lib/billing/multigateway/checkout-visual'
-import {consultarPrecoAprovadoV1} from '../../lib/billing/stripe/catalogo-v1-aprovado'
+import { consultarPrecoInternacionalUnico } from '../../lib/billing/stripe/catalogo-internacional-unico'
 type CicloCheckout='mensal'|'anual'
 import {simularMercadoGlobal} from '../../lib/billing/multigateway/roteador'
 
@@ -19,7 +19,7 @@ const conteudos:Record<string,Copy> = {
  continueFree:"Continuar com o plano Free — sem cobrança",continueCurrent:"Continuar com meu plano atual",
  title:'Escolha o plano certo para você',intro:'Cada plano inclui os recursos dos anteriores. Você não perde sua página, vídeos ou links ao contratar um plano superior.',
  question:'O que você quer fazer com sua MiniPage?',select:'Selecionar este plano',selected:'Plano selecionado para consulta',current:'Seu plano atual',close:'Voltar à prévia',
- notice:'Esta é uma escolha informativa. Não altera sua assinatura, não ativa recursos pagos e não gera cobrança. A contratação será concluída pelo fluxo de pagamento após sua validação.',price:'Valores públicos para o Brasil. Outros países têm preços regionais.',
+ notice:'Esta é uma escolha informativa. Não altera sua assinatura, não ativa recursos pagos e não gera cobrança. A contratação será concluída pelo fluxo de pagamento após sua validação.',price:'Valores públicos para o Brasil. Exterior com preço único em USD.',
  objectiveNames:['Começar de graça','Divulgar meu trabalho e conteúdos','Divulgar e receber agendamentos','Divulgar, vender e agendar','Gerenciar tudo em um único painel'],
  plans:{free:{name:'Free',inheritance:'Comece gratuitamente',details:'Comece com foto, biografia, redes sociais, até 5 links e temas básicos — gratuitamente.'},
  minipage:{name:'MiniPage',inheritance:'Tudo do Free +',details:'Tudo do Free + capa, vídeos, destaques, Spotify, links ilimitados e personalização profissional.'},
@@ -189,7 +189,7 @@ const AJUDA:Record<string,{
 const ordem:Plano[]=['free','minipage','agenda','loja','essencial']
 function precoReferenciaCheckout(plano:Plano,ciclo:CicloCheckout,pais:string,idioma:string){
  if(plano==='free')return {origem:'aprovado' as const,texto:new Intl.NumberFormat(idioma,{style:'currency',currency:'BRL'}).format(0)}
- const item=consultarPrecoAprovadoV1(plano,ciclo,pais)
+ const item=consultarPrecoInternacionalUnico(plano,ciclo,pais)
  if(!item)return {origem:'pendente' as const,texto:(TELA[idioma as keyof typeof TELA]||TELA['pt-BR']).precoPendente}
  return {origem:'aprovado' as const,texto:new Intl.NumberFormat(idioma,{style:'currency',currency:item.currency}).format(item.amountMinor/100)}
 }
@@ -285,7 +285,7 @@ export default function GuiaPlanosOnboarding({idioma,planoAtual,onEscolher,onSel
        <tbody>{ajuda.linhas.map((linha,i)=><tr key={i} style={{borderTop:'1px solid '+C.borda}}><th style={{textAlign:'left',padding:'11px 7px',fontWeight:500}}>{linha.nome}</th>{ordem.map((c,j)=><td key={c} style={{padding:'9px 6px',color:j>=linha.desde?C.verde:C.mutado,fontWeight:j>=linha.desde?900:400}}>{j>=linha.desde?'✓':'—'}</td>)}</tr>)}</tbody>
       </table></div>
     </details>
-    <p role="status" style={{fontSize:12,color:pais==='BR'?'#F9DB9D':C.mutado,lineHeight:1.55,margin:'17px 0'}}>{pais==='BR'?(idioma==='pt-BR'?'Brasil: cobrança recorrente pela EBANX ainda em preparação. Você pode salvar sua MiniPage no Free, sem cobrança.':'Brazil: EBANX recurring payments are not yet available. Your MiniPage can be saved on Free, with no charge.'):(idioma==='pt-BR'?'Exterior: assinatura processada pela Stripe apenas para países e preços habilitados.':'Outside Brazil: subscriptions use Stripe only where pricing is approved.')}</p>
+    <p role="status" style={{fontSize:12,color:pais==='BR'?'#F9DB9D':C.mutado,lineHeight:1.55,margin:'17px 0'}}>{pais==='BR'?(idioma==='pt-BR'?'Brasil: cobrança recorrente pela EBANX ainda em preparação. Você pode salvar sua MiniPage no Free, sem cobrança.':'Brazil: EBANX recurring payments are not yet available. Your MiniPage can be saved on Free, with no charge.'):(idioma==='pt-BR'?'Exterior: assinatura processada pela Stripe com preço internacional único em USD, onde disponível.':'Outside Brazil: subscriptions use Stripe where supported by the payment provider.')}</p>
     <div style={{display:'flex',gap:10,flexWrap:'wrap'}}>
      <button type="button" onClick={irParaPagamento} style={{...botao,flex:2,minWidth:200}}>{selecionado==='free'?t.continueFree:selecionado===atual?t.continueCurrent:semPreco?u.btnPreparacao:u.btnPagamento}</button>
      <button type="button" onClick={onFechar} style={{...secundario,flex:1}}>{t.close}</button>

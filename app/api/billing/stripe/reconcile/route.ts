@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
-import { approvedPrice } from '../../../../lib/billing/stripe/live-catalog'
+import { approvedPriceForExisting } from '../../../../lib/billing/stripe/live-catalog'
 
 export const runtime='nodejs'
 export const dynamic='force-dynamic'
@@ -97,7 +97,7 @@ export async function POST(req:NextRequest){
    if(aerr)throw new Error('ATTEMPT_LOOKUP_UNAVAILABLE')
    if(attempt){
     userId=str(attempt.user_id);priceId=str(attempt.stripe_price_id);currency=str(attempt.currency);amountMinor=Number(attempt.amount_minor)
-    const expected=approvedPrice(str(attempt.plan_code),str(attempt.billing_cycle),str(attempt.country))
+    const expected=approvedPriceForExisting(str(attempt.plan_code),str(attempt.billing_cycle),str(attempt.country),str(attempt.stripe_price_id))
     if(expected?.priceId!==priceId||expected.currency!==currency||expected.amountMinor!==amountMinor)reason='APPROVED_PRICE_MISMATCH'
     else if(type.startsWith('checkout.session.')&&str(data.id)!==str(attempt.stripe_session_id))reason='SESSION_ATTEMPT_MISMATCH'
     else if((type==='checkout.session.completed'||type==='checkout.session.async_payment_succeeded')&&observed==='paid'&&subId) {reason='PAYMENT_EVIDENCE_REQUIRES_INVOICE_AND_SUBSCRIPTION';decision='review'}
