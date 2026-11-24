@@ -19,7 +19,7 @@ export function GET(request:NextRequest){
  if(request.nextUrl.searchParams.get('diagnostico')==='1'){
   const tests:[string,boolean][]=[
    ['VERCEL_ENV_PRODUCTION',process.env.VERCEL_ENV==='production'],
-   ['STRIPE_LIVE_SECRET_KEY',process.env.STRIPE_LIVE_SECRET_KEY?.startsWith('sk_live_')===true],
+   ['STRIPE_LIVE_SECRET_KEY',(/^(?:sk|rk)_live_/.test(process.env.STRIPE_LIVE_SECRET_KEY||''))===true],
    ['STRIPE_LIVE_WEBHOOK_SECRET',process.env.STRIPE_LIVE_WEBHOOK_SECRET?.startsWith('whsec_')===true],
    ['NEXT_PUBLIC_SUPABASE_URL',Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL)],
    ['NEXT_PUBLIC_SUPABASE_ANON_KEY',Boolean(process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY)],

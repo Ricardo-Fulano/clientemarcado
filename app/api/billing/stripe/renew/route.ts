@@ -20,7 +20,7 @@ export async function POST(req:NextRequest){
  const secret=process.env.MP_STRIPE_RENEWAL_SECRET
  if(!secret||secret.length<32||req.headers.get('authorization')!==`Bearer ${secret}`)return respond({error:'UNAUTHORIZED'},401)
  const key=process.env.STRIPE_LIVE_SECRET_KEY,url=process.env.NEXT_PUBLIC_SUPABASE_URL,role=process.env.SUPABASE_SERVICE_ROLE_KEY
- if(!key?.startsWith('sk_live_')||!url||!role)return respond({error:'CONFIG_MISSING'},503)
+ if(!(/^(?:sk|rk)_live_/.test(key||''))||!url||!role)return respond({error:'CONFIG_MISSING'},503)
  let data:unknown;try{data=await req.json()}catch{return respond({error:'INVALID_JSON'},400)}
  const b=obj(data),eventId=str(b?.eventId)
  if(!b||Object.keys(b).length!==1||!reEvt.test(eventId))return respond({error:'INVALID_EVENT'},422)

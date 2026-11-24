@@ -19,7 +19,7 @@ export function stripeLiveReadiness(){
  const missingFlags=requiredFlags.filter(k=>!enabled(k))
  const missingSecrets=requiredSecrets.filter(k=>!strong(k))
  const basic=process.env.VERCEL_ENV==='production' &&
-  process.env.STRIPE_LIVE_SECRET_KEY?.startsWith('sk_live_')===true &&
+  (/^(?:sk|rk)_live_/.test(process.env.STRIPE_LIVE_SECRET_KEY||''))===true &&
   process.env.STRIPE_LIVE_WEBHOOK_SECRET?.startsWith('whsec_')===true &&
   Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL) &&
   Boolean(process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) &&

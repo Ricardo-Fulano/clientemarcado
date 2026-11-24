@@ -22,7 +22,7 @@ export async function POST(req:NextRequest){
  const key=process.env.STRIPE_LIVE_SECRET_KEY
  const url=process.env.NEXT_PUBLIC_SUPABASE_URL
  const role=process.env.SUPABASE_SERVICE_ROLE_KEY
- if(!key?.startsWith('sk_live_')||!url||!role)return reply({error:'CONFIG_MISSING'},503)
+ if(!(/^(?:sk|rk)_live_/.test(key||''))||!url||!role)return reply({error:'CONFIG_MISSING'},503)
  let body:unknown
  try{body=await req.json()}catch{return reply({error:'INVALID_JSON'},400)}
  const input=o(body)

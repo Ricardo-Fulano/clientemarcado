@@ -12,7 +12,7 @@ export async function POST(request:NextRequest){
  if(!stripeLiveReadiness().ready)return out({error:'LIVE_CHECKOUT_DISABLED_OR_PROCESSING_NOT_READY'},503)
  const key=process.env.STRIPE_LIVE_SECRET_KEY,url=process.env.NEXT_PUBLIC_SUPABASE_URL,anon=process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,service=process.env.SUPABASE_SERVICE_ROLE_KEY
  const publicUrl=process.env.STRIPE_LIVE_RETURN_ORIGIN
- if(!key?.startsWith('sk_live_')||!url||!anon||!service||!publicUrl||!/^https:\/\/[^/]+$/.test(publicUrl))return out({error:'LIVE_CONFIG_INCOMPLETE'},503)
+ if(!(/^(?:sk|rk)_live_/.test(key||''))||!url||!anon||!service||!publicUrl||!/^https:\/\/[^/]+$/.test(publicUrl))return out({error:'LIVE_CONFIG_INCOMPLETE'},503)
  const bearer=request.headers.get('authorization')?.match(/^Bearer\s+(.+)$/i)?.[1]
  if(!bearer||bearer.length>8192)return out({error:'UNAUTHENTICATED'},401)
  let body:unknown

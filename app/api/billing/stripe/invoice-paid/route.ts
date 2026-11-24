@@ -14,7 +14,7 @@ export async function POST(req:NextRequest){
  const token=process.env.MP_STRIPE_INVOICE_ROUTER_SECRET
  if(!token||token.length<32||req.headers.get('authorization')!==`Bearer ${token}`)return reply({error:'UNAUTHORIZED'},401)
  const key=process.env.STRIPE_LIVE_SECRET_KEY,url=process.env.NEXT_PUBLIC_SUPABASE_URL,role=process.env.SUPABASE_SERVICE_ROLE_KEY
- if(!key?.startsWith('sk_live_')||!url||!role)return reply({error:'CONFIG_MISSING'},503)
+ if(!(/^(?:sk|rk)_live_/.test(key||''))||!url||!role)return reply({error:'CONFIG_MISSING'},503)
  let input:unknown;try{input=await req.json()}catch{return reply({error:'INVALID_JSON'},400)}
  const body=object(input),eventId=text(body?.eventId)
  if(!body||Object.keys(body).length!==1||!/^evt_[A-Za-z0-9]+$/.test(eventId))return reply({error:'INVALID_EVENT'},422)

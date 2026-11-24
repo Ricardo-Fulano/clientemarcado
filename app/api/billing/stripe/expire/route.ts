@@ -16,7 +16,7 @@ export async function POST(req:NextRequest){
  const secret=process.env.MP_STRIPE_EXPIRY_SECRET
  if(!secret||secret.length<32||req.headers.get('authorization')!==`Bearer ${secret}`)return respond({error:'UNAUTHORIZED'},401)
  const url=process.env.NEXT_PUBLIC_SUPABASE_URL,role=process.env.SUPABASE_SERVICE_ROLE_KEY,key=process.env.STRIPE_LIVE_SECRET_KEY
- if(!url||!role||!key?.startsWith('sk_live_'))return respond({error:'CONFIG_MISSING'},503)
+ if(!url||!role||!(/^(?:sk|rk)_live_/.test(key||'')))return respond({error:'CONFIG_MISSING'},503)
  const db=createClient(url,role,{auth:{autoRefreshToken:false,persistSession:false}})
  const {data,error}=await db.from('billing_subscriptions')
    .select('id,user_id,provider_subscription_id,provider_customer_id,current_period_end,status')
