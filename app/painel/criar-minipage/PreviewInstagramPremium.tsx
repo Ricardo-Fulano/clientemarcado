@@ -58,7 +58,7 @@ const FRASES: Record<Idioma, {
   freeInfo: string; paidInfo: string; subscribe: string; video: string;
 }> = {
   'pt-BR': {
-    premium:'Premium',free:'Free',example:'Demonstração',paidFrom:'Visual pago a partir de R$ 29,90/mês',
+    premium:'Premium',free:'Free',example:'Demonstração',paidFrom:'Visual pago · preço conforme modalidade',
     previewOnly:'Prévia visual: não altera seu plano.',demoCover:'Selecione uma foto ou vídeo acima para pré-visualizar a capa.',
     coverPhoto:'Foto de capa selecionada',coverVideo:'Miniatura de vídeo (sem reprodução automática)',
     selectedMedia:'Álbuns / Fotos',mediaNotSaved:'Prévia da importação. As mídias ainda não foram salvas nos seus álbuns.',
@@ -73,7 +73,7 @@ const FRASES: Record<Idioma, {
     paidInfo:'Modelo pago: capa e recursos mostrados são ilustrativos e sujeitos ao seu plano.',subscribe:'Ver planos',video:'Vídeo'
   },
   'en-US': {
-    premium:'Premium',free:'Free',example:'Demo',paidFrom:'Paid design · price varies by country',previewOnly:'Visual preview only: your plan is unchanged.',
+    premium:'Premium',free:'Free',example:'Demo',paidFrom:'Paid design · pricing depends on subscription market',previewOnly:'Visual preview only: your plan is unchanged.',
     demoCover:'Select a photo or video above to preview your cover.',coverPhoto:'Selected photo cover',coverVideo:'Video thumbnail (no autoplay)',
     selectedMedia:'Albums / Photos',mediaNotSaved:'Import preview only. Media has not been saved to your albums.',
     noMedia:'Select Instagram photos or videos to build your gallery.',follower:'Instagram followers',followerDetail:'Audience by network',
@@ -86,7 +86,7 @@ const FRASES: Record<Idioma, {
     paidInfo:'Paid preview: visual features depend on your actual plan.',subscribe:'View plans',video:'Video'
   },
   'es-ES': {
-    premium:'Premium',free:'Free',example:'Demostración',paidFrom:'Visual de pago · precio según país',previewOnly:'Solo vista previa: no cambia tu plan.',
+    premium:'Premium',free:'Free',example:'Demostración',paidFrom:'Diseño de pago · precio según modalidad',previewOnly:'Solo vista previa: no cambia tu plan.',
     demoCover:'Elige una foto o vídeo para ver la portada.',coverPhoto:'Foto de portada',coverVideo:'Miniatura de vídeo (sin reproducción automática)',
     selectedMedia:'Álbumes / Fotos',mediaNotSaved:'Vista previa: las publicaciones aún no se guardaron en tus álbumes.',
     noMedia:'Elige fotos o vídeos para la galería.',follower:'seguidores en Instagram',followerDetail:'Audiencia por red',
@@ -99,7 +99,7 @@ const FRASES: Record<Idioma, {
     paidInfo:'Vista de pago ilustrativa; las funciones dependen de tu plan.',subscribe:'Ver planes',video:'Vídeo'
   },
   'fr-FR': {
-    premium:'Premium',free:'Free',example:'Démonstration',paidFrom:'Présentation payante · prix selon pays',previewOnly:'Aperçu uniquement : votre forfait ne change pas.',
+    premium:'Premium',free:'Free',example:'Démonstration',paidFrom:'Présentation payante · prix selon la formule',previewOnly:'Aperçu uniquement : votre forfait ne change pas.',
     demoCover:'Choisissez une photo ou une vidéo pour la couverture.',coverPhoto:'Photo de couverture',coverVideo:'Miniature vidéo (sans lecture automatique)',
     selectedMedia:'Albums / Photos',mediaNotSaved:'Aperçu uniquement : les médias ne sont pas enregistrés dans vos albums.',
     noMedia:'Choisissez des photos ou vidéos Instagram.',follower:'abonnés Instagram',followerDetail:'Audience par réseau',
@@ -112,7 +112,7 @@ const FRASES: Record<Idioma, {
     paidInfo:'Aperçu payant illustratif ; fonctions selon le forfait.',subscribe:'Voir les forfaits',video:'Vidéo'
   },
   'de-DE': {
-    premium:'Premium',free:'Free',example:'Demovorschau',paidFrom:'Bezahltes Design · Preis je Land',previewOnly:'Nur Vorschau: Dein Tarif bleibt unverändert.',
+    premium:'Premium',free:'Free',example:'Demovorschau',paidFrom:'Bezahltes Design · Preis nach Abonnementmarkt',previewOnly:'Nur Vorschau: Dein Tarif bleibt unverändert.',
     demoCover:'Wähle ein Foto oder Video für das Titelbild.',coverPhoto:'Ausgewähltes Titelbild',coverVideo:'Video-Vorschaubild (kein Autoplay)',
     selectedMedia:'Alben / Fotos',mediaNotSaved:'Nur Vorschau: Medien wurden noch nicht in Alben gespeichert.',
     noMedia:'Wähle Instagram-Fotos oder Videos.',follower:'Instagram-Follower',followerDetail:'Publikum nach Netzwerk',
@@ -125,7 +125,7 @@ const FRASES: Record<Idioma, {
     paidInfo:'Bezahlte Vorschau; Funktionen hängen vom Tarif ab.',subscribe:'Tarife ansehen',video:'Video'
   },
   'it-IT': {
-    premium:'Premium',free:'Free',example:'Dimostrazione',paidFrom:'Look a pagamento · prezzo per Paese',previewOnly:'Solo anteprima: il tuo piano non cambia.',
+    premium:'Premium',free:'Free',example:'Dimostrazione',paidFrom:'Design a pagamento · prezzo secondo il mercato',previewOnly:'Solo anteprima: il tuo piano non cambia.',
     demoCover:'Scegli una foto o un video per la copertina.',coverPhoto:'Foto di copertina',coverVideo:'Anteprima video (senza riproduzione automatica)',
     selectedMedia:'Album / Foto',mediaNotSaved:'Solo anteprima: i media non sono ancora salvati negli album.',
     noMedia:'Scegli foto o video Instagram.',follower:'follower Instagram',followerDetail:'Pubblico per rete',
@@ -259,7 +259,7 @@ export default function PreviewInstagramPremium({ idioma, nome, slug, bio, fotoP
               <div style={{position:'relative',height:capa?445:240,background:tokensTema.card,overflow:'hidden'}}>
                 {capa ? <img src={capa} alt={t.coverPhoto} style={{width:'100%',height:'100%',objectFit:'cover',objectPosition:'center 38%',transform:'scale(1.08)',transformOrigin:'center 38%'}}/> : <div style={{position:'absolute',inset:0,display:'grid',placeItems:'center',color:destaque}}><ImageIcon size={44}/></div>}
                 <div style={{position:'absolute',inset:0,background:capa?`linear-gradient(to bottom,rgba(0,0,0,0) 28%,rgba(${tokensTema.bgRGB},.35) 68%,rgba(${tokensTema.bgRGB},.9) 100%),linear-gradient(to bottom,transparent 65%,rgba(0,0,0,.27) 100%)`:`linear-gradient(to bottom,rgba(${tokensTema.bgRGB},0) 30%,rgba(${tokensTema.bgRGB},.5) 65%,rgba(${tokensTema.bgRGB},.9) 100%)`}}/>
-                <span style={{position:'absolute',top:12,left:11,fontSize:10,background:'rgba(13,12,20,.75)',border:'1px solid rgba(255,255,255,.2)',padding:'5px 8px',borderRadius:99,color:'#F7F2FF',display:'flex',gap:5,alignItems:'center'}}><Eye size={12}/> {t.example} {t.premium}</span>
+                <span style={{position:'absolute',top:12,left:11,fontSize:10,background:'rgba(13,12,20,.75)',border:'1px solid rgba(255,255,255,.2)',padding:'5px 8px',borderRadius:99,color:'#F7F2FF',display:'flex',gap:5,alignItems:'center'}}><Eye size={12}/> {t.premium} · {t.example}</span>
                 {primeiroVisual?.tipo.toUpperCase()==='VIDEO' && <span style={{position:'absolute',top:12,right:11,display:'flex',gap:3,alignItems:'center',fontSize:10,color:'#FFF',background:'#15111EA8',borderRadius:7,padding:'5px 7px'}}><Play size={12}/> {t.video}</span>}
                 {!capa && <span style={{position:'absolute',top:55,left:12,right:12,color:'#EEE',fontSize:10,textAlign:'center'}}>{t.demoCover}</span>}
                 <div style={{position:'absolute',left:13,right:13,bottom:capa?22:17,textAlign:'center'}}>

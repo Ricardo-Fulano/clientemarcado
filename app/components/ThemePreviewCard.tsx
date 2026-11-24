@@ -1,4 +1,6 @@
 'use client'
+import { useIdiomaGlobal } from './IdiomaProviderGlobal'
+import { traduzirLanding } from '../lib/i18n-global/landing'
 import type { ReactNode } from 'react'
 import { getTema } from '../lib/tema-publico'
 
@@ -27,6 +29,7 @@ export default function ThemePreviewCard({
   bloqueado?: boolean
   badge?: ReactNode
 }) {
+  const { idioma } = useIdiomaGlobal()
   const tokens = getTema(tema.id)
   return (
     <button
@@ -35,7 +38,7 @@ export default function ThemePreviewCard({
         textAlign: 'left',
         cursor: bloqueado ? 'not-allowed' : 'pointer',
         opacity: bloqueado ? 0.45 : 1,
-        border: selecionado ? '2px solid #EC4899' : '1px solid #2A1A2F',
+        border: selecionado ? '2px solid #C9FA45' : '1px solid #2A1A2F',
         borderRadius: '14px',
         padding: 0,
         overflow: 'hidden',
@@ -53,7 +56,7 @@ export default function ThemePreviewCard({
         <div style={{ width: '85%', height: '10px', borderRadius: '5px', background: tokens.card, border: `1px solid ${tokens.cardBorder}` }} />
       </div>
       <div style={{ padding: '7px 8px', background: tokens.bg }}>
-        <p style={{ fontSize: '10.5px', fontWeight: 700, color: tokens.text, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{tema.nome}</p>
+        <p style={{ fontSize: '10.5px', fontWeight: 700, color: tokens.text, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{tema.nome.replace(/^Modelo(?=\s|$)/, traduzirLanding(idioma, 'Modelo'))}</p>
       </div>
     </button>
   )

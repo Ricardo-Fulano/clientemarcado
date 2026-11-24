@@ -755,7 +755,85 @@ const landing: Record<Exclude<Idioma, 'pt-BR'>, Record<string,string>> = {
 }
 
 /** PT original e fallback seguro para novos textos ainda nao traduzidos. */
+const ajustes: Record<string, Record<string,string>> = {
+  "en-US": {
+    "MiniPage Loja": "MiniPage Store",
+    "quem vende e também recebe agendamentos": "Businesses that sell and accept bookings",
+    "Catálogos, produtos, cursos e agendamento online para seu negócio.": "Catalogs, products, courses and online bookings for your business.",
+    "quem quer presença, agendamento, vendas e gestão": "Businesses seeking an online presence, bookings, sales and management",
+    "Tudo do Loja, com clientes, financeiro, cobranças e gestão do negócio.": "Everything in Store, plus customer management, finances and billing.",
+    "IA com ChatGPT e Claude": "AI with ChatGPT and Claude",
+    "Tudo da Loja +": "Everything in Store +",
+    "Quero o MiniPage Loja": "Choose MiniPage Store",
+    "Se recebeu um cupom de um parceiro, informe aqui. Campo opcional.": "If you received a referral code from a partner, enter it here. Optional.",
+    "✓ Cupom de indicação aplicado com sucesso.": "✓ Referral code applied.",
+    "Cupom não encontrado. Você pode continuar sem cupom.": "Code not found. You can continue without a code.",
+    "Tirar dúvidas": "Get help",
+    "Modelo": "Template"
+  },
+  "es-ES": {
+    "MiniPage Loja": "MiniPage Tienda",
+    "quem vende e também recebe agendamentos": "Negocios que venden y reciben reservas",
+    "Catálogos, produtos, cursos e agendamento online para seu negócio.": "Catálogos, productos, cursos y reservas online para tu negocio.",
+    "quem quer presença, agendamento, vendas e gestão": "Negocios que buscan presencia online, reservas, ventas y gestión",
+    "Tudo do Loja, com clientes, financeiro, cobranças e gestão do negócio.": "Todo lo de Tienda, más clientes, finanzas, cobros y gestión.",
+    "IA com ChatGPT e Claude": "IA con ChatGPT y Claude",
+    "Tudo da Loja +": "Todo lo de Tienda +",
+    "Quero o MiniPage Loja": "Elegir MiniPage Tienda",
+    "Se recebeu um cupom de um parceiro, informe aqui. Campo opcional.": "Si recibiste un código de un socio, introdúcelo aquí. Opcional.",
+    "✓ Cupom de indicação aplicado com sucesso.": "✓ Código de referido aplicado.",
+    "Cupom não encontrado. Você pode continuar sem cupom.": "Código no encontrado. Puedes continuar sin él.",
+    "Tirar dúvidas": "Obtener ayuda",
+    "Modelo": "Modelo"
+  },
+  "fr-FR": {
+    "MiniPage Loja": "MiniPage Boutique",
+    "quem vende e também recebe agendamentos": "Entreprises qui vendent et prennent des réservations",
+    "Catálogos, produtos, cursos e agendamento online para seu negócio.": "Catalogues, produits, cours et réservations en ligne pour votre activité.",
+    "quem quer presença, agendamento, vendas e gestão": "Entreprises souhaitant présence en ligne, réservations, ventes et gestion",
+    "Tudo do Loja, com clientes, financeiro, cobranças e gestão do negócio.": "Tout Boutique, plus clients, finances, facturation et gestion.",
+    "IA com ChatGPT e Claude": "IA avec ChatGPT et Claude",
+    "Tudo da Loja +": "Tout Boutique +",
+    "Quero o MiniPage Loja": "Choisir MiniPage Boutique",
+    "Se recebeu um cupom de um parceiro, informe aqui. Campo opcional.": "Si vous avez reçu un code partenaire, saisissez-le ici. Facultatif.",
+    "✓ Cupom de indicação aplicado com sucesso.": "✓ Code de parrainage appliqué.",
+    "Cupom não encontrado. Você pode continuar sem cupom.": "Code introuvable. Vous pouvez continuer sans code.",
+    "Tirar dúvidas": "Obtenir de l’aide",
+    "Modelo": "Modèle"
+  },
+  "de-DE": {
+    "MiniPage Loja": "MiniPage Shop",
+    "quem vende e também recebe agendamentos": "Unternehmen mit Verkauf und Terminbuchung",
+    "Catálogos, produtos, cursos e agendamento online para seu negócio.": "Kataloge, Produkte, Kurse und Online-Terminbuchung für dein Unternehmen.",
+    "quem quer presença, agendamento, vendas e gestão": "Unternehmen mit Online-Präsenz, Terminen, Verkauf und Verwaltung",
+    "Tudo do Loja, com clientes, financeiro, cobranças e gestão do negócio.": "Alles aus Shop, plus Kunden, Finanzen, Abrechnung und Verwaltung.",
+    "IA com ChatGPT e Claude": "KI mit ChatGPT und Claude",
+    "Tudo da Loja +": "Alles aus Shop +",
+    "Quero o MiniPage Loja": "MiniPage Shop wählen",
+    "Se recebeu um cupom de um parceiro, informe aqui. Campo opcional.": "Gib hier deinen Partnercode ein, falls vorhanden. Optional.",
+    "✓ Cupom de indicação aplicado com sucesso.": "✓ Empfehlungscode angewendet.",
+    "Cupom não encontrado. Você pode continuar sem cupom.": "Code nicht gefunden. Du kannst ohne Code fortfahren.",
+    "Tirar dúvidas": "Hilfe erhalten",
+    "Modelo": "Vorlage"
+  },
+  "it-IT": {
+    "MiniPage Loja": "MiniPage Negozio",
+    "quem vende e também recebe agendamentos": "Attività che vendono e ricevono prenotazioni",
+    "Catálogos, produtos, cursos e agendamento online para seu negócio.": "Cataloghi, prodotti, corsi e prenotazioni online per la tua attività.",
+    "quem quer presença, agendamento, vendas e gestão": "Attività che cercano presenza online, prenotazioni, vendite e gestione",
+    "Tudo do Loja, com clientes, financeiro, cobranças e gestão do negócio.": "Tutto di Negozio, più clienti, finanze, fatturazione e gestione.",
+    "IA com ChatGPT e Claude": "IA con ChatGPT e Claude",
+    "Tudo da Loja +": "Tutto di Negozio +",
+    "Quero o MiniPage Loja": "Scegli MiniPage Negozio",
+    "Se recebeu um cupom de um parceiro, informe aqui. Campo opcional.": "Se hai ricevuto un codice partner, inseriscilo qui. Facoltativo.",
+    "✓ Cupom de indicação aplicado com sucesso.": "✓ Codice referral applicato.",
+    "Cupom não encontrado. Você pode continuar sem cupom.": "Codice non trovato. Puoi continuare senza codice.",
+    "Tirar dúvidas": "Ricevi assistenza",
+    "Modelo": "Modello"
+  }
+}
+
 export function traduzirLanding(idioma: Idioma, texto: string): string {
   if (idioma === 'pt-BR') return texto
-  return landing[idioma][texto] ?? texto
+  return ajustes[idioma]?.[texto] ?? landing[idioma][texto] ?? texto
 }

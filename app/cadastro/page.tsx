@@ -1,6 +1,7 @@
 'use client'
 import SeletorIdiomaGlobal from '../components/SeletorIdiomaGlobal'
 import { useIdiomaGlobal } from '../components/IdiomaProviderGlobal'
+import { traduzirLanding } from '../lib/i18n-global/landing'
 import { textoInterface } from '../lib/i18n-global/telas-core'
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
@@ -161,8 +162,11 @@ export default function Cadastro() {
     'de-DE':{or:'oder weiter mit',google:'Mit Google fortfahren',apple:'Mit Apple fortfahren',failed:'Verbindung fehlgeschlagen. Konfiguration prüfen.'},
     'it-IT':{or:'oppure continua con',google:'Continua con Google',apple:'Continua con Apple',failed:'Connessione non riuscita. Verifica la configurazione.'},
   }
+  const googleEnabled = process.env.NEXT_PUBLIC_MP_GOOGLE_OAUTH_ENABLED === 'true'
+  const appleEnabled = process.env.NEXT_PUBLIC_MP_APPLE_OAUTH_ENABLED === 'true'
   const oauthText = oauthLabels[idioma] || oauthLabels['pt-BR']
   async function iniciarOAuth(provider: 'google'|'apple') {
+    if (provider === 'google' ? !googleEnabled : !appleEnabled) return
     if (!aceitou) {setMensagem(consentimento.inicio+' '+consentimento.fim);return}
     setOauthLoading(provider); setMensagem('')
     try {
@@ -533,9 +537,9 @@ export default function Cadastro() {
                 onChange={e => { setCupom(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g,'')); setCupomStatus('idle') }}
                 onBlur={() => validarCupom(cupom)}
                 style={{width:'100%',background:'rgba(24,16,27,.92)',border:`1.5px solid ${cupomStatus==='ok'?'rgba(34,197,94,.5)':cupomStatus==='erro'?'rgba(239,68,68,.4)':'rgba(42,26,47,.18)'}`,borderRadius:'14px',padding:'13px 16px',color:'#F8F4F7',fontSize:'15px',outline:'none',fontFamily:'inherit',transition:'border-color .2s',boxSizing:'border-box' as const}} />
-              {cupomStatus==='ok'&&<p style={{fontSize:'11px',color:'#22C55E',marginTop:'5px'}}>✓ Cupom de indicação aplicado com sucesso.</p>}
-              {cupomStatus==='erro'&&<p style={{fontSize:'11px',color:'#EF4444',marginTop:'5px'}}>Cupom não encontrado. Você pode continuar sem cupom.</p>}
-              {cupomStatus==='idle'&&<p style={{fontSize:'11px',color:'#B8AAB8',marginTop:'5px'}}>Se recebeu um cupom de um parceiro, informe aqui. Campo opcional.</p>}
+              {cupomStatus==='ok'&&<p style={{fontSize:'11px',color:'#22C55E',marginTop:'5px'}}>{traduzirLanding(idioma, "✓ Cupom de indicação aplicado com sucesso.")}</p>}
+              {cupomStatus==='erro'&&<p style={{fontSize:'11px',color:'#EF4444',marginTop:'5px'}}>{traduzirLanding(idioma, "Cupom não encontrado. Você pode continuar sem cupom.")}</p>}
+              {cupomStatus==='idle'&&<p style={{fontSize:'11px',color:'#B8AAB8',marginTop:'5px'}}>{traduzirLanding(idioma, "Se recebeu um cupom de um parceiro, informe aqui. Campo opcional.")}</p>}
             </div>
               </div>
             ) : (
@@ -553,11 +557,11 @@ export default function Cadastro() {
                 </>
               )}
             </button>
-            {ehPlanoFree(planoParaExibicao) && <div style={{margin:'16px 0',textAlign:'center'}}>
+            {ehPlanoFree(planoParaExibicao) && (googleEnabled || appleEnabled) && <div style={{margin:'16px 0',textAlign:'center'}}>
               <div style={{color:'#B9B0C9',fontSize:12,marginBottom:12}}>{oauthText.or}</div>
               <div style={{display:'grid',gap:9}}>
-                <button type="button" disabled={!!oauthLoading||loading} onClick={()=>iniciarOAuth('google')} style={{background:'#201928',color:'#F9F6FD',border:'1px solid #55465D',padding:13,borderRadius:12,fontWeight:650,cursor:'pointer'}}>{oauthLoading==='google'?'…':oauthText.google}</button>
-                <button type="button" disabled={!!oauthLoading||loading} onClick={()=>iniciarOAuth('apple')} style={{background:'#201928',color:'#F9F6FD',border:'1px solid #55465D',padding:13,borderRadius:12,fontWeight:650,cursor:'pointer'}}>{oauthLoading==='apple'?'…':oauthText.apple}</button>
+                {googleEnabled && <button type="button" disabled={!!oauthLoading||loading} onClick={()=>iniciarOAuth('google')} style={{background:'#201928',color:'#F9F6FD',border:'1px solid #55465D',padding:13,borderRadius:12,fontWeight:650,cursor:'pointer'}}>{oauthLoading==='google'?'…':oauthText.google}</button>}
+                {appleEnabled && <button type="button" disabled={!!oauthLoading||loading} onClick={()=>iniciarOAuth('apple')} style={{background:'#201928',color:'#F9F6FD',border:'1px solid #55465D',padding:13,borderRadius:12,fontWeight:650,cursor:'pointer'}}>{oauthLoading==='apple'?'…':oauthText.apple}</button>}
               </div>
             </div>}
             <p className="link-login">

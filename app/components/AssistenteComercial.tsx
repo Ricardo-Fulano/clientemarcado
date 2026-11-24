@@ -1,4 +1,6 @@
 'use client'
+import { useIdiomaGlobal } from './IdiomaProviderGlobal'
+import { traduzirLanding } from '../lib/i18n-global/landing'
 import { useState, useRef, useEffect } from 'react'
 import { X, MessageCircle, Send, ChevronRight } from 'lucide-react'
 
@@ -6,9 +8,9 @@ const COMERCIAL_WHATSAPP = '5511941059063'
 
 const RESPOSTAS: Record<string, string> = {
   'como-funciona': 'O MiniPage Pro permite criar uma página profissional para reunir links, vídeos, produtos, WhatsApp e, conforme o plano, catálogo, agendamento, desempenho e ferramentas de gestão.',
-  'quanto-custa': 'O MiniPage Pro possui plano gratuito e opções pagas: MiniPage R$ 29,90, Agenda R$ 39,90, Loja R$ 49,90, Pro R$ 59,90 e Equipe R$ 149,90 por mês. Consulte a seção de planos para os recursos e valores vigentes.',
+  'quanto-custa': 'O MiniPage Pro possui plano gratuito e quatro planos pagos. Consulte a seção de planos para preços em BRL ou USD e recursos vigentes.',
   'fidelidade': 'O MiniPage Pro oferece planos mensais e anuais. Confira os termos e as condições do ciclo escolhido antes da contratação.',
-  'dias-gratis': 'Existe um plano Free e opções pagas. Quando elegível, o período de teste gratuito é de 7 dias. Confira as condições apresentadas no cadastro.',
+  'dias-gratis': 'Existe um plano Free sem cobrança. Consulte as condições dos planos pagos antes de assinar.',
   'meu-negocio': 'O MiniPage Pro atende criadores, afiliados, profissionais autônomos, lojas e negócios que precisam divulgar links, produtos ou agendamentos.',
   'app': 'Não precisa instalar aplicativo: o MiniPage Pro funciona no navegador, pelo celular, tablet ou computador.',
   'whatsapp': 'Sim. O sistema facilita o contato pelo WhatsApp, permite copiar confirmação, abrir conversa com o cliente e organizar melhor os atendimentos.',
@@ -34,7 +36,7 @@ const BOTOES_RAPIDOS = [
   { id: 'fidelidade', label: 'Tem fidelidade?' },
   { id: 'meu-negocio', label: 'Serve para meu negócio?' },
   { id: 'incluso', label: 'O que está incluso?' },
-  { id: 'dias-gratis', label: 'Como são os 7 dias grátis?' },
+  { id: 'dias-gratis', label: 'Existe plano gratuito?' },
   { id: 'app', label: 'Precisa baixar app?' },
   { id: 'como-comecar', label: 'Como começar?' },
 ]
@@ -52,6 +54,7 @@ interface Props {
 }
 
 export default function AssistenteComercial({ checkoutUrl = '/cadastro' }: Props) {
+  const { idioma } = useIdiomaGlobal()
   const [aberto, setAberto] = useState(false)
   const [resposta, setResposta] = useState('')
   const [perguntaAtiva, setPerguntaAtiva] = useState('')
@@ -101,7 +104,7 @@ export default function AssistenteComercial({ checkoutUrl = '/cadastro' }: Props
           onMouseLeave={e => (e.currentTarget.style.transform = 'translateY(0)')}
         >
           <MessageCircle size={18} />
-          <span>Tirar dúvidas</span>
+          <span>{traduzirLanding(idioma, 'Tirar dúvidas')}</span>
         </button>
       )}
 

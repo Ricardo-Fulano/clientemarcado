@@ -199,7 +199,7 @@ function CartaoPlano({ tipo, billing, idioma, pais, selo, nicho, descricao, desc
     <div data-mp-plano={tipo} className={`plano-card${recomendado ? ' mp-recomendado' : ''}`} style={{background:fundo,border:pro?'1.5px solid rgba(139,92,246,.55)':'1.5px solid #2A1A2F',borderRadius:'22px',padding:'30px 22px',boxShadow:pro?'0 0 72px rgba(139,92,246,.20)':undefined,position:'relative' as const,display:'flex',flexDirection:'column' as const,flex:'0 0 250px',minWidth:'250px',scrollSnapAlign:'start'}}>
       {pro && <div style={{position:'absolute' as const,top:'-13px',left:'50%',transform:'translateX(-50%)',background:G,borderRadius:'999px',padding:'4px 18px',fontSize:'11px',fontWeight:700,color:'#15180D',whiteSpace:'nowrap' as const}}>{lp("Mais escolhido")}</div>}
       <div style={{textAlign:'center',marginBottom:'16px'}}>
-        <h3 style={{fontSize:'19px',fontWeight:900,letterSpacing:'-0.02em',marginBottom:'8px',background:'linear-gradient(135deg,#C9FA45,#F5F2FF)',WebkitBackgroundClip:'text',backgroundClip:'text',WebkitTextFillColor:'transparent',color:COR_DESTAQUE}}>{obterNomePlano(tipo)}</h3>
+        <h3 style={{fontSize:'19px',fontWeight:900,letterSpacing:'-0.02em',marginBottom:'8px',background:'linear-gradient(135deg,#C9FA45,#F5F2FF)',WebkitBackgroundClip:'text',backgroundClip:'text',WebkitTextFillColor:'transparent',color:COR_DESTAQUE}}>{lp(obterNomePlano(tipo))}</h3>
         <div>
           <span style={{fontSize:'30px',fontWeight:900,color:'#F8F4F7',letterSpacing:'-0.03em',whiteSpace:'nowrap'}}>{textoPreco}</span>
           {(tipo !== 'free' && preco) && <span style={{fontSize:'13px',color:'#B8AAB8',marginLeft:'3px'}}>{lp(billing === 'anual' ? '/ano' : '/mês')}</span>}
