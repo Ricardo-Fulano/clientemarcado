@@ -32,8 +32,8 @@ async function repairLinks(db:SupabaseClient,a:Attempt,event:any){
  return a;
 }
 async function verifyCustomer(a:Attempt){if(!a.customer_id)throw new Error('NO_CUSTOMER');const c=await asaas('/customers/'+encoded(a.customer_id));if(c.id!==a.customer_id||c.externalReference!==a.contract_ref||c.deleted===true)throw new Error('CUSTOMER_MISMATCH')}
-async function verifySubscription(a:Attempt,id:string){if(!identifier(id))throw new Error('INVALID_SUBSCRIPTION');const s=await asaas('/subscriptions/'+encoded(id));if(s.id!==id||s.customer!==a.customer_id||s.cycle!==subscriptionCycle(a.billing_cycle)||minor(s.value)!==a.amount_minor)throw new Error('SUBSCRIPTION_MISMATCH');return s}
-async function readAuthorization(a:Attempt){if(!a.authorization_id)throw new Error('NO_AUTHORIZATION');const auth=await asaas('/pix/automatic/authorizations/'+encoded(a.authorization_id));if(auth.id!==a.authorization_id||auth.customerId!==a.customer_id||auth.contractId!==a.contract_ref||auth.frequency!==apiCycle(a.billing_cycle)||(!['CANCELLED','EXPIRED','REFUSED'].includes(auth.status)&&(minor(auth.value)!==a.amount_minor||auth.paymentCreationMode!=='SUBSCRIPTION'))||auth.immediateQrCode?.conciliationIdentifier!==a.conciliation_id)throw new Error('AUTHORIZATION_MISMATCH');return auth}
+export async function verifySubscription(a:Attempt,id:string){if(!identifier(id))throw new Error('INVALID_SUBSCRIPTION');const s=await asaas('/subscriptions/'+encoded(id));if(s.id!==id||s.customer!==a.customer_id||s.cycle!==subscriptionCycle(a.billing_cycle)||minor(s.value)!==a.amount_minor)throw new Error('SUBSCRIPTION_MISMATCH');return s}
+export async function readAuthorization(a:Attempt){if(!a.authorization_id)throw new Error('NO_AUTHORIZATION');const auth=await asaas('/pix/automatic/authorizations/'+encoded(a.authorization_id));if(auth.id!==a.authorization_id||auth.customerId!==a.customer_id||auth.contractId!==a.contract_ref||auth.frequency!==apiCycle(a.billing_cycle)||(!['CANCELLED','EXPIRED','REFUSED'].includes(auth.status)&&(minor(auth.value)!==a.amount_minor||auth.paymentCreationMode!=='SUBSCRIPTION'))||auth.immediateQrCode?.conciliationIdentifier!==a.conciliation_id)throw new Error('AUTHORIZATION_MISMATCH');return auth}
 async function sync(db:SupabaseClient,a:Attempt,subscription:string|null,authStatus:string|null,renewal:boolean){const {error}=await db.rpc('mp_asaas_sync_renewal_v1',{p_attempt:a.attempt_id,p_customer:a.customer_id,p_subscription:subscription,p_auth_status:authStatus,p_renewal:renewal});if(error)throw new Error('SYNC_FAILED')}
 async function closeIfNoFinancialObject(db:SupabaseClient,a:Attempt){
  // A terminal provider event alone is not enough: require no payment or subscription at all for this dedicated customer.
@@ -42,7 +42,7 @@ async function closeIfNoFinancialObject(db:SupabaseClient,a:Attempt){
  if(!Array.isArray(payments.data)||!Array.isArray(subscriptions.data)||payments.data.length||subscriptions.data.length||payments.hasMore!==false||subscriptions.hasMore!==false)throw new Error('CLOSURE_REQUIRES_REVIEW')
  const {error}=await db.rpc('mp_asaas_close_unpaid_v1',{p_attempt:a.attempt_id});if(error)throw new Error('CLOSE_FAILED')
 }
-async function verifyPayment(db:SupabaseClient,a:Attempt,id:string,eventType?:string){
+export async function verifyPayment(db:SupabaseClient,a:Attempt,id:string,eventType?:string){
  const fresh=await by(db,'attempt_id',a.attempt_id);if(!fresh||fresh.status==='closed')throw new Error('ATTEMPT_CHANGED');a=fresh;
  if(!identifier(id))throw new Error('INVALID_PAYMENT_ID')
  const p=await asaas('/payments/'+encoded(id));if(p.id!==id||p.customer!==a.customer_id||p.deleted===true||minor(p.value)!==a.amount_minor)throw new Error('PAYMENT_MISMATCH')
@@ -88,7 +88,9 @@ async function verifyPayment(db:SupabaseClient,a:Attempt,id:string,eventType?:st
   return
  }
  const payDate=validDate(p.paymentDate)||validDate(p.confirmedDate)||validDate(p.clientPaymentDate);if(!payDate)throw new Error('PAYMENT_DATE_MISSING')
- if(a.initial_payment_id&&p.id!==a.initial_payment_id&&subId){const overdue=await asaas('/payments?subscription='+encoded(subId)+'&status=OVERDUE&limit=1');if(!Array.isArray(overdue.data)||overdue.hasMore!==false||overdue.data.length)throw new Error('OTHER_OVERDUE_PAYMENT_REQUIRES_REVIEW')}
+ const {data:registered,error:regError}=await db.from('billing_payments').select('subscription_id,status,amount_minor').eq('provider','asaas').eq('provider_payment_id',p.id).maybeSingle();if(regError)throw new Error('PAYMENT_LEDGER_READ');
+ if(registered&&(registered.subscription_id!==a.attempt_id||Number(registered.amount_minor)!==a.amount_minor))throw new Error('PAYMENT_LEDGER_MISMATCH');
+ if(a.initial_payment_id&&p.id!==a.initial_payment_id&&!registered&&subId){const overdue=await asaas('/payments?subscription='+encoded(subId)+'&status=OVERDUE&limit=1');if(!Array.isArray(overdue.data)||overdue.hasMore!==false||overdue.data.length)throw new Error('OTHER_OVERDUE_PAYMENT_REQUIRES_REVIEW')}
  const {error}=await db.rpc('mp_asaas_apply_payment_v1',{p_attempt:a.attempt_id,p_payment:p.id,p_customer:a.customer_id,p_subscription:subId,p_paid:payDate,p_due:due,p_status:p.status==='RECEIVED'?'settled':'confirmed',p_renewal:renewal});if(error)throw new Error('PAYMENT_APPLY_FAILED')
  if(a.method==='pix')await sync(db,a,subId,authStatus,renewal)
  // Existing commission RPC owns attribution, percentage, 12-month window and deduplication.
@@ -149,11 +151,17 @@ export async function reconcileExistingAttempt(db:SupabaseClient,a:Attempt){
   if(identifier(auth.subscriptionId)){if(sub&&sub!==auth.subscriptionId)throw new Error('SUBSCRIPTION_MISMATCH');const s=await verifySubscription(a,auth.subscriptionId);sub=s.id;renewal=auth.status==='ACTIVE'&&s.status==='ACTIVE'&&s.deleted!==true}
   await sync(db,a,sub,auth.status,renewal);
  }
+ if(a.method==='card'&&a.subscription_id){const s=await verifySubscription(a,a.subscription_id);await sync(db,a,a.subscription_id,null,s.status==='ACTIVE'&&s.deleted!==true)}
  const list=await asaas('/payments?customer='+encoded(a.customer_id!)+'&limit=100');
  if(!Array.isArray(list.data)||list.hasMore!==false)throw new Error('PAYMENT_LIST_INCOMPLETE');
- const candidates=list.data.filter((x:any)=>paid.includes(x.status)||['OVERDUE','REFUNDED','CHARGEBACK_REQUESTED','CHARGEBACK_DISPUTE','AWAITING_CHARGEBACK_REVERSAL'].includes(x.status));
+ const {data:ledger,error:ledgerError}=await db.from('billing_payments').select('provider_payment_id,status').eq('subscription_id',a.attempt_id).eq('provider','asaas');if(ledgerError)throw new Error('PAYMENT_LEDGER_READ');
+ const local=new Map((ledger||[]).map(x=>[x.provider_payment_id,x.status]));
+ const {data:reviews,error:re}=await db.from(eventTable).select('payment_id').eq('attempt_id',a.attempt_id).in('status',['review','received']).limit(100);if(re)throw new Error('INBOX_READ');
+ const retry=new Set((reviews||[]).map(x=>x.payment_id));
+ const candidates=list.data.filter((x:any)=> (paid.includes(x.status)&&(!local.has(x.id)||local.get(x.id)!==(x.status==='RECEIVED'?'settled':'confirmed')||retry.has(x.id))) || ['OVERDUE','REFUNDED','CHARGEBACK_REQUESTED','CHARGEBACK_DISPUTE','AWAITING_CHARGEBACK_REVERSAL'].includes(x.status));
  // Process the earliest paid period before later ones. No provider mutations here.
  candidates.sort((x:any,y:any)=>String(x.dueDate).localeCompare(String(y.dueDate)));
+ if(candidates.length>4)throw new Error('RECONCILIATION_BATCH_REVIEW');
  for(const payment of candidates)await verifyPayment(db,a,payment.id);
  if(auth&&['CANCELLED','EXPIRED','REFUSED'].includes(auth.status)&&list.data.length===0&&!a.initial_payment_id&&!auth.subscriptionId)await closeIfNoFinancialObject(db,a);
 }

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { avaliarAmbienteAsaas } from '../../../lib/asaas-ambiente'
+import { executarCicloRecorrente, pertenceAoRecorrente } from '../../../lib/billing/asaas/ciclo-operacional'
 import {
   avaliarElegibilidadeDowngrade,
   cincoDiasCompletos,
@@ -196,9 +197,16 @@ export async function GET(request: NextRequest) {
       falhasExecucaoDowngrade: 0,
     }
 
+    // Reutiliza cron autenticado existente, sem criar outro agendamento na Vercel.
+    const recorrencia = process.env.MP_ASAAS_RECURRING_SCHEMA_ENABLED === 'true'
+      ? await executarCicloRecorrente(supabase).catch(() => ({erro:true})) : null
     const agora = Date.now()
 
     for (const perfil of perfis ?? []) {
+      if (process.env.MP_ASAAS_RECURRING_SCHEMA_ENABLED === 'true') {
+        try { if (await pertenceAoRecorrente(supabase,perfil.user_id,perfil.gateway_customer_id)) continue }
+        catch { resultado.contasNaoVerificadas++; continue }
+      }
       const subscriptionId =
         perfil.gateway_subscription_id
 
@@ -546,7 +554,7 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    return NextResponse.json(resultado, {
+    return NextResponse.json({...resultado,recorrencia}, {
       headers: {
         'Cache-Control': 'no-store',
       },

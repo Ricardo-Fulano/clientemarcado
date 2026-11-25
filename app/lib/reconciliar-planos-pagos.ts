@@ -61,6 +61,11 @@ export async function executarReconciliacaoPlanos(request: Request, deps: DepsRe
     for (const p of perfis ?? []) {
       resumo.analisados++
       try {
+        if (env.MP_ASAAS_RECURRING_SCHEMA_ENABLED === 'true') {
+          const {data: novo, error: erroNovo} = await db.from('billing_asaas_recurring_attempts').select('attempt_id').eq('user_id',p.user_id).eq('customer_id',p.gateway_customer_id).neq('status','closed').maybeSingle()
+          if (erroNovo) throw new Error('RECURRING_LOOKUP_FAILED')
+          if (novo) { resumo.recusados++; continue }
+        }
         if (p.status_acesso !== 'ativo' || p.billing_cycle !== 'mensal' ||
           !PLANOS.has(p.plano_anterior_downgrade) || !valido(p.user_id) ||
           !valido(p.gateway_subscription_id) || !valido(p.gateway_customer_id) ||

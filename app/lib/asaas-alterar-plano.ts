@@ -318,6 +318,11 @@ export async function alterarPlano(deps: AlterarPlanoDeps, input: AlterarPlanoIn
   try {
     const userId = typeof input.userId === 'string' ? input.userId.trim() : ''
     if (!UUID_RE.test(userId)) return { status: 400, body: { codigo: 'USER_ID_INVALIDO', error: 'userId inválido.' } }
+    if (deps.env.MP_ASAAS_RECURRING_SCHEMA_ENABLED === 'true') {
+      const {data: recorrente,error} = await deps.supabase.from('billing_asaas_recurring_attempts').select('attempt_id').eq('user_id',userId).neq('status','closed').maybeSingle()
+      if (error) return {status:503,body:{error:'Não foi possível verificar o contrato financeiro.'}}
+      if (recorrente) return {status:409,body:{error:'Contrato recorrente novo: alteração de valor exige conciliação específica. Nada foi alterado.'}}
+    }
     const novo = planoPagoOuNull(input.novoPlano)
     if (!novo) return { status: 400, body: { codigo: 'PLANO_INVALIDO', error: 'Plano de destino inválido. Use minipage, agenda, loja, essencial ou equipe.' } }
     // dryRun e o PADRAO: so a execucao real exige o booleano false explicito.
