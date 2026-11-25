@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { processRecurringEvent } from '../../../lib/billing/asaas/webhook-recorrente'
 import { processarEventoAsaas, validarTokenWebhook } from '../../../lib/asaas-webhook'
 
 // Webhook do Asaas. Toda a regra esta em app/lib/asaas-webhook.ts. Aqui so: validar o token
@@ -46,6 +47,8 @@ export async function POST(request: NextRequest) {
     }
 
     const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
+    const novo = await processRecurringEvent(supabase, evento)
+    if (novo) return NextResponse.json(novo.body, { status: novo.status })
     const r = await processarEventoAsaas({ supabase, env: process.env as Record<string, string | undefined> }, evento, bodyTexto)
     return NextResponse.json(r.body, { status: r.status })
   } catch (err) {

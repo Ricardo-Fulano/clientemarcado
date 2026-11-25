@@ -99,10 +99,10 @@ const PLANOS_COMISSIONAVEIS = ['minipage', 'loja', 'essencial', 'equipe']
 // dados corretos e valida o payload antes de chamar a RPC, nunca duplica essa logica.
 export async function registrarComissaoParceiro(
   supabase: any,
-  params: { userId: string; planoTipo: string | null; payment: any; cicloCobranca?: string | null }
+  params: { userId: string; planoTipo: string | null; payment: any; cicloCobranca?: string | null; strict?: boolean }
 ) {
   const prefixo = '[Webhook Asaas][Comissão]'
-  const { userId, planoTipo, payment, cicloCobranca } = params
+  const { userId, planoTipo, payment, cicloCobranca, strict } = params
 
   try {
     // ---- Ajuste 2: plano precisa ser um dos 4 comissionaveis ----
@@ -137,6 +137,7 @@ export async function registrarComissaoParceiro(
     const { data: userData, error: erroUser } = await supabase.auth.admin.getUserById(userId)
     if (erroUser || !userData?.user?.email) {
       console.error(`${prefixo} Não foi possível obter e-mail do usuário (user_id: ${userId}, payment.id: ${paymentId})`)
+      if (strict) throw new Error('COMMISSION_REQUIRES_REVIEW')
       return
     }
     const emailNormalizado = userData.user.email.trim().toLowerCase()
@@ -150,6 +151,7 @@ export async function registrarComissaoParceiro(
 
     if (erroIndicacoes) {
       console.error(`${prefixo} Erro ao buscar indicação (payment.id: ${paymentId}):`, erroIndicacoes.message)
+      if (strict) throw new Error('COMMISSION_REQUIRES_REVIEW')
       return
     }
 
@@ -160,6 +162,7 @@ export async function registrarComissaoParceiro(
 
     if (indicacoes.length > 1) {
       console.error(`${prefixo} Ambiguidade: ${indicacoes.length} indicações encontradas para o mesmo e-mail (payment.id: ${paymentId}, user_id: ${userId}) - nenhuma comissão gerada`)
+      if (strict) throw new Error('COMMISSION_REQUIRES_REVIEW')
       return
     }
 
@@ -177,12 +180,13 @@ export async function registrarComissaoParceiro(
     const percentualComissao = erroParceiroPct ? null : resolverPercentualComissao(parceiroPct?.percentual_comissao)
     if (percentualComissao === null) {
       console.error(`${prefixo} COMISSAO_NAO_GERADA parceiro_id=${indicacao.parceiro_id} indicacao_id=${indicacao.id} payment_id=${paymentId} motivo=${erroParceiroPct ? 'erro_leitura: ' + erroParceiroPct.message : 'percentual_invalido'}`)
+      if (strict) throw new Error('COMMISSION_REQUIRES_REVIEW')
       return
     }
 
     // ---- Chama a RPC - toda a regra de negocio (janela, limite, calculo, idempotencia)
     // fica dentro dela, nao duplicada aqui ----
-    const { error: erroRpc } = await (supabase.rpc as any)('registrar_comissao_pagamento', {
+    const { error: erroRpc } = await (supabase.rpc as any)(strict ? 'mp_asaas_commission_v2' : 'registrar_comissao_pagamento', {
       p_indicacao_id: indicacao.id,
       p_parceiro_id: indicacao.parceiro_id,
       p_user_id: userId,
@@ -206,8 +210,10 @@ export async function registrarComissaoParceiro(
         console.log(`${prefixo} Limite de 12 comissões já atingido (payment.id: ${paymentId}, indicacao: ${indicacao.id})`)
       } else if (msg.includes('Divergência')) {
         console.error(`${prefixo} Divergência indicação/parceiro (payment.id: ${paymentId}):`, msg)
+        if (strict) throw new Error('COMMISSION_REQUIRES_REVIEW')
       } else {
         console.error(`${prefixo} Erro inesperado da RPC (payment.id: ${paymentId}):`, msg)
+        if (strict) throw new Error('COMMISSION_REQUIRES_REVIEW')
       }
       return
     }
@@ -217,6 +223,7 @@ export async function registrarComissaoParceiro(
     // Rede de seguranca final - qualquer excecao inesperada aqui NUNCA propaga pro handler
     // principal, so loga.
     console.error(`${prefixo} Erro inesperado ao processar comissão:`, err?.message || err)
+    if (strict) throw err
   }
 }
 

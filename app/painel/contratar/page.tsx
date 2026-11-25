@@ -4,6 +4,7 @@ import { useEffect, useState, type CSSProperties } from 'react'
 import Link from 'next/link'
 import { useIdiomaGlobal } from '../../components/IdiomaProviderGlobal'
 import { textoCheckout } from '../../lib/i18n-global/checkout-copy'
+import { asaasCopy } from '../../lib/i18n-global/asaas-copy'
 import { supabase } from '../../lib/supabase'
 
 type Plan = 'minipage' | 'agenda' | 'loja' | 'essencial'
@@ -15,7 +16,9 @@ type Quote = {
   currency?: string
   amountMinor?: number
   reason?: string
+  methods?: { card: boolean; pix: boolean }
 }
+type AsaasAttempt = { attemptId:string; plan:Plan; cycle:Cycle; method:'card'|'pix'; state:string; renewalActive:boolean; paymentConfirmed:boolean; checkoutUrl?:string; qrImage?:string; qrPayload?:string; expires?:string; paidUntil?:string }
 const PLANS: { code: Plan; name: string; description: string }[] = [
   { code: 'minipage', name: 'MiniPage', description: 'Links, vídeo, destaques, Spotify e presença profissional.' },
   { code: 'agenda', name: 'Agenda', description: 'Tudo do MiniPage, com agendamentos e serviços.' },
@@ -54,6 +57,27 @@ export default function EscolherPlanosParaContratar() {
   const [error, setError] = useState('')
   const [sending, setSending] = useState<Plan | null>(null)
   const [cancelled, setCancelled] = useState(false)
+  const [method, setMethod] = useState<''|'card'|'pix'>('')
+  const [name, setName] = useState('')
+  const [cpf, setCpf] = useState('')
+  const [consent, setConsent] = useState(false)
+  const [attempt, setAttempt] = useState<AsaasAttempt|null>(null)
+  const [checking,setChecking]=useState(false)
+  const [copied, setCopied] = useState(false)
+  const [uncertain, setUncertain] = useState(false)
+  const t = (i:number) => asaasCopy(idioma,i)
+  useEffect(()=>{setConsent(false)},[cycle,method,market])
+  useEffect(()=>{
+    if(!initialized||market!=='BR')return
+    let alive=true
+    const poll=async()=>{try{
+      const {data:{session}}=await supabase.auth.getSession();if(!session)return
+      const r=await fetch('/api/billing/asaas/status',{cache:'no-store',headers:{Authorization:`Bearer ${session.access_token}`}})
+      if(r.ok){const data=await r.json();if(alive){setAttempt(data.attempt||null);if(data.attempt)setUncertain(false)}}
+    }catch{/* Never create another charge because polling failed. */}}
+    void poll();const timer=window.setInterval(()=>void poll(),6000)
+    return()=>{alive=false;window.clearInterval(timer)}
+  },[initialized,market])
 
   useEffect(() => {
     const url = new URLSearchParams(window.location.search)
@@ -108,12 +132,24 @@ export default function EscolherPlanosParaContratar() {
 
   const checkout = async (plan: Plan) => {
     const q = quotes[plan]
-    if (market !== 'INTL' || !allowed || q?.checkoutEnabled !== true || sending || loading) return
+    if (!allowed || q?.checkoutEnabled !== true || sending || loading) return
+    if(market==='BR'&&(!method||!q.methods?.[method]||!consent||attempt||uncertain))return
     setSending(plan)
     setError('')
     try {
       const { data: { session } } = await supabase.auth.getSession()
       if (!session?.access_token) throw new Error(textoCheckout(idioma, 11))
+      if(market==='BR'){
+        setConsent(false)
+        setUncertain(true)
+        const r=await fetch('/api/billing/asaas/checkout',{method:'POST',cache:'no-store',headers:{'Content-Type':'application/json',Authorization:`Bearer ${session.access_token}`},body:JSON.stringify({plan,cycle,method,name,cpf,consent:true})})
+        const d=await r.json()
+        if(d.attemptId||d.attempt){const a:AsaasAttempt=d.attempt||d;setAttempt(a);setUncertain(false);if(a.checkoutUrl?.startsWith('https://asaas.com/checkoutSession/show?id=')){window.location.assign(a.checkoutUrl);return}}
+        else if(r.status===422){setUncertain(false);throw new Error(t(18))}
+        else if(r.status===409||r.status===202){setError(t(16))}
+        else{setError(t(19))}
+        setSending(null);return
+      }
       const response = await fetch('/api/billing/stripe/live-checkout', {
         method: 'POST', cache: 'no-store',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` },
@@ -130,7 +166,7 @@ export default function EscolherPlanosParaContratar() {
         PREVIOUS_CHECKOUT_REQUIRES_REVIEW: textoCheckout(idioma, 14),
         PREVIOUS_CHECKOUT_STATUS_UNAVAILABLE: textoCheckout(idioma, 15),
         EXISTING_BILLING_RELATIONSHIP: textoCheckout(idioma, 16),
-        BRAZIL_USES_EBANX: textoCheckout(idioma, 17),
+        BRAZIL_USES_ASAAS: textoCheckout(idioma, 17),
         STRIPE_PRICE_MISMATCH: textoCheckout(idioma, 18),
       }
       const code = typeof data.error === 'string' && /^[A-Z][A-Z0-9_]{2,75}$/.test(data.error) ? data.error : 'UNAVAILABLE'
@@ -164,7 +200,7 @@ export default function EscolherPlanosParaContratar() {
         </div>
         <p style={{ fontSize: 12, color: '#D4CADD', lineHeight: 1.6, margin: '14px 0 0' }}>
           {market === 'BR'
-            ? textoCheckout(idioma, 29)
+            ? t(0)
             : textoCheckout(idioma, 30)}
         </p>
         <div style={{ display: 'flex', gap: 10, marginTop: 18, alignItems: 'center', flexWrap: 'wrap' }}>
@@ -178,11 +214,29 @@ export default function EscolherPlanosParaContratar() {
       {cancelled && <p role="status" style={{ color: '#F9DB9D', fontSize: 13, lineHeight: 1.5 }}>
         {textoCheckout(idioma, 34)}
       </p>}
-      {error && <p role="alert" style={{ color: '#FFC7C7', fontSize: 13, padding: '12px 0', lineHeight: 1.6 }}>{error}</p>}
+      {market==='BR'&&attempt&&<section style={{background:'#21182D',border:'1px solid #9552F5',padding:20,borderRadius:16,marginTop:16}}>
+        <h2 style={{fontSize:20}}>{attempt.paymentConfirmed?t(12):t(7)}</h2>
+        <p>{PLANS.find(p=>p.code===attempt.plan)?.name} · {attempt.cycle==='mensal'?textoCheckout(idioma,4):textoCheckout(idioma,5)}</p>
+        {attempt.paymentConfirmed?<><p>{attempt.renewalActive?t(13):t(14)}</p>{attempt.paidUntil&&<p>{t(17)} {new Date(attempt.paidUntil).toLocaleDateString(idioma,{timeZone:'America/Sao_Paulo'})}</p>}<Link href="/painel" style={{color:'#C9FA45'}}>{t(20)}</Link></>:<>
+        {attempt.qrImage&&attempt.qrPayload&&<><p>{t(8)}</p><img alt="Pix QR Code" src={'data:image/png;base64,'+attempt.qrImage} style={{width:240,maxWidth:'100%',background:'#fff',padding:8}}/><p>{t(21)}: {attempt.expires}</p><textarea readOnly value={attempt.qrPayload} aria-label={t(9)} style={{...selectStyle,width:'100%',boxSizing:'border-box',height:75}}/><button type="button" style={{...btnStyle,background:'#C9FA45',color:'#0B0A10',border:0}} onClick={async()=>{try{await navigator.clipboard.writeText(attempt.qrPayload!);setCopied(true)}catch{setCopied(false)}}}>{copied?t(10):t(9)}</button></>}
+        {attempt.checkoutUrl?.startsWith('https://asaas.com/checkoutSession/show?id=')&&<p><a href={attempt.checkoutUrl} style={{color:'#C9FA45'}}>{t(11)}</a></p>}
+        <button type="button" disabled={checking} style={{...btnStyle,background:'#21182D',color:'#C9FA45',border:'1px solid #9552F5'}} onClick={async()=>{setChecking(true);setError('');try{const {data:{session}}=await supabase.auth.getSession();if(!session)throw new Error(t(16));const r=await fetch('/api/billing/asaas/status',{method:'POST',headers:{Authorization:`Bearer ${session.access_token}`}});if(!r.ok)throw new Error(t(16));const d=await r.json();setAttempt(d.attempt||null);setUncertain(false)}catch{setError(t(16))}finally{setChecking(false)}}}>{checking?t(19):t(22)}</button>
+        <p role="status">{attempt.state==='review'?t(16):t(15)}</p></>}
+      </section>}
+      {market==='BR'&&allowed&&!attempt&&!uncertain&&!loading&&Object.values(quotes).some(q=>q?.checkoutEnabled)&&<section style={{background:'#21182D',padding:20,borderRadius:16,marginTop:16,display:'grid',gap:12}}>
+        <h2 style={{fontSize:18,margin:0}}>{t(0)}</h2>
+        <div style={{display:'flex',gap:12,flexWrap:'wrap'}}>{(['card','pix'] as const).filter(m=>Object.values(quotes).some(q=>q?.methods?.[m])).map(m=><label key={m}><input type="radio" name="asaas-method" checked={method===m} disabled={!!sending} onChange={()=>setMethod(m)}/> {t(m==='card'?1:2)}</label>)}</div>
+        <label>{t(3)}<input autoComplete="name" maxLength={150} value={name} onChange={e=>{setName(e.target.value);setConsent(false)}} style={{...selectStyle,display:'block',width:'100%',boxSizing:'border-box'}}/></label>
+        <label>{t(4)}<input inputMode="numeric" maxLength={18} value={cpf} onChange={e=>{setCpf(e.target.value);setConsent(false)}} style={{...selectStyle,display:'block',width:'100%',boxSizing:'border-box'}}/></label>
+        <label><input type="checkbox" checked={consent} disabled={!method||!!sending} onChange={e=>setConsent(e.target.checked)}/> {t(5)}</label>
+      </section>}
+      {market==='BR'&&!loading&&allowed&&!attempt&&!Object.values(quotes).some(q=>q?.checkoutEnabled)&&<p role="status">{t(6)}</p>}
+      {market==='BR'&&uncertain&&!attempt&&<p role="status">{t(16)}</p>}
+      {error && !attempt?.paymentConfirmed && <p role="alert" style={{ color: '#FFC7C7', fontSize: 13, padding: '12px 0', lineHeight: 1.6 }}>{error}</p>}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(220px,1fr))', gap: 14, marginTop: 22 }}>
         {PLANS.filter(item => !confirm || item.code === preferred).map(item => {
           const q = quotes[item.code]
-          const canBuy = market === 'INTL' && allowed && q?.checkoutEnabled === true && !loading && !sending
+          const canBuy = allowed && q?.checkoutEnabled === true && !loading && !sending && (market==='INTL'||!!method&&!!q.methods?.[method]&&consent&&name.trim().length>=3&&[11,14].includes(cpf.replace(/\D/g,'').length)&&!attempt&&!uncertain)
           return <article key={item.code} style={{ background: '#21182D', border: item.code === preferred ? '1px solid #C9FA45' : '1px solid #483756', padding: 20, borderRadius: 17, display: 'flex', flexDirection: 'column', gap: 12 }}>
             <div style={{ fontSize: 11, fontWeight: 800, color: '#C9FA45', minHeight: 16 }}>{item.code === preferred ? textoCheckout(idioma, 35) : ''}</div>
             <h2 style={{ fontSize: 20, margin: 0 }}>{item.code === 'loja' ? textoCheckout(idioma, 67) : item.name}</h2>
@@ -193,7 +247,7 @@ export default function EscolherPlanosParaContratar() {
             <div style={{display:'flex',gap:10,flexWrap:'wrap',fontSize:12}}><Link target="_blank" href="/termos-de-uso" style={{color:'#C9FA45'}}>{textoCheckout(idioma, 64)}</Link><Link target="_blank" href="/politica-de-privacidade" style={{color:'#C9FA45'}}>{textoCheckout(idioma, 65)}</Link><Link target="_blank" href="/politica-de-reembolso" style={{color:'#C9FA45'}}>{textoCheckout(idioma, 66)}</Link></div>
             <button type="button" disabled={!canBuy} onClick={() => void checkout(item.code)}
               style={{ ...btnStyle, width: '100%', marginTop: 'auto', background: '#C9FA45', border: 0, color: '#0B0A10', opacity: canBuy ? 1 : .55, cursor: canBuy ? 'pointer' : 'not-allowed' }}>
-              {market === 'BR' ? textoCheckout(idioma, 39) : sending === item.code ? textoCheckout(idioma, 40) : textoCheckout(idioma, 41)}
+              {sending === item.code ? textoCheckout(idioma, 40) : market==='BR'&&!q?.checkoutEnabled ? t(6) : textoCheckout(idioma, 41)}
             </button>
           </article>
         })}

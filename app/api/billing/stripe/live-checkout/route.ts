@@ -25,7 +25,7 @@ export async function POST(request:NextRequest){
  const locale=typeof b.locale==='string'?b.locale:'auto'
  const attemptId=b.attemptId,plan=b.plan,cycle=b.cycle,country=b.country
  if(typeof attemptId!=='string'||!uuid.test(attemptId)||typeof plan!=='string'||typeof cycle!=='string'||typeof country!=='string')return out({error:'INVALID_FIELDS'},422)
- if(country==='BR')return out({error:'BRAZIL_USES_EBANX',gateway:'ebanx'},409)
+ if(country==='BR')return out({error:'BRAZIL_USES_ASAAS',gateway:'asaas'},409)
  const price=approvedPrice(plan,cycle,country)
  if(!price||!stripeId.test(price.priceId))return out({error:'PRICE_NOT_APPROVED'},422)
  try{
@@ -53,7 +53,7 @@ export async function POST(request:NextRequest){
   // financeiros locais e jamais reabrimos pagamentos concluídos/incertos.
   const {data:pending,error:pendingError}=await admin.from('billing_stripe_checkout_attempts')
     .select('attempt_id,status,stripe_session_id,plan_code,billing_cycle,country,stripe_price_id')
-    .eq('user_id',user.id).in('status',['reserved','sending','created'])
+    .eq('user_id',user.id).in('status',['reserved','sending','created','review'])
     .order('created_at',{ascending:true}).limit(51)
   if(pendingError)return out({error:'PENDING_CHECK_UNAVAILABLE'},503)
   if((pending?.length||0)>50)return out({error:'PREVIOUS_CHECKOUT_REQUIRES_REVIEW'},409)
@@ -74,7 +74,11 @@ export async function POST(request:NextRequest){
    if(previous.id!==sessionId||previous.livemode!==true||previous.client_reference_id!==user.id||
       previous.metadata?.attempt_id!==old.attempt_id||previous.metadata?.user_id!==user.id)
      return out({error:'PREVIOUS_CHECKOUT_REQUIRES_REVIEW'},409)
-   if(previous.status==='expired'&&previous.payment_status==='unpaid'&&!previous.subscription)continue
+   if(previous.status==='expired'&&previous.payment_status==='unpaid'&&!previous.subscription){
+    const {error}=await admin.from('billing_stripe_checkout_attempts').update({status:'expired',updated_at:new Date().toISOString()}).eq('attempt_id',old.attempt_id).eq('user_id',user.id).eq('status','created')
+    if(error)return out({error:'PREVIOUS_CHECKOUT_REQUIRES_REVIEW'},409)
+    continue
+   }
    if(previous.status!=='open'||previous.payment_status!=='unpaid'||previous.subscription)
      return out({error:'PREVIOUS_CHECKOUT_REQUIRES_REVIEW'},409)
    const sameSelection=old.plan_code===plan&&old.billing_cycle===cycle&&old.country===country&&old.stripe_price_id===price.priceId
@@ -89,6 +93,8 @@ export async function POST(request:NextRequest){
    const expired=await expiredResult.json() as {id?:string;livemode?:boolean;status?:string;payment_status?:string;subscription?:string|null}
    if(expired.id!==sessionId||expired.livemode!==true||expired.status!=='expired'||expired.payment_status!=='unpaid'||expired.subscription)
     return out({error:'PREVIOUS_CHECKOUT_REQUIRES_REVIEW'},409)
+   const {error:expiredSaveError}=await admin.from('billing_stripe_checkout_attempts').update({status:'expired',updated_at:new Date().toISOString()}).eq('attempt_id',old.attempt_id).eq('user_id',user.id).eq('status','created')
+   if(expiredSaveError)return out({error:'PREVIOUS_CHECKOUT_REQUIRES_REVIEW'},409)
   }
     // Confere preço Live na Stripe ANTES de reservar tentativa e de qualquer criação.
   const priceResponse=await fetch(`https://api.stripe.com/v1/prices/${encodeURIComponent(price.priceId)}`,{headers:{Authorization:`Bearer ${key}`},cache:'no-store'})
