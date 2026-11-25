@@ -2,6 +2,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { supabase } from '../../lib/supabase'
 import { textoCheckout } from '../../lib/i18n-global/checkout-copy'
+import { destinoCheckoutOnboarding } from '../../lib/billing/destino-checkout-onboarding'
 import { useIdiomaGlobal } from '../../components/IdiomaProviderGlobal'
 import { obterLimiteModelosCor, obterLimiteLinksRapidos, obterLimiteVideos, permiteDestaques, podeUsarCatalogo, permiteVideos, permiteAlbuns } from '../../lib/planos'
 import { TEMAS_MINIPAGE } from '../../lib/temasMiniPage'
@@ -1435,6 +1436,14 @@ export default function CriarMiniPage() {
     setErroModelo(false)
     setSalvando(false)
     setConcluido(true)
+    // A escolha paga já foi confirmada no botão Continuar para pagamento.
+    // Só navega depois de concluir a gravação da página; não cria cobrança aqui.
+    if (planoTipo==='free' && stripeDesejado?.pais==='BR') {
+      try { sessionStorage.setItem('mp_checkout_saved_' + userId, JSON.stringify({
+        slug:slugFmt,plano:stripeDesejado.plano,ciclo:stripeDesejado.ciclo,pais:stripeDesejado.pais
+      })) } catch { /* A MiniPage já está salva. */ }
+      window.location.assign(destinoCheckoutOnboarding(stripeDesejado.plano,stripeDesejado.ciclo,stripeDesejado.pais))
+    }
   }
 
   async function aplicarModeloAutomatico(templateId: string): Promise<'aplicado' | 'recusado' | 'falha'> {
@@ -1903,19 +1912,13 @@ export default function CriarMiniPage() {
                 </div>
 
                 {planoTipo==='free' && <div style={{border:'1px solid #4A3D54',borderRadius:14,background:'#15101F',padding:16,marginBottom:18}}>
-                  {stripeDesejado ? (stripeDesejado.pais==='BR' ? (
+                  {stripeDesejado ? (
                     <>
-                      <p role="status" style={{color:'#F9DB9D',fontSize:13,margin:'0 0 14px'}}>{textoCheckout(idioma, 53)}</p>
-                      <button type="button" onClick={()=>marcarVistoEIr('/painel')} style={{display:'block',width:'100%',border:'1px solid #C9FA45',borderRadius:10,background:'#C9FA45',padding:'14px',color:'#0B0A10',fontWeight:850,cursor:'pointer',fontSize:14,marginBottom:10}}>{textoCheckout(idioma, 54)}</button>
+                      <p style={{color:'#DFD5EA',fontSize:13,margin:'0 0 14px'}}>{textoCheckout(idioma, 56)}</p>
+                      <button type="button" onClick={()=>marcarVistoEIr(destinoCheckoutOnboarding(stripeDesejado.plano,stripeDesejado.ciclo,stripeDesejado.pais))} style={{display:'block',width:'100%',border:'1px solid #C9FA45',borderRadius:10,background:'#C9FA45',padding:'14px',color:'#0B0A10',fontWeight:850,cursor:'pointer',fontSize:14,marginBottom:10}}>{textoCheckout(idioma, 57)}</button>
                       <button type="button" onClick={()=>{setGuiaPlanosAberto(true);setEtapaIndex(etapasAtivas.indexOf('planos'))}} style={{display:'block',width:'100%',border:'1px solid #66546F',borderRadius:10,background:'transparent',padding:'12px',color:'#F8F4F7',fontWeight:700,cursor:'pointer',fontSize:13}}>{textoCheckout(idioma, 55)}</button>
                     </>
                   ) : (
-                    <>
-                      <p style={{color:'#DFD5EA',fontSize:13,margin:'0 0 14px'}}>{textoCheckout(idioma, 56)}</p>
-                      <button type="button" onClick={()=>marcarVistoEIr('/painel/contratar?plan='+stripeDesejado.plano+'&cycle='+stripeDesejado.ciclo+'&market=INTL&confirm=1')} style={{display:'block',width:'100%',border:'1px solid #C9FA45',borderRadius:10,background:'#C9FA45',padding:'14px',color:'#0B0A10',fontWeight:850,cursor:'pointer',fontSize:14,marginBottom:10}}>{textoCheckout(idioma, 57)}</button>
-                      <button type="button" onClick={()=>{setGuiaPlanosAberto(true);setEtapaIndex(etapasAtivas.indexOf('planos'))}} style={{display:'block',width:'100%',border:'1px solid #66546F',borderRadius:10,background:'transparent',padding:'12px',color:'#F8F4F7',fontWeight:700,cursor:'pointer',fontSize:13}}>{textoCheckout(idioma, 55)}</button>
-                    </>
-                  )) : (
                     <>
                       <p style={{color:'#DFD5EA',fontSize:13,margin:'0 0 14px'}}>{textoCheckout(idioma, 58)}</p>
                       <button type="button" onClick={()=>marcarVistoEIr('/painel')} style={{display:'block',width:'100%',border:'1px solid #C9FA45',borderRadius:10,background:'#C9FA45',padding:'14px',color:'#0B0A10',fontWeight:850,cursor:'pointer',fontSize:14,marginBottom:10}}>{textoCheckout(idioma, 59)}</button>

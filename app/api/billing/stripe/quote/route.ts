@@ -13,9 +13,20 @@ export async function GET(req:NextRequest){
  const item=approvedPrice(plan,cycle,country)
  if(!item)return out({available:false,reason:'PRICE_NOT_APPROVED'},404)
  if(country==='BR'){
-  let enabled=false;const m=methods()
-  if(configured()&&(m.card||m.pix)){try{const user=await authenticated(req);enabled=!!user&&allowedEmail(user.email)&&await ready(admin())}catch{enabled=false}}
-  return out({available:true,plan:item.plan,cycle:item.cycle,country:item.country,currency:item.currency,amountMinor:item.amountMinor,checkoutEnabled:enabled,gateway:'asaas',methods:enabled?m:{card:false,pix:false},reason:enabled?null:'ASAAS_NOT_ENABLED'})
+  let enabled=false;let publicCheckoutAvailable=false;const m=methods()
+  if(configured()&&(m.card||m.pix)){
+   try{
+    const user=await authenticated(req)
+    const publicEnabled=process.env.MP_ASAAS_PUBLIC_CHECKOUT_ENABLED==='true'
+    const authorized=!!user&&allowedEmail(user.email)
+    if(publicEnabled||authorized){
+     const schemaReady=await ready(admin())
+     publicCheckoutAvailable=publicEnabled&&schemaReady
+     enabled=authorized&&schemaReady
+    }
+   }catch{enabled=false;publicCheckoutAvailable=false}
+  }
+  return out({available:true,plan:item.plan,cycle:item.cycle,country:item.country,currency:item.currency,amountMinor:item.amountMinor,checkoutEnabled:enabled,publicCheckoutAvailable,gateway:'asaas',methods:enabled?m:{card:false,pix:false},reason:enabled?null:'ASAAS_NOT_ENABLED'})
  }
  let checkoutEnabled=false
  if(stripeLiveReadiness().ready){

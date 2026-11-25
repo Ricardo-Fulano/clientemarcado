@@ -260,7 +260,7 @@ export default function GuiaPlanosOnboarding({idioma,planoAtual,onEscolher,onSel
        <tbody>{ajuda.linhas.map((linha,i)=><tr key={i} style={{borderTop:'1px solid '+C.borda}}><th style={{textAlign:'left',padding:'11px 7px',fontWeight:500}}>{linha.nome}</th>{ordem.map((c,j)=><td key={c} style={{padding:'9px 6px',color:j>=linha.desde?C.verde:C.mutado,fontWeight:j>=linha.desde?900:400}}>{j>=linha.desde?'✓':'—'}</td>)}</tr>)}</tbody>
       </table></div>
     </details>
-    <p role="status" style={{fontSize:12,color:pais==='BR'?'#F9DB9D':C.mutado,lineHeight:1.55,margin:'17px 0'}}>{pais==='BR'?textoCheckout(idioma, 2):textoCheckout(idioma, 3)}</p>
+    <p role="status" style={{fontSize:12,color:C.mutado,lineHeight:1.55,margin:'17px 0'}}>{pais==='BR'?textoCheckout(idioma, 2):textoCheckout(idioma, 3)}</p>
     <div style={{display:'flex',gap:10,flexWrap:'wrap'}}>
      <button type="button" disabled={contaPaga&&selecionado!==atual||semPreco} onClick={irParaPagamento} style={{...botao,flex:2,minWidth:200}}>{selecionado==='free'?t.continueFree:selecionado===atual?t.continueCurrent:semPreco?u.btnPreparacao:u.btnPagamento}</button>
      <button type="button" onClick={onFechar} style={{...secundario,flex:1}}>{t.close}</button>

@@ -17,12 +17,12 @@ const textos = [
   "Internazionale · USD"
  ],
  [
-  "Brasil: pagamentos recorrentes ainda indisponíveis. Salve no Free, sem cobrança.",
-  "Brazil: recurring payments are not yet available. Save on Free, without charge.",
-  "Brasil: pagos recurrentes aún no disponibles. Guarda en Free, sin cobro.",
-  "Brésil : paiements récurrents indisponibles. Enregistrez avec Free, sans frais.",
-  "Brasilien: Wiederkehrende Zahlungen noch nicht verfügbar. Kostenlos speichern.",
-  "Brasile: pagamenti ricorrenti non disponibili. Salva con Free, senza costi."
+  "Brasil: escolha seu plano e continue para o pagamento recorrente em reais. Os métodos disponíveis serão confirmados no checkout.",
+  "Brazil: choose your plan and continue to recurring payment in BRL. Available methods are confirmed at checkout.",
+  "Brasil: elige tu plan y continúa al pago recurrente en BRL. Los métodos disponibles se confirman al pagar.",
+  "Brésil : choisissez votre formule et continuez vers le paiement récurrent en BRL. Les moyens disponibles seront confirmés au paiement.",
+  "Brasilien: Wähle deinen Tarif und fahre zur wiederkehrenden Zahlung in BRL fort. Die verfügbaren Zahlungsarten werden dort bestätigt.",
+  "Brasile: scegli il piano e continua al pagamento ricorrente in BRL. I metodi disponibili saranno confermati al checkout."
  ],
  [
   "Internacional: assinatura em USD, onde disponível. Informe seu endereço real no pagamento.",
@@ -137,12 +137,12 @@ const textos = [
   "Questo account ha già un rapporto di fatturazione. Consulta Il mio piano."
  ],
  [
-  "Contratações em reais utilizarão a EBANX quando estiver disponível.",
-  "BRL subscriptions will use EBANX when available.",
-  "Las suscripciones en BRL usarán EBANX cuando esté disponible.",
-  "Les abonnements en BRL utiliseront EBANX dès sa disponibilité.",
-  "BRL-Abos nutzen EBANX, sobald verfügbar.",
-  "Gli abbonamenti in BRL useranno EBANX quando disponibile."
+  "Para contratar em reais, selecione Brasil no checkout.",
+  "To subscribe in BRL, select Brazil at checkout.",
+  "Para suscribirte en BRL, selecciona Brasil al pagar.",
+  "Pour souscrire en BRL, sélectionnez Brésil lors du paiement.",
+  "Für Abos in BRL wähle Brasilien beim Bezahlen.",
+  "Per abbonarti in BRL, seleziona Brasile al checkout."
  ],
  [
   "O preço não foi confirmado na Stripe. Nenhuma nova cobrança foi iniciada.",

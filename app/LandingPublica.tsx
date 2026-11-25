@@ -17,7 +17,7 @@ const MERCADOS: Record<Idioma,string[]> = {
     "Brasil",
     "Internacional",
     "O país de faturamento será confirmado no pagamento.",
-    "Pagamento brasileiro em preparação. Você pode criar sua página grátis.",
+    "Assinaturas em reais. Confira os métodos recorrentes disponíveis na etapa de pagamento.",
     "Assinatura anual: cobrança antecipada a cada 12 meses, até o cancelamento.",
     "Compare os planos e escolha cobrança mensal ou anual.",
     "Reembolso",
@@ -30,7 +30,7 @@ const MERCADOS: Record<Idioma,string[]> = {
     "Brazil",
     "International",
     "Billing country is confirmed at checkout.",
-    "Brazilian payments are being prepared. You can create your page for free.",
+    "Subscriptions in BRL. Check available recurring payment methods at checkout.",
     "Annual subscription: billed in advance every 12 months until canceled.",
     "Compare plans and choose monthly or annual billing.",
     "Refunds",
@@ -43,7 +43,7 @@ const MERCADOS: Record<Idioma,string[]> = {
     "Brasil",
     "Internacional",
     "El país de facturación se confirma al pagar.",
-    "Los pagos en Brasil están en preparación. Puedes crear tu página gratis.",
+    "Suscripciones en BRL. Consulta los métodos recurrentes disponibles al pagar.",
     "Suscripción anual: cobro anticipado cada 12 meses hasta la cancelación.",
     "Compara los planes y elige facturación mensual o anual.",
     "Reembolsos",
@@ -56,7 +56,7 @@ const MERCADOS: Record<Idioma,string[]> = {
     "Brésil",
     "International",
     "Le pays de facturation est confirmé lors du paiement.",
-    "Les paiements au Brésil sont en préparation. Vous pouvez créer votre page gratuitement.",
+    "Abonnements en BRL. Consultez les moyens de paiement récurrents disponibles lors du paiement.",
     "Abonnement annuel : facturation anticipée tous les 12 mois jusqu’à résiliation.",
     "Comparez les forfaits et choisissez une facturation mensuelle ou annuelle.",
     "Remboursements",
@@ -69,7 +69,7 @@ const MERCADOS: Record<Idioma,string[]> = {
     "Brasilien",
     "International",
     "Das Rechnungsland wird beim Bezahlen bestätigt.",
-    "Zahlungen in Brasilien werden vorbereitet. Sie können Ihre Seite kostenlos erstellen.",
+    "Abos in BRL. Die verfügbaren wiederkehrenden Zahlungsarten werden beim Bezahlen angezeigt.",
     "Jahresabo: Vorauszahlung alle 12 Monate bis zur Kündigung.",
     "Vergleichen Sie die Tarife und wählen Sie monatliche oder jährliche Abrechnung.",
     "Erstattungen",
@@ -82,7 +82,7 @@ const MERCADOS: Record<Idioma,string[]> = {
     "Brasile",
     "Internazionale",
     "Il paese di fatturazione viene confermato al pagamento.",
-    "I pagamenti in Brasile sono in preparazione. Puoi creare la tua pagina gratis.",
+    "Abbonamenti in BRL. Consulta i metodi di pagamento ricorrente disponibili al checkout.",
     "Abbonamento annuale: addebito anticipato ogni 12 mesi fino alla disdetta.",
     "Confronta i piani e scegli la fatturazione mensile o annuale.",
     "Rimborsi",
@@ -619,7 +619,7 @@ export default function LandingPublica({somentePrecos = false}: {somentePrecos?:
               {(['BR','US'] as const).map(p => <button key={p} type="button" aria-pressed={paisPrecos===p} onClick={()=>{escolhaManual.current=true;if(p!==paisPrecos)setCotacoes(null);setPaisPrecos(p)}} style={{padding:'14px 8px',borderRadius:12,background:paisPrecos===p?'rgba(201,250,69,.10)':'#21182D',border:`1px solid ${paisPrecos===p?G:'#514361'}`,color:paisPrecos===p?G:'#F8F4F7',cursor:'pointer',fontWeight:800}}>{p==='BR'?copy[1]:copy[2]}<span style={{display:'block',fontSize:12,marginTop:5}}>{p==='BR'?'BRL · R$':'USD · US$'}</span></button>)}
             </div>
             <p style={{fontSize:12,color:'#C9B8D2',marginTop:10}}>{copy[3]}</p>
-            {paisPrecos==='BR' && <p style={{fontSize:12,color:'#FCD34D',marginTop:8}}>{copy[4]}</p>}
+            {paisPrecos==='BR' && <p style={{fontSize:12,color:'#D4CADD',marginTop:8}}>{copy[4]}</p>}
           </div>
           <section aria-labelledby="mp-guia-planos" style={{maxWidth:1080,margin:'8px auto 24px',padding:'20px',background:'rgba(31,22,40,.82)',border:'1px solid #4B3A59',borderRadius:17}}>
             <h3 id="mp-guia-planos" style={{fontSize:20,fontWeight:850,color:'#F8F4F7',marginBottom:7}}>{guiaDePlanos.titulo}</h3>
