@@ -335,63 +335,75 @@ type YoutubeImportItem = { videoId: string; titulo: string; miniatura: string; u
 const TEXTOS_IMPORT_IG = {
   "pt-BR": {
     "title": "Importe seu Instagram em poucos passos",
-    "explainer": "Traga sua foto, nome, bio e publicações sem preencher tudo manualmente. Para importar, conecte uma conta profissional (Criador ou Empresa). Você escolhe o que usar; nada é publicado automaticamente.",
-    "connecting": "Conectando...",
-    "connect": "Conectar meu Instagram",
-    "apply": "Usar nome, foto e bio do Instagram",
+    "explainer": "Importe automaticamente os dados permitidos de uma conta profissional. Revise antes de publicar.",
+    "connecting": "Importando...",
+    "connect": "Importar Instagram",
+    "apply": "Tentar importar foto novamente",
     "applied": "✓ Dados aplicados — você pode editar abaixo",
     "media": "Selecione as fotos que deseja adicionar a Álbuns / Fotos. Ao concluir, as fotos serão importadas se seu plano permitir. Vídeos e Reels ainda não são adicionados a álbuns.",
-    "post": "Ver publicação"
+    "post": "Ver publicação",
+    "failed": "Não foi possível importar o Instagram. Tente novamente.",
+    "photoFailed": "Os dados do perfil foram importados, mas a foto não pôde ser salva. Você pode tentar novamente ou continuar."
   },
   "en-US": {
     "title": "Import my Instagram",
-    "explainer": "Connect a professional account (Creator or Business). Meta may provide your name, picture, bio, followers and posts. Nothing changes until you confirm.",
-    "connecting": "Connecting...",
-    "connect": "Connect official Instagram",
-    "apply": "Use Instagram name, photo and bio",
+    "explainer": "Automatically import permitted data from a professional account. Review before publishing.",
+    "connecting": "Importing...",
+    "connect": "Import Instagram",
+    "apply": "Retry photo import",
     "applied": "✓ Applied — you can edit below",
     "media": "Preview of real posts found. Publishing to the gallery requires a separate permissions check for your plan.",
-    "post": "Open post"
+    "post": "Open post",
+    "failed": "Could not import Instagram. Try again.",
+    "photoFailed": "Profile details were imported, but the photo could not be saved. Retry or continue."
   },
   "es-ES": {
     "title": "Importar mi Instagram",
-    "explainer": "Conecta una cuenta profesional (Creador o Empresa). Meta puede proporcionar nombre, foto, biografía, seguidores y publicaciones. Nada cambia sin tu confirmación.",
-    "connecting": "Conectando...",
-    "connect": "Conectar Instagram oficial",
-    "apply": "Usar nombre, foto y biografía",
+    "explainer": "Importa automáticamente los datos permitidos de una cuenta profesional. Revisa antes de publicar.",
+    "connecting": "Importando...",
+    "connect": "Importar Instagram",
+    "apply": "Reintentar importar foto",
     "applied": "✓ Aplicado — puedes editar abajo",
     "media": "Vista previa de publicaciones reales. La galería pública requiere una revisión de permisos según el plan.",
-    "post": "Ver publicación"
+    "post": "Ver publicación",
+    "failed": "No se pudo importar Instagram. Inténtalo de nuevo.",
+    "photoFailed": "Se importaron los datos, pero no se pudo guardar la foto. Reintenta o continúa."
   },
   "fr-FR": {
     "title": "Importer mon Instagram",
-    "explainer": "Connectez un compte professionnel (Créateur ou Entreprise). Meta peut fournir le nom, la photo, la bio, les abonnés et les publications. Rien ne change sans confirmation.",
-    "connecting": "Connexion...",
-    "connect": "Connecter Instagram officiel",
-    "apply": "Utiliser le nom, la photo et la bio",
+    "explainer": "Importez automatiquement les données autorisées d’un compte professionnel. Vérifiez avant publication.",
+    "connecting": "Importation...",
+    "connect": "Importer Instagram",
+    "apply": "Réessayer la photo",
     "applied": "✓ Appliqué — modifiable ci-dessous",
     "media": "Aperçu des publications réelles. La galerie publique nécessite une vérification des autorisations selon le forfait.",
-    "post": "Voir la publication"
+    "post": "Voir la publication",
+    "failed": "Impossible d’importer Instagram. Réessayez.",
+    "photoFailed": "Les données sont importées, mais la photo n’a pas été enregistrée. Réessayez ou continuez."
   },
   "de-DE": {
     "title": "Mein Instagram importieren",
-    "explainer": "Verbinde ein professionelles Konto (Creator oder Unternehmen). Meta kann Name, Foto, Bio, Follower und Beiträge bereitstellen. Änderungen werden erst nach deiner Bestätigung übernommen.",
-    "connecting": "Verbindung...",
-    "connect": "Instagram verbinden",
-    "apply": "Name, Foto und Bio übernehmen",
+    "explainer": "Importiere erlaubte Daten eines professionellen Kontos automatisch. Prüfe sie vor der Veröffentlichung.",
+    "connecting": "Import läuft...",
+    "connect": "Instagram importieren",
+    "apply": "Foto erneut importieren",
     "applied": "✓ Übernommen — unten bearbeitbar",
     "media": "Vorschau echter Beiträge. Die öffentliche Galerie benötigt eine separate Berechtigungsprüfung für deinen Tarif.",
-    "post": "Beitrag öffnen"
+    "post": "Beitrag öffnen",
+    "failed": "Instagram konnte nicht importiert werden. Versuche es erneut.",
+    "photoFailed": "Profildaten wurden importiert, das Foto konnte nicht gespeichert werden. Erneut versuchen oder fortfahren."
   },
   "it-IT": {
     "title": "Importa il mio Instagram",
-    "explainer": "Collega un account professionale (Creator o Azienda). Meta può fornire nome, foto, bio, follower e post. Nulla cambia senza la tua conferma.",
-    "connecting": "Collegamento...",
-    "connect": "Collega Instagram ufficiale",
-    "apply": "Usa nome, foto e bio",
+    "explainer": "Importa automaticamente i dati consentiti di un account professionale. Controlla prima di pubblicare.",
+    "connecting": "Importazione...",
+    "connect": "Importa Instagram",
+    "apply": "Riprova a importare la foto",
     "applied": "✓ Applicato — puoi modificare sotto",
     "media": "Anteprima dei post reali. La galleria pubblica richiede una verifica dei permessi del piano.",
-    "post": "Apri post"
+    "post": "Apri post",
+    "failed": "Impossibile importare Instagram. Riprova.",
+    "photoFailed": "I dati sono stati importati, ma la foto non è stata salvata. Riprova o continua."
   }
 } as const
 const TEXTOS_CAPA_INSTAGRAM = {
@@ -776,15 +788,12 @@ export default function CriarMiniPage() {
       if (current.ok) {
         const data = await current.json().catch(()=>null)
         if (data?.perfil) {
-          setIgPerfil(data.perfil as InstagramImportPerfil)
-          setIgMidias(Array.isArray(data.midias) ? data.midias : [])
-          setIgMidiasSelecionadas((Array.isArray(data.midias) ? data.midias : []).filter((m:InstagramImportItem)=>['IMAGE','CAROUSEL_ALBUM'].includes(m.tipo)).slice(0,6).map((m:InstagramImportItem)=>m.id))
-          setIgMidiaCapaId(null)
-          setIgAplicado(false)
+          await aplicarImportacaoInstagram(data, session.user.id)
           setIgConsultando(false)
           return
         }
       }
+      if (current.status !== 401) throw new Error(ti.failed)
       const res = await fetch('/api/smart-import/instagram/iniciar',{method:'POST',headers:{Authorization:`Bearer ${session.access_token}`},cache:'no-store'})
       const result = await res.json().catch(()=>null)
       if (!res.ok || typeof result?.url !== 'string') throw new Error(result?.error || 'Não foi possível conectar o Instagram.')
@@ -801,14 +810,7 @@ export default function CriarMiniPage() {
       const res = await fetch('/api/smart-import/instagram/perfil',{headers:{Authorization:`Bearer ${session.access_token}`},cache:'no-store'})
       const result = await res.json().catch(()=>null)
       if (!res.ok || !result?.perfil) throw new Error(result?.error || 'Não foi possível buscar os dados do Instagram.')
-      setIgPerfil(result.perfil as InstagramImportPerfil)
-      setIgAplicado(false)
-      setIgMidias(Array.isArray(result.midias)?result.midias:[])
-      setIgMidiasSelecionadas((Array.isArray(result.midias)?result.midias:[]).filter((m:InstagramImportItem)=>['IMAGE','CAROUSEL_ALBUM'].includes(m.tipo)).slice(0,6).map((m:InstagramImportItem)=>m.id))
-      setIgMidiaCapaId(null)
-      setIgStories([])
-      setIgStoriesConsultados(false)
-      setIgStoriesErro('')
+      await aplicarImportacaoInstagram(result, session.user.id)
     } catch(e) {setIgErro(e instanceof Error?e.message:'Falha ao consultar Instagram.')}
     finally {setIgConsultando(false)}
   }
@@ -833,6 +835,7 @@ export default function CriarMiniPage() {
   }
 
   useEffect(()=>{
+    if (carregando) return
     const params=new URLSearchParams(window.location.search)
     const status=params.get('instagram')
     if (!status) return
@@ -842,16 +845,31 @@ export default function CriarMiniPage() {
     if(status==='conectado') {void carregarInstagramConectado()}
     else setIgErro(status==='configuracao'?'A conexão Instagram não está configurada.':'Conexão com o Instagram não concluída ou recusada.')
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  },[])
+  },[carregando])
 
-  async function aplicarIdentidadeInstagram() {
-    if (!igPerfil || igConsultando) return
-    setIgConsultando(true)
-    setIgErro('')
+  async function aplicarImportacaoInstagram(data: {perfil: InstagramImportPerfil; midias?: InstagramImportItem[]}, uid: string) {
+    const perfil = data.perfil
+    const midias = Array.isArray(data.midias) ? data.midias : []
+    setIgPerfil(perfil)
+    setIgMidias(midias)
+    setIgMidiasSelecionadas(midias.filter(m=>['IMAGE','CAROUSEL_ALBUM'].includes(m.tipo)).slice(0,6).map(m=>m.id))
+    setIgMidiaCapaId(null)
+    setIgStories([])
+    setIgStoriesConsultados(false)
+    setIgStoriesErro('')
+    if (perfil.nome.trim()) setNome(perfil.nome.trim().slice(0,120))
+    else if (perfil.username) setNome(perfil.username)
+    if (perfil.bio) setBio(perfil.bio.slice(0,500))
+    if (perfil.username) setInstagram(`https://www.instagram.com/${perfil.username}/`)
+    setIgAplicado(false)
+    await importarFotoInstagram(perfil, uid)
+  }
+
+  async function importarFotoInstagram(perfil: InstagramImportPerfil, uid: string) {
     try {
       let fotoSegura: string | null = null
-      if (igPerfil.foto) {
-        if (!userId) throw new Error('Aguarde o carregamento da sua conta.')
+      if (perfil.foto) {
+        if (!uid) throw new Error(ti.failed)
         const { data: { session } } = await supabase.auth.getSession()
         if (!session?.access_token) throw new Error('Entre novamente na MiniPage Pro.')
         const resposta = await fetch('/api/smart-import/instagram/foto', {
@@ -866,24 +884,26 @@ export default function CriarMiniPage() {
         const extensao = tipos[blob.type]
         if (!extensao || blob.size < 1 || blob.size > 5 * 1024 * 1024)
           throw new Error('A foto do Instagram não está em formato suportado.')
-        const caminho = `perfis/${userId}-instagram-${Date.now()}.${extensao}`
+        const caminho = `perfis/${uid}-instagram-${Date.now()}.${extensao}`
         const { error: erroUpload } = await supabase.storage.from('fotos').upload(caminho, blob, {
           upsert: false, contentType: blob.type, cacheControl: '3600'
         })
         if (erroUpload) throw new Error('Não foi possível salvar a foto: ' + erroUpload.message)
         fotoSegura = supabase.storage.from('fotos').getPublicUrl(caminho).data.publicUrl
       }
-      // Aplicar os campos somente após o armazenamento da foto concluir com sucesso.
-      // O usuário continua podendo editar os campos antes de publicar.
-      if (igPerfil.nome.trim()) setNome(igPerfil.nome.trim().slice(0, 120))
-      else if (igPerfil.username) setNome(igPerfil.username)
-      if (igPerfil.bio) setBio(igPerfil.bio.slice(0, 500))
       if (fotoSegura) setFotoPerfilUrl(fotoSegura)
-      if (igPerfil.username) setInstagram(`https://www.instagram.com/${igPerfil.username}/`)
       setIgAplicado(true)
-    } catch (erro) {
-      setIgErro(erro instanceof Error ? erro.message : 'Falha na importação da foto do Instagram.')
-    } finally { setIgConsultando(false) }
+    } catch {
+      setIgErro(ti.photoFailed)
+    }
+  }
+
+  async function aplicarIdentidadeInstagram() {
+    if (!igPerfil || igConsultando) return
+    setIgConsultando(true)
+    setIgErro('')
+    try { await importarFotoInstagram(igPerfil,userId) }
+    finally { setIgConsultando(false) }
   }
 
   async function buscarVideosCanal() {
@@ -1434,7 +1454,7 @@ export default function CriarMiniPage() {
 
             {msg && <p style={{ fontSize: '12.5px', color: '#F87171', marginBottom: '14px' }}>{msg}</p>}
 
-            <button onClick={avancarEtapa1} style={{ width: '100%', height: '48px', background: G, color: '#15180D', border: 'none', borderRadius: '12px', fontSize: '14px', fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>
+            <button onClick={avancarEtapa1} disabled={igConsultando} style={{ width: '100%', height: '48px', background: G, color: '#15180D', border: 'none', borderRadius: '12px', fontSize: '14px', fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>
               {txt.continue}
             </button>
           </div>
