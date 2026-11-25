@@ -406,6 +406,74 @@ const TEXTOS_IMPORT_IG = {
     "photoFailed": "I dati sono stati importati, ma la foto non è stata salvata. Riprova o continua."
   }
 } as const
+const TEXTOS_IG_RAPIDO = {
+  "pt-BR": {
+    "title": "Comece com seu Instagram",
+    "hint": "Adicione seu @ ou link para preencher o nome e o link da página, sem login empresarial. Foto e bio podem ser adicionadas depois.",
+    "add": "Adicionar perfil",
+    "invalid": "Informe um @ ou link de perfil válido.",
+    "added": "Link adicionado à prévia. Foto, bio e publicações não foram importadas.",
+    "reuse": "Importar dados de conexão existente",
+    "advanced": "Conectar conta profissional (opcional)",
+    "missing": "Nenhuma conexão válida nesta sessão. Use a conexão profissional opcional ou continue.",
+    "notice": "A Meta pode solicitar seleção de ativos e consentimento."
+  },
+  "en-US": {
+    "title": "Start with Instagram",
+    "hint": "Enter your handle or profile link to fill in your name and Instagram link without business login. Add a photo and bio later.",
+    "add": "Add profile",
+    "invalid": "Enter a valid handle or profile link.",
+    "added": "Link added to preview. Photo, bio and posts were not imported.",
+    "reuse": "Import from existing connection",
+    "advanced": "Connect professional account (optional)",
+    "missing": "No valid connection in this session. Connect a professional account or continue.",
+    "notice": "Meta may request asset selection and consent."
+  },
+  "es-ES": {
+    "title": "Empieza con Instagram",
+    "hint": "Introduce tu @ o enlace para completar el nombre y enlace sin iniciar sesión empresarial. Añade foto y biografía después.",
+    "add": "Añadir perfil",
+    "invalid": "Introduce un @ o enlace válido.",
+    "added": "Enlace añadido. No se importaron foto, biografía ni publicaciones.",
+    "reuse": "Importar desde conexión existente",
+    "advanced": "Conectar cuenta profesional (opcional)",
+    "missing": "No hay conexión válida en esta sesión. Conecta una cuenta profesional o continúa.",
+    "notice": "Meta puede solicitar selección de activos y consentimiento."
+  },
+  "fr-FR": {
+    "title": "Commencez avec Instagram",
+    "hint": "Indiquez votre @ ou lien pour renseigner le nom et le lien sans connexion professionnelle. Ajoutez photo et bio ensuite.",
+    "add": "Ajouter le profil",
+    "invalid": "Indiquez un @ ou un lien valide.",
+    "added": "Lien ajouté. Photo, bio et publications non importées.",
+    "reuse": "Importer depuis une connexion existante",
+    "advanced": "Connecter un compte professionnel (facultatif)",
+    "missing": "Aucune connexion valide dans cette session. Connectez un compte professionnel ou continuez.",
+    "notice": "Meta peut demander une sélection d’actifs et un consentement."
+  },
+  "de-DE": {
+    "title": "Mit Instagram starten",
+    "hint": "Gib deinen @Namen oder Profillink ein, um Name und Link ohne Business-Login einzutragen. Foto und Bio kannst du später ergänzen.",
+    "add": "Profil hinzufügen",
+    "invalid": "Gib einen gültigen @Namen oder Profillink ein.",
+    "added": "Link hinzugefügt. Foto, Bio und Beiträge wurden nicht importiert.",
+    "reuse": "Aus bestehender Verbindung importieren",
+    "advanced": "Professionelles Konto verbinden (optional)",
+    "missing": "Keine gültige Verbindung in dieser Sitzung. Verbinde ein professionelles Konto oder fahre fort.",
+    "notice": "Meta kann eine Asset-Auswahl und Zustimmung verlangen."
+  },
+  "it-IT": {
+    "title": "Inizia con Instagram",
+    "hint": "Inserisci il tuo @ o link per compilare nome e link senza accesso aziendale. Aggiungi foto e bio in seguito.",
+    "add": "Aggiungi profilo",
+    "invalid": "Inserisci un @ o link valido.",
+    "added": "Link aggiunto. Foto, bio e post non importati.",
+    "reuse": "Importa da connessione esistente",
+    "advanced": "Collega account professionale (facoltativo)",
+    "missing": "Nessuna connessione valida in questa sessione. Collega un account professionale o continua.",
+    "notice": "Meta può richiedere selezione delle risorse e consenso."
+  }
+} as const
 const TEXTOS_CAPA_INSTAGRAM = {
   'pt-BR': {choose:'Usar como capa', chosen:'Capa escolhida', hint:'Na prévia Premium, escolha uma publicação do Instagram como capa. Para trocar a foto ou enviar um banner depois, use Painel → Perfil → Aparência.'},
   'en-US': {choose:'Use as cover', chosen:'Selected cover', hint:'Choose an Instagram post for your Premium cover preview. To replace it or upload a banner later, use Dashboard → Profile → Appearance.'},
@@ -421,6 +489,7 @@ type InstagramImportPerfil = {username:string;nome:string;bio:string;foto:string
 
 export default function CriarMiniPage() {
   const { idioma } = useIdiomaGlobal()
+  const ir = TEXTOS_IG_RAPIDO[idioma] || TEXTOS_IG_RAPIDO["pt-BR"]
   const ti = TEXTOS_IMPORT_IG[idioma] || TEXTOS_IMPORT_IG["pt-BR"]
   const capaTexto = TEXTOS_CAPA_INSTAGRAM[idioma as keyof typeof TEXTOS_CAPA_INSTAGRAM] || TEXTOS_CAPA_INSTAGRAM['pt-BR']
   const txt = TEXTOS_ASSISTENTE[idioma]
@@ -459,6 +528,8 @@ export default function CriarMiniPage() {
   const [youtubeCanalDados, setYoutubeCanalDados] = useState<{nome:string;inscritos:number|null}|null>(null)
   const [igConsultando,setIgConsultando] = useState(false)
   const [igErro,setIgErro] = useState('')
+  const [igRapido,setIgRapido] = useState('')
+  const [igRapidoAviso,setIgRapidoAviso] = useState('')
   const [igPerfil,setIgPerfil] = useState<InstagramImportPerfil|null>(null)
   const [igMidias,setIgMidias] = useState<InstagramImportItem[]>([])
   const [igMidiasSelecionadas,setIgMidiasSelecionadas] = useState<string[]>([])
@@ -777,7 +848,27 @@ export default function CriarMiniPage() {
     setAvisoImportacaoConcluida(`${midia.provider === 'spotify' ? 'Spotify' : 'YouTube'} adicionado à prévia.`)
   }
 
-  async function conectarInstagram() {
+  function adicionarInstagramRapido() {
+    setIgErro('')
+    setIgRapidoAviso('')
+    let handle = igRapido.trim().replace(/^@/, '')
+    if (/^(?:https?:\/\/|(?:www\.)?instagram\.com\/)/i.test(handle)) {
+      try {
+        const url = new URL(/^https?:\/\//i.test(handle) ? handle : `https://${handle}`)
+        if (!['instagram.com','www.instagram.com'].includes(url.hostname.toLowerCase()) || url.username || url.password || url.port || !['http:','https:'].includes(url.protocol)) throw Error()
+        const parts = url.pathname.split('/').filter(Boolean)
+        if (parts.length !== 1) throw Error()
+        handle = parts[0]
+      } catch { setIgErro(ir.invalid); return }
+    }
+    if (!/^[a-z0-9._]{1,30}$/i.test(handle) || /^(p|reel|reels|stories|explore|accounts|direct|tv|about)$/i.test(handle) || /^\.+$/.test(handle)) { setIgErro(ir.invalid); return }
+    if (igPerfil && igPerfil.username.toLowerCase() !== handle.toLowerCase()) { setIgErro(ir.invalid); return }
+    setInstagram(`https://www.instagram.com/${handle}/`)
+    if (!nome.trim()) setNome(handle)
+    setIgRapidoAviso(ir.added)
+  }
+
+  async function conectarInstagram(permitirOAuth = false) {
     setIgErro('')
     setIgConsultando(true)
     try {
@@ -794,6 +885,7 @@ export default function CriarMiniPage() {
         }
       }
       if (current.status !== 401) throw new Error(ti.failed)
+      if (!permitirOAuth) throw new Error(ir.missing)
       const res = await fetch('/api/smart-import/instagram/iniciar',{method:'POST',headers:{Authorization:`Bearer ${session.access_token}`},cache:'no-store'})
       const result = await res.json().catch(()=>null)
       if (!res.ok || typeof result?.url !== 'string') throw new Error(result?.error || 'Não foi possível conectar o Instagram.')
@@ -1373,10 +1465,20 @@ export default function CriarMiniPage() {
                'You can add your photo and content later. Let’s start with your identity.'}
             </p>
 
-            <section aria-label="Importação oficial do Instagram" style={{background:'#15101E',border:'1px solid #544160',borderRadius:14,padding:16,marginBottom:18}}>
-              <h2 style={{color:'#F8F4F7',fontSize:17,fontWeight:750,margin:'0 0 7px'}}>{ti.title}</h2>
-              <p style={{color:'#B9B0C9',fontSize:12,lineHeight:1.5,margin:'0 0 12px'}}>{ti.explainer}</p>
-              <button type="button" onClick={conectarInstagram} disabled={igConsultando} style={{background:G,color:'#171B0D',padding:'11px 15px',borderRadius:10,border:0,fontWeight:750,cursor:'pointer'}}>{igConsultando?ti.connecting:ti.connect}</button>
+            <section aria-label={ir.title} style={{background:'#15101E',border:'1px solid #544160',borderRadius:14,padding:16,marginBottom:18}}>
+              <h2 style={{color:'#F8F4F7',fontSize:17,fontWeight:750,margin:'0 0 7px'}}>{ir.title}</h2>
+              <p style={{color:'#B9B0C9',fontSize:12,lineHeight:1.5,margin:'0 0 12px'}}>{ir.hint}</p>
+              <input aria-label="Instagram" value={igRapido} onChange={e=>{setIgRapido(e.target.value);setIgRapidoAviso('')}} placeholder="@instagram" autoCapitalize="none" autoCorrect="off" spellCheck={false} style={{width:'100%',background:'#100D17',color:'#FFF',border:'1px solid #544160',borderRadius:9,padding:12,marginBottom:8}} />
+              <button type="button" onClick={adicionarInstagramRapido} disabled={igConsultando} style={{background:G,color:'#171B0D',padding:'11px 15px',borderRadius:10,border:0,fontWeight:750,cursor:'pointer'}}>{ir.add}</button>
+              {igRapidoAviso && <p role="status" style={{color:G,fontSize:12}}>{igRapidoAviso}</p>}
+              <details style={{marginTop:12,color:'#C8C0D4',fontSize:12}}>
+                <summary style={{cursor:'pointer',fontWeight:700}}>{ir.advanced}</summary>
+                <p>{ir.notice}</p>
+                <div style={{display:'flex',flexWrap:'wrap',gap:8}}>
+                  <button type="button" onClick={()=>conectarInstagram(false)} disabled={igConsultando} style={{background:'#2B2340',color:'#FFF',padding:10,borderRadius:8,border:'1px solid #685F79'}}>{igConsultando?ti.connecting:ir.reuse}</button>
+                  <button type="button" onClick={()=>conectarInstagram(true)} disabled={igConsultando} style={{background:'#2B2340',color:'#FFF',padding:10,borderRadius:8,border:'1px solid #685F79'}}>{igConsultando?ti.connecting:ti.connect}</button>
+                </div>
+              </details>
               {igErro && <p role="alert" style={{color:'#FFB4B4',fontSize:12,marginTop:10}}>{igErro}</p>}
               {igPerfil && <div style={{marginTop:14}}>
                 <div style={{display:'flex',alignItems:'center',gap:12,marginBottom:10}}>
