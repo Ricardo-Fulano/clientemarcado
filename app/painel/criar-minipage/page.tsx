@@ -474,6 +474,80 @@ const TEXTOS_IG_RAPIDO = {
     "notice": "Meta può richiedere selezione delle risorse e consenso."
   }
 } as const
+const DISCOVERY_COPY = {
+  "pt-BR": {
+    "hint": "Informe seu @ para importar dados públicos de uma conta profissional.",
+    "button": "Importar Instagram",
+    "consent": "Confirmo que este perfil é meu ou tenho autorização para utilizar seus conteúdos.",
+    "success": "Dados encontrados. Confira a foto e os conteúdos antes de publicar.",
+    "unavailable": "Não foi possível consultar este perfil profissional público. Você pode preencher manualmente.",
+    "disabled": "Importação automática indisponível no momento.",
+    "rate": "Muitas consultas. Tente novamente em instantes.",
+    "needConsent": "Confirme a autorização de uso dos conteúdos.",
+    "linkOnly": "Adicionar somente o link",
+    "video": "Vídeos: abra a publicação original; apenas fotos elegíveis são salvas no álbum."
+  },
+  "en-US": {
+    "hint": "Enter your handle to import public professional profile data.",
+    "button": "Import Instagram",
+    "consent": "I own this profile or have permission to use its content.",
+    "success": "Profile found. Check the photo and content before publishing.",
+    "unavailable": "This public professional profile could not be retrieved. You can enter details manually.",
+    "disabled": "Automatic import is temporarily unavailable.",
+    "rate": "Too many requests. Try again shortly.",
+    "needConsent": "Confirm permission to use the content.",
+    "linkOnly": "Add link only",
+    "video": "Videos: open the original post; only eligible photos are saved to the album."
+  },
+  "es-ES": {
+    "hint": "Introduce tu @ para importar datos públicos de una cuenta profesional.",
+    "button": "Importar Instagram",
+    "consent": "Confirmo que este perfil es mío o tengo permiso para usar su contenido.",
+    "success": "Perfil encontrado. Revisa la foto y el contenido antes de publicar.",
+    "unavailable": "No se pudo consultar este perfil profesional público. Puedes completar los datos manualmente.",
+    "disabled": "Importación automática no disponible temporalmente.",
+    "rate": "Demasiadas consultas. Inténtalo en unos momentos.",
+    "needConsent": "Confirma la autorización para usar el contenido.",
+    "linkOnly": "Añadir solo el enlace",
+    "video": "Vídeos: abre la publicación original; solo las fotos elegibles se guardan en el álbum."
+  },
+  "fr-FR": {
+    "hint": "Indiquez votre @ pour importer les données publiques d’un compte professionnel.",
+    "button": "Importer Instagram",
+    "consent": "Je possède ce profil ou suis autorisé à utiliser son contenu.",
+    "success": "Profil trouvé. Vérifiez la photo et le contenu avant de publier.",
+    "unavailable": "Ce profil professionnel public est indisponible. Vous pouvez saisir les données manuellement.",
+    "disabled": "Importation automatique temporairement indisponible.",
+    "rate": "Trop de requêtes. Réessayez dans un instant.",
+    "needConsent": "Confirmez votre autorisation d’utilisation du contenu.",
+    "linkOnly": "Ajouter uniquement le lien",
+    "video": "Vidéos : ouvrez la publication originale ; seules les photos admissibles sont enregistrées dans l’album."
+  },
+  "de-DE": {
+    "hint": "Gib deinen @Namen ein, um öffentliche Daten eines professionellen Kontos zu importieren.",
+    "button": "Instagram importieren",
+    "consent": "Dieses Profil gehört mir oder ich darf seine Inhalte verwenden.",
+    "success": "Profil gefunden. Prüfe Foto und Inhalte vor der Veröffentlichung.",
+    "unavailable": "Dieses öffentliche professionelle Profil konnte nicht abgerufen werden. Du kannst die Daten manuell eingeben.",
+    "disabled": "Automatischer Import vorübergehend nicht verfügbar.",
+    "rate": "Zu viele Anfragen. Versuche es gleich erneut.",
+    "needConsent": "Bestätige die Erlaubnis zur Nutzung der Inhalte.",
+    "linkOnly": "Nur Link hinzufügen",
+    "video": "Videos: Originalbeitrag öffnen; nur geeignete Fotos werden im Album gespeichert."
+  },
+  "it-IT": {
+    "hint": "Inserisci il tuo @ per importare dati pubblici di un account professionale.",
+    "button": "Importa Instagram",
+    "consent": "Confermo che il profilo è mio o che posso usarne i contenuti.",
+    "success": "Profilo trovato. Controlla foto e contenuti prima di pubblicare.",
+    "unavailable": "Impossibile consultare questo profilo professionale pubblico. Puoi inserire i dati manualmente.",
+    "disabled": "Importazione automatica temporaneamente non disponibile.",
+    "rate": "Troppe richieste. Riprova tra poco.",
+    "needConsent": "Conferma l’autorizzazione a usare i contenuti.",
+    "linkOnly": "Aggiungi solo il link",
+    "video": "Video: apri il post originale; solo le foto idonee vengono salvate nell’album."
+  }
+} as const
 const TEXTOS_CAPA_INSTAGRAM = {
   'pt-BR': {choose:'Usar como capa', chosen:'Capa escolhida', hint:'Na prévia Premium, escolha uma publicação do Instagram como capa. Para trocar a foto ou enviar um banner depois, use Painel → Perfil → Aparência.'},
   'en-US': {choose:'Use as cover', chosen:'Selected cover', hint:'Choose an Instagram post for your Premium cover preview. To replace it or upload a banner later, use Dashboard → Profile → Appearance.'},
@@ -483,12 +557,13 @@ const TEXTOS_CAPA_INSTAGRAM = {
   'it-IT': {choose:'Usa come copertina', chosen:'Copertina scelta', hint:'Scegli un post Instagram come copertina Premium. In seguito puoi cambiarla o caricare un banner in Pannello → Profilo → Aspetto.'}
 } as const
 
-type InstagramImportItem = {id:string;tipo:string;imagem:string;link:string;legenda:string}
-type InstagramImportPerfil = {username:string;nome:string;bio:string;foto:string;seguidores:number|null}
+type InstagramImportItem = {id:string;tipo:string;imagem:string;link:string;legenda:string;downloadTicket?:string}
+type InstagramImportPerfil = {username:string;nome:string;bio:string;foto:string;seguidores:number|null;website?:string;downloadTicket?:string}
 
 
 export default function CriarMiniPage() {
   const { idioma } = useIdiomaGlobal()
+  const dc = DISCOVERY_COPY[idioma as keyof typeof DISCOVERY_COPY] || DISCOVERY_COPY["pt-BR"]
   const ir = TEXTOS_IG_RAPIDO[idioma] || TEXTOS_IG_RAPIDO["pt-BR"]
   const ti = TEXTOS_IMPORT_IG[idioma] || TEXTOS_IMPORT_IG["pt-BR"]
   const capaTexto = TEXTOS_CAPA_INSTAGRAM[idioma as keyof typeof TEXTOS_CAPA_INSTAGRAM] || TEXTOS_CAPA_INSTAGRAM['pt-BR']
@@ -528,6 +603,8 @@ export default function CriarMiniPage() {
   const [youtubeCanalDados, setYoutubeCanalDados] = useState<{nome:string;inscritos:number|null}|null>(null)
   const [igConsultando,setIgConsultando] = useState(false)
   const [igErro,setIgErro] = useState('')
+  const [igConsent,setIgConsent] = useState(false)
+  const [igDiscovery,setIgDiscovery] = useState(false)
   const [igRapido,setIgRapido] = useState('')
   const [igRapidoAviso,setIgRapidoAviso] = useState('')
   const [igPerfil,setIgPerfil] = useState<InstagramImportPerfil|null>(null)
@@ -848,7 +925,7 @@ export default function CriarMiniPage() {
     setAvisoImportacaoConcluida(`${midia.provider === 'spotify' ? 'Spotify' : 'YouTube'} adicionado à prévia.`)
   }
 
-  function adicionarInstagramRapido() {
+  async function adicionarInstagramRapido(somenteLink = false) {
     setIgErro('')
     setIgRapidoAviso('')
     let handle = igRapido.trim().replace(/^@/, '')
@@ -863,9 +940,29 @@ export default function CriarMiniPage() {
     }
     if (!/^[a-z0-9._]{1,30}$/i.test(handle) || /^(p|reel|reels|stories|explore|accounts|direct|tv|about)$/i.test(handle) || /^\.+$/.test(handle)) { setIgErro(ir.invalid); return }
     if (igPerfil && igPerfil.username.toLowerCase() !== handle.toLowerCase()) { setIgErro(ir.invalid); return }
-    setInstagram(`https://www.instagram.com/${handle}/`)
-    if (!nome.trim()) setNome(handle)
-    setIgRapidoAviso(ir.added)
+    if (somenteLink) {
+      setInstagram(`https://www.instagram.com/${handle}/`)
+      if (!nome.trim()) setNome(handle)
+      setIgRapidoAviso(ir.added)
+      return
+    }
+    if (!igConsent) {setIgErro(dc.needConsent);return}
+    setIgConsultando(true)
+    try {
+      const {data:{session}} = await supabase.auth.getSession()
+      if (!session?.access_token) throw new Error(dc.disabled)
+      const r = await fetch('/api/smart-import/instagram/discovery', {method:'POST',headers:{Authorization:`Bearer ${session.access_token}`,'Content-Type':'application/json'},body:JSON.stringify({username:handle,authorized:true}),cache:'no-store'})
+      const data = await r.json().catch(()=>null)
+      if (!r.ok || !data?.perfil) throw new Error(r.status===429?dc.rate:r.status===503||r.status===401?dc.disabled:dc.unavailable)
+      setIgDiscovery(true)
+      await aplicarImportacaoInstagram(data,session.user.id,true)
+      if (data.perfil.website) {
+        const site = String(data.perfil.website)
+        setLinks(prev=>prev.some(l=>l.url===site)?prev:[...prev,{id:'ig-site-'+Date.now(),tipo:'site',titulo:'Website',url:site,descricao:''}])
+      }
+      setIgRapidoAviso(dc.success)
+    } catch(e) {setIgErro(e instanceof Error?e.message:dc.disabled)}
+    finally {setIgConsultando(false)}
   }
 
   async function conectarInstagram(permitirOAuth = false) {
@@ -939,12 +1036,13 @@ export default function CriarMiniPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   },[carregando])
 
-  async function aplicarImportacaoInstagram(data: {perfil: InstagramImportPerfil; midias?: InstagramImportItem[]}, uid: string) {
+  async function aplicarImportacaoInstagram(data: {perfil: InstagramImportPerfil; midias?: InstagramImportItem[]}, uid: string, discovery = false) {
+    setIgDiscovery(discovery)
     const perfil = data.perfil
     const midias = Array.isArray(data.midias) ? data.midias : []
     setIgPerfil(perfil)
     setIgMidias(midias)
-    setIgMidiasSelecionadas(midias.filter(m=>['IMAGE','CAROUSEL_ALBUM'].includes(m.tipo)).slice(0,6).map(m=>m.id))
+    setIgMidiasSelecionadas(midias.filter(m=>['IMAGE','CAROUSEL_ALBUM'].includes(m.tipo) && (!discovery || !!m.downloadTicket)).slice(0,6).map(m=>m.id))
     setIgMidiaCapaId(null)
     setIgStories([])
     setIgStoriesConsultados(false)
@@ -964,8 +1062,9 @@ export default function CriarMiniPage() {
         if (!uid) throw new Error(ti.failed)
         const { data: { session } } = await supabase.auth.getSession()
         if (!session?.access_token) throw new Error('Entre novamente na MiniPage Pro.')
-        const resposta = await fetch('/api/smart-import/instagram/foto', {
-          headers: { Authorization: `Bearer ${session.access_token}` }, cache: 'no-store'
+        const resposta = await fetch(perfil.downloadTicket ? '/api/smart-import/instagram/discovery' : '/api/smart-import/instagram/foto', {
+          ...(perfil.downloadTicket ? {method:'PUT',body:JSON.stringify({ticket:perfil.downloadTicket})} : {}),
+          headers: { Authorization: `Bearer ${session.access_token}`, 'Content-Type':'application/json' }, cache: 'no-store'
         })
         if (!resposta.ok) {
           const erro = await resposta.json().catch(() => null)
@@ -1275,7 +1374,7 @@ export default function CriarMiniPage() {
     // Nunca há uma segunda galeria pública, e nenhuma foto antiga é excluída.
     let resumoInstagram = ''
     const fotosSelecionadas = igMidias.filter(m => igMidiasSelecionadas.includes(m.id) &&
-      ['IMAGE', 'CAROUSEL_ALBUM'].includes(m.tipo) && /^\d+$/.test(m.id))
+      ['IMAGE', 'CAROUSEL_ALBUM'].includes(m.tipo) && /^\d+$/.test(m.id) && (!igDiscovery || !!m.downloadTicket))
     if (fotosSelecionadas.length && permiteAlbuns(planoParaPublicar)) {
       let novasFotos = 0
       try {
@@ -1300,8 +1399,9 @@ export default function CriarMiniPage() {
         const fotosSalvas = new Set((fotosAtuais || []).map((f: {imagem_url?:string|null})=>f.imagem_url || ''))
         let ordem = (fotosAtuais || []).filter((f: {album_id:string})=>f.album_id===albumId).length
         for (const m of fotosSelecionadas) {
-          const resposta = await fetch(`/api/smart-import/instagram/midia?midiaId=${encodeURIComponent(m.id)}`, {
-            headers:{Authorization:`Bearer ${session.access_token}`},cache:'no-store'
+          const resposta = await fetch(m.downloadTicket ? '/api/smart-import/instagram/discovery' : `/api/smart-import/instagram/midia?midiaId=${encodeURIComponent(m.id)}`, {
+            ...(m.downloadTicket ? {method:'PUT',body:JSON.stringify({ticket:m.downloadTicket})} : {}),
+            headers:{Authorization:`Bearer ${session.access_token}`,'Content-Type':'application/json'},cache:'no-store'
           })
           if (!resposta.ok) throw new Error('Falha ao baixar uma foto do Instagram')
           const imagem = await resposta.blob()
@@ -1467,9 +1567,11 @@ export default function CriarMiniPage() {
 
             <section aria-label={ir.title} style={{background:'#15101E',border:'1px solid #544160',borderRadius:14,padding:16,marginBottom:18}}>
               <h2 style={{color:'#F8F4F7',fontSize:17,fontWeight:750,margin:'0 0 7px'}}>{ir.title}</h2>
-              <p style={{color:'#B9B0C9',fontSize:12,lineHeight:1.5,margin:'0 0 12px'}}>{ir.hint}</p>
-              <input aria-label="Instagram" value={igRapido} onChange={e=>{setIgRapido(e.target.value);setIgRapidoAviso('')}} placeholder="@instagram" autoCapitalize="none" autoCorrect="off" spellCheck={false} style={{width:'100%',background:'#100D17',color:'#FFF',border:'1px solid #544160',borderRadius:9,padding:12,marginBottom:8}} />
-              <button type="button" onClick={adicionarInstagramRapido} disabled={igConsultando} style={{background:G,color:'#171B0D',padding:'11px 15px',borderRadius:10,border:0,fontWeight:750,cursor:'pointer'}}>{ir.add}</button>
+              <p style={{color:'#B9B0C9',fontSize:12,lineHeight:1.5,margin:'0 0 12px'}}>{dc.hint}</p>
+              <input aria-label="Instagram" value={igRapido} disabled={igConsultando} onChange={e=>{setIgRapido(e.target.value);setIgRapidoAviso('')}} placeholder="@instagram" autoCapitalize="none" autoCorrect="off" spellCheck={false} style={{width:'100%',background:'#100D17',color:'#FFF',border:'1px solid #544160',borderRadius:9,padding:12,marginBottom:8}} />
+              <label style={{display:'flex',gap:8,alignItems:'start',color:'#C8C0D4',fontSize:12,marginBottom:10}}><input type="checkbox" checked={igConsent} disabled={igConsultando} onChange={e=>setIgConsent(e.target.checked)}/>{dc.consent}</label>
+              <button type="button" onClick={()=>adicionarInstagramRapido()} disabled={igConsultando} style={{background:G,color:'#171B0D',padding:'11px 15px',borderRadius:10,border:0,fontWeight:750,cursor:'pointer'}}>{igConsultando?ti.connecting:dc.button}</button>
+              <button type="button" disabled={igConsultando} onClick={()=>adicionarInstagramRapido(true)} style={{background:'transparent',border:0,color:'#C8C0D4',padding:10,cursor:'pointer'}}>{dc.linkOnly}</button>
               {igRapidoAviso && <p role="status" style={{color:G,fontSize:12}}>{igRapidoAviso}</p>}
               <details style={{marginTop:12,color:'#C8C0D4',fontSize:12}}>
                 <summary style={{cursor:'pointer',fontWeight:700}}>{ir.advanced}</summary>
@@ -1487,14 +1589,14 @@ export default function CriarMiniPage() {
                 </div>
                 <p style={{color:'#C8C0D4',fontSize:12,whiteSpace:'pre-wrap'}}>{igPerfil.bio}</p>
                 <button type="button" onClick={aplicarIdentidadeInstagram} disabled={igConsultando || igAplicado} style={{border:'1px solid #C9FA45',background:'#242B17',color:'#C9FA45',padding:'10px 12px',borderRadius:9,cursor:'pointer',fontWeight:700}}>{igAplicado?ti.applied:ti.apply}</button>
-                <div style={{margin:'13px 0 0',padding:'11px 12px',border:'1px solid #50415B',borderRadius:10,background:'#1B1626'}}>
+                {!igDiscovery && <div style={{margin:'13px 0 0',padding:'11px 12px',border:'1px solid #50415B',borderRadius:10,background:'#1B1626'}}>
                   <button type="button" onClick={consultarStoriesInstagram} disabled={igStoriesConsultando} style={{background:'#31233C',color:'#F7EDFF',border:'1px solid #6D507A',borderRadius:9,padding:'9px 12px',fontSize:12,fontWeight:700,cursor:igStoriesConsultando?'wait':'pointer'}}>
                     {igStoriesConsultando?tx.checkingStories:tx.checkStories}
                   </button>
                   <p style={{fontSize:11,color:'#C2B8CE',lineHeight:1.5,margin:'7px 0 0'}}>{tx.storiesReadOnly}</p>
                   {igStoriesConsultados && <p role="status" style={{fontSize:12,color:'#C9FA45',margin:'7px 0 0'}}>{igStories.length} {tx.activeStories}.</p>}
                   {igStoriesErro && <p role="alert" style={{fontSize:12,color:'#FFB4B4',margin:'7px 0 0'}}>{igStoriesErro}</p>}
-                </div>
+                </div>}
                 {igMidias.length>0 && <>
                   <p style={{fontSize:12,color:'#C8C0D4',margin:'14px 0 8px'}}>{ti.media}</p>
                   <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',gap:8,flexWrap:'wrap',marginBottom:10}}>
@@ -1523,7 +1625,7 @@ export default function CriarMiniPage() {
                   })}</div>
                   <p style={{fontSize:11,color:'#CEC6DD',lineHeight:1.5,margin:'10px 0 0'}}>{capaTexto.hint}</p>
                   <p role="status" style={{fontSize:12,color:'#FFD88C',lineHeight:1.5,margin:'12px 0 0'}}>
-                    {tx.mediaPreviewOnly}
+                    {igDiscovery?dc.video:tx.mediaPreviewOnly}
                   </p>
                 </>}
               </div>}
