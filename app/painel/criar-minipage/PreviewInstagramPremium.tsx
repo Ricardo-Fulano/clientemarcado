@@ -68,8 +68,8 @@ const FRASES: Record<Idioma, {
     stories:'Stories',storiesRecent:'Stories recentes',demoStories:'Stories · demonstração',noActiveStories:'Nenhum Story ativo retornado.',
     checkStories:'Use “Consultar meus Stories ativos” no formulário para testar a API.',
     storiesDemoInfo:'Visual ilustrativo. Stories reais ainda não são publicados na slug. A seção final aparecerá somente com conteúdo ativo e autorização.',
-    otherLinks:'Links oficiais',previewNotPublished:'Esta é uma simulação. Mídias e Stories não foram publicados.',close:'Fechar',next:'Próximo',previous:'Anterior',
-    freeInfo:'No Free: foto circular e links. Capa, galeria e Stories Premium não serão publicados.',
+    otherLinks:'Links oficiais',previewNotPublished:'Esta é uma simulação. Mídias não foram publicadas.',close:'Fechar',next:'Próximo',previous:'Anterior',
+    freeInfo:'No Free: foto circular e links. Capa e galeria Premium não serão publicados.',
     paidInfo:'Modelo pago: capa e recursos mostrados são ilustrativos e sujeitos ao seu plano.',subscribe:'Ver planos',video:'Vídeo'
   },
   'en-US': {
@@ -81,8 +81,8 @@ const FRASES: Record<Idioma, {
     stories:'Stories',storiesRecent:'Recent Stories',demoStories:'Stories · demo',noActiveStories:'No active Stories returned.',
     checkStories:'Use “Check active Stories” in the form to test the API.',
     storiesDemoInfo:'Illustration only. Real Stories are not published to your MiniPage yet. The final section appears only with authorized active content.',
-    otherLinks:'Official links',previewNotPublished:'This is a simulation. Media and Stories were not published.',close:'Close',next:'Next',previous:'Previous',
-    freeInfo:'Free: round avatar and links. Premium cover, gallery and Stories will not be published.',
+    otherLinks:'Official links',previewNotPublished:'This is a simulation. Media was not published.',close:'Close',next:'Next',previous:'Previous',
+    freeInfo:'Free: round avatar and links. Premium cover and gallery will not be published.',
     paidInfo:'Paid preview: visual features depend on your actual plan.',subscribe:'View plans',video:'Video'
   },
   'es-ES': {
@@ -95,7 +95,7 @@ const FRASES: Record<Idioma, {
     checkStories:'Consulta los Stories activos en el formulario.',
     storiesDemoInfo:'Ilustración: los Stories reales aún no se publican. Solo aparecerán con autorización y contenido activo.',
     otherLinks:'Enlaces oficiales',previewNotPublished:'Esta es una simulación. No se han publicado archivos.',close:'Cerrar',next:'Siguiente',previous:'Anterior',
-    freeInfo:'En Free: avatar circular y enlaces; sin portada, galería ni Stories Premium.',
+    freeInfo:'En Free: avatar circular y enlaces; sin portada, ni galería Premium.',
     paidInfo:'Vista de pago ilustrativa; las funciones dependen de tu plan.',subscribe:'Ver planes',video:'Vídeo'
   },
   'fr-FR': {
@@ -108,7 +108,7 @@ const FRASES: Record<Idioma, {
     checkStories:'Vérifiez les Stories dans le formulaire.',
     storiesDemoInfo:'Illustration seulement. La publication de Stories réelles n’est pas encore activée.',
     otherLinks:'Liens officiels',previewNotPublished:'Simulation : aucune publication réalisée.',close:'Fermer',next:'Suivant',previous:'Précédent',
-    freeInfo:'Free : photo ronde et liens. Pas de couverture, galerie ni Stories Premium.',
+    freeInfo:'Free : photo ronde et liens. Pas de couverture, ni galerie Premium.',
     paidInfo:'Aperçu payant illustratif ; fonctions selon le forfait.',subscribe:'Voir les forfaits',video:'Vidéo'
   },
   'de-DE': {
@@ -121,7 +121,7 @@ const FRASES: Record<Idioma, {
     checkStories:'Prüfe aktive Stories im Formular.',
     storiesDemoInfo:'Nur Illustration. Echte Stories werden noch nicht veröffentlicht.',
     otherLinks:'Offizielle Links',previewNotPublished:'Simulation: keine Medien veröffentlicht.',close:'Schließen',next:'Weiter',previous:'Zurück',
-    freeInfo:'Free: rundes Profilbild und Links, ohne Premium-Titelbild, Galerie und Stories.',
+    freeInfo:'Free: rundes Profilbild und Links, ohne Premium-Titelbild, Galerie.',
     paidInfo:'Bezahlte Vorschau; Funktionen hängen vom Tarif ab.',subscribe:'Tarife ansehen',video:'Video'
   },
   'it-IT': {
@@ -134,7 +134,7 @@ const FRASES: Record<Idioma, {
     checkStories:'Controlla le Stories attive nel modulo.',
     storiesDemoInfo:'Solo illustrazione. Le Stories reali non sono ancora pubblicate.',
     otherLinks:'Link ufficiali',previewNotPublished:'Simulazione: nessuna pubblicazione effettuata.',close:'Chiudi',next:'Avanti',previous:'Indietro',
-    freeInfo:'Free: foto circolare e link. Nessuna copertina, galleria o Stories Premium.',
+    freeInfo:'Free: foto circolare e link. Nessuna copertina, galleria Premium.',
     paidInfo:'Anteprima a pagamento illustrativa; funzioni secondo il piano.',subscribe:'Vedi piani',video:'Video'
   }
 }
@@ -283,17 +283,7 @@ export default function PreviewInstagramPremium({ idioma, nome, slug, bio, fotoP
                   </div>}
                 </div>}
                 {!capa && <div style={{fontSize:12,lineHeight:1.5,marginTop:10,whiteSpace:'pre-wrap',overflowWrap:'anywhere'}}>{bioExibida}</div>}
-                {/* Um unico circulo com anel, como nos Stories; nunca um cartao de link. */}
-                <section aria-label={t.storiesRecent} style={{marginTop:12,marginBottom:4,display:'flex',justifyContent:'flex-start'}}>
-                  <button type="button" aria-label={t.storiesRecent} onClick={()=>{setStoryIndex(storiesValidos.length ? 0 : null);setStoryInfo(storiesValidos.length===0)}} style={{display:'flex',alignItems:'center',flexDirection:'column',gap:5,width:88,padding:'5px 1px',background:'transparent',border:0,color:fore,cursor:'pointer'}}>
-                    <span style={{width:53,height:53,padding:3,borderRadius:'50%',background:storiesValidos.length?'linear-gradient(45deg,#FFCC5A,#F04396,#8863F2)':tokensTema.cardBorder,display:'grid',placeItems:'center'}}>
-                      <span style={{width:'100%',height:'100%',background:tokensTema.card,borderRadius:'50%',display:'grid',placeItems:'center',overflow:'hidden',border:`2px solid ${tokensTema.surface2}`}}>
-                        {storiesValidos.length>0 && avatar?<img src={avatar} alt="" loading="lazy" style={{width:'100%',height:'100%',objectFit:'cover'}}/>:<Instagram size={19}/>}
-                      </span>
-                    </span>
-                    <strong style={{fontSize:10,lineHeight:1.25,textAlign:'center'}}>{t.storiesRecent}</strong>
-                  </button>
-                </section>
+
               </div>
               <div style={{padding:'4px 11px 17px'}}>
                 <SectionLinks links={linksMostrar.filter(l => !linksSpotify.some(sp => sp.id===l.id))} tema={tokensTema} title={t.otherLinks}/>
@@ -327,17 +317,7 @@ export default function PreviewInstagramPremium({ idioma, nome, slug, bio, fotoP
         </div>
         <div style={{color:'#B8AFC5',textAlign:'center',fontSize:10,lineHeight:1.55,padding:'10px 1px 2px'}}>{modo==='premium'?(isPago?t.paidInfo:t.paidFrom):t.freeInfo}<div style={{marginTop:3}}>{t.previewNotPublished}</div></div>
       </div>
-      {(storyInfo || storyAtual) && <div role="presentation" onClick={()=>{setStoryInfo(false);setStoryIndex(null)}} style={{position:'fixed',inset:0,zIndex:9998,background:'rgba(0,0,0,.86)',display:'grid',placeItems:'center',padding:14}}>
-        <div role="dialog" aria-modal="true" aria-label={t.stories} onClick={e=>e.stopPropagation()} style={{width:'min(380px,96vw)',maxHeight:'90vh',overflow:'auto',borderRadius:17,background:'#1C1726',color:'#FFF',position:'relative',padding:'22px 16px',border:'1px solid #5C5065'}}>
-          <button type="button" aria-label={t.close} onClick={()=>{setStoryInfo(false);setStoryIndex(null)}} style={{position:'absolute',right:9,top:9,border:0,background:'#32273B',color:'#FFF',borderRadius:99,width:32,height:32,display:'grid',placeItems:'center',cursor:'pointer',zIndex:2}}><X size={18}/></button>
-          {storyAtual ? <>
-            <div style={{textAlign:'center',fontSize:12,marginBottom:12,paddingRight:34}}>Story {Number(storyIndex)+1} / {storiesValidos.length}</div>
-            <div style={{borderRadius:10,background:'#0F0E14',overflow:'hidden',aspectRatio:'9/16',display:'grid',placeItems:'center'}}>{storyAtual.tipo.toUpperCase()==='VIDEO' && safeImage(storyAtual.url)?<video src={storyAtual.url} controls playsInline preload="none" poster={safeImage(storyAtual.imagem)} style={{width:'100%',height:'100%',objectFit:'contain'}}/>:<img src={safeImage(storyAtual.imagem)||safeImage(storyAtual.url)} alt={t.stories} style={{width:'100%',height:'100%',objectFit:'contain'}}/>}</div>
-            <div style={{display:'flex',justifyContent:'space-between',gap:10,marginTop:12}}><button type="button" disabled={storyIndex===0} onClick={()=>setStoryIndex(i=>i===null?null:Math.max(0,i-1))} style={navButton}><ChevronLeft size={16}/>{t.previous}</button><button type="button" disabled={storyIndex===storiesValidos.length-1} onClick={()=>setStoryIndex(i=>i===null?null:Math.min(storiesValidos.length-1,i+1))} style={navButton}>{t.next}<ChevronRight size={16}/></button></div>
-            <p style={{fontSize:10,color:'#C3B9CD',lineHeight:1.5}}>{t.mediaNotSaved}</p>
-          </> : <><div style={{fontSize:16,fontWeight:800,marginBottom:12}}>{storiesConsultados?t.noActiveStories:t.demoStories}</div><p style={{fontSize:13,lineHeight:1.65,color:'#D4CBDB'}}>{t.storiesDemoInfo}</p><p style={{fontSize:12,color:'#B6AABF'}}>{t.checkStories}</p></>}
-        </div>
-      </div>}
+
     </div>
   )
 }

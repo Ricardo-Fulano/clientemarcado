@@ -55,7 +55,7 @@ export default function ListaAlbuns() {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
     const status = params.get('instagram')
-    if (!status) { if (params.get('importar') === 'instagram') setIgAberto(true); return }
+    if (!status) { if (params.get('importar') === 'instagram') window.location.replace('/painel/perfil/importar-instagram?fotos=1'); return }
     params.delete('instagram')
     window.history.replaceState(null, '', window.location.pathname + (params.toString() ? '?' + params.toString() : ''))
     setIgAberto(true)
@@ -326,7 +326,7 @@ export default function ListaAlbuns() {
                 <p style={{fontWeight:800,fontSize:15,color:'#FFFFFF',marginBottom:4}}>Importar fotos do Instagram</p>
                 <p style={{fontSize:12,color:'#C5BCD1'}}>Escolha imagens da sua conta profissional e adicione a um álbum existente.</p>
               </div>
-              {podeEditarAlbuns ? <button type="button" onClick={()=>setIgAberto(v=>!v)} style={{background:G,color:'#0B0A10',border:0,borderRadius:10,padding:'11px 15px',fontSize:13,fontWeight:800,cursor:'pointer',display:'inline-flex',alignItems:'center',gap:7}}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><rect x="2" y="2" width="20" height="20" rx="6"/><circle cx="12" cy="12" r="4"/><circle cx="18" cy="6" r="1" fill="currentColor" stroke="none"/></svg> Importar Instagram</button> : <Link href="/painel/plano" style={{fontSize:13,color:'#C5BCD1'}}>🔒 Disponível a partir do MiniPage</Link>}
+              {podeEditarAlbuns ? <Link href="/painel/perfil/importar-instagram?fotos=1" style={{background:G,color:'#0B0A10',borderRadius:10,padding:'11px 15px',fontSize:13,fontWeight:800,textDecoration:'none'}}>Importar Instagram</Link> : <Link href="/painel/plano" style={{fontSize:13,color:'#C5BCD1'}}>🔒 Disponível a partir do MiniPage</Link>}
             </div>
             {igAberto && podeEditarAlbuns && <div style={{marginTop:15,borderTop:'1px solid #40344B',paddingTop:16}}>
               <p style={{fontSize:12,color:'#C5BCD1',marginBottom:12}}>A Meta pode solicitar autorização. Nenhuma foto será publicada sem sua seleção e confirmação.</p>

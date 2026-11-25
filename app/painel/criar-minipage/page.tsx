@@ -612,10 +612,6 @@ export default function CriarMiniPage() {
   const [igMidiasSelecionadas,setIgMidiasSelecionadas] = useState<string[]>([])
   const [igMidiaCapaId,setIgMidiaCapaId] = useState<string|null>(null)
   const [igAplicado,setIgAplicado] = useState(false)
-  const [igStories,setIgStories] = useState<Array<{id:string;tipo:string;imagem:string;url:string;timestamp:string}>>([])
-  const [igStoriesConsultados,setIgStoriesConsultados] = useState(false)
-  const [igStoriesConsultando,setIgStoriesConsultando] = useState(false)
-  const [igStoriesErro,setIgStoriesErro] = useState('')
 
 
   // D2: modelo automatico (produtos-vendas). So existe quando o SERVIDOR diz que esta conta e elegivel (conta nova, plano e status
@@ -1004,24 +1000,7 @@ export default function CriarMiniPage() {
     finally {setIgConsultando(false)}
   }
 
-  async function consultarStoriesInstagram() {
-    if (!igPerfil || igStoriesConsultando) return
-    setIgStoriesConsultando(true)
-    setIgStoriesErro('')
-    try {
-      const {data:{session}} = await supabase.auth.getSession()
-      if (!session?.access_token) throw new Error('Entre novamente na MiniPage Pro.')
-      const resposta = await fetch('/api/smart-import/instagram/stories',{
-        headers:{Authorization:`Bearer ${session.access_token}`},cache:'no-store'
-      })
-      const resultado = await resposta.json().catch(()=>null)
-      if (!resposta.ok || !Array.isArray(resultado?.stories))
-        throw new Error(resultado?.error || 'Não foi possível consultar os Stories ativos.')
-      setIgStories(resultado.stories)
-      setIgStoriesConsultados(true)
-    } catch (erro) {setIgStoriesErro(erro instanceof Error?erro.message:'Falha ao consultar Stories.')}
-    finally {setIgStoriesConsultando(false)}
-  }
+
 
   useEffect(()=>{
     if (carregando) return
@@ -1044,9 +1023,6 @@ export default function CriarMiniPage() {
     setIgMidias(midias)
     setIgMidiasSelecionadas(midias.filter(m=>['IMAGE','CAROUSEL_ALBUM'].includes(m.tipo) && (!discovery || !!m.downloadTicket)).slice(0,6).map(m=>m.id))
     setIgMidiaCapaId(null)
-    setIgStories([])
-    setIgStoriesConsultados(false)
-    setIgStoriesErro('')
     if (perfil.nome.trim()) setNome(perfil.nome.trim().slice(0,120))
     else if (perfil.username) setNome(perfil.username)
     if (perfil.bio) setBio(perfil.bio.slice(0,500))
@@ -1589,14 +1565,6 @@ export default function CriarMiniPage() {
                 </div>
                 <p style={{color:'#C8C0D4',fontSize:12,whiteSpace:'pre-wrap'}}>{igPerfil.bio}</p>
                 <button type="button" onClick={aplicarIdentidadeInstagram} disabled={igConsultando || igAplicado} style={{border:'1px solid #C9FA45',background:'#242B17',color:'#C9FA45',padding:'10px 12px',borderRadius:9,cursor:'pointer',fontWeight:700}}>{igAplicado?ti.applied:ti.apply}</button>
-                {!igDiscovery && <div style={{margin:'13px 0 0',padding:'11px 12px',border:'1px solid #50415B',borderRadius:10,background:'#1B1626'}}>
-                  <button type="button" onClick={consultarStoriesInstagram} disabled={igStoriesConsultando} style={{background:'#31233C',color:'#F7EDFF',border:'1px solid #6D507A',borderRadius:9,padding:'9px 12px',fontSize:12,fontWeight:700,cursor:igStoriesConsultando?'wait':'pointer'}}>
-                    {igStoriesConsultando?tx.checkingStories:tx.checkStories}
-                  </button>
-                  <p style={{fontSize:11,color:'#C2B8CE',lineHeight:1.5,margin:'7px 0 0'}}>{tx.storiesReadOnly}</p>
-                  {igStoriesConsultados && <p role="status" style={{fontSize:12,color:'#C9FA45',margin:'7px 0 0'}}>{igStories.length} {tx.activeStories}.</p>}
-                  {igStoriesErro && <p role="alert" style={{fontSize:12,color:'#FFB4B4',margin:'7px 0 0'}}>{igStoriesErro}</p>}
-                </div>}
                 {igMidias.length>0 && <>
                   <p style={{fontSize:12,color:'#C8C0D4',margin:'14px 0 8px'}}>{ti.media}</p>
                   <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',gap:8,flexWrap:'wrap',marginBottom:10}}>
@@ -1994,8 +1962,8 @@ export default function CriarMiniPage() {
                 midias={igMidias}
                 midiasSelecionadas={igMidiasSelecionadas}
                 midiaCapaId={midiaCapaAtivaId}
-                stories={igStories}
-                storiesConsultados={igStoriesConsultados}
+                stories={[]}
+                storiesConsultados={false}
                 youtubeResultados={youtubeResultados}
                 youtubeSelecionados={youtubeSelecionados}
                 youtubeCanalDados={youtubeCanalDados}

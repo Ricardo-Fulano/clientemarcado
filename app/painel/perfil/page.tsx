@@ -566,6 +566,8 @@ export default function Perfil(){
             </div>
           )}
 
+          <div className="crd"><Link href="/painel/perfil/importar-instagram" style={{display:'inline-block',background:G,color:'#0B0A10',padding:'12px 18px',borderRadius:10,fontWeight:800,textDecoration:'none'}}>Importar Instagram</Link></div>
+
           <div className="crd">
             <p style={{fontSize:'15px',fontWeight:700,color:'#FFFFFF',marginBottom:'4px'}}>Informações da página</p>
             <p style={{fontSize:'12px',color:'#C5BCD1',marginBottom:'18px'}}>Defina o nome, link e informações principais da sua MiniPage.</p>
@@ -669,7 +671,7 @@ export default function Perfil(){
                 <p style={{fontSize:'12px',color:'#C5BCD1'}}>Organize fotos e importe do Instagram. Escolha como apresentar suas galerias.</p>
               </div>
               {permiteAlbuns(planoTipo) ? (
-                <div style={{display:'flex',gap:8,flexWrap:'wrap'}}><Link href="/painel/perfil/albuns?importar=instagram" style={{background:G,color:'#0B0A10',border:'1px solid rgba(255,255,255,.12)',borderRadius:'10px',padding:'10px 18px',fontSize:'13px',fontWeight:700,textDecoration:'none'}}>Importar Instagram</Link><Link href="/painel/perfil/albuns" style={{background:'rgba(33,24,45,.92)',color:'#FFFFFF',border:'1px solid #40344B',borderRadius:'10px',padding:'10px 18px',fontSize:'13px',fontWeight:700,textDecoration:'none'}}>Gerenciar álbuns</Link></div>
+                <div style={{display:'flex',gap:8,flexWrap:'wrap'}}><Link href="/painel/perfil/importar-instagram" style={{background:G,color:'#0B0A10',border:'1px solid rgba(255,255,255,.12)',borderRadius:'10px',padding:'10px 18px',fontSize:'13px',fontWeight:700,textDecoration:'none'}}>Importar Instagram</Link><Link href="/painel/perfil/albuns" style={{background:'rgba(33,24,45,.92)',color:'#FFFFFF',border:'1px solid #40344B',borderRadius:'10px',padding:'10px 18px',fontSize:'13px',fontWeight:700,textDecoration:'none'}}>Gerenciar álbuns</Link></div>
               ) : (
                 <Link href="/painel/plano" style={{background:'rgba(33,24,45,.92)',color:'#C5BCD1',border:'1px solid #40344B',borderRadius:'10px',padding:'10px 18px',fontSize:'13px',fontWeight:700,textDecoration:'none',flexShrink:0}}>🔒 Disponível no MiniPage</Link>
               )}
