@@ -4,6 +4,7 @@ import { useEffect, useState, type CSSProperties } from 'react'
 import Link from 'next/link'
 import { useIdiomaGlobal } from '../../components/IdiomaProviderGlobal'
 import { textoCheckout } from '../../lib/i18n-global/checkout-copy'
+import { addressFields,parseCardAddress,type CardAddress } from '../../lib/billing/asaas/dados-cartao'
 import { asaasCopy } from '../../lib/i18n-global/asaas-copy'
 import { supabase } from '../../lib/supabase'
 
@@ -18,7 +19,7 @@ type Quote = {
   reason?: string
   methods?: { card: boolean; pix: boolean }
 }
-type AsaasAttempt = { attemptId:string; plan:Plan; cycle:Cycle; method:'card'|'pix'; state:string; renewalActive:boolean; paymentConfirmed:boolean; checkoutUrl?:string; qrImage?:string; qrPayload?:string; expires?:string; paidUntil?:string }
+type AsaasAttempt = { attemptId:string; plan:Plan; cycle:Cycle; method:'card'|'pix'; state:string; retryCard?:boolean; renewalActive:boolean; paymentConfirmed:boolean; checkoutUrl?:string; qrImage?:string; qrPayload?:string; expires?:string; paidUntil?:string }
 const PLANS: { code: Plan; name: string; description: string }[] = [
   { code: 'minipage', name: 'MiniPage', description: 'Links, vídeo, destaques, Spotify e presença profissional.' },
   { code: 'agenda', name: 'Agenda', description: 'Tudo do MiniPage, com agendamentos e serviços.' },
@@ -60,12 +61,17 @@ export default function EscolherPlanosParaContratar() {
   const [method, setMethod] = useState<''|'card'|'pix'>('')
   const [name, setName] = useState('')
   const [cpf, setCpf] = useState('')
+  const [address,setAddress]=useState<CardAddress>({phone:'',postalCode:'',address:'',addressNumber:'',province:''})
   const [consent, setConsent] = useState(false)
   const [attempt, setAttempt] = useState<AsaasAttempt|null>(null)
   const [checking,setChecking]=useState(false)
   const [copied, setCopied] = useState(false)
   const [uncertain, setUncertain] = useState(false)
   const t = (i:number) => asaasCopy(idioma,i)
+  const retryCard=attempt?.retryCard===true
+  useEffect(()=>{if(retryCard&&attempt){setMethod('card');setPreferred(attempt.plan);setCycle(attempt.cycle);setConfirm(true)}},[retryCard,attempt?.plan,attempt?.cycle])
+  const cardAddressOk=method!=='card'||!!parseCardAddress(address)
+  const canRetryPlan=(plan:Plan)=>!attempt||retryCard&&attempt.plan===plan&&attempt.cycle===cycle&&method==='card'
   useEffect(()=>{setConsent(false)},[cycle,method,market])
   useEffect(()=>{
     if(!initialized||market!=='BR')return
@@ -133,7 +139,7 @@ export default function EscolherPlanosParaContratar() {
   const checkout = async (plan: Plan) => {
     const q = quotes[plan]
     if (!allowed || q?.checkoutEnabled !== true || sending || loading) return
-    if(market==='BR'&&(!method||!q.methods?.[method]||!consent||attempt||uncertain))return
+    if(market==='BR'&&(!method||!q.methods?.[method]||!consent||!canRetryPlan(plan)||uncertain||!cardAddressOk))return
     setSending(plan)
     setError('')
     try {
@@ -142,10 +148,10 @@ export default function EscolherPlanosParaContratar() {
       if(market==='BR'){
         setConsent(false)
         setUncertain(true)
-        const r=await fetch('/api/billing/asaas/checkout',{method:'POST',cache:'no-store',headers:{'Content-Type':'application/json',Authorization:`Bearer ${session.access_token}`},body:JSON.stringify({plan,cycle,method,name,cpf,consent:true})})
+        const r=await fetch('/api/billing/asaas/checkout',{method:'POST',cache:'no-store',headers:{'Content-Type':'application/json',Authorization:`Bearer ${session.access_token}`},body:JSON.stringify({plan,cycle,method,name,cpf,address:method==='card'?address:undefined,consent:true})})
         const d=await r.json()
-        if(d.attemptId||d.attempt){const a:AsaasAttempt=d.attempt||d;setAttempt(a);setUncertain(false);if(a.checkoutUrl?.startsWith('https://asaas.com/checkoutSession/show?id=')){window.location.assign(a.checkoutUrl);return}}
-        else if(r.status===422){setUncertain(false);throw new Error(t(18))}
+        if(d.attemptId||d.attempt){const a:AsaasAttempt=d.attempt||d;setAttempt(a);setUncertain(false);if(a.checkoutUrl?.startsWith('https://asaas.com/checkoutSession/show?id=')){window.location.assign(a.checkoutUrl);return}if(a.retryCard)setError(t(33))}
+        else if(r.status===422){setUncertain(false);throw new Error(d.error==='INVALID_BILLING_ADDRESS'?t(33):t(18))}
         else if(r.status===409||r.status===202){setError(t(16))}
         else{setError(t(19))}
         setSending(null);return
@@ -220,14 +226,15 @@ export default function EscolherPlanosParaContratar() {
         {attempt.state==='expired'?<><p>{t(24)}</p><Link href="/painel/suporte" style={{color:'#C9FA45'}}>{t(25)}</Link></>:attempt.paymentConfirmed?<><p>{attempt.renewalActive?t(13):t(14)}</p>{attempt.paidUntil&&<p>{t(17)} {new Date(attempt.paidUntil).toLocaleDateString(idioma,{timeZone:'America/Sao_Paulo'})}</p>}<Link href="/painel" style={{color:'#C9FA45'}}>{t(20)}</Link></>:<>
         {attempt.qrImage&&attempt.qrPayload&&<><p>{t(8)}</p><img alt="Pix QR Code" src={'data:image/png;base64,'+attempt.qrImage} style={{width:240,maxWidth:'100%',background:'#fff',padding:8}}/><p>{t(21)}: {attempt.expires}</p><textarea readOnly value={attempt.qrPayload} aria-label={t(9)} style={{...selectStyle,width:'100%',boxSizing:'border-box',height:75}}/><button type="button" style={{...btnStyle,background:'#C9FA45',color:'#0B0A10',border:0}} onClick={async()=>{try{await navigator.clipboard.writeText(attempt.qrPayload!);setCopied(true)}catch{setCopied(false)}}}>{copied?t(10):t(9)}</button></>}
         {attempt.checkoutUrl?.startsWith('https://asaas.com/checkoutSession/show?id=')&&<p><a href={attempt.checkoutUrl} style={{color:'#C9FA45'}}>{t(11)}</a></p>}
-        <button type="button" disabled={checking} style={{...btnStyle,background:'#21182D',color:'#C9FA45',border:'1px solid #9552F5'}} onClick={async()=>{setChecking(true);setError('');try{const {data:{session}}=await supabase.auth.getSession();if(!session)throw new Error(t(16));const r=await fetch('/api/billing/asaas/status',{method:'POST',headers:{Authorization:`Bearer ${session.access_token}`}});if(!r.ok)throw new Error(t(16));const d=await r.json();setAttempt(d.attempt||null);setUncertain(false)}catch{setError(t(16))}finally{setChecking(false)}}}>{checking?t(19):t(22)}</button>
-        <p role="status">{attempt.state==='review'?t(16):t(15)}</p></>}
+        {!retryCard&&<button type="button" disabled={checking} style={{...btnStyle,background:'#21182D',color:'#C9FA45',border:'1px solid #9552F5'}} onClick={async()=>{setChecking(true);setError('');try{const {data:{session}}=await supabase.auth.getSession();if(!session)throw new Error(t(16));const r=await fetch('/api/billing/asaas/status',{method:'POST',headers:{Authorization:`Bearer ${session.access_token}`}});if(!r.ok)throw new Error(t(16));const d=await r.json();setAttempt(d.attempt||null);setUncertain(false)}catch{setError(t(16))}finally{setChecking(false)}}}>{checking?t(19):t(22)}</button>}
+        <p role="status">{retryCard?t(32):attempt.state==='review'?t(16):t(15)}</p></>}
       </section>}
-      {market==='BR'&&allowed&&!attempt&&!uncertain&&!loading&&Object.values(quotes).some(q=>q?.checkoutEnabled)&&<section style={{background:'#21182D',padding:20,borderRadius:16,marginTop:16,display:'grid',gap:12}}>
+      {market==='BR'&&allowed&&(!attempt||retryCard)&&!uncertain&&!loading&&Object.values(quotes).some(q=>q?.checkoutEnabled)&&<section style={{background:'#21182D',padding:20,borderRadius:16,marginTop:16,display:'grid',gap:12}}>
         <h2 style={{fontSize:18,margin:0}}>{t(0)}</h2>
-        <div style={{display:'flex',gap:12,flexWrap:'wrap'}}>{(['card','pix'] as const).filter(m=>Object.values(quotes).some(q=>q?.methods?.[m])).map(m=><label key={m}><input type="radio" name="asaas-method" checked={method===m} disabled={!!sending} onChange={()=>setMethod(m)}/> {t(m==='card'?1:2)}</label>)}</div>
+        <div style={{display:'flex',gap:12,flexWrap:'wrap'}}>{(['card','pix'] as const).filter(m=>(!retryCard||m==='card')&&Object.values(quotes).some(q=>q?.methods?.[m])).map(m=><label key={m}><input type="radio" name="asaas-method" checked={method===m} disabled={!!sending} onChange={()=>setMethod(m)}/> {t(m==='card'?1:2)}</label>)}</div>
         <label>{t(3)}<input autoComplete="name" maxLength={150} value={name} onChange={e=>{setName(e.target.value);setConsent(false)}} style={{...selectStyle,display:'block',width:'100%',boxSizing:'border-box'}}/></label>
         <label>{t(4)}<input inputMode="numeric" maxLength={18} value={cpf} onChange={e=>{setCpf(e.target.value);setConsent(false)}} style={{...selectStyle,display:'block',width:'100%',boxSizing:'border-box'}}/></label>
+        {method==='card'&&<fieldset style={{border:'1px solid #564369',borderRadius:10,padding:12,display:'grid',gap:10,minWidth:0}}><legend>{t(26)}</legend><p style={{margin:0,fontSize:13,color:'#D4CADD'}}>{t(27)}</p>{addressFields.map((field,i)=><label key={field}>{t(34+i)}<input autoComplete={({phone:'tel-national',postalCode:'postal-code',address:'address-line1',addressNumber:'off',province:'address-level3'})[field]} inputMode={field==='phone'?'tel':field==='postalCode'?'numeric':'text'} maxLength={({phone:18,postalCode:9,address:150,addressNumber:20,province:100})[field]} value={address[field]} onChange={e=>{setAddress(v=>({...v,[field]:e.target.value}));setConsent(false)}} style={{...selectStyle,display:'block',width:'100%',boxSizing:'border-box'}}/></label>)}</fieldset>}
         <label><input type="checkbox" checked={consent} disabled={!method||!!sending} onChange={e=>setConsent(e.target.checked)}/> {t(5)}</label>
       </section>}
       {market==='BR'&&!loading&&allowed&&!attempt&&!Object.values(quotes).some(q=>q?.checkoutEnabled)&&<p role="status">{t(6)}</p>}
@@ -236,7 +243,7 @@ export default function EscolherPlanosParaContratar() {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(220px,1fr))', gap: 14, marginTop: 22 }}>
         {PLANS.filter(item => !confirm || item.code === preferred).map(item => {
           const q = quotes[item.code]
-          const canBuy = allowed && q?.checkoutEnabled === true && !loading && !sending && (market==='INTL'||!!method&&!!q.methods?.[method]&&consent&&name.trim().length>=3&&[11,14].includes(cpf.replace(/\D/g,'').length)&&!attempt&&!uncertain)
+          const canBuy = allowed && q?.checkoutEnabled === true && !loading && !sending && (market==='INTL'||!!method&&!!q.methods?.[method]&&consent&&name.trim().length>=3&&[11,14].includes(cpf.replace(/\D/g,'').length)&&canRetryPlan(item.code)&&!uncertain&&cardAddressOk)
           return <article key={item.code} style={{ background: '#21182D', border: item.code === preferred ? '1px solid #C9FA45' : '1px solid #483756', padding: 20, borderRadius: 17, display: 'flex', flexDirection: 'column', gap: 12 }}>
             <div style={{ fontSize: 11, fontWeight: 800, color: '#C9FA45', minHeight: 16 }}>{item.code === preferred ? textoCheckout(idioma, 35) : ''}</div>
             <h2 style={{ fontSize: 20, margin: 0 }}>{item.code === 'loja' ? textoCheckout(idioma, 67) : item.name}</h2>
@@ -247,7 +254,7 @@ export default function EscolherPlanosParaContratar() {
             <div style={{display:'flex',gap:10,flexWrap:'wrap',fontSize:12}}><Link target="_blank" href="/termos-de-uso" style={{color:'#C9FA45'}}>{textoCheckout(idioma, 64)}</Link><Link target="_blank" href="/politica-de-privacidade" style={{color:'#C9FA45'}}>{textoCheckout(idioma, 65)}</Link><Link target="_blank" href="/politica-de-reembolso" style={{color:'#C9FA45'}}>{textoCheckout(idioma, 66)}</Link></div>
             <button type="button" disabled={!canBuy} onClick={() => void checkout(item.code)}
               style={{ ...btnStyle, width: '100%', marginTop: 'auto', background: '#C9FA45', border: 0, color: '#0B0A10', opacity: canBuy ? 1 : .55, cursor: canBuy ? 'pointer' : 'not-allowed' }}>
-              {sending === item.code ? textoCheckout(idioma, 40) : market==='BR'&&!q?.checkoutEnabled ? t(6) : textoCheckout(idioma, 41)}
+              {sending === item.code ? (market==='BR'?t(28):textoCheckout(idioma, 40)) : market==='BR'&&!q?.checkoutEnabled ? t(6) : textoCheckout(idioma, 41)}
             </button>
           </article>
         })}
