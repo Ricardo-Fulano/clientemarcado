@@ -111,6 +111,7 @@ html,body{overflow-x:hidden;width:100%;max-width:100%}
 .destaque-desc-v2{display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden;font-size:10px;color:rgba(255,255,255,.85);text-shadow:0 1px 3px rgba(0,0,0,.5);margin:1px 0 2px}
 .destaque-titulo-v2{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;line-height:1.2;font-weight:700;font-size:12.5px;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.6);margin:0}
 .video-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;width:100%;max-width:100%;align-items:start}
+.video-scroll-vertical{display:flex;gap:10px;overflow-x:auto;scroll-snap-type:x mandatory;max-width:100%;padding-bottom:8px;margin-top:10px}.video-scroll-vertical>.video-card-v2{flex:0 0 clamp(108px,28%,190px);scroll-snap-align:start}
 .video-card-v2{position:relative;overflow:hidden;border-radius:16px;transition:transform .18s,box-shadow .18s,border-color .18s;box-sizing:border-box;width:100%;min-width:0}
 .video-card-v2:hover{transform:translateY(-4px);border-color:var(--accent)!important}
 .video-thumb-wrap-v2{position:relative;display:block;width:100%;aspect-ratio:16/9;overflow:hidden;text-decoration:none;background:#090909}
@@ -1186,7 +1187,7 @@ eventos && eventos.length > 0 && permiteAgendaEventos(perfil.plano_tipo) && (
                 <p style={{ fontSize: '20px', fontWeight: 900, color: 'var(--text)', letterSpacing: '-0.02em', marginBottom: secao.subtitulo ? '3px' : '12px' }}>{secao.titulo}</p>
                 {secao.subtitulo && <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '10px' }}>{secao.subtitulo}</p>}
                 <div className="video-grid">
-                  {secao.itens.map((v: any) => (
+                  {secao.itens.filter((v:any)=>v.formato!=='9:16').map((v: any) => (
                     <VideoItemCard key={v.id} v={v} thumb={thumbnailVideo(v)}
                       youtubeId={extrairYoutubeId(v.url_video)} iconeBorder={iconeBorder}
                       cardBorderFinal={cardBorderFinal} cardShadowNeon={cardShadowNeon}
@@ -1194,6 +1195,7 @@ eventos && eventos.length > 0 && permiteAgendaEventos(perfil.plano_tipo) && (
                       textoSaibaMais={t.saibaMais} labelPlaceholder={labelPlaceholder(v)} />
                   ))}
                 </div>
+                {secao.itens.some((v:any)=>v.formato==='9:16')&&<div className="video-scroll-vertical">{secao.itens.filter((v:any)=>v.formato==='9:16').map((v:any)=><VideoItemCard key={v.id} v={v} thumb={thumbnailVideo(v)} youtubeId={extrairYoutubeId(v.url_video)} iconeBorder={iconeBorder} cardBorderFinal={cardBorderFinal} cardShadowNeon={cardShadowNeon} tema={tema} iconeCor={iconeCor} textoAssistir={t.assistirVideo} textoSaibaMais={t.saibaMais} labelPlaceholder={labelPlaceholder(v)}/>)}</div>}
               </div>
             )) : (
               // O Free continua com o bloco fixo, um único YouTube e sem seções personalizadas.

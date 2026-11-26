@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState, type CSSProperties, type ReactNode } from 'react'
+import { reelUrl, formatoYoutube } from '../../lib/smart-import-vertical'
 import type { TemaTokens } from '../../lib/tema-publico'
 import { ChevronDown, ChevronLeft, ChevronRight, ChevronUp, Eye, Image as ImageIcon, LockKeyhole, Play, Sparkles, X } from 'lucide-react'
 
@@ -185,7 +186,7 @@ export default function PreviewInstagramPremium({ idioma, nome, slug, bio, fotoP
   // Sem publicacoes escolhidas, nao ampliamos o avatar circular como banner.
   const primeiroVisual = media.find(m => m.id === midiaCapaId && !!safeImage(m.imagem))
     || media.find(m => m.tipo.toUpperCase() !== 'VIDEO' && !!safeImage(m.imagem))
-    || media.find(m => !!safeImage(m.imagem))
+
   // A imagem local e temporaria: serve como capa no Premium ou avatar no Free.
   // Sem ela, mantemos a foto de perfil oficial e a capa selecionada no Instagram.
   const capa = fotoTesteUrl || safeImage(primeiroVisual?.imagem || '')
@@ -288,7 +289,8 @@ export default function PreviewInstagramPremium({ idioma, nome, slug, bio, fotoP
               <div style={{padding:'4px 11px 17px'}}>
                 <SectionLinks links={linksMostrar.filter(l => !linksSpotify.some(sp => sp.id===l.id))} tema={tokensTema} title={t.otherLinks}/>
                 {linksSpotify.length>0 && <section aria-label="Spotify" style={{marginTop:14,textAlign:'left'}}><div style={{fontSize:12,fontWeight:850,marginBottom:8,color:fore}}>Spotify</div>{linksSpotify.map(l => <div key={l.id} style={{marginBottom:10,borderRadius:12,overflow:'hidden',background:tokensTema.card}}><iframe title={`Spotify: ${l.titulo}`} loading="lazy" src={l.embed} width="100%" height="152" style={{border:0,display:'block'}} allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"/></div>)}</section>}
-                <Galeria media={media} tema={tokensTema} title={t.selectedMedia} empty={t.noMedia} footer={t.mediaNotSaved} layout={galeriaLayout} onLayoutChange={setGaleriaLayout} idioma={lang}/>
+                <Galeria media={media.filter(m=>m.tipo!=='VIDEO')} tema={tokensTema} title={t.selectedMedia} empty={t.noMedia} footer={t.mediaNotSaved} layout={galeriaLayout} onLayoutChange={setGaleriaLayout} idioma={lang}/>
+                {media.some(m=>m.tipo==='VIDEO'&&reelUrl(m.link))&&<section style={{marginTop:14,textAlign:'left'}}><strong style={{fontSize:12}}>Instagram Reels</strong><div style={{display:'flex',gap:7,overflowX:'auto',marginTop:8}}>{media.filter(m=>m.tipo==='VIDEO'&&reelUrl(m.link)).map(m=><div key={m.id} style={{flex:'0 0 38%',aspectRatio:'9/16',borderRadius:9,overflow:'hidden',background:tokensTema.card,position:'relative'}}>{safeImage(m.imagem)&&<img src={m.imagem} alt="" style={{width:'100%',height:'100%',objectFit:'cover'}}/>}<span style={{position:'absolute',bottom:5,left:5,color:'#fff',background:'#111b',padding:4,borderRadius:5}}>▶</span></div>)}</div></section>}
                 {videosMostrar.length>0 && <section aria-label="YouTube" style={{marginTop:16,textAlign:'left'}}>
                   <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:7,marginBottom:9}}>
                     <strong style={{fontSize:12,color:fore}}>YouTube</strong>
@@ -441,7 +443,7 @@ function YouTubeCard({video,tema,reproduzindo,onPlay,compact=false}:{video:Video
   const id = /^[a-zA-Z0-9_-]{11}$/.test(video.videoId) ? video.videoId : null
   const thumb = safeImage(video.miniatura)
   return <div style={{background:tema.card,border:`1px solid ${tema.cardBorder}`,borderRadius:12,overflow:'hidden'}}>
-    <div style={{aspectRatio:'16/9',position:'relative',background:'#111',overflow:'hidden'}}>
+    <div style={{aspectRatio:formatoYoutube(video.url)==='9:16'?'9/16':'16/9',position:'relative',background:'#111',overflow:'hidden'}}>
       {id && reproduzindo ? <iframe src={`https://www.youtube-nocookie.com/embed/${id}?autoplay=1&rel=0&playsinline=1`} title={video.titulo} loading="lazy" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture; web-share" allowFullScreen referrerPolicy="strict-origin-when-cross-origin" style={{width:'100%',height:'100%',border:0}}/> :
       <button type="button" disabled={!id} onClick={onPlay} aria-label={`Reproduzir ${video.titulo}`} style={{display:'block',width:'100%',height:'100%',border:0,background:'#111',padding:0,cursor:id?'pointer':'not-allowed',color:'#FFF',position:'relative'}}>
         {thumb && <img src={thumb} alt="" loading="lazy" style={{position:'absolute',inset:0,width:'100%',height:'100%',objectFit:'cover'}}/>}

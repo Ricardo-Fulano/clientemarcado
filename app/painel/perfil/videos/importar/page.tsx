@@ -2,6 +2,8 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { ArrowLeft, Search } from 'lucide-react'
+import { formatoYoutube, youtubeFormato, verticalCopy } from '../../../../lib/smart-import-vertical'
+import { useIdiomaGlobal } from '../../../../components/IdiomaProviderGlobal'
 import { supabase } from '../../../../lib/supabase'
 import { obterLimiteVideos, permiteAlbuns } from '../../../../lib/planos'
 import { guardarSmartImport, publicarSmartImportPendente, youtubeId } from '../../../../lib/smart-import-pendente'
@@ -12,6 +14,7 @@ const G = '#C9FA45'
 const botao = { background: G, border: 0, borderRadius: 10, padding: '11px 15px', color: '#0B0A10', fontWeight: 800, cursor: 'pointer' as const }
 
 export default function ImportarYoutubePainel() {
+  const {idioma}=useIdiomaGlobal();const vt=verticalCopy(idioma)
   const [canal, setCanal] = useState('')
   const [resultados, setResultados] = useState<Video[]>([])
   const [selecionados, setSelecionados] = useState<string[]>([])
@@ -94,11 +97,11 @@ export default function ImportarYoutubePainel() {
         }
       }
       for (const video of escolhidos) {
-        if (!/^https:\/\/www\.youtube\.com\/watch\?v=[a-zA-Z0-9_-]{11}$/.test(video.url)) continue
+        if(video.url!==youtubeFormato(video.videoId,false)&&video.url!==youtubeFormato(video.videoId,true)) continue
         if (urls.has(video.videoId)) { duplicados++; continue }
         if (total >= maximo) break
         const { error } = await supabase.from('pagina_videos').insert({
-          user_id: userId, titulo: video.titulo.slice(0,160), url_video: video.url,
+          user_id: userId, titulo: video.titulo.slice(0,160), url_video: youtubeFormato(video.videoId,false),
           thumbnail_url: video.miniatura, plataforma:'youtube', formato:'16:9', ativo: true, ordem: total,
           ...(secaoId ? {secao_id:secaoId} : {})
         })
@@ -129,10 +132,10 @@ export default function ImportarYoutubePainel() {
         {!!resultados.length && <>
           <p style={{fontSize:13,color:'#C5BCD1',marginBottom:12}}>Selecione até {limite === 4 ? '4' : limite} vídeo(s) nesta importação. Os vídeos existentes não serão removidos.</p>
           <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(210px,1fr))',gap:12}}>
-            {resultados.map(v=><button type="button" key={v.videoId} onClick={()=>setSelecionados(prev=>prev.includes(v.videoId)?prev.filter(id=>id!==v.videoId):prev.length<limite?[...prev,v.videoId]:prev)} aria-pressed={selecionados.includes(v.videoId)} style={{textAlign:'left',padding:0,background:'#21182D',color:'#fff',border:selecionados.includes(v.videoId)?'2px solid #C9FA45':'1px solid #40344B',borderRadius:12,overflow:'hidden',cursor:'pointer'}}>
-              <div style={{position:'relative',aspectRatio:'16 / 9',background:'#100A16'}}><img src={v.miniatura} alt="" loading="lazy" style={{width:'100%',height:'100%',objectFit:'cover'}}/><span style={{position:'absolute',top:8,right:8,background:selecionados.includes(v.videoId)?'#C9FA45':'rgba(0,0,0,.72)',color:selecionados.includes(v.videoId)?'#0B0A10':'#FFFFFF',borderRadius:7,padding:'4px 7px',fontSize:12,fontWeight:800}}>{selecionados.includes(v.videoId)?'✓ Selecionado':'Selecionar'}</span></div>
+            {resultados.map(v=><div key={v.videoId} style={{minWidth:0}}><button type="button" onClick={()=>setSelecionados(prev=>prev.includes(v.videoId)?prev.filter(id=>id!==v.videoId):prev.length<limite?[...prev,v.videoId]:prev)} aria-pressed={selecionados.includes(v.videoId)} style={{width:'100%',textAlign:'left',padding:0,background:'#21182D',color:'#fff',border:selecionados.includes(v.videoId)?'2px solid #C9FA45':'1px solid #40344B',borderRadius:12,overflow:'hidden',cursor:'pointer'}}>
+              <div style={{position:'relative',aspectRatio:formatoYoutube(v.url)==='9:16'?'9 / 16':'16 / 9',background:'#100A16'}}><img src={v.miniatura} alt="" loading="lazy" style={{width:'100%',height:'100%',objectFit:'cover'}}/><span style={{position:'absolute',top:8,right:8,background:selecionados.includes(v.videoId)?'#C9FA45':'rgba(0,0,0,.72)',color:selecionados.includes(v.videoId)?'#0B0A10':'#FFFFFF',borderRadius:7,padding:'4px 7px',fontSize:12,fontWeight:800}}>{selecionados.includes(v.videoId)?'✓ Selecionado':'Selecionar'}</span></div>
               <p style={{fontSize:13,fontWeight:700,lineHeight:1.4,padding:'10px 12px',minHeight:57}}>{v.titulo}</p>
-            </button>)}
+            </button>{permiteAlbuns(plano)&&<label style={{display:'flex',gap:6,fontSize:12,marginTop:6}}><input type="checkbox" checked={formatoYoutube(v.url)==='9:16'} onChange={e=>setResultados(prev=>prev.map(x=>x.videoId===v.videoId?{...x,url:youtubeFormato(x.videoId,e.target.checked)}:x))}/>{vt.short}</label>}</div>)}
           </div>
           <button type="button" disabled={!selecionados.length||salvando} onClick={()=>void salvar()} style={{...botao,opacity:(!selecionados.length || salvando) ? 0.55 : 1,marginTop:20}}>{salvando?'Importando…':`Adicionar ${selecionados.length} vídeo(s) à minha MiniPage`}</button>
         </>}

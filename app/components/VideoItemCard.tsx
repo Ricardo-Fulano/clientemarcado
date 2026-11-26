@@ -11,7 +11,7 @@ import { PlayCircle } from 'lucide-react'
 export default function VideoItemCard({
   v, thumb, youtubeId, iconeBorder, cardBorderFinal, cardShadowNeon, tema, iconeCor, textoAssistir, textoSaibaMais, labelPlaceholder,
 }: {
-  v: { id: string; titulo: string; descricao?: string; url_video: string; link_destino?: string; texto_cta?: string; texto_botao_video?: string; abrir_nova_aba?: boolean }
+  v: { id: string; titulo: string; formato?:string; descricao?: string; url_video: string; link_destino?: string; texto_cta?: string; texto_botao_video?: string; abrir_nova_aba?: boolean }
   thumb: string
   youtubeId: string | null
   iconeBorder: string
@@ -37,7 +37,7 @@ export default function VideoItemCard({
   return (
     <>
       <div className="crd video-card-v2" style={{ border: cardBorderFinal, boxShadow: cardShadowNeon }}>
-        <a href={v.url_video} target={v.abrir_nova_aba === false ? '_self' : '_blank'} rel="noopener noreferrer" className="video-thumb-wrap-v2" onClick={abrirCard} data-track-tipo="video_click" data-track-item-id={v.id} data-track-item-titulo={v.titulo || ''} data-track-item-url={v.url_video}>
+        <a href={v.url_video} target={v.abrir_nova_aba === false ? '_self' : '_blank'} rel="noopener noreferrer" className="video-thumb-wrap-v2" style={{aspectRatio:v.formato==='9:16'?'9/16':'16/9'}} onClick={abrirCard} data-track-tipo="video_click" data-track-item-id={v.id} data-track-item-titulo={v.titulo || ''} data-track-item-url={v.url_video}>
           {thumb ? (
             <>
               <img src={thumb} alt="" aria-hidden="true" className="video-thumb-bg-v2" loading="lazy" decoding="async" />
@@ -68,7 +68,7 @@ export default function VideoItemCard({
 
       {modalAberto && (
         <div onClick={() => setModalAberto(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.78)', zIndex: 60, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
-          <div onClick={e => e.stopPropagation()} style={{ width: '100%', maxWidth: '640px', position: 'relative' }}>
+          <div onClick={e => e.stopPropagation()} style={{ width: '100%', maxWidth: v.formato==='9:16'?'min(350px, 42dvh)':'640px', position: 'relative' }}>
             <button
               type="button"
               onClick={() => setModalAberto(false)}
@@ -77,7 +77,7 @@ export default function VideoItemCard({
             >
               ✕
             </button>
-            <div style={{ position: 'relative', width: '100%', aspectRatio: '16/9', borderRadius: '16px', overflow: 'hidden', background: '#000' }}>
+            <div style={{ position: 'relative', width: '100%', aspectRatio: v.formato==='9:16'?'9/16':'16/9', borderRadius: '16px', overflow: 'hidden', background: '#000' }}>
               {playerCarregado ? (
                 <iframe
                   src={`https://www.youtube.com/embed/${youtubeId}?autoplay=1`}

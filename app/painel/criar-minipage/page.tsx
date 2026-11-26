@@ -1,6 +1,7 @@
 'use client'
 import { useState, useEffect, useRef } from 'react'
 import { supabase } from '../../lib/supabase'
+import { reelUrl, formatoYoutube, youtubeFormato, verticalCopy } from '../../lib/smart-import-vertical'
 import { guardarSmartImport } from '../../lib/smart-import-pendente'
 import { textoCheckout } from '../../lib/i18n-global/checkout-copy'
 import { destinoCheckoutOnboarding } from '../../lib/billing/destino-checkout-onboarding'
@@ -1278,16 +1279,17 @@ export default function CriarMiniPage() {
 
     // A seleção Premium não depende do plano ainda Free durante o checkout.
     // Armazena os bytes autorizados antes que os tickets de Instagram expirem.
-    const prepararPremium = !!stripeDesejado || permiteAlbuns(planoParaPublicar)
+    // Guardar as escolhas do usuário também ao publicar Free, para um upgrade futuro.
     const fotosEscolhidas = igMidias.filter(m => igMidiasSelecionadas.includes(m.id) &&
       ['IMAGE','CAROUSEL_ALBUM'].includes(m.tipo) && /^\d+$/.test(m.id) && (!igDiscovery || !!m.downloadTicket))
+    const reelsEscolhidos=igMidias.filter(m=>igMidiasSelecionadas.includes(m.id)&&m.tipo==='VIDEO'&&reelUrl(m.link))
     const videosEscolhidos = youtubeSelecionados.map(id=>youtubeResultados.find(v=>v.videoId===id)).filter((v):v is YoutubeImportItem=>!!v)
     const capaEscolhida = fotosEscolhidas.find(m=>m.id===igMidiaCapaId)?.id || fotosEscolhidas[0]?.id || null
     let rascunhoSalvo=false
     let rascunhoFalhou=false
     setFalhaRascunho(false)
-    if(prepararPremium && (fotosEscolhidas.length || videosEscolhidos.length)) {
-      try { rascunhoSalvo=await guardarSmartImport(userId,videosEscolhidos,fotosEscolhidas,capaEscolhida) }
+    if(fotosEscolhidas.length || videosEscolhidos.length || reelsEscolhidos.length) {
+      try { rascunhoSalvo=await guardarSmartImport(userId,videosEscolhidos,fotosEscolhidas,capaEscolhida,reelsEscolhidos) }
       catch { rascunhoFalhou=true;setFalhaRascunho(true) }
     }
     // Importacao autorizada: cada video foi selecionado explicitamente no assistente.
@@ -1307,18 +1309,19 @@ export default function CriarMiniPage() {
       let totalVideosPublicados = (videosExistentes || []).length
       for (const [indice, video] of escolhidos.entries()) {
         if (totalVideosPublicados >= limiteVideosParaPublicar) break
-        if (!/^https:\/\/www\.youtube\.com\/watch\?v=[a-zA-Z0-9_-]{11}$/.test(video.url)) continue
-        if (urlsExistentes.has(video.url)) continue
+        if (video.url!==youtubeFormato(video.videoId,false)&&video.url!==youtubeFormato(video.videoId,true)) continue
+        const urlFree=youtubeFormato(video.videoId,false)
+        if (urlsExistentes.has(urlFree)) continue
         const { error: erroSalvarVideo } = await supabase.from('pagina_videos').insert({
           user_id: userId, titulo: video.titulo.slice(0, 160),
-          url_video: video.url, thumbnail_url: video.miniatura,
+          url_video: urlFree, thumbnail_url: video.miniatura,
           plataforma: 'youtube', formato: '16:9',
           ativo: true, ordem: indice,
         })
         if (erroSalvarVideo) {
           throw erroSalvarVideo
         }
-        urlsExistentes.add(video.url)
+        urlsExistentes.add(urlFree)
         totalVideosPublicados++
         videosImportados++
       }
@@ -1354,7 +1357,7 @@ export default function CriarMiniPage() {
     }
 
     // Fotos Premium ficam privadas até a ativação e são transferidas para os álbuns existentes.
-    const resumoInstagram = rascunhoSalvo ? `${fotosEscolhidas.length} fotos e ${videosEscolhidos.length} vídeos reservados para publicação após ativação` :
+    const resumoInstagram = rascunhoSalvo ? `${fotosEscolhidas.length} fotos, ${reelsEscolhidos.length} Reels e ${videosEscolhidos.length} vídeos reservados para publicação após ativação` :
       rascunhoFalhou ? '' : fotosEscolhidas.length ? 'Fotos do Instagram disponíveis a partir do plano MiniPage' : ''
 
     // Publicação construída exclusivamente com os dados informados pelo assinante.
@@ -1528,7 +1531,7 @@ export default function CriarMiniPage() {
                   <div style={{display:'grid',gridTemplateColumns:'repeat(3,minmax(0,1fr))',gap:7}}>{igMidias.map(m=>{
                     const escolhida=igMidiasSelecionadas.includes(m.id)
                     return <div key={m.id} style={{position:'relative',minWidth:0}}>
-                      <button type="button" disabled={!['IMAGE','CAROUSEL_ALBUM'].includes(m.tipo)||(igDiscovery&&!m.downloadTicket)} aria-pressed={escolhida} aria-label={`${escolhida?'Remover':'Selecionar'} ${m.tipo==='VIDEO'?'vídeo':'foto'} ${m.legenda||m.id}`} onClick={()=>setIgMidiasSelecionadas(atual=>atual.includes(m.id)?atual.filter(id=>id!==m.id):[...atual,m.id])} style={{display:'block',width:'100%',aspectRatio:'1',border:escolhida?'3px solid #C9FA45':'2px solid #524462',background:'#271C34',borderRadius:8,overflow:'hidden',position:'relative',padding:0,cursor:'pointer'}}>
+                      <button type="button" disabled={m.tipo==='VIDEO'?!reelUrl(m.link):!['IMAGE','CAROUSEL_ALBUM'].includes(m.tipo)||(igDiscovery&&!m.downloadTicket)} aria-pressed={escolhida} aria-label={`${escolhida?'Remover':'Selecionar'} ${m.tipo==='VIDEO'?'vídeo':'foto'} ${m.legenda||m.id}`} onClick={()=>setIgMidiasSelecionadas(atual=>atual.includes(m.id)?atual.filter(id=>id!==m.id):[...atual,m.id])} style={{display:'block',width:'100%',aspectRatio:'1',border:escolhida?'3px solid #C9FA45':'2px solid #524462',background:'#271C34',borderRadius:8,overflow:'hidden',position:'relative',padding:0,cursor:'pointer'}}>
                         {m.imagem?<img src={m.imagem} alt={m.legenda||'Publicação do Instagram'} style={{width:'100%',height:'100%',objectFit:'cover'}}/>:<span style={{color:'#DAD1EB',fontSize:12,padding:8,display:'block'}}>{ti.post}</span>}
                         <span aria-hidden="true" style={{position:'absolute',top:6,right:6,background:escolhida?'#C9FA45':'#15101EDD',color:escolhida?'#102000':'white',borderRadius:99,width:25,height:25,display:'grid',placeItems:'center',fontWeight:800}}>{escolhida?'✓':'+'}</span>
                         {m.tipo.toUpperCase()==='VIDEO'&&<span aria-hidden="true" style={{position:'absolute',left:5,bottom:5,padding:'3px 6px',borderRadius:5,background:'#111A',color:'#FFF',fontSize:10}}>▶ Vídeo</span>}
@@ -1661,16 +1664,16 @@ export default function CriarMiniPage() {
                 {youtubeResultados.length > 0 && <>
                   <p style={{fontSize:12,color:'#C9FA45',margin:'12px 0 8px'}}>{tx.selected}: {youtubeSelecionados.length}/4. {tx.freeOneVideo}</p>
                   <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(140px,1fr))',gap:10}}>
-                    {youtubeResultados.map(video => <button key={video.videoId} type="button" onClick={() => alternarVideoYouTube(video.videoId)}
+                    {youtubeResultados.map(video => <div key={video.videoId} style={{minWidth:0}}><button type="button" onClick={() => alternarVideoYouTube(video.videoId)}
                       aria-pressed={youtubeSelecionados.includes(video.videoId)}
-                      style={{padding:8,textAlign:'left',background:'#20182A',border:`2px solid ${youtubeSelecionados.includes(video.videoId)?'#C9FA45':'#51405F'}`,borderRadius:10,color:'#F8F4F7',cursor:'pointer'}}>
-                      <span style={{display:'block',position:'relative',width:'100%',aspectRatio:'16/9',overflow:'hidden',borderRadius:8,background:'#0B0A10'}}>
+                      style={{width:'100%',padding:8,textAlign:'left',background:'#20182A',border:`2px solid ${youtubeSelecionados.includes(video.videoId)?'#C9FA45':'#51405F'}`,borderRadius:10,color:'#F8F4F7',cursor:'pointer'}}>
+                      <span style={{display:'block',position:'relative',width:'100%',aspectRatio:formatoYoutube(video.url)==='9:16'?'9/16':'16/9',overflow:'hidden',borderRadius:8,background:'#0B0A10'}}>
                         <img src={video.miniatura} alt="" loading="lazy" style={{position:'absolute',inset:0,width:'100%',height:'100%',objectFit:'cover'}} />
                         <span aria-label="YouTube" style={{position:'absolute',top:7,left:7,display:'grid',placeItems:'center',width:25,height:25,background:'#FFFFFF',color:'#FF0033',borderRadius:'50%',fontSize:12,fontWeight:900,boxShadow:'0 1px 6px rgba(0,0,0,.3)'}}><svg width="17" height="17" viewBox="0 0 28 24" aria-hidden="true"><rect x="1" y="3" width="26" height="18" rx="5.5" fill="#FF0033"/><path d="M11 8.2L19 12L11 15.8Z" fill="#FFFFFF"/></svg></span>
                         {youtubeSelecionados.includes(video.videoId) && <span style={{position:'absolute',top:7,right:7,background:'#C9FA45',color:'#15180D',borderRadius:6,padding:'2px 6px',fontSize:11,fontWeight:900}}>✓</span>}
                         <span style={{position:'absolute',bottom:0,left:0,right:0,padding:'24px 8px 8px',background:'linear-gradient(transparent,rgba(0,0,0,.92))',color:'#FFF',textAlign:'center',fontSize:11,fontWeight:800,lineHeight:1.3,display:'-webkit-box',WebkitBoxOrient:'vertical',WebkitLineClamp:2,overflow:'hidden',overflowWrap:'anywhere'}} title={video.titulo}>{video.titulo}</span>
                       </span>
-                    </button>)}
+                    </button><label style={{display:'flex',gap:5,alignItems:'center',fontSize:11,color:'#DDD',marginTop:6}}><input type="checkbox" checked={formatoYoutube(video.url)==='9:16'} onChange={e=>setYoutubeResultados(prev=>prev.map(v=>v.videoId===video.videoId?{...v,url:youtubeFormato(v.videoId,e.target.checked)}:v))}/>{verticalCopy(idioma).short}</label></div>)}
                   </div>
                 </>}
                 {videosExcedentesFree && <p role="status" style={{color:'#F6CFFF',fontSize:12,marginTop:11}}>{tx.upgradeVideos}</p>}

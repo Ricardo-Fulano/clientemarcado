@@ -68,7 +68,7 @@ export async function POST(req:NextRequest) {
         const id=txt(m.id,40), tipo=txt(m.media_type,30), link=safePost(m.permalink)
         if(!/^\d{5,40}$/.test(id)||!link||!['IMAGE','CAROUSEL_ALBUM','VIDEO'].includes(tipo)) return []
         const imagem=safeImage(tipo==='VIDEO'?m.thumbnail_url:m.media_url)
-        return [{id,tipo,link,imagem,legenda:txt(m.caption,160),downloadTicket:tipo==='VIDEO'?'':ticket(user.id,imagem,'media')}]
+        return [{id,tipo,link,imagem,legenda:txt(m.caption,160),downloadTicket:ticket(user.id,imagem,'media')}]
       })
       return NextResponse.json({perfil:{username:handle,nome:txt(profile.name,120),bio:txt(profile.biography,500),foto,seguidores:typeof profile.followers_count==='number'&&Number.isSafeInteger(profile.followers_count)?profile.followers_count:null,website:safeSite(profile.website),downloadTicket:ticket(user.id,foto,'photo')},midias},{headers})
     } finally {release()}
