@@ -25,6 +25,15 @@ function chaveOnboarding(userId: string) {
 }
 
 const G = '#C9FA45'
+const AVISO_VIDEO_OPCIONAL: Record<string, string> = {
+  'pt-BR': 'Sua página foi salva. Não foi possível importar todos os vídeos permitidos pelo plano atual. Você pode continuar para o pagamento e adicionar os vídeos no painel depois.',
+  'en-US': 'Your page was saved. Some videos allowed by your current plan could not be imported. You can continue to payment and add the videos in your dashboard later.',
+  'es-ES': 'Tu página se ha guardado. No se pudieron importar todos los vídeos permitidos por tu plan actual. Puedes continuar al pago y añadir los vídeos en el panel después.',
+  'fr-FR': 'Votre page est enregistrée. Certains clips autorisés par votre forfait actuel n’ont pas pu être importés. Vous pouvez poursuivre le paiement et les ajouter dans votre tableau de bord.',
+  'it-IT': 'La pagina è stata salvata. Non è stato possibile importare tutti i video consentiti dal piano attuale. Puoi proseguire al pagamento e aggiungerli dal pannello in seguito.',
+  'de-DE': 'Deine Seite wurde gespeichert. Nicht alle Videos deines aktuellen Tarifs konnten importiert werden. Du kannst mit der Zahlung fortfahren und die Videos später im Dashboard hinzufügen.',
+}
+
 const TEXTOS_ASSISTENTE = {
   "pt-BR": {
     "introTitle": "Vamos colocar sua MiniPage no ar",
@@ -588,6 +597,7 @@ export default function CriarMiniPage() {
   const [msg, setMsg] = useState('')
   const [concluido, setConcluido] = useState(false)
   const [resumoFinal, setResumoFinal] = useState<string[]>([])
+  const [avisoVideoOpcional, setAvisoVideoOpcional] = useState(false)
   const [previewMobileAberta, setPreviewMobileAberta] = useState(true)
   const [modoPrevia, setModoPrevia] = useState<'premium'|'free'>('premium')
   const [objetivo, setObjetivo] = useState<'pessoal' | 'criador' | 'negocio' | null>(null)
@@ -1267,14 +1277,13 @@ export default function CriarMiniPage() {
     // Importacao autorizada: cada video foi selecionado explicitamente no assistente.
     // Nunca sobrescrever videos antigos. Consulta previa evita repeticoes entre sessoes.
     let videosImportados = 0
+    let videoOpcionalFalhou = false
+    try {
     if (youtubeSelecionados.length > 0 && limiteVideosParaPublicar > 0) {
       const { data: videosExistentes, error: erroVideos } = await supabase.from('pagina_videos')
         .select('url_video').eq('user_id', userId)
       if (erroVideos) {
-        setMsg('Não foi possível conferir os vídeos existentes: ' + erroVideos.message)
-        setSalvando(false)
-        setEtapaIndex(etapasAtivas.indexOf('links'))
-        return
+        throw erroVideos
       }
       const urlsExistentes = new Set((videosExistentes || []).map((v: {url_video: string | null}) => v.url_video || ''))
       const escolhidos = youtubeSelecionados.slice(0, limiteVideosParaPublicar).map(id => youtubeResultados.find(v => v.videoId === id))
@@ -1286,8 +1295,7 @@ export default function CriarMiniPage() {
         const {data: secoes, error: erroSecoes} = await supabase.from('pagina_videos_secoes')
           .select('id').eq('user_id',userId).eq('ativo',true).order('ordem',{ascending:true}).limit(1)
         if (erroSecoes) {
-          setMsg('Não foi possível verificar a seção de vídeos: ' + erroSecoes.message)
-          setSalvando(false);setEtapaIndex(etapasAtivas.indexOf('links'));return
+          throw erroSecoes
         }
         secaoId = secoes?.[0]?.id || null
         if (!secaoId) {
@@ -1295,8 +1303,7 @@ export default function CriarMiniPage() {
             user_id:userId,titulo:'Vídeos do YouTube',subtitulo:null,ativo:true,ordem:0,
           }).select('id').single()
           if (erroCriarSecao || !secao) {
-            setMsg('Não foi possível criar a seção de vídeos: ' + (erroCriarSecao?.message || 'sem retorno'))
-            setSalvando(false);setEtapaIndex(etapasAtivas.indexOf('links'));return
+            throw erroCriarSecao || new Error('VIDEO_SECTION_MISSING')
           }
           secaoId = secao.id
         }
@@ -1309,18 +1316,21 @@ export default function CriarMiniPage() {
         const { error: erroSalvarVideo } = await supabase.from('pagina_videos').insert({
           user_id: userId, titulo: video.titulo.slice(0, 160),
           url_video: video.url, thumbnail_url: video.miniatura,
+          plataforma: 'youtube', formato: '16:9',
           ativo: true, ordem: indice, ...(secaoId ? {secao_id:secaoId} : {}),
         })
         if (erroSalvarVideo) {
-          setMsg('Os links foram salvos, mas a importação do YouTube falhou: ' + erroSalvarVideo.message)
-          setSalvando(false)
-          setEtapaIndex(etapasAtivas.indexOf('links'))
-          return
+          throw erroSalvarVideo
         }
         urlsExistentes.add(video.url)
         totalVideosPublicados++
         videosImportados++
       }
+    }
+    } catch {
+      // Mídia opcional: não desfazer perfil/links salvos nem impedir contratação.
+      // Não contornar os limites nem as validações do banco.
+      videoOpcionalFalhou = true
     }
 
     // Destaque: so salva se o titulo foi preenchido (nunca cria destaque vazio/ficticio). Se
@@ -1417,11 +1427,11 @@ export default function CriarMiniPage() {
 
     // Publicação construída exclusivamente com os dados informados pelo assinante.
     // Não aplica templates, imagens, vídeos ou produtos fictícios.
-    concluirOnboarding(slugFmt, linksSalvos, destaqueSalvo, false, videosImportados, resumoInstagram)
+    concluirOnboarding(slugFmt, linksSalvos, destaqueSalvo, false, videosImportados, resumoInstagram, videoOpcionalFalhou)
   }
 
   // So marca o onboarding como visto quando ele REALMENTE conclui (nunca na falha tecnica do modelo: se o cliente sair, reabre e tenta de novo).
-  function concluirOnboarding(slugFmt: string, linksSalvos: number, destaqueSalvo: boolean, aplicouModelo: boolean, videosImportados = 0, resumoInstagram = '') {
+  function concluirOnboarding(slugFmt: string, linksSalvos: number, destaqueSalvo: boolean, aplicouModelo: boolean, videosImportados = 0, resumoInstagram = '', videoOpcionalFalhou = false) {
     setSlug(slugFmt)
     setSlugOriginal(slugFmt)
     try { localStorage.setItem(chaveOnboarding(userId), '1') } catch { /* localStorage indisponivel */ }
@@ -1432,6 +1442,7 @@ export default function CriarMiniPage() {
     if (videosImportados > 0) resumo.push(`${videosImportados} vídeos do YouTube`)
     if (resumoInstagram) resumo.push(resumoInstagram)
     setResumoFinal(resumo)
+    setAvisoVideoOpcional(videoOpcionalFalhou)
     setModeloAplicado(aplicouModelo)
     setErroModelo(false)
     setSalvando(false)
@@ -1442,7 +1453,7 @@ export default function CriarMiniPage() {
       try { sessionStorage.setItem('mp_checkout_saved_' + userId, JSON.stringify({
         slug:slugFmt,plano:stripeDesejado.plano,ciclo:stripeDesejado.ciclo,pais:stripeDesejado.pais
       })) } catch { /* A MiniPage já está salva. */ }
-      window.location.assign(destinoCheckoutOnboarding(stripeDesejado.plano,stripeDesejado.ciclo,stripeDesejado.pais))
+      if (!videoOpcionalFalhou) window.location.assign(destinoCheckoutOnboarding(stripeDesejado.plano,stripeDesejado.ciclo,stripeDesejado.pais))
     }
   }
 
@@ -1910,6 +1921,8 @@ export default function CriarMiniPage() {
                     <p key={r} style={{ fontSize: '12.5px', color: '#B8AAB8' }}>✓ {r}</p>
                   ))}
                 </div>
+
+                {avisoVideoOpcional && <p role="status" style={{color:'#F6E2AF',background:'#241D14',border:'1px solid #746136',borderRadius:12,padding:12,fontSize:13,lineHeight:1.6,marginBottom:16}}>{AVISO_VIDEO_OPCIONAL[idioma] || AVISO_VIDEO_OPCIONAL['pt-BR']}</p>}
 
                 {planoTipo==='free' && <div style={{border:'1px solid #4A3D54',borderRadius:14,background:'#15101F',padding:16,marginBottom:18}}>
                   {stripeDesejado ? (
