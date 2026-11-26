@@ -17,7 +17,7 @@ export default function PaginaVideos(){
       if(error||!data){setAcesso('erro');return}
       const plano=(data.plano_tipo||'').trim().toLowerCase()
       const status=(data.status_acesso||'ativo').trim().toLowerCase()
-      setAcesso(['minipage','loja','essencial','equipe'].includes(plano) && !['aguardando_pagamento','bloqueado','cancelado'].includes(status)?'pago':'free')
+      setAcesso(['minipage','agenda','loja','essencial','equipe'].includes(plano) && !['aguardando_pagamento','bloqueado','cancelado'].includes(status)?'pago':'free')
     }
     void carregar()
     return()=>{ativo=false}

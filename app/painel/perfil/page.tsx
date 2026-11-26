@@ -315,7 +315,7 @@ export default function Perfil(){
         return mapa
       }
       setAtivosPorSecao({destaques:contarAtivos(dst,errDst),cards:contarAtivos(itensC,errItensC),videos:contarAtivos(vid,null)})
-      setOrdemSecoes(resolverOrdemPagina(ordemSalva,{destaques:secD.map((s:any)=>s.id),cards:secC.map((s:any)=>s.id),videos:secV.filter((s:any)=>["minipage","loja","essencial","equipe"].includes(String(p.plano_tipo||"").trim().toLowerCase())).map((s:any)=>s.id)},{incluirGrupoVazio:true}).map(b=>b.chave))
+      setOrdemSecoes(resolverOrdemPagina(ordemSalva,{destaques:secD.map((s:any)=>s.id),cards:secC.map((s:any)=>s.id),videos:secV.filter((s:any)=>["minipage","agenda","loja","essencial","equipe"].includes(String(p.plano_tipo||"").trim().toLowerCase())).map((s:any)=>s.id)},{incluirGrupoVazio:true}).map(b=>b.chave))
     }
     setOrdemPronta(true)
   }
@@ -478,7 +478,7 @@ export default function Perfil(){
 
       if(!secao||secao.ativo!==true){
         etiqueta='oculta na página'
-      }else if(!['minipage','loja','essencial','equipe'].includes(String(planoTipo||'').trim().toLowerCase())){
+      }else if(!['minipage','agenda','loja','essencial','equipe'].includes(String(planoTipo||'').trim().toLowerCase())){
         etiqueta='indisponível no seu plano'
       }else if(ativos&&(ativos[id]||0)===0){
         etiqueta='sem vídeos ativos, oculta'

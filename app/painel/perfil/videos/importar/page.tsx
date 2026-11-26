@@ -3,7 +3,8 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { ArrowLeft, Search } from 'lucide-react'
 import { supabase } from '../../../../lib/supabase'
-import { obterLimiteVideos } from '../../../../lib/planos'
+import { obterLimiteVideos, permiteAlbuns } from '../../../../lib/planos'
+import { guardarSmartImport, publicarSmartImportPendente, youtubeId } from '../../../../lib/smart-import-pendente'
 import PainelSidebar from '@/app/components/PainelSidebar'
 
 type Video = { videoId: string; titulo: string; miniatura: string; url: string }
@@ -62,12 +63,20 @@ export default function ImportarYoutubePainel() {
       const { data: perfil, error: erroPlano } = await supabase.from('perfis').select('plano_tipo').eq('user_id',userId).maybeSingle()
       if (erroPlano || !perfil) throw new Error('Não foi possível verificar seu plano.')
       const planoAtual = String(perfil.plano_tipo || 'free')
+      if (permiteAlbuns(planoAtual)) {
+        const escolhidos=resultados.filter(v=>selecionados.includes(v.videoId))
+        await guardarSmartImport(userId,escolhidos,[],null)
+        await publicarSmartImportPendente(userId)
+        setSelecionados([])
+        setMensagem('Seleção processada. Confira seus vídeos; os já existentes foram preservados.')
+        return
+      }
       const maximo = obterLimiteVideos(planoAtual)
       const { data: anteriores, error: erroAnterior } = await supabase.from('pagina_videos')
         .select('url_video').eq('user_id',userId)
       if (erroAnterior) throw new Error('Não foi possível verificar vídeos existentes.')
       let total = anteriores?.length || 0
-      const urls = new Set((anteriores || []).map((v: { url_video: string | null })=>v.url_video || ''))
+      const urls = new Set((anteriores || []).map((v: { url_video: string | null })=>youtubeId(v.url_video)))
       if (total >= maximo) throw new Error('Seu plano já atingiu o limite de vídeos. Gerencie os vídeos existentes ou consulte os planos.')
       const escolhidos = resultados.filter(v=>selecionados.includes(v.videoId))
       let secaoId: string | null = null
@@ -86,17 +95,17 @@ export default function ImportarYoutubePainel() {
       }
       for (const video of escolhidos) {
         if (!/^https:\/\/www\.youtube\.com\/watch\?v=[a-zA-Z0-9_-]{11}$/.test(video.url)) continue
-        if (urls.has(video.url)) { duplicados++; continue }
+        if (urls.has(video.videoId)) { duplicados++; continue }
         if (total >= maximo) break
         const { error } = await supabase.from('pagina_videos').insert({
           user_id: userId, titulo: video.titulo.slice(0,160), url_video: video.url,
-          thumbnail_url: video.miniatura, ativo: true, ordem: total,
+          thumbnail_url: video.miniatura, plataforma:'youtube', formato:'16:9', ativo: true, ordem: total,
           ...(secaoId ? {secao_id:secaoId} : {})
         })
         if (error) throw new Error('Não foi possível salvar um dos vídeos: ' + error.message)
         incluidos++
         total++
-        urls.add(video.url)
+        urls.add(video.videoId)
       }
       setSelecionados([])
       setMensagem(`${incluidos} vídeo(s) adicionado(s).${duplicados ? ` ${duplicados} já existente(s) ignorado(s).` : ''}`)

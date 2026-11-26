@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { ArrowLeft, ArrowUp, ArrowDown } from 'lucide-react'
 import { supabase } from '../../../lib/supabase'
+import { organizarVideosSemSecao } from '../../../lib/smart-import-pendente'
 import PainelSidebar from '@/app/components/PainelSidebar'
 import VerMiniPageButton from '@/app/components/VerMiniPageButton'
 
@@ -34,6 +35,7 @@ export default function SecoesVideos(){
   const [titulo,setTitulo] = useState('')
   const [subtitulo,setSubtitulo] = useState('')
   const [msg,setMsg] = useState('')
+  const [semSecao,setSemSecao]=useState(0)
 
   useEffect(()=>{ void carregar() },[])
 
@@ -50,6 +52,7 @@ export default function SecoesVideos(){
     const contagem:Record<string,number>={}
     ;(videos||[]).forEach(v=>{ if(v.secao_id)contagem[v.secao_id]=(contagem[v.secao_id]||0)+1 })
     setContagens(contagem)
+    setSemSecao((videos||[]).filter(v=>v.secao_id==null).length)
     setCarregando(false)
   }
 
@@ -130,8 +133,9 @@ export default function SecoesVideos(){
       </div>}
       <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:12,flexWrap:'wrap',marginBottom:18}}>
         <span style={{color:'#FFFFFF',fontWeight:700}}>Suas seções ({secoes.length})</span>
-        <div style={{display:'flex',gap:10,alignItems:'center'}}><VerMiniPageButton/><button type="button" onClick={()=>editar('novo')} style={{background:G,border:0,borderRadius:10,padding:'10px 18px',color:'#0B0A10',fontWeight:700,cursor:'pointer'}}>+ Nova seção</button></div>
+        <div style={{display:'flex',gap:10,alignItems:'center'}}><VerMiniPageButton/><Link href="/painel/perfil/videos/importar" style={{...botoes,padding:'10px 14px',textDecoration:'none'}}>Importar YouTube</Link><button type="button" onClick={()=>editar('novo')} style={{background:G,border:0,borderRadius:10,padding:'10px 18px',color:'#0B0A10',fontWeight:700,cursor:'pointer'}}>+ Nova seção</button></div>
       </div>
+      {semSecao>0&&<div className="crd" style={{padding:16,marginBottom:14}}><p style={{color:'#C5BCD1',marginBottom:10}}>{semSecao} vídeo(s) sem seção, provenientes de uma versão anterior ou do plano Free.</p><button type="button" disabled={salvando} style={{...botoes,padding:'10px 14px'}} onClick={async()=>{if(!await validarSessao())return;setSalvando(true);try{await organizarVideosSemSecao(userId);setMsg('Vídeos organizados sem duplicação.');await carregar()}catch{setMsg('Não foi possível organizar os vídeos. Tente novamente.')}finally{setSalvando(false)}}}>Organizar vídeos existentes</button></div>}
       {secoes.length===0&&<p style={{fontSize:13,color:'#C5BCD1'}}>Nenhuma seção cadastrada.</p>}
       <div style={{display:'flex',flexDirection:'column',gap:12}}>
         {secoes.map((sec,i)=><div className="crd" key={sec.id} style={{padding:16,display:'flex',gap:12}}>

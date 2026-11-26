@@ -51,7 +51,7 @@ export default function GerenciarVideos({ secaoId }: { secaoId?: string }){
       secaoId ? supabase.from('pagina_videos_secoes').select('id,titulo').eq('user_id',user.id).eq('id',secaoId).maybeSingle() : Promise.resolve({data:null,error:null}),
     ])
     if (erroPerfil || !perfil) { setMsg('Não foi possível confirmar seu plano.'); setCarregando(false); return }
-    const pago = ['minipage','loja','essencial','equipe'].includes((perfil.plano_tipo || '').trim().toLowerCase())
+    const pago = ['minipage','agenda','loja','essencial','equipe'].includes((perfil.plano_tipo || '').trim().toLowerCase())
       && !['aguardando_pagamento','bloqueado','cancelado'].includes(perfil.status_acesso || 'ativo')
     if (secaoId && (!pago || erroSecao || !secao)) {
       setMsg('Esta seção não está disponível para sua conta.'); setCarregando(false); return

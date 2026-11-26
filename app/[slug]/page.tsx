@@ -476,6 +476,16 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
     }))
     .filter((sec: any) => sec.itens.length > 0)
 
+  const videosFreePublicos = (videos || []).filter((v:any)=>{
+    if(v.secao_id!=null && !(videosSecoesAtivas||[]).some((sec:any)=>sec.id===v.secao_id))return false
+    try {const u=new URL(String(v.url_video||''));const h=u.hostname.toLowerCase();return ['https:','http:'].includes(u.protocol)&&['youtube.com','www.youtube.com','m.youtube.com','youtu.be'].includes(h)&&!!extrairYoutubeId(v.url_video)} catch{return false}
+  }).slice(0,1)
+  // Vídeos do Free/legados não têm secao_id; não os faça desaparecer no upgrade.
+  if (videosPersonalizadosLiberados) {
+    const semSecao = (videos || []).filter((v:any)=>v.secao_id == null)
+    if (semSecao.length) secoesVideosComItens.push({id:'legacy-free-videos',titulo:t.videosEmDestaque,subtitulo:null,itens:semSecao})
+  }
+
   // Secoes de Spotify + seus itens - mesmo padrao de agrupamento de Cards/Albuns. Cada
   // item e revalidado aqui (parseSpotifyUrl) - tipo/id/embedUrl nunca sao persistidos no
   // banco, sempre derivados da spotify_url na leitura. Um item com URL invalida (link
@@ -1187,12 +1197,12 @@ eventos && eventos.length > 0 && permiteAgendaEventos(perfil.plano_tipo) && (
               </div>
             )) : (
               // O Free continua com o bloco fixo, um único YouTube e sem seções personalizadas.
-              !videosPersonalizadosLiberados && videos && videos.length > 0 && permiteVideos(perfil.plano_tipo) && (
+              !videosPersonalizadosLiberados && videosFreePublicos.length > 0 && permiteVideos(perfil.plano_tipo) && (
                 <div style={{ marginBottom: '28px' }}>
                   <p style={{ fontSize: '20px', fontWeight: 900, color: 'var(--text)', letterSpacing: '-0.02em', marginBottom: '6px' }}>{t.videosEmDestaque}</p>
                   <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '10px' }}>Veja conteúdos, vídeos, apresentações e novidades em destaque.</p>
                   <div className="video-grid">
-                    {videos.map((v: any) => (
+                    {videosFreePublicos.map((v: any) => (
                       <VideoItemCard key={v.id} v={v} thumb={thumbnailVideo(v)}
                         youtubeId={extrairYoutubeId(v.url_video)} iconeBorder={iconeBorder}
                         cardBorderFinal={cardBorderFinal} cardShadowNeon={cardShadowNeon}

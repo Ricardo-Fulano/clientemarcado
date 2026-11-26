@@ -1,6 +1,7 @@
 'use client'
 import { useState, useEffect, useRef } from 'react'
 import { supabase } from '../../lib/supabase'
+import { guardarSmartImport } from '../../lib/smart-import-pendente'
 import { textoCheckout } from '../../lib/i18n-global/checkout-copy'
 import { destinoCheckoutOnboarding } from '../../lib/billing/destino-checkout-onboarding'
 import { useIdiomaGlobal } from '../../components/IdiomaProviderGlobal'
@@ -598,6 +599,7 @@ export default function CriarMiniPage() {
   const [concluido, setConcluido] = useState(false)
   const [resumoFinal, setResumoFinal] = useState<string[]>([])
   const [avisoVideoOpcional, setAvisoVideoOpcional] = useState(false)
+  const [falhaRascunho, setFalhaRascunho] = useState(false)
   const [previewMobileAberta, setPreviewMobileAberta] = useState(true)
   const [modoPrevia, setModoPrevia] = useState<'premium'|'free'>('premium')
   const [objetivo, setObjetivo] = useState<'pessoal' | 'criador' | 'negocio' | null>(null)
@@ -1274,12 +1276,26 @@ export default function CriarMiniPage() {
       linksSalvos++
     }
 
+    // A seleção Premium não depende do plano ainda Free durante o checkout.
+    // Armazena os bytes autorizados antes que os tickets de Instagram expirem.
+    const prepararPremium = !!stripeDesejado || permiteAlbuns(planoParaPublicar)
+    const fotosEscolhidas = igMidias.filter(m => igMidiasSelecionadas.includes(m.id) &&
+      ['IMAGE','CAROUSEL_ALBUM'].includes(m.tipo) && /^\d+$/.test(m.id) && (!igDiscovery || !!m.downloadTicket))
+    const videosEscolhidos = youtubeSelecionados.map(id=>youtubeResultados.find(v=>v.videoId===id)).filter((v):v is YoutubeImportItem=>!!v)
+    const capaEscolhida = fotosEscolhidas.find(m=>m.id===igMidiaCapaId)?.id || fotosEscolhidas[0]?.id || null
+    let rascunhoSalvo=false
+    let rascunhoFalhou=false
+    setFalhaRascunho(false)
+    if(prepararPremium && (fotosEscolhidas.length || videosEscolhidos.length)) {
+      try { rascunhoSalvo=await guardarSmartImport(userId,videosEscolhidos,fotosEscolhidas,capaEscolhida) }
+      catch { rascunhoFalhou=true;setFalhaRascunho(true) }
+    }
     // Importacao autorizada: cada video foi selecionado explicitamente no assistente.
     // Nunca sobrescrever videos antigos. Consulta previa evita repeticoes entre sessoes.
     let videosImportados = 0
     let videoOpcionalFalhou = false
     try {
-    if (youtubeSelecionados.length > 0 && limiteVideosParaPublicar > 0) {
+    if (planoParaPublicar === 'free' && youtubeSelecionados.length > 0 && limiteVideosParaPublicar > 0) {
       const { data: videosExistentes, error: erroVideos } = await supabase.from('pagina_videos')
         .select('url_video').eq('user_id', userId)
       if (erroVideos) {
@@ -1288,26 +1304,6 @@ export default function CriarMiniPage() {
       const urlsExistentes = new Set((videosExistentes || []).map((v: {url_video: string | null}) => v.url_video || ''))
       const escolhidos = youtubeSelecionados.slice(0, limiteVideosParaPublicar).map(id => youtubeResultados.find(v => v.videoId === id))
         .filter((v): v is YoutubeImportItem => !!v)
-      // Planos pagos usam secoes personalizadas; o Free usa o bloco fixo de videos.
-      // Uma secao real criada aqui nao contem nenhum conteudo de demonstracao.
-      let secaoId: string | null = null
-      if (escolhidos.length && ['minipage','agenda','loja','essencial','equipe'].includes(planoParaPublicar.toLowerCase())) {
-        const {data: secoes, error: erroSecoes} = await supabase.from('pagina_videos_secoes')
-          .select('id').eq('user_id',userId).eq('ativo',true).order('ordem',{ascending:true}).limit(1)
-        if (erroSecoes) {
-          throw erroSecoes
-        }
-        secaoId = secoes?.[0]?.id || null
-        if (!secaoId) {
-          const {data:secao,error:erroCriarSecao} = await supabase.from('pagina_videos_secoes').insert({
-            user_id:userId,titulo:'Vídeos do YouTube',subtitulo:null,ativo:true,ordem:0,
-          }).select('id').single()
-          if (erroCriarSecao || !secao) {
-            throw erroCriarSecao || new Error('VIDEO_SECTION_MISSING')
-          }
-          secaoId = secao.id
-        }
-      }
       let totalVideosPublicados = (videosExistentes || []).length
       for (const [indice, video] of escolhidos.entries()) {
         if (totalVideosPublicados >= limiteVideosParaPublicar) break
@@ -1317,7 +1313,7 @@ export default function CriarMiniPage() {
           user_id: userId, titulo: video.titulo.slice(0, 160),
           url_video: video.url, thumbnail_url: video.miniatura,
           plataforma: 'youtube', formato: '16:9',
-          ativo: true, ordem: indice, ...(secaoId ? {secao_id:secaoId} : {}),
+          ativo: true, ordem: indice,
         })
         if (erroSalvarVideo) {
           throw erroSalvarVideo
@@ -1357,77 +1353,13 @@ export default function CriarMiniPage() {
       }
     }
 
-    // As fotos selecionadas do Instagram entram no MESMO sistema Álbuns / Fotos.
-    // Nunca há uma segunda galeria pública, e nenhuma foto antiga é excluída.
-    let resumoInstagram = ''
-    const fotosSelecionadas = igMidias.filter(m => igMidiasSelecionadas.includes(m.id) &&
-      ['IMAGE', 'CAROUSEL_ALBUM'].includes(m.tipo) && /^\d+$/.test(m.id) && (!igDiscovery || !!m.downloadTicket))
-    if (fotosSelecionadas.length && permiteAlbuns(planoParaPublicar)) {
-      let novasFotos = 0
-      try {
-        const { data: { session } } = await supabase.auth.getSession()
-        if (!session?.access_token) throw new Error('Instagram não conectado')
-        const { data: albunsAtuais, error: erroAlbuns } = await supabase.from('pagina_albuns')
-          .select('id,titulo').eq('user_id', userId).order('ordem')
-        if (erroAlbuns) throw new Error('Falha ao consultar álbuns')
-        let albumId: string | null = albunsAtuais?.find((a: {titulo?:string}) =>
-          String(a.titulo || '').trim().toLowerCase() === 'importadas do instagram')?.id || null
-        if (!albumId) {
-          const {data:novoAlbum,error:erroNovoAlbum} = await supabase.from('pagina_albuns').insert({
-            user_id:userId,titulo:'Importadas do Instagram',subtitulo:null,proporcao:'1:1',
-            ativo:true,ordem:albunsAtuais?.length || 0
-          }).select('id').single()
-          if (erroNovoAlbum || !novoAlbum) throw new Error('Falha ao criar álbum')
-          albumId = novoAlbum.id
-        }
-        const { data: fotosAtuais, error: erroFotos } = await supabase.from('pagina_album_fotos')
-          .select('imagem_url,album_id').eq('user_id',userId)
-        if (erroFotos) throw new Error('Falha ao verificar fotos atuais')
-        const fotosSalvas = new Set((fotosAtuais || []).map((f: {imagem_url?:string|null})=>f.imagem_url || ''))
-        let ordem = (fotosAtuais || []).filter((f: {album_id:string})=>f.album_id===albumId).length
-        for (const m of fotosSelecionadas) {
-          const resposta = await fetch(m.downloadTicket ? '/api/smart-import/instagram/discovery' : `/api/smart-import/instagram/midia?midiaId=${encodeURIComponent(m.id)}`, {
-            ...(m.downloadTicket ? {method:'PUT',body:JSON.stringify({ticket:m.downloadTicket})} : {}),
-            headers:{Authorization:`Bearer ${session.access_token}`,'Content-Type':'application/json'},cache:'no-store'
-          })
-          if (!resposta.ok) throw new Error('Falha ao baixar uma foto do Instagram')
-          const imagem = await resposta.blob()
-          const extensao = ({'image/jpeg':'jpg','image/png':'png','image/webp':'webp'} as Record<string,string>)[imagem.type]
-          if (!extensao || imagem.size<1 || imagem.size>8*1024*1024) throw new Error('Foto inválida')
-          const caminho = `album-fotos/${userId}-instagram-${m.id}.${extensao}`
-          const storage = supabase.storage.from('fotos')
-          const urlPublica = storage.getPublicUrl(caminho).data.publicUrl
-          if (fotosSalvas.has(urlPublica)) continue
-          const {error:erroUpload} = await storage.upload(caminho,imagem,{
-            upsert:false,contentType:imagem.type,cacheControl:'3600'
-          })
-          if (erroUpload) throw new Error('Falha ao salvar foto no armazenamento')
-          const {error:erroFoto} = await supabase.from('pagina_album_fotos').insert({
-            user_id:userId,album_id:albumId,imagem_url:urlPublica,titulo:'Instagram',
-            descricao:m.legenda.slice(0,500)||null,ativo:true,ordem
-          })
-          if (erroFoto) {
-            await storage.remove([caminho])
-            throw new Error('Falha ao adicionar foto ao álbum')
-          }
-          fotosSalvas.add(urlPublica)
-          ordem++
-          novasFotos++
-        }
-        resumoInstagram = `${novasFotos} fotos do Instagram` + (novasFotos < fotosSelecionadas.length ? ' (sem duplicatas)' : '')
-      } catch {
-        // O cadastro já está salvo: não desfazer outros recursos nem fingir que as fotos entraram.
-        // O usuário poderá recuperar a seleção via Painel → Álbuns / Fotos.
-        resumoInstagram = novasFotos ? `${novasFotos} fotos importadas; outras pendentes no painel` :
-          'Importação de fotos pendente em Álbuns / Fotos'
-      }
-    } else if (fotosSelecionadas.length) {
-      resumoInstagram = 'Fotos do Instagram disponíveis no plano MiniPage'
-    }
+    // Fotos Premium ficam privadas até a ativação e são transferidas para os álbuns existentes.
+    const resumoInstagram = rascunhoSalvo ? `${fotosEscolhidas.length} fotos e ${videosEscolhidos.length} vídeos reservados para publicação após ativação` :
+      rascunhoFalhou ? '' : fotosEscolhidas.length ? 'Fotos do Instagram disponíveis a partir do plano MiniPage' : ''
 
     // Publicação construída exclusivamente com os dados informados pelo assinante.
     // Não aplica templates, imagens, vídeos ou produtos fictícios.
-    concluirOnboarding(slugFmt, linksSalvos, destaqueSalvo, false, videosImportados, resumoInstagram, videoOpcionalFalhou)
+    concluirOnboarding(slugFmt, linksSalvos, destaqueSalvo, false, videosImportados, resumoInstagram, (videoOpcionalFalhou && !rascunhoSalvo) || rascunhoFalhou)
   }
 
   // So marca o onboarding como visto quando ele REALMENTE conclui (nunca na falha tecnica do modelo: se o cliente sair, reabre e tenta de novo).
@@ -1500,9 +1432,8 @@ export default function CriarMiniPage() {
 
   const limiteTemas = obterLimiteModelosCor(planoTipo)
   // Exibir os 20 temas para comparação. O Free publica somente um dos 6 primeiros.
-  const midiaCapaAtivaId = igMidiaCapaId && igMidiasSelecionadas.includes(igMidiaCapaId)
-    ? igMidiaCapaId
-    : igMidias.find(m => igMidiasSelecionadas.includes(m.id) && /^https:\/\//i.test(m.imagem))?.id || null
+  const fotosCapa = igMidias.filter(m=>igMidiasSelecionadas.includes(m.id) && ['IMAGE','CAROUSEL_ALBUM'].includes(m.tipo) && (!igDiscovery || !!m.downloadTicket))
+  const midiaCapaAtivaId = fotosCapa.find(m=>m.id===igMidiaCapaId)?.id || fotosCapa[0]?.id || null
   const temasVisiveis = TEMAS_MINIPAGE
   const temaFreeId = TEMAS_MINIPAGE.slice(0, 6).some(t => t.id === temaEscolhido) ? temaEscolhido :
     (TEMAS_MINIPAGE.slice(0, 6).some(t => t.id === temaOriginal) ? temaOriginal : 'modelo1')
@@ -1590,19 +1521,19 @@ export default function CriarMiniPage() {
                   <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',gap:8,flexWrap:'wrap',marginBottom:10}}>
                     <strong style={{color:'#C9FA45',fontSize:12}}>{igMidiasSelecionadas.length} / {igMidias.length} {tx.postsSelected} · {igMidias.filter(m=>igMidiasSelecionadas.includes(m.id) && m.tipo.toUpperCase()==='VIDEO').length} {tx.videos}</strong>
                     <div style={{display:'flex',gap:6}}>
-                      <button type="button" onClick={()=>setIgMidiasSelecionadas(igMidias.map(m=>m.id))} style={{background:'#2B2340',color:'#FFF',border:'1px solid #685F79',borderRadius:7,padding:'6px 10px',fontSize:11,cursor:'pointer'}}>{tx.selectAll}</button>
+                      <button type="button" onClick={()=>setIgMidiasSelecionadas(igMidias.filter(m=>['IMAGE','CAROUSEL_ALBUM'].includes(m.tipo)&&(!igDiscovery||!!m.downloadTicket)).map(m=>m.id))} style={{background:'#2B2340',color:'#FFF',border:'1px solid #685F79',borderRadius:7,padding:'6px 10px',fontSize:11,cursor:'pointer'}}>{tx.selectAll}</button>
                       <button type="button" onClick={()=>{setIgMidiasSelecionadas([]);setIgMidiaCapaId(null)}} style={{background:'#2B2340',color:'#FFF',border:'1px solid #685F79',borderRadius:7,padding:'6px 10px',fontSize:11,cursor:'pointer'}}>{tx.clear}</button>
                     </div>
                   </div>
                   <div style={{display:'grid',gridTemplateColumns:'repeat(3,minmax(0,1fr))',gap:7}}>{igMidias.map(m=>{
                     const escolhida=igMidiasSelecionadas.includes(m.id)
                     return <div key={m.id} style={{position:'relative',minWidth:0}}>
-                      <button type="button" aria-pressed={escolhida} aria-label={`${escolhida?'Remover':'Selecionar'} ${m.tipo==='VIDEO'?'vídeo':'foto'} ${m.legenda||m.id}`} onClick={()=>setIgMidiasSelecionadas(atual=>atual.includes(m.id)?atual.filter(id=>id!==m.id):[...atual,m.id])} style={{display:'block',width:'100%',aspectRatio:'1',border:escolhida?'3px solid #C9FA45':'2px solid #524462',background:'#271C34',borderRadius:8,overflow:'hidden',position:'relative',padding:0,cursor:'pointer'}}>
+                      <button type="button" disabled={!['IMAGE','CAROUSEL_ALBUM'].includes(m.tipo)||(igDiscovery&&!m.downloadTicket)} aria-pressed={escolhida} aria-label={`${escolhida?'Remover':'Selecionar'} ${m.tipo==='VIDEO'?'vídeo':'foto'} ${m.legenda||m.id}`} onClick={()=>setIgMidiasSelecionadas(atual=>atual.includes(m.id)?atual.filter(id=>id!==m.id):[...atual,m.id])} style={{display:'block',width:'100%',aspectRatio:'1',border:escolhida?'3px solid #C9FA45':'2px solid #524462',background:'#271C34',borderRadius:8,overflow:'hidden',position:'relative',padding:0,cursor:'pointer'}}>
                         {m.imagem?<img src={m.imagem} alt={m.legenda||'Publicação do Instagram'} style={{width:'100%',height:'100%',objectFit:'cover'}}/>:<span style={{color:'#DAD1EB',fontSize:12,padding:8,display:'block'}}>{ti.post}</span>}
                         <span aria-hidden="true" style={{position:'absolute',top:6,right:6,background:escolhida?'#C9FA45':'#15101EDD',color:escolhida?'#102000':'white',borderRadius:99,width:25,height:25,display:'grid',placeItems:'center',fontWeight:800}}>{escolhida?'✓':'+'}</span>
                         {m.tipo.toUpperCase()==='VIDEO'&&<span aria-hidden="true" style={{position:'absolute',left:5,bottom:5,padding:'3px 6px',borderRadius:5,background:'#111A',color:'#FFF',fontSize:10}}>▶ Vídeo</span>}
                       </button>
-                      {escolhida && /^https:\/\//i.test(m.imagem) && <button type="button"
+                      {escolhida && ['IMAGE','CAROUSEL_ALBUM'].includes(m.tipo) && (!igDiscovery || !!m.downloadTicket) && /^https:\/\//i.test(m.imagem) && <button type="button"
                         aria-pressed={midiaCapaAtivaId===m.id}
                         onClick={()=>setIgMidiaCapaId(m.id)}
                         style={{display:'block',width:'100%',marginTop:4,padding:'6px 4px',borderRadius:7,border:midiaCapaAtivaId===m.id?'1px solid #C9FA45':'1px solid #655778',color:midiaCapaAtivaId===m.id?'#C9FA45':'#E1D8EE',background:midiaCapaAtivaId===m.id?'#26321D':'#20182A',fontSize:10,fontWeight:700,cursor:'pointer'}}>
@@ -1922,7 +1853,8 @@ export default function CriarMiniPage() {
                   ))}
                 </div>
 
-                {avisoVideoOpcional && <p role="status" style={{color:'#F6E2AF',background:'#241D14',border:'1px solid #746136',borderRadius:12,padding:12,fontSize:13,lineHeight:1.6,marginBottom:16}}>{AVISO_VIDEO_OPCIONAL[idioma] || AVISO_VIDEO_OPCIONAL['pt-BR']}</p>}
+                {falhaRascunho && <div role="alert" style={{background:'#241D14',color:'#F6E2AF',padding:12,borderRadius:10,marginBottom:14}}><p>Não foi possível guardar a seleção de fotos e vídeos. O perfil está salvo. Tente novamente antes de pagar ou continue sabendo que precisará importar os conteúdos no painel.</p><button type="button" onClick={()=>{setConcluido(false)}} style={{color:'#C9FA45',marginTop:8,background:'transparent',border:0,cursor:'pointer'}}>Tentar salvar mídias novamente</button></div>}
+                {avisoVideoOpcional && !falhaRascunho && <p role="status" style={{color:'#F6E2AF',background:'#241D14',border:'1px solid #746136',borderRadius:12,padding:12,fontSize:13,lineHeight:1.6,marginBottom:16}}>{AVISO_VIDEO_OPCIONAL[idioma] || AVISO_VIDEO_OPCIONAL['pt-BR']}</p>}
 
                 {planoTipo==='free' && <div style={{border:'1px solid #4A3D54',borderRadius:14,background:'#15101F',padding:16,marginBottom:18}}>
                   {stripeDesejado ? (

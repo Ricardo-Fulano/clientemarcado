@@ -4,7 +4,8 @@ import { supabase } from '../lib/supabase'
 import Link from 'next/link'
 import PainelSidebar from '@/app/components/PainelSidebar'
 import CompletarMiniPageCard from './CompletarMiniPageCard'
-import { ehPlanoComGestao, obterNomePlano, obterLimiteCatalogos, permiteEquipe } from '../lib/planos'
+import { publicarSmartImportPendente } from '../lib/smart-import-pendente'
+import { ehPlanoComGestao, obterNomePlano, obterLimiteCatalogos, permiteEquipe, permiteAlbuns } from '../lib/planos'
 
 const G='#8B5CF6'
 const AV='linear-gradient(135deg,rgba(37,99,235,.97),rgba(67,56,202,.85))'
@@ -57,6 +58,7 @@ export default function Home(){
   const [resumoSimples,setResumoSimples]=useState({links:0,destaques:0,videos:0,catalogos:0})
   const [loading,setLoading]=useState(true)
   const [copied,setCopied]=useState(false)
+  const [importMsg,setImportMsg]=useState('')
   useEffect(()=>{load()},[])
   async function load(){
     const {data:{user}}=await supabase.auth.getUser()
@@ -94,6 +96,9 @@ export default function Home(){
     }
 
     setPerfil(p)
+    if(permiteAlbuns(p?.plano_tipo) && !['bloqueado','cancelado','aguardando_pagamento','em_atraso'].includes(String(p?.status_acesso||''))){
+      try{const n=await publicarSmartImportPendente(user.id);if(n)setImportMsg('Fotos e vídeos selecionados foram processados. Confira sua MiniPage.')}catch{setImportMsg('Não foi possível concluir a verificação das mídias importadas. Recarregue o painel para tentar novamente. Seu plano e seus conteúdos existentes foram preservados.')}
+    }
     if(ehPlanoComGestao(p?.plano_tipo)){
       const [{data:ags},{data:orcs},{data:pags}]=await Promise.all([
         supabase.from('agendamentos').select('*').eq('user_id',user.id).order('data_hora'),
@@ -165,6 +170,7 @@ const saldo=Math.max(0,saldoRaw)
                 </div>
               </div>
             )}
+            {importMsg&&<div role="status" className="crd" style={{padding:14,marginBottom:14,color:'#C5BCD1'}}>{importMsg}</div>}
             <CompletarMiniPageCard perfil={perfil}/>
             <div className="crd" style={{padding:'16px 20px',marginBottom:'24px',display:'flex',alignItems:'center',justifyContent:'space-between',gap:'12px',flexWrap:'wrap'}}>
               <div>
@@ -258,7 +264,8 @@ const saldo=Math.max(0,saldoRaw)
               </div>
             </div>
           )}
-          <CompletarMiniPageCard perfil={perfil}/>
+          {importMsg&&<div role="status" className="crd" style={{padding:14,marginBottom:14,color:'#C5BCD1'}}>{importMsg}</div>}
+            <CompletarMiniPageCard perfil={perfil}/>
           <div className="kpi-grid">
             {([
               {l:'Atendimentos hoje',v:agsHoje.length,c:'#8B5CF6',bg:'rgba(139,92,246,.12)',bd:'rgba(139,92,246,.24)',I:<IcoCalendar c="#8B5CF6"/>},
