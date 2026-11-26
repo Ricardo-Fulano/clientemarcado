@@ -25,7 +25,8 @@ async function revisarVigencia(db:SupabaseClient,a:Attempt){
  // No subscription object is valid only for an initial Pix paid without active authorization.
  const inactive=a.method==='pix'?!!auth&&terminalAuth.includes(auth.status)&&(!sub||['INACTIVE','EXPIRED'].includes(sub.status)||sub.deleted===true):!!sub&&(['INACTIVE','EXPIRED'].includes(sub.status)||sub.deleted===true)
  const active=!!sub&&sub.status==='ACTIVE'&&sub.deleted!==true&&(a.method==='card'||auth?.status==='ACTIVE')
- const list=await asaas('/payments?customer='+encodeURIComponent(a.customer_id)+'&limit=100')
+ const filter=a.hosted_card&&a.subscription_id?'subscription='+encodeURIComponent(a.subscription_id):'customer='+encodeURIComponent(a.customer_id);
+ const list=await asaas('/payments?'+filter+'&limit=100')
  if(!Array.isArray(list.data)||list.hasMore!==false||!list.data.length||list.data.some((p:any)=>p.customer!==a.customer_id||!identifier(p.id)||minor(p.value)!==a.amount_minor))throw new Error('PAYMENT_LIST_REVIEW')
  if(active&&a.subscription_id){
   const due=list.data.filter((p:any)=>p.subscription===a.subscription_id&&p.status==='OVERDUE').sort((x:any,y:any)=>String(x.dueDate).localeCompare(String(y.dueDate)))[0]

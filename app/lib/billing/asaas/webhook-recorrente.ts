@@ -1,13 +1,44 @@
 import type {SupabaseClient} from '@supabase/supabase-js'
-import {asaas,apiCycle,subscriptionCycle,minor,identifier,attemptTable,save,type Attempt} from './recorrente'
+import {asaas,apiCycle,subscriptionCycle,minor,identifier,attemptTable,save,cardPayload,type Attempt} from './recorrente'
 import {registrarComissaoParceiro} from '../../asaas-webhook'
 const eventTable='billing_asaas_recurring_events'
 const paid=['CONFIRMED','RECEIVED']
 const validDate=(v:unknown)=>typeof v==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(v)&&Number.isFinite(Date.parse(v+'T00:00:00-03:00'))?v+'T00:00:00-03:00':null
 const encoded=(v:string)=>encodeURIComponent(v)
 async function by(db:SupabaseClient,column:string,value:unknown):Promise<Attempt|null>{if(!identifier(value))return null;const {data,error}=await db.from(attemptTable).select('*').eq(column,value).maybeSingle();if(error)throw new Error('ATTEMPT_LOOKUP');return data as Attempt|null}
-async function attemptFor(db:SupabaseClient,e:any){return await by(db,'authorization_id',e.authorization?.id||e.paymentInstruction?.authorization?.id)||await by(db,'checkout_id',e.checkout?.id||e.payment?.checkoutSession||e.subscription?.checkoutSession)||await by(db,'subscription_id',e.subscription?.id||e.payment?.subscription)||await by(db,'customer_id',e.payment?.customer||e.subscription?.customer||e.authorization?.customerId||e.checkout?.customer)||await by(db,'contract_ref',e.authorization?.contractId||e.checkout?.externalReference)}
+// Only the authenticated provider webhook may supply checkout references; browser callbacks never reach here.
+function callbackReference(e:any):string|null{
+ try{const u=new URL(e?.checkout?.callback?.successUrl);const ref=u.searchParams.get('mp_ref');return u.origin==='https://minipage.pro'&&u.pathname==='/painel/contratar'&&!!ref&&/^mp_[0-9a-f]{32}$/.test(ref)?ref:null}catch{return null}
+}
+async function attemptFor(db:SupabaseClient,e:any){
+ return await by(db,'authorization_id',e.authorization?.id||e.paymentInstruction?.authorization?.id)||await by(db,'checkout_id',e.checkout?.id||e.payment?.checkoutSession||e.subscription?.checkoutSession)||await by(db,'subscription_id',e.subscription?.id||e.payment?.subscription)||await by(db,'contract_ref',e.authorization?.contractId||e.checkout?.externalReference||callbackReference(e))||await by(db,'customer_id',e.payment?.customer||e.subscription?.customer||e.authorization?.customerId||e.checkout?.customer)
+}
+export function hostedCheckoutMatches(a:Attempt,c:any){
+ if(!a.hosted_card||!identifier(c?.id)||a.checkout_id&&c.id!==a.checkout_id||c.externalReference&&c.externalReference!==a.contract_ref)return false;
+ if(c.externalReference!==a.contract_ref&&c.callback?.successUrl!==cardPayload(a).callback.successUrl)return false;
+ return c.subscription?.cycle===subscriptionCycle(a.billing_cycle)&&Array.isArray(c.chargeTypes)&&c.chargeTypes.length===1&&c.chargeTypes[0]==='RECURRENT'&&Array.isArray(c.items)&&c.items.length===1&&c.items[0].quantity===1&&minor(c.items[0].value)===a.amount_minor;
+}
+export function hostedPaymentMatches(a:Attempt,p:any,s:any){
+ return a.hosted_card===true&&!!a.checkout_id&&identifier(p?.id)&&identifier(p.customer)&&identifier(p.subscription)&&p.deleted!==true&&p.checkoutSession===a.checkout_id&&p.billingType==='CREDIT_CARD'&&minor(p.value)===a.amount_minor&&s?.id===p.subscription&&s.customer===p.customer&&s.checkoutSession===a.checkout_id&&s.cycle===subscriptionCycle(a.billing_cycle)&&s.billingType==='CREDIT_CARD'&&minor(s.value)===a.amount_minor&&(!a.customer_id||a.customer_id===p.customer)&&(!a.subscription_id||a.subscription_id===s.id);
+}
+async function bindHostedPayment(db:SupabaseClient,a:Attempt,p:any){
+ if(!identifier(p.subscription))throw new Error('HOSTED_SUBSCRIPTION_MISSING');
+ const s=await asaas('/subscriptions/'+encoded(p.subscription));
+ if(!hostedPaymentMatches(a,p,s))throw new Error('HOSTED_PAYMENT_MISMATCH');
+ const c=await asaas('/customers/'+encoded(p.customer));if(c.id!==p.customer||c.deleted===true)throw new Error('HOSTED_CUSTOMER_MISMATCH');
+ // A payer can enter their own billing identity on Asaas. Ownership comes from the server-reserved checkout, not email/CPF.
+ // Refuse reuse of a customer already tied to a different profile/contract; never silently merge accounts.
+ const [profiles,contracts]=await Promise.all([db.from('perfis').select('user_id').eq('gateway_customer_id',p.customer).limit(1),db.from('billing_subscriptions').select('id').eq('provider','asaas').eq('provider_customer_id',p.customer).neq('id',a.attempt_id).limit(1)]);
+ if(profiles.error||contracts.error||profiles.data?.length||contracts.data?.length)throw new Error('HOSTED_CUSTOMER_ALREADY_LINKED');
+ // Unique customer_id and CAS protect concurrent claims, including other Asaas attempts.
+ try{return await save(db,a,{customer_id:p.customer})}catch(e){const fresh=await by(db,'attempt_id',a.attempt_id);if(!fresh||fresh.customer_id!==p.customer||fresh.checkout_id!==a.checkout_id||fresh.status==='closed')throw e;return fresh}
+}
 async function repairLinks(db:SupabaseClient,a:Attempt,event:any){
+ if(a.hosted_card){
+  if(!a.checkout_id&&event?.checkout){const c=event.checkout;if(!hostedCheckoutMatches(a,c))throw new Error('HOSTED_CHECKOUT_RECOVERY_MISMATCH');a=await save(db,a,{checkout_id:c.id,status:'created',card_retry_safe:false});}
+  if(a.customer_id)await verifyCustomer(a);
+  return a;
+ }
  if(!a.customer_id){
   const list=await asaas('/customers?externalReference='+encoded(a.contract_ref)+'&limit=2');
   if(!Array.isArray(list.data)||list.hasMore!==false||list.data.length!==1||list.data[0].externalReference!==a.contract_ref||!identifier(list.data[0].id))throw new Error('CUSTOMER_RECOVERY_REVIEW');
@@ -31,7 +62,7 @@ async function repairLinks(db:SupabaseClient,a:Attempt,event:any){
  }
  return a;
 }
-async function verifyCustomer(a:Attempt){if(!a.customer_id)throw new Error('NO_CUSTOMER');const c=await asaas('/customers/'+encoded(a.customer_id));if(c.id!==a.customer_id||c.externalReference!==a.contract_ref||c.deleted===true)throw new Error('CUSTOMER_MISMATCH')}
+async function verifyCustomer(a:Attempt){if(!a.customer_id)throw new Error('NO_CUSTOMER');const c=await asaas('/customers/'+encoded(a.customer_id));if(c.id!==a.customer_id||(!a.hosted_card&&c.externalReference!==a.contract_ref)||c.deleted===true)throw new Error('CUSTOMER_MISMATCH')}
 export async function verifySubscription(a:Attempt,id:string){if(!identifier(id))throw new Error('INVALID_SUBSCRIPTION');const s=await asaas('/subscriptions/'+encoded(id));if(s.id!==id||s.customer!==a.customer_id||s.cycle!==subscriptionCycle(a.billing_cycle)||minor(s.value)!==a.amount_minor)throw new Error('SUBSCRIPTION_MISMATCH');return s}
 export async function readAuthorization(a:Attempt){if(!a.authorization_id)throw new Error('NO_AUTHORIZATION');const auth=await asaas('/pix/automatic/authorizations/'+encoded(a.authorization_id));if(auth.id!==a.authorization_id||auth.customerId!==a.customer_id||auth.contractId!==a.contract_ref||auth.frequency!==apiCycle(a.billing_cycle)||(!['CANCELLED','EXPIRED','REFUSED'].includes(auth.status)&&(minor(auth.value)!==a.amount_minor||auth.paymentCreationMode!=='SUBSCRIPTION'))||auth.immediateQrCode?.conciliationIdentifier!==a.conciliation_id)throw new Error('AUTHORIZATION_MISMATCH');return auth}
 async function sync(db:SupabaseClient,a:Attempt,subscription:string|null,authStatus:string|null,renewal:boolean){const {error}=await db.rpc('mp_asaas_sync_renewal_v1',{p_attempt:a.attempt_id,p_customer:a.customer_id,p_subscription:subscription,p_auth_status:authStatus,p_renewal:renewal});if(error)throw new Error('SYNC_FAILED')}
@@ -45,7 +76,9 @@ async function closeIfNoFinancialObject(db:SupabaseClient,a:Attempt){
 export async function verifyPayment(db:SupabaseClient,a:Attempt,id:string,eventType?:string){
  const fresh=await by(db,'attempt_id',a.attempt_id);if(!fresh||fresh.status==='closed')throw new Error('ATTEMPT_CHANGED');a=fresh;
  if(!identifier(id))throw new Error('INVALID_PAYMENT_ID')
- const p=await asaas('/payments/'+encoded(id));if(p.id!==id||p.customer!==a.customer_id||p.deleted===true||minor(p.value)!==a.amount_minor)throw new Error('PAYMENT_MISMATCH')
+ const p=await asaas('/payments/'+encoded(id));if(p.id!==id||p.deleted===true||minor(p.value)!==a.amount_minor)throw new Error('PAYMENT_MISMATCH');
+ if(a.hosted_card&&!a.customer_id)a=await bindHostedPayment(db,a,p);
+ if(p.customer!==a.customer_id)throw new Error('PAYMENT_MISMATCH')
  let subId:string|null=a.subscription_id,renewal=false,authStatus=a.authorization_status
  if(a.method==='card'){
   if(!a.checkout_id||!identifier(p.subscription)||p.billingType!=='CREDIT_CARD'||(a.subscription_id?p.subscription!==a.subscription_id:p.checkoutSession!==a.checkout_id))throw new Error('CARD_PAYMENT_NOT_LINKED')
@@ -126,8 +159,13 @@ export async function processRecurringEvent(db:SupabaseClient,event:any):Promise
     const list=await asaas('/payments?checkoutSession='+encoded(a.checkout_id)+'&limit=20');if(!Array.isArray(list.data)||list.hasMore!==false||!list.data.some((p:any)=>paid.includes(p.status)))throw new Error('PAYMENT_NOT_YET_AVAILABLE')
     for(const p of list.data)if(paid.includes(p.status))await verifyPayment(db,a,p.id)
    }else if(type==='CHECKOUT_CANCELED'||type==='CHECKOUT_EXPIRED'){
-    if(a.method!=='card'||event.checkout?.id!==a.checkout_id||event.checkout?.customer!==a.customer_id)throw new Error('CHECKOUT_MISMATCH')
-    await closeIfNoFinancialObject(db,a)
+    if(a.method!=='card'||event.checkout?.id!==a.checkout_id||(!a.hosted_card&&event.checkout?.customer!==a.customer_id))throw new Error('CHECKOUT_MISMATCH')
+    if(a.hosted_card&&!a.customer_id){
+     if(a.initial_payment_id||a.subscription_id||!['CANCELED','CANCELLED','EXPIRED'].includes(event.checkout?.status))throw new Error('HOSTED_CLOSURE_REVIEW');
+     const list=await asaas('/payments?checkoutSession='+encoded(a.checkout_id!)+'&limit=1');
+     if(!Array.isArray(list.data)||list.hasMore!==false||list.data.length!==0)throw new Error('HOSTED_CLOSURE_REVIEW');
+     const {data,error}=await db.rpc('mp_asaas_close_hosted_unpaid_v6',{p_attempt:a.attempt_id,p_checkout:a.checkout_id,p_updated_at:a.updated_at});if(error||data!==true)throw new Error('HOSTED_CLOSE_FAILED');
+    }else await closeIfNoFinancialObject(db,a)
    }else if(type.startsWith('PAYMENT_')&&['PAYMENT_CONFIRMED','PAYMENT_RECEIVED','PAYMENT_OVERDUE','PAYMENT_REFUNDED','PAYMENT_PARTIALLY_REFUNDED','PAYMENT_REFUND_IN_PROGRESS','PAYMENT_REFUND_DENIED','PAYMENT_CHARGEBACK_REQUESTED','PAYMENT_CHARGEBACK_DISPUTE','PAYMENT_AWAITING_CHARGEBACK_REVERSAL'].includes(type)){
     await verifyPayment(db,a,event.payment?.id,type)
    }else if(type.startsWith('SUBSCRIPTION_')&&a.subscription_id){
@@ -152,7 +190,8 @@ export async function reconcileExistingAttempt(db:SupabaseClient,a:Attempt){
   await sync(db,a,sub,auth.status,renewal);
  }
  if(a.method==='card'&&a.subscription_id){const s=await verifySubscription(a,a.subscription_id);await sync(db,a,a.subscription_id,null,s.status==='ACTIVE'&&s.deleted!==true)}
- const list=await asaas('/payments?customer='+encoded(a.customer_id!)+'&limit=100');
+ const filter=a.hosted_card?(a.subscription_id?'subscription='+encoded(a.subscription_id):'checkoutSession='+encoded(a.checkout_id!)):'customer='+encoded(a.customer_id!);
+ const list=await asaas('/payments?'+filter+'&limit=100');
  if(!Array.isArray(list.data)||list.hasMore!==false)throw new Error('PAYMENT_LIST_INCOMPLETE');
  const {data:ledger,error:ledgerError}=await db.from('billing_payments').select('provider_payment_id,status').eq('subscription_id',a.attempt_id).eq('provider','asaas');if(ledgerError)throw new Error('PAYMENT_LEDGER_READ');
  const local=new Map((ledger||[]).map(x=>[x.provider_payment_id,x.status]));
