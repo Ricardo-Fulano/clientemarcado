@@ -65,6 +65,7 @@ export default function EscolherPlanosParaContratar() {
   const [checking,setChecking]=useState(false)
   const [copied, setCopied] = useState(false)
   const [uncertain, setUncertain] = useState(false)
+  const [statusReady,setStatusReady]=useState(false)
   const t = (i:number) => asaasCopy(idioma,i)
   const retryCard=attempt?.retryCard===true
   useEffect(()=>{if(retryCard&&attempt){setMethod('card');setPreferred(attempt.plan);setCycle(attempt.cycle);setConfirm(true)}},[retryCard,attempt?.plan,attempt?.cycle])
@@ -74,10 +75,11 @@ export default function EscolherPlanosParaContratar() {
   useEffect(()=>{
     if(!initialized||market!=='BR')return
     let alive=true
+    setStatusReady(false)
     const poll=async()=>{try{
       const {data:{session}}=await supabase.auth.getSession();if(!session)return
       const r=await fetch('/api/billing/asaas/status',{cache:'no-store',headers:{Authorization:`Bearer ${session.access_token}`}})
-      if(r.ok){const data=await r.json();if(alive){setAttempt(data.attempt||null);if(data.attempt)setUncertain(false)}}
+      if(r.ok){const data=await r.json();if(alive){setAttempt(data.attempt||null);setStatusReady(true);if(data.attempt)setUncertain(false)}}
     }catch{/* Never create another charge because polling failed. */}}
     void poll();const timer=window.setInterval(()=>void poll(),6000)
     return()=>{alive=false;window.clearInterval(timer)}
@@ -137,7 +139,7 @@ export default function EscolherPlanosParaContratar() {
   const checkout = async (plan: Plan) => {
     const q = quotes[plan]
     if (!allowed || q?.checkoutEnabled !== true || sending || loading) return
-    if(market==='BR'&&(!method||!q.methods?.[method]||!consent||!canRetryPlan(plan)||uncertain||!payerOk))return
+    if(market==='BR'&&(!statusReady||!method||!q.methods?.[method]||!consent||!canRetryPlan(plan)||uncertain||!payerOk))return
     setSending(plan)
     setError('')
     try {
@@ -148,10 +150,14 @@ export default function EscolherPlanosParaContratar() {
         setUncertain(true)
         const r=await fetch('/api/billing/asaas/checkout',{method:'POST',cache:'no-store',headers:{'Content-Type':'application/json',Authorization:`Bearer ${session.access_token}`},body:JSON.stringify({plan,cycle,method,...(method==='pix'?{name,cpf}:{}),consent:true})})
         const d=await r.json()
-        if(d.attemptId||d.attempt){const a:AsaasAttempt=d.attempt||d;setAttempt(a);setUncertain(false);if(a.checkoutUrl?.startsWith('https://asaas.com/checkoutSession/show?id=')){window.location.assign(a.checkoutUrl);return}if(a.retryCard)setError(t(32))}
-        else if(r.status===422){setUncertain(false);throw new Error(t(18))}
-        else if(r.status===409||r.status===202){setError(t(16))}
-        else{setError(t(19))}
+        const code=typeof d.error==='string'&&/^[A-Z][A-Z0-9_]{2,75}$/.test(d.error)?d.error:''
+        const trace=typeof d.trace==='string'&&/^[a-f0-9-]{36}$/i.test(d.trace)?' · '+d.trace.slice(0,8):''
+        if(d.attemptId||d.attempt){const a:AsaasAttempt=d.attempt||d;setAttempt(a);setUncertain(false);if(r.ok&&a.checkoutUrl?.startsWith('https://asaas.com/checkoutSession/show?id=')){window.location.assign(a.checkoutUrl);return}if(code)setError((code==='PREVIOUS_CUSTOMER_MISMATCH'||code==='PREVIOUS_CUSTOMER_FINANCIAL_LINK'?t(41):t(16))+' ('+code+')'+trace);else if(a.retryCard)setError(t(32))}
+        else if(r.status===422){setUncertain(false);throw new Error(t(18)+' ('+code+')')}
+        else if(code==='STRIPE_RESERVATION_PENDING'||code==='STRIPE_ATTEMPT_EXISTS'){setUncertain(false);setError(t(39)+' ('+code+')'+trace)}
+        else if(code==='STRIPE_RESERVATION_UNAVAILABLE'){setUncertain(false);setError(t(40)+' ('+code+')'+trace)}
+        else if(code==='PROFILE_NOT_ELIGIBLE'||code==='BILLING_ALREADY_EXISTS'){setUncertain(false);setError(t(41)+' ('+code+')'+trace)}
+        else{setError(t(16)+' ('+(code||'UNAVAILABLE')+')'+trace)}
         setSending(null);return
       }
       const response = await fetch('/api/billing/stripe/live-checkout', {
@@ -227,7 +233,8 @@ export default function EscolherPlanosParaContratar() {
         {!retryCard&&<button type="button" disabled={checking} style={{...btnStyle,background:'#21182D',color:'#C9FA45',border:'1px solid #9552F5'}} onClick={async()=>{setChecking(true);setError('');try{const {data:{session}}=await supabase.auth.getSession();if(!session)throw new Error(t(16));const r=await fetch('/api/billing/asaas/status',{method:'POST',headers:{Authorization:`Bearer ${session.access_token}`}});if(!r.ok)throw new Error(t(16));const d=await r.json();setAttempt(d.attempt||null);setUncertain(false)}catch{setError(t(16))}finally{setChecking(false)}}}>{checking?t(19):t(22)}</button>}
         <p role="status">{retryCard?t(32):attempt.state==='review'?t(16):t(15)}</p></>}
       </section>}
-      {market==='BR'&&allowed&&(!attempt||retryCard)&&!uncertain&&!loading&&Object.values(quotes).some(q=>q?.checkoutEnabled)&&<section style={{background:'#21182D',padding:20,borderRadius:16,marginTop:16,display:'grid',gap:12}}>
+      {market==='BR'&&!statusReady&&<p role="status">{t(42)}</p>}
+      {market==='BR'&&statusReady&&allowed&&(!attempt||retryCard)&&!uncertain&&!loading&&Object.values(quotes).some(q=>q?.checkoutEnabled)&&<section style={{background:'#21182D',padding:20,borderRadius:16,marginTop:16,display:'grid',gap:12}}>
         <h2 style={{fontSize:18,margin:0}}>{t(0)}</h2>
         <div style={{display:'flex',gap:12,flexWrap:'wrap'}}>{(['card','pix'] as const).filter(m=>(!retryCard||m==='card')&&Object.values(quotes).some(q=>q?.methods?.[m])).map(m=><label key={m}><input type="radio" name="asaas-method" checked={method===m} disabled={!!sending} onChange={()=>setMethod(m)}/> {t(m==='card'?1:2)}</label>)}</div>
         {method==='pix'&&<>
@@ -238,12 +245,12 @@ export default function EscolherPlanosParaContratar() {
         <label><input type="checkbox" checked={consent} disabled={!method||!!sending} onChange={e=>setConsent(e.target.checked)}/> {t(5)}</label>
       </section>}
       {market==='BR'&&!loading&&allowed&&!attempt&&!Object.values(quotes).some(q=>q?.checkoutEnabled)&&<p role="status">{t(6)}</p>}
-      {market==='BR'&&uncertain&&!attempt&&<p role="status">{t(16)}</p>}
+      {market==='BR'&&uncertain&&!attempt&&!error&&<p role="status">{t(16)}</p>}
       {error && !attempt?.paymentConfirmed && <p role="alert" style={{ color: '#FFC7C7', fontSize: 13, padding: '12px 0', lineHeight: 1.6 }}>{error}</p>}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(220px,1fr))', gap: 14, marginTop: 22 }}>
         {PLANS.filter(item => !confirm || item.code === preferred).map(item => {
           const q = quotes[item.code]
-          const canBuy = allowed && q?.checkoutEnabled === true && !loading && !sending && (market==='INTL'||!!method&&!!q.methods?.[method]&&consent&&payerOk&&canRetryPlan(item.code)&&!uncertain)
+          const canBuy = allowed && q?.checkoutEnabled === true && !loading && !sending && (market==='INTL'||statusReady&&!!method&&!!q.methods?.[method]&&consent&&payerOk&&canRetryPlan(item.code)&&!uncertain)
           return <article key={item.code} style={{ background: '#21182D', border: item.code === preferred ? '1px solid #C9FA45' : '1px solid #483756', padding: 20, borderRadius: 17, display: 'flex', flexDirection: 'column', gap: 12 }}>
             <div style={{ fontSize: 11, fontWeight: 800, color: '#C9FA45', minHeight: 16 }}>{item.code === preferred ? textoCheckout(idioma, 35) : ''}</div>
             <h2 style={{ fontSize: 20, margin: 0 }}>{item.code === 'loja' ? textoCheckout(idioma, 67) : item.name}</h2>
