@@ -2,6 +2,7 @@
 import { NextResponse } from 'next/server'
 import type { createClient } from '@supabase/supabase-js'
 import { avaliarAmbienteAsaas } from './asaas-ambiente'
+import { planoGeraComissao } from './comissao-parceiro'
 import {
   conferirPagamento,
   registrarComissaoParceiro,
@@ -27,13 +28,6 @@ import {
  * Nao faz pagamentos PIX.
  * Nao altera planos ou assinaturas.
  */
-
-const PLANOS_COMISSIONAVEIS = new Set([
-  'minipage',
-  'loja',
-  'essencial',
-  'equipe',
-])
 
 type PendenciaReservada = {
   pagamento_id: string
@@ -404,7 +398,7 @@ export async function processarComissoesRecuperacao(
         }
 
         if (
-          !PLANOS_COMISSIONAVEIS.has(
+          !planoGeraComissao(
             pendencia.plano_restaurado
           )
         ) {

@@ -38,3 +38,11 @@ export function modalidadeDoPercentual(valor: unknown): ModalidadeParceiro | nul
   if (p === PERCENTUAL_PARCEIRO_ESTRATEGICO) return 'estrategico'
   return null
 }
+
+// Planos comerciais pagos e Equipe legado. Free nao gera comissao.
+// Regra compartilhada pelo webhook e pelo reprocessamento de recuperacao.
+const PLANOS_COMISSIONAVEIS = new Set(['minipage', 'agenda', 'loja', 'essencial', 'equipe'])
+
+export function planoGeraComissao(plano: string): boolean {
+  return PLANOS_COMISSIONAVEIS.has(plano)
+}

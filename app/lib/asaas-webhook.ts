@@ -2,7 +2,7 @@ import crypto from 'crypto'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { normalizarPlano, obterPrecoPlanoPorCiclo, normalizarBillingCycle } from './planos'
 import { avaliarAmbienteAsaas } from './asaas-ambiente'
-import { resolverPercentualComissao } from './comissao-parceiro'
+import { resolverPercentualComissao, planoGeraComissao } from './comissao-parceiro'
 import { conciliarRecuperacaoAsaas } from './conciliacao-recuperacao'
 
 // =====================================================================================
@@ -88,7 +88,6 @@ export function validarTokenWebhook(env: Record<string, string | undefined>, tok
 // ---------- Regra de comissao (copiada SEM alteracao do webhook anterior; idempotente por payment id no banco) ----------
 // Planos que podem gerar comissao de parceiro - Free nunca entra aqui (sem mensalidade,
 // sem pagamento real). 'essencial' e o valor interno do MiniPage Pro - nunca criamos 'pro'.
-const PLANOS_COMISSIONAVEIS = ['minipage', 'loja', 'essencial', 'equipe']
 
 // Fase 3B: tenta registrar a comissao de um parceiro para um pagamento ja confirmado pelo
 // Asaas. Roda DEPOIS que o acesso do cliente ja foi liberado com sucesso (ver ponto de
@@ -105,9 +104,9 @@ export async function registrarComissaoParceiro(
   const { userId, planoTipo, payment, cicloCobranca, strict } = params
 
   try {
-    // ---- Ajuste 2: plano precisa ser um dos 4 comissionaveis ----
+    // ---- Ajuste 2: plano precisa ser comissionavel pela regra compartilhada ----
     const planoNormalizado = normalizarPlano(planoTipo)
-    if (!PLANOS_COMISSIONAVEIS.includes(planoNormalizado)) {
+    if (!planoGeraComissao(planoNormalizado)) {
       console.log(`${prefixo} Plano não elegível para comissão (${planoNormalizado}) - user_id: ${userId} - nenhuma comissão gerada`)
       return
     }
