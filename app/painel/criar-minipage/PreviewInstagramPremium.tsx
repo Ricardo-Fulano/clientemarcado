@@ -207,13 +207,15 @@ export default function PreviewInstagramPremium({ idioma, nome, slug, bio, fotoP
   const storyAtual = storyIndex === null ? null : storiesValidos[storyIndex]
   const youtubes = youtubeResultados.filter(y => youtubeSelecionados.includes(y.videoId))
   const linksMostrar = modo === 'free' ? links.slice(0, 5) : links
-  const videosMostrar = modo === 'free' ? youtubes.slice(0, 1) : youtubes
+  const horizontais=youtubes.filter(v=>formatoYoutube(v.url)==='16:9')
+  const shortsMostrar=modo==='premium'?youtubes.filter(v=>formatoYoutube(v.url)==='9:16'):[]
+  const videosMostrar = modo === 'free' ? horizontais.slice(0, 1) : horizontais
   // Somente contatos que o assinante efetivamente escolheu, sem criar links ficticios.
   const redesDoTopo = Array.from(new Set([
     ...(instagram.trim() || perfilInstagram?.username ? ['instagram'] : []),
     ...(whatsapp.trim() ? ['whatsapp'] : []),
     ...linksMostrar.filter(l => l.url.trim()).map(l => l.tipo),
-    ...(videosMostrar.length ? ['youtube'] : []),
+    ...(videosMostrar.length || shortsMostrar.length ? ['youtube'] : []),
   ])).filter(tipo => ['instagram','facebook','youtube','whatsapp','tiktok','spotify','x','site'].includes(tipo)).slice(0, 10)
   const linksSpotify = modo === 'premium' ? linksMostrar.map(l => ({ ...l, embed: spotifyEmbedUrl(l.url) })).filter(l => !!l.embed) : []
   const isPago = planoAtual !== 'free'
@@ -302,6 +304,7 @@ export default function PreviewInstagramPremium({ idioma, nome, slug, bio, fotoP
                     {videosMostrar.map(y => <div key={y.videoId} style={{minWidth:0,gridColumn:youtubeLayout==='grade' && videoReproduzindo===y.videoId?'1 / -1':undefined}}><YouTubeCard video={y} tema={tokensTema} compact={youtubeLayout==='grade' && videoReproduzindo!==y.videoId} reproduzindo={videoReproduzindo===y.videoId} onPlay={()=>setVideoReproduzindo(y.videoId)}/></div>)}
                   </div>
                 </section>}
+                {shortsMostrar.length>0&&<section aria-label="YouTube Shorts" style={{marginTop:16,textAlign:'left'}}><strong style={{fontSize:12,color:fore}}>YouTube Shorts</strong><div style={{display:'flex',gap:8,overflowX:'auto',marginTop:9}}>{shortsMostrar.map(v=><div key={v.videoId} style={{flex:'0 0 45%',minWidth:0}}><YouTubeCard video={v} tema={tokensTema} compact reproduzindo={videoReproduzindo===v.videoId} onPlay={()=>setVideoReproduzindo(v.videoId)}/></div>)}</div></section>}
               </div>
             </>
           ) : (

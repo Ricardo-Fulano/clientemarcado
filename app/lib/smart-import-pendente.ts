@@ -22,7 +22,7 @@ async function uidAtual(uid:string){const {data:{user},error}=await supabase.aut
 async function idEstavel(uid:string,key:string){const b=new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(uid+'|smart-import-v12|'+key)));b[6]=(b[6]&15)|64;b[8]=(b[8]&63)|128;const h=Array.from(b.slice(0,16),x=>x.toString(16).padStart(2,'0')).join('');return `${h.slice(0,8)}-${h.slice(8,12)}-${h.slice(12,16)}-${h.slice(16,20)}-${h.slice(20)}`}
 export async function guardarSmartImport(uid:string,videos:VideoImportado[],fotos:FotoImportada[],capa:string|null,reels:ReelImportado[]=[]){
   await uidAtual(uid)
-  if(videos.length>4||fotos.length>25||reels.length>12)throw new Error('MEDIA_LIMIT')
+  if(videos.length>8||videos.filter(v=>formatoYoutube(v.url)==='16:9').length>4||videos.filter(v=>formatoYoutube(v.url)==='9:16').length>4||new Set(videos.map(v=>v.videoId)).size!==videos.length||fotos.length>25||reels.length>12)throw new Error('MEDIA_LIMIT')
   const selecionados=videos.map(v=>{if(!idValido(v.videoId)||youtubeId(v.url)!==v.videoId)throw new Error('INVALID_VIDEO');return {videoId:v.videoId,titulo:v.titulo.slice(0,160),miniatura:`https://i.ytimg.com/vi/${v.videoId}/hqdefault.jpg`,url:youtubeFormato(v.videoId,formatoYoutube(v.url)==='9:16')}})
   if(!selecionados.length&&!fotos.length&&!reels.length)return false
   const batch=crypto.randomUUID(), storage=supabase.storage.from(BUCKET), enviados:string[]=[]
@@ -77,7 +77,7 @@ export async function organizarVideosSemSecao(uid:string){
   return data.length
 }
 async function aplicarRascunho(uid:string,r:Rascunho,batch:string){
-  if(r.version!==1||!Array.isArray(r.videos)||!Array.isArray(r.fotos)||r.videos.length>4||r.fotos.length>25||(r.reels!==undefined&&(!Array.isArray(r.reels)||r.reels.length>12)))throw new Error('INVALID_DRAFT')
+  if(r.version!==1||!Array.isArray(r.videos)||!Array.isArray(r.fotos)||r.videos.length>8||r.videos.filter(v=>formatoYoutube(v.url)==='16:9').length>4||r.videos.filter(v=>formatoYoutube(v.url)==='9:16').length>4||r.fotos.length>25||(r.reels!==undefined&&(!Array.isArray(r.reels)||r.reels.length>12)))throw new Error('INVALID_DRAFT')
   await uidAtual(uid)
   const {data:p,error:ep}=await supabase.from('perfis').select('*').eq('user_id',uid).single();check(ep)
   const {data:pub,error:epub}=await supabase.from('perfis_publicos').select('plano_tipo').eq('user_id',uid).maybeSingle();check(epub)
@@ -88,7 +88,7 @@ async function aplicarRascunho(uid:string,r:Rascunho,batch:string){
     if(!idValido(v.videoId)||youtubeId(v.url)!==v.videoId)throw new Error('INVALID_VIDEO')
     const formato=formatoYoutube(v.url);const tituloSecao=formato==='9:16'?'YouTube Shorts':TITULO_VIDEO
     const existente=(vv||[]).find(x=>youtubeId(x.url_video)===v.videoId)
-    if(existente){if(existente.secao_id||!existente.ativo)continue;const vs=await secao(uid,'pagina_videos_secoes',tituloSecao);const {error}=await supabase.from('pagina_videos').update({secao_id:vs,...(formato==='9:16'?{formato,url_video:youtubeFormato(v.videoId,true)}:{})}).eq('user_id',uid).eq('id',existente.id).is('secao_id',null);check(error);continue}
+    if(existente){if(existente.secao_id||!existente.ativo)continue;const vs=await secao(uid,'pagina_videos_secoes',formatoYoutube(existente.url_video||'')==='9:16'?'YouTube Shorts':TITULO_VIDEO);const {error}=await supabase.from('pagina_videos').update({secao_id:vs}).eq('user_id',uid).eq('id',existente.id).is('secao_id',null);check(error);continue}
     const vs=await secao(uid,'pagina_videos_secoes',tituloSecao)
     const id=await idEstavel(uid,'video|'+v.videoId)
     const {error}=await supabase.from('pagina_videos').insert({id,user_id:uid,secao_id:vs,titulo:String(v.titulo||'YouTube').slice(0,160),url_video:youtubeFormato(v.videoId,formato==='9:16'),thumbnail_url:`https://i.ytimg.com/vi/${v.videoId}/hqdefault.jpg`,plataforma:'youtube',formato,ativo:true,ordem:ordemV++})

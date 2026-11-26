@@ -1,7 +1,8 @@
 'use client'
 import { useState, useEffect, useRef } from 'react'
 import { supabase } from '../../lib/supabase'
-import { reelUrl, formatoYoutube, youtubeFormato, verticalCopy } from '../../lib/smart-import-vertical'
+import { reelUrl, youtubeFormato } from '../../lib/smart-import-vertical'
+import SmartShortsImport from '../../components/SmartShortsImport'
 import { guardarSmartImport } from '../../lib/smart-import-pendente'
 import { textoCheckout } from '../../lib/i18n-global/checkout-copy'
 import { destinoCheckoutOnboarding } from '../../lib/billing/destino-checkout-onboarding'
@@ -614,6 +615,7 @@ export default function CriarMiniPage() {
   const [youtubeErro, setYoutubeErro] = useState('')
   const [youtubeResultados, setYoutubeResultados] = useState<YoutubeImportItem[]>([])
   const [youtubeSelecionados, setYoutubeSelecionados] = useState<string[]>([])
+  const [shortsSelecionados,setShortsSelecionados]=useState<YoutubeImportItem[]>([])
   const [youtubeCanalDados, setYoutubeCanalDados] = useState<{nome:string;inscritos:number|null}|null>(null)
   const [igConsultando,setIgConsultando] = useState(false)
   const [igErro,setIgErro] = useState('')
@@ -1103,7 +1105,7 @@ export default function CriarMiniPage() {
       })
       const corpo = await resp.json().catch(() => null)
       if (!resp.ok || !Array.isArray(corpo?.videos)) throw new Error(corpo?.error || 'Não foi possível buscar o canal.')
-      setYoutubeResultados(corpo.videos as YoutubeImportItem[])
+      setYoutubeResultados((corpo.videos as YoutubeImportItem[]).map(v=>({...v,url:youtubeFormato(v.videoId,false)})))
       // Apenas estatisticas devolvidas pela API oficial; sem valores ficticios.
       const quantidade = corpo.inscritosYoutube
       const inscritos = typeof quantidade === 'number' && Number.isSafeInteger(quantidade) && quantidade >= 0 ? quantidade : null
@@ -1115,6 +1117,7 @@ export default function CriarMiniPage() {
   }
 
   function alternarVideoYouTube(videoId: string) {
+    if(shortsSelecionados.some(v=>v.videoId===videoId))return
     setYoutubeSelecionados(anteriores => anteriores.includes(videoId)
       ? anteriores.filter(id => id !== videoId)
       : anteriores.length >= 4 ? anteriores : [...anteriores, videoId])
@@ -1283,7 +1286,7 @@ export default function CriarMiniPage() {
     const fotosEscolhidas = igMidias.filter(m => igMidiasSelecionadas.includes(m.id) &&
       ['IMAGE','CAROUSEL_ALBUM'].includes(m.tipo) && /^\d+$/.test(m.id) && (!igDiscovery || !!m.downloadTicket))
     const reelsEscolhidos=igMidias.filter(m=>igMidiasSelecionadas.includes(m.id)&&m.tipo==='VIDEO'&&reelUrl(m.link))
-    const videosEscolhidos = youtubeSelecionados.map(id=>youtubeResultados.find(v=>v.videoId===id)).filter((v):v is YoutubeImportItem=>!!v)
+    const videosEscolhidos = [...youtubeSelecionados.map(id=>youtubeResultados.find(v=>v.videoId===id)).filter((v):v is YoutubeImportItem=>!!v),...shortsSelecionados.filter(v=>!youtubeSelecionados.includes(v.videoId))]
     const capaEscolhida = fotosEscolhidas.find(m=>m.id===igMidiaCapaId)?.id || fotosEscolhidas[0]?.id || null
     let rascunhoSalvo=false
     let rascunhoFalhou=false
@@ -1309,7 +1312,7 @@ export default function CriarMiniPage() {
       let totalVideosPublicados = (videosExistentes || []).length
       for (const [indice, video] of escolhidos.entries()) {
         if (totalVideosPublicados >= limiteVideosParaPublicar) break
-        if (video.url!==youtubeFormato(video.videoId,false)&&video.url!==youtubeFormato(video.videoId,true)) continue
+        if (video.url!==youtubeFormato(video.videoId,false)) continue
         const urlFree=youtubeFormato(video.videoId,false)
         if (urlsExistentes.has(urlFree)) continue
         const { error: erroSalvarVideo } = await supabase.from('pagina_videos').insert({
@@ -1553,6 +1556,8 @@ export default function CriarMiniPage() {
               </div>}
             </section>
 
+            <SmartShortsImport idioma={idioma} items={shortsSelecionados} onChange={setShortsSelecionados} blockedIds={youtubeSelecionados}/>
+
             <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#B8AAB8', marginBottom: '6px' }}>{txt.displayName}</label>
             <input value={nome} onChange={e => setNome(e.target.value)} placeholder="Ex: Estúdio Bella" style={{ width: '100%', background: 'rgba(8,6,10,.6)', border: '1px solid #2A1A2F', borderRadius: '10px', padding: '12px 14px', fontSize: '14px', color: '#F8F4F7', marginBottom: '16px', fontFamily: 'inherit' }} />
 
@@ -1664,16 +1669,16 @@ export default function CriarMiniPage() {
                 {youtubeResultados.length > 0 && <>
                   <p style={{fontSize:12,color:'#C9FA45',margin:'12px 0 8px'}}>{tx.selected}: {youtubeSelecionados.length}/4. {tx.freeOneVideo}</p>
                   <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(140px,1fr))',gap:10}}>
-                    {youtubeResultados.map(video => <div key={video.videoId} style={{minWidth:0}}><button type="button" onClick={() => alternarVideoYouTube(video.videoId)}
+                    {youtubeResultados.map(video => <div key={video.videoId} style={{minWidth:0}}><button type="button" onClick={() => alternarVideoYouTube(video.videoId)} disabled={shortsSelecionados.some(v=>v.videoId===video.videoId)}
                       aria-pressed={youtubeSelecionados.includes(video.videoId)}
                       style={{width:'100%',padding:8,textAlign:'left',background:'#20182A',border:`2px solid ${youtubeSelecionados.includes(video.videoId)?'#C9FA45':'#51405F'}`,borderRadius:10,color:'#F8F4F7',cursor:'pointer'}}>
-                      <span style={{display:'block',position:'relative',width:'100%',aspectRatio:formatoYoutube(video.url)==='9:16'?'9/16':'16/9',overflow:'hidden',borderRadius:8,background:'#0B0A10'}}>
+                      <span style={{display:'block',position:'relative',width:'100%',aspectRatio:'16/9',overflow:'hidden',borderRadius:8,background:'#0B0A10'}}>
                         <img src={video.miniatura} alt="" loading="lazy" style={{position:'absolute',inset:0,width:'100%',height:'100%',objectFit:'cover'}} />
                         <span aria-label="YouTube" style={{position:'absolute',top:7,left:7,display:'grid',placeItems:'center',width:25,height:25,background:'#FFFFFF',color:'#FF0033',borderRadius:'50%',fontSize:12,fontWeight:900,boxShadow:'0 1px 6px rgba(0,0,0,.3)'}}><svg width="17" height="17" viewBox="0 0 28 24" aria-hidden="true"><rect x="1" y="3" width="26" height="18" rx="5.5" fill="#FF0033"/><path d="M11 8.2L19 12L11 15.8Z" fill="#FFFFFF"/></svg></span>
                         {youtubeSelecionados.includes(video.videoId) && <span style={{position:'absolute',top:7,right:7,background:'#C9FA45',color:'#15180D',borderRadius:6,padding:'2px 6px',fontSize:11,fontWeight:900}}>✓</span>}
                         <span style={{position:'absolute',bottom:0,left:0,right:0,padding:'24px 8px 8px',background:'linear-gradient(transparent,rgba(0,0,0,.92))',color:'#FFF',textAlign:'center',fontSize:11,fontWeight:800,lineHeight:1.3,display:'-webkit-box',WebkitBoxOrient:'vertical',WebkitLineClamp:2,overflow:'hidden',overflowWrap:'anywhere'}} title={video.titulo}>{video.titulo}</span>
                       </span>
-                    </button><label style={{display:'flex',gap:5,alignItems:'center',fontSize:11,color:'#DDD',marginTop:6}}><input type="checkbox" checked={formatoYoutube(video.url)==='9:16'} onChange={e=>setYoutubeResultados(prev=>prev.map(v=>v.videoId===video.videoId?{...v,url:youtubeFormato(v.videoId,e.target.checked)}:v))}/>{verticalCopy(idioma).short}</label></div>)}
+                    </button></div>)}
                   </div>
                 </>}
                 {videosExcedentesFree && <p role="status" style={{color:'#F6CFFF',fontSize:12,marginTop:11}}>{tx.upgradeVideos}</p>}
@@ -1788,7 +1793,7 @@ export default function CriarMiniPage() {
             <p style={{fontSize:13,color:'#CFC5D9',lineHeight:1.6,marginBottom:16}}>{tx.reviewIntro}</p>
             <div style={{border:'1px solid #5B4A69',borderRadius:13,padding:15,background:'#17101F',marginBottom:12}}>
               <strong style={{color:'#F8F4F7',fontSize:15}}>{tx.preparedSummary}</strong>
-              <p style={{fontSize:12,color:'#E7DCEE',lineHeight:1.7,margin:'9px 0 0'}}>{links.filter(l=>l.url.trim()).length} links · {youtubeSelecionados.length} {tx.videos} YouTube · {igMidiasSelecionadas.length} {tx.instagramPosts}.</p>
+              <p style={{fontSize:12,color:'#E7DCEE',lineHeight:1.7,margin:'9px 0 0'}}>{links.filter(l=>l.url.trim()).length} links · {youtubeSelecionados.length} {tx.videos} YouTube · {shortsSelecionados.length} Shorts · {igMidiasSelecionadas.length} {tx.instagramPosts}.</p>
               <p style={{fontSize:11,color:'#C6B8D0',lineHeight:1.6,margin:'9px 0 0'}}>{tx.previewCaveat}</p>
             </div>
             <p style={{fontSize:12,color:'#D5BDD8',lineHeight:1.6,margin:'8px 0 12px'}}>
@@ -1915,8 +1920,8 @@ export default function CriarMiniPage() {
                 midiaCapaId={midiaCapaAtivaId}
                 stories={[]}
                 storiesConsultados={false}
-                youtubeResultados={youtubeResultados}
-                youtubeSelecionados={youtubeSelecionados}
+                youtubeResultados={[...youtubeResultados.filter(v=>!shortsSelecionados.some(x=>x.videoId===v.videoId)),...shortsSelecionados]}
+                youtubeSelecionados={[...youtubeSelecionados,...shortsSelecionados.map(v=>v.videoId)]}
                 youtubeCanalDados={youtubeCanalDados}
                 links={links.filter(l=>l.url.trim()).map(l=>({id:l.id,titulo:l.titulo.trim()||labelPlataforma(l.tipo)||'Meu link',tipo:l.tipo,url:l.url.trim()}))}
                 temaPremium={temaPremium}

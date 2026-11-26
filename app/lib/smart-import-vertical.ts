@@ -16,3 +16,5 @@ export const textoVertical = {
  'it-IT':{banner:'Scegli copertina',none:'Mantieni copertina attuale',reels:'Seleziona Reels',short:'Mostra come Shorts (verticale)',normal:'Video orizzontale',profile:'Importa foto profilo',reelCount:'Reels aggiunti',vertical:'Video verticali'},
 } as const
 export function verticalCopy(lang:string){return textoVertical[lang as keyof typeof textoVertical]||textoVertical['pt-BR']}
+
+export function shortIdOficial(value:unknown):string|null {try{const u=new URL(String(value).trim());if(u.protocol!=='https:'||!['youtube.com','www.youtube.com','m.youtube.com'].includes(u.hostname)||u.username||u.password||u.port)return null;return u.pathname.match(/^\/shorts\/([A-Za-z0-9_-]{11})\/?$/)?.[1]||null}catch{return null}}

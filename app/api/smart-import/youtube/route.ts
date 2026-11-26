@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { shortIdOficial, youtubeFormato } from '../../../lib/smart-import-vertical'
 
 export const runtime = 'nodejs'
 
@@ -38,8 +39,11 @@ async function youtubeApi(endpoint: string, query: Record<string,string>, key: s
 
 export async function GET(req: NextRequest) {
   const valor = req.nextUrl.searchParams.get('canal') || ''
+  const short = req.nextUrl.searchParams.get('short')
+  const shortId = short === null ? null : shortIdOficial(short)
+  if (short !== null && !shortId) return resposta({error:'INVALID_SHORT_URL'},400)
   const canal = extrairCanal(valor)
-  if (!canal) return resposta({error:'Informe @canal ou a URL oficial do canal YouTube.'},400)
+  if (!canal && !shortId) return resposta({error:'Informe @canal ou a URL oficial do canal YouTube.'},400)
   const token = (req.headers.get('authorization') || '').replace(/^Bearer\s+/i,'').trim()
   if (!token) return resposta({error:'Faça login para importar conteúdos.'},401)
   const urlSupabase = process.env.NEXT_PUBLIC_SUPABASE_URL
@@ -51,6 +55,12 @@ export async function GET(req: NextRequest) {
   const apiKey = process.env.YOUTUBE_DATA_API_KEY
   if (!apiKey) return resposta({error:'Importação do YouTube ainda não configurada. Configure YOUTUBE_DATA_API_KEY no servidor.'},503)
   try {
+    if(shortId){
+      const dados=await youtubeApi('videos',{part:'snippet,status',id:shortId},apiKey)
+      const v=dados.items?.[0]
+      if(v?.id!==shortId||v.status?.privacyStatus!=='public'||v.status?.embeddable!==true||typeof v.snippet?.title!=='string')return resposta({error:'SHORT_UNAVAILABLE'},404)
+      return resposta({video:{videoId:shortId,titulo:v.snippet.title.slice(0,160),miniatura:`https://i.ytimg.com/vi/${shortId}/hqdefault.jpg`,url:youtubeFormato(shortId,true)}},200)
+    }
     const canais = await youtubeApi('channels',{part:'snippet,contentDetails,statistics',...canal},apiKey)
     const encontrado: Canal | undefined = canais.items?.[0]
     const playlist = encontrado?.contentDetails?.relatedPlaylists?.uploads

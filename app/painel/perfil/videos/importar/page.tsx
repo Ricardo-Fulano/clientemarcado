@@ -2,7 +2,8 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { ArrowLeft, Search } from 'lucide-react'
-import { formatoYoutube, youtubeFormato, verticalCopy } from '../../../../lib/smart-import-vertical'
+import { youtubeFormato } from '../../../../lib/smart-import-vertical'
+import SmartShortsImport from '../../../../components/SmartShortsImport'
 import { useIdiomaGlobal } from '../../../../components/IdiomaProviderGlobal'
 import { supabase } from '../../../../lib/supabase'
 import { obterLimiteVideos, permiteAlbuns } from '../../../../lib/planos'
@@ -14,7 +15,8 @@ const G = '#C9FA45'
 const botao = { background: G, border: 0, borderRadius: 10, padding: '11px 15px', color: '#0B0A10', fontWeight: 800, cursor: 'pointer' as const }
 
 export default function ImportarYoutubePainel() {
-  const {idioma}=useIdiomaGlobal();const vt=verticalCopy(idioma)
+  const {idioma}=useIdiomaGlobal()
+  const [shorts,setShorts]=useState<Video[]>([])
   const [canal, setCanal] = useState('')
   const [resultados, setResultados] = useState<Video[]>([])
   const [selecionados, setSelecionados] = useState<string[]>([])
@@ -48,7 +50,7 @@ export default function ImportarYoutubePainel() {
         { headers: { Authorization: `Bearer ${session.access_token}` }, cache: 'no-store' })
       const j = await r.json().catch(() => null)
       if (!r.ok || !Array.isArray(j?.videos)) throw new Error(j?.error || 'Não foi possível buscar esse canal.')
-      setResultados(j.videos as Video[])
+      setResultados((j.videos as Video[]).map(v=>({...v,url:youtubeFormato(v.videoId,false)})))
       if (!j.videos.length) setMensagem('Nenhum vídeo público disponível neste canal.')
     } catch (e) { setMensagem(e instanceof Error ? e.message : 'Falha ao consultar YouTube.') }
     finally { setConsulta(false) }
@@ -116,6 +118,11 @@ export default function ImportarYoutubePainel() {
     finally { setSalvando(false) }
   }
 
+  async function salvarShorts(){
+    if(salvando||!shorts.length||!userId||!permiteAlbuns(plano))return
+    setSalvando(true);setMensagem('')
+    try{const {data:{user}}=await supabase.auth.getUser();if(user?.id!==userId)throw Error('Sessão inválida.');const {data:p,error}=await supabase.from('perfis').select('plano_tipo').eq('user_id',userId).maybeSingle();if(error||!permiteAlbuns(p?.plano_tipo))throw Error('Plano pago necessário.');await guardarSmartImport(userId,shorts,[],null);await publicarSmartImportPendente(userId);setShorts([]);setMensagem('Seleção de Shorts processada. Confira a seção YouTube Shorts.')}catch(e){setMensagem(e instanceof Error?e.message:'Falha ao importar Shorts.')}finally{setSalvando(false)}
+  }
   const limite = Math.min(4, obterLimiteVideos(plano))
   return <div style={{display:'flex',minHeight:'100vh',background:'#0B0A10',color:'#FFFFFF',fontFamily:'system-ui'}}>
     <PainelSidebar tituloMobile="Importar YouTube" />
@@ -132,13 +139,14 @@ export default function ImportarYoutubePainel() {
         {!!resultados.length && <>
           <p style={{fontSize:13,color:'#C5BCD1',marginBottom:12}}>Selecione até {limite === 4 ? '4' : limite} vídeo(s) nesta importação. Os vídeos existentes não serão removidos.</p>
           <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(210px,1fr))',gap:12}}>
-            {resultados.map(v=><div key={v.videoId} style={{minWidth:0}}><button type="button" onClick={()=>setSelecionados(prev=>prev.includes(v.videoId)?prev.filter(id=>id!==v.videoId):prev.length<limite?[...prev,v.videoId]:prev)} aria-pressed={selecionados.includes(v.videoId)} style={{width:'100%',textAlign:'left',padding:0,background:'#21182D',color:'#fff',border:selecionados.includes(v.videoId)?'2px solid #C9FA45':'1px solid #40344B',borderRadius:12,overflow:'hidden',cursor:'pointer'}}>
-              <div style={{position:'relative',aspectRatio:formatoYoutube(v.url)==='9:16'?'9 / 16':'16 / 9',background:'#100A16'}}><img src={v.miniatura} alt="" loading="lazy" style={{width:'100%',height:'100%',objectFit:'cover'}}/><span style={{position:'absolute',top:8,right:8,background:selecionados.includes(v.videoId)?'#C9FA45':'rgba(0,0,0,.72)',color:selecionados.includes(v.videoId)?'#0B0A10':'#FFFFFF',borderRadius:7,padding:'4px 7px',fontSize:12,fontWeight:800}}>{selecionados.includes(v.videoId)?'✓ Selecionado':'Selecionar'}</span></div>
+            {resultados.map(v=><div key={v.videoId} style={{minWidth:0}}><button type="button" disabled={shorts.some(x=>x.videoId===v.videoId)} onClick={()=>setSelecionados(prev=>prev.includes(v.videoId)?prev.filter(id=>id!==v.videoId):prev.length<limite?[...prev,v.videoId]:prev)} aria-pressed={selecionados.includes(v.videoId)} style={{width:'100%',textAlign:'left',padding:0,background:'#21182D',color:'#fff',border:selecionados.includes(v.videoId)?'2px solid #C9FA45':'1px solid #40344B',borderRadius:12,overflow:'hidden',cursor:'pointer'}}>
+              <div style={{position:'relative',aspectRatio:'16 / 9',background:'#100A16'}}><img src={v.miniatura} alt="" loading="lazy" style={{width:'100%',height:'100%',objectFit:'cover'}}/><span style={{position:'absolute',top:8,right:8,background:selecionados.includes(v.videoId)?'#C9FA45':'rgba(0,0,0,.72)',color:selecionados.includes(v.videoId)?'#0B0A10':'#FFFFFF',borderRadius:7,padding:'4px 7px',fontSize:12,fontWeight:800}}>{selecionados.includes(v.videoId)?'✓ Selecionado':'Selecionar'}</span></div>
               <p style={{fontSize:13,fontWeight:700,lineHeight:1.4,padding:'10px 12px',minHeight:57}}>{v.titulo}</p>
-            </button>{permiteAlbuns(plano)&&<label style={{display:'flex',gap:6,fontSize:12,marginTop:6}}><input type="checkbox" checked={formatoYoutube(v.url)==='9:16'} onChange={e=>setResultados(prev=>prev.map(x=>x.videoId===v.videoId?{...x,url:youtubeFormato(x.videoId,e.target.checked)}:x))}/>{vt.short}</label>}</div>)}
+            </button></div>)}
           </div>
           <button type="button" disabled={!selecionados.length||salvando} onClick={()=>void salvar()} style={{...botao,opacity:(!selecionados.length || salvando) ? 0.55 : 1,marginTop:20}}>{salvando?'Importando…':`Adicionar ${selecionados.length} vídeo(s) à minha MiniPage`}</button>
         </>}
+        {permiteAlbuns(plano)&&<><SmartShortsImport idioma={idioma} items={shorts} onChange={setShorts} blockedIds={selecionados} disabled={salvando}/>{shorts.length>0&&<button type="button" disabled={salvando} onClick={()=>void salvarShorts()} style={botao}>{salvando?'…':`${shorts.length} Shorts → MiniPage`}</button>}</>}
       </div>
     </main>
   </div>
