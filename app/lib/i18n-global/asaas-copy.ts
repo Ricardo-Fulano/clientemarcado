@@ -25,4 +25,12 @@ const successCopy:Record<string,string[]>={
  de:['Zu meinem Dashboard','Abonnementdetails ansehen','Ihr Abonnement wurde erfasst.','Abonnementpreis']
 }
 for(const lang of Object.keys(successCopy))copy[lang].push(...successCopy[lang])
+const refundCopy:Record<string,string[]>={
+ pt:['Pagamento estornado','O pagamento foi devolvido. Confira a assinatura e a próxima cobrança no painel. O estorno não cancela automaticamente a renovação.'],
+ en:['Payment refunded','The payment was refunded. Check your subscription and next charge in the dashboard. A refund does not automatically cancel renewal.'],
+ es:['Pago reembolsado','El pago fue reembolsado. Consulta la suscripción y el próximo cobro en el panel. El reembolso no cancela automáticamente la renovación.'],
+ fr:['Paiement remboursé','Consultez votre abonnement et la prochaine échéance dans le tableau de bord. Le remboursement n’annule pas automatiquement le renouvellement.'],
+ it:['Pagamento rimborsato','Controlla l’abbonamento e il prossimo addebito nel pannello. Il rimborso non annulla automaticamente il rinnovo.'],
+ de:['Zahlung erstattet','Prüfen Sie Ihr Abonnement und die nächste Abbuchung im Dashboard. Eine Erstattung beendet die Verlängerung nicht automatisch.']}
+for(const lang of Object.keys(refundCopy))copy[lang].push(...refundCopy[lang]);
 export const asaasCopy=(lang:string,index:number)=> (copy[lang.split('-')[0]]||copy.pt)[index]

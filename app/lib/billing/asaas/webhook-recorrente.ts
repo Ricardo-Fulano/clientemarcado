@@ -1,5 +1,6 @@
 import type {SupabaseClient} from '@supabase/supabase-js'
 import {asaas,apiCycle,subscriptionCycle,minor,identifier,attemptTable,save,cardPayload,describeNewCardSubscription,type Attempt} from './recorrente'
+import {verifyInitialPix} from './pix-inicial'
 import {registrarComissaoParceiro} from '../../asaas-webhook'
 const eventTable='billing_asaas_recurring_events'
 const paid=['CONFIRMED','RECEIVED']
@@ -93,8 +94,7 @@ export async function verifyPayment(db:SupabaseClient,a:Attempt,id:string,eventT
   }
   // Initial charge may not belong to the subscription yet. Match the provider's actual Pix transaction to the authorization QR.
   if(!a.initial_payment_id||p.id===a.initial_payment_id){
-   if(!identifier(p.pixTransaction)||!a.conciliation_id)throw new Error('PIX_INITIAL_TRANSACTION_MISSING')
-   const t=await asaas('/pix/transactions/'+encoded(p.pixTransaction));if(t.id!==p.pixTransaction||t.payment!==p.id||t.conciliationIdentifier!==a.conciliation_id&&t.qrCode?.conciliationIdentifier!==a.conciliation_id||minor(t.value)!==a.amount_minor||t.type!=='CREDIT'||(paid.includes(p.status)&&t.status!=='DONE'))throw new Error('PIX_INITIAL_TRANSACTION_MISMATCH')
+   await verifyInitialPix(a,p,auth)
   }else if(!subId||p.subscription!==subId)throw new Error('PIX_RENEWAL_NOT_LINKED')
  }
  const due=validDate(p.dueDate);if(!due)throw new Error('PAYMENT_DUE_MISSING')
@@ -151,6 +151,7 @@ export async function processRecurringEvent(db:SupabaseClient,event:any):Promise
     if(identifier(auth.subscriptionId)){if(sub&&sub!==auth.subscriptionId)throw new Error('SUBSCRIPTION_MISMATCH');const s=await verifySubscription(a,auth.subscriptionId);sub=s.id;renewal=auth.status==='ACTIVE'&&s.status==='ACTIVE'&&s.deleted!==true}
     if(auth.status==='ACTIVE'&&!sub)throw new Error('SUBSCRIPTION_PENDING')
     await sync(db,a,sub,auth.status,renewal)
+    if(auth.status==='ACTIVE'&&!a.initial_payment_id)await reconcileExistingAttempt(db,a)
     if(['CANCELLED','EXPIRED','REFUSED'].includes(auth.status)&&!a.initial_payment_id&&!sub){
      // Refused can happen AFTER payment. Reconcile every candidate; never create a second authorization on timeout.
      const list=await asaas('/payments?customer='+encoded(a.customer_id!)+'&limit=20');if(!Array.isArray(list.data)||list.hasMore!==false)throw new Error('PAYMENT_LIST_INCOMPLETE');
@@ -204,6 +205,15 @@ export async function reconcileExistingAttempt(db:SupabaseClient,a:Attempt){
  // Process the earliest paid period before later ones. No provider mutations here.
  candidates.sort((x:any,y:any)=>String(x.dueDate).localeCompare(String(y.dueDate)));
  if(candidates.length>4)throw new Error('RECONCILIATION_BATCH_REVIEW');
- for(const payment of candidates)await verifyPayment(db,a,payment.id);
+ for(const payment of candidates){
+  await verifyPayment(db,a,payment.id);
+  if(paid.includes(payment.status)&&!(Array.isArray(payment.refunds)&&payment.refunds.length)){
+   const {data:bound,error:be}=await db.from('billing_payments').select('status').eq('provider','asaas').eq('provider_payment_id',payment.id).eq('subscription_id',a.attempt_id).maybeSingle();
+   if(be)throw Error('PAYMENT_LEDGER_READ');
+   if(bound&&['confirmed','settled'].includes(bound.status)){
+    const {error:ee}=await db.from(eventTable).update({status:'processed',updated_at:new Date().toISOString()}).eq('attempt_id',a.attempt_id).eq('payment_id',payment.id).in('event_type',['PAYMENT_RECEIVED','PAYMENT_CONFIRMED']).in('status',['review','received']);if(ee)throw Error('INBOX_FINALIZE');
+   }
+  }
+ }
  if(auth&&['CANCELLED','EXPIRED','REFUSED'].includes(auth.status)&&list.data.length===0&&!a.initial_payment_id&&!auth.subscriptionId)await closeIfNoFinancialObject(db,a);
 }
