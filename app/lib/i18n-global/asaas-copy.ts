@@ -16,4 +16,13 @@ const reservationCopy:Record<string,string[]>={
  de:['Es gibt einen früheren Stripe-Checkout. Seine unbezahlte Beendigung ist noch nicht bestätigt.','Der frühere Stripe-Checkout konnte nicht geprüft werden. Versuchen Sie es später oder kontaktieren Sie den Support.','Die Zahlungsbeziehung dieses Kontos konnte nicht geprüft werden. Kontaktieren Sie den Support.','Frühere Checkouts werden geprüft...']
 }
 for(const lang of Object.keys(reservationCopy))copy[lang].push(...reservationCopy[lang])
+const successCopy:Record<string,string[]>={
+ pt:['Ir para meu painel','Ver detalhes da assinatura','Sua assinatura foi registrada.','Valor contratado'],
+ en:['Go to my dashboard','View subscription details','Your subscription has been recorded.','Subscription price'],
+ es:['Ir a mi panel','Ver detalles de la suscripción','Tu suscripción ha sido registrada.','Precio contratado'],
+ fr:['Accéder à mon tableau de bord','Voir les détails de l’abonnement','Votre abonnement a été enregistré.','Prix de l’abonnement'],
+ it:['Vai al mio pannello','Vedi i dettagli dell’abbonamento','Il tuo abbonamento è stato registrato.','Prezzo dell’abbonamento'],
+ de:['Zu meinem Dashboard','Abonnementdetails ansehen','Ihr Abonnement wurde erfasst.','Abonnementpreis']
+}
+for(const lang of Object.keys(successCopy))copy[lang].push(...successCopy[lang])
 export const asaasCopy=(lang:string,index:number)=> (copy[lang.split('-')[0]]||copy.pt)[index]

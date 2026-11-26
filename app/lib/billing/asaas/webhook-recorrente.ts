@@ -1,5 +1,5 @@
 import type {SupabaseClient} from '@supabase/supabase-js'
-import {asaas,apiCycle,subscriptionCycle,minor,identifier,attemptTable,save,cardPayload,type Attempt} from './recorrente'
+import {asaas,apiCycle,subscriptionCycle,minor,identifier,attemptTable,save,cardPayload,describeNewCardSubscription,type Attempt} from './recorrente'
 import {registrarComissaoParceiro} from '../../asaas-webhook'
 const eventTable='billing_asaas_recurring_events'
 const paid=['CONFIRMED','RECEIVED']
@@ -80,9 +80,10 @@ export async function verifyPayment(db:SupabaseClient,a:Attempt,id:string,eventT
  if(a.hosted_card&&!a.customer_id)a=await bindHostedPayment(db,a,p);
  if(p.customer!==a.customer_id)throw new Error('PAYMENT_MISMATCH')
  let subId:string|null=a.subscription_id,renewal=false,authStatus=a.authorization_status
+ let verifiedCardSubscription:any=null
  if(a.method==='card'){
   if(!a.checkout_id||!identifier(p.subscription)||p.billingType!=='CREDIT_CARD'||(a.subscription_id?p.subscription!==a.subscription_id:p.checkoutSession!==a.checkout_id))throw new Error('CARD_PAYMENT_NOT_LINKED')
-  const s=await verifySubscription(a,p.subscription);if(s.billingType!=='CREDIT_CARD'||(!a.subscription_id&&s.checkoutSession!==a.checkout_id))throw new Error('CARD_SUBSCRIPTION_NOT_LINKED');subId=s.id;renewal=s.status==='ACTIVE'&&s.deleted!==true
+  const s=await verifySubscription(a,p.subscription);if(s.billingType!=='CREDIT_CARD'||(!a.subscription_id&&s.checkoutSession!==a.checkout_id))throw new Error('CARD_SUBSCRIPTION_NOT_LINKED');subId=s.id;renewal=s.status==='ACTIVE'&&s.deleted!==true;verifiedCardSubscription=s
  }else{
   if(p.billingType!=='PIX')throw new Error('PIX_PAYMENT_NOT_LINKED')
   const auth=await readAuthorization(a);authStatus=auth.status
@@ -129,6 +130,8 @@ export async function verifyPayment(db:SupabaseClient,a:Attempt,id:string,eventT
  // Existing commission RPC owns attribution, percentage, 12-month window and deduplication.
  // Strict mode retries transient failures instead of acknowledging a lost commission.
  await registrarComissaoParceiro(db,{userId:a.user_id,planoTipo:a.plan_code,payment:{...p,paymentDate:p.paymentDate||p.confirmedDate||p.clientPaymentDate},cicloCobranca:a.billing_cycle,strict:true})
+ // Billing description is non-critical: never prevent activation or commission if Asaas rejects metadata.
+ if(!registered&&verifiedCardSubscription&&!a.initial_payment_id){try{await describeNewCardSubscription(a,verifiedCardSubscription)}catch{console.warn('[ASAAS_RECURRING_DESCRIPTION]',a.attempt_id,'DESCRIPTION_UPDATE_UNAVAILABLE')}}
 }
 export async function processRecurringEvent(db:SupabaseClient,event:any):Promise<{status:number;body:Record<string,unknown>}|null>{
  if(process.env.MP_ASAAS_RECURRING_SCHEMA_ENABLED!=='true')return null

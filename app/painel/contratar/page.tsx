@@ -18,7 +18,7 @@ type Quote = {
   reason?: string
   methods?: { card: boolean; pix: boolean }
 }
-type AsaasAttempt = { attemptId:string; plan:Plan; cycle:Cycle; method:'card'|'pix'; state:string; retryCard?:boolean; renewalActive:boolean; paymentConfirmed:boolean; checkoutUrl?:string; qrImage?:string; qrPayload?:string; expires?:string; paidUntil?:string }
+type AsaasAttempt = { attemptId:string; plan:Plan; cycle:Cycle; method:'card'|'pix'; state:string; retryCard?:boolean; renewalActive:boolean; paymentConfirmed:boolean; checkoutUrl?:string; qrImage?:string; qrPayload?:string; expires?:string; paidUntil?:string; amountMinor?:number }
 const PLANS: { code: Plan; name: string; description: string }[] = [
   { code: 'minipage', name: 'MiniPage', description: 'Links, vídeo, destaques, Spotify e presença profissional.' },
   { code: 'agenda', name: 'Agenda', description: 'Tudo do MiniPage, com agendamentos e serviços.' },
@@ -189,6 +189,31 @@ export default function EscolherPlanosParaContratar() {
 
   if (!initialized) return <main style={{padding:24,color:'#FFFFFF',background:'#0B0A10'}} role="status">{textoCheckout(idioma, 36)}</main>
 
+  // Server-authenticated status only, never a browser success callback.
+  // Do not show a new purchase button for an already confirmed payment.
+  if(market==='BR'&&statusReady&&attempt?.paymentConfirmed&&attempt.state==='paid'&&attempt.paidUntil&&Date.parse(attempt.paidUntil)>Date.now()){
+    const name=PLANS.find(p=>p.code===attempt.plan)?.name||attempt.plan
+    const amount=typeof attempt.amountMinor==='number'&&Number.isSafeInteger(attempt.amountMinor)&&attempt.amountMinor>0?new Intl.NumberFormat(idioma,{style:'currency',currency:'BRL'}).format(attempt.amountMinor/100):null
+    return <main style={{minHeight:'100vh',padding:'42px 16px',background:'#0B0A10',color:'#FFFFFF',fontFamily:'system-ui,-apple-system,sans-serif'}}>
+      <section aria-labelledby="mp-payment-success" style={{maxWidth:580,margin:'0 auto',background:'#21182D',border:'1px solid #483756',borderRadius:22,padding:'32px 24px',display:'grid',gap:18}}>
+        <div aria-hidden="true" style={{width:64,height:64,borderRadius:'50%',margin:'0 auto',display:'grid',placeItems:'center',background:'#203526',border:'1px solid #3C7A47',fontSize:32,color:'#C9FA45'}}>✓</div>
+        <div role="status" style={{textAlign:'center'}}>
+          <h1 id="mp-payment-success" style={{fontSize:26,margin:'0 0 8px',fontWeight:850}}>{t(12)}</h1>
+          <p style={{fontSize:14,color:'#D4CADD',margin:0}}>{t(45)}</p>
+        </div>
+        <div style={{background:'#150F1D',border:'1px solid #483756',borderRadius:14,padding:18,display:'grid',gap:9}}>
+          <h2 style={{fontSize:21,margin:0}}>{name}</h2>
+          <p style={{fontSize:13,color:'#D4CADD',margin:0}}>{attempt.cycle==='mensal'?textoCheckout(idioma,4):textoCheckout(idioma,5)}</p>
+          {amount&&<p style={{margin:0,fontSize:14}}>{t(46)}: <strong style={{fontSize:24,color:'#C9FA45'}}>{amount}</strong></p>}
+          <p style={{margin:0,fontSize:14,color:attempt.renewalActive?'#C9FA45':'#F9DB9D'}}>{attempt.renewalActive?t(13):t(14)}</p>
+          <p style={{margin:0,fontSize:14}}>{t(17)} <strong>{new Date(attempt.paidUntil).toLocaleDateString(idioma,{timeZone:'America/Sao_Paulo'})}</strong></p>
+        </div>
+        <Link href="/painel" style={{...btnStyle,display:'block',padding:'16px 18px',background:'#C9FA45',color:'#0B0A10',textAlign:'center',textDecoration:'none',fontSize:16}}>{t(43)} →</Link>
+        <Link href="/painel/plano" style={{...btnStyle,display:'block',padding:'13px 16px',border:'1px solid #66546F',color:'#FFFFFF',textAlign:'center',textDecoration:'none',fontSize:14}}>{t(44)}</Link>
+      </section>
+    </main>
+  }
+
   return <main style={{ minHeight: '100vh', padding: '42px 16px', background: '#0B0A10', color: '#FFFFFF', fontFamily: 'system-ui,-apple-system,sans-serif' }}>
     <section style={{ maxWidth: 990, margin: '0 auto' }}>
       <Link href="/painel/criar-minipage" style={{ color: '#C9FA45', fontSize: 13, textDecoration: 'none' }}>{textoCheckout(idioma, 21)}</Link>
@@ -227,7 +252,7 @@ export default function EscolherPlanosParaContratar() {
       {market==='BR'&&attempt&&<section style={{background:'#21182D',border:'1px solid #9552F5',padding:20,borderRadius:16,marginTop:16}}>
         <h2 style={{fontSize:20}}>{attempt.state==='expired'?t(23):attempt.paymentConfirmed?t(12):t(7)}</h2>
         <p>{PLANS.find(p=>p.code===attempt.plan)?.name} · {attempt.cycle==='mensal'?textoCheckout(idioma,4):textoCheckout(idioma,5)}</p>
-        {attempt.state==='expired'?<><p>{t(24)}</p><Link href="/painel/suporte" style={{color:'#C9FA45'}}>{t(25)}</Link></>:attempt.paymentConfirmed?<><p>{attempt.renewalActive?t(13):t(14)}</p>{attempt.paidUntil&&<p>{t(17)} {new Date(attempt.paidUntil).toLocaleDateString(idioma,{timeZone:'America/Sao_Paulo'})}</p>}<Link href="/painel" style={{color:'#C9FA45'}}>{t(20)}</Link></>:<>
+        {attempt.state==='expired'?<><p>{t(24)}</p><Link href="/painel/suporte" style={{color:'#C9FA45'}}>{t(25)}</Link></>:attempt.paymentConfirmed?<><p>{attempt.renewalActive?t(13):t(14)}</p>{attempt.paidUntil&&<p>{t(17)} {new Date(attempt.paidUntil).toLocaleDateString(idioma,{timeZone:'America/Sao_Paulo'})}</p>}<Link href="/painel" style={{...btnStyle,display:'block',background:'#C9FA45',color:'#0B0A10',textDecoration:'none',textAlign:'center',marginTop:12}}>{t(43)}</Link></>:<>
         {attempt.qrImage&&attempt.qrPayload&&<><p>{t(8)}</p><img alt="Pix QR Code" src={'data:image/png;base64,'+attempt.qrImage} style={{width:240,maxWidth:'100%',background:'#fff',padding:8}}/><p>{t(21)}: {attempt.expires}</p><textarea readOnly value={attempt.qrPayload} aria-label={t(9)} style={{...selectStyle,width:'100%',boxSizing:'border-box',height:75}}/><button type="button" style={{...btnStyle,background:'#C9FA45',color:'#0B0A10',border:0}} onClick={async()=>{try{await navigator.clipboard.writeText(attempt.qrPayload!);setCopied(true)}catch{setCopied(false)}}}>{copied?t(10):t(9)}</button></>}
         {attempt.checkoutUrl?.startsWith('https://asaas.com/checkoutSession/show?id=')&&<p><a href={attempt.checkoutUrl} style={{color:'#C9FA45'}}>{t(11)}</a></p>}
         {!retryCard&&<button type="button" disabled={checking} style={{...btnStyle,background:'#21182D',color:'#C9FA45',border:'1px solid #9552F5'}} onClick={async()=>{setChecking(true);setError('');try{const {data:{session}}=await supabase.auth.getSession();if(!session)throw new Error(t(16));const r=await fetch('/api/billing/asaas/status',{method:'POST',headers:{Authorization:`Bearer ${session.access_token}`}});if(!r.ok)throw new Error(t(16));const d=await r.json();setAttempt(d.attempt||null);setUncertain(false)}catch{setError(t(16))}finally{setChecking(false)}}}>{checking?t(19):t(22)}</button>}
@@ -247,7 +272,7 @@ export default function EscolherPlanosParaContratar() {
       {market==='BR'&&!loading&&allowed&&!attempt&&!Object.values(quotes).some(q=>q?.checkoutEnabled)&&<p role="status">{t(6)}</p>}
       {market==='BR'&&uncertain&&!attempt&&!error&&<p role="status">{t(16)}</p>}
       {error && !attempt?.paymentConfirmed && <p role="alert" style={{ color: '#FFC7C7', fontSize: 13, padding: '12px 0', lineHeight: 1.6 }}>{error}</p>}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(220px,1fr))', gap: 14, marginTop: 22 }}>
+      {!(market==='BR'&&attempt?.paymentConfirmed)&&<div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(220px,1fr))', gap: 14, marginTop: 22 }}>
         {PLANS.filter(item => !confirm || item.code === preferred).map(item => {
           const q = quotes[item.code]
           const canBuy = allowed && q?.checkoutEnabled === true && !loading && !sending && (market==='INTL'||statusReady&&!!method&&!!q.methods?.[method]&&consent&&payerOk&&canRetryPlan(item.code)&&!uncertain)
@@ -265,7 +290,7 @@ export default function EscolherPlanosParaContratar() {
             </button>
           </article>
         })}
-      </div>
+      </div>}
       {market === 'INTL' && !loading && allowed && !(confirm ? quotes[preferred]?.checkoutEnabled === true : Object.values(quotes).some(q => q?.checkoutEnabled === true)) &&
         <p style={{ fontSize: 13, color: '#F9DB9D', lineHeight: 1.6 }}>{textoCheckout(idioma, 42)}</p>}
       <p style={{ color: '#BDB1C9', fontSize: 12, marginTop: 20, lineHeight: 1.6 }}>{textoCheckout(idioma, 43)}</p>
