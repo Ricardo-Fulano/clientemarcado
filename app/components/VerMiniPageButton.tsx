@@ -6,7 +6,7 @@ import { ExternalLink } from 'lucide-react'
 // Botao reutilizavel "Ver MiniPage" - resolve a slug do usuario logado (nunca hardcoded)
 // e abre a pagina publica em nova aba. Usado em Links, Destaques, Agenda/Eventos, Videos
 // e Catalogos - nao cria rota nova, so aponta pro link publico ja existente do projeto.
-export default function VerMiniPageButton() {
+export default function VerMiniPageButton({label="Ver MiniPage",localPreview=false}:{label?:string;localPreview?:boolean}={}) {
   const [slug, setSlug] = useState('')
 
   useEffect(() => {
@@ -23,7 +23,7 @@ export default function VerMiniPageButton() {
 
   return (
     <a
-      href={`https://minipage.pro/${slug}`}
+      href={localPreview?`/${encodeURIComponent(slug)}`:`https://minipage.pro/${slug}`}
       target="_blank"
       rel="noopener noreferrer"
       style={{
@@ -33,7 +33,7 @@ export default function VerMiniPageButton() {
         textDecoration: 'none', fontFamily: 'inherit', flexShrink: 0,
       }}
     >
-      Ver MiniPage <ExternalLink size={14} />
+      {label} <ExternalLink size={14} />
     </a>
   )
 }

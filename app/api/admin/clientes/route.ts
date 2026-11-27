@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
-import { normalizarWhatsappBR, primeiroNome } from '../../../lib/whatsapp'
+import { primeiroNome } from '../../../lib/whatsapp'
+import { contatoPrivadoCadastro } from '../../../lib/contato-admin'
 
 // E-mail unico autorizado a ver a lista de clientes cadastrados - constante isolada aqui
 // em cima, facil de trocar se precisar no futuro. A validacao acontece 100% aqui dentro
@@ -14,6 +15,7 @@ const EMAIL_AUTORIZADO = 'misteriosoviaje@gmail.com'
 const NOME_PLANO: Record<string, string> = {
   free: 'MiniPage Free',
   minipage: 'MiniPage',
+  agenda: 'MiniPage Agenda',
   loja: 'MiniPage Loja',
   essencial: 'MiniPage Pro',
   equipe: 'MiniPage Equipe',
@@ -66,13 +68,12 @@ export async function GET(request: NextRequest) {
     }
     const emailPorUserId = new Map(usersData.users.map(u => [u.id, u.email || '']))
 
-    // WhatsApp do RESPONSAVEL pela conta, informado no cadastro (auth.users.raw_user_meta_data.whatsapp). NAO e o
-    // perfis.whatsapp (contato publico do negocio). O valor e REVALIDADO aqui: user_metadata pode ser editado pelo
-    // proprio usuario, entao so sai da API um celular brasileiro valido (55 + DDD + 9 digitos); qualquer outra coisa vira null.
-    // Contas antigas (sem o campo) ficam com null. Nenhum outro campo do metadata e exposto.
+    // Contato privado do titular: novo cadastro (telefone_privado), fallback legado (whatsapp).
+    // Nao usar perfis.whatsapp nem dados de pagamento. A autorizacao administrativa permanece acima.
+    // A validacao e estrutural; o numero nao e verificado como conta WhatsApp.
     const contatoPorUserId = new Map<string, ContatoCliente>(usersData.users.map((u: any): [string, ContatoCliente] => {
       const meta = (u.user_metadata || {}) as Record<string, unknown>
-      return [u.id, { whatsapp: normalizarWhatsappBR(meta.whatsapp), nome_contato: primeiroNome(meta.nome_usuario) || null }]
+      return [u.id, { whatsapp: contatoPrivadoCadastro(meta), nome_contato: primeiroNome(meta.nome_usuario) || null }]
     }))
 
     // Nomes de coluna variam ao longo do historico do projeto (nome_pagina, nome_negocio,

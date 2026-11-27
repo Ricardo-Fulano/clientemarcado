@@ -14,9 +14,18 @@
 
 export type Idioma = 'pt' | 'en' | 'es' | 'fr' | 'de' | 'it'
 
-/** Preferencias HTTP (inclui q= e variantes regionais). Nao usa IP/geolocalizacao. */
-export function detectarIdiomaHeader(acceptLanguage: string | null | undefined): Idioma {
-  if (!acceptLanguage) return 'pt'
+/** Preferências HTTP; país aproximado é apenas fallback de interface. */
+function idiomaPorPais(pais: string | null | undefined): Idioma {
+ const p=(pais||'').toUpperCase()
+ if(['BR','PT','AO','MZ','CV','GW','ST','TL'].includes(p))return 'pt'
+ if(['ES','AR','BO','CL','CO','CR','CU','DO','EC','GT','HN','MX','NI','PA','PE','PY','SV','UY','VE','GQ'].includes(p))return 'es'
+ if(['FR','MC','SN','CI','BJ','TG','BF','ML','NE','GA','CG','CD','GN','TD','HT'].includes(p))return 'fr'
+ if(['DE','AT','LI'].includes(p))return 'de'
+ if(['IT','SM','VA'].includes(p))return 'it'
+ return /^[A-Z]{2}$/.test(p)&&p!=='XX'?'en':'pt'
+}
+export function detectarIdiomaHeader(acceptLanguage: string | null | undefined, pais?: string | null): Idioma {
+  if (!acceptLanguage) return idiomaPorPais(pais)
   const idiomas: Idioma[] = ['pt', 'en', 'es', 'fr', 'de', 'it']
   const preferencias = acceptLanguage.split(',').map((parte, ordem) => {
     const [tag, ...params] = parte.trim().toLowerCase().split(';')
@@ -25,7 +34,7 @@ export function detectarIdiomaHeader(acceptLanguage: string | null | undefined):
     return { raiz: tag.split('-')[0], ordem, q: Number.isFinite(qualidade) && qualidade >= 0 && qualidade <= 1 ? qualidade : 0 }
   }).sort((a, b) => b.q - a.q || a.ordem - b.ordem)
   for (const p of preferencias) if (p.q > 0 && idiomas.includes(p.raiz as Idioma)) return p.raiz as Idioma
-  return 'pt'
+  return idiomaPorPais(pais)
 }
 
 export function detectarIdiomaNavegador(): Idioma {

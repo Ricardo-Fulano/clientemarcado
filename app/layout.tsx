@@ -68,7 +68,8 @@ export default async function RootLayout({
 }>) {
   // O idioma do documento acompanha o idioma preferido do visitante.
   // Isso nao traduz conteudo autoral e nao altera moeda ou pais de cobranca.
-  const idioma = detectarIdiomaHeader((await headers()).get('accept-language'))
+  const h = await headers()
+  const idioma = detectarIdiomaHeader(h.get('accept-language'), h.get('x-vercel-ip-country') || h.get('cf-ipcountry'))
   const htmlLang = ({
     pt: 'pt-BR', en: 'en-US', es: 'es-ES', fr: 'fr-FR', de: 'de-DE', it: 'it-IT',
   } as const)[idioma]

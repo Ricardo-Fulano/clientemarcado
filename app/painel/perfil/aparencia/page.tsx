@@ -2,6 +2,7 @@
 import { useEffect, useState, useRef } from 'react'
 import { supabase } from '../../../lib/supabase'
 import Link from 'next/link'
+import ConfigInscricaoSlug from '../../../components/ConfigInscricaoSlug'
 import { ArrowLeft, UploadCloud, Lock, User } from 'lucide-react'
 import PainelSidebar from '@/app/components/PainelSidebar'
 import VerMiniPageButton from '@/app/components/VerMiniPageButton'
@@ -595,6 +596,7 @@ export default function GerenciarAparencia(){
             </div>
 
             <div style={{borderTop:'1px solid #2A1A2F',paddingTop:'18px',marginTop:'4px'}}>
+              <ConfigInscricaoSlug />
               <p style={{fontSize:'13px',fontWeight:600,color:'#B8AAB8',marginBottom:'4px'}}>Cor de destaque</p>
               <p style={{fontSize:'12px',color:'#B8AAB8',marginBottom:'14px'}}>Escolha uma cor pronta para combinar com o estilo do seu negócio. Afeta apenas a página pública.</p>
               <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(120px,1fr))',gap:'12px'}}>

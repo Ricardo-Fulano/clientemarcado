@@ -1,18 +1,19 @@
 'use client'
 import { useEffect, useState, useMemo } from 'react'
 import Link from 'next/link'
+import ConfigInscricaoSlug from '../../../components/ConfigInscricaoSlug'
 import { supabase } from '../../../lib/supabase'
 import PainelSidebar from '@/app/components/PainelSidebar'
 import AlterarPlanoModal, { BotaoAlterarPlano } from '@/app/components/AlterarPlanoModal'
-import { formatarWhatsappExibicao, linkWhatsappCliente } from '../../../lib/whatsapp'
+import { formatarContatoAdmin, linkContatoAdmin } from '../../../lib/contato-admin'
 
 const G = '#C9FA45'
 
 // Botao "WhatsApp" da lista de clientes: abre a conversa em wa.me. A mensagem so vem PREENCHIDA (e so para quem esta
-// aguardando_pagamento) - o envio e sempre manual. So aparece se o cliente tem um celular valido salvo no cadastro;
+// aguardando_pagamento) - o envio e sempre manual. So aparece se o cliente tem um contato privado valido salvo no cadastro;
 // contas antigas (sem o campo) ficam sem botao.
 function BotaoWhatsappCliente({ c }: { c: any }) {
-  const href = linkWhatsappCliente(c)
+  const href = linkContatoAdmin(c)
   if (!href) return null
   const destaque = c.status_acesso === 'aguardando_pagamento'
   return (
@@ -59,6 +60,7 @@ function calcularDataInicioLeads(periodo: PeriodoLeads): Date | null {
 }
 
 function origemLabel(l: any): string {
+  if(l.origem === 'pagina_publica') return 'Inscrição na MiniPage'
   return l.origem === 'catalogo' && l.item_titulo ? `Catálogo: ${l.item_titulo}` : (l.origem || 'Página')
 }
 function formatarData(iso: string): string {
@@ -274,6 +276,7 @@ export default function LeadsCapturados() {
               }
             `}</style>
         {aba === 'leads' && (<>
+          <ConfigInscricaoSlug />
         {carregando ? (
           <p style={{ fontSize: '13px', color: '#C5BCD0' }}>Carregando...</p>
         ) : leads.length === 0 ? (
@@ -409,7 +412,7 @@ export default function LeadsCapturados() {
                         <div style={{ minWidth: 0 }}><span style={{ color: '#AFA2BC' }}>Cadastro</span><div style={{ color: '#C5BCD0', marginTop: '3px' }}>{c.created_at ? formatarData(c.created_at) : '—'}</div></div>
                         <div style={{ minWidth: 0 }}><span style={{ color: '#AFA2BC' }}>Origem</span><div style={{ color: '#C5BCD0', marginTop: '3px', overflowWrap: 'anywhere' }}>{c.origem || '—'}</div></div>
                       </div>
-                      {formatarWhatsappExibicao(c.whatsapp) && <p style={{ fontSize: '12px', color: '#C5BCD0', margin: '12px 0 0' }}>WhatsApp: {formatarWhatsappExibicao(c.whatsapp)}</p>}
+                      {formatarContatoAdmin(c.whatsapp) && <p style={{ fontSize: '12px', color: '#C5BCD0', margin: '12px 0 0' }}>WhatsApp: {formatarContatoAdmin(c.whatsapp)}</p>}
                       <div className="cliente-acoes">
                         <BotaoWhatsappCliente c={c} />
                         <button className="leads-copiar-btn" onClick={() => copiarEmailCliente(c, i)}>{copiadoClienteIndividual === i ? 'Copiado!' : 'Copiar e-mail'}</button>
@@ -425,7 +428,7 @@ export default function LeadsCapturados() {
                     <div key={c.user_id || i} className="crd" style={{ padding: '14px', marginBottom: '10px' }}>
                       <p style={{ fontSize: '14px', fontWeight: 700, color: '#FFFFFF', margin: '0 0 4px' }}>{c.nome_pagina || c.email || '—'}</p>
                       <p style={{ fontSize: '12px', color: '#C5BCD0', margin: '0 0 4px' }}>{c.email}</p>
-                      <p style={{ fontSize: '12px', color: '#C5BCD0', margin: '0 0 4px' }}>{formatarWhatsappExibicao(c.whatsapp) || '—'}</p>
+                      <p style={{ fontSize: '12px', color: '#C5BCD0', margin: '0 0 4px' }}>{formatarContatoAdmin(c.whatsapp) || '—'}</p>
                       <p style={{ fontSize: '12px', color: '#C5BCD0', margin: '0 0 8px' }}>{c.plano_nome} · {statusLabel(c.status_acesso)}</p>
                       <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
                         <BotaoWhatsappCliente c={c} />

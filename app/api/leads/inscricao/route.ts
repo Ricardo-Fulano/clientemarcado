@@ -1,0 +1,9 @@
+import { NextRequest,NextResponse } from 'next/server'
+import { createHash } from 'node:crypto'
+import { clienteRecursosSlug } from '../../../lib/slug-recursos-servidor'
+import { copySlug } from '../../../lib/slug-recursos'
+import { detectarIdiomaHeader } from '../../../lib/i18n-publico'
+import { lerJsonLimitado } from '../../../lib/preview-link-limite'
+export const runtime='nodejs'
+const resposta=(status:number)=>NextResponse.json(status===200?{ok:true}:{ok:false},{status,headers:{'Cache-Control':'no-store'}})
+export async function POST(req:NextRequest){try{const origin=req.headers.get('origin');if(origin&&origin!==req.nextUrl.origin&&origin!=='https://minipage.pro'&&origin!=='https://www.minipage.pro')return resposta(403);const b=await lerJsonLimitado(req,4096);if(!b||b.consentimento!==true||typeof b.slug!=='string'||! /^[a-zA-Z0-9_-]{1,100}$/.test(b.slug)||typeof b.email!=='string')return resposta(400);const email=b.email.trim().toLowerCase();if(email.length>254||! /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))return resposta(400);const db=clienteRecursosSlug();if(!db)return resposta(503);const ip=(req.headers.get('x-vercel-forwarded-for')||req.headers.get('x-forwarded-for')||'unknown').split(',')[0].trim().slice(0,100);const hash=(x:string)=>createHash('sha256').update(x).digest('hex');for(const [key,max] of [[`slug-lead-ip:${hash(ip)}`,20],[`slug-lead-page:${hash(b.slug)}`,100]] as const){const {data,error}=await db.rpc('checar_rate_limit',{p_chave:key,p_max:max,p_janela_segundos:60});if(error)return resposta(503);if(data!==true)return resposta(429)}const idioma=detectarIdiomaHeader(typeof b.idioma==='string'?b.idioma:null);const {data,error}=await db.rpc('mp17_registrar_inscricao_slug',{p_slug:b.slug,p_email:email,p_consentimento:copySlug(idioma)[6]});if(error)return resposta(503);return resposta(data==='ok'?200:data==='disabled'?403:404)}catch{return resposta(503)}}

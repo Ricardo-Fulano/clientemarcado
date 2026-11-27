@@ -78,7 +78,7 @@ export async function GET(req: NextRequest) {
     const inscritosBrutos = estatistica?.subscriberCount
     const numero = typeof inscritosBrutos === 'string' && /^\d+$/.test(inscritosBrutos) ? Number(inscritosBrutos) : NaN
     const inscritosYoutube = estatistica?.hiddenSubscriberCount === true || !Number.isSafeInteger(numero) || numero < 0 ? null : numero
-    return resposta({canal:encontrado?.snippet?.title || '',inscritosYoutube,videos},200)
+    return resposta({canal:encontrado?.snippet?.title || '',canalId:encontrado?.id || '',inscritosYoutube,videos},200)
   } catch {
     return resposta({error:'A consulta ao YouTube falhou. Verifique a chave da API, a quota e o canal informado.'},502)
   }

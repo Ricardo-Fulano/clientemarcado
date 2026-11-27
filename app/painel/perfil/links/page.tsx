@@ -5,6 +5,10 @@ import Link from 'next/link'
 import { ArrowLeft, ArrowUp, ArrowDown, Pencil, Trash2, Mail, MapPin, Link2, Music } from 'lucide-react'
 import PainelSidebar from '@/app/components/PainelSidebar'
 import VerMiniPageButton from '@/app/components/VerMiniPageButton'
+import { useIdiomaGlobal } from '../../../components/IdiomaProviderGlobal'
+import { textosLinks } from '../../../lib/i18n-global/links'
+import { LINK_IMAGE_BUCKET, linkImageUrl } from '../../../lib/link-imagem'
+import LinkImagem from '../../../components/LinkImagem'
 import { obterLimiteLinksRapidos } from '../../../lib/planos'
 import { PLATAFORMAS_LINK, placeholderPlataforma, normalizarInstagram, normalizarFacebook, detectarTipoPorUrl, detectarTipoPorTitulo, escolherTipoDoIcone } from '../../../lib/plataformasLinks'
 import { MARCAS, detectarOrigemDoLink, rotuloDaMarca, iconeDaMarca, corDaMarcaParaTema, escolhaManualValida } from '../../../lib/marcas'
@@ -16,6 +20,7 @@ const CSS=`
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html,body{overflow-x:hidden;width:100%;max-width:100%;background:#0B0A10}
 input,select,textarea{color-scheme:dark}
+label:focus-within{outline:2px solid #C9FA45;outline-offset:2px}
 .pg{background:radial-gradient(circle at top left,rgba(91,60,130,.15),transparent 36%),#0B0A10;min-height:100vh}
 .bdy{max-width:820px;margin:0 auto;padding:28px 32px 80px;width:100%}
 .crd{background:#21182D;border:1px solid #40344B;border-radius:18px}
@@ -86,6 +91,11 @@ function IconePlataforma({ tipo }: { tipo: string }) {
 }
 
 export default function GerenciarLinks(){
+  const {idioma}=useIdiomaGlobal()
+  const t=textosLinks[idioma]
+  const [imagemOk,setImagemOk]=useState(false)
+  const [pendente,setPendente]=useState<{id:string;file:File;url:string}|null>(null)
+  const [erro,setErro]=useState(false)
   const [userId,setUserId]=useState('')
   const [planoTipo,setPlanoTipo]=useState('essencial')
   const [links,setLinks]=useState<any[]>([])
@@ -101,6 +111,19 @@ export default function GerenciarLinks(){
   const iconeDoLink=(l:any):string=>escolherTipoDoIcone(detectarTipoPorUrl(l.url)||detectarTipoPorTitulo(l.titulo)||l.tipo||'outro',l.icone_marca)
 
   useEffect(()=>{load()},[])
+  useEffect(()=>{supabase.from('pagina_links').select('imagem_path').limit(1).then(({error})=>setImagemOk(!error))},[])
+  useEffect(()=>()=>{if(pendente)URL.revokeObjectURL(pendente.url)},[pendente])
+  function selecionarImagem(id:string,file:File|undefined){
+    if(!file||salvandoId)return
+    if(!['image/jpeg','image/png','image/webp'].includes(file.type)||file.size>5*1024*1024){setErro(true);setMsg(t.invalidImage);return}
+    setPendente({id,file,url:URL.createObjectURL(file)})
+  }
+  async function prepararImagem(file:File):Promise<Blob>{
+    const url=URL.createObjectURL(file)
+    try{const img=new Image();img.src=url;await img.decode();if(!img.naturalWidth||!img.naturalHeight||img.naturalWidth*img.naturalHeight>40_000_000)throw Error('image')
+      const canvas=document.createElement('canvas');canvas.width=256;canvas.height=256;const ctx=canvas.getContext('2d');if(!ctx)throw Error('canvas');const side=Math.min(img.naturalWidth,img.naturalHeight);ctx.drawImage(img,(img.naturalWidth-side)/2,(img.naturalHeight-side)/2,side,side,0,0,256,256);return await new Promise<Blob>((resolve,reject)=>canvas.toBlob(b=>b&&b.type==='image/webp'?resolve(b):reject(Error('webp')),'image/webp',.86))
+    }finally{URL.revokeObjectURL(url)}
+  }
   useEffect(()=>{supabase.from('pagina_links').select('icone_marca').limit(1).then(({error})=>setIconeManualOk(!error))},[])
 
   async function load(){
@@ -122,14 +145,16 @@ export default function GerenciarLinks(){
   async function validarSessao(){
     const {data:{user}}=await supabase.auth.getUser()
     if(!user){window.location.href='/login';return false}
-    if(user.id!==userId){setMsg('A sessão mudou. Recarregue a página antes de salvar.');return false}
+    if(user.id!==userId){setErro(true);setMsg(t.session);return false}
     return true
   }
 
   function novoLink(){
+    if(salvandoId)return
+    setPendente(null)
     const limite=obterLimiteLinksRapidos(planoTipo)
     if(links.length>=limite){
-      setMsg(`Seu plano Free permite até ${limite} links rápidos. Faça upgrade para liberar links ilimitados e recursos premium.`)
+      setErro(true);setMsg(t.limit.replace('{n}',String(limite)))
       setTimeout(()=>setMsg(''),5000)
       return
     }
@@ -163,12 +188,13 @@ export default function GerenciarLinks(){
   }
   function emailValido(e:string){return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test((e||'').trim())}
   async function salvarLink(l:any){
-    if(!(await validarSessao()))return
-    if(!l.titulo?.trim()){setMsg('Preencha o título.');return}
+    if(salvandoId||!(await validarSessao()))return
+    setErro(true)
+    if(!l.titulo?.trim()){setMsg(t.needTitle);return}
     if(l.tipo==='email'){
-      if(!emailValido(l.url)){setMsg('Informe um e-mail válido.');return}
+      if(!emailValido(l.url)){setMsg(t.needEmail);return}
     } else if(!l.url?.trim()){
-      setMsg('Preencha título e link.');return
+      setMsg(t.needLink);return
     }
     setSalvandoId(l.id)
     // Cada tipo monta a URL final do jeito que precisa - o restante do sistema (pagina publica,
@@ -178,33 +204,40 @@ export default function GerenciarLinks(){
     else if(l.tipo==='email')urlFinal=`mailto:${l.url.trim()}`
     else if(l.tipo==='instagram')urlFinal=normalizarInstagram(l.url)
     else if(l.tipo==='facebook')urlFinal=normalizarFacebook(l.url)
-    const payload={user_id:userId,tipo:l.tipo||'outro',titulo:l.titulo.trim(),descricao:l.descricao?.trim()||null,url:urlFinal,ativo:!!l.ativo,ordem:l.ordem||0,...(iconeManualOk?{icone_marca:escolhaManualValida(l.icone_marca)||null}:{})}
+    let imagemPath=l.imagem_path||null
+    if(imagemOk&&pendente&&pendente.id===l.id){
+      try{const blob=await prepararImagem(pendente.file);if(!(await validarSessao()))throw Error('session');const path=`${userId}/${crypto.randomUUID()}.webp`;const {error}=await supabase.storage.from(LINK_IMAGE_BUCKET).upload(path,blob,{contentType:'image/webp',upsert:false,cacheControl:'3600'});if(error)throw error;imagemPath=path}catch{setMsg(t.imageError);setSalvandoId('');return}
+    }
+    const payload={...(imagemOk?{imagem_path:imagemPath}:{}),user_id:userId,tipo:l.tipo||'outro',titulo:l.titulo.trim(),descricao:l.descricao?.trim()||null,url:urlFinal,ativo:!!l.ativo,ordem:l.ordem||0,...(iconeManualOk?{icone_marca:escolhaManualValida(l.icone_marca)||null}:{})}
     if(l._novo){
       const {data,error}=await supabase.from('pagina_links').insert(payload).select().single()
-      if(error){setMsg('Erro ao salvar link: '+error.message)}
+      if(error){setMsg(t.saveError)}
       else{
         const dataExibicao=l.tipo==='email'&&data.url?.startsWith('mailto:')?{...data,url:data.url.replace('mailto:','')}:data
-        setLinks(prev=>prev.map(x=>x.id===l.id?dataExibicao:x));setMsg('Link salvo!')
+        setLinks(prev=>prev.map(x=>x.id===l.id?dataExibicao:x));setErro(false);setMsg(t.saved);setPendente(null)
         setEditandoId(null)
       }
     } else {
       const {error}=await supabase.from('pagina_links').update(payload).eq('id',l.id).eq('user_id',userId)
-      if(error){setMsg('Erro ao salvar link: '+error.message)}
-      else{setMsg('Link salvo!');setEditandoId(null)}
+      if(error){setMsg(t.saveError)}
+      else{editarLink(l.id,'imagem_path',imagemPath);setErro(false);setMsg(t.saved);setPendente(null);setEditandoId(null)}
     }
     setSalvandoId('')
     setTimeout(()=>setMsg(''),3000)
   }
   async function excluirLink(id:string){
+    if(salvandoId)return
+    setErro(true)
     if(!(await validarSessao()))return
     if(!id.startsWith('novo-')){
       const {error}=await supabase.from('pagina_links').delete().eq('id',id).eq('user_id',userId)
-      if(error){setMsg('Erro ao excluir: '+error.message);return}
+      if(error){setMsg(t.deleteError);return}
     }
     setLinks(prev=>prev.filter(l=>l.id!==id))
-    if(editandoId===id)setEditandoId(null)
+    if(editandoId===id){setEditandoId(null);setPendente(null)}
   }
   async function mover(id:string,direcao:'up'|'down'){
+    if(salvandoId)return
     const idx=links.findIndex(l=>l.id===id)
     if(idx<0)return
     const novoIdx=direcao==='up'?idx-1:idx+1
@@ -223,6 +256,8 @@ export default function GerenciarLinks(){
   // banco pra garantir que o card volta com os dados reais). Um item novo (_novo) que for
   // cancelado e simplesmente removido da lista, ja que nunca foi persistido.
   function cancelarEdicao(l:any){
+    if(salvandoId)return
+    setPendente(null)
     if(l._novo){
       setLinks(prev=>prev.filter(x=>x.id!==l.id))
     } else {
@@ -231,34 +266,34 @@ export default function GerenciarLinks(){
     setEditandoId(null)
   }
 
-  if(carregando)return(<div style={{minHeight:'100vh',background:'#0B0A10',display:'flex',alignItems:'center',justifyContent:'center',fontFamily:'system-ui'}}><p style={{color:'#C5BCD1',fontSize:'14px'}}>Carregando...</p></div>)
+  if(carregando)return(<div style={{minHeight:'100vh',background:'#0B0A10',display:'flex',alignItems:'center',justifyContent:'center',fontFamily:'system-ui'}}><p style={{color:'#C5BCD1',fontSize:'14px'}}>{t.loading}</p></div>)
 
   return(
     <div style={{display:'flex',minHeight:'100vh',background:'#0B0A10',fontFamily:'-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif',overflowX:'hidden',width:'100%'}}>
       <style dangerouslySetInnerHTML={{__html:CSS}}/>
-      <PainelSidebar tituloMobile="Links"/>
+      <PainelSidebar tituloMobile={t.links}/>
       <div className="psb-main">
         <div className="pg"><div className="bdy">
 
           {msg&&(
-            <div style={{position:'fixed',top:'20px',left:'50%',transform:'translateX(-50%)',background:msg.includes('rro')?'rgba(239,68,68,.16)':'rgba(34,197,94,.16)',border:`1px solid ${msg.includes('rro')?'rgba(239,68,68,.36)':'rgba(34,197,94,.36)'}`,borderRadius:'10px',padding:'10px 20px',zIndex:99,color:msg.includes('rro')?'#EF4444':'#22C55E',fontSize:'13px',fontWeight:700,backdropFilter:'blur(20px)',whiteSpace:'nowrap'}}>
+            <div style={{position:'fixed',top:'20px',left:'50%',transform:'translateX(-50%)',background:erro?'rgba(239,68,68,.16)':'rgba(34,197,94,.16)',border:`1px solid ${erro?'rgba(239,68,68,.36)':'rgba(34,197,94,.36)'}`,borderRadius:'10px',padding:'10px 20px',zIndex:99,color:erro?'#EF4444':'#22C55E',fontSize:'13px',fontWeight:700,backdropFilter:'blur(20px)',whiteSpace:'nowrap'}}>
               {msg}
             </div>
           )}
 
-          <Link href="/painel/perfil" style={{display:'inline-flex',alignItems:'center',gap:'6px',fontSize:'13px',color:'#C5BCD1',textDecoration:'none',marginBottom:'18px'}}><ArrowLeft size={15}/> Voltar para Configurações</Link>
+          <Link href="/painel/perfil" style={{display:'inline-flex',alignItems:'center',gap:'6px',fontSize:'13px',color:'#C5BCD1',textDecoration:'none',marginBottom:'18px'}}><ArrowLeft size={15}/>{t.backSettings}</Link>
 
           <div className="top-actions" style={{display:'flex',alignItems:'center',justifyContent:'space-between',flexWrap:'wrap',gap:'12px',marginBottom:'8px'}}>
-            <p style={{fontSize:'22px',fontWeight:800,color:'#FFFFFF',letterSpacing:'-0.02em'}}>Links</p>
+            <p style={{fontSize:'22px',fontWeight:800,color:'#FFFFFF',letterSpacing:'-0.02em'}}>{t.links}</p>
             <div style={{display:'flex',gap:'10px',flexWrap:'wrap'}}>
-              <VerMiniPageButton/>
-              <Link href="/painel/perfil/pix" style={{background:'rgba(33,24,45,.9)',color:'#FFFFFF',border:'1px solid #40344B',borderRadius:'10px',padding:'10px 18px',fontSize:'13px',fontWeight:700,textDecoration:'none',fontFamily:'inherit'}}>Receber por Pix</Link>
-              <button type="button" onClick={novoLink} style={{background:G,color:'#0B0A10',border:'1px solid rgba(255,255,255,.12)',borderRadius:'10px',padding:'10px 18px',fontSize:'13px',fontWeight:700,cursor:'pointer',fontFamily:'inherit'}}>+ Novo link</button>
+              <VerMiniPageButton label={t.view} localPreview/>
+              <Link href="/painel/perfil/pix" style={{background:'rgba(33,24,45,.9)',color:'#FFFFFF',border:'1px solid #40344B',borderRadius:'10px',padding:'10px 18px',fontSize:'13px',fontWeight:700,textDecoration:'none',fontFamily:'inherit'}}>{t.pix}</Link>
+              <button type="button" onClick={novoLink} style={{background:G,color:'#0B0A10',border:'1px solid rgba(255,255,255,.12)',borderRadius:'10px',padding:'10px 18px',fontSize:'13px',fontWeight:700,cursor:'pointer',fontFamily:'inherit'}}>{t.new}</button>
             </div>
           </div>
-          <p style={{fontSize:'13px',color:'#C5BCD1',marginBottom:'24px'}}>TikTok, YouTube, Shopee, site, grupo VIP e outros links da sua bio. Use as setas para mudar a ordem de exibição.</p>
+          <p style={{fontSize:'13px',color:'#C5BCD1',marginBottom:'24px'}}>{t.intro}</p>
 
-          {links.length===0&&<p style={{fontSize:'13px',color:'#C5BCD1',padding:'12px 0'}}>Nenhum link cadastrado ainda.</p>}
+          {links.length===0&&<p style={{fontSize:'13px',color:'#C5BCD1',padding:'12px 0'}}>{t.empty}</p>}
 
           <div style={{display:'flex',flexDirection:'column',gap:'12px'}}>
             {links.map((l,i)=>{
@@ -270,20 +305,20 @@ export default function GerenciarLinks(){
                 return (
                   <div key={l.id} className="crd" style={{padding:'14px 16px',display:'flex',alignItems:'center',gap:'12px'}}>
                     <div style={{display:'flex',flexDirection:'column',gap:'3px',flexShrink:0}}>
-                      <button type="button" onClick={()=>mover(l.id,'up')} disabled={i===0} style={{width:'22px',height:'22px',borderRadius:'6px',background:'rgba(33,24,45,.9)',border:'1px solid #40344B',color:i===0?'#6A6075':'#C5BCD1',cursor:i===0?'not-allowed':'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}><ArrowUp size={12}/></button>
-                      <button type="button" onClick={()=>mover(l.id,'down')} disabled={i===links.length-1} style={{width:'22px',height:'22px',borderRadius:'6px',background:'rgba(33,24,45,.9)',border:'1px solid #40344B',color:i===links.length-1?'#6A6075':'#C5BCD1',cursor:i===links.length-1?'not-allowed':'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}><ArrowDown size={12}/></button>
+                      <button type="button" aria-label={t.up} onClick={()=>mover(l.id,'up')} disabled={!!salvandoId||i===0} style={{width:'22px',height:'22px',borderRadius:'6px',background:'rgba(33,24,45,.9)',border:'1px solid #40344B',color:i===0?'#6A6075':'#C5BCD1',cursor:i===0?'not-allowed':'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}><ArrowUp size={12}/></button>
+                      <button type="button" aria-label={t.down} onClick={()=>mover(l.id,'down')} disabled={!!salvandoId||i===links.length-1} style={{width:'22px',height:'22px',borderRadius:'6px',background:'rgba(33,24,45,.9)',border:'1px solid #40344B',color:i===links.length-1?'#6A6075':'#C5BCD1',cursor:i===links.length-1?'not-allowed':'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}><ArrowDown size={12}/></button>
                     </div>
                     <div style={{width:'36px',height:'36px',borderRadius:'10px',background:'rgba(255,255,255,.04)',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
-                      <IconePlataforma tipo={iconeDoLink(l)}/>
+                      <LinkImagem src={linkImageUrl(l.imagem_path,userId)}><IconePlataforma tipo={iconeDoLink(l)}/></LinkImagem>
                     </div>
                     <div style={{flex:1,minWidth:0}}>
-                      <p style={{fontSize:'14px',fontWeight:700,color:'#FFFFFF',whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{l.titulo||'(sem título)'}</p>
+                      <p style={{fontSize:'14px',fontWeight:700,color:'#FFFFFF',whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{l.titulo||t.untitled}</p>
                       {l.descricao&&<p style={{fontSize:'12px',color:'#C5BCD1',whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{l.descricao}</p>}
                     </div>
-                    <button type="button" onClick={()=>editarLink(l.id,'ativo',!l.ativo)} style={{background:l.ativo?'rgba(34,197,94,.14)':'#40344B',border:'1px solid '+(l.ativo?'rgba(34,197,94,.25)':'#40344B'),borderRadius:10,padding:'6px 12px',fontSize:11,fontWeight:700,color:l.ativo?'#22C55E':'#C5BCD1',cursor:'pointer',fontFamily:'inherit',flexShrink:0}}>{l.ativo?'Ativo':'Oculto'}</button>
+                    <button type="button" onClick={()=>editarLink(l.id,'ativo',!l.ativo)} style={{background:l.ativo?'rgba(34,197,94,.14)':'#40344B',border:'1px solid '+(l.ativo?'rgba(34,197,94,.25)':'#40344B'),borderRadius:10,padding:'6px 12px',fontSize:11,fontWeight:700,color:l.ativo?'#22C55E':'#C5BCD1',cursor:'pointer',fontFamily:'inherit',flexShrink:0}}>{l.ativo?t.active:t.hidden}</button>
                     <div style={{display:'flex',gap:'6px',flexShrink:0}}>
-                      <button type="button" onClick={()=>setEditandoId(l.id)} aria-label="Editar" style={{width:'32px',height:'32px',borderRadius:'8px',background:'rgba(33,24,45,.9)',border:'1px solid #40344B',color:'#C5BCD1',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}><Pencil size={14}/></button>
-                      <button type="button" onClick={()=>excluirLink(l.id)} aria-label="Excluir" style={{width:'32px',height:'32px',borderRadius:'8px',background:'rgba(239,68,68,.10)',border:'1px solid rgba(239,68,68,.25)',color:'#EF4444',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}><Trash2 size={14}/></button>
+                      <button type="button" disabled={!!salvandoId} onClick={()=>{setPendente(null);setEditandoId(l.id)}} aria-label={t.edit} style={{width:'32px',height:'32px',borderRadius:'8px',background:'rgba(33,24,45,.9)',border:'1px solid #40344B',color:'#C5BCD1',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}><Pencil size={14}/></button>
+                      <button type="button" onClick={()=>excluirLink(l.id)} aria-label={t.delete} style={{width:'32px',height:'32px',borderRadius:'8px',background:'rgba(239,68,68,.10)',border:'1px solid rgba(239,68,68,.25)',color:'#EF4444',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}><Trash2 size={14}/></button>
                     </div>
                   </div>
                 )
@@ -293,29 +328,29 @@ export default function GerenciarLinks(){
               return (
               <div key={l.id} className="crd" style={{padding:'16px',display:'flex',gap:'12px'}}>
                 <div style={{display:'flex',flexDirection:'column',gap:'4px',flexShrink:0,paddingTop:'2px'}}>
-                  <button type="button" onClick={()=>mover(l.id,'up')} disabled={i===0} style={{width:'28px',height:'28px',borderRadius:'8px',background:'rgba(33,24,45,.9)',border:'1px solid #40344B',color:i===0?'#6A6075':'#C5BCD1',cursor:i===0?'not-allowed':'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}><ArrowUp size={14}/></button>
-                  <button type="button" onClick={()=>mover(l.id,'down')} disabled={i===links.length-1} style={{width:'28px',height:'28px',borderRadius:'8px',background:'rgba(33,24,45,.9)',border:'1px solid #40344B',color:i===links.length-1?'#6A6075':'#C5BCD1',cursor:i===links.length-1?'not-allowed':'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}><ArrowDown size={14}/></button>
+                  <button type="button" aria-label={t.up} onClick={()=>mover(l.id,'up')} disabled={!!salvandoId||i===0} style={{width:'28px',height:'28px',borderRadius:'8px',background:'rgba(33,24,45,.9)',border:'1px solid #40344B',color:i===0?'#6A6075':'#C5BCD1',cursor:i===0?'not-allowed':'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}><ArrowUp size={14}/></button>
+                  <button type="button" aria-label={t.down} onClick={()=>mover(l.id,'down')} disabled={!!salvandoId||i===links.length-1} style={{width:'28px',height:'28px',borderRadius:'8px',background:'rgba(33,24,45,.9)',border:'1px solid #40344B',color:i===links.length-1?'#6A6075':'#C5BCD1',cursor:i===links.length-1?'not-allowed':'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}><ArrowDown size={14}/></button>
                 </div>
                 <div style={{flex:1,minWidth:0}}>
                   <div className="fg2" style={{marginBottom:'10px'}}>
                     <div>
-                      <label className="lbl">Tipo</label>
+                      <label className="lbl">{t.kind}</label>
                       <select className="inp" style={{cursor:'pointer'}} value={l.tipo||'outro'} onChange={e=>editarLink(l.id,'tipo',e.target.value)}>
-                        {PLATAFORMAS_LINK.map(p=><option key={p.id} value={p.id}>{p.label}</option>)}
+                        {PLATAFORMAS_LINK.map(p=><option key={p.id} value={p.id}>{({site:t.site,curso:t.course,mentoria:t.mentoring,secreto:t.secret,outro:t.other,endereco:t.addressType,email:t.emailType} as Record<string,string>)[p.id]||p.label}</option>)}
                       </select>
                     </div>
-                    <div><label className="lbl">Título</label><input className="inp" autoFocus={!!l._novo} value={l.titulo||''} onChange={e=>editarLink(l.id,'titulo',e.target.value)} placeholder="Ex: TikTok"/></div>
+                    <div><label className="lbl">{t.title}</label><input className="inp" autoFocus={!!l._novo} value={l.titulo||''} onChange={e=>editarLink(l.id,'titulo',e.target.value)} placeholder="TikTok"/></div>
                   </div>
-                  <div style={{marginBottom:'10px'}}><label className="lbl">Descrição (opcional)</label><input className="inp" value={l.descricao||''} onChange={e=>editarLink(l.id,'descricao',e.target.value)} placeholder="Ex: @studiobellaeducadora"/></div>
+                  <div style={{marginBottom:'10px'}}><label className="lbl">{t.description}</label><input className="inp" value={l.descricao||''} onChange={e=>editarLink(l.id,'descricao',e.target.value)} placeholder="@usuario"/></div>
                   <div style={{marginBottom:'12px'}}>
-                    <label className="lbl">{l.tipo==='whatsapp'?'Número (com DDD) ou @usuário do WhatsApp':l.tipo==='endereco'?'Endereço para abrir no Google Maps':l.tipo==='email'?'E-mail para contato':l.tipo==='secreto'?'Link de direcionamento':'Link (URL)'}</label>
-                    <input className="inp" type={l.tipo==='email'?'email':'text'} value={l.url||''} onChange={e=>editarLink(l.id,'url',e.target.value)} placeholder={placeholderPlataforma(l.tipo)}/>
-                    {l.tipo==='whatsapp'&&<p style={{fontSize:'11px',color:'#C5BCD1',marginTop:'6px'}}>Pode digitar só o número com DDD (sem link pronto) ou seu @usuário do WhatsApp, se você já tiver criado um. O link completo é montado sozinho ao salvar.</p>}
-                    {l.tipo==='endereco'&&<p style={{fontSize:'11px',color:'#C5BCD1',marginTop:'6px'}}>Digite o endereço completo. O MiniPage Pro abrirá esse local no Google Maps. Também aceita um link do Google Maps já pronto, se preferir colar um.</p>}
-                    {l.tipo==='email'&&<p style={{fontSize:'11px',color:'#C5BCD1',marginTop:'6px'}}>Só o e-mail, sem precisar escrever &quot;mailto:&quot; — isso é feito automaticamente. Ao clicar no card, abre o app de e-mail do visitante.</p>}
+                    <label className="lbl">{l.tipo==='whatsapp'?t.whatsapp:l.tipo==='endereco'?t.address:l.tipo==='email'?t.email:l.tipo==='secreto'?t.destination:t.url}</label>
+                    <input className="inp" type={l.tipo==='email'?'email':'text'} value={l.url||''} onChange={e=>editarLink(l.id,'url',e.target.value)} placeholder={l.tipo==='whatsapp'?'+55 11 99999-9999':l.tipo==='endereco'?t.addressType:l.tipo==='email'?'name@example.com':l.tipo==='tinder'?'https://...':placeholderPlataforma(l.tipo).replace(' ou ',' / ')}/>
+                    {l.tipo==='whatsapp'&&<p style={{fontSize:'11px',color:'#C5BCD1',marginTop:'6px'}}>{t.whatsHelp}</p>}
+                    {l.tipo==='endereco'&&<p style={{fontSize:'11px',color:'#C5BCD1',marginTop:'6px'}}>{t.addressHelp}</p>}
+                    {l.tipo==='email'&&<p style={{fontSize:'11px',color:'#C5BCD1',marginTop:'6px'}}>{t.emailHelp}</p>}
                     {tipoSugerido&&(
                       <button type="button" onClick={()=>editarLink(l.id,'tipo',tipoSugerido)} style={{marginTop:'8px',background:'rgba(201,250,69,.08)',border:'1px solid rgba(201,250,69,.25)',color:'#C9FA45',borderRadius:'8px',padding:'6px 12px',fontSize:'11px',fontWeight:700,cursor:'pointer',fontFamily:'inherit'}}>
-                        Esse link parece ser {rotuloDaMarca(tipoSugerido)||tipoSugerido} — usar esse tipo?
+                        {t.suggest.replace('{name}',rotuloDaMarca(tipoSugerido)||tipoSugerido)}
                       </button>
                     )}
                   </div>
@@ -327,28 +362,37 @@ export default function GerenciarLinks(){
                         <div style={{display:'flex',alignItems:'center',gap:'10px',flexWrap:'wrap',marginBottom:'8px'}}>
                           <div style={{width:'36px',height:'36px',borderRadius:'10px',background:'rgba(255,255,255,.04)',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}><IconePlataforma tipo={iconeDoLink(l)}/></div>
                           <p style={{fontSize:'12px',color:'#C5BCD1',flex:'1 1 200px',lineHeight:1.5}}>
-                            {o.marca&&rotuloDaMarca(o.marca)?<>Reconhecido: <strong style={{color:'#FFFFFF'}}>{rotuloDaMarca(o.marca)}</strong>. O ícone aparece automaticamente na sua MiniPage.</>:o.motivo==='encurtador'?'Link encurtado: não dá para saber o destino com segurança. Escolha o ícone abaixo, se quiser.':l.url?'Plataforma não reconhecida: será usado o ícone do tipo escolhido.':'Cole o link para reconhecer a plataforma automaticamente.'}
+                            {o.marca&&rotuloDaMarca(o.marca)?<>{t.recognized} <strong style={{color:'#FFFFFF'}}>{rotuloDaMarca(o.marca)}</strong>. {t.autoHint}</>:o.motivo==='encurtador'?t.shortened:l.url?t.unknown:t.paste}
                           </p>
                         </div>
                         {!l.titulo?.trim()&&sugestao&&(
-                          <button type="button" onClick={()=>editarLink(l.id,'titulo',sugestao)} style={{marginBottom:'8px',background:'rgba(201,250,69,.08)',border:'1px solid rgba(201,250,69,.25)',color:'#C9FA45',borderRadius:'8px',padding:'6px 12px',fontSize:'11px',fontWeight:700,cursor:'pointer',fontFamily:'inherit'}}>Usar o título &quot;{sugestao}&quot;</button>
+                          <button type="button" onClick={()=>editarLink(l.id,'titulo',sugestao)} style={{marginBottom:'8px',background:'rgba(201,250,69,.08)',border:'1px solid rgba(201,250,69,.25)',color:'#C9FA45',borderRadius:'8px',padding:'6px 12px',fontSize:'11px',fontWeight:700,cursor:'pointer',fontFamily:'inherit'}}>{t.useTitle.replace('{name}',sugestao)}</button>
                         )}
-                        <label className="lbl">Ícone exibido</label>
+                        <label className="lbl">{t.icon}</label>
                         <select className="inp" style={{cursor:iconeManualOk?'pointer':'not-allowed'}} disabled={!iconeManualOk} value={l.icone_marca||''} onChange={e=>editarLink(l.id,'icone_marca',e.target.value||null)}>
-                          <option value="">Automático (recomendado)</option>
-                          <option value="generico">Ícone genérico</option>
+                          <option value="">{t.auto}</option>
+                          <option value="generico">{t.generic}</option>
                           {MARCAS_COM_ICONE.map(m=><option key={m.id} value={m.id}>{m.rotulo}</option>)}
                         </select>
-                        {!iconeManualOk&&<p style={{fontSize:'11px',color:'#C5BCD1',marginTop:'6px'}}>A escolha manual do ícone fica disponível depois que o administrador aplicar a atualização do banco de dados (script 01). Até lá, o ícone é automático.</p>}
+                        {!iconeManualOk&&<p style={{fontSize:'11px',color:'#C5BCD1',marginTop:'6px'}}>{t.iconPending}</p>}
                       </div>
                     )
                   })()}
+                  <div style={{marginBottom:14}}>
+                    <label className="lbl">{t.image}</label>
+                    <div style={{display:'flex',alignItems:'center',gap:10,flexWrap:'wrap'}}>
+                      <div style={{width:56,height:56,background:'#17111F',border:'1px solid #51405F',borderRadius:12,display:'flex',alignItems:'center',justifyContent:'center',overflow:'hidden',flexShrink:0}}><LinkImagem src={(pendente!==null&&pendente.id===l.id)?pendente.url:linkImageUrl(l.imagem_path,userId)}><IconePlataforma tipo={iconeDoLink(l)}/></LinkImagem></div>
+                      <label style={{border:'1px dashed #655778',borderRadius:8,padding:'8px 12px',fontSize:12,color:'#C5BCD1',cursor:imagemOk&&!salvandoId?'pointer':'not-allowed',position:'relative',overflow:'hidden'}}>{(pendente!==null&&pendente.id===l.id)||l.imagem_path?t.replace:t.upload}<input type="file" aria-label={t.upload} accept="image/jpeg,image/png,image/webp" disabled={!imagemOk||!!salvandoId} onChange={e=>{selecionarImagem(l.id,e.currentTarget.files?.[0]);e.currentTarget.value=''}} style={{position:'absolute',inset:0,width:'100%',height:'100%',opacity:0,cursor:'inherit'}}/></label>
+                      {((pendente!==null&&pendente.id===l.id)||l.imagem_path)&&<button type="button" disabled={!!salvandoId||!imagemOk} onClick={()=>{setPendente(null);editarLink(l.id,'imagem_path',null)}} style={{background:'transparent',border:'1px solid #655778',borderRadius:8,padding:8,color:'#C5BCD1',fontSize:12,cursor:'pointer'}}>{t.remove}</button>}
+                    </div>
+                    <p style={{fontSize:11,color:'#C5BCD1',marginTop:6}}>{imagemOk?t.imageHelp:t.imagePending}</p>
+                  </div>
                   <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:'8px',flexWrap:'wrap'}}>
-                    <button type="button" onClick={()=>editarLink(l.id,'ativo',!l.ativo)} style={{background:l.ativo?'rgba(34,197,94,.14)':'#40344B',border:'1px solid '+(l.ativo?'rgba(34,197,94,.25)':'#40344B'),borderRadius:10,padding:'6px 14px',fontSize:12,fontWeight:700,color:l.ativo?'#22C55E':'#C5BCD1',cursor:'pointer',fontFamily:'inherit'}}>{l.ativo?'Ativo':'Oculto'}</button>
+                    <button type="button" onClick={()=>editarLink(l.id,'ativo',!l.ativo)} style={{background:l.ativo?'rgba(34,197,94,.14)':'#40344B',border:'1px solid '+(l.ativo?'rgba(34,197,94,.25)':'#40344B'),borderRadius:10,padding:'6px 14px',fontSize:12,fontWeight:700,color:l.ativo?'#22C55E':'#C5BCD1',cursor:'pointer',fontFamily:'inherit'}}>{l.ativo?t.active:t.hidden}</button>
                     <div style={{display:'flex',gap:'8px'}}>
-                      <button type="button" onClick={()=>cancelarEdicao(l)} style={{background:'rgba(33,24,45,.9)',border:'1px solid #40344B',color:'#C5BCD1',borderRadius:'8px',padding:'8px 14px',fontSize:'12px',fontWeight:600,cursor:'pointer',fontFamily:'inherit'}}>Voltar</button>
-                      <button type="button" onClick={()=>excluirLink(l.id)} style={{background:'rgba(239,68,68,.10)',border:'1px solid rgba(239,68,68,.25)',color:'#EF4444',borderRadius:'8px',padding:'8px 14px',fontSize:'12px',fontWeight:600,cursor:'pointer',fontFamily:'inherit'}}>Excluir</button>
-                      <button type="button" onClick={()=>salvarLink(l)} disabled={salvandoId===l.id} style={{background:G,color:'#0B0A10',border:'1px solid rgba(255,255,255,.12)',borderRadius:'8px',padding:'8px 16px',fontSize:'12px',fontWeight:700,cursor:'pointer',fontFamily:'inherit',opacity:salvandoId===l.id?.7:1}}>{salvandoId===l.id?'Salvando...':'Salvar'}</button>
+                      <button type="button" onClick={()=>cancelarEdicao(l)} style={{background:'rgba(33,24,45,.9)',border:'1px solid #40344B',color:'#C5BCD1',borderRadius:'8px',padding:'8px 14px',fontSize:'12px',fontWeight:600,cursor:'pointer',fontFamily:'inherit'}}>{t.back}</button>
+                      <button type="button" onClick={()=>excluirLink(l.id)} style={{background:'rgba(239,68,68,.10)',border:'1px solid rgba(239,68,68,.25)',color:'#EF4444',borderRadius:'8px',padding:'8px 14px',fontSize:'12px',fontWeight:600,cursor:'pointer',fontFamily:'inherit'}}>{t.delete}</button>
+                      <button type="button" onClick={()=>salvarLink(l)} disabled={salvandoId===l.id} style={{background:G,color:'#0B0A10',border:'1px solid rgba(255,255,255,.12)',borderRadius:'8px',padding:'8px 16px',fontSize:'12px',fontWeight:700,cursor:'pointer',fontFamily:'inherit',opacity:salvandoId===l.id?.7:1}}>{salvandoId===l.id?t.saving:t.save}</button>
                     </div>
                   </div>
                 </div>

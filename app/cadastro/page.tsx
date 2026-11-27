@@ -312,7 +312,7 @@ export default function Cadastro() {
       const res = await fetch('/api/cadastro/registrar', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ nome: nomeUsuario, email, senha, termos: true, plano_tipo: planoTipo, billing_cycle: billingCycleParaExibicao, cupom: cupom && cupom.trim() ? cupom.trim() : null, whatsapp: whatsappNormalizado, website: site }),
+        body: JSON.stringify({ nome: nomeUsuario, email, senha, termos: true, plano_tipo: planoTipo, billing_cycle: billingCycleParaExibicao, cupom: cupom && cupom.trim() ? cupom.trim() : null, whatsapp: whatsappNormalizado ? '+' + whatsappNormalizado : null, website: site }),
       })
       const dados = await res.json().catch(() => ({}))
 

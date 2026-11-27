@@ -1,4 +1,8 @@
 import type { Metadata } from 'next'
+import InscricaoSlug from '../components/InscricaoSlug'
+import CompartilharMiniPage from '../components/CompartilharMiniPage'
+import { CARD_VERTICAL_WIDTH, permiteInscricaoSlug } from '../lib/slug-recursos'
+import { leadSlugAtivo } from '../lib/slug-recursos-servidor'
 import type { ReactNode } from 'react'
 import { Fragment } from 'react'
 import { detectarIdiomaHeader, getDicionario, type Idioma } from '../lib/i18n-publico'
@@ -8,6 +12,8 @@ import Link from 'next/link'
 import { headers } from 'next/headers'
 
 import { Zap, CalendarDays, CheckCircle, Sparkles, GraduationCap, Crown, Globe, Link2, ShoppingBag, PlayCircle, BadgeCheck, MapPin, Calendar, Lock, Mail, Phone } from 'lucide-react'
+import LinkImagem from '../components/LinkImagem'
+import { linkImageUrl } from '../lib/link-imagem'
 import EmailLinkCard from '../components/EmailLinkCard'
 import CatalogoItemCard from '../components/CatalogoItemCard'
 import VideoItemCard from '../components/VideoItemCard'
@@ -78,6 +84,13 @@ html,body{overflow-x:hidden;width:100%;max-width:100%}
 .card-visual-main{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;object-position:center;z-index:1;display:block}
 .card-visual-overlay{position:absolute;left:0;right:0;bottom:0;padding:18px 18px 14px;background:linear-gradient(to top,rgba(0,0,0,.78),rgba(0,0,0,.25) 60%,transparent)}
 .card-visual-titulo{color:#fff;font-size:15px;font-weight:800;letter-spacing:-.01em;text-shadow:0 2px 6px rgba(0,0,0,.6)}
+/* Rodape compacto: preserva largura, margens e raio anteriores. */
+.rodape-cta{display:flex;justify-content:center;margin-top:24px;margin-bottom:8px;padding:0;min-width:0;background:transparent;border:0;box-shadow:none}
+.rodape-cta-actions{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);gap:8px;width:100%;max-width:430px}
+.rodape-cta-action{display:flex;align-items:center;justify-content:center;gap:5px;min-width:0;min-height:36px;padding:4px 8px;border-radius:999px;font:inherit;font-size:12px;font-weight:800;line-height:1.15;text-decoration:none;text-align:center;cursor:pointer;overflow-wrap:anywhere}
+.rodape-cta-action svg{flex-shrink:0}
+.rodape-cta-action:focus-visible{outline:2px solid var(--text);outline-offset:2px}
+.rodape-cta-share{border:1px solid var(--accent);background:transparent;color:var(--text)}
 .spotify-lista{display:flex;flex-direction:column;align-items:center;gap:16px;width:100%}
 .spotify-embed-wrap{width:100%;max-width:560px;margin:0 auto;border-radius:12px;overflow:hidden}
 @media (hover:hover) and (pointer:fine){
@@ -111,7 +124,7 @@ html,body{overflow-x:hidden;width:100%;max-width:100%}
 .destaque-desc-v2{display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden;font-size:10px;color:rgba(255,255,255,.85);text-shadow:0 1px 3px rgba(0,0,0,.5);margin:1px 0 2px}
 .destaque-titulo-v2{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;line-height:1.2;font-weight:700;font-size:12.5px;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.6);margin:0}
 .video-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;width:100%;max-width:100%;align-items:start}
-.video-scroll-vertical{display:flex;gap:10px;overflow-x:auto;scroll-snap-type:x mandatory;max-width:100%;padding-bottom:8px;margin-top:10px}.video-scroll-vertical>.video-card-v2{flex:0 0 clamp(108px,28%,190px);scroll-snap-align:start}
+.video-scroll-vertical{display:flex;gap:10px;overflow-x:auto;scroll-snap-type:x mandatory;max-width:100%;padding-bottom:8px;margin-top:10px}.video-scroll-vertical>.video-card-v2{flex:0 0 ${CARD_VERTICAL_WIDTH};scroll-snap-align:start}
 .video-card-v2{position:relative;overflow:hidden;border-radius:16px;transition:transform .18s,box-shadow .18s,border-color .18s;box-sizing:border-box;width:100%;min-width:0}
 .video-card-v2:hover{transform:translateY(-4px);border-color:var(--accent)!important}
 .video-thumb-wrap-v2{position:relative;display:block;width:100%;aspect-ratio:16/9;overflow:hidden;text-decoration:none;background:#090909}
@@ -199,10 +212,9 @@ html,body{overflow-x:hidden;width:100%;max-width:100%}
      aparece e o novo hero-mobile-view (proporcao 4:5, avatar removido, perfil integrado). */
   .hero-desktop-view{display:none}
   .profile-row-desktop-view{display:none}
-  .rodape-cta{padding:6px 14px!important;gap:0px!important;margin-top:14px!important}
-  .rodape-cta span:first-child{font-size:8px!important}
-  .rodape-cta span:nth-child(2){font-size:11px!important}
-  .rodape-cta span:last-child{font-size:7px!important}
+  .rodape-cta{padding:0;margin-top:24px}
+  .rodape-cta-actions{gap:6px!important}
+  .rodape-cta-action{font-size:11px!important;padding:4px 5px!important;min-height:36px!important}
 
   /* Midia do topo mobile como camada de FUNDO FIXA (nao sticky) - fica presa na tela
      enquanto o usuario comeca a rolar. pointer-events:none pra nunca capturar cliques,
@@ -393,7 +405,7 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
   let idiomaVisitante: Idioma = 'pt'
   try {
     const h = await headers()
-    idiomaVisitante = detectarIdiomaHeader(h.get('accept-language'))
+    idiomaVisitante = detectarIdiomaHeader(h.get('accept-language'), h.get('x-vercel-ip-country') || h.get('cf-ipcountry'))
   } catch { /* fora de contexto de requisicao (ex: build) - mantem portugues */ }
   const t = getDicionario(idiomaVisitante)
   // Aceita tanto /gabigasparotti quanto /@gabigasparotti (link curto do minipage.pro) — mesmo perfil
@@ -479,6 +491,7 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
 
   const videosFreePublicos = (videos || []).filter((v:any)=>{
     if(v.secao_id!=null && !(videosSecoesAtivas||[]).some((sec:any)=>sec.id===v.secao_id))return false
+    if(v.formato==='9:16'||/\/shorts\//i.test(String(v.url_video||'')))return false
     try {const u=new URL(String(v.url_video||''));const h=u.hostname.toLowerCase();return ['https:','http:'].includes(u.protocol)&&['youtube.com','www.youtube.com','m.youtube.com','youtu.be'].includes(h)&&!!extrairYoutubeId(v.url_video)} catch{return false}
   }).slice(0,1)
   // Vídeos do Free/legados não têm secao_id; não os faça desaparecer no upgrade.
@@ -589,6 +602,7 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
   // a conta fizer upgrade depois, os mesmos dados ja salvos voltam a aparecer normalmente,
   // sem precisar recadastrar nada.
   const isPlanoFree = ehPlanoFree(perfil.plano_tipo)
+  const mostrarInscricaoSlug = permiteInscricaoSlug(perfil.plano_tipo) ? await leadSlugAtivo(perfil.user_id) : false
   const capaUrl = isPlanoFree ? '' : (perfil.capa_url || perfil.imagem_capa || perfil.banner_url || capaFallback || '')
   const fotoPerfilUrl = perfil.foto_perfil_url || ''
   const tituloBotaoAgenda = perfil.pagina_titulo_botao_agenda || t.agendarAgora
@@ -758,7 +772,7 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
         .modo-imersivo .avatar-pro{box-shadow:0 4px 24px rgba(0,0,0,.6),0 0 0 1px rgba(255,255,255,.15)!important}
         .modo-imersivo .bio-text,.modo-imersivo .loc-text{text-shadow:0 1px 10px rgba(0,0,0,.75)}
         .modo-imersivo .hero-desktop-view,.modo-imersivo .mobile-hero-bg{display:none}
-        .modo-imersivo .crd,.modo-imersivo .catalogo-card,.modo-imersivo .video-card-v2,.modo-imersivo .destaque-card,.modo-imersivo .rodape-cta{background:rgba(var(--bg-rgb),.42)!important;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-color:var(--accent-border)!important}
+        .modo-imersivo .crd,.modo-imersivo .catalogo-card,.modo-imersivo .video-card-v2,.modo-imersivo .destaque-card{background:rgba(var(--bg-rgb),.42)!important;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-color:var(--accent-border)!important}
       ` }} />
 
       {modoImersivoAtivo && (
@@ -941,6 +955,7 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
           {/* Titulo "LINKS OFICIAIS" - so aparece no mobile (via CSS). Fica logo no inicio da
               cobertura solida de proposito: aparece sobre o FUNDO DO TEMA (nao mais sobre a
               imagem/video de capa), exatamente onde a transicao visual termina. */}
+          {mostrarInscricaoSlug && <InscricaoSlug slug={slug} idioma={idiomaVisitante}/>}
           <p className="links-oficiais-titulo">LINKS OFICIAIS</p>
 
         {/* PROMOCAO EM DESTAQUE — substituida por Destaques + Links Rapidos. Codigo/logica preservados, apenas nao renderiza. */}
@@ -1117,7 +1132,7 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
                 if (tipoEfetivo === 'email') {
                   const emailPuro = (l.url || '').replace(/^mailto:/i, '').trim()
                   return (
-                    <EmailLinkCard key={l.id} itemId={l.id} email={emailPuro} titulo={l.titulo || 'E-mail'} descricao={l.descricao} iconeBg={iconeBg} iconeBorder={iconeBorder} iconeCor={iconeCor} setaCor={setaCor} textoCopiado={t.emailCopiado} />
+                    <EmailLinkCard key={l.id} itemId={l.id} email={emailPuro} titulo={l.titulo || 'E-mail'} descricao={l.descricao} iconeBg={iconeBg} iconeBorder={iconeBorder} iconeCor={iconeCor} setaCor={setaCor} textoCopiado={t.emailCopiado} imagemUrl={linkImageUrl(l.imagem_path,perfil.user_id)} />
                   )
                 }
                 const cfg = iconeLink(escolherTipoDoIcone(tipoEfetivo, l.icone_marca))
@@ -1125,7 +1140,7 @@ export default async function PaginaPublica({ params }: { params: Promise<{ slug
                 return (
                   <a key={l.id} href={hrefFinal} target={hrefFinal.startsWith('http') ? '_blank' : '_self'} rel="noopener noreferrer" className="crd link-card" style={{ textDecoration: 'none', color: 'inherit', border: cardBorderFinal, boxShadow: cardShadowNeon }} data-track-tipo="link_rapido_click" data-track-item-id={l.id} data-track-item-titulo={l.titulo || ''} data-track-item-url={hrefFinal}>
                     <div className="link-icon" style={{ background: iconeBg, border: `1px solid ${iconeBorder}`, color: cfg.color || iconeCor }}>
-                      {cfg.svg ? cfg.svg : (cfg.I ? <cfg.I size={21} color={cfg.color || iconeCor} /> : null)}
+                      <LinkImagem src={linkImageUrl(l.imagem_path,perfil.user_id)}>{cfg.svg ? cfg.svg : (cfg.I ? <cfg.I size={21} color={cfg.color || iconeCor} /> : null)}</LinkImagem>
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <p className="link-title">{l.titulo || (l.tipo === 'endereco' ? t.endereco : '')}</p>
@@ -1186,7 +1201,7 @@ eventos && eventos.length > 0 && permiteAgendaEventos(perfil.plano_tipo) && (
               <div key={secao.id} style={{ marginBottom: '28px' }}>
                 <p style={{ fontSize: '20px', fontWeight: 900, color: 'var(--text)', letterSpacing: '-0.02em', marginBottom: secao.subtitulo ? '3px' : '12px' }}>{secao.titulo}</p>
                 {secao.subtitulo && <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '10px' }}>{secao.subtitulo}</p>}
-                <div className="video-grid">
+                {secao.itens.some((v:any)=>v.formato!=='9:16')&&<div className="video-grid">
                   {secao.itens.filter((v:any)=>v.formato!=='9:16').map((v: any) => (
                     <VideoItemCard key={v.id} v={v} thumb={thumbnailVideo(v)}
                       youtubeId={extrairYoutubeId(v.url_video)} iconeBorder={iconeBorder}
@@ -1194,7 +1209,7 @@ eventos && eventos.length > 0 && permiteAgendaEventos(perfil.plano_tipo) && (
                       tema={tema} iconeCor={iconeCor} textoAssistir={t.assistirVideo}
                       textoSaibaMais={t.saibaMais} labelPlaceholder={labelPlaceholder(v)} />
                   ))}
-                </div>
+                </div>}
                 {secao.itens.some((v:any)=>v.formato==='9:16')&&<div className="video-scroll-vertical">{secao.itens.filter((v:any)=>v.formato==='9:16').map((v:any)=><VideoItemCard key={v.id} v={v} thumb={thumbnailVideo(v)} youtubeId={extrairYoutubeId(v.url_video)} iconeBorder={iconeBorder} cardBorderFinal={cardBorderFinal} cardShadowNeon={cardShadowNeon} tema={tema} iconeCor={iconeCor} textoAssistir={t.assistirVideo} textoSaibaMais={t.saibaMais} labelPlaceholder={labelPlaceholder(v)}/>)}</div>}
               </div>
             )) : (
@@ -1393,11 +1408,14 @@ return blocosParaRenderizar.map(bloco => {
             </div>
           </div>
         )}
-        <a href="https://minipage.pro/modelos" target="_blank" rel="noopener noreferrer" className="rodape-cta" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1px', textAlign: 'center', textDecoration: 'none', marginTop: '24px', marginBottom: '8px', padding: '8px 20px', borderRadius: '12px', background: tema.soft, border: `1px solid ${tema.border}` }}>
-          <span style={{ fontSize: '10px', fontWeight: 600, color: 'var(--text-muted)' }}>{t.querUmaPaginaComoEsta}</span>
-          <span style={{ fontSize: '13px', fontWeight: 800, color: tema.accent }}>{t.crieSuaMiniPagePro} →</span>
-          <span style={{ fontSize: '9px', color: 'var(--text-muted)', marginTop: '1px' }}>{t.umaSolucaoClienteMarcado}</span>
-        </a>
+        <footer className="rodape-cta">
+          <div className="rodape-cta-actions">
+            <a href="https://minipage.pro/modelos" target="_blank" rel="noopener noreferrer" className="rodape-cta-action" style={{ background: tema.accent, color: tema.btnText, border: '1px solid transparent' }}>
+              {t.crieSuaMiniPagePro} →
+            </a>
+            <CompartilharMiniPage slug={slug} nome={nomeBusiness} idioma={idiomaVisitante}/>
+          </div>
+        </footer>
         </div>
       </div>
     </main>

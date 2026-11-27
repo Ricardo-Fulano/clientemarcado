@@ -2,8 +2,9 @@
 
 import { useEffect, useState, type CSSProperties, type ReactNode } from 'react'
 import { reelUrl, formatoYoutube } from '../../lib/smart-import-vertical'
+import { CARD_VERTICAL_WIDTH, CARD_VERTICAL_RATIO, copySlug, fontesAudiencia } from '../../lib/slug-recursos'
 import type { TemaTokens } from '../../lib/tema-publico'
-import { ChevronDown, ChevronLeft, ChevronRight, ChevronUp, Eye, Image as ImageIcon, LockKeyhole, Play, Sparkles, X } from 'lucide-react'
+import { BadgeCheck, ChevronDown, ChevronLeft, ChevronRight, ChevronUp, Eye, Image as ImageIcon, LockKeyhole, Play, Sparkles, X } from 'lucide-react'
 
 
 // Icones de redes em SVG, sem depender das exportacoes opcionais do lucide-react.
@@ -40,7 +41,7 @@ type Props = {
   storiesConsultados: boolean
   youtubeResultados: VideoYoutube[]
   youtubeSelecionados: string[]
-  youtubeCanalDados: {nome:string;inscritos:number|null}|null
+  youtubeCanalDados: {nome:string;inscritos:number|null;fonte:string;canalId?:string}|null
   links: Array<{ id: string; titulo: string; tipo: string; url: string }>
   temaPremium: TemaTokens
   temaFree: TemaTokens
@@ -198,11 +199,14 @@ export default function PreviewInstagramPremium({ idioma, nome, slug, bio, fotoP
   const fore = tokensTema.text
   const nomeExibido = nome.trim() || perfilInstagram?.nome || perfilInstagram?.username || (lang==='pt-BR'?'Sua marca':'Your brand')
   const bioExibida = bio.trim() || (lang==='pt-BR'?'Conte ao mundo o que você faz.':'Tell the world what you do.')
-  const inscricao = typeof perfilInstagram?.seguidores==='number' && Number.isFinite(perfilInstagram.seguidores) && perfilInstagram.seguidores >= 0 ? perfilInstagram.seguidores : null
-  const inscritosYoutube = typeof youtubeCanalDados?.inscritos === 'number' && Number.isSafeInteger(youtubeCanalDados.inscritos) && youtubeCanalDados.inscritos >= 0 ? youtubeCanalDados.inscritos : null
+  const fontes = fontesAudiencia(instagram,links.map(l=>l.url))
+  const fonteYoutubeConsultada=fontesAudiencia('',[youtubeCanalDados?.fonte?.startsWith('@') ? 'https://www.youtube.com/'+youtubeCanalDados.fonte : youtubeCanalDados?.fonte?.startsWith('UC') ? 'https://www.youtube.com/channel/'+youtubeCanalDados.fonte : youtubeCanalDados?.fonte]).yt
+  const youtubeVinculado=!!fontes.yt && (fontes.yt.toLowerCase()===fonteYoutubeConsultada.toLowerCase() || fontes.yt===youtubeCanalDados?.canalId)
+  const inscricao = fontes.ig===perfilInstagram?.username?.toLowerCase() && typeof perfilInstagram?.seguidores==='number' && Number.isFinite(perfilInstagram.seguidores) && perfilInstagram.seguidores >= 0 ? perfilInstagram.seguidores : null
+  const inscritosYoutube = youtubeVinculado && typeof youtubeCanalDados?.inscritos === 'number' && Number.isSafeInteger(youtubeCanalDados.inscritos) && youtubeCanalDados.inscritos >= 0 ? youtubeCanalDados.inscritos : null
   const temAudiencia = inscricao !== null || inscritosYoutube !== null
-  const totalAudiencia = (inscricao || 0) + (inscritosYoutube || 0)
-  const legendaAudiencia = inscricao !== null && inscritosYoutube !== null ? VIDEO_LAYOUT[lang].totalAudience : inscricao !== null ? t.follower : VIDEO_LAYOUT[lang].ytSubscribers
+  const audienceCopy=copySlug(lang.slice(0,2) as 'pt'|'en'|'es'|'fr'|'de'|'it')
+  const legendaAudiencia = inscricao !== null && inscritosYoutube !== null ? t.followerDetail : inscricao !== null ? `${inscricao.toLocaleString(lang)} ${t.follower}` : inscritosYoutube !== null ? `${inscritosYoutube.toLocaleString(lang)} ${VIDEO_LAYOUT[lang].ytSubscribers}` : ''
   const storiesValidos = stories.filter(s => !!safeImage(s.imagem) || !!safeImage(s.url))
   const storyAtual = storyIndex === null ? null : storiesValidos[storyIndex]
   const youtubes = youtubeResultados.filter(y => youtubeSelecionados.includes(y.videoId))
@@ -266,23 +270,23 @@ export default function PreviewInstagramPremium({ idioma, nome, slug, bio, fotoP
                 {primeiroVisual?.tipo.toUpperCase()==='VIDEO' && <span style={{position:'absolute',top:12,right:11,display:'flex',gap:3,alignItems:'center',fontSize:10,color:'#FFF',background:'#15111EA8',borderRadius:7,padding:'5px 7px'}}><Play size={12}/> {t.video}</span>}
                 {!capa && <span style={{position:'absolute',top:55,left:12,right:12,color:'#EEE',fontSize:10,textAlign:'center'}}>{t.demoCover}</span>}
                 <div style={{position:'absolute',left:13,right:13,bottom:capa?22:17,textAlign:'center'}}>
-                  <div style={{fontWeight:850,fontSize:23,lineHeight:1.1,color:'#FFF',overflowWrap:'anywhere',textShadow:'0 2px 12px #000C'}}>{nomeExibido}</div>
+                  <div style={{fontWeight:850,fontSize:23,lineHeight:1.1,color:'#FFF',overflowWrap:'anywhere',textShadow:'0 2px 12px #000C'}}>{nomeExibido} <BadgeCheck size={17} color="#3B82F6" style={{display:'inline-block',verticalAlign:'middle',flexShrink:0}}/></div>
                   <div style={{fontSize:11,marginTop:5,color:'#E3DDE8'}}>@{perfilInstagram?.username || slug || 'seunome'}</div>
                   <div aria-label="Redes e contatos selecionados" style={{marginTop:10,display:'flex',gap:7,justifyContent:'center',flexWrap:'wrap'}}>
                     {redesDoTopo.map(tipo => <span key={tipo} title={nomeDaRede(tipo)} aria-label={nomeDaRede(tipo)} style={{display:'grid',placeItems:'center',border:'1px solid #FFFFFF66',background:`rgba(${tokensTema.bgRGB},.55)`,borderRadius:'50%',height:30,width:30,color:'#FFF'}}><IconeRede tipo={tipo}/></span>)}
                   </div>
-                  {capa && temAudiencia && <button type="button" aria-expanded={seguidoresAbertos} onClick={()=>setSeguidoresAbertos(v=>!v)} style={{display:'inline-flex',alignItems:'center',justifyContent:'center',gap:5,border:'1px solid #FFFFFF55',background:'rgba(0,0,0,.24)',borderRadius:99,color:'#FFF',padding:'5px 9px',fontWeight:800,fontSize:11,cursor:'pointer',marginTop:9}}>{totalAudiencia.toLocaleString(lang)} {legendaAudiencia} {seguidoresAbertos?<ChevronUp size={13}/>:<ChevronDown size={13}/>}</button>}
+                  {capa && temAudiencia && <button type="button" aria-expanded={seguidoresAbertos} onClick={()=>setSeguidoresAbertos(v=>!v)} style={{display:'inline-flex',alignItems:'center',justifyContent:'center',gap:5,border:'1px solid #FFFFFF55',background:'rgba(0,0,0,.24)',borderRadius:99,color:'#FFF',padding:'5px 9px',fontWeight:800,fontSize:11,cursor:'pointer',marginTop:9}}>{legendaAudiencia} {seguidoresAbertos?<ChevronUp size={13}/>:<ChevronDown size={13}/>}</button>}
                   {capa && <p style={{color:'#FFF',fontSize:11,lineHeight:1.35,margin:'9px auto 0',maxWidth:295,whiteSpace:'pre-wrap',overflowWrap:'anywhere',display:'-webkit-box',WebkitLineClamp:3,WebkitBoxOrient:'vertical',overflow:'hidden',textShadow:'0 1px 8px #000D'}}>{bioExibida}</p>}
                 </div>
               </div>
               <div style={{textAlign:'center',padding:'11px 12px 9px'}}>
                 {temAudiencia && <div>
-                  {!capa && <button type="button" aria-expanded={seguidoresAbertos} onClick={()=>setSeguidoresAbertos(v=>!v)} style={{display:'inline-flex',alignItems:'center',justifyContent:'center',gap:5,border:`1px solid ${tokensTema.cardBorder}`,background:tokensTema.surface2,borderRadius:99,color:fore,padding:'7px 11px',fontWeight:800,fontSize:12,cursor:'pointer'}}>{totalAudiencia.toLocaleString(lang)} {legendaAudiencia} {seguidoresAbertos?<ChevronUp size={15}/>:<ChevronDown size={15}/>}</button>}
+                  {!capa && <button type="button" aria-expanded={seguidoresAbertos} onClick={()=>setSeguidoresAbertos(v=>!v)} style={{display:'inline-flex',alignItems:'center',justifyContent:'center',gap:5,border:`1px solid ${tokensTema.cardBorder}`,background:tokensTema.surface2,borderRadius:99,color:fore,padding:'7px 11px',fontWeight:800,fontSize:12,cursor:'pointer'}}>{legendaAudiencia} {seguidoresAbertos?<ChevronUp size={15}/>:<ChevronDown size={15}/>}</button>}
                   {seguidoresAbertos && <div style={{margin:'10px 0 0',padding:12,borderRadius:12,border:`1px solid ${tokensTema.cardBorder}`,background:tokensTema.card,textAlign:'left'}}>
                     <div style={{fontSize:12,fontWeight:800,marginBottom:10}}>{t.followerDetail}</div>
                      {inscricao !== null && <div style={{display:'flex',justifyContent:'space-between',gap:7,alignItems:'center',marginBottom:inscritosYoutube!==null?7:0}}><span style={{display:'flex',gap:7,alignItems:'center',minWidth:0,fontSize:11}}><Instagram size={15} color="#E96CB7"/> @{perfilInstagram?.username}</span><strong style={{fontSize:12}}>{inscricao.toLocaleString(lang)}</strong></div>}
                      {inscritosYoutube !== null && <div style={{display:'flex',justifyContent:'space-between',gap:7,alignItems:'center'}}><span style={{display:'flex',gap:7,alignItems:'center',minWidth:0,fontSize:11}}><Youtube size={15} color="#FF4141"/> {youtubeCanalDados?.nome || 'YouTube'}</span><strong style={{fontSize:12}}>{inscritosYoutube.toLocaleString(lang)}</strong></div>}
-                    <p style={{fontSize:9,opacity:.7,lineHeight:1.4,margin:'9px 0 0'}}>{inscritosYoutube!==null?VIDEO_LAYOUT[lang].publicYtNote:t.onlyInstagram}{inscricao!==null && inscritosYoutube!==null ? ' '+VIDEO_LAYOUT[lang].combinedNote : ''}</p>
+                    <p style={{fontSize:9,opacity:.7,lineHeight:1.4,margin:'9px 0 0'}}>{audienceCopy[3]}</p>
                   </div>}
                 </div>}
                 {!capa && <div style={{fontSize:12,lineHeight:1.5,marginTop:10,whiteSpace:'pre-wrap',overflowWrap:'anywhere'}}>{bioExibida}</div>}
@@ -292,7 +296,7 @@ export default function PreviewInstagramPremium({ idioma, nome, slug, bio, fotoP
                 <SectionLinks links={linksMostrar.filter(l => !linksSpotify.some(sp => sp.id===l.id))} tema={tokensTema} title={t.otherLinks}/>
                 {linksSpotify.length>0 && <section aria-label="Spotify" style={{marginTop:14,textAlign:'left'}}><div style={{fontSize:12,fontWeight:850,marginBottom:8,color:fore}}>Spotify</div>{linksSpotify.map(l => <div key={l.id} style={{marginBottom:10,borderRadius:12,overflow:'hidden',background:tokensTema.card}}><iframe title={`Spotify: ${l.titulo}`} loading="lazy" src={l.embed} width="100%" height="152" style={{border:0,display:'block'}} allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"/></div>)}</section>}
                 <Galeria media={media.filter(m=>m.tipo!=='VIDEO')} tema={tokensTema} title={t.selectedMedia} empty={t.noMedia} footer={t.mediaNotSaved} layout={galeriaLayout} onLayoutChange={setGaleriaLayout} idioma={lang}/>
-                {media.some(m=>m.tipo==='VIDEO'&&reelUrl(m.link))&&<section style={{marginTop:14,textAlign:'left'}}><strong style={{fontSize:12}}>Instagram Reels</strong><div style={{display:'flex',gap:7,overflowX:'auto',marginTop:8}}>{media.filter(m=>m.tipo==='VIDEO'&&reelUrl(m.link)).map(m=><div key={m.id} style={{flex:'0 0 38%',aspectRatio:'9/16',borderRadius:9,overflow:'hidden',background:tokensTema.card,position:'relative'}}>{safeImage(m.imagem)&&<img src={m.imagem} alt="" style={{width:'100%',height:'100%',objectFit:'cover'}}/>}<span style={{position:'absolute',bottom:5,left:5,color:'#fff',background:'#111b',padding:4,borderRadius:5}}>▶</span></div>)}</div></section>}
+                {media.some(m=>m.tipo==='VIDEO'&&reelUrl(m.link))&&<section style={{marginTop:14,textAlign:'left'}}><strong style={{fontSize:12}}>Instagram Reels</strong><div style={{display:'flex',gap:7,overflowX:'auto',marginTop:8}}>{media.filter(m=>m.tipo==='VIDEO'&&reelUrl(m.link)).map(m=><div key={m.id} style={{flex:`0 0 ${CARD_VERTICAL_WIDTH}`,minWidth:0,aspectRatio:CARD_VERTICAL_RATIO,boxSizing:'border-box',border:`1px solid ${tokensTema.cardBorder}`,borderRadius:12,overflow:'hidden',background:tokensTema.card,position:'relative'}}>{safeImage(m.imagem)&&<img src={m.imagem} alt="" style={{width:'100%',height:'100%',objectFit:'cover'}}/>}<span style={{position:'absolute',bottom:5,left:5,color:'#fff',background:'#111b',padding:4,borderRadius:5}}>▶</span></div>)}</div></section>}
                 {videosMostrar.length>0 && <section aria-label="YouTube" style={{marginTop:16,textAlign:'left'}}>
                   <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:7,marginBottom:9}}>
                     <strong style={{fontSize:12,color:fore}}>YouTube</strong>
@@ -304,7 +308,7 @@ export default function PreviewInstagramPremium({ idioma, nome, slug, bio, fotoP
                     {videosMostrar.map(y => <div key={y.videoId} style={{minWidth:0,gridColumn:youtubeLayout==='grade' && videoReproduzindo===y.videoId?'1 / -1':undefined}}><YouTubeCard video={y} tema={tokensTema} compact={youtubeLayout==='grade' && videoReproduzindo!==y.videoId} reproduzindo={videoReproduzindo===y.videoId} onPlay={()=>setVideoReproduzindo(y.videoId)}/></div>)}
                   </div>
                 </section>}
-                {shortsMostrar.length>0&&<section aria-label="YouTube Shorts" style={{marginTop:16,textAlign:'left'}}><strong style={{fontSize:12,color:fore}}>YouTube Shorts</strong><div style={{display:'flex',gap:8,overflowX:'auto',marginTop:9}}>{shortsMostrar.map(v=><div key={v.videoId} style={{flex:'0 0 38%',minWidth:0}}><YouTubeCard video={v} tema={tokensTema} compact reproduzindo={videoReproduzindo===v.videoId} onPlay={()=>setVideoReproduzindo(v.videoId)}/></div>)}</div></section>}
+                {shortsMostrar.length>0&&<section aria-label="YouTube Shorts" style={{marginTop:16,textAlign:'left'}}><strong style={{fontSize:12,color:fore}}>YouTube Shorts</strong><div style={{display:'flex',gap:7,overflowX:'auto',marginTop:8}}>{shortsMostrar.map(v=><div key={v.videoId} style={{flex:`0 0 ${CARD_VERTICAL_WIDTH}`,minWidth:0,aspectRatio:CARD_VERTICAL_RATIO}}><YouTubeCard video={v} tema={tokensTema} compact reproduzindo={videoReproduzindo===v.videoId} onPlay={()=>setVideoReproduzindo(v.videoId)}/></div>)}</div></section>}
               </div>
             </>
           ) : (
@@ -445,8 +449,9 @@ function IconeRede({tipo}:{tipo:string}) {
 function YouTubeCard({video,tema,reproduzindo,onPlay,compact=false}:{video:VideoYoutube;tema:TemaTokens;reproduzindo:boolean;onPlay:()=>void;compact?:boolean}) {
   const id = /^[a-zA-Z0-9_-]{11}$/.test(video.videoId) ? video.videoId : null
   const thumb = safeImage(video.miniatura)
-  return <div style={{background:tema.card,border:`1px solid ${tema.cardBorder}`,borderRadius:12,overflow:'hidden'}}>
-    <div style={{aspectRatio:formatoYoutube(video.url)==='9:16'?'9/16':'16/9',position:'relative',background:'#111',overflow:'hidden'}}>
+  const vertical=formatoYoutube(video.url)==='9:16'
+  return <div style={{background:tema.card,border:`1px solid ${tema.cardBorder}`,borderRadius:12,overflow:'hidden',boxSizing:'border-box',height:vertical?'100%':undefined,aspectRatio:vertical?CARD_VERTICAL_RATIO:undefined}}>
+    <div style={{aspectRatio:vertical?undefined:'16/9',height:vertical?'100%':undefined,position:'relative',background:'#111',overflow:'hidden'}}>
       {id && reproduzindo ? <iframe src={`https://www.youtube-nocookie.com/embed/${id}?autoplay=1&rel=0&playsinline=1`} title={video.titulo} loading="lazy" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture; web-share" allowFullScreen referrerPolicy="strict-origin-when-cross-origin" style={{width:'100%',height:'100%',border:0}}/> :
       <button type="button" disabled={!id} onClick={onPlay} aria-label={`Reproduzir ${video.titulo}`} style={{display:'block',width:'100%',height:'100%',border:0,background:'#111',padding:0,cursor:id?'pointer':'not-allowed',color:'#FFF',position:'relative'}}>
         {thumb && <img src={thumb} alt="" loading="lazy" style={{position:'absolute',inset:0,width:'100%',height:'100%',objectFit:'cover'}}/>}

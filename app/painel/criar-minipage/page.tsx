@@ -616,7 +616,7 @@ export default function CriarMiniPage() {
   const [youtubeResultados, setYoutubeResultados] = useState<YoutubeImportItem[]>([])
   const [youtubeSelecionados, setYoutubeSelecionados] = useState<string[]>([])
   const [shortsSelecionados,setShortsSelecionados]=useState<YoutubeImportItem[]>([])
-  const [youtubeCanalDados, setYoutubeCanalDados] = useState<{nome:string;inscritos:number|null}|null>(null)
+  const [youtubeCanalDados, setYoutubeCanalDados] = useState<{nome:string;inscritos:number|null;fonte:string;canalId?:string}|null>(null)
   const [igConsultando,setIgConsultando] = useState(false)
   const [igErro,setIgErro] = useState('')
   const [igConsent,setIgConsent] = useState(false)
@@ -1109,7 +1109,7 @@ export default function CriarMiniPage() {
       // Apenas estatisticas devolvidas pela API oficial; sem valores ficticios.
       const quantidade = corpo.inscritosYoutube
       const inscritos = typeof quantidade === 'number' && Number.isSafeInteger(quantidade) && quantidade >= 0 ? quantidade : null
-      setYoutubeCanalDados({nome:typeof corpo.canal === 'string' ? corpo.canal : '',inscritos})
+      setYoutubeCanalDados({nome:typeof corpo.canal === 'string' ? corpo.canal : '',inscritos,fonte,canalId:typeof corpo.canalId==='string'?corpo.canalId:undefined})
       if (corpo.videos.length === 0) setYoutubeErro(tx.noPublicVideos)
     } catch (erro) {
       setYoutubeErro(erro instanceof Error ? erro.message : 'Não foi possível buscar o canal.')
