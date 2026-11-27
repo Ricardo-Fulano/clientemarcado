@@ -304,7 +304,7 @@ export default function PreviewInstagramPremium({ idioma, nome, slug, bio, fotoP
                     {videosMostrar.map(y => <div key={y.videoId} style={{minWidth:0,gridColumn:youtubeLayout==='grade' && videoReproduzindo===y.videoId?'1 / -1':undefined}}><YouTubeCard video={y} tema={tokensTema} compact={youtubeLayout==='grade' && videoReproduzindo!==y.videoId} reproduzindo={videoReproduzindo===y.videoId} onPlay={()=>setVideoReproduzindo(y.videoId)}/></div>)}
                   </div>
                 </section>}
-                {shortsMostrar.length>0&&<section aria-label="YouTube Shorts" style={{marginTop:16,textAlign:'left'}}><strong style={{fontSize:12,color:fore}}>YouTube Shorts</strong><div style={{display:'flex',gap:8,overflowX:'auto',marginTop:9}}>{shortsMostrar.map(v=><div key={v.videoId} style={{flex:'0 0 45%',minWidth:0}}><YouTubeCard video={v} tema={tokensTema} compact reproduzindo={videoReproduzindo===v.videoId} onPlay={()=>setVideoReproduzindo(v.videoId)}/></div>)}</div></section>}
+                {shortsMostrar.length>0&&<section aria-label="YouTube Shorts" style={{marginTop:16,textAlign:'left'}}><strong style={{fontSize:12,color:fore}}>YouTube Shorts</strong><div style={{display:'flex',gap:8,overflowX:'auto',marginTop:9}}>{shortsMostrar.map(v=><div key={v.videoId} style={{flex:'0 0 38%',minWidth:0}}><YouTubeCard video={v} tema={tokensTema} compact reproduzindo={videoReproduzindo===v.videoId} onPlay={()=>setVideoReproduzindo(v.videoId)}/></div>)}</div></section>}
               </div>
             </>
           ) : (
