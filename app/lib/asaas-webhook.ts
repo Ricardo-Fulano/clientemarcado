@@ -404,6 +404,12 @@ export async function processarEventoAsaas(deps: WebhookDeps, evento: any, bodyT
     const rejeitar = async (motivo: string, extra: Record<string, unknown> = {}) => { alerta('EVENTO REJEITADO: ' + motivo, { eventId, tipo, paymentId, userId, ...extra }); await fechar('rejeitado', motivo, { userId }); return ok('rejeitado', { motivo }) }
     const ignorar = async (motivo: string) => { log('EVENTO_IGNORADO', { eventId, tipo, motivo }); await fechar('ignorado', motivo, { userId }); return ok('ignorado', { motivo }) }
 
+    // Isencoes administrativas nao sofrem bloqueios por eventos de assinatura legada.
+    // Pagamentos reais continuam no fluxo financeiro normal para nao perder conciliacao.
+    if (acao !== 'pago' && ['parceria', 'cortesia', 'interno'].includes(perfil.modalidade_acesso)) {
+      return ignorar('modalidade isenta: evento financeiro nao altera acesso')
+    }
+
     // Maior vencimento ja APLICADO como pago para este usuario (para ordenar as obrigacoes)
     const ultimoVencimentoPago = async (): Promise<string | null> => {
       const { data, error } = await supabase.from('asaas_eventos').select('vencimento').eq('user_id', userId).eq('status', 'processado').in('tipo', PAGAMENTO).order('vencimento', { ascending: false }).limit(1)
@@ -618,8 +624,9 @@ export async function processarEventoAsaas(deps: WebhookDeps, evento: any, bodyT
       }
       const ultimo = await ultimoVencimentoPago()
       if (ultimo && vencEvt && vencEvt < ultimo) return ignorar(`evento de cobranca antiga (venc. ${vencEvt}) anterior ao ultimo pagamento aplicado (venc. ${ultimo})`)
-      const { error: erroUpd } = await supabase.from('perfis').update({ status_acesso: 'em_atraso', ...(tipo==='PAYMENT_OVERDUE'&&vencEvt&&/^\d{4}-\d{2}-\d{2}$/.test(vencEvt)?{inadimplencia_vencimento:vencEvt}:{inadimplencia_vencimento:null}) }).eq('user_id', userId)
+      const { data: alterados_erroUpd, error: erroUpd } = await supabase.from('perfis').update({ status_acesso: 'em_atraso', ...(tipo==='PAYMENT_OVERDUE'&&vencEvt&&/^\d{4}-\d{2}-\d{2}$/.test(vencEvt)?{inadimplencia_vencimento:vencEvt}:{inadimplencia_vencimento:null}) }).eq('user_id', userId).or('modalidade_acesso.is.null,modalidade_acesso.eq.comercial').select('user_id')
       if (erroUpd) throw new ErroTemporario('erro ao marcar atraso: ' + erroUpd.message)
+      if (!alterados_erroUpd?.length) return ignorar('perfil mudou ou passou a modalidade isenta')
       log('MARCADO_EM_ATRASO', { userId, tipo })
       await fechar('processado', null, { userId }); return ok('processado')
     }
@@ -644,8 +651,9 @@ export async function processarEventoAsaas(deps: WebhookDeps, evento: any, bodyT
 
       if (stAsaas === 'INACTIVE' || stAsaas === 'EXPIRED') {
         if (perfil.status_acesso === 'bloqueado') return ignorar('conta ja bloqueada')
-        const { error: erroBloq } = await supabase.from('perfis').update({ status_acesso: 'bloqueado' }).eq('user_id', userId)
+        const { data: alterados_erroBloq, error: erroBloq } = await supabase.from('perfis').update({ status_acesso: 'bloqueado' }).eq('user_id', userId).or('modalidade_acesso.is.null,modalidade_acesso.eq.comercial').select('user_id')
         if (erroBloq) throw new ErroTemporario('erro ao bloquear: ' + erroBloq.message)
+      if (!alterados_erroBloq?.length) return ignorar('perfil mudou ou passou a modalidade isenta')
         log('BLOQUEADO_ASSINATURA_INATIVA', { userId, tipo, statusAsaas: stAsaas })
         await fechar('processado', null, { userId }); return ok('processado')
       }
@@ -659,8 +667,9 @@ export async function processarEventoAsaas(deps: WebhookDeps, evento: any, bodyT
         if (!(bloq as any[])?.length) return ignorar('conta bloqueada por outro motivo: nao e desbloqueada automaticamente')
         const ate = perfil.plano_ativo_ate ? new Date(perfil.plano_ativo_ate) : null
         if (!ate || Number.isNaN(ate.getTime()) || ate <= new Date()) return ignorar('assinatura reativada, mas o periodo pago ja acabou: o acesso volta quando o proximo pagamento for confirmado')
-        const { error: erroLib } = await supabase.from('perfis').update({ status_acesso: 'ativo' }).eq('user_id', userId)
+        const { data: alterados_erroLib, error: erroLib } = await supabase.from('perfis').update({ status_acesso: 'ativo' }).eq('user_id', userId).or('modalidade_acesso.is.null,modalidade_acesso.eq.comercial').select('user_id')
         if (erroLib) throw new ErroTemporario('erro ao desbloquear: ' + erroLib.message)
+      if (!alterados_erroLib?.length) return ignorar('perfil mudou ou passou a modalidade isenta')
         await reverterBloqueiosDeInativacao('assinatura reativada')
         log('DESBLOQUEADO_ASSINATURA_REATIVADA', { userId, tipo })
         await fechar('processado', null, { userId }); return ok('processado')
@@ -674,8 +683,9 @@ export async function processarEventoAsaas(deps: WebhookDeps, evento: any, bodyT
     if (!perfil.gateway_subscription_id || perfil.gateway_subscription_id !== subId) return ignorar('assinatura cancelada nao e a atual do perfil (ex: duplicada removida)')
     if (perfil.status_acesso === 'cancelado') return ignorar('conta ja cancelada')
     if (perfil.status_acesso === 'aguardando_pagamento') return ignorar('assinatura removida antes do primeiro pagamento: o checkout cria outra')
-    const { error: erroCanc } = await supabase.from('perfis').update({ status_acesso: 'cancelado' }).eq('user_id', userId)
+    const { data: alterados_erroCanc, error: erroCanc } = await supabase.from('perfis').update({ status_acesso: 'cancelado' }).eq('user_id', userId).or('modalidade_acesso.is.null,modalidade_acesso.eq.comercial').select('user_id')
     if (erroCanc) throw new ErroTemporario('erro ao cancelar: ' + erroCanc.message)
+      if (!alterados_erroCanc?.length) return ignorar('perfil mudou ou passou a modalidade isenta')
     log('MARCADO_CANCELADO', { userId, tipo })
     await fechar('processado', null, { userId }); return ok('processado')
   } catch (err: any) {
