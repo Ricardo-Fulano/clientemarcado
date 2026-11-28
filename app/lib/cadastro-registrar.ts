@@ -1,4 +1,5 @@
 import crypto from 'crypto'
+import { consumirCodigo27 } from './auth-email-27'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { ehEmailJaCadastrado } from './auth-erros'
 import { criarPerfilInicial } from './perfil-inicial'
@@ -6,7 +7,7 @@ import { ehPlanoFree } from './planos'
 import { planoEstaNaOferta } from './comercial/planos-ofertados'
 import { normalizarTelefoneCadastro } from './telefone-cadastro-global'
 
-// Cadastro feito PELO SERVIDOR: cria o usuario ja confirmado (auth.admin.createUser com
+// Cadastro feito PELO SERVIDOR: exige código recebido por e-mail antes de criar o usuário (auth.admin.createUser com
 // email_confirm:true), cria o perfil, entrega uma sessao e nunca depende do interruptor
 // "Confirm email" do painel do Supabase. So roda no servidor (usa service_role).
 //
@@ -19,6 +20,7 @@ export type RegistroInput = {
   nome?: unknown; email?: unknown; senha?: unknown; termos?: unknown
   plano_tipo?: unknown; billing_cycle?: unknown; cupom?: unknown; website?: unknown; whatsapp?: unknown
   ip?: string | null
+  challengeId?: unknown; codigoEmail?: unknown
 }
 export type RegistroResultado = { status: number; body: Record<string, unknown> }
 
@@ -97,9 +99,14 @@ export async function registrarConta(
 
   const cupom = typeof input.cupom === 'string' && input.cupom.trim() && input.cupom.length <= 50 ? input.cupom.trim().toUpperCase() : null
 
-  // Cria o usuario JA CONFIRMADO. Nenhum e-mail do Supabase e enviado por este caminho.
+  // A titularidade é provada ANTES de criar a conta, com consumo atômico do código.
+  // App metadata é gravada pelo servidor, não por user_metadata editável.
+  if (!(await consumirCodigo27(supabase,email,input.challengeId,input.codigoEmail)))
+    return { status: 422, body: { codigo: 'EMAIL_CODIGO_INVALIDO', error: 'Código de confirmação inválido ou expirado.' } }
+  // Confirmação administrativa somente após a prova acima.
   const { data: criado, error: erroCriar } = await supabase.auth.admin.createUser({
     email, password: senha, email_confirm: true,
+    app_metadata: { mp27_email_verified: email },
     user_metadata: { nome_negocio: nome, nome_usuario: nome, cupom_indicacao: cupom, plano_tipo: plano, whatsapp },
   })
   if (erroCriar || !criado?.user) {

@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react'
 import { CreditCard, Crown, Store, Sparkles, CheckCircle2, MessageCircle, Users } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import PainelSidebar from '../../components/PainelSidebar'
+import {useIdiomaGlobal} from '../../components/IdiomaProviderGlobal'
+import {inadimplencia26Extra} from '../../lib/i18n-global/inadimplencia-26'
 import {
   normalizarPlano, obterNomePlano, obterPrecoPlano, obterLimiteProfissionais,
   obterLimiteCatalogos, ehPlanoFree, type PlanoTipo,
@@ -160,6 +162,8 @@ function linkWpp(mensagem: string) {
 }
 
 export default function MeuPlano() {
+  const {idioma}=useIdiomaGlobal()
+  const extra=inadimplencia26Extra(idioma)
   const [carregando, setCarregando] = useState(true)
   const [perfil, setPerfil] = useState<any>(null)
   const [totalProfissionais, setTotalProfissionais] = useState(0)
@@ -211,6 +215,7 @@ export default function MeuPlano() {
     }
 
     // Conta Free pode contratar plano novo. Contas pagas/Asaas continuam no suporte.
+    if(planoAtual==='free'&&perfil?.motivo_downgrade==='inadimplencia')return (<a href={linkWpp('Olá! Preciso regularizar minha assinatura existente da MiniPage Pro.')} target="_blank" rel="noopener noreferrer" style={{display:'block',textAlign:'center',background:'#C9FA45',color:'#0B0A10',borderRadius:12,padding:12,fontWeight:800}}>{extra[0]}</a>)
     if(planoAtual==='free')return (
       <Link href={`/painel/contratar?plan=${tipoAlvo}`} style={{display:'block',textAlign:'center',background:'#C9FA45',color:'#0B0A10',borderRadius:12,padding:12,fontSize:13,fontWeight:800,textDecoration:'none'}}>Contratar {obterNomePlano(tipoAlvo)}</Link>
     )

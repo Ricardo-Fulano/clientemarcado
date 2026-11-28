@@ -4,7 +4,9 @@ import { useIdiomaGlobal } from '../components/IdiomaProviderGlobal'
 import { textoInterface } from '../lib/i18n-global/telas-core'
 import { useState } from 'react'
 import { supabase } from '../lib/supabase'
-import { destinoAposLogin } from '../lib/oauthConsent'
+import { resolverDestinoLogin } from '../lib/destino-login-social'
+import BotaoGoogle from '../components/BotaoGoogle'
+import { googleCobrancaCopy } from '../lib/i18n-global/google-cobranca'
 
 export default function Login() {
   const { t, idioma } = useIdiomaGlobal()
@@ -17,7 +19,19 @@ export default function Login() {
   const [recuperando, setRecuperando] = useState(false)
   const [msgRecuperar, setMsgRecuperar] = useState('')
 
+  const [googleBusy,setGoogleBusy]=useState(false)
+  const googleEnabled=process.env.NEXT_PUBLIC_MP_GOOGLE_OAUTH_ENABLED==='true' && process.env.NEXT_PUBLIC_MP_GOOGLE_AUTH_READY==='true'
+  async function entrarGoogle(){
+    if(!googleEnabled||googleBusy||loading)return
+    setGoogleBusy(true);setMensagem('')
+    try{
+      sessionStorage.setItem('mp25_google_flow',JSON.stringify({kind:'login',search:window.location.search,at:Date.now()}))
+      const {error}=await supabase.auth.signInWithOAuth({provider:'google',options:{redirectTo:window.location.origin+'/auth/concluir-social',scopes:'openid email profile',queryParams:{prompt:'select_account'}}})
+      if(error)throw error
+    }catch{setMensagem(googleCobrancaCopy(idioma)[3]);setGoogleBusy(false)}
+  }
   async function handleLogin() {
+    if(googleBusy||loading)return
     setLoading(true)
     setMensagem('')
     setMsgRecuperar('')
@@ -27,35 +41,7 @@ export default function Login() {
     else {
       // OAuth tem prioridade. Em login comum, retome uma contratacao Stripe pendente
       // salva no servidor, sem criar outra sessao ou liberar recursos pagos.
-      const destino = destinoAposLogin(window.location.search)
-      if (destino !== '/painel') {
-        window.location.replace(destino)
-      } else {
-        let proximo = '/painel'
-        try {
-          const token = data.session?.access_token
-          if (token) {
-            const resposta = await fetch('/api/billing/stripe/pending-resume', {
-              headers: { Authorization: 'Bearer ' + token }, cache: 'no-store',
-            })
-            if (resposta.ok) {
-              const pendente = await resposta.json() as {
-                pending?: boolean; plan?: string; cycle?: string; country?: string
-              }
-              if (pendente.pending === true &&
-                  ['minipage','agenda','loja','essencial'].includes(pendente.plan || '') &&
-                  ['mensal','anual'].includes(pendente.cycle || '') &&
-                  /^[A-Z]{2}$/.test(pendente.country || '') && pendente.country !== 'BR') {
-                const q = new URLSearchParams({
-                  plan: pendente.plan!, cycle: pendente.cycle!, market: 'INTL', confirm: '1',
-                })
-                proximo = '/painel/contratar?' + q.toString()
-              }
-            }
-          }
-        } catch { /* Consulta de retomada indisponivel: login convencional continua seguro. */ }
-        window.location.replace(proximo)
-      }
+      window.location.replace(await resolverDestinoLogin(window.location.search,data.session?.access_token))
     }
     setLoading(false)
   }
@@ -361,6 +347,7 @@ export default function Login() {
 
         {/* Card */}
         <div className="card">
+          {googleEnabled&&<BotaoGoogle busy={googleBusy} disabled={loading} onClick={entrarGoogle}/>}
           <div className="campos">
             <div>
               <label className="lbl">{t('account.email')}</label>
@@ -410,7 +397,7 @@ export default function Login() {
             </div>
           )}
 
-          <button onClick={handleLogin} disabled={loading} className="btn-entrar">
+          <button onClick={handleLogin} disabled={loading||googleBusy} className="btn-entrar">
             {loading ? tr('login.signingIn') : (
               <>
                 {tr('login.enterPanel')}

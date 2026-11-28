@@ -577,7 +577,7 @@ export async function processarEventoAsaas(deps: WebhookDeps, evento: any, bodyT
       const atual = perfil.plano_ativo_ate ? new Date(perfil.plano_ativo_ate) : null
       const novoFim = atual && !Number.isNaN(atual.getTime()) && atual > fim ? atual : fim   // nunca reduz
 
-      const { data: perfisAtualizados, error: erroUpd } = await supabase.from('perfis').update({ status_acesso: 'ativo', gateway: 'asaas', plano_ativo_ate: novoFim.toISOString() }).eq('user_id', userId).eq('plano_tipo', perfil.plano_tipo).eq('status_acesso', perfil.status_acesso).select('user_id')
+      const { data: perfisAtualizados, error: erroUpd } = await supabase.from('perfis').update({ status_acesso: 'ativo', gateway: 'asaas', plano_ativo_ate: novoFim.toISOString(), inadimplencia_vencimento:null }).eq('user_id', userId).eq('plano_tipo', perfil.plano_tipo).eq('status_acesso', perfil.status_acesso).select('user_id')
       if (erroUpd) throw new ErroTemporario('erro ao liberar acesso: ' + erroUpd.message)
       if (!perfisAtualizados?.length) throw new ErroTemporario('perfil mudou durante processamento; exige nova conciliacao')
       log('ACESSO_LIBERADO', { userId, tipo, paymentId, ate: novoFim.toISOString().slice(0, 10) })
@@ -618,7 +618,7 @@ export async function processarEventoAsaas(deps: WebhookDeps, evento: any, bodyT
       }
       const ultimo = await ultimoVencimentoPago()
       if (ultimo && vencEvt && vencEvt < ultimo) return ignorar(`evento de cobranca antiga (venc. ${vencEvt}) anterior ao ultimo pagamento aplicado (venc. ${ultimo})`)
-      const { error: erroUpd } = await supabase.from('perfis').update({ status_acesso: 'em_atraso' }).eq('user_id', userId)
+      const { error: erroUpd } = await supabase.from('perfis').update({ status_acesso: 'em_atraso', ...(tipo==='PAYMENT_OVERDUE'&&vencEvt&&/^\d{4}-\d{2}-\d{2}$/.test(vencEvt)?{inadimplencia_vencimento:vencEvt}:{inadimplencia_vencimento:null}) }).eq('user_id', userId)
       if (erroUpd) throw new ErroTemporario('erro ao marcar atraso: ' + erroUpd.message)
       log('MARCADO_EM_ATRASO', { userId, tipo })
       await fechar('processado', null, { userId }); return ok('processado')

@@ -4,7 +4,7 @@ import type { EmailSender, EnvioResultado } from './convite-criar'
 
 export const REMETENTE = 'ClienteMarcado <noreply@clientemarcado.com.br>'
 
-export function criarEnvioResend(apiKey: string, opts: { fetchImpl?: typeof fetch; timeoutMs?: number } = {}): EmailSender {
+export function criarEnvioResend(apiKey: string, opts: { fetchImpl?: typeof fetch; timeoutMs?: number; from?: string } = {}): EmailSender {
   const f = opts.fetchImpl ?? fetch
   const timeoutMs = opts.timeoutMs ?? 15_000
   return {
@@ -14,7 +14,7 @@ export function criarEnvioResend(apiKey: string, opts: { fetchImpl?: typeof fetc
         res = await f('https://api.resend.com/emails', {
           method: 'POST',
           headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json', 'Idempotency-Key': chaveIdempotencia },
-          body: JSON.stringify({ from: REMETENTE, to: [msg.para], subject: msg.assunto, html: msg.html }),
+          body: JSON.stringify({ from: opts.from ?? REMETENTE, to: [msg.para], subject: msg.assunto, html: msg.html }),
           signal: AbortSignal.timeout(timeoutMs),
         })
       } catch (e) {

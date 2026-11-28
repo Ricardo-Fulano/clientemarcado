@@ -53,12 +53,23 @@ export async function POST(request: NextRequest) {
     if (erroVinculo) { console.error('[criar-perfil] PERFIL_VERIFICACAO_EQUIPE_FALHOU', JSON.stringify({ erro: erroVinculo.message })); return NextResponse.json({ error: 'Erro interno' }, { status: 500 }) }
     if (vinculos && vinculos.length > 0) return NextResponse.json({ ok: true, criado: false, motivo: 'PROFISSIONAL_DE_EQUIPE' })
 
+    // Google: only new profiles require terms. Existing profiles and team access already returned above.
+    // Do not trust user_metadata for authorization or for the terms timestamp.
+    const googleIdentity = sess.user.identities?.some(i=>i.provider==='google') === true || sess.user.app_metadata?.provider==='google'
+    const body = await request.json().catch(()=>null)
+    if(googleIdentity && sess.user.app_metadata?.mp_social_terms_at == null){
+      if(body?.termos!==true)return NextResponse.json({codigo:'TERMOS_SOCIAL'}, {status:428})
+      const {error:termsError}=await supabase.auth.admin.updateUserById(userId,{app_metadata:{mp_social_terms_at:new Date().toISOString(),mp_social_terms_version:'2026-11-27'}})
+      if(termsError)return NextResponse.json({error:'Erro interno'}, {status:500})
+    }
+    const socialIdentity=googleIdentity||sess.user.identities?.some(i=>i.provider==='apple')===true||sess.user.app_metadata?.provider==='apple'
+    const cupomSocial=socialIdentity&&typeof body?.cupom==='string'&&/^[A-Z0-9]{1,50}$/.test(body.cupom)?body.cupom:null
     // 3) cria FREE (plano e ciclo fixos no servidor)
     const r = await criarPerfilInicial(supabase, {
       userId, email: sess.user.email || '', nome_negocio: nomeDoNegocio(sess.user.user_metadata),
       plano_tipo: 'free', billing_cycle: null,
       // Código recebido após OAuth; criarPerfilInicial verifica se o parceiro está ativo.
-      cupom: typeof sess.user.user_metadata?.cupom_indicacao === 'string' ? sess.user.user_metadata.cupom_indicacao : null,
+      cupom: socialIdentity ? cupomSocial : (typeof sess.user.user_metadata?.cupom_indicacao === 'string' ? sess.user.user_metadata.cupom_indicacao : null),
     })
     if (!r.ok) { console.error('[criar-perfil] PERFIL_CRIACAO_FALHOU', JSON.stringify({ erro: r.erro })); return NextResponse.json({ error: 'Erro ao criar perfil' }, { status: 500 }) }
     return NextResponse.json(r.criado ? { ok: true, criado: true, slug: r.slug } : { ok: true, criado: false, motivo: 'JA_EXISTE' })

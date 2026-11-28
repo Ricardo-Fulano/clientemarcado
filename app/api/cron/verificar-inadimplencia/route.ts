@@ -4,7 +4,7 @@ import { avaliarAmbienteAsaas } from '../../../lib/asaas-ambiente'
 import { executarCicloRecorrente, pertenceAoRecorrente } from '../../../lib/billing/asaas/ciclo-operacional'
 import {
   avaliarElegibilidadeDowngrade,
-  cincoDiasCompletos,
+  oitavoDiaAtraso,
 } from '../../../lib/inadimplencia'
 import {
   listarCobrancasAssinatura,
@@ -356,7 +356,7 @@ export async function GET(request: NextRequest) {
         }
 
         // 6. Identificar TODAS as cobrancas
-        // OVERDUE que completaram cinco dias.
+        // OVERDUE que atingiram o oitavo dia.
         //
         // Nao ignorar uma cobranca anterior
         // apenas porque existe uma mensalidade
@@ -370,7 +370,7 @@ export async function GET(request: NextRequest) {
               return false
             }
 
-            return cincoDiasCompletos(
+            return oitavoDiaAtraso(
               cobranca.dueDate,
               agora
             )
@@ -487,7 +487,7 @@ export async function GET(request: NextRequest) {
           !pagamentoFinal ||
           pagamentoFinal.status !== 'OVERDUE' ||
           pagamentoFinal.dueDate !== alvo.dueDate ||
-          !cincoDiasCompletos(alvo.dueDate!, Date.now()) ||
+          !oitavoDiaAtraso(alvo.dueDate!, Date.now()) ||
           // Conservador: recusar mensalidades posteriores pagas.
           revisao.cobrancas.some(
             (c) => STATUS_PAGOS.includes(c.status || '') &&

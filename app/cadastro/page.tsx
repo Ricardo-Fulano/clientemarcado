@@ -1,5 +1,8 @@
 'use client'
 import SeletorIdiomaGlobal from '../components/SeletorIdiomaGlobal'
+import BotaoGoogle from '../components/BotaoGoogle'
+import { auth27Copy } from '../lib/i18n-global/auth-27'
+import { googleCobrancaCopy } from '../lib/i18n-global/google-cobranca'
 import { useIdiomaGlobal } from '../components/IdiomaProviderGlobal'
 import { traduzirLanding } from '../lib/i18n-global/landing'
 import { textoInterface } from '../lib/i18n-global/telas-core'
@@ -121,6 +124,23 @@ export default function Cadastro() {
   const [cupomStatus, setCupomStatus] = useState<'idle'|'ok'|'erro'>('idle')
   const [nomeUsuario, setNomeUsuario] = useState('')
   const [email, setEmail] = useState('')
+  const [emailChallenge,setEmailChallenge]=useState<{id:string;email:string}|null>(null)
+  const [codigoEmail,setCodigoEmail]=useState('')
+  const [enviandoCodigo,setEnviandoCodigo]=useState(false)
+  const emailCopy=auth27Copy(idioma)
+  const challengeAtual=emailChallenge?.email===email.trim().toLowerCase()?emailChallenge:null
+  async function enviarCodigoEmail(){
+    if(enviandoCodigo||loading)return
+    const alvo=email.trim().toLowerCase()
+    if(!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(alvo)){setMensagem(emailCopy.email);return}
+    setEnviandoCodigo(true);setMensagem('')
+    try{
+      const r=await fetch('/api/cadastro/verificar-email',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:alvo,idioma,website:site})})
+      const d=await r.json()
+      if(!r.ok||typeof d.challengeId!=='string')throw Error('EMAIL')
+      setEmailChallenge({id:d.challengeId,email:alvo});setCodigoEmail('');setMensagem(emailCopy.sent)
+    }catch{setMensagem(emailCopy.error)}finally{setEnviandoCodigo(false)}
+  }
   const [senha, setSenha] = useState('')
   const [whatsapp, setWhatsapp] = useState('') // numero internacional completo, com +DDI
   const [whatsappTocado, setWhatsappTocado] = useState(false)
@@ -162,16 +182,18 @@ export default function Cadastro() {
     'de-DE':{or:'oder weiter mit',google:'Mit Google fortfahren',apple:'Mit Apple fortfahren',failed:'Verbindung fehlgeschlagen. Konfiguration prüfen.'},
     'it-IT':{or:'oppure continua con',google:'Continua con Google',apple:'Continua con Apple',failed:'Connessione non riuscita. Verifica la configurazione.'},
   }
-  const googleEnabled = process.env.NEXT_PUBLIC_MP_GOOGLE_OAUTH_ENABLED === 'true'
+  const googleEnabled = process.env.NEXT_PUBLIC_MP_GOOGLE_OAUTH_ENABLED === 'true' && process.env.NEXT_PUBLIC_MP_GOOGLE_AUTH_READY === 'true'
   const appleEnabled = process.env.NEXT_PUBLIC_MP_APPLE_OAUTH_ENABLED === 'true'
   const oauthText = oauthLabels[idioma] || oauthLabels['pt-BR']
   async function iniciarOAuth(provider: 'google'|'apple') {
     if (provider === 'google' ? !googleEnabled : !appleEnabled) return
-    if (!aceitou) {setMensagem(consentimento.inicio+' '+consentimento.fim);return}
+    if (!aceitou) {setMensagem(googleCobrancaCopy(idioma)[4]);document.getElementById('aceite')?.focus();return}
     setOauthLoading(provider); setMensagem('')
     try {
-      if (cupom.trim()) localStorage.setItem('cm_cupom',cupom.trim())
-      const {error} = await supabase.auth.signInWithOAuth({provider,options:{redirectTo:`${window.location.origin}/auth/concluir-social`}})
+      const codigo=cupom.trim().toUpperCase()
+      if(codigo){const r=await fetch('/api/publico/validar-cupom?cupom='+encodeURIComponent(codigo));if(!r.ok||!(await r.json())?.valido){setMensagem(googleCobrancaCopy(idioma)[16]);setOauthLoading(null);return}}
+      sessionStorage.setItem('mp25_google_flow',JSON.stringify({kind:'signup',accepted:true,cupom:codigo,at:Date.now()}))
+      const {error} = await supabase.auth.signInWithOAuth({provider,options:{redirectTo:`${window.location.origin}/auth/concluir-social`,...(provider==='google'?{scopes:'openid email profile',queryParams:{prompt:'select_account'}}:{})}})
       if(error) {setMensagem(oauthText.failed);setOauthLoading(null)}
     } catch {setMensagem(oauthText.failed);setOauthLoading(null)}
   }
@@ -286,6 +308,8 @@ export default function Cadastro() {
       return
     }
     const planoTipo = planoSalvo
+    if(!challengeAtual){await enviarCodigoEmail();return}
+    if(!/^\d{6}$/.test(codigoEmail)){setMensagem(emailCopy.invalid);return}
     setLoading(true)
     setMensagem('')
     // O cadastro e feito PELO SERVIDOR (/api/cadastro/registrar): ele cria a conta ja
@@ -312,7 +336,7 @@ export default function Cadastro() {
       const res = await fetch('/api/cadastro/registrar', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ nome: nomeUsuario, email, senha, termos: true, plano_tipo: planoTipo, billing_cycle: billingCycleParaExibicao, cupom: cupom && cupom.trim() ? cupom.trim() : null, whatsapp: whatsappNormalizado ? '+' + whatsappNormalizado : null, website: site }),
+        body: JSON.stringify({ nome: nomeUsuario, email, senha, termos: true, plano_tipo: planoTipo, billing_cycle: billingCycleParaExibicao, cupom: cupom && cupom.trim() ? cupom.trim() : null, whatsapp: whatsappNormalizado ? '+' + whatsappNormalizado : null, website: site, challengeId:challengeAtual.id,codigoEmail }),
       })
       const dados = await res.json().catch(() => ({}))
 
@@ -325,6 +349,7 @@ export default function Cadastro() {
         return
       }
       if (!res.ok) {
+        if(dados.codigo==='EMAIL_CODIGO_INVALIDO'){setMensagem(emailCopy.invalid);setLoading(false);return}
         setMensagem(dados.error || 'Não conseguimos concluir seu cadastro agora. Tente novamente ou fale com nosso suporte.')
         setLoading(false)
         return
@@ -445,6 +470,37 @@ export default function Cadastro() {
     .btn-whatsapp:hover { background: rgba(34,197,94,0.16); }
     .confirmar-botoes { display: flex; flex-direction: column; gap: 10px; margin-top: 20px; }
   `
+  const camposCadastro = (
+            <div className="campos">
+              {!ehPlanoFree(planoParaExibicao) && <div>
+                <label className="label">{tr('signup.yourName')}</label>
+                <input type="text" placeholder="Ex: Ana Carolina" value={nomeUsuario} onChange={e => setNomeUsuario(e.target.value)} className="input" />
+              </div>}
+              <div>
+                <label className="label">{t('account.email')}</label>
+                <input type="email" placeholder="ana@email.com" value={email} onChange={e => setEmail(e.target.value)} className="input" />
+              </div>
+              {!ehPlanoFree(planoParaExibicao) && (<>
+              <div>
+                <label className="label" htmlFor="cadastro-telefone-global">{textoGlobal.telefone}</label>
+                <input id="cadastro-telefone-global" type="tel" inputMode="tel" autoComplete="tel" placeholder="+55 11 99999 9999" value={whatsapp} onChange={e => setWhatsapp(e.target.value)} onBlur={() => setWhatsappTocado(true)} className="input" aria-invalid={whatsappTocado && !normalizarTelefoneCadastro(whatsapp)} aria-describedby="cadastro-telefone-ajuda" />
+                {whatsappTocado && !normalizarTelefoneCadastro(whatsapp) && (
+                  <p role="alert" style={{fontSize:'11px',color:'#FF9A9A',marginTop:'5px'}}>{textoGlobal.telefoneErro}</p>
+                )}
+                <p id="cadastro-telefone-ajuda" style={{fontSize:'11px',color:'#B9B0C9',marginTop:'5px'}}>{textoGlobal.telefoneAjuda}</p>
+              </div>
+              </>)}
+              <div>
+                <label className="label">{t('account.password')}</label>
+                <div className="senha-wrap">
+                  <input type={mostrarSenha ? 'text' : 'password'} placeholder={tr('signup.passwordMin')} value={senha} onChange={e => setSenha(e.target.value)} className="input" />
+                  <button className="olho" type="button" onClick={() => setMostrarSenha(!mostrarSenha)}>
+                    {mostrarSenha ? <EyeOffIcon /> : <EyeIcon />}
+                  </button>
+                </div>
+              </div>
+            </div>
+  )
   return (
     <div className="pg">
       <style>{css}</style>
@@ -495,35 +551,7 @@ export default function Cadastro() {
             <p className="card-sub">{textoGlobal.card}</p>
             {ehPlanoFree(planoParaExibicao) && <p style={{fontSize:"12px",color:"#C9FA45",marginBottom:"12px"}}>{consentimento.aviso}</p>}
             {slugDesejado && <p role="status" style={{padding:'11px 13px',border:'1px solid #55426A',borderRadius:'10px',background:'#21182D',color:'#F5F2FF',fontSize:'13px',marginBottom:'13px',overflowWrap:'anywhere'}}>{textoGlobal.endereco}: <strong style={{color:'#C9FA45'}}>minipage.pro/{slugDesejado}</strong><br/><span style={{fontSize:'11px',color:'#B9B0C9'}}>{textoGlobal.slugAviso}</span></p>}
-            <div className="campos">
-              {!ehPlanoFree(planoParaExibicao) && <div>
-                <label className="label">{tr('signup.yourName')}</label>
-                <input type="text" placeholder="Ex: Ana Carolina" value={nomeUsuario} onChange={e => setNomeUsuario(e.target.value)} className="input" />
-              </div>}
-              <div>
-                <label className="label">{t('account.email')}</label>
-                <input type="email" placeholder="ana@email.com" value={email} onChange={e => setEmail(e.target.value)} className="input" />
-              </div>
-              {!ehPlanoFree(planoParaExibicao) && (<>
-              <div>
-                <label className="label" htmlFor="cadastro-telefone-global">{textoGlobal.telefone}</label>
-                <input id="cadastro-telefone-global" type="tel" inputMode="tel" autoComplete="tel" placeholder="+55 11 99999 9999" value={whatsapp} onChange={e => setWhatsapp(e.target.value)} onBlur={() => setWhatsappTocado(true)} className="input" aria-invalid={whatsappTocado && !normalizarTelefoneCadastro(whatsapp)} aria-describedby="cadastro-telefone-ajuda" />
-                {whatsappTocado && !normalizarTelefoneCadastro(whatsapp) && (
-                  <p role="alert" style={{fontSize:'11px',color:'#FF9A9A',marginTop:'5px'}}>{textoGlobal.telefoneErro}</p>
-                )}
-                <p id="cadastro-telefone-ajuda" style={{fontSize:'11px',color:'#B9B0C9',marginTop:'5px'}}>{textoGlobal.telefoneAjuda}</p>
-              </div>
-              </>)}
-              <div>
-                <label className="label">{t('account.password')}</label>
-                <div className="senha-wrap">
-                  <input type={mostrarSenha ? 'text' : 'password'} placeholder={tr('signup.passwordMin')} value={senha} onChange={e => setSenha(e.target.value)} className="input" />
-                  <button className="olho" type="button" onClick={() => setMostrarSenha(!mostrarSenha)}>
-                    {mostrarSenha ? <EyeOffIcon /> : <EyeIcon />}
-                  </button>
-                </div>
-              </div>
-            </div>
+            {(!ehPlanoFree(planoParaExibicao)||!googleEnabled)&&camposCadastro}
             {mensagem && (
               <div className={mensagem.startsWith('Erro') ? 'msg-err' : 'msg-ok'}>
                 {mensagem}
@@ -546,8 +574,14 @@ export default function Cadastro() {
               <button type="button" onClick={() => setMostrarCupom(true)} style={{display:'block',background:'transparent',border:0,color:'#D5CBE2',textDecoration:'underline',marginBottom:'13px',cursor:'pointer',fontSize:'12px'}}>{tr('signup.coupon')} +</button>
             )}
             <div style={{marginBottom:'14px',display:'flex',alignItems:'flex-start',gap:'10px'}}><input type="checkbox" id="aceite" checked={aceitou} onChange={e=>setAceitou(e.target.checked)} style={{marginTop:'2px',accentColor:'#8B5CF6',width:'15px',height:'15px',flexShrink:0,cursor:'pointer'}} /><label htmlFor="aceite" style={{fontSize:'12px',color:'#B8AAB8',lineHeight:1.5,cursor:'pointer'}}>{consentimento.inicio} <a href="/contrato-de-adesao" target="_blank" rel="noreferrer" onClick={()=>{if(cupom&&typeof window!=='undefined')localStorage.setItem('cm_cupom',cupom)}} style={{color:'#8B5CF6',textDecoration:'none',fontWeight:600}}>{idioma === 'en-US' ? 'terms of use and agreement' : idioma === 'es-ES' ? 'términos de uso y acuerdo' : idioma === 'fr-FR' ? 'conditions d’utilisation et contrat' : idioma === 'de-DE' ? 'Nutzungsbedingungen und Vereinbarung' : idioma === 'it-IT' ? 'termini di utilizzo e contratto' : 'termos de uso e contrato de adesão'}</a> {consentimento.fim}</label></div>
+            {ehPlanoFree(planoParaExibicao)&&googleEnabled&&<BotaoGoogle busy={oauthLoading==='google'} disabled={loading||!!oauthLoading} onClick={()=>iniciarOAuth('google')}/>}
+            {ehPlanoFree(planoParaExibicao)&&googleEnabled&&camposCadastro}
+            <div style={{margin:'12px 0'}}>
+              {challengeAtual&&<><label htmlFor="mp27-code" style={{display:'block',fontSize:12,marginBottom:6}}>{emailCopy.code}</label><input id="mp27-code" type="text" inputMode="numeric" autoComplete="one-time-code" maxLength={6} value={codigoEmail} onChange={e=>setCodigoEmail(e.target.value.replace(/[^0-9]/g,''))} style={{width:'100%',padding:12,border:'1px solid #655778',borderRadius:10,background:'#21182D',color:'#fff',boxSizing:'border-box'}}/><p style={{fontSize:12,marginTop:6,color:'#C5BCD1'}}>{emailCopy.sent}</p></>}
+              <button type="button" disabled={enviandoCodigo||loading||!!oauthLoading} onClick={()=>void enviarCodigoEmail()} style={{marginTop:8,background:'transparent',color:'#C9FA45',border:'1px solid #655778',borderRadius:10,padding:10,width:'100%',cursor:'pointer'}}>{enviandoCodigo?'…':challengeAtual?emailCopy.resend:emailCopy.send}</button>
+            </div>
             <input type="text" name="website" value={site} onChange={e => setSite(e.target.value)} tabIndex={-1} autoComplete="off" aria-hidden="true" style={{ position: 'absolute', left: '-9999px', width: '1px', height: '1px', opacity: 0 }} />
-            <button onClick={handleCadastro} disabled={loading} className="btn-criar">
+            <button onClick={handleCadastro} disabled={loading||enviandoCodigo||!!oauthLoading} className="btn-criar">
               {loading ? tr('signup.creating') : (
                 <>
                   {tr('signup.createMine')}
@@ -557,10 +591,10 @@ export default function Cadastro() {
                 </>
               )}
             </button>
-            {ehPlanoFree(planoParaExibicao) && (googleEnabled || appleEnabled) && <div style={{margin:'16px 0',textAlign:'center'}}>
+            {ehPlanoFree(planoParaExibicao) && appleEnabled && <div style={{margin:'16px 0',textAlign:'center'}}>
               <div style={{color:'#B9B0C9',fontSize:12,marginBottom:12}}>{oauthText.or}</div>
               <div style={{display:'grid',gap:9}}>
-                {googleEnabled && <button type="button" disabled={!!oauthLoading||loading} onClick={()=>iniciarOAuth('google')} style={{background:'#201928',color:'#F9F6FD',border:'1px solid #55465D',padding:13,borderRadius:12,fontWeight:650,cursor:'pointer'}}>{oauthLoading==='google'?'…':oauthText.google}</button>}
+
                 {appleEnabled && <button type="button" disabled={!!oauthLoading||loading} onClick={()=>iniciarOAuth('apple')} style={{background:'#201928',color:'#F9F6FD',border:'1px solid #55465D',padding:13,borderRadius:12,fontWeight:650,cursor:'pointer'}}>{oauthLoading==='apple'?'…':oauthText.apple}</button>}
               </div>
             </div>}

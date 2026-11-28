@@ -2,8 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { registrarConta } from '../../../lib/cadastro-registrar'
 
-// Cadastro de conta nova. Roda no servidor: cria o usuario ja confirmado (sem e-mail de
-// confirmacao), o perfil, e devolve a sessao. Ver app/lib/cadastro-registrar.ts.
+// Cadastro de conta nova: exige prova de titularidade por código antes de criar o usuário.
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json().catch(() => null)

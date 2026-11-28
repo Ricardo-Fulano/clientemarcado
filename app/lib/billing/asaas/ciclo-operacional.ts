@@ -1,7 +1,7 @@
 import type {SupabaseClient} from '@supabase/supabase-js'
 import {asaas,attemptTable,configured,identifier,minor,type Attempt} from './recorrente'
 import {reconcileExistingAttempt,readAuthorization,verifySubscription,verifyPayment} from './webhook-recorrente'
-import {cincoDiasCompletos} from '../../inadimplencia'
+import {oitavoDiaAtraso} from '../../inadimplencia'
 const terminalAuth = ['CANCELLED','EXPIRED','REFUSED']
 const paid = ['CONFIRMED','RECEIVED']
 export async function pertenceAoRecorrente(db:SupabaseClient,userId:string,customerId:string|null){
@@ -30,7 +30,7 @@ async function revisarVigencia(db:SupabaseClient,a:Attempt){
  if(!Array.isArray(list.data)||list.hasMore!==false||!list.data.length||list.data.some((p:any)=>p.customer!==a.customer_id||!identifier(p.id)||minor(p.value)!==a.amount_minor))throw new Error('PAYMENT_LIST_REVIEW')
  if(active&&a.subscription_id){
   const due=list.data.filter((p:any)=>p.subscription===a.subscription_id&&p.status==='OVERDUE').sort((x:any,y:any)=>String(x.dueDate).localeCompare(String(y.dueDate)))[0]
-  if(!due||!cincoDiasCompletos(due.dueDate,Date.now()))return 'skip'
+  if(!due||!oitavoDiaAtraso(due.dueDate,Date.now()))return 'skip'
   if(list.data.some((p:any)=>paid.includes(p.status)&&String(p.dueDate)>=String(due.dueDate)))throw new Error('OVERDUE_PERIOD_REVIEW')
   await verifyPayment(db,a,due.id,'PAYMENT_OVERDUE')
   const p=await asaas('/payments/'+encodeURIComponent(due.id));if(p.id!==due.id||p.customer!==a.customer_id||p.subscription!==a.subscription_id||p.status!=='OVERDUE'||p.dueDate!==due.dueDate||p.deleted===true||minor(p.value)!==a.amount_minor)throw new Error('OVERDUE_REVALIDATION')
@@ -52,7 +52,13 @@ export async function executarCicloRecorrente(db:SupabaseClient){
  // Fair rotation; webhook remains primary. Bounded fallback for missing events, not high-frequency polling.
  const {data,error}=await db.from(attemptTable).select('*').neq('status','closed').order('last_reconciled_at',{ascending:true,nullsFirst:true}).limit(2)
  if(error)throw new Error('RECURRING_BATCH_READ')
- for(const row of data||[]){
+ const overdue=await db.rpc('mp26_asaas_candidatos',{p_limit:6})
+ // Schema ainda nao instalado: preservar a rotacao existente, mas nunca ignorar outros erros.
+ if(overdue.error&&overdue.error.code!=='PGRST202')throw new Error('OVERDUE_ATTEMPTS_READ')
+ const queue=[...new Map([...(overdue.error?[]:overdue.data||[]),...(data||[])].map(x=>[x.attempt_id,x])).values()]
+ const started=Date.now()
+ for(const row of queue){
+  if(Date.now()-started>20000)break
   const a=row as Attempt
   try{
    const now=new Date(),cutoff=new Date(now.getTime()-60000).toISOString()

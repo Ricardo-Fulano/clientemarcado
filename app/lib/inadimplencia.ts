@@ -1,71 +1,23 @@
-
-const DIA_MS = 24 * 60 * 60 * 1000
-
-/**
- * MiniPage Pro - Prazo de inadimplencia.
- *
- * Verifica se terminaram cinco dias completos
- * APOS a data de vencimento, considerando
- * o calendario de Brasilia.
- *
- * Exemplo:
- * Vencimento: 10/11/2026
- * Primeiro dia de atraso: 11/11/2026
- * Quinto dia de atraso: 15/11/2026
- * Elegivel a partir de: 16/11/2026 00:00
- *
- * Esta regra corresponde ao SQL:
- * data_atual_brasilia >= vencimento + 6
- *
- * A funcao verifica SOMENTE o prazo.
- * Nao confirma inadimplencia e nao executa
- * nenhuma alteracao no Supabase ou Asaas.
- */
-export function cincoDiasCompletos(
-  vencimento: string,
-  agora: number = Date.now()
-): boolean {
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(vencimento)) {
-    return false
-  }
-
-  if (!Number.isFinite(agora)) {
-    return false
-  }
-
-  const inicioVencimento = Date.parse(
-    `${vencimento}T00:00:00-03:00`
-  )
-
-  if (!Number.isFinite(inicioVencimento)) {
-    return false
-  }
-
-  // Rejeita datas impossiveis, como 31/02.
-  const dataConferida = new Date(inicioVencimento)
-    .toLocaleDateString('en-CA', {
-      timeZone: 'America/Sao_Paulo',
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-    })
-
-  if (dataConferida !== vencimento) {
-    return false
-  }
-
-  // O vencimento termina na virada para o
-  // dia seguinte. Depois contamos cinco
-  // dias completos de atraso.
-  //
-  // Em termos de calendario:
-  // vencimento + 6 dias, as 00:00 de Brasilia.
-  const inicioElegibilidade =
-    inicioVencimento + 6 * DIA_MS
-
-  return agora >= inicioElegibilidade
+const DIA_MS = 86400000
+export const DIA_DOWNGRADE = 8
+export function diasCalendarioAtraso(vencimento:string, agora:number=Date.now()):number|null {
+ if(!/^\d{4}-\d{2}-\d{2}$/.test(vencimento)||!Number.isFinite(agora))return null
+ const venc=Date.parse(vencimento+'T00:00:00Z')
+ if(!Number.isFinite(venc)||new Date(venc).toISOString().slice(0,10)!==vencimento)return null
+ const hoje=new Intl.DateTimeFormat('en-CA',{timeZone:'America/Sao_Paulo',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date(agora))
+ const d=(Date.parse(hoje+'T00:00:00Z')-venc)/DIA_MS
+ return Number.isFinite(d)?Math.max(0,d):null
 }
-
+export function oitavoDiaAtraso(vencimento:string, agora:number=Date.now()):boolean {
+ const dias=diasCalendarioAtraso(vencimento,agora)
+ return dias!==null&&dias>=DIA_DOWNGRADE
+}
+// Compatibilidade com imports antigos; novos chamadores usam o nome correto.
+export const cincoDiasCompletos=oitavoDiaAtraso
+export function dataBrasilia(iso:string):string|null {
+ const ms=Date.parse(iso);if(!Number.isFinite(ms))return null
+ return new Intl.DateTimeFormat('en-CA',{timeZone:'America/Sao_Paulo',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date(ms))
+}
 /**
  * Tipos de pendencia que podem levar
  * uma conta comercial ao plano Free.
@@ -219,16 +171,16 @@ export function avaliarElegibilidadeDowngrade(
     )
   }
 
-  // 8. Verificar cinco dias completos de atraso.
+  // 8. Verificar sete dias completos de atraso.
   if (
     !dados.vencimento ||
-    !cincoDiasCompletos(
+    !oitavoDiaAtraso(
       dados.vencimento,
       dados.agora
     )
   ) {
     return recusar(
-      'Prazo de cinco dias nao confirmado'
+      'Oitavo dia de atraso nao atingido'
     )
   }
 
